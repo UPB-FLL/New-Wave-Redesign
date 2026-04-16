@@ -159,7 +159,7 @@ export default function SupportPage() {
           {/* Tickets Tab */}
           {activeTab === 'tickets' && (
             <div>
-              {tickets.length === 0 && !email ? (
+              {!email ? (
                 <div className="bg-gray-50 rounded-2xl p-8 text-center">
                   <div className="max-w-md mx-auto">
                     <h3 className="text-xl font-semibold mb-4" style={{ color: '#152232' }}>
