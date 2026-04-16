@@ -19,37 +19,40 @@ export default async function handler(req: any, res: any) {
     const superopsBaseUrl = process.env.SUPEROPS_BASE_URL || 'https://api.superops.ai/v1';
 
     if (!superopsApiKey) {
-      return res.status(500).json({ error: 'Superops API not configured' });
+      return res.status(500).json({ error: 'Superops API not configured', tickets: [] });
     }
 
-    // Fetch tickets from Superops API
-    const response = await fetch(`${superopsBaseUrl}/tickets`, {
+    // Fetch tickets from Superops API with customer email filter
+    const response = await fetch(`${superopsBaseUrl}/tickets?customer_email=${encodeURIComponent(email)}`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${superopsApiKey}`,
+        'Authorization': `${superopsApiKey}`,
         'Content-Type': 'application/json',
-        'X-Customer-Email': email,
+        'Accept': 'application/json',
       },
     });
 
     if (!response.ok) {
-      console.error('Superops API error:', response.statusText);
-      return res.status(response.status).json({
-        error: 'Failed to fetch tickets from support system',
-        tickets: []
+      console.error('Superops API error:', response.status, response.statusText);
+      // Return empty tickets array on error to maintain UX
+      return res.status(200).json({
+        success: false,
+        tickets: [],
+        count: 0,
+        error: 'No tickets found or API error'
       });
     }
 
     const data = await response.json();
 
     // Transform Superops data to our format
-    const tickets = (data.tickets || []).map((ticket: any) => ({
-      id: ticket.id,
-      subject: ticket.title || ticket.subject,
-      status: ticket.status?.toLowerCase() || 'open',
-      priority: ticket.priority?.toLowerCase() || 'medium',
-      createdAt: ticket.created_at || new Date().toISOString(),
-      updatedAt: ticket.updated_at || new Date().toISOString(),
+    const tickets = (Array.isArray(data) ? data : data.tickets || []).map((ticket: any) => ({
+      id: ticket.id || ticket._id,
+      subject: ticket.title || ticket.subject || 'Untitled',
+      status: (ticket.status || 'open').toLowerCase(),
+      priority: (ticket.priority || 'medium').toLowerCase(),
+      createdAt: ticket.created_at || ticket.createdAt || new Date().toISOString(),
+      updatedAt: ticket.updated_at || ticket.updatedAt || new Date().toISOString(),
       description: ticket.description || '',
     }));
 
@@ -60,9 +63,11 @@ export default async function handler(req: any, res: any) {
     });
   } catch (error) {
     console.error('Support tickets error:', error);
-    return res.status(500).json({
-      error: 'Failed to retrieve support tickets',
-      tickets: []
+    return res.status(200).json({
+      success: false,
+      tickets: [],
+      count: 0,
+      error: 'Failed to retrieve support tickets'
     });
   }
 }

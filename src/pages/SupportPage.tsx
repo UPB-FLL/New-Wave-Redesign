@@ -25,32 +25,45 @@ export default function SupportPage() {
   const [activeTab, setActiveTab] = useState<'tickets' | 'kb' | 'chat' | 'wave'>('tickets');
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState('');
   const [connectionCode, setConnectionCode] = useState('');
   const [remoteCode, setRemoteCode] = useState('');
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'connecting' | 'connected' | 'error'>('idle');
 
-  useEffect(() => {
-    if (email) {
-      fetchTickets();
-    }
-  }, [email]);
-
-  const fetchTickets = async () => {
+  const fetchTickets = async (emailToFetch?: string) => {
     setLoading(true);
+    setError(null);
     try {
+      const emailValue = emailToFetch || email;
+      if (!emailValue) {
+        setError('Please enter a valid email address');
+        setLoading(false);
+        return;
+      }
+
       const response = await fetch('/api/support/tickets', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: emailValue }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
+      const data = await response.json();
+
+      if (response.ok && data.success) {
         setTickets(data.tickets || []);
+        setEmail(emailValue);
+        if (data.count === 0) {
+          setError(null);
+        }
+      } else {
+        setTickets([]);
+        setError(data.error || 'Failed to fetch tickets. Please check your email and try again.');
       }
     } catch (error) {
       console.error('Failed to fetch tickets:', error);
+      setTickets([]);
+      setError('Unable to connect to support system. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -146,7 +159,7 @@ export default function SupportPage() {
           {/* Tickets Tab */}
           {activeTab === 'tickets' && (
             <div>
-              {!email ? (
+              {tickets.length === 0 && !email ? (
                 <div className="bg-gray-50 rounded-2xl p-8 text-center">
                   <div className="max-w-md mx-auto">
                     <h3 className="text-xl font-semibold mb-4" style={{ color: '#152232' }}>
@@ -160,11 +173,12 @@ export default function SupportPage() {
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && fetchTickets()}
                         placeholder="your@email.com"
                         className="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 outline-none focus:border-cyan-400"
                       />
                       <button
-                        onClick={fetchTickets}
+                        onClick={() => fetchTickets()}
                         disabled={!email || loading}
                         className="px-6 py-2.5 rounded-lg text-white font-medium transition-colors disabled:opacity-60"
                         style={{ background: '#39CCCC' }}
@@ -178,13 +192,58 @@ export default function SupportPage() {
                         {loading ? 'Loading...' : 'View Tickets'}
                       </button>
                     </div>
+                    {error && (
+                      <p style={{ color: '#FF4444', marginTop: '12px', fontSize: '14px' }}>
+                        {error}
+                      </p>
+                    )}
                   </div>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {tickets.length === 0 ? (
+                  <div className="flex items-center justify-between mb-4">
+                    <p style={{ color: 'rgba(21,34,50,0.6)' }}>
+                      Logged in as: <strong>{email}</strong>
+                    </p>
+                    <button
+                      onClick={() => {
+                        setEmail('');
+                        setTickets([]);
+                        setError(null);
+                      }}
+                      className="text-sm px-3 py-1 rounded-lg transition-colors"
+                      style={{
+                        color: '#39CCCC',
+                        border: '1px solid #39CCCC'
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(57,204,204,0.1)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                    >
+                      Logout
+                    </button>
+                  </div>
+
+                  {error && (
+                    <div className="bg-red-50 rounded-2xl p-4 text-center">
+                      <p style={{ color: '#FF4444' }}>{error}</p>
+                      <button
+                        onClick={() => fetchTickets()}
+                        className="mt-3 text-sm px-4 py-2 rounded-lg transition-colors"
+                        style={{
+                          color: '#39CCCC',
+                          border: '1px solid #39CCCC'
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(57,204,204,0.1)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  )}
+
+                  {tickets.length === 0 && !error ? (
                     <div className="bg-gray-50 rounded-2xl p-8 text-center">
-                      <p style={{ color: 'rgba(21,34,50,0.6)' }}>No support tickets found</p>
+                      <p style={{ color: 'rgba(21,34,50,0.6)' }}>No support tickets found for this email</p>
                     </div>
                   ) : (
                     tickets.map((ticket) => (
