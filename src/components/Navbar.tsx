@@ -1,20 +1,22 @@
 import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const LOGO_URL =
   'https://images.squarespace-cdn.com/content/v1/64c044f11baf2d14ebb899c6/fb59af7c-4a76-48a9-ab9d-88a58a54496e/new-wave-it-high-resolution-logo-transparent.png?format=500w';
 
 const navLinks = [
-  { label: 'Services', href: '#services' },
+  { label: 'Services', href: '/services' },
   { label: 'Cybersecurity', href: '/cybersecurity', isExternal: true },
-  { label: 'Why Us', href: '#why-us' },
-  { label: 'About', href: '#about' },
+  { label: 'Why Us', href: '/why-us' },
+  { label: 'About', href: '/about' },
   { label: 'Contact', href: '#contact' },
 ];
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -24,8 +26,17 @@ export default function Navbar() {
 
   const handleNavClick = (href: string) => {
     setIsOpen(false);
-    const el = document.querySelector(href);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    if (href.startsWith('#')) {
+      const el = document.querySelector(href);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      navigate(href);
+    }
+  };
+
+  const handleLogoClick = () => {
+    navigate('/');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -38,10 +49,9 @@ export default function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          <a
-            href="#"
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="flex items-center"
+          <button
+            onClick={handleLogoClick}
+            className="flex items-center hover:opacity-80 transition-opacity"
           >
             <img
               src={LOGO_URL}
@@ -49,9 +59,18 @@ export default function Navbar() {
               className="h-14 w-auto object-contain"
               style={{ mixBlendMode: 'multiply' }}
             />
-          </a>
+          </button>
 
           <div className="hidden md:flex items-center gap-8">
+            <button
+              onClick={() => navigate('/')}
+              className="text-sm font-medium transition-colors duration-200"
+              style={{ color: 'rgba(21,34,50,0.7)' }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = '#152232')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(21,34,50,0.7)')}
+            >
+              Home
+            </button>
             {navLinks.map((link) => {
               const isExternal = 'isExternal' in link && link.isExternal;
               if (isExternal) {
@@ -105,6 +124,16 @@ export default function Navbar() {
       {isOpen && (
         <div className="md:hidden bg-white border-t border-gray-100">
           <div className="px-6 py-4 flex flex-col gap-4">
+            <button
+              onClick={() => {
+                navigate('/');
+                setIsOpen(false);
+              }}
+              className="text-base font-medium text-left transition-colors"
+              style={{ color: 'rgba(21,34,50,0.7)' }}
+            >
+              Home
+            </button>
             {navLinks.map((link) => {
               const isExternal = 'isExternal' in link && link.isExternal;
               if (isExternal) {
