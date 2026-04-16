@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Star, Layers, HelpCircle, Info, Mail, AlignLeft, ArrowRight, DollarSign } from 'lucide-react';
+import { Star, Layers, HelpCircle, Info, Mail, AlignLeft, ArrowRight, DollarSign, Search } from 'lucide-react';
 
 const sections = [
   { label: 'Hero', path: '/admin/hero', icon: Star, desc: 'Headline, badge, stats, feature cards' },
@@ -9,6 +9,7 @@ const sections = [
   { label: 'About', path: '/admin/about', icon: Info, desc: 'Company story, years, team tagline' },
   { label: 'Contact', path: '/admin/contact', icon: Mail, desc: 'Phone, email, address, messages' },
   { label: 'Footer', path: '/admin/footer', icon: AlignLeft, desc: 'Tagline, contact info, links' },
+  { label: 'SEO Portal', path: '/admin/seo', icon: Search, desc: 'Local landing pages, AI competitor research, backlinks' },
 ];
 
 export default function AdminDashboard() {
