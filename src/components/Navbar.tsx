@@ -7,6 +7,7 @@ const LOGO_URL =
 
 const navLinks = [
   { label: 'Services', href: '/services' },
+  { label: 'Pricing', href: '/pricing' },
   { label: 'Cybersecurity', href: '/cybersecurity', isExternal: true },
   { label: 'Why Us', href: '/why-us' },
   { label: 'About', href: '/about' },

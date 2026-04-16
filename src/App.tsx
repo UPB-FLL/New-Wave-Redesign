@@ -19,6 +19,8 @@ import CybersecurityPage from './pages/CybersecurityPage';
 import WhyUsPage from './pages/WhyUsPage';
 import AboutPage from './pages/AboutPage';
 import ServicesPage from './pages/ServicesPage';
+import PricingPage from './pages/PricingPage';
+import PricingEditor from './admin/editors/PricingEditor';
 
 function HomePage() {
   return (
@@ -43,6 +45,7 @@ export default function App() {
         <Route path="/why-us" element={<WhyUsPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/services" element={<ServicesPage />} />
+        <Route path="/pricing" element={<PricingPage />} />
         <Route
           path="/admin"
           element={
@@ -58,6 +61,7 @@ export default function App() {
           <Route path="about" element={<AboutEditor />} />
           <Route path="contact" element={<ContactEditor />} />
           <Route path="footer" element={<FooterEditor />} />
+          <Route path="pricing" element={<PricingEditor />} />
         </Route>
       </Routes>
     </BrowserRouter>
