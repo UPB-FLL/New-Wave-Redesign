@@ -95,6 +95,25 @@ function applySeoTags(page: SeoPage) {
   };
 }
 
+function fallbackImage(seed: string, width = 1200, height = 630): string {
+  const s = encodeURIComponent(
+    (seed || 'new-wave-it')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
+      .slice(0, 48) || 'nw',
+  );
+  return `https://picsum.photos/seed/${s}/${width}/${height}`;
+}
+
+function handleImgError(seed: string, width = 1200, height = 630) {
+  return (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    const fallback = fallbackImage(seed, width, height);
+    if (img.src !== fallback) img.src = fallback;
+  };
+}
+
 export default function SeoLandingPage() {
   const { slug } = useParams<{ slug: string }>();
   const [page, setPage] = useState<SeoPage | null>(null);
@@ -155,14 +174,25 @@ export default function SeoLandingPage() {
       <Navbar />
 
       <header
-        className="relative pt-32 pb-16 px-6"
-        style={{
-          background: page.hero_image
-            ? `linear-gradient(rgba(15,25,35,0.72), rgba(15,25,35,0.82)), url('${page.hero_image}') center/cover no-repeat`
-            : 'linear-gradient(135deg, #0f1923 0%, #152232 100%)',
-        }}
+        className="relative pt-32 pb-16 px-6 overflow-hidden"
+        style={{ background: 'linear-gradient(135deg, #0f1923 0%, #152232 100%)' }}
       >
-        <div className="max-w-5xl mx-auto text-white">
+        {page.hero_image && (
+          <>
+            <img
+              src={page.hero_image}
+              alt=""
+              aria-hidden="true"
+              onError={handleImgError(`${page.target_keyword || 'it'} ${page.target_location || 'office'}`, 1600, 900)}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            <div
+              className="absolute inset-0"
+              style={{ background: 'linear-gradient(rgba(15,25,35,0.72), rgba(15,25,35,0.82))' }}
+            />
+          </>
+        )}
+        <div className="relative max-w-5xl mx-auto text-white">
           <div className="flex items-center gap-3 flex-wrap mb-4 text-xs" style={{ color: 'rgba(255,255,255,0.7)' }}>
             {page.target_location && (
               <span className="flex items-center gap-1">
@@ -229,6 +259,7 @@ export default function SeoLandingPage() {
                       src={s.image}
                       alt={s.heading}
                       loading="lazy"
+                      onError={handleImgError(s.heading || 'section', 800, 600)}
                       className="w-full rounded-2xl shadow-md"
                       style={{ border: '1px solid rgba(0,0,0,0.05)' }}
                     />
@@ -245,7 +276,13 @@ export default function SeoLandingPage() {
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {page.images.map((img, i) => (
                 <figure key={i} className="rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(0,0,0,0.05)' }}>
-                  <img src={img.url} alt={img.alt} loading="lazy" className="w-full h-56 object-cover" />
+                  <img
+                    src={img.url}
+                    alt={img.alt}
+                    loading="lazy"
+                    onError={handleImgError(img.alt || `gallery-${i}`, 800, 600)}
+                    className="w-full h-56 object-cover"
+                  />
                   {img.caption && (
                     <figcaption className="p-3 text-xs text-slate-600 bg-slate-50">{img.caption}</figcaption>
                   )}
