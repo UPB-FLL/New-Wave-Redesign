@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Waves, Lock, Mail } from 'lucide-react';
+import { usePageMeta } from '../lib/usePageMeta';
 
 export default function AdminLogin() {
+  usePageMeta({ title: 'Admin Sign In' });
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);

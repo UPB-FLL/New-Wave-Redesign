@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { MessageCircle, HelpCircle, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { usePageMeta } from '../lib/usePageMeta';
 
 interface SupportTicket {
   id: string;
@@ -22,6 +23,11 @@ interface KnowledgeBase {
 }
 
 export default function SupportPage() {
+  usePageMeta({
+    title: 'IT Support Portal — Tickets, Knowledge Base & Live Chat',
+    description:
+      'Open a support ticket, browse the knowledge base, start a live chat, or connect a remote session with New Wave IT.',
+  });
   const [activeTab, setActiveTab] = useState<'tickets' | 'kb' | 'chat' | 'wave'>('tickets');
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [loading, setLoading] = useState(false);

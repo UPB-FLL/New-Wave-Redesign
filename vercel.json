@@ -1,6 +1,10 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "functions": {
+    "api/seo/research-competitors.ts": { "maxDuration": 60 },
+    "api/seo/generate-page.ts": { "maxDuration": 60 }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img" aria-label="New Wave IT">
+  <rect width="180" height="180" rx="40" fill="#0f1923"/>
+  <path d="M20 115 C 50 90, 68 90, 86 110 S 128 130, 146 110 S 170 92, 170 102" fill="none" stroke="#39CCCC" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M20 75 C 50 50, 68 50, 86 70 S 128 90, 146 70 S 170 52, 170 62" fill="none" stroke="#5EBC67" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+</svg>

@@ -5,6 +5,7 @@ import Contact from '../components/Contact';
 import Footer from '../components/Footer';
 import QuoteModal from '../components/QuoteModal';
 import { useContent } from '../lib/useContent';
+import { usePageMeta } from '../lib/usePageMeta';
 
 interface PricingTier {
   name: string;
@@ -101,6 +102,11 @@ const defaultTiers: PricingTier[] = [
 ];
 
 export default function PricingPage() {
+  usePageMeta({
+    title: 'Pricing — Transparent IT Service Plans',
+    description:
+      'Flat-rate, transparent pricing for managed IT, hardware-as-a-service, and support plans. No long-term contracts.',
+  });
   const c = useContent('pricing');
   const [tiers, setTiers] = useState<PricingTier[]>(defaultTiers);
   const [isModalOpen, setIsModalOpen] = useState(false);
