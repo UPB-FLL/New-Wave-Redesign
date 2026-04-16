@@ -46,29 +46,32 @@ export default function Hero() {
 
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden bg-white">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0 }}>
         <div
-          className="absolute w-[700px] h-[700px] rounded-full opacity-[0.04] transition-transform duration-300 ease-out"
+          className="absolute w-[700px] h-[700px] rounded-full transition-transform duration-300 ease-out"
           style={{
             background: '#39CCCC',
+            opacity: 0.06,
             top: '-160px',
             right: '-160px',
             transform: `translate(${mousePosition.x * 0.03}px, ${mousePosition.y * 0.03}px)`,
           }}
         />
         <div
-          className="absolute w-[500px] h-[500px] rounded-full opacity-[0.03] transition-transform duration-300 ease-out"
+          className="absolute w-[500px] h-[500px] rounded-full transition-transform duration-300 ease-out"
           style={{
             background: '#5EBC67',
+            opacity: 0.05,
             bottom: '0px',
             left: '-128px',
             transform: `translate(${-mousePosition.x * 0.02}px, ${-mousePosition.y * 0.02}px)`,
           }}
         />
         <div
-          className="absolute w-[900px] h-[900px] rounded-full opacity-[0.015] transition-transform duration-300 ease-out"
+          className="absolute w-[900px] h-[900px] rounded-full transition-transform duration-300 ease-out"
           style={{
             background: '#152232',
+            opacity: 0.03,
             top: '50%',
             left: '50%',
             transform: `translate(calc(-50% + ${mousePosition.x * 0.01}px), calc(-50% + ${mousePosition.y * 0.01}px))`,
