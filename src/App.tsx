@@ -15,6 +15,7 @@ import WhyUsEditor from './admin/editors/WhyUsEditor';
 import AboutEditor from './admin/editors/AboutEditor';
 import ContactEditor from './admin/editors/ContactEditor';
 import FooterEditor from './admin/editors/FooterEditor';
+import CybersecurityPage from './pages/CybersecurityPage';
 
 function HomePage() {
   return (
@@ -35,6 +36,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/cybersecurity" element={<CybersecurityPage />} />
         <Route
           path="/admin"
           element={
