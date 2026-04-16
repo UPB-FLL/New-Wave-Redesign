@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { ArrowRight, Phone } from 'lucide-react';
 import { useContent } from '../lib/useContent';
 
@@ -20,6 +21,16 @@ const defaultCards: FeatureCard[] = [
 
 export default function Hero() {
   const c = useContent('hero');
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
 
   const handleScroll = (href: string) => {
     const el = document.querySelector(href);
@@ -36,9 +47,33 @@ export default function Hero() {
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden bg-white">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-[700px] h-[700px] rounded-full opacity-[0.07]" style={{ background: '#39CCCC' }} />
-        <div className="absolute bottom-0 -left-32 w-[500px] h-[500px] rounded-full opacity-[0.05]" style={{ background: '#5EBC67' }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] rounded-full opacity-[0.025]" style={{ background: '#152232' }} />
+        <div
+          className="absolute w-[700px] h-[700px] rounded-full opacity-[0.04] transition-transform duration-300 ease-out"
+          style={{
+            background: '#39CCCC',
+            top: '-160px',
+            right: '-160px',
+            transform: `translate(${mousePosition.x * 0.03}px, ${mousePosition.y * 0.03}px)`,
+          }}
+        />
+        <div
+          className="absolute w-[500px] h-[500px] rounded-full opacity-[0.03] transition-transform duration-300 ease-out"
+          style={{
+            background: '#5EBC67',
+            bottom: '0px',
+            left: '-128px',
+            transform: `translate(${-mousePosition.x * 0.02}px, ${-mousePosition.y * 0.02}px)`,
+          }}
+        />
+        <div
+          className="absolute w-[900px] h-[900px] rounded-full opacity-[0.015] transition-transform duration-300 ease-out"
+          style={{
+            background: '#152232',
+            top: '50%',
+            left: '50%',
+            transform: `translate(calc(-50% + ${mousePosition.x * 0.01}px), calc(-50% + ${mousePosition.y * 0.01}px))`,
+          }}
+        />
       </div>
 
       <div className="absolute inset-0 pointer-events-none" style={{
