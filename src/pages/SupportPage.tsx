@@ -27,6 +27,7 @@ export default function SupportPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState('');
+  const [loggedInEmail, setLoggedInEmail] = useState('');
   const [connectionCode, setConnectionCode] = useState('');
   const [remoteCode, setRemoteCode] = useState('');
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'connecting' | 'connected' | 'error'>('idle');
@@ -52,7 +53,7 @@ export default function SupportPage() {
 
       if (response.ok && data.success) {
         setTickets(data.tickets || []);
-        setEmail(emailValue);
+        setLoggedInEmail(emailValue);
         if (data.count === 0) {
           setError(null);
         }
@@ -159,7 +160,7 @@ export default function SupportPage() {
           {/* Tickets Tab */}
           {activeTab === 'tickets' && (
             <div>
-              {!email ? (
+              {!loggedInEmail ? (
                 <div className="bg-gray-50 rounded-2xl p-8 text-center">
                   <div className="max-w-md mx-auto">
                     <h3 className="text-xl font-semibold mb-4" style={{ color: '#152232' }}>
@@ -203,11 +204,12 @@ export default function SupportPage() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between mb-4">
                     <p style={{ color: 'rgba(21,34,50,0.6)' }}>
-                      Logged in as: <strong>{email}</strong>
+                      Logged in as: <strong>{loggedInEmail}</strong>
                     </p>
                     <button
                       onClick={() => {
                         setEmail('');
+                        setLoggedInEmail('');
                         setTickets([]);
                         setError(null);
                       }}
