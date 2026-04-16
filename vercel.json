@@ -3,7 +3,8 @@
   "outputDirectory": "dist",
   "functions": {
     "api/seo/research-competitors.ts": { "maxDuration": 60 },
-    "api/seo/generate-page.ts": { "maxDuration": 60 }
+    "api/seo/generate-page.ts": { "maxDuration": 60 },
+    "api/seo/refresh-images.ts": { "maxDuration": 60 }
   },
   "rewrites": [
     {

@@ -67,10 +67,7 @@ async function callOpenAI(messages: Array<{ role: string; content: string }>, ap
   return content;
 }
 
-function buildUnsplashImage(query: string, width = 1200, height = 630): string {
-  // Picsum: stable, always returns a real image. Seeded by the query so the
-  // same prompt deterministically produces the same picture. The admin can
-  // replace URLs in the editor with real branded imagery.
+function picsumFallback(query: string, width: number, height: number): string {
   const seed = encodeURIComponent(
     (query || 'new wave it')
       .toLowerCase()
@@ -79,6 +76,47 @@ function buildUnsplashImage(query: string, width = 1200, height = 630): string {
       .slice(0, 48) || 'nw',
   );
   return `https://picsum.photos/seed/${seed}/${width}/${height}`;
+}
+
+/**
+ * Search Pexels for a photo matching the query. Returns the best-fit
+ * landscape image URL. Falls back to Picsum if PEXELS_API_KEY is not set
+ * or the API call fails.
+ */
+async function searchImage(query: string, width: number, height: number): Promise<string> {
+  const apiKey = process.env.PEXELS_API_KEY;
+  const cleaned = (query || '').trim();
+  if (!apiKey || !cleaned) return picsumFallback(cleaned, width, height);
+
+  try {
+    const orientation = height >= width ? 'portrait' : width > height * 1.2 ? 'landscape' : 'square';
+    const url = `https://api.pexels.com/v1/search?query=${encodeURIComponent(cleaned)}&per_page=3&orientation=${orientation}`;
+    const res = await fetch(url, { headers: { Authorization: apiKey } });
+    if (!res.ok) return picsumFallback(cleaned, width, height);
+    const data = (await res.json()) as {
+      photos?: Array<{
+        src?: { original?: string; large2x?: string; large?: string; landscape?: string; medium?: string };
+      }>;
+    };
+    const photo = data.photos?.[0];
+    const src = photo?.src;
+    const picked =
+      src?.large2x || src?.landscape || src?.large || src?.original || src?.medium;
+    return picked || picsumFallback(cleaned, width, height);
+  } catch {
+    return picsumFallback(cleaned, width, height);
+  }
+}
+
+/** Append industry context to make image queries more relevant for an MSP site. */
+function enrichQuery(query: string, keyword: string): string {
+  const q = (query || '').toLowerCase();
+  const kw = (keyword || '').toLowerCase();
+  // If the model-returned query is generic, append the service keyword to improve relevance.
+  const genericTokens = ['office', 'team', 'people', 'meeting', 'laptop', 'computer', 'desk', 'building'];
+  const isGeneric = genericTokens.some((t) => q === t || q.startsWith(t + ' ') || q.endsWith(' ' + t));
+  if (isGeneric && kw) return `${query} ${keyword} technology`.trim();
+  return query;
 }
 
 function parseBody(body: any): RequestBody {
@@ -98,6 +136,7 @@ export default async function handler(req: any, res: any) {
     return res.status(200).json({
       ok: true,
       hasKey: Boolean(process.env.OPENAI_API_KEY),
+      hasPexels: Boolean(process.env.PEXELS_API_KEY),
       name: 'generate-page',
     });
   }
@@ -189,23 +228,34 @@ Rules:
 
     const parsed = safeJsonParse<GeneratedPage>(raw);
 
-    const sections = (parsed.sections || []).map((s) => ({
+    // Resolve every image URL in parallel — Pexels search per query, Picsum fallback.
+    const sectionImagePromises = (parsed.sections || []).map((s) =>
+      s.image ? searchImage(enrichQuery(s.image, keyword), 1200, 800) : Promise.resolve(''),
+    );
+    const galleryImagePromises = (parsed.images || []).map((img) => {
+      if (img.url && img.url.startsWith('http')) return Promise.resolve(img.url);
+      const query = enrichQuery(img.url || img.alt || `${keyword} ${location}`, keyword) || `${keyword} ${location}`;
+      return searchImage(query, 1200, 800);
+    });
+
+    const [resolvedSectionImages, resolvedImages, heroImage, ogImage] = await Promise.all([
+      Promise.all(sectionImagePromises),
+      Promise.all(galleryImagePromises),
+      searchImage(`${keyword} ${location} office technology`, 1600, 900),
+      searchImage(`${keyword} ${location}`, 1200, 630),
+    ]);
+
+    const sections = (parsed.sections || []).map((s, idx) => ({
       heading: s.heading || '',
       body: s.body || '',
-      image: s.image ? buildUnsplashImage(s.image) : '',
+      image: resolvedSectionImages[idx] || '',
     }));
 
     const images = (parsed.images || []).map((img, i) => ({
-      url:
-        img.url && !img.url.startsWith('http')
-          ? buildUnsplashImage(img.url, 1200, 800)
-          : img.url || buildUnsplashImage(`${keyword} ${location}`, 1200, 800),
+      url: resolvedImages[i] || picsumFallback(`${keyword} ${location} ${i}`, 1200, 800),
       alt: img.alt || `${keyword} in ${location} ${i + 1}`,
       caption: img.caption || '',
     }));
-
-    const heroImage = buildUnsplashImage(`${keyword} office ${location}`, 1600, 900);
-    const ogImage = buildUnsplashImage(`${keyword} ${location}`, 1200, 630);
 
     return res.status(200).json({
       slug: parsed.slug || '',
