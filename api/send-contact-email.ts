@@ -36,7 +36,7 @@ export default async function handler(req: any, res: any) {
 
           <div style="margin: 20px 0;">
             <p><strong>Name:</strong> ${name}</p>
-            <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
+            <p><strong>Email:</strong> ${email}</p>
             ${phone ? `<p><strong>Phone:</strong> ${phone}</p>` : ''}
             ${company ? `<p><strong>Company:</strong> ${company}</p>` : ''}
           </div>
@@ -75,7 +75,7 @@ export default async function handler(req: any, res: any) {
 
           <p style="color: #555; font-size: 16px; line-height: 1.6;">
             A member of our team will review your inquiry and get back to you within one business day.
-            For urgent matters, feel free to call us directly at <strong>(954) 555-0100</strong>.
+            For urgent matters, feel free to call us directly at (954) 555-0100.
           </p>
 
           <div style="background-color: #f8fafb; padding: 15px; border-radius: 8px; margin: 20px 0;">
@@ -86,8 +86,7 @@ export default async function handler(req: any, res: any) {
           <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0; font-size: 12px; color: #999;">
             <p>Best regards,<br><strong>New Wave IT Support Team</strong></p>
             <p>
-              <a href="https://newwaveitfl.com" style="color: #39CCCC; text-decoration: none;">newwaveitfl.com</a> |
-              <a href="tel:+19545550100" style="color: #39CCCC; text-decoration: none;">(954) 555-0100</a>
+              newwaveitfl.com | (954) 555-0100
             </p>
           </div>
         </div>
