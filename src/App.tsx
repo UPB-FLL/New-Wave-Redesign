@@ -16,6 +16,9 @@ import AboutEditor from './admin/editors/AboutEditor';
 import ContactEditor from './admin/editors/ContactEditor';
 import FooterEditor from './admin/editors/FooterEditor';
 import CybersecurityPage from './pages/CybersecurityPage';
+import WhyUsPage from './pages/WhyUsPage';
+import AboutPage from './pages/AboutPage';
+import ServicesPage from './pages/ServicesPage';
 
 function HomePage() {
   return (
@@ -37,6 +40,9 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/cybersecurity" element={<CybersecurityPage />} />
+        <Route path="/why-us" element={<WhyUsPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/services" element={<ServicesPage />} />
         <Route
           path="/admin"
           element={
