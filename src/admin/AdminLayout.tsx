@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import {
   LayoutDashboard, Star, Layers, HelpCircle, Info, Mail, AlignLeft, LogOut, Menu, X, Waves, Search,
 } from 'lucide-react';
+import { usePageMeta } from '../lib/usePageMeta';
 
 const navItems = [
   { label: 'Dashboard', path: '/admin', icon: LayoutDashboard, end: true },
@@ -17,6 +18,7 @@ const navItems = [
 ];
 
 export default function AdminLayout() {
+  usePageMeta({ title: 'Admin' });
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
 

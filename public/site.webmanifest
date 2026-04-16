@@ -1,0 +1,14 @@
+{
+  "name": "New Wave IT",
+  "short_name": "New Wave IT",
+  "description": "Fort Lauderdale's trusted managed IT services, cybersecurity, and cloud partner.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0f1923",
+  "theme_color": "#39CCCC",
+  "icons": [
+    { "src": "/favicon.svg", "type": "image/svg+xml", "sizes": "any", "purpose": "any" },
+    { "src": "/apple-touch-icon.svg", "type": "image/svg+xml", "sizes": "180x180", "purpose": "any" }
+  ]
+}

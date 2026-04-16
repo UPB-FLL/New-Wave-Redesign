@@ -27,8 +27,15 @@ import SupportPage from './pages/SupportPage';
 import SeoPortal from './admin/seo/SeoPortal';
 import SeoPageEditor from './admin/seo/SeoPageEditor';
 import SeoLandingPage from './pages/SeoLandingPage';
+import { usePageMeta } from './lib/usePageMeta';
 
 function HomePage() {
+  usePageMeta({
+    title: 'New Wave IT — 24/7 Managed IT, Cybersecurity & Cloud in Fort Lauderdale',
+    description:
+      "Fort Lauderdale's trusted managed IT services partner. 24/7 support, cybersecurity, cloud migration, and network infrastructure for South Florida businesses.",
+    includeSiteName: false,
+  });
   return (
     <div className="min-h-screen relative" style={{ background: 'white' }}>
       <Navbar />
