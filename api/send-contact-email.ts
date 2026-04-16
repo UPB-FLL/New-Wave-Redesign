@@ -25,7 +25,7 @@ export default async function handler(req: any, res: any) {
   try {
     // Send email to admin
     const adminEmailResult = await resend.emails.send({
-      from: 'contact@newwaveitfl.com',
+      from: 'support@newwaveitfl.com',
       to: 'contact@newwaveitfl.com',
       subject: `New Contact Form Submission from ${name}`,
       html: `
@@ -60,7 +60,7 @@ export default async function handler(req: any, res: any) {
 
     // Send confirmation email to user
     const userEmailResult = await resend.emails.send({
-      from: 'contact@newwaveitfl.com',
+      from: 'support@newwaveitfl.com',
       to: email,
       subject: 'We Received Your Message - New Wave IT',
       html: `
