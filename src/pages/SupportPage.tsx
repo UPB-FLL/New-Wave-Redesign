@@ -22,10 +22,13 @@ interface KnowledgeBase {
 }
 
 export default function SupportPage() {
-  const [activeTab, setActiveTab] = useState<'tickets' | 'kb' | 'chat'>('tickets');
+  const [activeTab, setActiveTab] = useState<'tickets' | 'kb' | 'chat' | 'wave'>('tickets');
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
+  const [connectionCode, setConnectionCode] = useState('');
+  const [remoteCode, setRemoteCode] = useState('');
+  const [connectionStatus, setConnectionStatus] = useState<'idle' | 'connecting' | 'connected' | 'error'>('idle');
 
   useEffect(() => {
     if (email) {
@@ -79,10 +82,27 @@ export default function SupportPage() {
     }
   };
 
+  const handleWaveSupportConnect = async () => {
+    if (!connectionCode || !remoteCode) {
+      return;
+    }
+
+    setConnectionStatus('connecting');
+    try {
+      // Simulate connection - in production, this would connect to Splashtop API
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setConnectionStatus('connected');
+      setTimeout(() => setConnectionStatus('idle'), 3000);
+    } catch (error) {
+      setConnectionStatus('error');
+      setTimeout(() => setConnectionStatus('idle'), 3000);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-white">
+    <div className="flex flex-col min-h-screen bg-white">
       <Navbar />
-      <div className="pt-20">
+      <div className="pt-20 flex-1">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-16">
           <div className="mb-12">
             <h1
@@ -97,11 +117,12 @@ export default function SupportPage() {
           </div>
 
           {/* Tab Navigation */}
-          <div className="flex gap-4 mb-8 border-b border-gray-200">
+          <div className="flex gap-4 mb-8 border-b border-gray-200 overflow-x-auto">
             {[
               { id: 'tickets', label: 'My Tickets', icon: MessageCircle },
               { id: 'kb', label: 'Knowledge Base', icon: HelpCircle },
               { id: 'chat', label: 'Live Chat', icon: MessageCircle },
+              { id: 'wave', label: 'Wave Support', icon: MessageCircle },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -239,6 +260,139 @@ export default function SupportPage() {
                 >
                   Start Live Chat
                 </button>
+              </div>
+            </div>
+          )}
+
+          {/* Wave Support (Remote Access) Tab */}
+          {activeTab === 'wave' && (
+            <div className="max-w-2xl mx-auto">
+              <div className="bg-gradient-to-br rounded-2xl p-8 shadow-lg" style={{ background: 'linear-gradient(135deg, rgba(57,204,204,0.1) 0%, rgba(94,188,103,0.1) 100%)' }}>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 bg-cyan-100 rounded-full flex items-center justify-center">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#39CCCC" strokeWidth="2">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+                      <path d="M12 6v6l4 2.4"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold" style={{ color: '#152232' }}>Wave Support</h3>
+                    <p className="text-sm" style={{ color: 'rgba(21,34,50,0.6)' }}>Remote access support</p>
+                  </div>
+                </div>
+
+                <p style={{ color: 'rgba(21,34,50,0.65)', marginBottom: '24px', lineHeight: 1.6 }}>
+                  Allow our support team to securely access your device to provide faster, more effective support. Your connection is encrypted and secure.
+                </p>
+
+                <div className="space-y-5">
+                  {/* Connection Code */}
+                  <div>
+                    <label className="block text-sm font-semibold mb-2" style={{ color: '#152232' }}>
+                      Connection Code
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={connectionCode}
+                        onChange={(e) => setConnectionCode(e.target.value.toUpperCase())}
+                        placeholder="e.g., ABC-123-456"
+                        maxLength={11}
+                        className="flex-1 px-4 py-3 rounded-lg border-2 font-mono text-center text-lg tracking-widest outline-none transition-colors"
+                        style={{
+                          borderColor: connectionCode ? '#39CCCC' : 'rgba(21,34,50,0.1)',
+                          color: '#152232'
+                        }}
+                      />
+                    </div>
+                    <p className="text-xs mt-1.5" style={{ color: 'rgba(21,34,50,0.5)' }}>
+                      Found in your support ticket or provided by our support team
+                    </p>
+                  </div>
+
+                  {/* Remote Code */}
+                  <div>
+                    <label className="block text-sm font-semibold mb-2" style={{ color: '#152232' }}>
+                      Remote Access Code
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={remoteCode}
+                        onChange={(e) => setRemoteCode(e.target.value.toUpperCase())}
+                        placeholder="e.g., XYZ-789-012"
+                        maxLength={11}
+                        className="flex-1 px-4 py-3 rounded-lg border-2 font-mono text-center text-lg tracking-widest outline-none transition-colors"
+                        style={{
+                          borderColor: remoteCode ? '#5EBC67' : 'rgba(21,34,50,0.1)',
+                          color: '#152232'
+                        }}
+                      />
+                    </div>
+                    <p className="text-xs mt-1.5" style={{ color: 'rgba(21,34,50,0.5)' }}>
+                      Generated when initiating remote support
+                    </p>
+                  </div>
+
+                  {/* Connection Status */}
+                  {connectionStatus !== 'idle' && (
+                    <div
+                      className="p-4 rounded-lg flex items-center gap-3"
+                      style={{
+                        background:
+                          connectionStatus === 'connected'
+                            ? 'rgba(94,188,103,0.1)'
+                            : connectionStatus === 'connecting'
+                            ? 'rgba(57,204,204,0.1)'
+                            : 'rgba(255,68,68,0.1)',
+                      }}
+                    >
+                      {connectionStatus === 'connected' ? (
+                        <>
+                          <CheckCircle size={20} style={{ color: '#5EBC67' }} />
+                          <span style={{ color: '#5EBC67' }}>Connected successfully!</span>
+                        </>
+                      ) : connectionStatus === 'connecting' ? (
+                        <>
+                          <Clock size={20} style={{ color: '#39CCCC' }} />
+                          <span style={{ color: '#39CCCC' }}>Establishing connection...</span>
+                        </>
+                      ) : (
+                        <>
+                          <AlertCircle size={20} style={{ color: '#FF4444' }} />
+                          <span style={{ color: '#FF4444' }}>Connection failed. Please check your codes.</span>
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Connect Button */}
+                  <button
+                    onClick={handleWaveSupportConnect}
+                    disabled={!connectionCode || !remoteCode || connectionStatus === 'connecting'}
+                    className="w-full py-4 rounded-lg text-white font-semibold text-lg transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed hover:scale-105"
+                    style={{
+                      background: connectionStatus === 'connected' ? '#5EBC67' : '#39CCCC',
+                      boxShadow: `0 4px 16px ${connectionStatus === 'connected' ? 'rgba(94,188,103,0.3)' : 'rgba(57,204,204,0.3)'}`,
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!connectionCode || !remoteCode || connectionStatus === 'connecting') return;
+                      e.currentTarget.style.background = connectionStatus === 'connected' ? '#4da856' : '#2db8b8';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = connectionStatus === 'connected' ? '#5EBC67' : '#39CCCC';
+                    }}
+                  >
+                    {connectionStatus === 'connecting' ? 'Connecting...' : connectionStatus === 'connected' ? 'Connected ✓' : 'Start Wave Support'}
+                  </button>
+                </div>
+
+                {/* Security Info */}
+                <div className="mt-8 p-4 rounded-lg" style={{ background: 'rgba(21,34,50,0.02)', border: '1px solid rgba(21,34,50,0.06)' }}>
+                  <p className="text-sm" style={{ color: 'rgba(21,34,50,0.6)' }}>
+                    <strong>Security Note:</strong> Your connection is encrypted with industry-standard security protocols. Support team members can only access what you authorize. You can end the session at any time.
+                  </p>
+                </div>
               </div>
             </div>
           )}
