@@ -24,6 +24,9 @@ import ServicesPage from './pages/ServicesPage';
 import PricingPage from './pages/PricingPage';
 import PricingEditor from './admin/editors/PricingEditor';
 import SupportPage from './pages/SupportPage';
+import SeoPortal from './admin/seo/SeoPortal';
+import SeoPageEditor from './admin/seo/SeoPageEditor';
+import SeoLandingPage from './pages/SeoLandingPage';
 
 function HomePage() {
   return (
@@ -53,6 +56,7 @@ export default function App() {
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/support" element={<SupportPage />} />
+        <Route path="/l/:slug" element={<SeoLandingPage />} />
         <Route
           path="/admin"
           element={
@@ -69,6 +73,8 @@ export default function App() {
           <Route path="contact" element={<ContactEditor />} />
           <Route path="footer" element={<FooterEditor />} />
           <Route path="pricing" element={<PricingEditor />} />
+          <Route path="seo" element={<SeoPortal />} />
+          <Route path="seo/:id" element={<SeoPageEditor />} />
         </Route>
       </Routes>
       </BrowserRouter>

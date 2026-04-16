@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import {
-  LayoutDashboard, Star, Layers, HelpCircle, Info, Mail, AlignLeft, LogOut, Menu, X, Waves,
+  LayoutDashboard, Star, Layers, HelpCircle, Info, Mail, AlignLeft, LogOut, Menu, X, Waves, Search,
 } from 'lucide-react';
 
 const navItems = [
@@ -13,6 +13,7 @@ const navItems = [
   { label: 'About', path: '/admin/about', icon: Info },
   { label: 'Contact', path: '/admin/contact', icon: Mail },
   { label: 'Footer', path: '/admin/footer', icon: AlignLeft },
+  { label: 'SEO Portal', path: '/admin/seo', icon: Search },
 ];
 
 export default function AdminLayout() {
