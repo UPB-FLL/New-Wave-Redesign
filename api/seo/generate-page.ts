@@ -68,8 +68,17 @@ async function callOpenAI(messages: Array<{ role: string; content: string }>, ap
 }
 
 function buildUnsplashImage(query: string, width = 1200, height = 630): string {
-  const q = encodeURIComponent(query);
-  return `https://source.unsplash.com/${width}x${height}/?${q}`;
+  // Picsum: stable, always returns a real image. Seeded by the query so the
+  // same prompt deterministically produces the same picture. The admin can
+  // replace URLs in the editor with real branded imagery.
+  const seed = encodeURIComponent(
+    (query || 'new wave it')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
+      .slice(0, 48) || 'nw',
+  );
+  return `https://picsum.photos/seed/${seed}/${width}/${height}`;
 }
 
 function parseBody(body: any): RequestBody {
