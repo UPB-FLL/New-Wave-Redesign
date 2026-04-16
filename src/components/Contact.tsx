@@ -29,14 +29,34 @@ export default function Contact() {
     setLoading(true);
     setError('');
 
-    const { error: dbError } = await supabase.from('contact_submissions').insert([form]);
+    try {
+      // Send email via API
+      const emailResponse = await fetch('/api/send-contact-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
 
-    setLoading(false);
-    if (dbError) {
-      setError('Something went wrong. Please try again or call us directly.');
-    } else {
+      if (!emailResponse.ok) {
+        const errorData = await emailResponse.json();
+        throw new Error(errorData.error || 'Failed to send email');
+      }
+
+      // Also save to Supabase for record-keeping
+      const { error: dbError } = await supabase.from('contact_submissions').insert([form]);
+
+      if (dbError) {
+        console.error('Database error:', dbError);
+        // Still consider it a success if email was sent
+      }
+
       setSubmitted(true);
       setForm(initialForm);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Something went wrong. Please try again or call us directly.';
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
