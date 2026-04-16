@@ -11,6 +11,7 @@ const navLinks = [
   { label: 'Cybersecurity', href: '/cybersecurity', isExternal: true },
   { label: 'Why Us', href: '/why-us' },
   { label: 'About', href: '/about' },
+  { label: 'Support', href: '/support' },
   { label: 'Contact', href: '#contact' },
 ];
 

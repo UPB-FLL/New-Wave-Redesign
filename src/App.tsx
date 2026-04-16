@@ -23,6 +23,7 @@ import AboutPage from './pages/AboutPage';
 import ServicesPage from './pages/ServicesPage';
 import PricingPage from './pages/PricingPage';
 import PricingEditor from './admin/editors/PricingEditor';
+import SupportPage from './pages/SupportPage';
 
 function HomePage() {
   return (
@@ -51,6 +52,7 @@ export default function App() {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/support" element={<SupportPage />} />
         <Route
           path="/admin"
           element={
