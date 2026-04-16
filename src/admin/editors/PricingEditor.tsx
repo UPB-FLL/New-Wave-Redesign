@@ -104,13 +104,33 @@ export default function PricingEditor() {
   ];
 
   useEffect(() => {
-    fetchSectionContent('pricing').then((data) => {
+    fetchSectionContent('pricing').then(async (data) => {
       setContent(data);
       try {
         const parsed = JSON.parse(data.tiers || '[]');
-        setTiers(parsed.length > 0 ? parsed : defaultTiers);
+        if (parsed.length > 0) {
+          setTiers(parsed);
+        } else {
+          setTiers(defaultTiers);
+          // Auto-save default tiers to database if empty
+          await upsertManyContent('pricing', {
+            ...data,
+            section_label: data.section_label || 'Transparent Pricing',
+            headline: data.headline || 'Simple, Scalable',
+            subheadline: data.subheadline || 'Choose the perfect plan for your business. All plans include 24/7 support and regular updates.',
+            tiers: JSON.stringify(defaultTiers),
+          });
+        }
       } catch {
         setTiers(defaultTiers);
+        // Auto-save default tiers to database on error
+        await upsertManyContent('pricing', {
+          ...data,
+          section_label: data.section_label || 'Transparent Pricing',
+          headline: data.headline || 'Simple, Scalable',
+          subheadline: data.subheadline || 'Choose the perfect plan for your business. All plans include 24/7 support and regular updates.',
+          tiers: JSON.stringify(defaultTiers),
+        });
       }
       setLoaded(true);
     });
