@@ -3,6 +3,7 @@ import { Check } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Contact from '../components/Contact';
 import Footer from '../components/Footer';
+import QuoteModal from '../components/QuoteModal';
 import { useContent } from '../lib/useContent';
 
 interface PricingTier {
@@ -102,6 +103,13 @@ const defaultTiers: PricingTier[] = [
 export default function PricingPage() {
   const c = useContent('pricing');
   const [tiers, setTiers] = useState<PricingTier[]>(defaultTiers);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTier, setSelectedTier] = useState<PricingTier | null>(null);
+
+  const handleGetStarted = (tier: PricingTier) => {
+    setSelectedTier(tier);
+    setIsModalOpen(true);
+  };
 
   useEffect(() => {
     if (c.tiers) {
@@ -119,6 +127,7 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen bg-slate-900">
       <Navbar />
+      <QuoteModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} tier={selectedTier} />
       <div className="pt-20">
         <section className="py-28" style={{ background: '#f8fafb', borderTop: '1px solid rgba(21,34,50,0.06)' }}>
           <div className="max-w-7xl mx-auto px-6 lg:px-8">
@@ -181,6 +190,7 @@ export default function PricingPage() {
                     </div>
 
                     <button
+                      onClick={() => handleGetStarted(tier)}
                       className="w-full text-white font-semibold py-3 rounded-xl transition-all duration-200 mb-8 hover:-translate-y-1"
                       style={{
                         background: tier.accent,
