@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import BackgroundCircles from './components/BackgroundCircles';
+import FloatingNav from './components/FloatingNav';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Services from './components/Services';
@@ -41,6 +42,7 @@ export default function App() {
   return (
     <>
       <BackgroundCircles />
+      <FloatingNav />
       <BrowserRouter>
         <Routes>
         <Route path="/" element={<HomePage />} />

@@ -34,7 +34,7 @@ export default function Hero() {
   const phone = c.phone || '+19545550100';
 
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden bg-white">
+    <section id="hero" className="relative min-h-screen flex items-center overflow-hidden bg-white">
       <div className="absolute inset-0 pointer-events-none" style={{
         backgroundImage: 'radial-gradient(circle at 1px 1px, #152232 1px, transparent 0)',
         backgroundSize: '40px 40px',
