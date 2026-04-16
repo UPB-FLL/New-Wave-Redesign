@@ -75,6 +75,8 @@ export default function Navbar() {
             </button>
             {navLinks.map((link) => {
               const isExternal = 'isExternal' in link && link.isExternal;
+              const isSupport = link.label === 'Support';
+
               if (isExternal) {
                 return (
                   <a
@@ -89,6 +91,30 @@ export default function Navbar() {
                   </a>
                 );
               }
+
+              if (isSupport) {
+                return (
+                  <button
+                    key={link.href}
+                    onClick={() => handleNavClick(link.href)}
+                    className="px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105 text-white text-sm"
+                    style={{
+                      background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)',
+                      boxShadow: '0 4px 12px rgba(57,204,204,0.3)',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.boxShadow = '0 6px 20px rgba(57,204,204,0.4)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(57,204,204,0.3)';
+                    }}
+                  >
+                    {link.label}
+                  </button>
+                );
+              }
+
               return (
                 <button
                   key={link.href}
@@ -138,6 +164,8 @@ export default function Navbar() {
             </button>
             {navLinks.map((link) => {
               const isExternal = 'isExternal' in link && link.isExternal;
+              const isSupport = link.label === 'Support';
+
               if (isExternal) {
                 return (
                   <a
@@ -150,6 +178,27 @@ export default function Navbar() {
                   </a>
                 );
               }
+
+              if (isSupport) {
+                return (
+                  <button
+                    key={link.href}
+                    onClick={() => {
+                      handleNavClick(link.href);
+                      setIsOpen(false);
+                    }}
+                    className="px-4 py-3 rounded-lg font-medium text-white text-left"
+                    style={{
+                      background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)',
+                      boxShadow: '0 4px 12px rgba(57,204,204,0.3)',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                    }}
+                  >
+                    {link.label}
+                  </button>
+                );
+              }
+
               return (
                 <button
                   key={link.href}
