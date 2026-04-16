@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import BackgroundCircles from './components/BackgroundCircles';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Services from './components/Services';
@@ -39,6 +40,7 @@ function HomePage() {
 export default function App() {
   return (
     <BrowserRouter>
+      <BackgroundCircles />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/cybersecurity" element={<CybersecurityPage />} />
