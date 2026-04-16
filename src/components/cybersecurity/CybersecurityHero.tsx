@@ -19,8 +19,8 @@ export default function CybersecurityHero() {
         opacity: 0.03,
       }} />
 
-      <div className="relative max-w-7xl mx-auto px-6 lg:px-8 pt-12 pb-16 w-full">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+      <div className="relative max-w-7xl mx-auto px-6 lg:px-8 py-12 w-full">
+        <div className="grid lg:grid-cols-2 gap-16 items-start">
           <div>
             <div
               className="inline-flex items-center gap-2 rounded-full px-4 py-2 mb-8 text-sm font-medium"
@@ -81,12 +81,12 @@ export default function CybersecurityHero() {
             </div>
           </div>
 
-          <div className="hidden lg:block relative">
+          <div className="hidden lg:block relative h-full">
             <div
-              className="relative rounded-3xl overflow-hidden"
+              className="relative rounded-3xl overflow-hidden h-full"
               style={{ background: 'linear-gradient(135deg, rgba(57,204,204,0.08) 0%, rgba(94,188,103,0.06) 100%)', border: '1px solid rgba(57,204,204,0.15)' }}
             >
-              <div className="p-12 space-y-6">
+              <div className="p-8 space-y-4 flex flex-col justify-start h-full">
                 {[
                   { title: 'Threat Detection', desc: 'Real-time monitoring and instant alerts' },
                   { title: 'Data Protection', desc: 'Encryption and secure backup systems' },
