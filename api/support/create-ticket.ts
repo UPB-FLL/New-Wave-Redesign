@@ -29,21 +29,26 @@ export default async function handler(req: any, res: any) {
     const response = await fetch(`${superopsBaseUrl}/tickets`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${superopsApiKey}`,
+        'Authorization': `${superopsApiKey}`,
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
       body: JSON.stringify({
         title: subject,
         description: description,
         customer_email: email,
-        priority: priority,
+        email: email,
+        priority: priority.toLowerCase(),
         status: 'open',
       }),
     });
 
     if (!response.ok) {
-      console.error('Superops API error:', response.statusText);
-      return res.status(response.status).json({ error: 'Failed to create support ticket' });
+      console.error('Superops API error:', response.status, response.statusText);
+      return res.status(response.status).json({
+        error: 'Failed to create support ticket',
+        details: `HTTP ${response.status}`
+      });
     }
 
     const data = await response.json();
@@ -51,17 +56,20 @@ export default async function handler(req: any, res: any) {
     return res.status(200).json({
       success: true,
       message: 'Support ticket created successfully',
-      ticketId: data.id,
+      ticketId: data.id || data._id,
       ticket: {
-        id: data.id,
-        subject: data.title,
-        status: data.status,
-        priority: data.priority,
-        createdAt: data.created_at,
+        id: data.id || data._id,
+        subject: data.title || subject,
+        status: data.status || 'open',
+        priority: data.priority || priority,
+        createdAt: data.created_at || data.createdAt || new Date().toISOString(),
       },
     });
   } catch (error) {
     console.error('Create ticket error:', error);
-    return res.status(500).json({ error: 'Failed to create support ticket' });
+    return res.status(500).json({
+      error: 'Failed to create support ticket',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 }
