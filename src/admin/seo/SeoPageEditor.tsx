@@ -10,6 +10,8 @@ import {
   ExternalLink,
   Eye,
   Globe,
+  ImageIcon,
+  Loader2,
 } from 'lucide-react';
 import EditorField from '../components/EditorField';
 import {
@@ -43,8 +45,50 @@ export default function SeoPageEditor() {
     })();
   }, [id]);
 
+  const [refreshing, setRefreshing] = useState(false);
+
   const set = <K extends keyof SeoPage>(key: K, value: SeoPage[K]) => {
     setPage((prev) => (prev ? { ...prev, [key]: value } : prev));
+  };
+
+  const refreshImages = async (force: boolean) => {
+    if (!page || !id) return;
+    setRefreshing(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/seo/refresh-images', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          keyword: page.target_keyword || page.h1 || page.title,
+          location: page.target_location,
+          sections: page.sections,
+          images: page.images,
+          hero_image: page.hero_image,
+          og_image: page.og_image,
+          force,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `Refresh failed (${res.status}).`);
+      }
+      const data = await res.json();
+      const updated = await updateSeoPage(id, {
+        hero_image: data.hero_image || page.hero_image,
+        og_image: data.og_image || page.og_image,
+        sections: Array.isArray(data.sections) ? data.sections : page.sections,
+        images: Array.isArray(data.images) ? data.images : page.images,
+      });
+      if (updated) setPage(updated);
+      setStatus('success');
+      setTimeout(() => setStatus('idle'), 2500);
+    } catch (err: any) {
+      setError(err?.message || 'Refresh failed.');
+      setStatus('error');
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const save = async () => {
@@ -133,6 +177,16 @@ export default function SeoPageEditor() {
             />
             Published
           </label>
+          <button
+            onClick={() => refreshImages(true)}
+            disabled={refreshing || status === 'saving'}
+            title="Fetch fresh images from Pexels for every image on this page"
+            className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50"
+            style={{ background: 'rgba(94,188,103,0.15)', border: '1px solid rgba(94,188,103,0.3)', color: '#8fe8a0' }}
+          >
+            {refreshing ? <Loader2 size={15} className="animate-spin" /> : <ImageIcon size={15} />}
+            {refreshing ? 'Refreshing…' : 'Refresh images'}
+          </button>
           <a
             href={`/l/${page.slug}`}
             target="_blank"
