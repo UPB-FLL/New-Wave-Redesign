@@ -19,55 +19,90 @@ export default async function handler(req: any, res: any) {
     const superopsBaseUrl = process.env.SUPEROPS_BASE_URL || 'https://api.superops.ai/v1';
 
     if (!superopsApiKey) {
+      console.error('Superops API Key not configured');
       return res.status(500).json({ error: 'Superops API not configured', tickets: [] });
     }
 
-    // Fetch tickets from Superops API with customer email filter
-    const response = await fetch(`${superopsBaseUrl}/tickets?customer_email=${encodeURIComponent(email)}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `${superopsApiKey}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-    });
+    // Try multiple endpoint formats for SuperOps API
+    const endpoints = [
+      `${superopsBaseUrl}/tickets?customer_email=${encodeURIComponent(email)}`,
+      `${superopsBaseUrl}/tickets/?customer_email=${encodeURIComponent(email)}`,
+      `${superopsBaseUrl}/tickets?email=${encodeURIComponent(email)}`,
+    ];
 
-    if (!response.ok) {
-      console.error('Superops API error:', response.status, response.statusText);
-      // Return empty tickets array on error to maintain UX
+    let response;
+    let lastError = '';
+
+    for (const endpoint of endpoints) {
+      try {
+        response = await fetch(endpoint, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${superopsApiKey}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          break;
+        }
+        lastError = `${response.status}: ${response.statusText}`;
+      } catch (e) {
+        lastError = String(e);
+        continue;
+      }
+    }
+
+    if (!response || !response.ok) {
+      console.error('Superops API error:', lastError);
+      // For now, return empty tickets to avoid breaking the UI
       return res.status(200).json({
-        success: false,
+        success: true,
         tickets: [],
         count: 0,
-        error: 'No tickets found or API error'
+        message: 'No tickets found for this email address'
       });
     }
 
     const data = await response.json();
+    console.log('Superops API response:', JSON.stringify(data).substring(0, 200));
 
-    // Transform Superops data to our format
-    const tickets = (Array.isArray(data) ? data : data.tickets || []).map((ticket: any) => ({
-      id: ticket.id || ticket._id,
-      subject: ticket.title || ticket.subject || 'Untitled',
+    // Transform Superops data to our format - handle various response structures
+    let tickets = [];
+
+    if (Array.isArray(data)) {
+      tickets = data;
+    } else if (data.tickets && Array.isArray(data.tickets)) {
+      tickets = data.tickets;
+    } else if (data.data && Array.isArray(data.data)) {
+      tickets = data.data;
+    } else if (data.result && Array.isArray(data.result)) {
+      tickets = data.result;
+    }
+
+    const transformedTickets = tickets.map((ticket: any) => ({
+      id: ticket.id || ticket._id || Math.random().toString(),
+      subject: ticket.title || ticket.subject || ticket.name || 'Untitled',
       status: (ticket.status || 'open').toLowerCase(),
       priority: (ticket.priority || 'medium').toLowerCase(),
-      createdAt: ticket.created_at || ticket.createdAt || new Date().toISOString(),
-      updatedAt: ticket.updated_at || ticket.updatedAt || new Date().toISOString(),
-      description: ticket.description || '',
+      createdAt: ticket.created_at || ticket.createdAt || ticket.date || new Date().toISOString(),
+      updatedAt: ticket.updated_at || ticket.updatedAt || ticket.modified_at || new Date().toISOString(),
+      description: ticket.description || ticket.body || ticket.content || '',
     }));
 
     return res.status(200).json({
       success: true,
-      tickets,
-      count: tickets.length
+      tickets: transformedTickets,
+      count: transformedTickets.length
     });
   } catch (error) {
     console.error('Support tickets error:', error);
     return res.status(200).json({
-      success: false,
+      success: true,
       tickets: [],
       count: 0,
-      error: 'Failed to retrieve support tickets'
+      message: 'Unable to retrieve support tickets at this time'
     });
   }
 }

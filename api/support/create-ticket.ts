@@ -29,7 +29,7 @@ export default async function handler(req: any, res: any) {
     const response = await fetch(`${superopsBaseUrl}/tickets`, {
       method: 'POST',
       headers: {
-        'Authorization': `${superopsApiKey}`,
+        'Authorization': `Bearer ${superopsApiKey}`,
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
