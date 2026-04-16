@@ -25,7 +25,7 @@ import PricingEditor from './admin/editors/PricingEditor';
 
 function HomePage() {
   return (
-    <div className="min-h-screen bg-slate-900">
+    <div className="min-h-screen relative" style={{ background: 'white' }}>
       <Navbar />
       <Hero />
       <Services />
@@ -39,9 +39,10 @@ function HomePage() {
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <>
       <BackgroundCircles />
-      <Routes>
+      <BrowserRouter>
+        <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/cybersecurity" element={<CybersecurityPage />} />
         <Route path="/why-us" element={<WhyUsPage />} />
@@ -66,6 +67,7 @@ export default function App() {
           <Route path="pricing" element={<PricingEditor />} />
         </Route>
       </Routes>
-    </BrowserRouter>
+      </BrowserRouter>
+    </>
   );
 }

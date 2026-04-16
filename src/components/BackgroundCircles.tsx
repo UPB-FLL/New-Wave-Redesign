@@ -13,7 +13,7 @@ export default function BackgroundCircles() {
   }, []);
 
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ zIndex: -1, top: 0, left: 0 }}>
+    <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 10, top: 0, left: 0, right: 0, bottom: 0 }}>
       <div
         className="absolute w-[800px] h-[800px] rounded-full transition-transform duration-300 ease-out"
         style={{
