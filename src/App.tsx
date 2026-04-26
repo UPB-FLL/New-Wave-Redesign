@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import BackgroundCircles from './components/BackgroundCircles';
 import FloatingNav from './components/FloatingNav';
 import Navbar from './components/Navbar';
@@ -54,6 +55,7 @@ export default function App() {
     <>
       <BackgroundCircles />
       <FloatingNav />
+      <Analytics />
       <BrowserRouter>
         <Routes>
         <Route path="/" element={<HomePage />} />
