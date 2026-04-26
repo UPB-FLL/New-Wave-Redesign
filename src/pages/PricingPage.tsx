@@ -163,7 +163,7 @@ export default function PricingPage() {
                   <div
                     key={idx}
                     className={`rounded-2xl p-8 transition-all duration-300 h-full flex flex-col ${
-                      tier.highlight ? 'ring-2 shadow-2xl transform -translate-y-2' : 'shadow-lg'
+                      tier.highlight ? 'ring-2 shadow-2xl' : 'shadow-lg'
                     }`}
                     style={{
                       background: 'white',
