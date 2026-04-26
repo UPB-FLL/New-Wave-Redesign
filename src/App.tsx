@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import BackgroundCircles from './components/BackgroundCircles';
 import FloatingNav from './components/FloatingNav';
 import Navbar from './components/Navbar';
@@ -52,6 +53,7 @@ function HomePage() {
 export default function App() {
   return (
     <>
+      <Analytics />
       <BackgroundCircles />
       <FloatingNav />
       <BrowserRouter>
