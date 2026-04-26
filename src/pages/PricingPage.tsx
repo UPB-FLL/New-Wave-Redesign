@@ -158,7 +158,7 @@ export default function PricingPage() {
                 <p style={{ color: 'rgba(21,34,50,0.6)' }}>No pricing tiers configured yet.</p>
               </div>
             ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8" style={{ gridAutoRows: '1fr' }}>
                 {tiers.map((tier, idx) => (
                   <div
                     key={idx}
