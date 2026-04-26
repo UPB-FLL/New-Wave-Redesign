@@ -158,11 +158,11 @@ export default function PricingPage() {
                 <p style={{ color: 'rgba(21,34,50,0.6)' }}>No pricing tiers configured yet.</p>
               </div>
             ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
                 {tiers.map((tier, idx) => (
                   <div
                     key={idx}
-                    className={`rounded-2xl p-8 transition-all duration-300 ${
+                    className={`rounded-2xl p-8 transition-all duration-300 h-full flex flex-col ${
                       tier.highlight ? 'ring-2 shadow-2xl transform -translate-y-2' : 'shadow-lg'
                     }`}
                     style={{
@@ -206,7 +206,7 @@ export default function PricingPage() {
                       Get Started
                     </button>
 
-                    <div className="space-y-4">
+                    <div className="space-y-4 flex-grow">
                       {tier.features.map((feature, featureIdx) => (
                         <div key={featureIdx} className="flex items-start gap-3">
                           <Check size={20} style={{ color: tier.accent, flexShrink: 0, marginTop: '2px' }} />
