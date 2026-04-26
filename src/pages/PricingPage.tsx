@@ -158,17 +158,18 @@ export default function PricingPage() {
                 <p style={{ color: 'rgba(21,34,50,0.6)' }}>No pricing tiers configured yet.</p>
               </div>
             ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8" style={{ gridAutoRows: '1fr' }}>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8" style={{ gridAutoRows: '1fr', alignItems: 'stretch' }}>
                 {tiers.map((tier, idx) => (
                   <div
                     key={idx}
-                    className={`rounded-2xl p-8 transition-all duration-300 h-full flex flex-col ${
+                    className={`rounded-2xl p-8 transition-all duration-300 flex flex-col ${
                       tier.highlight ? 'ring-2 shadow-2xl' : 'shadow-lg'
                     }`}
                     style={{
                       background: 'white',
                       borderColor: tier.highlight ? tier.accent : 'rgba(21,34,50,0.07)',
                       border: tier.highlight ? `2px solid ${tier.accent}` : '1px solid rgba(21,34,50,0.07)',
+                      height: '100%',
                     }}
                   >
                     {tier.highlight && (
