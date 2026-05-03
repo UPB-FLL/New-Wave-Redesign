@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MessageCircle, HelpCircle, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { MessageCircle, HelpCircle, AlertCircle, CheckCircle, Clock, Send, LogIn } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { usePageMeta } from '../lib/usePageMeta';
@@ -28,7 +28,7 @@ export default function SupportPage() {
     description:
       'Open a support ticket, browse the knowledge base, start a live chat, or connect a remote session with New Wave IT.',
   });
-  const [activeTab, setActiveTab] = useState<'tickets' | 'kb' | 'chat' | 'wave'>('tickets');
+  const [activeTab, setActiveTab] = useState<'tickets' | 'kb' | 'chat' | 'wave' | 'submit'>('tickets');
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,6 +37,43 @@ export default function SupportPage() {
   const [connectionCode, setConnectionCode] = useState('');
   const [remoteCode, setRemoteCode] = useState('');
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'connecting' | 'connected' | 'error'>('idle');
+  const [ticketForm, setTicketForm] = useState({ name: '', email: '', subject: '', description: '' });
+  const [ticketSubmitted, setTicketSubmitted] = useState(false);
+  const [ticketLoading, setTicketLoading] = useState(false);
+  const [ticketError, setTicketError] = useState('');
+
+  const handleTicketSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ticketForm.name || !ticketForm.email || !ticketForm.subject) {
+      setTicketError('Name, email, and subject are required');
+      return;
+    }
+
+    setTicketLoading(true);
+    setTicketError('');
+
+    try {
+      const response = await fetch('/api/send-support-ticket', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(ticketForm),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to submit ticket');
+      }
+
+      setTicketSubmitted(true);
+      setTicketForm({ name: '', email: '', subject: '', description: '' });
+      setTimeout(() => setTicketSubmitted(false), 5000);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to submit ticket. Please try again.';
+      setTicketError(errorMessage);
+    } finally {
+      setTicketLoading(false);
+    }
+  };
 
   const fetchTickets = async (emailToFetch?: string) => {
     setLoading(true);
@@ -123,41 +160,58 @@ export default function SupportPage() {
     <div className="flex flex-col min-h-screen bg-white">
       <Navbar />
       <div className="pt-20 flex-1">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-16">
-          <div className="mb-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+          {/* Customer Login Link */}
+          <div className="mb-8 sm:mb-12">
+            <a
+              href="https://super-ops.newwaveitfl.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-medium transition-all duration-200 hover:-translate-y-0.5"
+              style={{
+                background: '#39CCCC',
+                color: 'white',
+                boxShadow: '0 4px 12px rgba(57,204,204,0.3)',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = '#2db8b8')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = '#39CCCC')}
+            >
+              <LogIn size={16} />
+              <span className="text-sm">Customer Login (Super Ops)</span>
+            </a>
+          </div>
+
+          <div className="mb-8 sm:mb-12">
             <h1
-              className="text-5xl font-bold mb-4"
+              className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-2 sm:mb-4"
               style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
             >
               Customer Support
             </h1>
-            <p style={{ color: 'rgba(21,34,50,0.6)' }}>
+            <p className="text-sm sm:text-base" style={{ color: 'rgba(21,34,50,0.6)' }}>
               View your support tickets, access our knowledge base, and connect with our team
             </p>
           </div>
 
           {/* Tab Navigation */}
-          <div className="flex gap-4 mb-8 border-b border-gray-200 overflow-x-auto">
+          <div className="flex gap-3 sm:gap-4 mb-8 border-b border-gray-200 overflow-x-auto">
             {[
               { id: 'tickets', label: 'My Tickets', icon: MessageCircle },
+              { id: 'submit', label: 'Submit Ticket', icon: Send },
               { id: 'kb', label: 'Knowledge Base', icon: HelpCircle },
               { id: 'chat', label: 'Live Chat', icon: MessageCircle },
               { id: 'wave', label: 'Wave Support', icon: MessageCircle },
             ].map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as 'tickets' | 'kb' | 'chat')}
-                className={`flex items-center gap-2 px-4 py-3 font-medium transition-colors border-b-2 ${
-                  activeTab === tab.id
-                    ? 'border-b-2'
-                    : 'border-b-2 border-transparent'
-                }`}
+                onClick={() => setActiveTab(tab.id as 'tickets' | 'kb' | 'chat' | 'wave' | 'submit')}
+                className={`flex items-center gap-2 px-3 sm:px-4 py-3 font-medium text-sm transition-colors border-b-2 whitespace-nowrap`}
                 style={{
                   color: activeTab === tab.id ? '#39CCCC' : 'rgba(21,34,50,0.6)',
                   borderColor: activeTab === tab.id ? '#39CCCC' : 'transparent',
                 }}
               >
-                <tab.icon size={18} />
+                <tab.icon size={16} className="hidden sm:inline" />
                 {tab.label}
               </button>
             ))}
@@ -167,7 +221,7 @@ export default function SupportPage() {
           {activeTab === 'tickets' && (
             <div>
               {!loggedInEmail ? (
-                <div className="bg-gray-50 rounded-2xl p-8 text-center">
+                <div className="bg-gray-50 rounded-2xl p-6 sm:p-8 text-center">
                   <div className="max-w-md mx-auto">
                     <h3 className="text-xl font-semibold mb-4" style={{ color: '#152232' }}>
                       View Your Support Tickets
@@ -299,16 +353,126 @@ export default function SupportPage() {
 
           {/* Knowledge Base Tab */}
           {activeTab === 'kb' && (
-            <div className="bg-gray-50 rounded-2xl p-8 text-center">
-              <p style={{ color: 'rgba(21,34,50,0.6)' }}>
+            <div className="bg-gray-50 rounded-2xl p-6 sm:p-8 text-center">
+              <p className="text-sm sm:text-base" style={{ color: 'rgba(21,34,50,0.6)' }}>
                 Knowledge base content coming soon. Check back for helpful articles and guides.
               </p>
             </div>
           )}
 
+          {/* Submit Ticket Tab */}
+          {activeTab === 'submit' && (
+            <div>
+              {ticketSubmitted ? (
+                <div className="bg-white rounded-2xl p-8 sm:p-12 text-center shadow-lg" style={{ border: '1px solid rgba(94,188,103,0.3)' }}>
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4 mx-auto" style={{ background: 'rgba(94,188,103,0.12)' }}>
+                    <CheckCircle size={32} style={{ color: '#5EBC67' }} />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-2" style={{ color: '#152232' }}>
+                    Ticket Submitted!
+                  </h3>
+                  <p style={{ color: 'rgba(21,34,50,0.6)' }}>
+                    We've received your support ticket. Our team will review it shortly and reach out at the email address provided.
+                  </p>
+                </div>
+              ) : (
+                <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-lg" style={{ border: '1px solid rgba(21,34,50,0.07)' }}>
+                  <h3 className="text-lg sm:text-xl font-bold mb-6" style={{ color: '#152232' }}>
+                    Submit a Support Ticket
+                  </h3>
+                  <form onSubmit={handleTicketSubmit} className="space-y-4">
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2" style={{ color: 'rgba(21,34,50,0.75)' }}>
+                          Full Name <span style={{ color: '#39CCCC' }}>*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={ticketForm.name}
+                          onChange={(e) => setTicketForm({ ...ticketForm, name: e.target.value })}
+                          placeholder="John Smith"
+                          required
+                          className="w-full rounded-lg px-3 py-2 text-sm outline-none transition-colors"
+                          style={{ background: 'white', border: '1.5px solid rgba(21,34,50,0.12)', color: '#152232' }}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2" style={{ color: 'rgba(21,34,50,0.75)' }}>
+                          Email <span style={{ color: '#39CCCC' }}>*</span>
+                        </label>
+                        <input
+                          type="email"
+                          value={ticketForm.email}
+                          onChange={(e) => setTicketForm({ ...ticketForm, email: e.target.value })}
+                          placeholder="john@company.com"
+                          required
+                          className="w-full rounded-lg px-3 py-2 text-sm outline-none transition-colors"
+                          style={{ background: 'white', border: '1.5px solid rgba(21,34,50,0.12)', color: '#152232' }}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-2" style={{ color: 'rgba(21,34,50,0.75)' }}>
+                        Subject <span style={{ color: '#39CCCC' }}>*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={ticketForm.subject}
+                        onChange={(e) => setTicketForm({ ...ticketForm, subject: e.target.value })}
+                        placeholder="Brief description of your issue"
+                        required
+                        className="w-full rounded-lg px-3 py-2 text-sm outline-none transition-colors"
+                        style={{ background: 'white', border: '1.5px solid rgba(21,34,50,0.12)', color: '#152232' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-2" style={{ color: 'rgba(21,34,50,0.75)' }}>
+                        Description
+                      </label>
+                      <textarea
+                        value={ticketForm.description}
+                        onChange={(e) => setTicketForm({ ...ticketForm, description: e.target.value })}
+                        placeholder="Provide details about your issue..."
+                        rows={4}
+                        className="w-full rounded-lg px-3 py-2 text-sm outline-none transition-colors resize-none"
+                        style={{ background: 'white', border: '1.5px solid rgba(21,34,50,0.12)', color: '#152232' }}
+                      />
+                    </div>
+
+                    {ticketError && <p className="text-sm" style={{ color: '#e05252' }}>{ticketError}</p>}
+
+                    <button
+                      type="submit"
+                      disabled={ticketLoading}
+                      className="w-full flex items-center justify-center gap-2 text-white font-semibold py-2.5 rounded-lg transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed hover:-translate-y-0.5"
+                      style={{ background: '#39CCCC', boxShadow: '0 4px 12px rgba(57,204,204,0.3)' }}
+                    >
+                      {ticketLoading ? (
+                        <span className="flex items-center gap-2">
+                          <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                          </svg>
+                          Submitting...
+                        </span>
+                      ) : (
+                        <>
+                          <Send size={16} />
+                          Submit Ticket
+                        </>
+                      )}
+                    </button>
+                  </form>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Live Chat Tab */}
           {activeTab === 'chat' && (
-            <div className="bg-gray-50 rounded-2xl p-8 text-center">
+            <div className="bg-gray-50 rounded-2xl p-6 sm:p-8 text-center">
               <div className="max-w-md mx-auto">
                 <div className="w-16 h-16 bg-cyan-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <MessageCircle size={32} style={{ color: '#39CCCC' }} />
@@ -316,7 +480,7 @@ export default function SupportPage() {
                 <h3 className="text-xl font-semibold mb-3" style={{ color: '#152232' }}>
                   Live Chat Support
                 </h3>
-                <p style={{ color: 'rgba(21,34,50,0.6)', marginBottom: '20px' }}>
+                <p className="text-sm sm:text-base mb-5" style={{ color: 'rgba(21,34,50,0.6)' }}>
                   Chat with our support team in real-time. Available 24/7 for urgent issues.
                 </p>
                 <button
@@ -325,7 +489,7 @@ export default function SupportPage() {
                   onMouseEnter={(e) => (e.currentTarget.style.background = '#2db8b8')}
                   onMouseLeave={(e) => (e.currentTarget.style.background = '#39CCCC')}
                 >
-                  Start Live Chat
+                  Chat Now
                 </button>
               </div>
             </div>
@@ -334,7 +498,7 @@ export default function SupportPage() {
           {/* Wave Support (Remote Access) Tab */}
           {activeTab === 'wave' && (
             <div className="max-w-2xl mx-auto">
-              <div className="bg-gradient-to-br rounded-2xl p-8 shadow-lg" style={{ background: 'linear-gradient(135deg, rgba(57,204,204,0.1) 0%, rgba(94,188,103,0.1) 100%)' }}>
+              <div className="bg-gradient-to-br rounded-2xl p-5 sm:p-8 shadow-lg" style={{ background: 'linear-gradient(135deg, rgba(57,204,204,0.1) 0%, rgba(94,188,103,0.1) 100%)' }}>
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-12 h-12 bg-cyan-100 rounded-full flex items-center justify-center">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#39CCCC" strokeWidth="2">
