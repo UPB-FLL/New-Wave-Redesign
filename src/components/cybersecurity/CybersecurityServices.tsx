@@ -62,7 +62,7 @@ export default function CybersecurityServices() {
             style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}
           >
             Complete security stack,{' '}
-            <span style={{ color: '#39CCCC' }}>fully managed.</span>
+            <span style={{ background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>fully managed.</span>
           </h2>
           <p className="text-sm sm:text-base" style={{ color: 'rgba(21,34,50,0.6)' }}>
             Six integrated pillars of defense, deployed and operated by certified security

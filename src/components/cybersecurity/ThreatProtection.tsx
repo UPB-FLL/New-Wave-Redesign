@@ -95,7 +95,7 @@ export default function ThreatProtection() {
             style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}
           >
             Defense against every{' '}
-            <span style={{ color: '#39CCCC' }}>attack vector.</span>
+            <span style={{ background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>attack vector.</span>
           </h2>
           <p className="text-sm sm:text-base max-w-2xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
             Here's how we stop the eight most damaging threats facing businesses today.

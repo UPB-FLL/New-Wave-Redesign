@@ -44,7 +44,7 @@ export default function PricingPage() {
                 ) : (
                   <>
                     Build Your Custom
-                    <span style={{ color: '#39CCCC' }}> Quote</span>
+                    <span style={{ background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}> Quote</span>
                   </>
                 )}
               </h2>
