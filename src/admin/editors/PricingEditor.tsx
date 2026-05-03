@@ -117,6 +117,7 @@ export default function PricingEditor() {
             ...data,
             section_label: data.section_label || 'Transparent Pricing',
             headline: data.headline || 'Simple, Scalable',
+            headline_accent: data.headline_accent || 'Plans',
             subheadline: data.subheadline || 'Choose the perfect plan for your business. All plans include 24/7 support and regular updates.',
             tiers: JSON.stringify(defaultTiers),
           });
@@ -128,6 +129,7 @@ export default function PricingEditor() {
           ...data,
           section_label: data.section_label || 'Transparent Pricing',
           headline: data.headline || 'Simple, Scalable',
+          headline_accent: data.headline_accent || 'Plans',
           subheadline: data.subheadline || 'Choose the perfect plan for your business. All plans include 24/7 support and regular updates.',
           tiers: JSON.stringify(defaultTiers),
         });
