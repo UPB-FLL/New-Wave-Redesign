@@ -1,14 +1,64 @@
 import { ArrowRight, Shield, ShieldCheck, Activity, Lock, AlertTriangle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+type ActivityEvent = { id: number; type: string; secondsAgo: number; color: string };
+
+const EVENT_POOL: { type: string; color: string }[] = [
+  { type: 'Phishing attempt blocked', color: '#5EBC67' },
+  { type: 'Suspicious login flagged', color: '#ffd93d' },
+  { type: 'Malware quarantined', color: '#5EBC67' },
+  { type: 'Brute force attempt blocked', color: '#5EBC67' },
+  { type: 'Ransomware signature detected', color: '#ff6b6b' },
+  { type: 'Firewall rule auto-updated', color: '#39CCCC' },
+  { type: 'DNS exfiltration prevented', color: '#5EBC67' },
+  { type: 'Endpoint scan completed', color: '#39CCCC' },
+  { type: 'Zero-day exploit patched', color: '#ffd93d' },
+  { type: 'Outbound C2 traffic blocked', color: '#5EBC67' },
+  { type: 'MFA challenge enforced', color: '#39CCCC' },
+  { type: 'Credential leak alert resolved', color: '#5EBC67' },
+];
+
+const formatTime = (seconds: number): string => {
+  if (seconds < 60) return `${seconds}s ago`;
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+  return `${Math.floor(seconds / 3600)}h ago`;
+};
+
 export default function CybersecurityHero() {
   const [threatCount, setThreatCount] = useState(2847291);
+  const [events, setEvents] = useState<ActivityEvent[]>([
+    { id: 1, type: 'Phishing attempt blocked', secondsAgo: 2, color: '#5EBC67' },
+    { id: 2, type: 'Suspicious login flagged', secondsAgo: 14, color: '#ffd93d' },
+    { id: 3, type: 'Malware quarantined', secondsAgo: 47, color: '#5EBC67' },
+  ]);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setThreatCount((prev) => prev + Math.floor(Math.random() * 8) + 2);
     }, 1500);
     return () => clearInterval(interval);
+  }, []);
+
+  // Tick the "seconds ago" counter every second
+  useEffect(() => {
+    const tick = setInterval(() => {
+      setEvents((prev) => prev.map((e) => ({ ...e, secondsAgo: e.secondsAgo + 1 })));
+    }, 1000);
+    return () => clearInterval(tick);
+  }, []);
+
+  // Periodically push a new event to the top, dropping the oldest
+  useEffect(() => {
+    let nextId = 100;
+    const rotate = setInterval(() => {
+      setEvents((prev) => {
+        const pool = EVENT_POOL.filter((p) => !prev.slice(0, 2).some((e) => e.type === p.type));
+        const pick = pool[Math.floor(Math.random() * pool.length)];
+        const next: ActivityEvent = { id: nextId++, type: pick.type, secondsAgo: 1, color: pick.color };
+        return [next, prev[0], prev[1]];
+      });
+    }, 4500);
+    return () => clearInterval(rotate);
   }, []);
 
   const handleScroll = (href: string) => {
@@ -243,24 +293,20 @@ export default function CybersecurityHero() {
                   <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'rgba(21,34,50,0.5)' }}>
                     Recent Activity
                   </div>
-                  {[
-                    { type: 'Phishing attempt blocked', time: '2s ago', color: '#5EBC67' },
-                    { type: 'Suspicious login flagged', time: '14s ago', color: '#ffd93d' },
-                    { type: 'Malware quarantined', time: '47s ago', color: '#5EBC67' },
-                  ].map((event, i) => (
+                  {events.map((event) => (
                     <div
-                      key={i}
-                      className="flex items-center justify-between py-2 px-3 rounded-lg"
+                      key={event.id}
+                      className="flex items-center justify-between py-2 px-3 rounded-lg transition-all duration-500"
                       style={{ background: 'rgba(21,34,50,0.02)' }}
                     >
-                      <div className="flex items-center gap-2">
-                        <AlertTriangle size={12} style={{ color: event.color }} />
-                        <span className="text-xs" style={{ color: 'rgba(21,34,50,0.75)' }}>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <AlertTriangle size={12} style={{ color: event.color }} className="flex-shrink-0" />
+                        <span className="text-xs truncate" style={{ color: 'rgba(21,34,50,0.75)' }}>
                           {event.type}
                         </span>
                       </div>
-                      <span className="text-xs tabular-nums" style={{ color: 'rgba(21,34,50,0.4)' }}>
-                        {event.time}
+                      <span className="text-xs tabular-nums flex-shrink-0 ml-2" style={{ color: 'rgba(21,34,50,0.4)' }}>
+                        {formatTime(event.secondsAgo)}
                       </span>
                     </div>
                   ))}

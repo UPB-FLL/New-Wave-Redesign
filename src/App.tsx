@@ -16,6 +16,7 @@ import AdminGuard from './admin/AdminGuard';
 import AdminLayout from './admin/AdminLayout';
 import AdminDashboard from './admin/AdminDashboard';
 import HeroEditor from './admin/editors/HeroEditor';
+import TrustBarEditor from './admin/editors/TrustBarEditor';
 import ServicesEditor from './admin/editors/ServicesEditor';
 import WhyUsEditor from './admin/editors/WhyUsEditor';
 import AboutEditor from './admin/editors/AboutEditor';
@@ -83,6 +84,7 @@ export default function App() {
         >
           <Route index element={<AdminDashboard />} />
           <Route path="hero" element={<HeroEditor />} />
+          <Route path="trustbar" element={<TrustBarEditor />} />
           <Route path="services" element={<ServicesEditor />} />
           <Route path="whyus" element={<WhyUsEditor />} />
           <Route path="about" element={<AboutEditor />} />

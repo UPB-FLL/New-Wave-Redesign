@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import {
-  LayoutDashboard, Star, Layers, HelpCircle, Info, Mail, AlignLeft, LogOut, Menu, X, Waves, Search,
+  LayoutDashboard, Star, Layers, HelpCircle, Info, Mail, AlignLeft, LogOut, Menu, X, Waves, Search, ShieldCheck,
 } from 'lucide-react';
 import { usePageMeta } from '../lib/usePageMeta';
 
 const navItems = [
   { label: 'Dashboard', path: '/admin', icon: LayoutDashboard, end: true },
   { label: 'Hero', path: '/admin/hero', icon: Star },
+  { label: 'Trust Bar', path: '/admin/trustbar', icon: ShieldCheck },
   { label: 'Services', path: '/admin/services', icon: Layers },
   { label: 'Why Us', path: '/admin/whyus', icon: HelpCircle },
   { label: 'About', path: '/admin/about', icon: Info },

@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
-import { Star, Layers, HelpCircle, Info, Mail, AlignLeft, ArrowRight, DollarSign, Search } from 'lucide-react';
+import { Star, Layers, HelpCircle, Info, Mail, AlignLeft, ArrowRight, DollarSign, Search, ShieldCheck } from 'lucide-react';
 
 const sections = [
   { label: 'Hero', path: '/admin/hero', icon: Star, desc: 'Headline, badge, stats, feature cards' },
+  { label: 'Trust Bar', path: '/admin/trustbar', icon: ShieldCheck, desc: 'Certifications & partnership badges' },
   { label: 'Services', path: '/admin/services', icon: Layers, desc: 'Service cards, titles, highlights' },
   { label: 'Pricing', path: '/admin/pricing', icon: DollarSign, desc: 'Pricing tiers, plans, features' },
   { label: 'Pricing Units', path: '/admin/pricing-units', icon: DollarSign, desc: 'Configure quote builder options & rates' },

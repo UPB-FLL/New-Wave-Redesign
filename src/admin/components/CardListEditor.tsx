@@ -4,6 +4,9 @@ interface Field {
   key: string;
   label: string;
   multiline?: boolean;
+  type?: 'text' | 'select';
+  options?: { value: string; label: string }[];
+  hint?: string;
 }
 
 interface CardListEditorProps {
@@ -66,7 +69,20 @@ export default function CardListEditor({ label, items, fields, onChange, default
               {fields.map((field) => (
                 <div key={field.key}>
                   <label className="block text-xs mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>{field.label}</label>
-                  {field.multiline ? (
+                  {field.type === 'select' ? (
+                    <select
+                      value={item[field.key] ?? ''}
+                      onChange={(e) => update(index, field.key, e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg text-xs text-white outline-none transition-all"
+                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+                    >
+                      {(field.options || []).map((opt) => (
+                        <option key={opt.value} value={opt.value} style={{ background: '#111c27', color: 'white' }}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  ) : field.multiline ? (
                     <textarea
                       rows={2}
                       value={item[field.key] ?? ''}
@@ -87,6 +103,7 @@ export default function CardListEditor({ label, items, fields, onChange, default
                       onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
                     />
                   )}
+                  {field.hint && <p className="text-[10px] mt-1" style={{ color: 'rgba(255,255,255,0.25)' }}>{field.hint}</p>}
                 </div>
               ))}
             </div>
