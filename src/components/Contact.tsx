@@ -71,16 +71,16 @@ export default function Contact() {
   return (
     <section
       id="contact"
-      className="py-16 relative"
+      className="py-12 sm:py-16 relative"
       style={{ background: '#f8fafb', borderTop: '1px solid rgba(21,34,50,0.06)', zIndex: 10 }}
     >
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="text-center mb-10">
-          <span className="text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-8 sm:mb-10">
+          <span className="text-xs sm:text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
             {c.section_label || 'Get In Touch'}
           </span>
           <h2
-            className="text-3xl lg:text-4xl mt-2 mb-3 leading-tight"
+            className="text-2xl sm:text-3xl lg:text-4xl mt-2 mb-3 leading-tight"
             style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
           >
             {c.headline ? (
@@ -92,12 +92,12 @@ export default function Contact() {
               </>
             )}
           </h2>
-          <p className="text-base max-w-xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
+          <p className="text-sm sm:text-base max-w-xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
             {c.subheadline || 'Fill out the form below and one of our technicians will reach out within one business day — or call us now for immediate assistance.'}
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-5 gap-8">
+        <div className="grid lg:grid-cols-5 gap-5 sm:gap-8">
           <div className="lg:col-span-2 flex flex-col gap-4">
             {[
               {

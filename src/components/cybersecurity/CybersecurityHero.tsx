@@ -18,7 +18,7 @@ export default function CybersecurityHero() {
 
   return (
     <section
-      className="relative flex items-center overflow-hidden bg-white pt-28 pb-16"
+      className="relative flex items-center overflow-hidden bg-white pt-24 pb-12 sm:pt-28 sm:pb-16"
       style={{ zIndex: 10 }}
     >
       {/* Decorative gradient orbs */}
@@ -49,8 +49,8 @@ export default function CybersecurityHero() {
         }}
       />
 
-      <div className="relative max-w-7xl mx-auto px-6 lg:px-8 w-full">
-        <div className="grid lg:grid-cols-12 gap-8 items-center">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+        <div className="grid lg:grid-cols-12 gap-6 sm:gap-8 items-center">
           {/* Left: Content */}
           <div className="lg:col-span-7">
             {/* Live status badge */}
@@ -78,7 +78,7 @@ export default function CybersecurityHero() {
             </div>
 
             <h1
-              className="text-4xl lg:text-6xl leading-[0.95] tracking-tight mb-4"
+              className="text-3xl sm:text-4xl lg:text-6xl leading-[0.95] tracking-tight mb-4"
               style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
             >
               Enterprise security{' '}
@@ -95,7 +95,7 @@ export default function CybersecurityHero() {
             </h1>
 
             <p
-              className="text-base lg:text-lg leading-relaxed mb-7 max-w-2xl"
+              className="text-sm sm:text-base lg:text-lg leading-relaxed mb-5 sm:mb-7 max-w-2xl"
               style={{ color: 'rgba(21,34,50,0.65)' }}
             >
               Stop threats before they reach your business. Our 24/7 security operations

@@ -65,7 +65,7 @@ export default function FloatingNav() {
       {showScroll && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-8 right-8 z-40 flex items-center justify-center w-14 h-14 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 hover:shadow-lg group"
+          className="fixed bottom-5 right-5 sm:bottom-8 sm:right-8 z-40 flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 hover:shadow-lg group"
           style={{
             background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)',
             animation: 'slideInUp 0.3s ease-out',
@@ -73,38 +73,38 @@ export default function FloatingNav() {
           title="Back to top"
         >
           <ArrowUp
-            size={24}
-            className="text-white transition-transform duration-300 group-hover:-translate-y-1"
+            size={20}
+            className="sm:w-6 sm:h-6 text-white transition-transform duration-300 group-hover:-translate-y-1"
           />
         </button>
       )}
 
       {/* Quick Navigation Menu */}
-      <div className="fixed bottom-8 left-8 z-40 flex flex-col gap-3">
+      <div className="fixed bottom-5 left-5 sm:bottom-8 sm:left-8 z-40 flex flex-col gap-2 sm:gap-3">
         {/* Menu Toggle Button */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center justify-center w-14 h-14 rounded-full shadow-2xl transition-all duration-300 hover:scale-110"
+          className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-2xl transition-all duration-300 hover:scale-110"
           style={{
             background: 'linear-gradient(135deg, #5EBC67 0%, #4da856 100%)',
           }}
           title="Quick navigation"
         >
           {isOpen ? (
-            <X size={24} className="text-white" />
+            <X size={20} className="sm:w-6 sm:h-6 text-white" />
           ) : (
-            <Menu size={24} className="text-white" />
+            <Menu size={20} className="sm:w-6 sm:h-6 text-white" />
           )}
         </button>
 
         {/* Quick Links Menu */}
         {isOpen && (
-          <div className="flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200">
+          <div className="flex flex-col gap-1.5 sm:gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200 max-h-[60vh] overflow-y-auto pr-1">
             {links.map((link) => (
               <button
                 key={link.label}
                 onClick={() => handleNav(link)}
-                className="px-4 py-3 rounded-lg text-sm font-medium text-white transition-all duration-200 hover:translate-x-1 hover:shadow-lg backdrop-blur-md text-left"
+                className="px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-medium text-white transition-all duration-200 hover:translate-x-1 hover:shadow-lg backdrop-blur-md text-left whitespace-nowrap"
                 style={{
                   background: 'rgba(57, 204, 204, 0.9)',
                   border: '1px solid rgba(57, 204, 204, 0.3)',

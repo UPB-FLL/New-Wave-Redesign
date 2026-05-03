@@ -175,7 +175,7 @@ export default function DynamicPricingBuilder() {
   const inputStyle = { background: 'white', border: '1.5px solid rgba(21,34,50,0.12)', color: '#152232' };
 
   return (
-    <div className="rounded-2xl p-6 bg-white shadow-lg relative" style={{ zIndex: 20 }}>
+    <div className="rounded-2xl p-4 sm:p-6 bg-white shadow-lg relative" style={{ zIndex: 20 }}>
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Pricing Options */}
         <div>

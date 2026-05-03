@@ -48,7 +48,7 @@ const frameworks = [
 export default function ComplianceFrameworks() {
   return (
     <section
-      className="py-16 relative"
+      className="py-12 sm:py-16 relative"
       style={{
         background: '#152232',
         borderTop: '1px solid rgba(255,255,255,0.06)',
@@ -66,8 +66,8 @@ export default function ComplianceFrameworks() {
         />
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="text-center mb-10">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-8 sm:mb-10">
           <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 mb-4"
             style={{ background: 'rgba(94,188,103,0.1)', border: '1px solid rgba(94,188,103,0.3)' }}
           >
@@ -77,23 +77,23 @@ export default function ComplianceFrameworks() {
             </span>
           </div>
           <h2
-            className="text-3xl lg:text-4xl mt-2 mb-3 leading-tight"
+            className="text-2xl sm:text-3xl lg:text-4xl mt-2 mb-3 leading-tight"
             style={{ fontFamily: 'Staatliches, sans-serif', color: 'white' }}
           >
             Audit-ready from{' '}
             <span style={{ color: '#5EBC67' }}>day one.</span>
           </h2>
-          <p className="text-base max-w-2xl mx-auto" style={{ color: 'rgba(255,255,255,0.6)' }}>
+          <p className="text-sm sm:text-base max-w-2xl mx-auto" style={{ color: 'rgba(255,255,255,0.6)' }}>
             We map your environment to the frameworks that matter for your industry —
             then keep you continuously compliant with automated controls.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {frameworks.map((framework) => (
             <div
               key={framework.name}
-              className="group rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1"
+              className="group rounded-2xl p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1"
               style={{
                 background: 'rgba(255,255,255,0.03)',
                 border: '1px solid rgba(255,255,255,0.08)',

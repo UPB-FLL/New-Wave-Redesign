@@ -34,22 +34,22 @@ const steps = [
 export default function SecurityProcess() {
   return (
     <section
-      className="bg-white py-16 relative"
+      className="bg-white py-12 sm:py-16 relative"
       style={{ borderTop: '1px solid rgba(21,34,50,0.06)', zIndex: 10 }}
     >
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="text-center mb-10">
-          <span className="text-sm font-semibold uppercase tracking-widest" style={{ color: '#5EBC67' }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-8 sm:mb-10">
+          <span className="text-xs sm:text-sm font-semibold uppercase tracking-widest" style={{ color: '#5EBC67' }}>
             How We Engage
           </span>
           <h2
-            className="text-3xl lg:text-4xl mt-2 mb-3 leading-tight"
+            className="text-2xl sm:text-3xl lg:text-4xl mt-2 mb-3 leading-tight"
             style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
           >
             From assessment to{' '}
             <span style={{ color: '#5EBC67' }}>active defense</span> in 30 days.
           </h2>
-          <p className="text-base max-w-2xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
+          <p className="text-sm sm:text-base max-w-2xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
             A proven four-phase methodology that gets you protected fast — without
             the typical enterprise rollout drag.
           </p>

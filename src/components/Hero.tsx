@@ -26,7 +26,7 @@ export default function Hero() {
   return (
     <section
       id="hero"
-      className="relative flex items-center overflow-hidden bg-white pt-28 pb-16"
+      className="relative flex items-center overflow-hidden bg-white pt-24 pb-12 sm:pt-28 sm:pb-16"
       style={{ zIndex: 10 }}
     >
       {/* Decorative gradient orbs */}
@@ -57,10 +57,10 @@ export default function Hero() {
         }}
       />
 
-      <div className="relative max-w-5xl mx-auto px-6 lg:px-8 w-full text-center">
+      <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 w-full text-center">
         <div>
             <div
-              className="inline-flex items-center gap-2 rounded-full px-3 py-1 mb-5 text-xs font-semibold"
+              className="inline-flex items-center gap-2 rounded-full px-3 py-1 mb-4 sm:mb-5 text-[10px] sm:text-xs font-semibold"
               style={{ background: 'rgba(57,204,204,0.1)', border: '1px solid rgba(57,204,204,0.3)', color: '#39CCCC' }}
             >
               <span className="relative flex h-2 w-2">
@@ -71,7 +71,7 @@ export default function Hero() {
             </div>
 
             <h1
-              className="text-5xl lg:text-7xl leading-[0.95] tracking-tight mb-5"
+              className="text-4xl sm:text-5xl lg:text-7xl leading-[0.95] tracking-tight mb-4 sm:mb-5"
               style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
             >
               {c.headline_part1 || 'When technology'}{' '}
@@ -90,13 +90,13 @@ export default function Hero() {
             </h1>
 
             <p
-              className="text-base lg:text-lg leading-relaxed mb-7 max-w-2xl mx-auto"
+              className="text-sm sm:text-base lg:text-lg leading-relaxed mb-5 sm:mb-7 max-w-2xl mx-auto"
               style={{ color: 'rgba(21,34,50,0.65)' }}
             >
               {c.subheadline || 'Industry-certified technicians, full-time project managers, and technology advisors — ready to protect, support, and scale your business IT infrastructure.'}
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-3 mb-7 justify-center">
+            <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 mb-6 sm:mb-7 justify-center">
               <button
                 onClick={() => handleScroll('#contact')}
                 className="group flex items-center justify-center gap-2 font-semibold px-6 py-3 rounded-xl transition-all duration-200 hover:-translate-y-0.5 text-white"
@@ -124,16 +124,16 @@ export default function Hero() {
             </div>
 
             {/* Stats row */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 pt-7 max-w-3xl mx-auto" style={{ borderTop: '1px solid rgba(21,34,50,0.08)' }}>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-5 pt-5 sm:pt-7 max-w-3xl mx-auto" style={{ borderTop: '1px solid rgba(21,34,50,0.08)' }}>
               {stats.map((stat) => (
                 <div key={stat.label}>
                   <div
-                    className="text-2xl lg:text-3xl font-bold tabular-nums"
+                    className="text-xl sm:text-2xl lg:text-3xl font-bold tabular-nums"
                     style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
                   >
                     {stat.value}
                   </div>
-                  <div className="text-xs mt-0.5" style={{ color: 'rgba(21,34,50,0.55)' }}>
+                  <div className="text-[11px] sm:text-xs mt-0.5" style={{ color: 'rgba(21,34,50,0.55)' }}>
                     {stat.label}
                   </div>
                 </div>

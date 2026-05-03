@@ -9,7 +9,7 @@ export default function CyberSecurityCTA() {
   return (
     <section
       id="cta"
-      className="py-16 relative overflow-hidden"
+      className="py-12 sm:py-16 relative overflow-hidden"
       style={{
         background: '#152232',
         borderTop: '1px solid rgba(255,255,255,0.06)',
@@ -44,16 +44,16 @@ export default function CyberSecurityCTA() {
         }}
       />
 
-      <div className="relative max-w-6xl mx-auto px-6 lg:px-8">
+      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div
-          className="rounded-3xl p-8 lg:p-12 relative overflow-hidden"
+          className="rounded-3xl p-5 sm:p-8 lg:p-12 relative overflow-hidden"
           style={{
             background: 'linear-gradient(135deg, rgba(57,204,204,0.08) 0%, rgba(94,188,103,0.08) 100%)',
             border: '1px solid rgba(255,255,255,0.1)',
             backdropFilter: 'blur(12px)',
           }}
         >
-          <div className="grid lg:grid-cols-5 gap-8 items-center">
+          <div className="grid lg:grid-cols-5 gap-6 sm:gap-8 items-center">
             <div className="lg:col-span-3">
               <div
                 className="inline-flex items-center gap-2 rounded-full px-3 py-1 mb-4"
@@ -66,7 +66,7 @@ export default function CyberSecurityCTA() {
               </div>
 
               <h2
-                className="text-3xl lg:text-4xl leading-tight mb-3"
+                className="text-2xl sm:text-3xl lg:text-4xl leading-tight mb-3"
                 style={{ fontFamily: 'Staatliches, sans-serif', color: 'white' }}
               >
                 See your security gaps before{' '}

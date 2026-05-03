@@ -33,35 +33,35 @@ const testimonials = [
 export default function Testimonials() {
   return (
     <section
-      className="py-16 relative"
+      className="py-12 sm:py-16 relative"
       style={{
         background: 'white',
         borderTop: '1px solid rgba(21,34,50,0.06)',
         zIndex: 10,
       }}
     >
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="text-center mb-10">
-          <span className="text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-8 sm:mb-10">
+          <span className="text-xs sm:text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
             Customer Stories
           </span>
           <h2
-            className="text-3xl lg:text-4xl mt-2 mb-3 leading-tight"
+            className="text-2xl sm:text-3xl lg:text-4xl mt-2 mb-3 leading-tight"
             style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
           >
             Don't take our word for it.{' '}
             <span style={{ color: '#39CCCC' }}>Take theirs.</span>
           </h2>
-          <p className="text-base max-w-2xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
+          <p className="text-sm sm:text-base max-w-2xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
             Real stories from South Florida businesses we've helped scale, secure, and modernize.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-5">
           {testimonials.map((t) => (
             <div
               key={t.author}
-              className="group rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 flex flex-col"
+              className="group rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:-translate-y-1 flex flex-col"
               style={{
                 background: 'white',
                 border: '1px solid rgba(21,34,50,0.08)',

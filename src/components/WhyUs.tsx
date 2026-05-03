@@ -33,7 +33,7 @@ export default function WhyUs() {
   return (
     <section
       id="why-us"
-      className="py-16 relative"
+      className="py-12 sm:py-16 relative"
       style={{
         background: '#f8fafb',
         borderTop: '1px solid rgba(21,34,50,0.06)',
@@ -41,14 +41,14 @@ export default function WhyUs() {
         zIndex: 10,
       }}
     >
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="grid lg:grid-cols-2 gap-10 items-start">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid lg:grid-cols-2 gap-8 sm:gap-10 items-start">
           <div>
-            <span className="text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
+            <span className="text-xs sm:text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
               {c.section_label || 'Why New Wave IT'}
             </span>
             <h2
-              className="text-3xl lg:text-4xl mt-2 mb-3 leading-tight"
+              className="text-2xl sm:text-3xl lg:text-4xl mt-2 mb-3 leading-tight"
               style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
             >
               {c.headline ? (
@@ -60,11 +60,11 @@ export default function WhyUs() {
                 </>
               )}
             </h2>
-            <p className="text-base leading-relaxed mb-6" style={{ color: 'rgba(21,34,50,0.6)' }}>
+            <p className="text-sm sm:text-base leading-relaxed mb-5 sm:mb-6" style={{ color: 'rgba(21,34,50,0.6)' }}>
               {c.subheadline || "We don't just fix problems — we build long-term partnerships that keep your business technology running at its best."}
             </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-7">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 mb-6 sm:mb-7">
               {proofPoints.map((point) => (
                 <div
                   key={point}
@@ -93,14 +93,14 @@ export default function WhyUs() {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
             {cards.map((feature, i) => {
               const Icon = iconList[i % iconList.length];
               const accent = accentList[i % accentList.length];
               return (
                 <div
                   key={feature.title}
-                  className="group rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 cursor-default"
+                  className="group rounded-2xl p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1 cursor-default"
                   style={{
                     background: 'white',
                     border: '1px solid rgba(21,34,50,0.07)',

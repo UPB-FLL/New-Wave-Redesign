@@ -78,31 +78,31 @@ const threats = [
 export default function ThreatProtection() {
   return (
     <section
-      className="py-16 relative"
+      className="py-12 sm:py-16 relative"
       style={{
         background: 'linear-gradient(180deg, #f8fafb 0%, #ffffff 100%)',
         borderTop: '1px solid rgba(21,34,50,0.06)',
         zIndex: 10,
       }}
     >
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="text-center mb-10">
-          <span className="text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-8 sm:mb-10">
+          <span className="text-xs sm:text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
             Threat Coverage
           </span>
           <h2
-            className="text-3xl lg:text-4xl mt-2 mb-3 leading-tight"
+            className="text-2xl sm:text-3xl lg:text-4xl mt-2 mb-3 leading-tight"
             style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
           >
             Defense against every{' '}
             <span style={{ color: '#39CCCC' }}>attack vector.</span>
           </h2>
-          <p className="text-base max-w-2xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
+          <p className="text-sm sm:text-base max-w-2xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
             Here's how we stop the eight most damaging threats facing businesses today.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
           {threats.map((threat) => (
             <div
               key={threat.name}

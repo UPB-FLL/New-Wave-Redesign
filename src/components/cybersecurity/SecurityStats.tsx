@@ -34,20 +34,20 @@ export default function SecurityStats() {
 
   return (
     <section
-      className="py-14 relative"
+      className="py-10 sm:py-14 relative"
       style={{
         background: 'linear-gradient(180deg, #ffffff 0%, #f8fafb 100%)',
         borderTop: '1px solid rgba(21,34,50,0.06)',
         zIndex: 10,
       }}
     >
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="text-center mb-8">
-          <span className="text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-6 sm:mb-8">
+          <span className="text-xs sm:text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
             By The Numbers
           </span>
           <h2
-            className="text-3xl lg:text-4xl mt-2 leading-tight"
+            className="text-2xl sm:text-3xl lg:text-4xl mt-2 leading-tight"
             style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
           >
             Performance metrics that{' '}
@@ -55,7 +55,7 @@ export default function SecurityStats() {
           </h2>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {stats.map((stat) => (
             <div
               key={stat.label}

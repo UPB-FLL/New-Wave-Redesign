@@ -26,14 +26,14 @@ export default function Services() {
   try { if (c.cards) cards = JSON.parse(c.cards); } catch { /* use default */ }
 
   return (
-    <section id="services" className="bg-white py-16 relative" style={{ borderTop: '1px solid rgba(21,34,50,0.06)', zIndex: 10 }}>
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="text-center mb-10">
-          <span className="text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
+    <section id="services" className="bg-white py-12 sm:py-16 relative" style={{ borderTop: '1px solid rgba(21,34,50,0.06)', zIndex: 10 }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-8 sm:mb-10">
+          <span className="text-xs sm:text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
             {c.section_label || 'What We Do'}
           </span>
           <h2
-            className="text-3xl lg:text-4xl mt-2 mb-3 leading-tight"
+            className="text-2xl sm:text-3xl lg:text-4xl mt-2 mb-3 leading-tight"
             style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
           >
             {c.headline ? (
@@ -45,19 +45,19 @@ export default function Services() {
               </>
             )}
           </h2>
-          <p className="text-base max-w-2xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
+          <p className="text-sm sm:text-base max-w-2xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
             {c.subheadline || 'From day-to-day support to long-term IT strategy, we provide everything your business needs to stay secure, efficient, and ahead of the curve.'}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {cards.map((service) => {
             const Icon = iconMap[service.title] || Shield;
             const highlights = Array.isArray(service.highlights) ? service.highlights : [];
             return (
               <div
                 key={service.title}
-                className="group rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1"
+                className="group rounded-2xl p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1"
                 style={{ background: 'white', border: '1px solid rgba(21,34,50,0.08)', boxShadow: '0 2px 12px rgba(21,34,50,0.05)' }}
                 onMouseEnter={(e) => {
                   (e.currentTarget as HTMLElement).style.boxShadow = '0 12px 40px rgba(21,34,50,0.12)';
