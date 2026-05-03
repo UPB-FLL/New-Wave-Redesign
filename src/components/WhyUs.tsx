@@ -56,7 +56,7 @@ export default function WhyUs() {
               ) : (
                 <>
                   Built for businesses that{' '}
-                  <span style={{ color: '#39CCCC' }}>can't afford downtime.</span>
+                  <span style={{ background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>can't afford downtime.</span>
                 </>
               )}
             </h2>

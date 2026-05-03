@@ -47,7 +47,7 @@ export default function SecurityProcess() {
             style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}
           >
             From assessment to{' '}
-            <span style={{ color: '#5EBC67' }}>active defense</span> in 30 days.
+            <span style={{ background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>active defense</span> in 30 days.
           </h2>
           <p className="text-sm sm:text-base max-w-2xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
             A proven four-phase methodology that gets you protected fast — without

@@ -50,7 +50,7 @@ export default function Testimonials() {
             style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}
           >
             Don't take our word for it.{' '}
-            <span style={{ color: '#39CCCC' }}>Take theirs.</span>
+            <span style={{ background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Take theirs.</span>
           </h2>
           <p className="text-sm sm:text-base max-w-2xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
             Real stories from South Florida businesses we've helped scale, secure, and modernize.
