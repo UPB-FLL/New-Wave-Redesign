@@ -47,7 +47,7 @@ export default function SecurityStats() {
             By The Numbers
           </span>
           <h2
-            className="text-2xl sm:text-3xl lg:text-4xl mt-2 leading-tight"
+            className="text-3xl sm:text-4xl lg:text-5xl mt-2 mb-4 leading-tight tracking-tight"
             style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}
           >
             Performance metrics that{' '}
