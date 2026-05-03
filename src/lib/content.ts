@@ -2,6 +2,25 @@ import { supabase } from './supabase';
 
 export type ContentMap = Record<string, string>;
 
+const CACHE_PREFIX = 'nw_content_v1:';
+
+export function readContentCache(section: string): ContentMap | null {
+  try {
+    const raw = localStorage.getItem(CACHE_PREFIX + section);
+    return raw ? (JSON.parse(raw) as ContentMap) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function writeContentCache(section: string, value: ContentMap): void {
+  try {
+    localStorage.setItem(CACHE_PREFIX + section, JSON.stringify(value));
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
 export async function fetchSectionContent(section: string): Promise<ContentMap> {
   const { data, error } = await supabase
     .from('site_content')
@@ -13,9 +32,13 @@ export async function fetchSectionContent(section: string): Promise<ContentMap> 
 }
 
 export async function upsertContent(section: string, key: string, value: string): Promise<void> {
-  await supabase
+  const { error } = await supabase
     .from('site_content')
     .upsert({ section, key, value, updated_at: new Date().toISOString() }, { onConflict: 'section,key' });
+  if (error) throw error;
+
+  const cached = readContentCache(section) ?? {};
+  writeContentCache(section, { ...cached, [key]: value });
 }
 
 export async function upsertManyContent(section: string, entries: Record<string, string>): Promise<void> {
@@ -25,7 +48,11 @@ export async function upsertManyContent(section: string, entries: Record<string,
     value,
     updated_at: new Date().toISOString(),
   }));
-  await supabase
+  const { error } = await supabase
     .from('site_content')
     .upsert(rows, { onConflict: 'section,key' });
+  if (error) throw error;
+
+  const cached = readContentCache(section) ?? {};
+  writeContentCache(section, { ...cached, ...entries });
 }

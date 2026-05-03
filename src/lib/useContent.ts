@@ -1,33 +1,33 @@
 import { useEffect, useState } from 'react';
-import { fetchSectionContent, ContentMap } from './content';
+import { fetchSectionContent, readContentCache, writeContentCache, ContentMap } from './content';
 
 const CACHE_PREFIX = 'nw_content_v1:';
 
-function readCache(section: string): ContentMap | null {
-  try {
-    const raw = localStorage.getItem(CACHE_PREFIX + section);
-    return raw ? (JSON.parse(raw) as ContentMap) : null;
-  } catch {
-    return null;
-  }
-}
-
-function writeCache(section: string, value: ContentMap) {
-  try {
-    localStorage.setItem(CACHE_PREFIX + section, JSON.stringify(value));
-  } catch {
-    /* ignore quota / private mode */
-  }
-}
-
 export function useContent(section: string): ContentMap {
-  const [content, setContent] = useState<ContentMap>(() => readCache(section) ?? {});
+  const [content, setContent] = useState<ContentMap>(() => readContentCache(section) ?? {});
 
   useEffect(() => {
+    let cancelled = false;
     fetchSectionContent(section).then((data) => {
+      if (cancelled) return;
       setContent(data);
-      writeCache(section, data);
+      writeContentCache(section, data);
     });
+
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== CACHE_PREFIX + section || !e.newValue) return;
+      try {
+        setContent(JSON.parse(e.newValue) as ContentMap);
+      } catch {
+        /* ignore */
+      }
+    };
+    window.addEventListener('storage', onStorage);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener('storage', onStorage);
+    };
   }, [section]);
 
   return content;
