@@ -19,6 +19,7 @@ export default function PricingUnitsEditor() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [costInput, setCostInput] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchUnits();
@@ -110,13 +111,22 @@ export default function PricingUnitsEditor() {
             { onConflict: 'id' }
           );
 
-        if (error) throw error;
+        if (error) {
+          console.error('Supabase error details:', error);
+          throw error;
+        }
       }
 
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (err) {
-      alert('Failed to save: ' + (err instanceof Error ? err.message : 'Unknown error'));
+      console.error('Save error:', err);
+      const errorMessage = err instanceof Error
+        ? err.message
+        : (err && typeof err === 'object' && 'message' in err)
+          ? String((err as any).message)
+          : 'Unknown error';
+      alert('Failed to save: ' + errorMessage);
     } finally {
       setSaving(false);
     }
@@ -264,8 +274,20 @@ export default function PricingUnitsEditor() {
                       <span className="text-gray-400">$</span>
                       <input
                         type="number"
-                        value={(unit.cost_per_unit / 100).toFixed(2)}
-                        onChange={(e) => updateUnit(unit.id, 'cost_per_unit', Math.round(parseFloat(e.target.value) * 100))}
+                        value={costInput[unit.id] !== undefined ? costInput[unit.id] : (unit.cost_per_unit / 100).toFixed(2)}
+                        onChange={(e) => setCostInput((prev) => ({ ...prev, [unit.id]: e.target.value }))}
+                        onBlur={(e) => {
+                          const value = parseFloat(e.target.value);
+                          if (!isNaN(value)) {
+                            updateUnit(unit.id, 'cost_per_unit', Math.round(value * 100));
+                            setCostInput((prev) => {
+                              const next = { ...prev };
+                              delete next[unit.id];
+                              return next;
+                            });
+                          }
+                          setEditingId(null);
+                        }}
                         onFocus={() => setEditingId(unit.id)}
                         className="flex-1 bg-transparent text-white font-mono outline-none border-b border-transparent hover:border-gray-600 focus:border-gray-500 pb-1 transition-colors"
                         step="0.01"
