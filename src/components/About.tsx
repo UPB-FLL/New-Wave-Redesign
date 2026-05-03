@@ -37,7 +37,7 @@ export default function About() {
               {c.section_label || 'About Us'}
             </span>
             <h2
-              className="text-3xl sm:text-4xl lg:text-5xl mt-2 mb-4 sm:mb-6 leading-tight tracking-tight"
+              className="text-4xl sm:text-5xl lg:text-7xl mt-2 mb-4 sm:mb-6 leading-[0.95] tracking-tight"
               style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}
             >
               {c.headline && c.headline_accent ? (
