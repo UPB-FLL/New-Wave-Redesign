@@ -45,7 +45,7 @@ export default function About() {
               ) : (
                 <>
                   Fort Lauderdale's{' '}
-                  <span style={{ background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>trusted IT partner</span>
+                  <span style={{ display: 'inline-block', background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>trusted IT partner</span>
                 </>
               )}
             </h2>
