@@ -58,7 +58,7 @@ export default function WaveBackground() {
   `;
 
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 5, top: 0, left: 0, right: 0, bottom: 0 }}>
+    <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 9, top: 0, left: 0, right: 0, bottom: 0 }}>
       <style>{styles}</style>
       <svg
         className="absolute w-full h-full"
