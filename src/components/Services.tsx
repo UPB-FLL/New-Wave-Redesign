@@ -36,8 +36,14 @@ export default function Services() {
             className="text-3xl lg:text-4xl mt-2 mb-3 leading-tight"
             style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
           >
-            {c.headline || 'IT Services Built for'}{' '}
-            <span style={{ color: '#39CCCC' }}>Modern Business</span>
+            {c.headline ? (
+              c.headline
+            ) : (
+              <>
+                IT Services Built for{' '}
+                <span style={{ color: '#39CCCC' }}>Modern Business</span>
+              </>
+            )}
           </h2>
           <p className="text-base max-w-2xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
             {c.subheadline || 'From day-to-day support to long-term IT strategy, we provide everything your business needs to stay secure, efficient, and ahead of the curve.'}

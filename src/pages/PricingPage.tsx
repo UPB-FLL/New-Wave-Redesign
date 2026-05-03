@@ -27,8 +27,14 @@ export default function PricingPage() {
                 className="text-3xl lg:text-4xl mt-2 mb-3 leading-tight"
                 style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
               >
-                {c.headline || 'Build Your Custom'}
-                <span style={{ color: '#39CCCC' }}> Quote</span>
+                {c.headline ? (
+                  c.headline
+                ) : (
+                  <>
+                    Build Your Custom
+                    <span style={{ color: '#39CCCC' }}> Quote</span>
+                  </>
+                )}
               </h2>
               <p className="text-base max-w-2xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
                 {c.subheadline || 'Select the services you need and get an instant estimate. Our team will reach out with a customized proposal.'}

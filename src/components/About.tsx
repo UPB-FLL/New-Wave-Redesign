@@ -40,8 +40,14 @@ export default function About() {
               className="text-4xl lg:text-5xl mt-3 mb-6 leading-tight"
               style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
             >
-              {c.headline || "Fort Lauderdale's"}{' '}
-              <span style={{ color: '#5EBC67' }}>trusted IT partner</span>
+              {c.headline ? (
+                c.headline
+              ) : (
+                <>
+                  Fort Lauderdale's{' '}
+                  <span style={{ color: '#5EBC67' }}>trusted IT partner</span>
+                </>
+              )}
             </h2>
             <p className="text-lg leading-relaxed mb-5" style={{ color: 'rgba(21,34,50,0.65)' }}>
               {c.paragraph1 || "New Wave IT was founded with a simple mission: provide businesses across South Florida with enterprise-grade IT support they can actually rely on — without the enterprise price tag."}

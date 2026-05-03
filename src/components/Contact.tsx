@@ -83,8 +83,14 @@ export default function Contact() {
             className="text-3xl lg:text-4xl mt-2 mb-3 leading-tight"
             style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
           >
-            {c.headline || 'Ready to get started?'}{' '}
-            <span style={{ color: '#39CCCC' }}>{c.headline_accent || "Let's talk."}</span>
+            {c.headline ? (
+              c.headline
+            ) : (
+              <>
+                Ready to get started?{' '}
+                <span style={{ color: '#39CCCC' }}>{c.headline_accent || "Let's talk."}</span>
+              </>
+            )}
           </h2>
           <p className="text-base max-w-xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
             {c.subheadline || 'Fill out the form below and one of our technicians will reach out within one business day — or call us now for immediate assistance.'}
