@@ -150,7 +150,7 @@ export default function DynamicPricingBuilder() {
 
   if (submitted) {
     return (
-      <div className="rounded-2xl p-8 bg-white shadow-lg">
+      <div className="rounded-2xl p-8 bg-white shadow-lg relative" style={{ zIndex: 20 }}>
         <div className="text-center py-8">
           <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4 mx-auto" style={{ background: 'rgba(94,188,103,0.12)' }}>
             <svg className="w-8 h-8" style={{ color: '#5EBC67' }} fill="currentColor" viewBox="0 0 20 20">
@@ -175,7 +175,7 @@ export default function DynamicPricingBuilder() {
   const inputStyle = { background: 'white', border: '1.5px solid rgba(21,34,50,0.12)', color: '#152232' };
 
   return (
-    <div className="rounded-2xl p-8 bg-white shadow-lg">
+    <div className="rounded-2xl p-8 bg-white shadow-lg relative" style={{ zIndex: 20 }}>
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Pricing Options */}
         <div>
