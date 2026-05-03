@@ -52,7 +52,7 @@ export default function DynamicPricingBuilder() {
 
       const initialSelections: Record<string, number> = {};
       (data || []).forEach((unit) => {
-        initialSelections[unit.id] = unit.min_quantity;
+        initialSelections[unit.id] = 0;
       });
       setSelections(initialSelections);
     } catch (err) {
@@ -73,7 +73,7 @@ export default function DynamicPricingBuilder() {
     const unit = units.find((u) => u.id === unitId);
     if (!unit) return;
 
-    const q = Math.max(unit.min_quantity, Math.min(unit.max_quantity, quantity));
+    const q = Math.max(0, Math.min(unit.max_quantity, quantity));
     setSelections((prev) => ({ ...prev, [unitId]: q }));
   };
 

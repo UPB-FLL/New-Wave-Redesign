@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Contact from '../components/Contact';
 import Footer from '../components/Footer';
@@ -12,6 +13,17 @@ export default function PricingPage() {
       'Build your custom IT services quote. Select employees, computers, locations, and more. Get an instant estimate.',
   });
   const c = useContent('pricing');
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Home') {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-900">
