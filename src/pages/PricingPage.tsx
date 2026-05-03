@@ -46,8 +46,8 @@ export default function PricingPage() {
                   </>
                 ) : (
                   <>
-                    Build Your Custom
-                    <span style={{ display: 'inline-block', background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}> Quote</span>
+                    Simple, Scalable
+                    <span style={{ display: 'inline-block', background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}> Plans</span>
                   </>
                 )}
               </h2>
