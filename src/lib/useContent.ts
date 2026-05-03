@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchSectionContent, readContentCache, writeContentCache, ContentMap } from './content';
 
-const CACHE_PREFIX = 'nw_content_v1:';
+const CACHE_PREFIX = 'nw_content_v2:';
 
 export function useContent(section: string): ContentMap {
   const [content, setContent] = useState<ContentMap>(() => readContentCache(section) ?? {});
