@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
 import { ArrowUp, Menu, X } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function FloatingNav() {
   const [showScroll, setShowScroll] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -18,20 +21,42 @@ export default function FloatingNav() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-      setIsOpen(false);
+  const handleNav = (link: { label: string; path: string; hash?: string }) => {
+    setIsOpen(false);
+
+    if (link.hash) {
+      // Hash-based: scroll to section if on home, otherwise nav home + scroll
+      if (location.pathname === '/') {
+        const el = document.querySelector(link.hash);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        navigate('/');
+        setTimeout(() => {
+          const el = document.querySelector(link.hash!);
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
+      return;
     }
+
+    if (link.path === '/' && location.pathname === '/') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    navigate(link.path);
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
   };
 
-  const sections = [
-    { label: 'Home', id: 'hero' },
-    { label: 'Services', id: 'services' },
-    { label: 'Why Us', id: 'why-us' },
-    { label: 'About', id: 'about' },
-    { label: 'Contact', id: 'contact' },
+  const links = [
+    { label: 'Home', path: '/' },
+    { label: 'Services', path: '/services' },
+    { label: 'Pricing', path: '/pricing' },
+    { label: 'Cybersecurity', path: '/cybersecurity' },
+    { label: 'Why Us', path: '/why-us' },
+    { label: 'About', path: '/about' },
+    { label: 'Support', path: '/support' },
+    { label: 'Contact', path: '/', hash: '#contact' },
   ];
 
   return (
@@ -75,17 +100,17 @@ export default function FloatingNav() {
         {/* Quick Links Menu */}
         {isOpen && (
           <div className="flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200">
-            {sections.map((section) => (
+            {links.map((link) => (
               <button
-                key={section.id}
-                onClick={() => scrollToSection(section.id)}
-                className="px-4 py-3 rounded-lg text-sm font-medium text-white transition-all duration-200 hover:translate-x-1 hover:shadow-lg backdrop-blur-md"
+                key={link.label}
+                onClick={() => handleNav(link)}
+                className="px-4 py-3 rounded-lg text-sm font-medium text-white transition-all duration-200 hover:translate-x-1 hover:shadow-lg backdrop-blur-md text-left"
                 style={{
                   background: 'rgba(57, 204, 204, 0.9)',
                   border: '1px solid rgba(57, 204, 204, 0.3)',
                 }}
               >
-                {section.label}
+                {link.label}
               </button>
             ))}
           </div>

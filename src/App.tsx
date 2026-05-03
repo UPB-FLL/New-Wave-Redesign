@@ -62,8 +62,8 @@ export default function App() {
       <Analytics />
       <BackgroundCircles />
       <WaveBackground />
-      <FloatingNav />
       <BrowserRouter>
+        <FloatingNav />
         <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/cybersecurity" element={<CybersecurityPage />} />
