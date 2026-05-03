@@ -5,8 +5,10 @@ import WaveBackground from './components/WaveBackground';
 import FloatingNav from './components/FloatingNav';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
+import TrustBar from './components/TrustBar';
 import Services from './components/Services';
 import WhyUs from './components/WhyUs';
+import Testimonials from './components/Testimonials';
 import About from './components/About';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
@@ -43,8 +45,10 @@ function HomePage() {
     <div className="min-h-screen relative" style={{ background: 'white' }}>
       <Navbar />
       <Hero />
+      <TrustBar />
       <Services />
       <WhyUs />
+      <Testimonials />
       <About />
       <Contact />
       <Footer />
