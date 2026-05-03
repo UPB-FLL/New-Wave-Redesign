@@ -71,8 +71,10 @@ export default function PricingUnitsEditor() {
     const idx = units.findIndex((u) => u.id === id);
     if (idx <= 0) return;
     const newUnits = [...units];
-    [newUnits[idx - 1].sort_order, newUnits[idx].sort_order] = [newUnits[idx].sort_order, newUnits[idx - 1].sort_order];
-    newUnits.sort((a, b) => a.sort_order - b.sort_order);
+    [newUnits[idx - 1], newUnits[idx]] = [newUnits[idx], newUnits[idx - 1]];
+    newUnits.forEach((unit, i) => {
+      unit.sort_order = i + 1;
+    });
     setUnits(newUnits);
   };
 
@@ -80,8 +82,10 @@ export default function PricingUnitsEditor() {
     const idx = units.findIndex((u) => u.id === id);
     if (idx >= units.length - 1) return;
     const newUnits = [...units];
-    [newUnits[idx + 1].sort_order, newUnits[idx].sort_order] = [newUnits[idx].sort_order, newUnits[idx + 1].sort_order];
-    newUnits.sort((a, b) => a.sort_order - b.sort_order);
+    [newUnits[idx], newUnits[idx + 1]] = [newUnits[idx + 1], newUnits[idx]];
+    newUnits.forEach((unit, i) => {
+      unit.sort_order = i + 1;
+    });
     setUnits(newUnits);
   };
 
