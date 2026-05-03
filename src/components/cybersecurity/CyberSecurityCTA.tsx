@@ -1,4 +1,4 @@
-import { ArrowRight, Shield } from 'lucide-react';
+import { ArrowRight, Shield, Phone, Calendar, CheckCircle2 } from 'lucide-react';
 
 export default function CyberSecurityCTA() {
   const handleScroll = (href: string) => {
@@ -7,55 +7,164 @@ export default function CyberSecurityCTA() {
   };
 
   return (
-    <section id="cta" className="bg-white py-20 relative overflow-hidden" style={{ borderTop: '1px solid rgba(21,34,50,0.06)' }}>
+    <section
+      id="cta"
+      className="py-24 relative overflow-hidden"
+      style={{
+        background: '#152232',
+        borderTop: '1px solid rgba(255,255,255,0.06)',
+        zIndex: 10,
+      }}
+    >
+      {/* Decorative gradients */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full opacity-[0.08]" style={{ background: '#39CCCC' }} />
-        <div className="absolute -bottom-40 -left-40 w-[600px] h-[600px] rounded-full opacity-[0.08]" style={{ background: '#5EBC67' }} />
+        <div
+          className="absolute -top-40 -right-40 w-[700px] h-[700px] rounded-full"
+          style={{
+            background: 'radial-gradient(circle, rgba(57,204,204,0.2) 0%, transparent 70%)',
+            filter: 'blur(80px)',
+          }}
+        />
+        <div
+          className="absolute -bottom-40 -left-40 w-[700px] h-[700px] rounded-full"
+          style={{
+            background: 'radial-gradient(circle, rgba(94,188,103,0.18) 0%, transparent 70%)',
+            filter: 'blur(80px)',
+          }}
+        />
       </div>
 
-      <div className="relative max-w-4xl mx-auto px-6 lg:px-8">
-        <div className="rounded-3xl p-12 lg:p-16 text-center" style={{
-          background: 'linear-gradient(135deg, rgba(57,204,204,0.08) 0%, rgba(94,188,103,0.08) 100%)',
-          border: '1px solid rgba(57,204,204,0.2)'
-        }}>
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6 mx-auto" style={{ background: 'rgba(57,204,204,0.15)' }}>
-            <Shield size={32} style={{ color: '#39CCCC' }} />
+      {/* Grid pattern */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-30"
+        style={{
+          backgroundImage:
+            'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)',
+          backgroundSize: '60px 60px',
+        }}
+      />
+
+      <div className="relative max-w-6xl mx-auto px-6 lg:px-8">
+        <div
+          className="rounded-3xl p-10 lg:p-16 relative overflow-hidden"
+          style={{
+            background: 'linear-gradient(135deg, rgba(57,204,204,0.08) 0%, rgba(94,188,103,0.08) 100%)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            backdropFilter: 'blur(12px)',
+          }}
+        >
+          <div className="grid lg:grid-cols-5 gap-10 items-center">
+            <div className="lg:col-span-3">
+              <div
+                className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 mb-6"
+                style={{ background: 'rgba(57,204,204,0.12)', border: '1px solid rgba(57,204,204,0.3)' }}
+              >
+                <Shield size={14} style={{ color: '#39CCCC' }} />
+                <span className="text-xs font-semibold" style={{ color: '#39CCCC' }}>
+                  FREE 30-MINUTE CONSULTATION
+                </span>
+              </div>
+
+              <h2
+                className="text-4xl lg:text-5xl leading-tight mb-5"
+                style={{ fontFamily: 'Staatliches, sans-serif', color: 'white' }}
+              >
+                See your security gaps before{' '}
+                <span
+                  style={{
+                    background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                  }}
+                >
+                  attackers do.
+                </span>
+              </h2>
+
+              <p className="text-lg mb-8" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                Get a comprehensive security posture assessment from our certified analysts.
+                We'll identify vulnerabilities, prioritize remediation, and deliver an
+                executive-ready roadmap — at zero cost.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-3 mb-8">
+                <button
+                  className="group flex items-center justify-center gap-2.5 font-semibold px-7 py-3.5 rounded-xl transition-all duration-200 hover:-translate-y-0.5 text-white"
+                  style={{
+                    background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)',
+                    boxShadow: '0 8px 32px rgba(57,204,204,0.4)',
+                  }}
+                >
+                  <Calendar size={18} />
+                  Schedule Assessment
+                  <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                </button>
+                <button
+                  onClick={() => handleScroll('#contact')}
+                  className="font-semibold px-7 py-3.5 rounded-xl transition-all duration-200 hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                  style={{
+                    border: '1.5px solid rgba(255,255,255,0.2)',
+                    color: 'white',
+                    background: 'rgba(255,255,255,0.05)',
+                    backdropFilter: 'blur(8px)',
+                  }}
+                >
+                  <Phone size={16} />
+                  Talk to an Engineer
+                </button>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+                {['No commitment required', 'Results in 5 days', 'Executive-ready report'].map((item) => (
+                  <div key={item} className="flex items-center gap-1.5">
+                    <CheckCircle2 size={14} style={{ color: '#5EBC67' }} />
+                    <span style={{ color: 'rgba(255,255,255,0.7)' }}>{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right: What you get */}
+            <div className="lg:col-span-2">
+              <div
+                className="rounded-2xl p-6"
+                style={{
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                }}
+              >
+                <h3 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ color: '#39CCCC' }}>
+                  What You'll Receive
+                </h3>
+                <ul className="space-y-3.5">
+                  {[
+                    { title: 'Vulnerability Report', desc: 'Prioritized list of security gaps' },
+                    { title: 'Compliance Gap Analysis', desc: 'Mapped to your regulations' },
+                    { title: '90-Day Roadmap', desc: 'Actionable remediation plan' },
+                    { title: 'Executive Summary', desc: 'Board-ready presentation' },
+                  ].map((item) => (
+                    <li key={item.title} className="flex items-start gap-3">
+                      <div
+                        className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                        style={{ background: 'rgba(94,188,103,0.2)' }}
+                      >
+                        <CheckCircle2 size={12} style={{ color: '#5EBC67' }} />
+                      </div>
+                      <div>
+                        <div className="font-semibold text-sm" style={{ color: 'white' }}>
+                          {item.title}
+                        </div>
+                        <div className="text-xs" style={{ color: 'rgba(255,255,255,0.55)' }}>
+                          {item.desc}
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
           </div>
-
-          <h2
-            className="text-4xl lg:text-5xl leading-tight mb-5"
-            style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
-          >
-            Ready to Secure Your{' '}
-            <span style={{ color: '#39CCCC' }}>Infrastructure?</span>
-          </h2>
-
-          <p className="text-lg mb-10 max-w-2xl mx-auto" style={{ color: 'rgba(21,34,50,0.65)' }}>
-            Get a comprehensive security assessment from our expert team. Identify vulnerabilities, strengthen your defenses, and sleep better at night knowing your business is protected.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button
-              className="group flex items-center justify-center gap-2.5 font-semibold px-8 py-4 rounded-xl transition-all duration-200 hover:-translate-y-0.5 text-white"
-              style={{ background: '#39CCCC', boxShadow: '0 8px 32px rgba(57,204,204,0.35)' }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = '#2db8b8')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = '#39CCCC')}
-            >
-              Schedule Security Assessment
-              <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-            </button>
-            <button
-              onClick={() => handleScroll('#contact')}
-              className="font-semibold px-8 py-4 rounded-xl transition-all duration-200 hover:-translate-y-0.5"
-              style={{ border: '1.5px solid rgba(21,34,50,0.15)', color: '#152232', background: 'transparent' }}
-            >
-              Contact Our Team
-            </button>
-          </div>
-
-          <p className="text-sm mt-8" style={{ color: 'rgba(21,34,50,0.5)' }}>
-            No obligation. Free initial consultation with our security experts.
-          </p>
         </div>
       </div>
     </section>

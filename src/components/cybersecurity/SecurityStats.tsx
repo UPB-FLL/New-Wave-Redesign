@@ -1,20 +1,88 @@
+import { Activity, Clock, ShieldCheck, Award } from 'lucide-react';
+
 export default function SecurityStats() {
   const stats = [
-    { number: '99.99%', label: 'Uptime Guarantee', description: 'Continuous protection and monitoring' },
-    { number: '<5min', label: 'Response Time', description: 'Instant threat detection and alerting' },
-    { number: '2000+', label: 'Threats Blocked Daily', description: 'Advanced threat intelligence' },
-    { number: 'ISO 27001', label: 'Certified', description: 'Industry standard compliance' },
+    {
+      icon: Activity,
+      number: '99.99%',
+      label: 'Uptime SLA',
+      description: 'Backed by financial guarantee',
+      accent: '#39CCCC',
+    },
+    {
+      icon: Clock,
+      number: '<5min',
+      label: 'Mean Time to Detect',
+      description: 'Industry leading response',
+      accent: '#5EBC67',
+    },
+    {
+      icon: ShieldCheck,
+      number: '15M+',
+      label: 'Threats Blocked',
+      description: 'Across our protected networks',
+      accent: '#39CCCC',
+    },
+    {
+      icon: Award,
+      number: '500+',
+      label: 'Businesses Protected',
+      description: 'Across South Florida',
+      accent: '#5EBC67',
+    },
   ];
 
   return (
-    <section className="bg-gradient-to-b from-white to-slate-50 py-20" style={{ borderTop: '1px solid rgba(21,34,50,0.06)' }}>
+    <section
+      className="py-24 relative"
+      style={{
+        background: 'linear-gradient(180deg, #ffffff 0%, #f8fafb 100%)',
+        borderTop: '1px solid rgba(21,34,50,0.06)',
+        zIndex: 10,
+      }}
+    >
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="text-center mb-14">
+          <span className="text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
+            By The Numbers
+          </span>
+          <h2
+            className="text-3xl lg:text-4xl mt-3 leading-tight"
+            style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
+          >
+            Performance metrics that{' '}
+            <span style={{ color: '#39CCCC' }}>define enterprise security</span>
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
           {stats.map((stat) => (
-            <div key={stat.label} className="text-center">
+            <div
+              key={stat.label}
+              className="group rounded-2xl p-7 transition-all duration-300 hover:-translate-y-1"
+              style={{
+                background: 'white',
+                border: '1px solid rgba(21,34,50,0.08)',
+                boxShadow: '0 2px 12px rgba(21,34,50,0.04)',
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.boxShadow = `0 16px 48px ${stat.accent}20`;
+                (e.currentTarget as HTMLElement).style.borderColor = `${stat.accent}40`;
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 12px rgba(21,34,50,0.04)';
+                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(21,34,50,0.08)';
+              }}
+            >
               <div
-                className="text-4xl lg:text-5xl font-bold mb-2"
-                style={{ fontFamily: 'Staatliches, sans-serif', color: '#39CCCC' }}
+                className="w-11 h-11 rounded-xl flex items-center justify-center mb-5"
+                style={{ background: `${stat.accent}15` }}
+              >
+                <stat.icon size={20} style={{ color: stat.accent }} />
+              </div>
+              <div
+                className="text-4xl lg:text-5xl font-bold mb-2 tabular-nums"
+                style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
               >
                 {stat.number}
               </div>

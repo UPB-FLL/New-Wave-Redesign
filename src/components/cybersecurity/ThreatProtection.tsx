@@ -1,64 +1,164 @@
-import { CheckCircle, AlertTriangle, Zap, Bug, Mail, Lock } from 'lucide-react';
+import { CheckCircle, AlertTriangle, Zap, Bug, Mail, Lock, ShieldOff, Wifi } from 'lucide-react';
 
 const threats = [
-  { icon: Bug, name: 'Malware & Ransomware', protection: 'Advanced antivirus with behavior analysis' },
-  { icon: Mail, name: 'Phishing Attacks', protection: 'Email filtering and user authentication' },
-  { icon: AlertTriangle, name: 'DDoS Attacks', protection: 'Multi-layer DDoS mitigation' },
-  { icon: Lock, name: 'Data Breaches', protection: 'Encryption and access controls' },
-  { icon: Zap, name: 'Zero-Day Exploits', protection: 'Behavioral detection and sandboxing' },
-  { icon: CheckCircle, name: 'Compliance Violations', protection: 'Automated compliance monitoring' },
+  {
+    icon: Bug,
+    name: 'Ransomware',
+    severity: 'CRITICAL',
+    severityColor: '#ef4444',
+    description: 'AI-driven behavior analysis detects encryption attempts and isolates infected endpoints in seconds.',
+    stat: '99.7%',
+    statLabel: 'detection rate',
+  },
+  {
+    icon: Mail,
+    name: 'Phishing',
+    severity: 'HIGH',
+    severityColor: '#f59e0b',
+    description: 'Advanced email security with URL rewriting, attachment sandboxing, and impersonation detection.',
+    stat: '15M+',
+    statLabel: 'emails scanned daily',
+  },
+  {
+    icon: AlertTriangle,
+    name: 'DDoS Attacks',
+    severity: 'HIGH',
+    severityColor: '#f59e0b',
+    description: 'Multi-layer mitigation with edge-network filtering and automatic traffic scrubbing.',
+    stat: '10 Tbps',
+    statLabel: 'mitigation capacity',
+  },
+  {
+    icon: Lock,
+    name: 'Data Breaches',
+    severity: 'CRITICAL',
+    severityColor: '#ef4444',
+    description: 'End-to-end encryption, DLP policies, and continuous monitoring of sensitive data flows.',
+    stat: 'AES-256',
+    statLabel: 'encryption standard',
+  },
+  {
+    icon: Zap,
+    name: 'Zero-Day Exploits',
+    severity: 'CRITICAL',
+    severityColor: '#ef4444',
+    description: 'Behavioral detection engines identify novel attack patterns before signatures exist.',
+    stat: '<60s',
+    statLabel: 'mean detection time',
+  },
+  {
+    icon: ShieldOff,
+    name: 'Insider Threats',
+    severity: 'MEDIUM',
+    severityColor: '#3b82f6',
+    description: 'User behavior analytics flag anomalous access patterns and policy violations.',
+    stat: '24/7',
+    statLabel: 'continuous monitoring',
+  },
+  {
+    icon: Wifi,
+    name: 'Network Intrusions',
+    severity: 'HIGH',
+    severityColor: '#f59e0b',
+    description: 'Next-gen firewalls with deep packet inspection and intrusion prevention systems.',
+    stat: '5M+',
+    statLabel: 'packets inspected/sec',
+  },
+  {
+    icon: CheckCircle,
+    name: 'Compliance Violations',
+    severity: 'MEDIUM',
+    severityColor: '#3b82f6',
+    description: 'Automated audits map your environment to HIPAA, PCI-DSS, SOC 2, and GDPR requirements.',
+    stat: '100%',
+    statLabel: 'audit readiness',
+  },
 ];
 
 export default function ThreatProtection() {
   return (
-    <section className="bg-white py-28" style={{ borderTop: '1px solid rgba(21,34,50,0.06)' }}>
+    <section
+      className="py-28 relative"
+      style={{
+        background: 'linear-gradient(180deg, #f8fafb 0%, #ffffff 100%)',
+        borderTop: '1px solid rgba(21,34,50,0.06)',
+        zIndex: 10,
+      }}
+    >
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="text-center mb-16">
           <span className="text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
-            Threat Protection
+            Threat Coverage
           </span>
           <h2
             className="text-4xl lg:text-5xl mt-3 mb-5 leading-tight"
             style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
           >
-            We Protect Against{' '}
-            <span style={{ color: '#39CCCC' }}>Today's Threats</span>
+            Defense against every{' '}
+            <span style={{ color: '#39CCCC' }}>attack vector.</span>
           </h2>
           <p className="text-lg max-w-2xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
-            Stay protected against the most common and emerging cybersecurity threats
+            Modern threats demand modern defense. Here's how we stop the eight most damaging
+            threats facing businesses today.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {threats.map((threat) => (
             <div
               key={threat.name}
-              className="p-8 rounded-2xl transition-all duration-300 group"
+              className="group rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1"
               style={{
                 background: 'white',
                 border: '1px solid rgba(21,34,50,0.08)',
-                boxShadow: '0 2px 12px rgba(21,34,50,0.05)'
+                boxShadow: '0 2px 12px rgba(21,34,50,0.04)',
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow = '0 12px 40px rgba(57,204,204,0.15)';
+                (e.currentTarget as HTMLElement).style.boxShadow = '0 16px 48px rgba(57,204,204,0.18)';
                 (e.currentTarget as HTMLElement).style.borderColor = 'rgba(57,204,204,0.4)';
               }}
               onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 12px rgba(21,34,50,0.05)';
+                (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 12px rgba(21,34,50,0.04)';
                 (e.currentTarget as HTMLElement).style.borderColor = 'rgba(21,34,50,0.08)';
               }}
             >
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(57,204,204,0.15)' }}>
-                  <threat.icon size={24} style={{ color: '#39CCCC' }} />
+              <div className="flex items-start justify-between mb-4">
+                <div
+                  className="w-11 h-11 rounded-xl flex items-center justify-center"
+                  style={{ background: 'rgba(57,204,204,0.12)' }}
+                >
+                  <threat.icon size={20} style={{ color: '#39CCCC' }} />
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-lg mb-2" style={{ color: '#152232' }}>
-                    {threat.name}
-                  </h3>
-                  <p className="text-sm leading-relaxed" style={{ color: 'rgba(21,34,50,0.6)' }}>
-                    {threat.protection}
-                  </p>
+                <span
+                  className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md"
+                  style={{
+                    background: `${threat.severityColor}15`,
+                    color: threat.severityColor,
+                  }}
+                >
+                  {threat.severity}
+                </span>
+              </div>
+
+              <h3 className="font-bold text-lg mb-2" style={{ color: '#152232' }}>
+                {threat.name}
+              </h3>
+              <p className="text-xs leading-relaxed mb-4" style={{ color: 'rgba(21,34,50,0.6)' }}>
+                {threat.description}
+              </p>
+
+              <div
+                className="rounded-lg p-3"
+                style={{ background: 'rgba(57,204,204,0.05)', border: '1px solid rgba(57,204,204,0.1)' }}
+              >
+                <div
+                  className="text-xl font-bold tabular-nums"
+                  style={{ fontFamily: 'Staatliches, sans-serif', color: '#39CCCC' }}
+                >
+                  {threat.stat}
+                </div>
+                <div className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: 'rgba(21,34,50,0.5)' }}>
+                  {threat.statLabel}
                 </div>
               </div>
             </div>

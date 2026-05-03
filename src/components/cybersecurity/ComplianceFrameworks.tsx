@@ -1,93 +1,152 @@
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, FileCheck } from 'lucide-react';
 
 const frameworks = [
   {
     name: 'HIPAA',
-    description: 'Healthcare Compliance',
-    features: ['Patient Data Protection', 'Audit Logs', 'Encryption Standards'],
+    fullName: 'Health Insurance Portability and Accountability Act',
+    description: 'Healthcare data protection',
+    industries: ['Healthcare', 'Insurance', 'Pharma'],
+    features: ['PHI encryption at rest & in transit', 'Audit logging & access controls', 'Breach notification protocols'],
   },
   {
     name: 'PCI-DSS',
-    description: 'Payment Card Security',
-    features: ['Card Data Protection', 'Network Segmentation', 'Security Testing'],
-  },
-  {
-    name: 'GDPR',
-    description: 'Data Privacy Regulation',
-    features: ['Data Subject Rights', 'Privacy Impact Assessment', 'Incident Reporting'],
+    fullName: 'Payment Card Industry Data Security Standard',
+    description: 'Payment processing security',
+    industries: ['Retail', 'E-commerce', 'Hospitality'],
+    features: ['Card data tokenization', 'Network segmentation', 'Quarterly vulnerability scans'],
   },
   {
     name: 'SOC 2',
-    description: 'Service Organization Control',
-    features: ['Security Controls', 'Availability & Performance', 'Third-party Review'],
+    fullName: 'Service Organization Control 2',
+    description: 'Trust services criteria',
+    industries: ['SaaS', 'Cloud Services', 'B2B'],
+    features: ['Type I & Type II audit prep', 'Continuous control monitoring', 'Evidence collection automation'],
+  },
+  {
+    name: 'GDPR',
+    fullName: 'General Data Protection Regulation',
+    description: 'EU data privacy compliance',
+    industries: ['EU Operations', 'Global Companies', 'SaaS'],
+    features: ['Data subject request handling', 'Privacy impact assessments', '72-hour breach notification'],
   },
   {
     name: 'ISO 27001',
-    description: 'Information Security Management',
-    features: ['Risk Assessment', 'Incident Management', 'Continual Improvement'],
+    fullName: 'Information Security Management System',
+    description: 'International security standard',
+    industries: ['Enterprise', 'Government', 'Finance'],
+    features: ['ISMS implementation', 'Risk treatment plans', 'Annual surveillance audits'],
   },
   {
-    name: 'NIST',
-    description: 'Cybersecurity Framework',
-    features: ['Identify & Protect', 'Detect & Respond', 'Recover & Improve'],
+    name: 'NIST CSF',
+    fullName: 'NIST Cybersecurity Framework',
+    description: 'Federal cybersecurity standard',
+    industries: ['Government', 'Defense', 'Critical Infrastructure'],
+    features: ['Identify, Protect, Detect, Respond, Recover', 'Maturity assessments', 'Tier-based implementation'],
   },
 ];
 
 export default function ComplianceFrameworks() {
   return (
-    <section className="bg-gradient-to-b from-slate-50 to-white py-28" style={{ borderTop: '1px solid rgba(21,34,50,0.06)' }}>
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+    <section
+      className="py-28 relative"
+      style={{
+        background: '#152232',
+        borderTop: '1px solid rgba(255,255,255,0.06)',
+        zIndex: 10,
+      }}
+    >
+      {/* Decorative gradient */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px]"
+          style={{
+            background: 'radial-gradient(ellipse, rgba(94,188,103,0.15) 0%, transparent 70%)',
+            filter: 'blur(60px)',
+          }}
+        />
+      </div>
+
+      <div className="relative max-w-7xl mx-auto px-6 lg:px-8">
         <div className="text-center mb-16">
-          <span className="text-sm font-semibold uppercase tracking-widest" style={{ color: '#5EBC67' }}>
-            Compliance & Standards
-          </span>
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-6"
+            style={{ background: 'rgba(94,188,103,0.1)', border: '1px solid rgba(94,188,103,0.3)' }}
+          >
+            <FileCheck size={14} style={{ color: '#5EBC67' }} />
+            <span className="text-xs font-semibold" style={{ color: '#5EBC67' }}>
+              CERTIFIED COMPLIANCE
+            </span>
+          </div>
           <h2
             className="text-4xl lg:text-5xl mt-3 mb-5 leading-tight"
-            style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
+            style={{ fontFamily: 'Staatliches, sans-serif', color: 'white' }}
           >
-            Certified &{' '}
-            <span style={{ color: '#5EBC67' }}>Compliant</span>
+            Audit-ready from{' '}
+            <span style={{ color: '#5EBC67' }}>day one.</span>
           </h2>
-          <p className="text-lg max-w-2xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
-            We help you meet and exceed industry compliance requirements
+          <p className="text-lg max-w-2xl mx-auto" style={{ color: 'rgba(255,255,255,0.6)' }}>
+            We map your environment to the frameworks that matter for your industry — then
+            keep you continuously compliant with automated controls and evidence collection.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {frameworks.map((framework) => (
             <div
               key={framework.name}
-              className="rounded-2xl p-8 transition-all duration-300"
+              className="group rounded-2xl p-7 transition-all duration-300 hover:-translate-y-1"
               style={{
-                background: 'white',
-                border: '1px solid rgba(21,34,50,0.08)',
-                boxShadow: '0 2px 12px rgba(21,34,50,0.05)'
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                backdropFilter: 'blur(8px)',
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow = '0 12px 40px rgba(94,188,103,0.15)';
                 (e.currentTarget as HTMLElement).style.borderColor = 'rgba(94,188,103,0.4)';
+                (e.currentTarget as HTMLElement).style.background = 'rgba(94,188,103,0.05)';
               }}
               onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 12px rgba(21,34,50,0.05)';
-                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(21,34,50,0.08)';
+                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.08)';
+                (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.03)';
               }}
             >
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl mb-5" style={{ background: 'rgba(94,188,103,0.15)' }}>
-                <span className="text-2xl font-bold" style={{ color: '#5EBC67' }}>
-                  {framework.name.substring(0, 2)}
+              <div className="flex items-baseline justify-between mb-3">
+                <h3
+                  className="text-3xl font-bold"
+                  style={{ fontFamily: 'Staatliches, sans-serif', color: '#5EBC67' }}
+                >
+                  {framework.name}
+                </h3>
+                <span className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  CERTIFIED
                 </span>
               </div>
-              <h3 className="text-xl font-bold mb-1" style={{ color: '#152232' }}>
-                {framework.name}
-              </h3>
-              <p className="text-sm mb-5" style={{ color: 'rgba(21,34,50,0.55)' }}>
+              <p className="text-xs uppercase tracking-wider font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
                 {framework.description}
               </p>
-              <div className="space-y-2">
+              <p className="text-sm mb-5" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                {framework.fullName}
+              </p>
+
+              <div className="flex flex-wrap gap-1.5 mb-5">
+                {framework.industries.map((industry) => (
+                  <span
+                    key={industry}
+                    className="text-[10px] font-medium px-2 py-1 rounded-md"
+                    style={{
+                      background: 'rgba(94,188,103,0.1)',
+                      color: '#5EBC67',
+                      border: '1px solid rgba(94,188,103,0.2)',
+                    }}
+                  >
+                    {industry}
+                  </span>
+                ))}
+              </div>
+
+              <div className="space-y-2 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
                 {framework.features.map((feature) => (
-                  <div key={feature} className="flex items-center gap-2 text-sm">
-                    <CheckCircle2 size={16} style={{ color: '#5EBC67' }} className="flex-shrink-0" />
-                    <span style={{ color: 'rgba(21,34,50,0.65)' }}>{feature}</span>
+                  <div key={feature} className="flex items-start gap-2 text-sm">
+                    <CheckCircle2 size={14} style={{ color: '#5EBC67' }} className="flex-shrink-0 mt-0.5" />
+                    <span style={{ color: 'rgba(255,255,255,0.75)' }}>{feature}</span>
                   </div>
                 ))}
               </div>

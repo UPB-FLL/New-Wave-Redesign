@@ -1,8 +1,9 @@
 import Navbar from '../components/Navbar';
 import CybersecurityHero from '../components/cybersecurity/CybersecurityHero';
-import CybersecurityServices from '../components/cybersecurity/CybersecurityServices';
 import SecurityStats from '../components/cybersecurity/SecurityStats';
+import CybersecurityServices from '../components/cybersecurity/CybersecurityServices';
 import ThreatProtection from '../components/cybersecurity/ThreatProtection';
+import SecurityProcess from '../components/cybersecurity/SecurityProcess';
 import ComplianceFrameworks from '../components/cybersecurity/ComplianceFrameworks';
 import CyberSecurityCTA from '../components/cybersecurity/CyberSecurityCTA';
 import Footer from '../components/Footer';
@@ -15,12 +16,13 @@ export default function CybersecurityPage() {
       'Enterprise-grade cybersecurity for South Florida businesses: threat detection, endpoint protection, compliance audits, and 24/7 monitoring.',
   });
   return (
-    <div className="min-h-screen bg-slate-900">
+    <div className="min-h-screen" style={{ background: 'white' }}>
       <Navbar />
       <CybersecurityHero />
-      <CybersecurityServices />
       <SecurityStats />
+      <CybersecurityServices />
       <ThreatProtection />
+      <SecurityProcess />
       <ComplianceFrameworks />
       <CyberSecurityCTA />
       <Footer />
