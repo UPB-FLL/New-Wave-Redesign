@@ -65,7 +65,7 @@ export default function WaveBackground() {
         viewBox="0 0 1440 800"
         preserveAspectRatio="xMidYMid slice"
         style={{
-          opacity: 0.08,
+          opacity: 0.18,
         }}
       >
         {/* Multiple wave layers for depth */}
