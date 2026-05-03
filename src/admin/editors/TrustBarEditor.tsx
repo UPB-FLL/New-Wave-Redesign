@@ -8,6 +8,16 @@ type TrustItem = { icon: string; label: string; sub: string };
 
 const defaultItem: TrustItem = { icon: 'Shield', label: '', sub: '' };
 
+const defaultHeading = 'Trusted by 500+ businesses across South Florida';
+
+const defaultItems: TrustItem[] = [
+  { icon: 'Shield', label: 'SOC 2 Type II', sub: 'Audited & Certified' },
+  { icon: 'Award', label: 'Microsoft Gold', sub: 'Cloud Solutions Partner' },
+  { icon: 'Users', label: 'Cisco Premier', sub: 'Network Solutions' },
+  { icon: 'Star', label: 'CompTIA', sub: 'Authorized Partner' },
+  { icon: 'TrendingUp', label: 'HIPAA Compliant', sub: 'Healthcare Ready' },
+];
+
 const iconOptions = [
   { value: 'Shield', label: 'Shield' },
   { value: 'Award', label: 'Award' },
@@ -30,8 +40,10 @@ export default function TrustBarEditor() {
 
   useEffect(() => {
     fetchSectionContent('trustbar').then((data) => {
-      setContent(data);
-      try { setItems(JSON.parse(data.items || '[]')); } catch { setItems([]); }
+      setContent({ heading: data.heading ?? defaultHeading, ...data });
+      let parsed: TrustItem[] = [];
+      try { parsed = JSON.parse(data.items || '[]'); } catch { parsed = []; }
+      setItems(parsed.length > 0 ? parsed : defaultItems);
       setLoaded(true);
     });
   }, []);
