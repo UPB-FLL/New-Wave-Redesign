@@ -36,8 +36,11 @@ export default function Services() {
             className="text-4xl sm:text-5xl lg:text-7xl mt-2 mb-4 leading-[0.95] tracking-tight"
             style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}
           >
-            {c.headline ? (
-              c.headline
+            {c.headline && c.headline_accent ? (
+              <>
+                {c.headline}{' '}
+                <span style={{ display: 'inline-block', background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{c.headline_accent}</span>
+              </>
             ) : (
               <>
                 IT Services Built for{' '}

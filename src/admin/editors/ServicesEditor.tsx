@@ -65,6 +65,7 @@ export default function ServicesEditor() {
       <FormSection title="Page Header" subtitle="Section headline and description">
         <EditorField label="Section Label" value={content.section_label ?? ''} onChange={(v) => set('section_label', v)} hint="Label above headline" />
         <EditorField label="Headline" value={content.headline ?? ''} onChange={(v) => set('headline', v)} hint="Main heading" />
+        <EditorField label="Accent Word" value={content.headline_accent ?? ''} onChange={(v) => set('headline_accent', v)} hint="Gradient-colored word in headline (e.g. Modern Business)" />
         <EditorField label="Subheadline" value={content.subheadline ?? ''} onChange={(v) => set('subheadline', v)} multiline rows={2} hint="Supporting text" />
       </FormSection>
 
