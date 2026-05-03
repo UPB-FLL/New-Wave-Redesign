@@ -81,7 +81,7 @@ export default function ComplianceFrameworks() {
             style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: 'white' }}
           >
             Audit-ready from{' '}
-            <span style={{ background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>day one.</span>
+            <span style={{ display: 'inline-block', background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>day one.</span>
           </h2>
           <p className="text-sm sm:text-base max-w-2xl mx-auto" style={{ color: 'rgba(255,255,255,0.6)' }}>
             We map your environment to the frameworks that matter for your industry —
