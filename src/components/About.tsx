@@ -4,7 +4,7 @@ export default function About() {
   const c = useContent('about');
 
   return (
-    <section id="about" className="bg-white py-28" style={{ borderTop: '1px solid rgba(21,34,50,0.06)' }}>
+    <section id="about" className="bg-white py-28 relative" style={{ borderTop: '1px solid rgba(21,34,50,0.06)', zIndex: 10 }}>
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <div className="relative">
