@@ -22,7 +22,7 @@ export default function About() {
             >
               <div
                 className="font-bold text-white"
-                style={{ fontFamily: 'Staatliches, sans-serif', fontSize: '2rem', lineHeight: 1 }}
+                style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", fontSize: '2rem', lineHeight: 1 }}
               >
                 {c.years_badge || '15+'}
               </div>
@@ -38,7 +38,7 @@ export default function About() {
             </span>
             <h2
               className="text-2xl sm:text-3xl lg:text-5xl mt-2 mb-4 sm:mb-6 leading-tight"
-              style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
+              style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}
             >
               {c.headline ? (
                 c.headline

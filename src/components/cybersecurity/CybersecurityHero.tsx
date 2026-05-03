@@ -129,7 +129,7 @@ export default function CybersecurityHero() {
 
             <h1
               className="text-3xl sm:text-4xl lg:text-6xl leading-[0.95] tracking-tight mb-4"
-              style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
+              style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}
             >
               Enterprise security{' '}
               <span
@@ -246,7 +246,7 @@ export default function CybersecurityHero() {
                   </div>
                   <div
                     className="text-3xl lg:text-4xl font-bold tabular-nums"
-                    style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
+                    style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}
                   >
                     {threatCount.toLocaleString()}
                   </div>

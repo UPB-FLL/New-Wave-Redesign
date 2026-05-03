@@ -59,7 +59,7 @@ export default function CybersecurityServices() {
           </span>
           <h2
             className="text-2xl sm:text-3xl lg:text-4xl mt-2 mb-3 leading-tight"
-            style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
+            style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}
           >
             Complete security stack,{' '}
             <span style={{ color: '#39CCCC' }}>fully managed.</span>

@@ -48,7 +48,7 @@ export default function SecurityStats() {
           </span>
           <h2
             className="text-2xl sm:text-3xl lg:text-4xl mt-2 leading-tight"
-            style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
+            style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}
           >
             Performance metrics that{' '}
             <span style={{ color: '#39CCCC' }}>define enterprise security</span>
@@ -82,7 +82,7 @@ export default function SecurityStats() {
               </div>
               <div
                 className="text-3xl lg:text-4xl font-bold mb-1 tabular-nums"
-                style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
+                style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}
               >
                 {stat.number}
               </div>

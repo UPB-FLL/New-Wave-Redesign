@@ -44,7 +44,7 @@ export default function SecurityProcess() {
           </span>
           <h2
             className="text-2xl sm:text-3xl lg:text-4xl mt-2 mb-3 leading-tight"
-            style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
+            style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}
           >
             From assessment to{' '}
             <span style={{ color: '#5EBC67' }}>active defense</span> in 30 days.
@@ -87,7 +87,7 @@ export default function SecurityProcess() {
                       style={{
                         background: accent,
                         color: 'white',
-                        fontFamily: 'Staatliches, sans-serif',
+                        fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif",
                       }}
                     >
                       {step.number}

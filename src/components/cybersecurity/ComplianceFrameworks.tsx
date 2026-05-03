@@ -78,7 +78,7 @@ export default function ComplianceFrameworks() {
           </div>
           <h2
             className="text-2xl sm:text-3xl lg:text-4xl mt-2 mb-3 leading-tight"
-            style={{ fontFamily: 'Staatliches, sans-serif', color: 'white' }}
+            style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: 'white' }}
           >
             Audit-ready from{' '}
             <span style={{ color: '#5EBC67' }}>day one.</span>
@@ -111,7 +111,7 @@ export default function ComplianceFrameworks() {
               <div className="flex items-baseline justify-between mb-2">
                 <h3
                   className="text-2xl font-bold"
-                  style={{ fontFamily: 'Staatliches, sans-serif', color: '#5EBC67' }}
+                  style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#5EBC67' }}
                 >
                   {framework.name}
                 </h3>

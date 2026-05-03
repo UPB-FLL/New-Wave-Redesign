@@ -67,7 +67,7 @@ export default function CyberSecurityCTA() {
 
               <h2
                 className="text-2xl sm:text-3xl lg:text-4xl leading-tight mb-3"
-                style={{ fontFamily: 'Staatliches, sans-serif', color: 'white' }}
+                style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: 'white' }}
               >
                 See your security gaps before{' '}
                 <span

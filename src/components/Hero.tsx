@@ -72,7 +72,7 @@ export default function Hero() {
 
             <h1
               className="text-4xl sm:text-5xl lg:text-7xl leading-[0.95] tracking-tight mb-4 sm:mb-5"
-              style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
+              style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}
             >
               {c.headline_part1 || 'When technology'}{' '}
               <span
@@ -129,7 +129,7 @@ export default function Hero() {
                 <div key={stat.label}>
                   <div
                     className="text-xl sm:text-2xl lg:text-3xl font-bold tabular-nums"
-                    style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
+                    style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}
                   >
                     {stat.value}
                   </div>

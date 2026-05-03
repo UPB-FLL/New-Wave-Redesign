@@ -92,7 +92,7 @@ export default function ThreatProtection() {
           </span>
           <h2
             className="text-2xl sm:text-3xl lg:text-4xl mt-2 mb-3 leading-tight"
-            style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
+            style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}
           >
             Defense against every{' '}
             <span style={{ color: '#39CCCC' }}>attack vector.</span>
@@ -152,7 +152,7 @@ export default function ThreatProtection() {
               >
                 <div
                   className="text-lg font-bold tabular-nums"
-                  style={{ fontFamily: 'Staatliches, sans-serif', color: '#39CCCC' }}
+                  style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#39CCCC' }}
                 >
                   {threat.stat}
                 </div>

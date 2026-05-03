@@ -184,7 +184,7 @@ export default function SupportPage() {
           <div className="mb-8 sm:mb-12">
             <h1
               className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-2 sm:mb-4"
-              style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
+              style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}
             >
               Customer Support
             </h1>
