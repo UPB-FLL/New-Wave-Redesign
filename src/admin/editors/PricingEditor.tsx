@@ -197,14 +197,18 @@ export default function PricingEditor() {
 
   return (
     <SectionEditor title="Pricing" onSave={handleSave}>
-      <EditorField label="Section Label" value={content.section_label || ''} onChange={(v) => set('section_label', v)} />
-      <EditorField label="Headline" value={content.headline || ''} onChange={(v) => set('headline', v)} />
-      <EditorField
-        label="Subheadline"
-        value={content.subheadline || ''}
-        onChange={(v) => set('subheadline', v)}
-        type="textarea"
-      />
+      <div className="rounded-2xl p-5 space-y-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+        <h2 className="text-sm font-semibold text-white/70 uppercase tracking-wider">Section Header</h2>
+        <EditorField label="Section Label" value={content.section_label || ''} onChange={(v) => set('section_label', v)} />
+        <EditorField label="Headline" value={content.headline || ''} onChange={(v) => set('headline', v)} hint="Main headline text" />
+        <EditorField label="Headline Accent" value={content.headline_accent || ''} onChange={(v) => set('headline_accent', v)} hint="Accent word that receives gradient styling" />
+        <EditorField
+          label="Subheadline"
+          value={content.subheadline || ''}
+          onChange={(v) => set('subheadline', v)}
+          multiline rows={3}
+        />
+      </div>
 
       <div className="mt-8 border-t pt-6">
         <div className="flex justify-between items-center mb-6">
