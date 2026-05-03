@@ -190,6 +190,7 @@ export default function PricingEditor() {
   const handleSave = async () => {
     await upsertManyContent('pricing', {
       ...content,
+      headline_accent: content.headline_accent || 'Plans',
       tiers: JSON.stringify(tiers),
     });
     alert('Pricing saved successfully!');
