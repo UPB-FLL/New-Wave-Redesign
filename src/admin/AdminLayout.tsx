@@ -14,6 +14,8 @@ const navItems = [
   { label: 'Why Us', path: '/admin/whyus', icon: HelpCircle },
   { label: 'About', path: '/admin/about', icon: Info },
   { label: 'Contact', path: '/admin/contact', icon: Mail },
+  { label: 'Pricing', path: '/admin/pricing', icon: Star },
+  { label: 'Pricing Units', path: '/admin/pricing-units', icon: Layers },
   { label: 'Footer', path: '/admin/footer', icon: AlignLeft },
   { label: 'SEO Portal', path: '/admin/seo', icon: Search },
 ];
