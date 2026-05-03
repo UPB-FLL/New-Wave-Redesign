@@ -18,7 +18,7 @@ export default function CybersecurityHero() {
 
   return (
     <section
-      className="relative min-h-screen flex items-center overflow-hidden bg-white pt-24 pb-16"
+      className="relative flex items-center overflow-hidden bg-white pt-28 pb-16"
       style={{ zIndex: 10 }}
     >
       {/* Decorative gradient orbs */}
@@ -50,13 +50,13 @@ export default function CybersecurityHero() {
       />
 
       <div className="relative max-w-7xl mx-auto px-6 lg:px-8 w-full">
-        <div className="grid lg:grid-cols-12 gap-12 items-center">
+        <div className="grid lg:grid-cols-12 gap-8 items-center">
           {/* Left: Content */}
           <div className="lg:col-span-7">
             {/* Live status badge */}
-            <div className="inline-flex items-center gap-2 mb-8">
+            <div className="inline-flex items-center gap-2 mb-5">
               <div
-                className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold"
+                className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold"
                 style={{
                   background: 'rgba(94,188,103,0.1)',
                   border: '1px solid rgba(94,188,103,0.3)',
@@ -78,7 +78,7 @@ export default function CybersecurityHero() {
             </div>
 
             <h1
-              className="text-5xl lg:text-7xl leading-[0.95] tracking-tight mb-6"
+              className="text-4xl lg:text-6xl leading-[0.95] tracking-tight mb-4"
               style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
             >
               Enterprise security{' '}
@@ -95,7 +95,7 @@ export default function CybersecurityHero() {
             </h1>
 
             <p
-              className="text-lg lg:text-xl leading-relaxed mb-10 max-w-2xl"
+              className="text-base lg:text-lg leading-relaxed mb-7 max-w-2xl"
               style={{ color: 'rgba(21,34,50,0.65)' }}
             >
               Stop threats before they reach your business. Our 24/7 security operations
@@ -103,7 +103,7 @@ export default function CybersecurityHero() {
               Fortune 500-grade protection at SMB-friendly pricing.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 mb-12">
+            <div className="flex flex-col sm:flex-row gap-3 mb-7">
               <button
                 onClick={() => handleScroll('#cta')}
                 className="group flex items-center justify-center gap-2.5 font-semibold px-7 py-3.5 rounded-xl transition-all duration-200 hover:-translate-y-0.5 text-white"
@@ -130,7 +130,7 @@ export default function CybersecurityHero() {
             </div>
 
             {/* Trust indicators */}
-            <div className="flex flex-wrap items-center gap-6 lg:gap-8 pt-6" style={{ borderTop: '1px solid rgba(21,34,50,0.08)' }}>
+            <div className="flex flex-wrap items-center gap-4 lg:gap-6 pt-5" style={{ borderTop: '1px solid rgba(21,34,50,0.08)' }}>
               <div className="flex items-center gap-2">
                 <ShieldCheck size={18} style={{ color: '#5EBC67' }} />
                 <span className="text-sm font-medium" style={{ color: 'rgba(21,34,50,0.7)' }}>
@@ -167,9 +167,9 @@ export default function CybersecurityHero() {
                 boxShadow: '0 24px 64px rgba(21,34,50,0.12)',
               }}
             >
-              <div className="rounded-3xl p-6 lg:p-8" style={{ background: 'white' }}>
+              <div className="rounded-3xl p-5 lg:p-6" style={{ background: 'white' }}>
                 {/* Dashboard header */}
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <Activity size={18} style={{ color: '#39CCCC' }} />
                     <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#152232' }}>
@@ -185,54 +185,54 @@ export default function CybersecurityHero() {
 
                 {/* Big metric */}
                 <div
-                  className="rounded-2xl p-6 mb-4"
+                  className="rounded-2xl p-5 mb-3"
                   style={{
                     background: 'linear-gradient(135deg, rgba(57,204,204,0.08) 0%, rgba(94,188,103,0.08) 100%)',
                     border: '1px solid rgba(57,204,204,0.15)',
                   }}
                 >
-                  <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'rgba(21,34,50,0.6)' }}>
+                  <div className="text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: 'rgba(21,34,50,0.6)' }}>
                     Threats Blocked This Year
                   </div>
                   <div
-                    className="text-4xl lg:text-5xl font-bold tabular-nums"
+                    className="text-3xl lg:text-4xl font-bold tabular-nums"
                     style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
                   >
                     {threatCount.toLocaleString()}
                   </div>
-                  <div className="flex items-center gap-1 mt-2 text-xs font-medium" style={{ color: '#5EBC67' }}>
+                  <div className="flex items-center gap-1 mt-1.5 text-xs font-medium" style={{ color: '#5EBC67' }}>
                     <span className="inline-block w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#5EBC67' }} />
                     Updating in real-time
                   </div>
                 </div>
 
                 {/* Threat indicators */}
-                <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="grid grid-cols-2 gap-2.5 mb-3">
                   <div
-                    className="rounded-xl p-4"
+                    className="rounded-xl p-3"
                     style={{ background: 'rgba(94,188,103,0.06)', border: '1px solid rgba(94,188,103,0.15)' }}
                   >
-                    <div className="flex items-center gap-2 mb-1">
-                      <Shield size={14} style={{ color: '#5EBC67' }} />
-                      <span className="text-xs font-semibold" style={{ color: 'rgba(21,34,50,0.65)' }}>
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <Shield size={12} style={{ color: '#5EBC67' }} />
+                      <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'rgba(21,34,50,0.65)' }}>
                         System Status
                       </span>
                     </div>
-                    <div className="text-base font-bold" style={{ color: '#5EBC67' }}>
+                    <div className="text-sm font-bold" style={{ color: '#5EBC67' }}>
                       All Secure
                     </div>
                   </div>
                   <div
-                    className="rounded-xl p-4"
+                    className="rounded-xl p-3"
                     style={{ background: 'rgba(57,204,204,0.06)', border: '1px solid rgba(57,204,204,0.15)' }}
                   >
-                    <div className="flex items-center gap-2 mb-1">
-                      <Lock size={14} style={{ color: '#39CCCC' }} />
-                      <span className="text-xs font-semibold" style={{ color: 'rgba(21,34,50,0.65)' }}>
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <Lock size={12} style={{ color: '#39CCCC' }} />
+                      <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'rgba(21,34,50,0.65)' }}>
                         Encryption
                       </span>
                     </div>
-                    <div className="text-base font-bold" style={{ color: '#39CCCC' }}>
+                    <div className="text-sm font-bold" style={{ color: '#39CCCC' }}>
                       AES-256
                     </div>
                   </div>

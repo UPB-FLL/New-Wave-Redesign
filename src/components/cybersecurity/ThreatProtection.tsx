@@ -78,7 +78,7 @@ const threats = [
 export default function ThreatProtection() {
   return (
     <section
-      className="py-28 relative"
+      className="py-16 relative"
       style={{
         background: 'linear-gradient(180deg, #f8fafb 0%, #ffffff 100%)',
         borderTop: '1px solid rgba(21,34,50,0.06)',
@@ -86,28 +86,27 @@ export default function ThreatProtection() {
       }}
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="text-center mb-16">
+        <div className="text-center mb-10">
           <span className="text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
             Threat Coverage
           </span>
           <h2
-            className="text-4xl lg:text-5xl mt-3 mb-5 leading-tight"
+            className="text-3xl lg:text-4xl mt-2 mb-3 leading-tight"
             style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
           >
             Defense against every{' '}
             <span style={{ color: '#39CCCC' }}>attack vector.</span>
           </h2>
-          <p className="text-lg max-w-2xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
-            Modern threats demand modern defense. Here's how we stop the eight most damaging
-            threats facing businesses today.
+          <p className="text-base max-w-2xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
+            Here's how we stop the eight most damaging threats facing businesses today.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
           {threats.map((threat) => (
             <div
               key={threat.name}
-              className="group rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1"
+              className="group rounded-2xl p-4 transition-all duration-300 hover:-translate-y-1"
               style={{
                 background: 'white',
                 border: '1px solid rgba(21,34,50,0.08)',
@@ -122,15 +121,15 @@ export default function ThreatProtection() {
                 (e.currentTarget as HTMLElement).style.borderColor = 'rgba(21,34,50,0.08)';
               }}
             >
-              <div className="flex items-start justify-between mb-4">
+              <div className="flex items-start justify-between mb-2.5">
                 <div
-                  className="w-11 h-11 rounded-xl flex items-center justify-center"
+                  className="w-9 h-9 rounded-lg flex items-center justify-center"
                   style={{ background: 'rgba(57,204,204,0.12)' }}
                 >
-                  <threat.icon size={20} style={{ color: '#39CCCC' }} />
+                  <threat.icon size={16} style={{ color: '#39CCCC' }} />
                 </div>
                 <span
-                  className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md"
+                  className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
                   style={{
                     background: `${threat.severityColor}15`,
                     color: threat.severityColor,
@@ -140,24 +139,24 @@ export default function ThreatProtection() {
                 </span>
               </div>
 
-              <h3 className="font-bold text-lg mb-2" style={{ color: '#152232' }}>
+              <h3 className="font-bold text-base mb-1.5" style={{ color: '#152232' }}>
                 {threat.name}
               </h3>
-              <p className="text-xs leading-relaxed mb-4" style={{ color: 'rgba(21,34,50,0.6)' }}>
+              <p className="text-xs leading-relaxed mb-3" style={{ color: 'rgba(21,34,50,0.6)' }}>
                 {threat.description}
               </p>
 
               <div
-                className="rounded-lg p-3"
+                className="rounded-lg p-2.5"
                 style={{ background: 'rgba(57,204,204,0.05)', border: '1px solid rgba(57,204,204,0.1)' }}
               >
                 <div
-                  className="text-xl font-bold tabular-nums"
+                  className="text-lg font-bold tabular-nums"
                   style={{ fontFamily: 'Staatliches, sans-serif', color: '#39CCCC' }}
                 >
                   {threat.stat}
                 </div>
-                <div className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: 'rgba(21,34,50,0.5)' }}>
+                <div className="text-[9px] uppercase tracking-wider font-semibold" style={{ color: 'rgba(21,34,50,0.5)' }}>
                   {threat.statLabel}
                 </div>
               </div>

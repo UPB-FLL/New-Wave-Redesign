@@ -34,7 +34,7 @@ export default function SecurityStats() {
 
   return (
     <section
-      className="py-24 relative"
+      className="py-14 relative"
       style={{
         background: 'linear-gradient(180deg, #ffffff 0%, #f8fafb 100%)',
         borderTop: '1px solid rgba(21,34,50,0.06)',
@@ -42,12 +42,12 @@ export default function SecurityStats() {
       }}
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="text-center mb-14">
+        <div className="text-center mb-8">
           <span className="text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
             By The Numbers
           </span>
           <h2
-            className="text-3xl lg:text-4xl mt-3 leading-tight"
+            className="text-3xl lg:text-4xl mt-2 leading-tight"
             style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
           >
             Performance metrics that{' '}
@@ -55,11 +55,11 @@ export default function SecurityStats() {
           </h2>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat) => (
             <div
               key={stat.label}
-              className="group rounded-2xl p-7 transition-all duration-300 hover:-translate-y-1"
+              className="group rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1"
               style={{
                 background: 'white',
                 border: '1px solid rgba(21,34,50,0.08)',
@@ -75,18 +75,18 @@ export default function SecurityStats() {
               }}
             >
               <div
-                className="w-11 h-11 rounded-xl flex items-center justify-center mb-5"
+                className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
                 style={{ background: `${stat.accent}15` }}
               >
-                <stat.icon size={20} style={{ color: stat.accent }} />
+                <stat.icon size={18} style={{ color: stat.accent }} />
               </div>
               <div
-                className="text-4xl lg:text-5xl font-bold mb-2 tabular-nums"
+                className="text-3xl lg:text-4xl font-bold mb-1 tabular-nums"
                 style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
               >
                 {stat.number}
               </div>
-              <div className="font-semibold text-sm mb-1" style={{ color: '#152232' }}>
+              <div className="font-semibold text-sm mb-0.5" style={{ color: '#152232' }}>
                 {stat.label}
               </div>
               <p className="text-xs" style={{ color: 'rgba(21,34,50,0.55)' }}>

@@ -9,7 +9,7 @@ export default function CyberSecurityCTA() {
   return (
     <section
       id="cta"
-      className="py-24 relative overflow-hidden"
+      className="py-16 relative overflow-hidden"
       style={{
         background: '#152232',
         borderTop: '1px solid rgba(255,255,255,0.06)',
@@ -46,27 +46,27 @@ export default function CyberSecurityCTA() {
 
       <div className="relative max-w-6xl mx-auto px-6 lg:px-8">
         <div
-          className="rounded-3xl p-10 lg:p-16 relative overflow-hidden"
+          className="rounded-3xl p-8 lg:p-12 relative overflow-hidden"
           style={{
             background: 'linear-gradient(135deg, rgba(57,204,204,0.08) 0%, rgba(94,188,103,0.08) 100%)',
             border: '1px solid rgba(255,255,255,0.1)',
             backdropFilter: 'blur(12px)',
           }}
         >
-          <div className="grid lg:grid-cols-5 gap-10 items-center">
+          <div className="grid lg:grid-cols-5 gap-8 items-center">
             <div className="lg:col-span-3">
               <div
-                className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 mb-6"
+                className="inline-flex items-center gap-2 rounded-full px-3 py-1 mb-4"
                 style={{ background: 'rgba(57,204,204,0.12)', border: '1px solid rgba(57,204,204,0.3)' }}
               >
-                <Shield size={14} style={{ color: '#39CCCC' }} />
-                <span className="text-xs font-semibold" style={{ color: '#39CCCC' }}>
+                <Shield size={12} style={{ color: '#39CCCC' }} />
+                <span className="text-[11px] font-semibold" style={{ color: '#39CCCC' }}>
                   FREE 30-MINUTE CONSULTATION
                 </span>
               </div>
 
               <h2
-                className="text-4xl lg:text-5xl leading-tight mb-5"
+                className="text-3xl lg:text-4xl leading-tight mb-3"
                 style={{ fontFamily: 'Staatliches, sans-serif', color: 'white' }}
               >
                 See your security gaps before{' '}
@@ -82,13 +82,13 @@ export default function CyberSecurityCTA() {
                 </span>
               </h2>
 
-              <p className="text-lg mb-8" style={{ color: 'rgba(255,255,255,0.7)' }}>
+              <p className="text-base mb-5" style={{ color: 'rgba(255,255,255,0.7)' }}>
                 Get a comprehensive security posture assessment from our certified analysts.
                 We'll identify vulnerabilities, prioritize remediation, and deliver an
                 executive-ready roadmap — at zero cost.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-3 mb-8">
+              <div className="flex flex-col sm:flex-row gap-3 mb-5">
                 <button
                   className="group flex items-center justify-center gap-2.5 font-semibold px-7 py-3.5 rounded-xl transition-all duration-200 hover:-translate-y-0.5 text-white"
                   style={{
@@ -128,16 +128,16 @@ export default function CyberSecurityCTA() {
             {/* Right: What you get */}
             <div className="lg:col-span-2">
               <div
-                className="rounded-2xl p-6"
+                className="rounded-2xl p-5"
                 style={{
                   background: 'rgba(255,255,255,0.04)',
                   border: '1px solid rgba(255,255,255,0.1)',
                 }}
               >
-                <h3 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ color: '#39CCCC' }}>
+                <h3 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: '#39CCCC' }}>
                   What You'll Receive
                 </h3>
-                <ul className="space-y-3.5">
+                <ul className="space-y-2.5">
                   {[
                     { title: 'Vulnerability Report', desc: 'Prioritized list of security gaps' },
                     { title: 'Compliance Gap Analysis', desc: 'Mapped to your regulations' },

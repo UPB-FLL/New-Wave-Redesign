@@ -49,32 +49,32 @@ export default function CybersecurityServices() {
   return (
     <section
       id="services"
-      className="bg-white py-28 relative"
+      className="bg-white py-16 relative"
       style={{ borderTop: '1px solid rgba(21,34,50,0.06)', zIndex: 10 }}
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="max-w-3xl mb-16">
+        <div className="max-w-3xl mb-10">
           <span className="text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
             Our Solutions
           </span>
           <h2
-            className="text-4xl lg:text-5xl mt-3 mb-5 leading-tight"
+            className="text-3xl lg:text-4xl mt-2 mb-3 leading-tight"
             style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
           >
             Complete security stack,{' '}
             <span style={{ color: '#39CCCC' }}>fully managed.</span>
           </h2>
-          <p className="text-lg" style={{ color: 'rgba(21,34,50,0.6)' }}>
+          <p className="text-base" style={{ color: 'rgba(21,34,50,0.6)' }}>
             Six integrated pillars of defense, deployed and operated by certified security
-            engineers — so you get enterprise capability without enterprise complexity.
+            engineers — enterprise capability without enterprise complexity.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {services.map((service) => (
             <div
               key={service.title}
-              className="group relative rounded-2xl p-7 transition-all duration-300 hover:-translate-y-1 cursor-pointer overflow-hidden"
+              className="group relative rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 cursor-pointer overflow-hidden"
               style={{
                 background: 'white',
                 border: '1px solid rgba(21,34,50,0.08)',
@@ -98,30 +98,30 @@ export default function CybersecurityServices() {
               />
 
               <div className="relative">
-                <div className="flex items-start justify-between mb-5">
+                <div className="flex items-start justify-between mb-3">
                   <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center"
+                    className="w-10 h-10 rounded-xl flex items-center justify-center"
                     style={{ background: `${service.accent}15` }}
                   >
-                    <service.icon size={22} style={{ color: service.accent }} />
+                    <service.icon size={18} style={{ color: service.accent }} />
                   </div>
                   <ArrowUpRight
-                    size={18}
+                    size={16}
                     className="opacity-0 group-hover:opacity-100 group-hover:-translate-y-1 group-hover:translate-x-1 transition-all duration-300"
                     style={{ color: service.accent }}
                   />
                 </div>
 
-                <h3 className="font-bold text-xl mb-2.5" style={{ color: '#152232' }}>
+                <h3 className="font-bold text-lg mb-1.5" style={{ color: '#152232' }}>
                   {service.title}
                 </h3>
-                <p className="text-sm leading-relaxed mb-5" style={{ color: 'rgba(21,34,50,0.6)' }}>
+                <p className="text-sm leading-relaxed mb-3" style={{ color: 'rgba(21,34,50,0.6)' }}>
                   {service.description}
                 </p>
 
-                <div className="space-y-2 pt-4" style={{ borderTop: '1px solid rgba(21,34,50,0.06)' }}>
+                <div className="space-y-1.5 pt-3" style={{ borderTop: '1px solid rgba(21,34,50,0.06)' }}>
                   {service.features.map((feature) => (
-                    <div key={feature} className="flex items-center gap-2 text-sm">
+                    <div key={feature} className="flex items-center gap-2 text-xs">
                       <div
                         className="w-1 h-1 rounded-full flex-shrink-0"
                         style={{ background: service.accent }}

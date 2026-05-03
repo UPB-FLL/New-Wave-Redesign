@@ -48,7 +48,7 @@ const frameworks = [
 export default function ComplianceFrameworks() {
   return (
     <section
-      className="py-28 relative"
+      className="py-16 relative"
       style={{
         background: '#152232',
         borderTop: '1px solid rgba(255,255,255,0.06)',
@@ -67,33 +67,33 @@ export default function ComplianceFrameworks() {
       </div>
 
       <div className="relative max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-6"
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 mb-4"
             style={{ background: 'rgba(94,188,103,0.1)', border: '1px solid rgba(94,188,103,0.3)' }}
           >
-            <FileCheck size={14} style={{ color: '#5EBC67' }} />
-            <span className="text-xs font-semibold" style={{ color: '#5EBC67' }}>
+            <FileCheck size={12} style={{ color: '#5EBC67' }} />
+            <span className="text-[11px] font-semibold" style={{ color: '#5EBC67' }}>
               CERTIFIED COMPLIANCE
             </span>
           </div>
           <h2
-            className="text-4xl lg:text-5xl mt-3 mb-5 leading-tight"
+            className="text-3xl lg:text-4xl mt-2 mb-3 leading-tight"
             style={{ fontFamily: 'Staatliches, sans-serif', color: 'white' }}
           >
             Audit-ready from{' '}
             <span style={{ color: '#5EBC67' }}>day one.</span>
           </h2>
-          <p className="text-lg max-w-2xl mx-auto" style={{ color: 'rgba(255,255,255,0.6)' }}>
-            We map your environment to the frameworks that matter for your industry — then
-            keep you continuously compliant with automated controls and evidence collection.
+          <p className="text-base max-w-2xl mx-auto" style={{ color: 'rgba(255,255,255,0.6)' }}>
+            We map your environment to the frameworks that matter for your industry —
+            then keep you continuously compliant with automated controls.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {frameworks.map((framework) => (
             <div
               key={framework.name}
-              className="group rounded-2xl p-7 transition-all duration-300 hover:-translate-y-1"
+              className="group rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1"
               style={{
                 background: 'rgba(255,255,255,0.03)',
                 border: '1px solid rgba(255,255,255,0.08)',
@@ -108,29 +108,29 @@ export default function ComplianceFrameworks() {
                 (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.03)';
               }}
             >
-              <div className="flex items-baseline justify-between mb-3">
+              <div className="flex items-baseline justify-between mb-2">
                 <h3
-                  className="text-3xl font-bold"
+                  className="text-2xl font-bold"
                   style={{ fontFamily: 'Staatliches, sans-serif', color: '#5EBC67' }}
                 >
                   {framework.name}
                 </h3>
-                <span className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                <span className="text-[10px] font-semibold" style={{ color: 'rgba(255,255,255,0.4)' }}>
                   CERTIFIED
                 </span>
               </div>
-              <p className="text-xs uppercase tracking-wider font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
+              <p className="text-[11px] uppercase tracking-wider font-semibold mb-0.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
                 {framework.description}
               </p>
-              <p className="text-sm mb-5" style={{ color: 'rgba(255,255,255,0.7)' }}>
+              <p className="text-xs mb-3" style={{ color: 'rgba(255,255,255,0.7)' }}>
                 {framework.fullName}
               </p>
 
-              <div className="flex flex-wrap gap-1.5 mb-5">
+              <div className="flex flex-wrap gap-1 mb-3">
                 {framework.industries.map((industry) => (
                   <span
                     key={industry}
-                    className="text-[10px] font-medium px-2 py-1 rounded-md"
+                    className="text-[10px] font-medium px-1.5 py-0.5 rounded"
                     style={{
                       background: 'rgba(94,188,103,0.1)',
                       color: '#5EBC67',
@@ -142,10 +142,10 @@ export default function ComplianceFrameworks() {
                 ))}
               </div>
 
-              <div className="space-y-2 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+              <div className="space-y-1.5 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
                 {framework.features.map((feature) => (
-                  <div key={feature} className="flex items-start gap-2 text-sm">
-                    <CheckCircle2 size={14} style={{ color: '#5EBC67' }} className="flex-shrink-0 mt-0.5" />
+                  <div key={feature} className="flex items-start gap-2 text-xs">
+                    <CheckCircle2 size={12} style={{ color: '#5EBC67' }} className="flex-shrink-0 mt-0.5" />
                     <span style={{ color: 'rgba(255,255,255,0.75)' }}>{feature}</span>
                   </div>
                 ))}
