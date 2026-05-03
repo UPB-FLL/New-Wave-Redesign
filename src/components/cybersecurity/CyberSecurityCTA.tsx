@@ -72,6 +72,7 @@ export default function CyberSecurityCTA() {
                 See your security gaps before{' '}
                 <span
                   style={{
+                    display: 'inline-block',
                     background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
