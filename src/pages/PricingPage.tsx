@@ -17,20 +17,20 @@ export default function PricingPage() {
     <div className="min-h-screen bg-slate-900">
       <Navbar />
       <div className="pt-20">
-        <section className="py-28" style={{ background: '#f8fafb', borderTop: '1px solid rgba(21,34,50,0.06)' }}>
+        <section className="py-16" style={{ background: '#f8fafb', borderTop: '1px solid rgba(21,34,50,0.06)' }}>
           <div className="max-w-4xl mx-auto px-6 lg:px-8">
-            <div className="text-center mb-16">
+            <div className="text-center mb-10">
               <span className="text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
                 {c.section_label || 'Custom Pricing'}
               </span>
               <h2
-                className="text-4xl lg:text-5xl mt-3 mb-5 leading-tight"
+                className="text-3xl lg:text-4xl mt-2 mb-3 leading-tight"
                 style={{ fontFamily: 'Staatliches, sans-serif', color: '#152232' }}
               >
                 {c.headline || 'Build Your Custom'}
                 <span style={{ color: '#39CCCC' }}> Quote</span>
               </h2>
-              <p className="text-lg max-w-2xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
+              <p className="text-base max-w-2xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
                 {c.subheadline || 'Select the services you need and get an instant estimate. Our team will reach out with a customized proposal.'}
               </p>
             </div>

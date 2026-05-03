@@ -171,40 +171,40 @@ export default function DynamicPricingBuilder() {
     );
   }
 
-  const inputClass = 'w-full rounded-lg px-4 py-2.5 text-sm outline-none transition-colors';
+  const inputClass = 'w-full rounded-lg px-3 py-2 text-sm outline-none transition-colors';
   const inputStyle = { background: 'white', border: '1.5px solid rgba(21,34,50,0.12)', color: '#152232' };
 
   return (
-    <div className="rounded-2xl p-8 bg-white shadow-lg relative" style={{ zIndex: 20 }}>
-      <form onSubmit={handleSubmit} className="space-y-6">
+    <div className="rounded-2xl p-6 bg-white shadow-lg relative" style={{ zIndex: 20 }}>
+      <form onSubmit={handleSubmit} className="space-y-4">
         {/* Pricing Options */}
         <div>
-          <h3 className="text-lg font-semibold mb-6" style={{ color: '#152232' }}>
+          <h3 className="text-base font-semibold mb-4" style={{ color: '#152232' }}>
             Select Your Options
           </h3>
-          <div className="grid md:grid-cols-2 gap-6 mb-8">
+          <div className="grid md:grid-cols-2 gap-3 mb-5">
             {units.map((unit) => (
-              <div key={unit.id} className="p-4 rounded-lg" style={{ background: 'rgba(57,204,204,0.05)', border: '1px solid rgba(57,204,204,0.15)' }}>
-                <div className="flex justify-between items-start mb-3">
+              <div key={unit.id} className="p-3 rounded-lg" style={{ background: 'rgba(57,204,204,0.05)', border: '1px solid rgba(57,204,204,0.15)' }}>
+                <div className="flex justify-between items-start mb-2">
                   <div>
-                    <h4 className="font-semibold" style={{ color: '#152232' }}>
+                    <h4 className="font-semibold text-sm" style={{ color: '#152232' }}>
                       {unit.name}
                     </h4>
                     {unit.description && (
-                      <p className="text-xs mt-1" style={{ color: 'rgba(21,34,50,0.6)' }}>
+                      <p className="text-xs mt-0.5" style={{ color: 'rgba(21,34,50,0.6)' }}>
                         {unit.description}
                       </p>
                     )}
                   </div>
-                  <span style={{ color: '#39CCCC' }} className="font-semibold">
+                  <span style={{ color: '#39CCCC' }} className="font-semibold text-sm">
                     ${(unit.cost_per_unit / 100).toFixed(2)}
                   </span>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => handleQuantityChange(unit.id, (selections[unit.id] || 0) - 1)}
-                    className="px-2 py-1 rounded border hover:bg-gray-100 transition-colors"
+                    className="px-2 py-0.5 rounded border hover:bg-gray-100 transition-colors text-sm"
                     style={{ borderColor: 'rgba(21,34,50,0.12)' }}
                   >
                     −
@@ -215,13 +215,13 @@ export default function DynamicPricingBuilder() {
                     onChange={(e) => handleQuantityChange(unit.id, parseInt(e.target.value) || 0)}
                     min={unit.min_quantity}
                     max={unit.max_quantity}
-                    className="w-16 text-center rounded px-2 py-1"
+                    className="w-14 text-center rounded px-2 py-0.5 text-sm"
                     style={inputStyle}
                   />
                   <button
                     type="button"
                     onClick={() => handleQuantityChange(unit.id, (selections[unit.id] || 0) + 1)}
-                    className="px-2 py-1 rounded border hover:bg-gray-100 transition-colors"
+                    className="px-2 py-0.5 rounded border hover:bg-gray-100 transition-colors text-sm"
                     style={{ borderColor: 'rgba(21,34,50,0.12)' }}
                   >
                     +
@@ -233,29 +233,29 @@ export default function DynamicPricingBuilder() {
 
           {/* Estimated Total */}
           <div
-            className="p-6 rounded-lg mb-8 text-center"
+            className="p-4 rounded-lg mb-5 text-center"
             style={{ background: 'rgba(57,204,204,0.1)', border: '2px solid rgba(57,204,204,0.3)' }}
           >
-            <p className="text-sm mb-2" style={{ color: 'rgba(21,34,50,0.6)' }}>
+            <p className="text-xs mb-1" style={{ color: 'rgba(21,34,50,0.6)' }}>
               Your First-Look Estimate
             </p>
-            <p className="text-4xl font-bold" style={{ color: '#39CCCC' }}>
+            <p className="text-3xl font-bold" style={{ color: '#39CCCC' }}>
               ${estimatedTotal.toFixed(2)}
             </p>
-            <p className="text-xs mt-2" style={{ color: 'rgba(21,34,50,0.6)' }}>
+            <p className="text-xs mt-1" style={{ color: 'rgba(21,34,50,0.6)' }}>
               Final pricing may vary based on your specific needs
             </p>
           </div>
         </div>
 
         {/* Contact Form */}
-        <div className="border-t pt-6">
-          <h3 className="text-lg font-semibold mb-6" style={{ color: '#152232' }}>
+        <div className="border-t pt-4">
+          <h3 className="text-base font-semibold mb-4" style={{ color: '#152232' }}>
             Tell Us About Yourself
           </h3>
-          <div className="grid md:grid-cols-2 gap-4 mb-4">
+          <div className="grid md:grid-cols-2 gap-3 mb-3">
             <div>
-              <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(21,34,50,0.75)' }}>
+              <label className="block text-sm font-medium mb-1" style={{ color: 'rgba(21,34,50,0.75)' }}>
                 Full Name <span style={{ color: '#39CCCC' }}>*</span>
               </label>
               <input
@@ -270,7 +270,7 @@ export default function DynamicPricingBuilder() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(21,34,50,0.75)' }}>
+              <label className="block text-sm font-medium mb-1" style={{ color: 'rgba(21,34,50,0.75)' }}>
                 Email <span style={{ color: '#39CCCC' }}>*</span>
               </label>
               <input
@@ -286,9 +286,9 @@ export default function DynamicPricingBuilder() {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4 mb-4">
+          <div className="grid md:grid-cols-2 gap-3 mb-3">
             <div>
-              <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(21,34,50,0.75)' }}>
+              <label className="block text-sm font-medium mb-1" style={{ color: 'rgba(21,34,50,0.75)' }}>
                 Phone Number
               </label>
               <input
@@ -302,7 +302,7 @@ export default function DynamicPricingBuilder() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(21,34,50,0.75)' }}>
+              <label className="block text-sm font-medium mb-1" style={{ color: 'rgba(21,34,50,0.75)' }}>
                 Company Name
               </label>
               <input
@@ -317,27 +317,27 @@ export default function DynamicPricingBuilder() {
             </div>
           </div>
 
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(21,34,50,0.75)' }}>
+          <div className="mb-3">
+            <label className="block text-sm font-medium mb-1" style={{ color: 'rgba(21,34,50,0.75)' }}>
               Additional Details
             </label>
             <textarea
               name="message"
               value={formData.message}
               onChange={handleFormChange}
-              rows={4}
+              rows={3}
               placeholder="Tell us about your specific needs..."
               className={`${inputClass} resize-none`}
               style={inputStyle}
             />
           </div>
 
-          {error && <p className="text-sm mb-4" style={{ color: '#e05252' }}>{error}</p>}
+          {error && <p className="text-sm mb-3" style={{ color: '#e05252' }}>{error}</p>}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 text-white font-semibold py-3 rounded-lg transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed hover:-translate-y-0.5"
+            className="w-full flex items-center justify-center gap-2 text-white font-semibold py-2.5 rounded-lg transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed hover:-translate-y-0.5"
             style={{ background: '#39CCCC', boxShadow: '0 4px 12px rgba(57,204,204,0.3)' }}
           >
             {loading ? (
