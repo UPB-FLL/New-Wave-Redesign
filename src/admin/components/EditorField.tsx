@@ -5,37 +5,31 @@ interface EditorFieldProps {
   multiline?: boolean;
   rows?: number;
   hint?: string;
+  type?: string;
 }
 
-export default function EditorField({ label, value, onChange, multiline = false, rows = 3, hint }: EditorFieldProps) {
-  const baseClass = "w-full px-3.5 py-2.5 rounded-xl text-sm text-white placeholder-white/20 outline-none transition-all resize-none";
-  const baseStyle = { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' };
+export default function EditorField({ label, value, onChange, multiline = false, rows = 3, hint, type = 'text' }: EditorFieldProps) {
+  const inputClass = "w-full px-4 py-2.5 rounded-lg text-sm text-white placeholder-white/30 outline-none transition-colors focus:ring-2 focus:ring-teal-500/50 focus:border-transparent bg-white/5 border border-white/10 hover:bg-white/7.5";
 
   return (
-    <div>
-      <label className="block text-xs font-medium mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>{label}</label>
+    <div className="space-y-2">
+      <label className="block text-sm font-medium text-white/80">{label}</label>
       {multiline ? (
         <textarea
           value={value}
           rows={rows}
           onChange={(e) => onChange(e.target.value)}
-          className={baseClass}
-          style={baseStyle}
-          onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(57,204,204,0.5)')}
-          onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+          className={inputClass}
         />
       ) : (
         <input
-          type="text"
+          type={type}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className={baseClass}
-          style={baseStyle}
-          onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(57,204,204,0.5)')}
-          onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+          className={inputClass}
         />
       )}
-      {hint && <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.25)' }}>{hint}</p>}
+      {hint && <p className="text-xs text-white/40">{hint}</p>}
     </div>
   );
 }

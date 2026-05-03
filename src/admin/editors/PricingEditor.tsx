@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { fetchSectionContent, upsertManyContent } from '../../lib/content';
 import SectionEditor from '../components/SectionEditor';
 import EditorField from '../components/EditorField';
+import FormSection from '../components/FormSection';
 import { Plus, Trash2 } from 'lucide-react';
 
 interface PricingTier {
@@ -112,7 +113,6 @@ export default function PricingEditor() {
           setTiers(parsed);
         } else {
           setTiers(defaultTiers);
-          // Auto-save default tiers to database if empty
           await upsertManyContent('pricing', {
             ...data,
             section_label: data.section_label || 'Transparent Pricing',
@@ -124,7 +124,6 @@ export default function PricingEditor() {
         }
       } catch {
         setTiers(defaultTiers);
-        // Auto-save default tiers to database on error
         await upsertManyContent('pricing', {
           ...data,
           section_label: data.section_label || 'Transparent Pricing',
@@ -193,100 +192,102 @@ export default function PricingEditor() {
       headline_accent: content.headline_accent || 'Plans',
       tiers: JSON.stringify(tiers),
     });
-    alert('Pricing saved successfully!');
   };
 
-  if (!loaded) return <div>Loading...</div>;
+  if (!loaded) return <div className="text-white/50">Loading...</div>;
 
   return (
-    <SectionEditor title="Pricing" onSave={handleSave}>
-      <div className="rounded-2xl p-5 space-y-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-        <h2 className="text-sm font-semibold text-white/70 uppercase tracking-wider">Section Header</h2>
-        <EditorField label="Section Label" value={content.section_label || ''} onChange={(v) => set('section_label', v)} />
-        <EditorField label="Headline" value={content.headline || ''} onChange={(v) => set('headline', v)} hint="Main headline text" />
-        <EditorField label="Headline Accent" value={content.headline_accent || ''} onChange={(v) => set('headline_accent', v)} hint="Accent word that receives gradient styling" />
-        <EditorField
-          label="Subheadline"
-          value={content.subheadline || ''}
-          onChange={(v) => set('subheadline', v)}
-          multiline rows={3}
-        />
-      </div>
+    <SectionEditor title="Pricing Section" description="Manage pricing plans and page header text">
+      <FormSection title="Page Header" subtitle="The headline and subheading displayed at the top of the pricing page">
+        <EditorField label="Section Label" value={content.section_label || ''} onChange={(v) => set('section_label', v)} hint="E.g. 'Transparent Pricing'" />
+        <EditorField label="Headline" value={content.headline || ''} onChange={(v) => set('headline', v)} hint="Main heading text" />
+        <EditorField label="Headline Accent" value={content.headline_accent || ''} onChange={(v) => set('headline_accent', v)} hint="The word that gets gradient styling (e.g., 'Plans')" />
+        <EditorField label="Subheadline" value={content.subheadline || ''} onChange={(v) => set('subheadline', v)} multiline rows={3} hint="Supporting text below the headline" />
+      </FormSection>
 
-      <div className="mt-8 border-t pt-6">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-lg font-semibold">Pricing Tiers</h3>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-white">Pricing Tiers</h2>
+            <p className="text-sm text-white/50 mt-1">Create and manage your service pricing plans</p>
+          </div>
           <button
             onClick={addTier}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-500 text-white text-sm font-medium transition-colors"
           >
-            <Plus size={18} /> Add Tier
+            <Plus size={16} />
+            Add Plan
           </button>
         </div>
 
-        <div className="space-y-8">
+        <div className="space-y-4">
           {tiers.map((tier, tierIdx) => (
-            <div key={tierIdx} className="border rounded-lg p-6 bg-gray-50">
-              <div className="flex justify-between items-start mb-4">
-                <h4 className="text-base font-semibold">Tier {tierIdx + 1}</h4>
+            <div key={tierIdx} className="p-6 rounded-xl bg-white/5 border border-white/10 space-y-5">
+              <div className="flex items-start justify-between">
+                <div className="space-y-1">
+                  <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider">Plan {tierIdx + 1}</h3>
+                  <p className="text-white/50 text-sm">{tier.name || 'Unnamed plan'}</p>
+                </div>
                 <button
                   onClick={() => removeTier(tierIdx)}
-                  className="text-red-500 hover:text-red-700"
+                  className="p-2 rounded-lg hover:bg-red-500/10 text-red-400 transition-colors"
                 >
                   <Trash2 size={18} />
                 </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="grid grid-cols-2 gap-4">
                 <EditorField
-                  label="Tier Name"
+                  label="Plan Name"
                   value={tier.name}
                   onChange={(v) => updateTier(tierIdx, 'name', v)}
                 />
                 <EditorField
-                  label="Price"
-                  value={tier.price}
-                  onChange={(v) => updateTier(tierIdx, 'price', v)}
+                  label="Description"
+                  value={tier.description}
+                  onChange={(v) => updateTier(tierIdx, 'description', v)}
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="grid grid-cols-2 gap-4">
                 <EditorField
-                  label="Period"
-                  value={tier.period}
-                  onChange={(v) => updateTier(tierIdx, 'period', v)}
+                  label="Price"
+                  value={tier.price}
+                  onChange={(v) => updateTier(tierIdx, 'price', v)}
+                  hint="E.g., '$99' or '$199-299'"
                 />
                 <EditorField
-                  label="Accent Color"
-                  value={tier.accent}
-                  onChange={(v) => updateTier(tierIdx, 'accent', v)}
-                  type="text"
+                  label="Billing Period"
+                  value={tier.period}
+                  onChange={(v) => updateTier(tierIdx, 'period', v)}
+                  hint="E.g., '/month (up to 5 users)'"
                 />
               </div>
 
               <EditorField
-                label="Description"
-                value={tier.description}
-                onChange={(v) => updateTier(tierIdx, 'description', v)}
+                label="Accent Color"
+                value={tier.accent}
+                onChange={(v) => updateTier(tierIdx, 'accent', v)}
+                type="color"
+                hint="Color used for visual accent on this plan"
               />
 
-              <div className="mb-4">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={tier.highlight}
-                    onChange={(e) => updateTier(tierIdx, 'highlight', e.target.checked)}
-                  />
-                  <span>Mark as Most Popular</span>
-                </label>
-              </div>
+              <label className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/10 cursor-pointer hover:bg-white/7.5 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={tier.highlight}
+                  onChange={(e) => updateTier(tierIdx, 'highlight', e.target.checked)}
+                  className="rounded"
+                />
+                <span className="text-sm font-medium text-white">Mark as Most Popular</span>
+              </label>
 
-              <div className="border-t pt-4">
-                <div className="flex justify-between items-center mb-3">
-                  <h5 className="font-semibold text-sm">Features</h5>
+              <div className="space-y-3 pt-4 border-t border-white/10">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-semibold text-white">Features</h4>
                   <button
                     onClick={() => addFeature(tierIdx)}
-                    className="text-sm text-blue-500 hover:text-blue-700"
+                    className="text-xs px-3 py-1.5 rounded-lg bg-teal-600/20 text-teal-300 hover:bg-teal-600/30 transition-colors"
                   >
                     + Add Feature
                   </button>
@@ -299,12 +300,12 @@ export default function PricingEditor() {
                         type="text"
                         value={feature}
                         onChange={(e) => updateFeature(tierIdx, featureIdx, e.target.value)}
-                        className="flex-1 px-3 py-2 border rounded text-sm"
                         placeholder="Feature description"
+                        className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white placeholder-white/30 outline-none focus:ring-2 focus:ring-teal-500/50"
                       />
                       <button
                         onClick={() => removeFeature(tierIdx, featureIdx)}
-                        className="text-red-500 hover:text-red-700 px-2"
+                        className="p-2 rounded-lg hover:bg-red-500/10 text-red-400 transition-colors flex-shrink-0"
                       >
                         <Trash2 size={16} />
                       </button>

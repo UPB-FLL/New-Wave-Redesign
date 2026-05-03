@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { fetchSectionContent, upsertManyContent } from '../../lib/content';
 import SectionEditor from '../components/SectionEditor';
 import EditorField from '../components/EditorField';
+import FormSection from '../components/FormSection';
 import CardListEditor from '../components/CardListEditor';
 
 type Stat = { value: string; label: string };
@@ -38,47 +39,47 @@ export default function HeroEditor() {
     await upsertManyContent('hero', payload);
   };
 
-  if (!loaded) return <div className="text-white/40 text-sm">Loading…</div>;
+  if (!loaded) return <div className="text-white/50">Loading…</div>;
 
   return (
-    <SectionEditor title="Hero Section" description="The main landing section at the top of the page." onSave={handleSave}>
-      <div className="rounded-2xl p-5 space-y-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-        <h2 className="text-sm font-semibold text-white/70 uppercase tracking-wider">Badge & Headlines</h2>
-        <EditorField label="Badge Text" value={content.badge ?? ''} onChange={(v) => set('badge', v)} />
-        <EditorField label="Headline Part 1" value={content.headline_part1 ?? ''} onChange={(v) => set('headline_part1', v)} />
-        <EditorField label="Headline Accent 1 (teal)" value={content.headline_accent ?? ''} onChange={(v) => set('headline_accent', v)} />
-        <EditorField label="Headline Part 2" value={content.headline_part2 ?? ''} onChange={(v) => set('headline_part2', v)} />
-        <EditorField label="Headline Accent 2 (green)" value={content.headline_accent2 ?? ''} onChange={(v) => set('headline_accent2', v)} />
-        <EditorField label="Subheadline" value={content.subheadline ?? ''} onChange={(v) => set('subheadline', v)} multiline rows={3} />
-      </div>
+    <SectionEditor title="Hero Section" description="The main landing section at the top of the page" onSave={handleSave}>
+      <FormSection title="Page Header" subtitle="Headline, badge, and introductory text">
+        <EditorField label="Badge Text" value={content.badge ?? ''} onChange={(v) => set('badge', v)} hint="Small label above the main headline" />
+        <EditorField label="Headline Part 1" value={content.headline_part1 ?? ''} onChange={(v) => set('headline_part1', v)} hint="First part of the main headline" />
+        <EditorField label="Headline Accent 1 (Teal)" value={content.headline_accent ?? ''} onChange={(v) => set('headline_accent', v)} hint="Word that gets gradient styling (teal)" />
+        <EditorField label="Headline Part 2" value={content.headline_part2 ?? ''} onChange={(v) => set('headline_part2', v)} hint="Second part of the headline" />
+        <EditorField label="Headline Accent 2 (Green)" value={content.headline_accent2 ?? ''} onChange={(v) => set('headline_accent2', v)} hint="Word that gets gradient styling (green)" />
+        <EditorField label="Subheadline" value={content.subheadline ?? ''} onChange={(v) => set('subheadline', v)} multiline rows={3} hint="Supporting text below the main headline" />
+      </FormSection>
 
-      <div className="rounded-2xl p-5 space-y-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-        <h2 className="text-sm font-semibold text-white/70 uppercase tracking-wider">Buttons & Contact</h2>
-        <EditorField label="Primary CTA Label" value={content.cta_primary ?? ''} onChange={(v) => set('cta_primary', v)} />
-        <EditorField label="Secondary CTA Label" value={content.cta_secondary ?? ''} onChange={(v) => set('cta_secondary', v)} />
-        <EditorField label="Phone Number (with country code)" value={content.phone ?? ''} onChange={(v) => set('phone', v)} hint="e.g. +19545550100" />
-      </div>
+      <FormSection title="Call to Action" subtitle="Buttons and contact information">
+        <EditorField label="Primary Button Label" value={content.cta_primary ?? ''} onChange={(v) => set('cta_primary', v)} hint="Main action button text" />
+        <EditorField label="Secondary Button Label" value={content.cta_secondary ?? ''} onChange={(v) => set('cta_secondary', v)} hint="Secondary action button text" />
+        <EditorField label="Phone Number" value={content.phone ?? ''} onChange={(v) => set('phone', v)} hint="Include country code, e.g. +1-954-555-0100" />
+      </FormSection>
 
-      <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-        <h2 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-1">Stats</h2>
-        <p className="text-xs mb-4" style={{ color: 'rgba(255,255,255,0.4)' }}>
-          The four mini-stats shown under the hero CTAs (e.g. <strong>500+ Clients Served</strong>).
-          The big number is "Number"; the small caption beneath it is "Label".
-        </p>
+      <div className="space-y-4 p-6 rounded-xl bg-white/5 border border-white/10">
+        <div>
+          <h2 className="text-lg font-semibold text-white">Statistics</h2>
+          <p className="text-sm text-white/50 mt-1">The four mini-stats displayed under the hero section (e.g., "500+ Clients Served")</p>
+        </div>
         <CardListEditor
           label=""
           items={stats as Record<string, string>[]}
           fields={[
-            { key: 'value', label: 'Number (big text, e.g. 500+, 99.9%, <1hr)' },
-            { key: 'label', label: 'Label (caption beneath, e.g. Clients Served)' },
+            { key: 'value', label: 'Number (e.g., 500+, 99.9%, <1hr)' },
+            { key: 'label', label: 'Label (e.g., Clients Served)' },
           ]}
           onChange={(items) => setStats(items as Stat[])}
           defaultItem={defaultStat as Record<string, string>}
         />
       </div>
 
-      <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-        <h2 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-4">Feature Cards (right column)</h2>
+      <div className="space-y-4 p-6 rounded-xl bg-white/5 border border-white/10">
+        <div>
+          <h2 className="text-lg font-semibold text-white">Feature Cards</h2>
+          <p className="text-sm text-white/50 mt-1">Cards displayed on the right side of the hero section</p>
+        </div>
         <CardListEditor
           label=""
           items={cards as Record<string, string>[]}

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { fetchSectionContent, upsertManyContent } from '../../lib/content';
 import SectionEditor from '../components/SectionEditor';
 import EditorField from '../components/EditorField';
+import FormSection from '../components/FormSection';
+import { Plus, Trash2 } from 'lucide-react';
 
 type ServiceCard = {
   title: string;
@@ -56,51 +58,61 @@ export default function ServicesEditor() {
     });
   };
 
-  if (!loaded) return <div className="text-white/40 text-sm">Loading…</div>;
+  if (!loaded) return <div className="text-white/50">Loading…</div>;
 
   return (
-    <SectionEditor title="Services Section" description="The six service cards displayed on the home page." onSave={handleSave}>
-      <div className="rounded-2xl p-5 space-y-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-        <h2 className="text-sm font-semibold text-white/70 uppercase tracking-wider">Section Header</h2>
-        <EditorField label="Section Label" value={content.section_label ?? ''} onChange={(v) => set('section_label', v)} />
-        <EditorField label="Headline" value={content.headline ?? ''} onChange={(v) => set('headline', v)} />
-        <EditorField label="Subheadline" value={content.subheadline ?? ''} onChange={(v) => set('subheadline', v)} multiline rows={2} />
-      </div>
+    <SectionEditor title="Services Section" description="Service offerings and feature cards" onSave={handleSave}>
+      <FormSection title="Page Header" subtitle="Section headline and description">
+        <EditorField label="Section Label" value={content.section_label ?? ''} onChange={(v) => set('section_label', v)} hint="Label above headline" />
+        <EditorField label="Headline" value={content.headline ?? ''} onChange={(v) => set('headline', v)} hint="Main heading" />
+        <EditorField label="Subheadline" value={content.subheadline ?? ''} onChange={(v) => set('subheadline', v)} multiline rows={2} hint="Supporting text" />
+      </FormSection>
 
-      {cards.map((card, i) => (
-        <div key={i} className="rounded-2xl p-5 space-y-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-          <h2 className="text-sm font-semibold text-white/70 uppercase tracking-wider">Service Card {i + 1}</h2>
-          <EditorField label="Title" value={card.title} onChange={(v) => updateCard(i, 'title', v)} />
-          <EditorField label="Description" value={card.description} onChange={(v) => updateCard(i, 'description', v)} multiline rows={2} />
-          <EditorField label="Accent Color" value={card.accent} onChange={(v) => updateCard(i, 'accent', v)} hint="Hex color, e.g. #39CCCC" />
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-xs font-medium" style={{ color: 'rgba(255,255,255,0.5)' }}>Highlights</label>
-              <button
-                onClick={() => addHighlight(i)}
-                className="text-xs px-2.5 py-1 rounded-lg"
-                style={{ background: 'rgba(57,204,204,0.1)', color: '#39CCCC' }}
-              >+ Add</button>
+      <div className="space-y-4">
+        {cards.map((card, i) => (
+          <div key={i} className="p-6 rounded-xl bg-white/5 border border-white/10 space-y-5">
+            <div>
+              <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider">Service {i + 1}</h3>
+              <p className="text-white/50 text-sm mt-1">{card.title || 'Untitled service'}</p>
             </div>
-            <div className="space-y-2">
-              {card.highlights.map((hl, j) => (
-                <div key={j} className="flex gap-2">
-                  <input
-                    type="text"
-                    value={hl}
-                    onChange={(e) => updateHighlight(i, j, e.target.value)}
-                    className="flex-1 px-3 py-2 rounded-lg text-xs text-white outline-none transition-all"
-                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
-                    onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(57,204,204,0.5)')}
-                    onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
-                  />
-                  <button onClick={() => removeHighlight(i, j)} className="px-2.5 py-2 rounded-lg text-xs transition-all" style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171' }}>✕</button>
-                </div>
-              ))}
+
+            <EditorField label="Service Title" value={card.title} onChange={(v) => updateCard(i, 'title', v)} />
+            <EditorField label="Description" value={card.description} onChange={(v) => updateCard(i, 'description', v)} multiline rows={2} />
+            <EditorField label="Accent Color" value={card.accent} onChange={(v) => updateCard(i, 'accent', v)} type="color" hint="Visual accent color for this card" />
+
+            <div className="space-y-3 pt-4 border-t border-white/10">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-semibold text-white">Highlights</h4>
+                <button
+                  onClick={() => addHighlight(i)}
+                  className="text-xs px-3 py-1.5 rounded-lg bg-teal-600/20 text-teal-300 hover:bg-teal-600/30 transition-colors"
+                >
+                  + Add
+                </button>
+              </div>
+              <div className="space-y-2">
+                {card.highlights.map((hl, j) => (
+                  <div key={j} className="flex gap-2">
+                    <input
+                      type="text"
+                      value={hl}
+                      onChange={(e) => updateHighlight(i, j, e.target.value)}
+                      placeholder="Highlight"
+                      className="flex-1 px-3 py-2 rounded-lg text-sm text-white placeholder-white/30 outline-none transition-colors focus:ring-2 focus:ring-teal-500/50 bg-white/5 border border-white/10 hover:bg-white/7.5"
+                    />
+                    <button
+                      onClick={() => removeHighlight(i, j)}
+                      className="p-2 rounded-lg hover:bg-red-500/10 text-red-400 transition-colors flex-shrink-0"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </SectionEditor>
   );
 }

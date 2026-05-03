@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { fetchSectionContent, upsertManyContent } from '../../lib/content';
 import SectionEditor from '../components/SectionEditor';
 import EditorField from '../components/EditorField';
+import FormSection from '../components/FormSection';
 import CardListEditor from '../components/CardListEditor';
+import { Plus, Trash2 } from 'lucide-react';
 
 type FeatureCard = { title: string; desc: string };
 
@@ -35,23 +37,31 @@ export default function WhyUsEditor() {
     });
   };
 
-  if (!loaded) return <div className="text-white/40 text-sm">Loading…</div>;
+  if (!loaded) return <div className="text-white/50">Loading…</div>;
 
   return (
-    <SectionEditor title="Why Us Section" description="The section explaining why clients choose New Wave IT." onSave={handleSave}>
-      <div className="rounded-2xl p-5 space-y-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-        <h2 className="text-sm font-semibold text-white/70 uppercase tracking-wider">Section Header</h2>
-        <EditorField label="Section Label" value={content.section_label ?? ''} onChange={(v) => set('section_label', v)} />
-        <EditorField label="Headline" value={content.headline ?? ''} onChange={(v) => set('headline', v)} hint="Main headline text" />
-        <EditorField label="Headline Accent" value={content.headline_accent ?? ''} onChange={(v) => set('headline_accent', v)} hint="Accent word that receives gradient styling" />
-        <EditorField label="Subheadline" value={content.subheadline ?? ''} onChange={(v) => set('subheadline', v)} multiline rows={2} />
-        <EditorField label="CTA Button Label" value={content.cta_label ?? ''} onChange={(v) => set('cta_label', v)} />
-      </div>
+    <SectionEditor title="Why Us Section" description="Explain why clients choose your company" onSave={handleSave}>
+      <FormSection title="Page Header" subtitle="Section headline and call-to-action">
+        <EditorField label="Section Label" value={content.section_label ?? ''} onChange={(v) => set('section_label', v)} hint="Label above the headline" />
+        <EditorField label="Headline" value={content.headline ?? ''} onChange={(v) => set('headline', v)} hint="Main heading" />
+        <EditorField label="Headline Accent" value={content.headline_accent ?? ''} onChange={(v) => set('headline_accent', v)} hint="Word that receives gradient styling" />
+        <EditorField label="Subheadline" value={content.subheadline ?? ''} onChange={(v) => set('subheadline', v)} multiline rows={2} hint="Supporting text" />
+        <EditorField label="Button Label" value={content.cta_label ?? ''} onChange={(v) => set('cta_label', v)} hint="Call-to-action button text" />
+      </FormSection>
 
-      <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-white/70 uppercase tracking-wider">Proof Points (Checklist)</h2>
-          <button onClick={addPoint} className="text-xs px-2.5 py-1 rounded-lg" style={{ background: 'rgba(57,204,204,0.1)', color: '#39CCCC' }}>+ Add</button>
+      <div className="space-y-4 p-6 rounded-xl bg-white/5 border border-white/10">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-white">Proof Points</h2>
+            <p className="text-sm text-white/50 mt-1">Checkmark list of benefits or credentials</p>
+          </div>
+          <button
+            onClick={addPoint}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-600/20 text-teal-300 hover:bg-teal-600/30 transition-colors text-sm font-medium"
+          >
+            <Plus size={14} />
+            Add
+          </button>
         </div>
         <div className="space-y-2">
           {proofPoints.map((point, i) => (
@@ -60,19 +70,25 @@ export default function WhyUsEditor() {
                 type="text"
                 value={point}
                 onChange={(e) => updatePoint(i, e.target.value)}
-                className="flex-1 px-3 py-2 rounded-lg text-sm text-white outline-none transition-all"
-                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
-                onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(57,204,204,0.5)')}
-                onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+                placeholder="Proof point"
+                className="flex-1 px-3 py-2 rounded-lg text-sm text-white placeholder-white/30 outline-none transition-colors focus:ring-2 focus:ring-teal-500/50 bg-white/5 border border-white/10 hover:bg-white/7.5"
               />
-              <button onClick={() => removePoint(i)} className="px-2.5 py-2 rounded-lg text-xs transition-all" style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171' }}>✕</button>
+              <button
+                onClick={() => removePoint(i)}
+                className="p-2 rounded-lg hover:bg-red-500/10 text-red-400 transition-colors flex-shrink-0"
+              >
+                <Trash2 size={16} />
+              </button>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-        <h2 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-4">Feature Cards (right side)</h2>
+      <div className="space-y-4 p-6 rounded-xl bg-white/5 border border-white/10">
+        <div>
+          <h2 className="text-lg font-semibold text-white">Feature Cards</h2>
+          <p className="text-sm text-white/50 mt-1">Cards displayed on the right side of the section</p>
+        </div>
         <CardListEditor
           label=""
           items={cards as Record<string, string>[]}

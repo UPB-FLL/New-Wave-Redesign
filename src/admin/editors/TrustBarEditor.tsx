@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { fetchSectionContent, upsertManyContent } from '../../lib/content';
 import SectionEditor from '../components/SectionEditor';
 import EditorField from '../components/EditorField';
+import FormSection from '../components/FormSection';
 import CardListEditor from '../components/CardListEditor';
 
 type TrustItem = { icon: string; label: string; sub: string };
@@ -57,26 +58,28 @@ export default function TrustBarEditor() {
     });
   };
 
-  if (!loaded) return <div className="text-white/40 text-sm">Loading…</div>;
+  if (!loaded) return <div className="text-white/50">Loading…</div>;
 
   return (
     <SectionEditor
       title="Trust Bar"
-      description="Certifications and partnerships shown below the hero."
+      description="Certifications and partnerships shown below the hero"
       onSave={handleSave}
     >
-      <div className="rounded-2xl p-5 space-y-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-        <h2 className="text-sm font-semibold text-white/70 uppercase tracking-wider">Heading</h2>
+      <FormSection title="Heading" subtitle="Main trust bar headline">
         <EditorField
           label="Heading Text"
           value={content.heading ?? ''}
           onChange={(v) => set('heading', v)}
           hint="e.g. Trusted by 500+ businesses across South Florida"
         />
-      </div>
+      </FormSection>
 
-      <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-        <h2 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-4">Trust Items</h2>
+      <div className="space-y-4 p-6 rounded-xl bg-white/5 border border-white/10">
+        <div>
+          <h2 className="text-lg font-semibold text-white">Trust Items</h2>
+          <p className="text-sm text-white/50 mt-1">Certifications and partnerships to display</p>
+        </div>
         <CardListEditor
           label=""
           items={items as Record<string, string>[]}

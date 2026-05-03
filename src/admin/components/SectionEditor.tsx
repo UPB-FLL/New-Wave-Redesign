@@ -26,36 +26,36 @@ export default function SectionEditor({ title, description, onSave, children }: 
   };
 
   return (
-    <div>
-      <div className="flex items-start justify-between mb-6 gap-4">
+    <div className="space-y-8">
+      <div className="flex items-start justify-between gap-6">
         <div>
-          <h1 className="text-2xl font-bold text-white mb-1">{title}</h1>
-          {description && <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>{description}</p>}
+          <h1 className="text-3xl font-bold text-white mb-2">{title}</h1>
+          {description && <p className="text-sm text-white/60">{description}</p>}
         </div>
-        <div className="flex items-center gap-3 flex-shrink-0">
-          {status === 'success' && (
-            <span className="flex items-center gap-1.5 text-sm" style={{ color: '#5EBC67' }}>
-              <CheckCircle size={15} /> Saved
-            </span>
-          )}
-          {status === 'error' && (
-            <span className="flex items-center gap-1.5 text-sm" style={{ color: '#f87171' }}>
-              <AlertCircle size={15} /> Error saving
-            </span>
-          )}
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all duration-200"
-            style={{ background: saving ? 'rgba(57,204,204,0.5)' : '#39CCCC' }}
-          >
-            <Save size={15} />
-            {saving ? 'Saving…' : 'Save Changes'}
-          </button>
-        </div>
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold text-white transition-all duration-200 flex-shrink-0 bg-teal-600 hover:bg-teal-500 disabled:bg-teal-600/50 disabled:opacity-50"
+        >
+          <Save size={16} />
+          {saving ? 'Saving…' : 'Save Changes'}
+        </button>
       </div>
 
-      <div className="space-y-5">{children}</div>
+      {status === 'success' && (
+        <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-sm text-emerald-300">
+          <CheckCircle size={16} />
+          Changes saved successfully
+        </div>
+      )}
+      {status === 'error' && (
+        <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-sm text-red-300">
+          <AlertCircle size={16} />
+          Error saving changes
+        </div>
+      )}
+
+      <div className="space-y-6">{children}</div>
     </div>
   );
 }
