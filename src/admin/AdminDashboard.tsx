@@ -5,6 +5,7 @@ const sections = [
   { label: 'Hero', path: '/admin/hero', icon: Star, desc: 'Headline, badge, stats, feature cards' },
   { label: 'Services', path: '/admin/services', icon: Layers, desc: 'Service cards, titles, highlights' },
   { label: 'Pricing', path: '/admin/pricing', icon: DollarSign, desc: 'Pricing tiers, plans, features' },
+  { label: 'Pricing Units', path: '/admin/pricing-units', icon: DollarSign, desc: 'Configure quote builder options & rates' },
   { label: 'Why Us', path: '/admin/whyus', icon: HelpCircle, desc: 'Proof points, feature cards' },
   { label: 'About', path: '/admin/about', icon: Info, desc: 'Company story, years, team tagline' },
   { label: 'Contact', path: '/admin/contact', icon: Mail, desc: 'Phone, email, address, messages' },

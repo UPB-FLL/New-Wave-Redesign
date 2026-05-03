@@ -18,6 +18,7 @@ import WhyUsEditor from './admin/editors/WhyUsEditor';
 import AboutEditor from './admin/editors/AboutEditor';
 import ContactEditor from './admin/editors/ContactEditor';
 import FooterEditor from './admin/editors/FooterEditor';
+import PricingUnitsEditor from './admin/editors/PricingUnitsEditor';
 import CybersecurityPage from './pages/CybersecurityPage';
 import WhyUsPage from './pages/WhyUsPage';
 import AboutPage from './pages/AboutPage';
@@ -82,6 +83,7 @@ export default function App() {
           <Route path="contact" element={<ContactEditor />} />
           <Route path="footer" element={<FooterEditor />} />
           <Route path="pricing" element={<PricingEditor />} />
+          <Route path="pricing-units" element={<PricingUnitsEditor />} />
           <Route path="seo" element={<SeoPortal />} />
           <Route path="seo/:id" element={<SeoPageEditor />} />
         </Route>
