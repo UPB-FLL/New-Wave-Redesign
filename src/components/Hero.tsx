@@ -1,4 +1,4 @@
-import { ArrowRight, Phone, Sparkles, ShieldCheck, Activity, Zap } from 'lucide-react';
+import { ArrowRight, Phone } from 'lucide-react';
 import { useContent } from '../lib/useContent';
 
 type Stat = { value: string; label: string };
@@ -57,10 +57,8 @@ export default function Hero() {
         }}
       />
 
-      <div className="relative max-w-7xl mx-auto px-6 lg:px-8 w-full">
-        <div className="grid lg:grid-cols-12 gap-10 items-center">
-          {/* Left: Content */}
-          <div className="lg:col-span-7">
+      <div className="relative max-w-5xl mx-auto px-6 lg:px-8 w-full text-center">
+        <div>
             <div
               className="inline-flex items-center gap-2 rounded-full px-3 py-1 mb-5 text-xs font-semibold"
               style={{ background: 'rgba(57,204,204,0.1)', border: '1px solid rgba(57,204,204,0.3)', color: '#39CCCC' }}
@@ -92,13 +90,13 @@ export default function Hero() {
             </h1>
 
             <p
-              className="text-base lg:text-lg leading-relaxed mb-7 max-w-xl"
+              className="text-base lg:text-lg leading-relaxed mb-7 max-w-2xl mx-auto"
               style={{ color: 'rgba(21,34,50,0.65)' }}
             >
               {c.subheadline || 'Industry-certified technicians, full-time project managers, and technology advisors — ready to protect, support, and scale your business IT infrastructure.'}
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-3 mb-7">
+            <div className="flex flex-col sm:flex-row gap-3 mb-7 justify-center">
               <button
                 onClick={() => handleScroll('#contact')}
                 className="group flex items-center justify-center gap-2 font-semibold px-6 py-3 rounded-xl transition-all duration-200 hover:-translate-y-0.5 text-white"
@@ -126,7 +124,7 @@ export default function Hero() {
             </div>
 
             {/* Stats row */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 pt-5" style={{ borderTop: '1px solid rgba(21,34,50,0.08)' }}>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 pt-7 max-w-3xl mx-auto" style={{ borderTop: '1px solid rgba(21,34,50,0.08)' }}>
               {stats.map((stat) => (
                 <div key={stat.label}>
                   <div
@@ -142,100 +140,6 @@ export default function Hero() {
               ))}
             </div>
           </div>
-
-          {/* Right: SaaS-style dashboard preview */}
-          <div className="lg:col-span-5">
-            <div
-              className="rounded-3xl p-1"
-              style={{
-                background: 'linear-gradient(135deg, rgba(57,204,204,0.4), rgba(94,188,103,0.4))',
-                boxShadow: '0 24px 64px rgba(21,34,50,0.12)',
-              }}
-            >
-              <div className="rounded-3xl p-5 lg:p-6" style={{ background: 'white' }}>
-                {/* Header */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <Sparkles size={16} style={{ color: '#39CCCC' }} />
-                    <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#152232' }}>
-                      Your IT Health
-                    </span>
-                  </div>
-                  <div className="flex gap-1.5">
-                    <span className="w-2 h-2 rounded-full" style={{ background: '#5EBC67' }} />
-                    <span className="text-[10px] font-bold uppercase" style={{ color: '#5EBC67' }}>Healthy</span>
-                  </div>
-                </div>
-
-                {/* Health score gauge */}
-                <div
-                  className="rounded-2xl p-5 mb-3 text-center"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(57,204,204,0.08) 0%, rgba(94,188,103,0.08) 100%)',
-                    border: '1px solid rgba(57,204,204,0.15)',
-                  }}
-                >
-                  <div className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'rgba(21,34,50,0.6)' }}>
-                    Overall Score
-                  </div>
-                  <div className="flex items-baseline justify-center gap-1 mb-2">
-                    <div
-                      className="text-5xl font-bold tabular-nums"
-                      style={{
-                        fontFamily: 'Staatliches, sans-serif',
-                        background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        backgroundClip: 'text',
-                      }}
-                    >
-                      98
-                    </div>
-                    <span className="text-lg font-semibold" style={{ color: 'rgba(21,34,50,0.5)' }}>/100</span>
-                  </div>
-                  {/* Progress bar */}
-                  <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(21,34,50,0.08)' }}>
-                    <div
-                      className="h-full rounded-full"
-                      style={{
-                        width: '98%',
-                        background: 'linear-gradient(90deg, #39CCCC 0%, #5EBC67 100%)',
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* Service indicators */}
-                <div className="space-y-2">
-                  {[
-                    { icon: ShieldCheck, label: 'Security', value: 'Protected', color: '#5EBC67', detail: 'No threats detected' },
-                    { icon: Activity, label: 'Network', value: 'Optimal', color: '#39CCCC', detail: '18ms latency' },
-                    { icon: Zap, label: 'Backups', value: 'Up to date', color: '#5EBC67', detail: 'Last: 12 min ago' },
-                  ].map((item) => (
-                    <div
-                      key={item.label}
-                      className="flex items-center justify-between py-2.5 px-3 rounded-lg transition-colors"
-                      style={{ background: 'rgba(21,34,50,0.02)' }}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: `${item.color}15` }}>
-                          <item.icon size={14} style={{ color: item.color }} />
-                        </div>
-                        <div>
-                          <div className="text-xs font-semibold" style={{ color: '#152232' }}>{item.label}</div>
-                          <div className="text-[10px]" style={{ color: 'rgba(21,34,50,0.5)' }}>{item.detail}</div>
-                        </div>
-                      </div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: item.color }}>
-                        {item.value}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
   );
