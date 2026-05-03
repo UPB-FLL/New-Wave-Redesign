@@ -28,11 +28,14 @@ export default function HeroEditor() {
   const set = (key: string, val: string) => setContent((prev) => ({ ...prev, [key]: val }));
 
   const handleSave = async () => {
-    await upsertManyContent('hero', {
-      ...content,
-      stats: JSON.stringify(stats),
-      feature_cards: JSON.stringify(cards),
-    });
+    const payload: Record<string, string> = {};
+    for (const [k, v] of Object.entries(content)) {
+      if (k === 'stats' || k === 'feature_cards') continue;
+      payload[k] = v;
+    }
+    payload.stats = JSON.stringify(stats);
+    payload.feature_cards = JSON.stringify(cards);
+    await upsertManyContent('hero', payload);
   };
 
   if (!loaded) return <div className="text-white/40 text-sm">Loading…</div>;
@@ -57,13 +60,17 @@ export default function HeroEditor() {
       </div>
 
       <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-        <h2 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-4">Stats</h2>
+        <h2 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-1">Stats</h2>
+        <p className="text-xs mb-4" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          The four mini-stats shown under the hero CTAs (e.g. <strong>500+ Clients Served</strong>).
+          The big number is "Number"; the small caption beneath it is "Label".
+        </p>
         <CardListEditor
           label=""
           items={stats as Record<string, string>[]}
           fields={[
-            { key: 'value', label: 'Value' },
-            { key: 'label', label: 'Label' },
+            { key: 'value', label: 'Number (big text, e.g. 500+, 99.9%, <1hr)' },
+            { key: 'label', label: 'Label (caption beneath, e.g. Clients Served)' },
           ]}
           onChange={(items) => setStats(items as Stat[])}
           defaultItem={defaultStat as Record<string, string>}
