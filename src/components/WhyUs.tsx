@@ -51,8 +51,11 @@ export default function WhyUs() {
               className="text-3xl sm:text-4xl lg:text-5xl mt-2 mb-4 leading-tight tracking-tight"
               style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}
             >
-              {c.headline ? (
-                c.headline
+              {c.headline && c.headline_accent ? (
+                <>
+                  {c.headline}{' '}
+                  <span style={{ display: 'inline-block', background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{c.headline_accent}</span>
+                </>
               ) : (
                 <>
                   Built for businesses that{' '}
