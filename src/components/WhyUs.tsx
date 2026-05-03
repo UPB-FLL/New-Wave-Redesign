@@ -33,8 +33,8 @@ export default function WhyUs() {
   return (
     <section
       id="why-us"
-      className="py-28"
-      style={{ background: '#f8fafb', borderTop: '1px solid rgba(21,34,50,0.06)', borderBottom: '1px solid rgba(21,34,50,0.06)' }}
+      className="py-28 relative"
+      style={{ background: '#f8fafb', borderTop: '1px solid rgba(21,34,50,0.06)', borderBottom: '1px solid rgba(21,34,50,0.06)', zIndex: 10 }}
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-16 items-center">

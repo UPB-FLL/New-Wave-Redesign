@@ -26,7 +26,7 @@ export default function Services() {
   try { if (c.cards) cards = JSON.parse(c.cards); } catch { /* use default */ }
 
   return (
-    <section id="services" className="bg-white py-28" style={{ borderTop: '1px solid rgba(21,34,50,0.06)' }}>
+    <section id="services" className="bg-white py-28 relative" style={{ borderTop: '1px solid rgba(21,34,50,0.06)', zIndex: 10 }}>
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="text-center mb-16">
           <span className="text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>

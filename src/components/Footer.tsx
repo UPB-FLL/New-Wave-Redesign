@@ -28,7 +28,7 @@ export default function Footer() {
   const address = c.address || '710 NW 5th Ave, Suite 1072, Fort Lauderdale, FL 33311';
 
   return (
-    <footer style={{ background: '#152232', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+    <footer style={{ background: '#152232', borderTop: '1px solid rgba(255,255,255,0.06)', position: 'relative', zIndex: 10 }}>
       <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-16 pb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-14">
           <div className="lg:col-span-1">

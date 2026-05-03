@@ -7,7 +7,7 @@ export default function CybersecurityHero() {
   };
 
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden bg-white pt-20">
+    <section className="relative min-h-screen flex items-center overflow-hidden bg-white pt-20" style={{ zIndex: 10 }}>
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-[700px] h-[700px] rounded-full opacity-[0.08]" style={{ background: '#39CCCC' }} />
         <div className="absolute bottom-0 -left-32 w-[500px] h-[500px] rounded-full opacity-[0.06]" style={{ background: '#5EBC67' }} />
