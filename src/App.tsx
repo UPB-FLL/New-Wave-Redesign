@@ -30,6 +30,8 @@ import ServicesPage from './pages/ServicesPage';
 import PricingPage from './pages/PricingPage';
 import PricingEditor from './admin/editors/PricingEditor';
 import SupportPage from './pages/SupportPage';
+import StatusPage from './pages/StatusPage';
+import StatusEditor from './admin/editors/StatusEditor';
 import SeoPortal from './admin/seo/SeoPortal';
 import SeoPageEditor from './admin/seo/SeoPageEditor';
 import SeoLandingPage from './pages/SeoLandingPage';
@@ -72,6 +74,7 @@ export default function App() {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/status" element={<StatusPage />} />
         <Route path="/support" element={<SupportPage />} />
         <Route path="/l/:slug" element={<SeoLandingPage />} />
         <Route
@@ -92,6 +95,7 @@ export default function App() {
           <Route path="footer" element={<FooterEditor />} />
           <Route path="pricing" element={<PricingEditor />} />
           <Route path="pricing-units" element={<PricingUnitsEditor />} />
+          <Route path="status" element={<StatusEditor />} />
           <Route path="seo" element={<SeoPortal />} />
           <Route path="seo/:id" element={<SeoPageEditor />} />
         </Route>
