@@ -3,8 +3,8 @@ import { useContent } from '../lib/useContent';
 
 type FeatureCard = { title: string; desc: string };
 
-const iconList = [Clock, Award, Users, Lightbulb];
-const accentList = ['#39CCCC', '#5EBC67', '#39CCCC', '#5EBC67'];
+const iconList = [Clock, Award, Users, Lightbulb, CheckCircle2, Award];
+const accentList = ['#39CCCC', '#5EBC67', '#39CCCC', '#5EBC67', '#39CCCC', '#5EBC67'];
 
 const defaultProofPoints = [
   'No long-term contracts required',
@@ -20,6 +20,8 @@ const defaultCards: FeatureCard[] = [
   { title: 'Industry-Certified Engineers', desc: 'Microsoft, Cisco, and CompTIA certified engineers with deep expertise across platforms.' },
   { title: 'Dedicated Project Managers', desc: 'Every engagement comes with a dedicated PM keeping timelines and deliverables on track.' },
   { title: 'Strategic Tech Advisors', desc: 'We align your technology investments with your business goals for long-term success.' },
+  { title: 'Security & Compliance', desc: 'HIPAA, SOC 2, and industry-specific compliance expertise to keep your data protected and audit-ready.' },
+  { title: 'Cloud Migration & Integration', desc: 'Seamless transitions to cloud platforms with zero downtime, plus integration with your existing systems.' },
 ];
 
 export default function WhyUs() {
