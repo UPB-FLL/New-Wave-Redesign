@@ -80,7 +80,7 @@ export default function FloatingNav() {
       )}
 
       {/* Quick Navigation Menu */}
-      <div className="fixed bottom-5 left-5 sm:bottom-8 sm:left-8 z-50 flex flex-col gap-2 sm:gap-3">
+      <div className="fixed bottom-20 right-5 sm:bottom-24 sm:right-8 z-50 flex flex-col gap-2 sm:gap-3">
         {/* Menu Toggle Button */}
         <button
           onClick={() => setIsOpen(!isOpen)}
