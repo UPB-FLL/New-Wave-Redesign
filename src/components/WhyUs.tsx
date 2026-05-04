@@ -30,7 +30,16 @@ export default function WhyUs() {
   let proofPoints: string[] = defaultProofPoints;
   let cards: FeatureCard[] = defaultCards;
   try { if (c.proof_points) proofPoints = JSON.parse(c.proof_points); } catch { /* use default */ }
-  try { if (c.feature_cards) cards = JSON.parse(c.feature_cards); } catch { /* use default */ }
+  try {
+    if (c.feature_cards) {
+      const dbCards = JSON.parse(c.feature_cards);
+      cards = dbCards.length > 0 ? dbCards : defaultCards;
+      // Ensure all 6 default cards are present (in case database only has 4)
+      if (cards.length < defaultCards.length) {
+        cards = [...cards, ...defaultCards.slice(cards.length)];
+      }
+    }
+  } catch { /* use default */ }
 
   return (
     <section
