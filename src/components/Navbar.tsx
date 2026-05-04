@@ -28,6 +28,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [servicesDropdownOpen, setServicesDropdownOpen] = useState(false);
+  const [dropdownTimeout, setDropdownTimeout] = useState<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -87,8 +88,14 @@ export default function Navbar() {
             {/* Services Dropdown */}
             <div
               className="relative"
-              onMouseEnter={() => setServicesDropdownOpen(true)}
-              onMouseLeave={() => setServicesDropdownOpen(false)}
+              onMouseEnter={() => {
+                if (dropdownTimeout) clearTimeout(dropdownTimeout);
+                setServicesDropdownOpen(true);
+              }}
+              onMouseLeave={() => {
+                const timeout = setTimeout(() => setServicesDropdownOpen(false), 150);
+                setDropdownTimeout(timeout);
+              }}
             >
               <button
                 className="text-sm font-medium transition-colors duration-200 flex items-center gap-1"
