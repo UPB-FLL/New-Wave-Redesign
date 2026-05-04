@@ -81,10 +81,19 @@ export default function StatusEditor() {
                   <select
                     value={service.category}
                     onChange={(e) => updateService(i, 'category', e.target.value as 'saas' | 'isp')}
-                    className="w-full px-3 py-2 rounded-lg text-sm text-white bg-white/5 border border-white/10 hover:bg-white/7.5 outline-none transition-colors focus:ring-2 focus:ring-teal-500/50"
+                    className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none transition-all focus:ring-2"
+                    style={{ background: 'rgba(26, 47, 63, 0.6)', border: '1px solid rgba(94, 188, 103, 0.3)' }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = 'rgba(94, 188, 103, 0.7)';
+                      e.currentTarget.style.boxShadow = '0 0 0 3px rgba(94, 188, 103, 0.1)';
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = 'rgba(94, 188, 103, 0.3)';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
                   >
-                    <option value="saas">SaaS Service</option>
-                    <option value="isp">Internet Service Provider</option>
+                    <option value="saas" style={{ background: '#1a2f3f', color: '#5EBC67' }}>SaaS Service</option>
+                    <option value="isp" style={{ background: '#1a2f3f', color: '#5EBC67' }}>Internet Service Provider</option>
                   </select>
                 </div>
 
@@ -93,11 +102,20 @@ export default function StatusEditor() {
                   <select
                     value={service.status}
                     onChange={(e) => updateService(i, 'status', e.target.value as 'operational' | 'degraded' | 'down')}
-                    className="w-full px-3 py-2 rounded-lg text-sm text-white bg-white/5 border border-white/10 hover:bg-white/7.5 outline-none transition-colors focus:ring-2 focus:ring-teal-500/50"
+                    className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none transition-all focus:ring-2"
+                    style={{ background: 'rgba(26, 47, 63, 0.6)', border: '1px solid rgba(94, 188, 103, 0.3)' }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = 'rgba(94, 188, 103, 0.7)';
+                      e.currentTarget.style.boxShadow = '0 0 0 3px rgba(94, 188, 103, 0.1)';
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = 'rgba(94, 188, 103, 0.3)';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
                   >
-                    <option value="operational">Operational</option>
-                    <option value="degraded">Degraded</option>
-                    <option value="down">Down</option>
+                    <option value="operational" style={{ background: '#1a2f3f', color: '#5EBC67' }}>Operational</option>
+                    <option value="degraded" style={{ background: '#1a2f3f', color: '#5EBC67' }}>Degraded</option>
+                    <option value="down" style={{ background: '#1a2f3f', color: '#5EBC67' }}>Down</option>
                   </select>
                 </div>
               </div>
@@ -113,7 +131,16 @@ export default function StatusEditor() {
                     value={service.uptime}
                     onChange={(e) => updateService(i, 'uptime', parseFloat(e.target.value))}
                     placeholder="99.9"
-                    className="w-full px-3 py-2 rounded-lg text-sm text-white placeholder-white/30 outline-none transition-colors focus:ring-2 focus:ring-teal-500/50 bg-white/5 border border-white/10 hover:bg-white/7.5"
+                    className="w-full px-3 py-2 rounded-lg text-sm text-white placeholder-white/30 outline-none transition-all focus:ring-2"
+                    style={{ background: 'rgba(26, 47, 63, 0.6)', border: '1px solid rgba(94, 188, 103, 0.3)' }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = 'rgba(94, 188, 103, 0.7)';
+                      e.currentTarget.style.boxShadow = '0 0 0 3px rgba(94, 188, 103, 0.1)';
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = 'rgba(94, 188, 103, 0.3)';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
                   />
                 </div>
 
@@ -124,7 +151,16 @@ export default function StatusEditor() {
                     value={service.lastChecked}
                     onChange={(e) => updateService(i, 'lastChecked', e.target.value)}
                     placeholder="2 min ago"
-                    className="w-full px-3 py-2 rounded-lg text-sm text-white placeholder-white/30 outline-none transition-colors focus:ring-2 focus:ring-teal-500/50 bg-white/5 border border-white/10 hover:bg-white/7.5"
+                    className="w-full px-3 py-2 rounded-lg text-sm text-white placeholder-white/30 outline-none transition-all focus:ring-2"
+                    style={{ background: 'rgba(26, 47, 63, 0.6)', border: '1px solid rgba(94, 188, 103, 0.3)' }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = 'rgba(94, 188, 103, 0.7)';
+                      e.currentTarget.style.boxShadow = '0 0 0 3px rgba(94, 188, 103, 0.1)';
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = 'rgba(94, 188, 103, 0.3)';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
                   />
                 </div>
               </div>

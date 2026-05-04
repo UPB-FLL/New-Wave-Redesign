@@ -73,11 +73,19 @@ export default function CardListEditor({ label, items, fields, onChange, default
                     <select
                       value={item[field.key] ?? ''}
                       onChange={(e) => update(index, field.key, e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg text-xs text-white outline-none transition-all"
-                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+                      className="w-full px-3 py-2 rounded-lg text-xs text-white outline-none transition-all focus:ring-2"
+                      style={{ background: 'rgba(26, 47, 63, 0.6)', border: '1px solid rgba(94, 188, 103, 0.3)', color: 'white' }}
+                      onFocus={(e) => {
+                        e.currentTarget.style.borderColor = 'rgba(94, 188, 103, 0.7)';
+                        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(94, 188, 103, 0.1)';
+                      }}
+                      onBlur={(e) => {
+                        e.currentTarget.style.borderColor = 'rgba(94, 188, 103, 0.3)';
+                        e.currentTarget.style.boxShadow = 'none';
+                      }}
                     >
                       {(field.options || []).map((opt) => (
-                        <option key={opt.value} value={opt.value} style={{ background: '#111c27', color: 'white' }}>
+                        <option key={opt.value} value={opt.value} style={{ background: '#1a2f3f', color: '#5EBC67' }}>
                           {opt.label}
                         </option>
                       ))}
@@ -87,20 +95,32 @@ export default function CardListEditor({ label, items, fields, onChange, default
                       rows={2}
                       value={item[field.key] ?? ''}
                       onChange={(e) => update(index, field.key, e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg text-xs text-white outline-none resize-none transition-all"
-                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
-                      onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(57,204,204,0.5)')}
-                      onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+                      className="w-full px-3 py-2 rounded-lg text-xs text-white outline-none resize-none transition-all focus:ring-2"
+                      style={{ background: 'rgba(26, 47, 63, 0.6)', border: '1px solid rgba(94, 188, 103, 0.3)' }}
+                      onFocus={(e) => {
+                        e.currentTarget.style.borderColor = 'rgba(94, 188, 103, 0.7)';
+                        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(94, 188, 103, 0.1)';
+                      }}
+                      onBlur={(e) => {
+                        e.currentTarget.style.borderColor = 'rgba(94, 188, 103, 0.3)';
+                        e.currentTarget.style.boxShadow = 'none';
+                      }}
                     />
                   ) : (
                     <input
                       type="text"
                       value={item[field.key] ?? ''}
                       onChange={(e) => update(index, field.key, e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg text-xs text-white outline-none transition-all"
-                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
-                      onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(57,204,204,0.5)')}
-                      onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+                      className="w-full px-3 py-2 rounded-lg text-xs text-white outline-none transition-all focus:ring-2"
+                      style={{ background: 'rgba(26, 47, 63, 0.6)', border: '1px solid rgba(94, 188, 103, 0.3)' }}
+                      onFocus={(e) => {
+                        e.currentTarget.style.borderColor = 'rgba(94, 188, 103, 0.7)';
+                        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(94, 188, 103, 0.1)';
+                      }}
+                      onBlur={(e) => {
+                        e.currentTarget.style.borderColor = 'rgba(94, 188, 103, 0.3)';
+                        e.currentTarget.style.boxShadow = 'none';
+                      }}
                     />
                   )}
                   {field.hint && <p className="text-[10px] mt-1" style={{ color: 'rgba(255,255,255,0.25)' }}>{field.hint}</p>}
