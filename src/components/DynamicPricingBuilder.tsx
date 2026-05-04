@@ -31,6 +31,16 @@ export default function DynamicPricingBuilder() {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
 
+  const handleInputFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    e.currentTarget.style.borderColor = 'rgba(94, 188, 103, 0.7)';
+    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(94, 188, 103, 0.1)';
+  };
+
+  const handleInputBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    e.currentTarget.style.borderColor = 'rgba(94, 188, 103, 0.3)';
+    e.currentTarget.style.boxShadow = 'none';
+  };
+
   useEffect(() => {
     fetchPricingUnits();
   }, []);
@@ -150,20 +160,20 @@ export default function DynamicPricingBuilder() {
 
   if (submitted) {
     return (
-      <div className="rounded-2xl p-8 bg-white shadow-lg relative" style={{ zIndex: 20 }}>
+      <div className="rounded-2xl p-8 shadow-lg relative" style={{ background: 'rgba(26, 47, 63, 0.8)', border: '1px solid rgba(57,204,204,0.4)', boxShadow: '0 8px 32px rgba(57,204,204,0.15)', zIndex: 20 }}>
         <div className="text-center py-8">
-          <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4 mx-auto" style={{ background: 'rgba(94,188,103,0.12)' }}>
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4 mx-auto" style={{ background: 'rgba(94,188,103,0.2)' }}>
             <svg className="w-8 h-8" style={{ color: '#5EBC67' }} fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
             </svg>
           </div>
-          <h3 className="text-lg font-semibold mb-2" style={{ color: '#152232' }}>
+          <h3 className="text-lg font-semibold mb-2" style={{ color: '#E0F2F1' }}>
             Quote Request Received!
           </h3>
-          <p className="mb-4" style={{ color: 'rgba(21,34,50,0.6)' }}>
+          <p className="mb-4" style={{ color: 'rgba(224,242,241,0.75)' }}>
             Your first-look estimate is <span className="font-semibold text-xl" style={{ color: '#39CCCC' }}>${estimatedTotal.toFixed(2)}</span>
           </p>
-          <p style={{ color: 'rgba(21,34,50,0.6)' }}>
+          <p style={{ color: 'rgba(224,242,241,0.75)' }}>
             We'll review your request and reach out with a customized quote shortly.
           </p>
         </div>
@@ -171,27 +181,27 @@ export default function DynamicPricingBuilder() {
     );
   }
 
-  const inputClass = 'w-full rounded-lg px-3 py-2 text-sm outline-none transition-colors';
-  const inputStyle = { background: 'white', border: '1.5px solid rgba(21,34,50,0.12)', color: '#152232' };
+  const inputClass = 'w-full rounded-lg px-3 py-2 text-sm outline-none transition-all focus:ring-2';
+  const inputStyle = { background: 'rgba(26, 47, 63, 0.6)', border: '1px solid rgba(94, 188, 103, 0.3)', color: '#E0F2F1' };
 
   return (
-    <div className="rounded-2xl p-4 sm:p-6 bg-white shadow-lg relative" style={{ zIndex: 20 }}>
+    <div className="rounded-2xl p-4 sm:p-6 shadow-lg relative" style={{ background: 'rgba(26, 47, 63, 0.8)', border: '1px solid rgba(57,204,204,0.4)', boxShadow: '0 8px 32px rgba(57,204,204,0.15)', zIndex: 20 }}>
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Pricing Options */}
         <div>
-          <h3 className="text-base font-semibold mb-4" style={{ color: '#152232' }}>
+          <h3 className="text-base font-semibold mb-4" style={{ color: '#E0F2F1' }}>
             Select Your Options
           </h3>
           <div className="grid md:grid-cols-2 gap-3 mb-5">
             {units.map((unit) => (
-              <div key={unit.id} className="p-3 rounded-lg" style={{ background: 'rgba(57,204,204,0.05)', border: '1px solid rgba(57,204,204,0.15)' }}>
+              <div key={unit.id} className="p-3 rounded-lg" style={{ background: 'rgba(26, 47, 63, 0.6)', border: '1px solid rgba(57,204,204,0.4)', boxShadow: '0 2px 8px rgba(57,204,204,0.1)' }}>
                 <div className="flex justify-between items-start mb-2">
                   <div>
-                    <h4 className="font-semibold text-sm" style={{ color: '#152232' }}>
+                    <h4 className="font-semibold text-sm" style={{ color: '#E0F2F1' }}>
                       {unit.name}
                     </h4>
                     {unit.description && (
-                      <p className="text-xs mt-0.5" style={{ color: 'rgba(21,34,50,0.6)' }}>
+                      <p className="text-xs mt-0.5" style={{ color: 'rgba(224,242,241,0.65)' }}>
                         {unit.description}
                       </p>
                     )}
@@ -204,8 +214,8 @@ export default function DynamicPricingBuilder() {
                   <button
                     type="button"
                     onClick={() => handleQuantityChange(unit.id, (selections[unit.id] || 0) - 1)}
-                    className="px-2 py-0.5 rounded border hover:bg-gray-100 transition-colors text-sm"
-                    style={{ borderColor: 'rgba(21,34,50,0.12)' }}
+                    className="px-2 py-0.5 rounded border transition-all text-sm hover:bg-cyan-900/30"
+                    style={{ borderColor: 'rgba(57,204,204,0.4)', color: '#E0F2F1' }}
                   >
                     −
                   </button>
@@ -217,12 +227,14 @@ export default function DynamicPricingBuilder() {
                     max={unit.max_quantity}
                     className="w-14 text-center rounded px-2 py-0.5 text-sm"
                     style={inputStyle}
+                    onFocus={handleInputFocus}
+                    onBlur={handleInputBlur}
                   />
                   <button
                     type="button"
                     onClick={() => handleQuantityChange(unit.id, (selections[unit.id] || 0) + 1)}
-                    className="px-2 py-0.5 rounded border hover:bg-gray-100 transition-colors text-sm"
-                    style={{ borderColor: 'rgba(21,34,50,0.12)' }}
+                    className="px-2 py-0.5 rounded border transition-all text-sm hover:bg-cyan-900/30"
+                    style={{ borderColor: 'rgba(57,204,204,0.4)', color: '#E0F2F1' }}
                   >
                     +
                   </button>
@@ -234,28 +246,28 @@ export default function DynamicPricingBuilder() {
           {/* Estimated Total */}
           <div
             className="p-4 rounded-lg mb-5 text-center"
-            style={{ background: 'rgba(57,204,204,0.1)', border: '2px solid rgba(57,204,204,0.3)' }}
+            style={{ background: 'rgba(26, 47, 63, 0.6)', border: '1.5px solid rgba(57,204,204,0.4)', boxShadow: '0 4px 12px rgba(57,204,204,0.15)' }}
           >
-            <p className="text-xs mb-1" style={{ color: 'rgba(21,34,50,0.6)' }}>
+            <p className="text-xs mb-1" style={{ color: 'rgba(224,242,241,0.7)' }}>
               Your First-Look Estimate
             </p>
             <p className="text-3xl font-bold" style={{ color: '#39CCCC' }}>
               ${estimatedTotal.toFixed(2)}
             </p>
-            <p className="text-xs mt-1" style={{ color: 'rgba(21,34,50,0.6)' }}>
+            <p className="text-xs mt-1" style={{ color: 'rgba(224,242,241,0.65)' }}>
               Final pricing may vary based on your specific needs
             </p>
           </div>
         </div>
 
         {/* Contact Form */}
-        <div className="border-t pt-4">
-          <h3 className="text-base font-semibold mb-4" style={{ color: '#152232' }}>
+        <div className="border-t pt-4" style={{ borderColor: 'rgba(57,204,204,0.3)' }}>
+          <h3 className="text-base font-semibold mb-4" style={{ color: '#E0F2F1' }}>
             Tell Us About Yourself
           </h3>
           <div className="grid md:grid-cols-2 gap-3 mb-3">
             <div>
-              <label className="block text-sm font-medium mb-1" style={{ color: 'rgba(21,34,50,0.75)' }}>
+              <label className="block text-sm font-medium mb-1" style={{ color: 'rgba(224,242,241,0.8)' }}>
                 Full Name <span style={{ color: '#39CCCC' }}>*</span>
               </label>
               <input
@@ -267,10 +279,12 @@ export default function DynamicPricingBuilder() {
                 placeholder="John Smith"
                 className={inputClass}
                 style={inputStyle}
+                onFocus={handleInputFocus}
+                onBlur={handleInputBlur}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1" style={{ color: 'rgba(21,34,50,0.75)' }}>
+              <label className="block text-sm font-medium mb-1" style={{ color: 'rgba(224,242,241,0.8)' }}>
                 Email <span style={{ color: '#39CCCC' }}>*</span>
               </label>
               <input
@@ -282,13 +296,15 @@ export default function DynamicPricingBuilder() {
                 placeholder="john@company.com"
                 className={inputClass}
                 style={inputStyle}
+                onFocus={handleInputFocus}
+                onBlur={handleInputBlur}
               />
             </div>
           </div>
 
           <div className="grid md:grid-cols-2 gap-3 mb-3">
             <div>
-              <label className="block text-sm font-medium mb-1" style={{ color: 'rgba(21,34,50,0.75)' }}>
+              <label className="block text-sm font-medium mb-1" style={{ color: 'rgba(224,242,241,0.8)' }}>
                 Phone Number
               </label>
               <input
@@ -299,10 +315,12 @@ export default function DynamicPricingBuilder() {
                 placeholder="(954) 555-0100"
                 className={inputClass}
                 style={inputStyle}
+                onFocus={handleInputFocus}
+                onBlur={handleInputBlur}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1" style={{ color: 'rgba(21,34,50,0.75)' }}>
+              <label className="block text-sm font-medium mb-1" style={{ color: 'rgba(224,242,241,0.8)' }}>
                 Company Name
               </label>
               <input
@@ -313,12 +331,14 @@ export default function DynamicPricingBuilder() {
                 placeholder="Acme Corp"
                 className={inputClass}
                 style={inputStyle}
+                onFocus={handleInputFocus}
+                onBlur={handleInputBlur}
               />
             </div>
           </div>
 
           <div className="mb-3">
-            <label className="block text-sm font-medium mb-1" style={{ color: 'rgba(21,34,50,0.75)' }}>
+            <label className="block text-sm font-medium mb-1" style={{ color: 'rgba(224,242,241,0.8)' }}>
               Additional Details
             </label>
             <textarea
@@ -329,6 +349,8 @@ export default function DynamicPricingBuilder() {
               placeholder="Tell us about your specific needs..."
               className={`${inputClass} resize-none`}
               style={inputStyle}
+              onFocus={handleInputFocus}
+              onBlur={handleInputBlur}
             />
           </div>
 

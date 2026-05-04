@@ -116,24 +116,24 @@ export default function WhyUs() {
                   key={feature.title}
                   className="group rounded-2xl p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1 cursor-default"
                   style={{
-                    background: 'white',
-                    border: '1px solid rgba(21,34,50,0.07)',
-                    boxShadow: '0 2px 12px rgba(21,34,50,0.04)',
+                    background: 'rgba(26, 47, 63, 0.8)',
+                    border: `1px solid ${accent}40`,
+                    boxShadow: `0 2px 12px ${accent}10`,
                   }}
                   onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLElement).style.boxShadow = `0 16px 48px ${accent}20`;
-                    (e.currentTarget as HTMLElement).style.borderColor = `${accent}40`;
+                    (e.currentTarget as HTMLElement).style.boxShadow = `0 16px 48px ${accent}30`;
+                    (e.currentTarget as HTMLElement).style.borderColor = `${accent}80`;
                   }}
                   onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 12px rgba(21,34,50,0.04)';
-                    (e.currentTarget as HTMLElement).style.borderColor = 'rgba(21,34,50,0.07)';
+                    (e.currentTarget as HTMLElement).style.boxShadow = `0 2px 12px ${accent}10`;
+                    (e.currentTarget as HTMLElement).style.borderColor = `${accent}40`;
                   }}
                 >
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: `${accent}15` }}>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: `${accent}30` }}>
                     <Icon size={18} style={{ color: accent }} />
                   </div>
-                  <h3 className="font-bold text-base mb-1.5" style={{ color: '#152232' }}>{feature.title}</h3>
-                  <p className="text-xs leading-relaxed" style={{ color: 'rgba(21,34,50,0.6)' }}>{feature.desc}</p>
+                  <h3 className="font-bold text-base mb-1.5" style={{ color: '#E0F2F1' }}>{feature.title}</h3>
+                  <p className="text-xs leading-relaxed" style={{ color: 'rgba(224,242,241,0.75)' }}>{feature.desc}</p>
                 </div>
               );
             })}

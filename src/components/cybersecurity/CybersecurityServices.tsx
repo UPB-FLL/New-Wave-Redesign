@@ -76,17 +76,17 @@ export default function CybersecurityServices() {
               key={service.title}
               className="group relative rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 cursor-pointer overflow-hidden"
               style={{
-                background: 'white',
-                border: '1px solid rgba(21,34,50,0.08)',
-                boxShadow: '0 2px 12px rgba(21,34,50,0.04)',
+                background: 'rgba(26, 47, 63, 0.8)',
+                border: `1px solid ${service.accent}40`,
+                boxShadow: `0 2px 12px ${service.accent}10`,
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow = `0 20px 56px ${service.accent}25`;
-                (e.currentTarget as HTMLElement).style.borderColor = `${service.accent}40`;
+                (e.currentTarget as HTMLElement).style.boxShadow = `0 16px 48px ${service.accent}30`;
+                (e.currentTarget as HTMLElement).style.borderColor = `${service.accent}80`;
               }}
               onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 12px rgba(21,34,50,0.04)';
-                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(21,34,50,0.08)';
+                (e.currentTarget as HTMLElement).style.boxShadow = `0 2px 12px ${service.accent}10`;
+                (e.currentTarget as HTMLElement).style.borderColor = `${service.accent}40`;
               }}
             >
               {/* Hover gradient */}
@@ -101,7 +101,7 @@ export default function CybersecurityServices() {
                 <div className="flex items-start justify-between mb-3">
                   <div
                     className="w-10 h-10 rounded-xl flex items-center justify-center"
-                    style={{ background: `${service.accent}15` }}
+                    style={{ background: `${service.accent}30` }}
                   >
                     <service.icon size={18} style={{ color: service.accent }} />
                   </div>
@@ -112,21 +112,21 @@ export default function CybersecurityServices() {
                   />
                 </div>
 
-                <h3 className="font-bold text-lg mb-1.5" style={{ color: '#152232' }}>
+                <h3 className="font-bold text-lg mb-1.5" style={{ color: '#E0F2F1' }}>
                   {service.title}
                 </h3>
-                <p className="text-sm leading-relaxed mb-3" style={{ color: 'rgba(21,34,50,0.6)' }}>
+                <p className="text-sm leading-relaxed mb-3" style={{ color: 'rgba(224,242,241,0.75)' }}>
                   {service.description}
                 </p>
 
-                <div className="space-y-1.5 pt-3" style={{ borderTop: '1px solid rgba(21,34,50,0.06)' }}>
+                <div className="space-y-1.5 pt-3" style={{ borderTop: `1px solid ${service.accent}30` }}>
                   {service.features.map((feature) => (
                     <div key={feature} className="flex items-center gap-2 text-xs">
                       <div
                         className="w-1 h-1 rounded-full flex-shrink-0"
                         style={{ background: service.accent }}
                       />
-                      <span style={{ color: 'rgba(21,34,50,0.7)' }}>{feature}</span>
+                      <span style={{ color: 'rgba(224,242,241,0.65)' }}>{feature}</span>
                     </div>
                   ))}
                 </div>

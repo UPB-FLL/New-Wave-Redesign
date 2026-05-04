@@ -51,12 +51,12 @@ export default function StatusPage() {
         {/* Hero Section */}
         <section className="bg-white py-12 sm:py-16 relative" style={{ borderBottom: '1px solid rgba(21,34,50,0.06)' }}>
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-6 sm:mb-8">
+            <div className="text-center mb-8 sm:mb-10">
               <span className="text-xs sm:text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
                 {c.section_label || 'System Status'}
               </span>
               <h1
-                className="text-4xl sm:text-5xl lg:text-7xl leading-[0.95] mt-2 mb-3 tracking-tight"
+                className="text-4xl sm:text-5xl lg:text-7xl leading-[0.95] mt-2 mb-4 tracking-tight"
                 style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}
               >
                 {c.headline ? (
@@ -82,17 +82,68 @@ export default function StatusPage() {
                 {c.subheadline || 'Monitor the status of cloud services and ISPs your business depends on. Updated every 5 minutes.'}
               </p>
             </div>
+
+            {/* Status Summary */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 sm:mb-12">
+              <div
+                className="rounded-2xl p-6 text-center"
+                style={{
+                  background: 'white',
+                  border: '1px solid rgba(21,34,50,0.08)',
+                  boxShadow: '0 2px 12px rgba(21,34,50,0.05)',
+                }}
+              >
+                <div className="text-3xl font-bold mb-2" style={{ color: '#5EBC67' }}>
+                  {services.filter(s => s.status === 'operational').length}/{services.length}
+                </div>
+                <p className="text-sm" style={{ color: 'rgba(21,34,50,0.6)' }}>
+                  Services Operational
+                </p>
+              </div>
+
+              <div
+                className="rounded-2xl p-6 text-center"
+                style={{
+                  background: 'white',
+                  border: '1px solid rgba(21,34,50,0.08)',
+                  boxShadow: '0 2px 12px rgba(21,34,50,0.05)',
+                }}
+              >
+                <div className="text-3xl font-bold mb-2" style={{ color: '#39CCCC' }}>
+                  {avgSaasUptime}%
+                </div>
+                <p className="text-sm" style={{ color: 'rgba(21,34,50,0.6)' }}>
+                  Average SaaS Uptime
+                </p>
+              </div>
+
+              <div
+                className="rounded-2xl p-6 text-center"
+                style={{
+                  background: 'white',
+                  border: '1px solid rgba(21,34,50,0.08)',
+                  boxShadow: '0 2px 12px rgba(21,34,50,0.05)',
+                }}
+              >
+                <div className="text-3xl font-bold mb-2" style={{ color: '#39CCCC' }}>
+                  {avgIspUptime}%
+                </div>
+                <p className="text-sm" style={{ color: 'rgba(21,34,50,0.6)' }}>
+                  Average ISP Uptime
+                </p>
+              </div>
+            </div>
           </div>
         </section>
 
         {/* Services Grid */}
-        <section className="bg-white py-8 sm:py-12 relative">
+        <section className="bg-white py-12 sm:py-16 relative">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* SaaS Services */}
-            <div className="mb-8 sm:mb-10">
-              <div className="mb-4">
+            <div className="mb-12 sm:mb-16">
+              <div className="mb-6">
                 <h2
-                  className="text-2xl sm:text-3xl font-bold tracking-tight mb-1"
+                  className="text-2xl sm:text-3xl font-bold tracking-tight mb-2"
                   style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}
                 >
                   SaaS Services
@@ -110,9 +161,9 @@ export default function StatusPage() {
 
             {/* ISP Services */}
             <div>
-              <div className="mb-4">
+              <div className="mb-6">
                 <h2
-                  className="text-2xl sm:text-3xl font-bold tracking-tight mb-1"
+                  className="text-2xl sm:text-3xl font-bold tracking-tight mb-2"
                   style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}
                 >
                   Internet Service Providers
@@ -130,7 +181,7 @@ export default function StatusPage() {
 
             {/* Info Box */}
             <div
-              className="mt-8 sm:mt-10 rounded-2xl p-4 sm:p-6"
+              className="mt-12 sm:mt-16 rounded-2xl p-6 sm:p-8"
               style={{
                 background: 'rgba(57,204,204,0.08)',
                 border: '1px solid rgba(57,204,204,0.2)',

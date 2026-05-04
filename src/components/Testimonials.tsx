@@ -63,21 +63,21 @@ export default function Testimonials() {
               key={t.author}
               className="group rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:-translate-y-1 flex flex-col"
               style={{
-                background: 'white',
-                border: '1px solid rgba(21,34,50,0.08)',
-                boxShadow: '0 2px 12px rgba(21,34,50,0.04)',
+                background: 'rgba(26, 47, 63, 0.8)',
+                border: `1px solid ${t.accent}40`,
+                boxShadow: `0 2px 12px ${t.accent}10`,
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow = `0 16px 48px ${t.accent}20`;
-                (e.currentTarget as HTMLElement).style.borderColor = `${t.accent}40`;
+                (e.currentTarget as HTMLElement).style.boxShadow = `0 16px 48px ${t.accent}30`;
+                (e.currentTarget as HTMLElement).style.borderColor = `${t.accent}80`;
               }}
               onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 12px rgba(21,34,50,0.04)';
-                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(21,34,50,0.08)';
+                (e.currentTarget as HTMLElement).style.boxShadow = `0 2px 12px ${t.accent}10`;
+                (e.currentTarget as HTMLElement).style.borderColor = `${t.accent}40`;
               }}
             >
               <div className="flex items-center justify-between mb-4">
-                <Quote size={24} style={{ color: t.accent, opacity: 0.3 }} />
+                <Quote size={24} style={{ color: t.accent, opacity: 0.5 }} />
                 <div className="flex gap-0.5">
                   {[1, 2, 3, 4, 5].map((i) => (
                     <Star key={i} size={14} fill={t.accent} stroke={t.accent} />
@@ -85,14 +85,14 @@ export default function Testimonials() {
                 </div>
               </div>
 
-              <p className="text-sm leading-relaxed mb-5 flex-1" style={{ color: 'rgba(21,34,50,0.75)' }}>
+              <p className="text-sm leading-relaxed mb-5 flex-1" style={{ color: 'rgba(224,242,241,0.85)' }}>
                 "{t.quote}"
               </p>
 
-              <div className="flex items-center gap-3 pt-4" style={{ borderTop: '1px solid rgba(21,34,50,0.06)' }}>
+              <div className="flex items-center gap-3 pt-4" style={{ borderTop: `1px solid ${t.accent}30` }}>
                 <div
                   className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold"
-                  style={{ background: `${t.accent}15`, color: t.accent }}
+                  style={{ background: `${t.accent}30`, color: t.accent }}
                 >
                   {t.author
                     .split(' ')
@@ -100,16 +100,16 @@ export default function Testimonials() {
                     .join('')}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-bold truncate" style={{ color: '#152232' }}>
+                  <div className="text-sm font-bold truncate" style={{ color: '#E0F2F1' }}>
                     {t.author}
                   </div>
-                  <div className="text-xs truncate" style={{ color: 'rgba(21,34,50,0.55)' }}>
+                  <div className="text-xs truncate" style={{ color: 'rgba(224,242,241,0.65)' }}>
                     {t.title}, {t.company}
                   </div>
                 </div>
                 <span
                   className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded"
-                  style={{ background: `${t.accent}10`, color: t.accent }}
+                  style={{ background: `${t.accent}30`, color: t.accent, border: `1px solid ${t.accent}60` }}
                 >
                   {t.industry}
                 </span>
