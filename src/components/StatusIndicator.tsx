@@ -60,7 +60,7 @@ export default function StatusIndicator({ service }: { service: StatusService })
         </span>
       </div>
 
-      <div className="space-y-2 w-full">
+      <div className="space-y-1 w-full">
         <div className="flex items-center justify-between w-full">
           <span className="text-xs" style={{ color: 'rgba(21,34,50,0.6)' }}>
             Uptime
