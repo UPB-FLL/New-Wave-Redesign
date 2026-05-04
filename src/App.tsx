@@ -43,6 +43,7 @@ import ITRepairServicePage from './pages/ITRepairServicePage';
 import ManagedITServicePage from './pages/ManagedITServicePage';
 import CloudSolutionsServicePage from './pages/CloudSolutionsServicePage';
 import NetworkInfrastructureServicePage from './pages/NetworkInfrastructureServicePage';
+import ServiceGuidePage from './pages/ServiceGuidePage';
 import ServicesDetailEditor from './admin/editors/ServicesDetailEditor';
 import ThreatsDetailEditor from './admin/editors/ThreatsDetailEditor';
 import ServicesCategoryEditor from './admin/editors/ServicesCategoryEditor';
@@ -96,7 +97,7 @@ export default function App() {
         <Route path="/service-category/cloud-solutions" element={<CloudSolutionsServicePage />} />
         <Route path="/service-category/network-infrastructure" element={<NetworkInfrastructureServicePage />} />
         <Route path="/threat/:slug" element={<ThreatDetailPage />} />
-        <Route path="/l/:slug" element={<SeoLandingPage />} />
+        <Route path="/l/:slug" element={<ServiceGuidePage />} />
         <Route
           path="/admin"
           element={
