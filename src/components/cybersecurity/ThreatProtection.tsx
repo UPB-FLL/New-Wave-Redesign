@@ -1,9 +1,11 @@
+import { Link } from 'react-router-dom';
 import { CheckCircle, AlertTriangle, Zap, Bug, Mail, Lock, ShieldOff, Wifi } from 'lucide-react';
 
 const threats = [
   {
     icon: Bug,
     name: 'Ransomware',
+    slug: 'ransomware',
     severity: 'CRITICAL',
     severityColor: '#ef4444',
     description: 'AI-driven behavior analysis detects encryption attempts and isolates infected endpoints in seconds.',
@@ -13,6 +15,7 @@ const threats = [
   {
     icon: Mail,
     name: 'Phishing',
+    slug: 'phishing',
     severity: 'HIGH',
     severityColor: '#f59e0b',
     description: 'Advanced email security with URL rewriting, attachment sandboxing, and impersonation detection.',
@@ -22,6 +25,7 @@ const threats = [
   {
     icon: AlertTriangle,
     name: 'DDoS Attacks',
+    slug: 'ddos-attacks',
     severity: 'HIGH',
     severityColor: '#f59e0b',
     description: 'Multi-layer mitigation with edge-network filtering and automatic traffic scrubbing.',
@@ -31,6 +35,7 @@ const threats = [
   {
     icon: Lock,
     name: 'Data Breaches',
+    slug: 'data-breaches',
     severity: 'CRITICAL',
     severityColor: '#ef4444',
     description: 'End-to-end encryption, DLP policies, and continuous monitoring of sensitive data flows.',
@@ -40,6 +45,7 @@ const threats = [
   {
     icon: Zap,
     name: 'Zero-Day Exploits',
+    slug: 'zero-day-exploits',
     severity: 'CRITICAL',
     severityColor: '#ef4444',
     description: 'Behavioral detection engines identify novel attack patterns before signatures exist.',
@@ -49,6 +55,7 @@ const threats = [
   {
     icon: ShieldOff,
     name: 'Insider Threats',
+    slug: 'insider-threats',
     severity: 'MEDIUM',
     severityColor: '#3b82f6',
     description: 'User behavior analytics flag anomalous access patterns and policy violations.',
@@ -58,6 +65,7 @@ const threats = [
   {
     icon: Wifi,
     name: 'Network Intrusions',
+    slug: 'network-intrusions',
     severity: 'HIGH',
     severityColor: '#f59e0b',
     description: 'Next-gen firewalls with deep packet inspection and intrusion prevention systems.',
@@ -67,6 +75,7 @@ const threats = [
   {
     icon: CheckCircle,
     name: 'Compliance Violations',
+    slug: 'compliance-violations',
     severity: 'MEDIUM',
     severityColor: '#3b82f6',
     description: 'Automated audits map your environment to HIPAA, PCI-DSS, SOC 2, and GDPR requirements.',
@@ -104,9 +113,10 @@ export default function ThreatProtection() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
           {threats.map((threat) => (
-            <div
+            <Link
               key={threat.name}
-              className="group rounded-2xl p-4 transition-all duration-300 hover:-translate-y-1"
+              to={`/threat/${threat.slug}`}
+              className="group rounded-2xl p-4 transition-all duration-300 hover:-translate-y-1 no-underline block"
               style={{
                 background: 'rgba(26, 47, 63, 0.8)',
                 border: '1px solid rgba(57,204,204,0.4)',
@@ -160,7 +170,7 @@ export default function ThreatProtection() {
                   {threat.statLabel}
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>
