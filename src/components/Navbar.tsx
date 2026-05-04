@@ -1,14 +1,22 @@
 import { useState, useEffect } from 'react';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const LOGO_URL =
   'https://images.squarespace-cdn.com/content/v1/64c044f11baf2d14ebb899c6/fb59af7c-4a76-48a9-ab9d-88a58a54496e/new-wave-it-high-resolution-logo-transparent.png?format=500w';
 
+const serviceCategories = [
+  { label: 'Cybersecurity', href: '/service-category/cybersecurity' },
+  { label: 'Live IT Support', href: '/service-category/live-it-support' },
+  { label: 'IT Repair & Upgrades', href: '/service-category/it-repair-upgrades' },
+  { label: 'Managed IT Services', href: '/service-category/managed-it-services' },
+  { label: 'Cloud Solutions', href: '/service-category/cloud-solutions' },
+  { label: 'Network Infrastructure', href: '/service-category/network-infrastructure' },
+];
+
 const navLinks = [
   { label: 'Services', href: '/services' },
   { label: 'Pricing', href: '/pricing' },
-  { label: 'Cybersecurity', href: '/cybersecurity', isExternal: true },
   { label: 'Why Us', href: '/why-us' },
   { label: 'About', href: '/about' },
   { label: 'Support', href: '/support' },
@@ -19,6 +27,7 @@ const navLinks = [
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [servicesDropdownOpen, setServicesDropdownOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -74,6 +83,43 @@ export default function Navbar() {
             >
               Home
             </button>
+
+            {/* Services Dropdown */}
+            <div
+              className="relative"
+              onMouseEnter={() => setServicesDropdownOpen(true)}
+              onMouseLeave={() => setServicesDropdownOpen(false)}
+            >
+              <button
+                className="text-sm font-medium transition-colors duration-200 flex items-center gap-1"
+                style={{ color: 'rgba(21,34,50,0.7)' }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = '#152232')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(21,34,50,0.7)')}
+              >
+                Services
+                <ChevronDown size={14} className={`transition-transform duration-200 ${servicesDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {servicesDropdownOpen && (
+                <div className="absolute top-full left-0 mt-2 w-48 rounded-lg shadow-lg py-2 z-50" style={{ background: 'white', border: '1px solid rgba(21,34,50,0.1)' }}>
+                  {serviceCategories.map((cat) => (
+                    <button
+                      key={cat.href}
+                      onClick={() => {
+                        navigate(cat.href);
+                        setServicesDropdownOpen(false);
+                      }}
+                      className="w-full px-4 py-2.5 text-sm text-left transition-colors duration-200"
+                      style={{ color: 'rgba(21,34,50,0.7)' }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(57,204,204,0.08)', e.currentTarget.style.color = '#152232')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent', e.currentTarget.style.color = 'rgba(21,34,50,0.7)')}
+                    >
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {navLinks.map((link) => {
               const isExternal = 'isExternal' in link && link.isExternal;
               const isSupport = link.label === 'Support';
@@ -163,6 +209,37 @@ export default function Navbar() {
             >
               Home
             </button>
+
+            {/* Mobile Services Dropdown */}
+            <div>
+              <button
+                onClick={() => setServicesDropdownOpen(!servicesDropdownOpen)}
+                className="text-base font-medium text-left transition-colors flex items-center justify-between w-full"
+                style={{ color: 'rgba(21,34,50,0.7)' }}
+              >
+                Services
+                <ChevronDown size={16} className={`transition-transform duration-200 ${servicesDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {servicesDropdownOpen && (
+                <div className="mt-2 ml-4 flex flex-col gap-2 border-l-2" style={{ borderColor: 'rgba(57,204,204,0.3)' }}>
+                  {serviceCategories.map((cat) => (
+                    <button
+                      key={cat.href}
+                      onClick={() => {
+                        navigate(cat.href);
+                        setIsOpen(false);
+                        setServicesDropdownOpen(false);
+                      }}
+                      className="text-sm text-left transition-colors py-1"
+                      style={{ color: 'rgba(21,34,50,0.7)' }}
+                    >
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {navLinks.map((link) => {
               const isExternal = 'isExternal' in link && link.isExternal;
               const isSupport = link.label === 'Support';
