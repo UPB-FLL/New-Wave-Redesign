@@ -95,7 +95,7 @@ export default function ServiceCategoryDetailPage() {
         {/* Full Details */}
         {service.details && (
           <section>
-            <h2 className="text-3xl font-bold text-slate-900 mb-6">About This Service</h2>
+            <h2 className="text-3xl font-bold text-slate-900 mb-6">Service Overview</h2>
             <div className="prose prose-lg max-w-none">
               {service.details.split(/\n\n+/).map((para, i) => (
                 <p key={i} className="text-slate-700 leading-relaxed mb-4">
@@ -139,17 +139,22 @@ export default function ServiceCategoryDetailPage() {
               border: '1px solid rgba(57, 204, 204, 0.2)',
             }}
           >
-            <h2 className="text-xl font-semibold text-slate-900 mb-3">Learn More</h2>
-            <p className="text-slate-700 mb-4">
-              Want to know more about this service? Check out our detailed blog post for in-depth information and best practices.
-            </p>
-            <Link
-              to={service.seo_link}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white"
-              style={{ background: '#39CCCC' }}
-            >
-              Read the full article <ExternalLink size={14} />
-            </Link>
+            <div className="flex items-start gap-4">
+              <ExternalLink size={24} style={{ color: '#39CCCC', flexShrink: 0 }} />
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold text-slate-900 mb-2">Deep Dive Guide</h2>
+                <p className="text-slate-700 mb-4">
+                  Explore our comprehensive guide to {service.title.toLowerCase()} with detailed best practices, implementation strategies, and real-world insights from our certified engineers.
+                </p>
+                <Link
+                  to={service.seo_link}
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white"
+                  style={{ background: '#39CCCC' }}
+                >
+                  Read the full guide <ExternalLink size={16} />
+                </Link>
+              </div>
+            </div>
           </section>
         )}
 

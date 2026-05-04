@@ -110,13 +110,18 @@ export default function ServicesCategoryEditor() {
               onChange={(v) => updateService(i, 'details', v)}
               multiline
               rows={4}
-              hint="Full explanation of the service"
+              hint="Full explanation of the service (displayed in 'Service Overview' section)"
             />
+            <div className="mt-4 p-3 rounded-lg" style={{ background: 'rgba(57, 204, 204, 0.1)', border: '1px solid rgba(57, 204, 204, 0.3)' }}>
+              <p className="text-xs text-white/70 mb-3">
+                📚 <strong>SEO Blog Link</strong> — Link to a detailed guide or blog post that will be featured in a prominent "Deep Dive Guide" section on the service page. This gives visitors easy access to your most comprehensive content.
+              </p>
+            </div>
             <EditorField
               label="SEO Blog Link"
               value={service.seo_link}
               onChange={(v) => updateService(i, 'seo_link', v)}
-              hint="Link to blog post or SEO landing page (e.g., /l/cybersecurity-guide)"
+              hint="Link to detailed blog post or SEO landing page. Examples: /l/cybersecurity-guide, /blog/managed-it-services, https://example.com/article"
             />
 
             <div className="mt-4 pt-4 border-t border-white/10">
