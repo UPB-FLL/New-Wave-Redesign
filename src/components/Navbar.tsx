@@ -15,7 +15,6 @@ const serviceCategories = [
 ];
 
 const navLinks = [
-  { label: 'Services', href: '/services' },
   { label: 'Pricing', href: '/pricing' },
   { label: 'Why Us', href: '/why-us' },
   { label: 'About', href: '/about' },
