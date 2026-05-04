@@ -37,7 +37,12 @@ import SeoPageEditor from './admin/seo/SeoPageEditor';
 import SeoLandingPage from './pages/SeoLandingPage';
 import ServiceDetailPage from './pages/ServiceDetailPage';
 import ThreatDetailPage from './pages/ThreatDetailPage';
-import ServiceCategoryDetailPage from './pages/ServiceCategoryDetailPage';
+import CybersecurityServicePage from './pages/CybersecurityServicePage';
+import LiveITSupportServicePage from './pages/LiveITSupportServicePage';
+import ITRepairServicePage from './pages/ITRepairServicePage';
+import ManagedITServicePage from './pages/ManagedITServicePage';
+import CloudSolutionsServicePage from './pages/CloudSolutionsServicePage';
+import NetworkInfrastructureServicePage from './pages/NetworkInfrastructureServicePage';
 import ServicesDetailEditor from './admin/editors/ServicesDetailEditor';
 import ThreatsDetailEditor from './admin/editors/ThreatsDetailEditor';
 import ServicesCategoryEditor from './admin/editors/ServicesCategoryEditor';
@@ -84,7 +89,12 @@ export default function App() {
         <Route path="/status" element={<StatusPage />} />
         <Route path="/support" element={<SupportPage />} />
         <Route path="/service/:slug" element={<ServiceDetailPage />} />
-        <Route path="/service-category/:slug" element={<ServiceCategoryDetailPage />} />
+        <Route path="/service-category/cybersecurity" element={<CybersecurityServicePage />} />
+        <Route path="/service-category/live-it-support" element={<LiveITSupportServicePage />} />
+        <Route path="/service-category/it-repair-upgrades" element={<ITRepairServicePage />} />
+        <Route path="/service-category/managed-it-services" element={<ManagedITServicePage />} />
+        <Route path="/service-category/cloud-solutions" element={<CloudSolutionsServicePage />} />
+        <Route path="/service-category/network-infrastructure" element={<NetworkInfrastructureServicePage />} />
         <Route path="/threat/:slug" element={<ThreatDetailPage />} />
         <Route path="/l/:slug" element={<SeoLandingPage />} />
         <Route
