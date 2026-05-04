@@ -108,30 +108,30 @@ export default function ThreatProtection() {
               key={threat.name}
               className="group rounded-2xl p-4 transition-all duration-300 hover:-translate-y-1"
               style={{
-                background: 'white',
-                border: '1px solid rgba(21,34,50,0.08)',
-                boxShadow: '0 2px 12px rgba(21,34,50,0.04)',
+                background: 'rgba(26, 47, 63, 0.8)',
+                border: '1px solid rgba(57,204,204,0.4)',
+                boxShadow: '0 2px 12px rgba(57,204,204,0.1)',
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow = '0 16px 48px rgba(57,204,204,0.18)';
-                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(57,204,204,0.4)';
+                (e.currentTarget as HTMLElement).style.boxShadow = '0 16px 48px rgba(57,204,204,0.25)';
+                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(57,204,204,0.8)';
               }}
               onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 12px rgba(21,34,50,0.04)';
-                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(21,34,50,0.08)';
+                (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 12px rgba(57,204,204,0.1)';
+                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(57,204,204,0.4)';
               }}
             >
               <div className="flex items-start justify-between mb-2.5">
                 <div
                   className="w-9 h-9 rounded-lg flex items-center justify-center"
-                  style={{ background: 'rgba(57,204,204,0.12)' }}
+                  style={{ background: 'rgba(57,204,204,0.25)' }}
                 >
                   <threat.icon size={16} style={{ color: '#39CCCC' }} />
                 </div>
                 <span
                   className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
                   style={{
-                    background: `${threat.severityColor}15`,
+                    background: `${threat.severityColor}30`,
                     color: threat.severityColor,
                   }}
                 >
@@ -139,16 +139,16 @@ export default function ThreatProtection() {
                 </span>
               </div>
 
-              <h3 className="font-bold text-base mb-1.5" style={{ color: '#152232' }}>
+              <h3 className="font-bold text-base mb-1.5" style={{ color: '#E0F2F1' }}>
                 {threat.name}
               </h3>
-              <p className="text-xs leading-relaxed mb-3" style={{ color: 'rgba(21,34,50,0.6)' }}>
+              <p className="text-xs leading-relaxed mb-3" style={{ color: 'rgba(224,242,241,0.75)' }}>
                 {threat.description}
               </p>
 
               <div
                 className="rounded-lg p-2.5"
-                style={{ background: 'rgba(57,204,204,0.05)', border: '1px solid rgba(57,204,204,0.1)' }}
+                style={{ background: 'rgba(57,204,204,0.15)', border: '1px solid rgba(57,204,204,0.3)' }}
               >
                 <div
                   className="text-lg font-bold tabular-nums"
@@ -156,7 +156,7 @@ export default function ThreatProtection() {
                 >
                   {threat.stat}
                 </div>
-                <div className="text-[9px] uppercase tracking-wider font-semibold" style={{ color: 'rgba(21,34,50,0.5)' }}>
+                <div className="text-[9px] uppercase tracking-wider font-semibold" style={{ color: 'rgba(224,242,241,0.65)' }}>
                   {threat.statLabel}
                 </div>
               </div>

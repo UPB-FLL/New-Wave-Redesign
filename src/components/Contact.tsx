@@ -60,8 +60,18 @@ export default function Contact() {
     }
   };
 
-  const inputClass = "w-full rounded-xl px-3.5 py-2.5 text-sm outline-none transition-colors";
-  const inputStyle = { background: 'white', border: '1.5px solid rgba(21,34,50,0.12)', color: '#152232' };
+  const handleInputFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    e.currentTarget.style.borderColor = 'rgba(94, 188, 103, 0.7)';
+    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(94, 188, 103, 0.1)';
+  };
+
+  const handleInputBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    e.currentTarget.style.borderColor = 'rgba(94, 188, 103, 0.3)';
+    e.currentTarget.style.boxShadow = 'none';
+  };
+
+  const inputClass = "w-full rounded-xl px-3.5 py-2.5 text-sm outline-none transition-all focus:ring-2";
+  const inputStyle = { background: 'rgba(26, 47, 63, 0.6)', border: '1px solid rgba(94, 188, 103, 0.3)', color: '#E0F2F1' };
 
   const phone = c.phone || '(954) 555-0100';
   const email = c.email || 'support@newwaveitfl.com';
@@ -124,14 +134,22 @@ export default function Contact() {
             ].map(({ icon: Icon, title, sub, content, accent }) => (
               <div
                 key={title}
-                className="rounded-2xl p-4"
-                style={{ background: 'white', border: '1px solid rgba(21,34,50,0.07)', boxShadow: '0 2px 12px rgba(21,34,50,0.05)' }}
+                className="rounded-2xl p-4 transition-all duration-300 hover:-translate-y-0.5"
+                style={{ background: 'rgba(26, 47, 63, 0.8)', border: `1px solid ${accent}40`, boxShadow: `0 2px 12px ${accent}10` }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.boxShadow = `0 12px 32px ${accent}25`;
+                  (e.currentTarget as HTMLElement).style.borderColor = `${accent}80`;
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.boxShadow = `0 2px 12px ${accent}10`;
+                  (e.currentTarget as HTMLElement).style.borderColor = `${accent}40`;
+                }}
               >
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: `${accent}15` }}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: `${accent}30` }}>
                   <Icon size={18} style={{ color: accent }} />
                 </div>
-                <h3 className="font-semibold text-sm mb-1" style={{ color: '#152232' }}>{title}</h3>
-                <p className="text-xs mb-1.5 whitespace-pre-line" style={{ color: 'rgba(21,34,50,0.55)' }}>{sub}</p>
+                <h3 className="font-semibold text-sm mb-1" style={{ color: '#E0F2F1' }}>{title}</h3>
+                <p className="text-xs mb-1.5 whitespace-pre-line" style={{ color: 'rgba(224,242,241,0.65)' }}>{sub}</p>
                 {content}
               </div>
             ))}
@@ -141,13 +159,13 @@ export default function Contact() {
             {submitted ? (
               <div
                 className="rounded-2xl p-12 flex flex-col items-center justify-center text-center h-full min-h-[400px]"
-                style={{ background: 'white', border: '1px solid rgba(94,188,103,0.3)', boxShadow: '0 4px 24px rgba(21,34,50,0.06)' }}
+                style={{ background: 'rgba(26, 47, 63, 0.8)', border: '1px solid rgba(94,188,103,0.4)', boxShadow: '0 8px 32px rgba(94,188,103,0.15)' }}
               >
-                <div className="w-16 h-16 rounded-full flex items-center justify-center mb-5" style={{ background: 'rgba(94,188,103,0.12)' }}>
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mb-5" style={{ background: 'rgba(94,188,103,0.2)' }}>
                   <CheckCircle size={32} style={{ color: '#5EBC67' }} />
                 </div>
-                <h3 className="text-2xl font-bold mb-3" style={{ color: '#152232' }}>{c.success_title || 'Message Received!'}</h3>
-                <p className="max-w-sm" style={{ color: 'rgba(21,34,50,0.6)' }}>
+                <h3 className="text-2xl font-bold mb-3" style={{ color: '#E0F2F1' }}>{c.success_title || 'Message Received!'}</h3>
+                <p className="max-w-sm" style={{ color: 'rgba(224,242,241,0.75)' }}>
                   {c.success_body || 'Thanks for reaching out. A member of our team will contact you within one business day. For urgent issues, please call us directly.'}
                 </p>
                 <button
@@ -162,33 +180,33 @@ export default function Contact() {
               <form
                 onSubmit={handleSubmit}
                 className="rounded-2xl p-6"
-                style={{ background: 'white', border: '1px solid rgba(21,34,50,0.07)', boxShadow: '0 4px 24px rgba(21,34,50,0.06)' }}
+                style={{ background: 'rgba(26, 47, 63, 0.8)', border: '1px solid rgba(57,204,204,0.4)', boxShadow: '0 8px 32px rgba(57,204,204,0.15)' }}
               >
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(21,34,50,0.75)' }}>
+                    <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(224,242,241,0.8)' }}>
                       Full Name <span style={{ color: '#39CCCC' }}>*</span>
                     </label>
-                    <input type="text" name="name" value={form.name} onChange={handleChange} required placeholder="John Smith" className={inputClass} style={inputStyle} />
+                    <input type="text" name="name" value={form.name} onChange={handleChange} required placeholder="John Smith" className={inputClass} style={inputStyle} onFocus={handleInputFocus} onBlur={handleInputBlur} />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(21,34,50,0.75)' }}>
+                    <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(224,242,241,0.8)' }}>
                       Email Address <span style={{ color: '#39CCCC' }}>*</span>
                     </label>
-                    <input type="email" name="email" value={form.email} onChange={handleChange} required placeholder="john@company.com" className={inputClass} style={inputStyle} />
+                    <input type="email" name="email" value={form.email} onChange={handleChange} required placeholder="john@company.com" className={inputClass} style={inputStyle} onFocus={handleInputFocus} onBlur={handleInputBlur} />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(21,34,50,0.75)' }}>Phone Number</label>
-                    <input type="tel" name="phone" value={form.phone} onChange={handleChange} placeholder="(954) 555-0100" className={inputClass} style={inputStyle} />
+                    <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(224,242,241,0.8)' }}>Phone Number</label>
+                    <input type="tel" name="phone" value={form.phone} onChange={handleChange} placeholder="(954) 555-0100" className={inputClass} style={inputStyle} onFocus={handleInputFocus} onBlur={handleInputBlur} />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(21,34,50,0.75)' }}>Company Name</label>
-                    <input type="text" name="company" value={form.company} onChange={handleChange} placeholder="Acme Corp" className={inputClass} style={inputStyle} />
+                    <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(224,242,241,0.8)' }}>Company Name</label>
+                    <input type="text" name="company" value={form.company} onChange={handleChange} placeholder="Acme Corp" className={inputClass} style={inputStyle} onFocus={handleInputFocus} onBlur={handleInputBlur} />
                   </div>
                 </div>
 
                 <div className="mb-4">
-                  <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(21,34,50,0.75)' }}>
+                  <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(224,242,241,0.8)' }}>
                     How can we help? <span style={{ color: '#39CCCC' }}>*</span>
                   </label>
                   <textarea
@@ -200,6 +218,8 @@ export default function Contact() {
                     placeholder="Tell us about your IT needs or current challenges..."
                     className={`${inputClass} resize-none`}
                     style={inputStyle}
+                    onFocus={handleInputFocus}
+                    onBlur={handleInputBlur}
                   />
                 </div>
 
