@@ -17,49 +17,49 @@ const defaultServices: ServiceCategory[] = [
   {
     title: 'Cybersecurity',
     slug: 'cybersecurity',
-    description: 'Enterprise-grade security solutions to protect your business from evolving threats and cyber attacks.',
-    details: 'Cybersecurity is not just about installing software - it\'s about building a comprehensive defense strategy that protects your critical assets.\n\nOur cybersecurity approach combines advanced threat detection, behavioral analysis, and 24/7 monitoring to identify and neutralize threats before they impact your business.\n\nWe work with you to assess your current security posture, identify vulnerabilities, and implement a customized security roadmap that aligns with your business goals and compliance requirements.',
-    highlights: ['24/7 threat monitoring', 'Vulnerability assessments', 'Incident response planning', 'Security compliance audits', 'Employee security training', 'Network penetration testing'],
+    description: 'Comprehensive threat protection with enterprise-grade security architecture that safeguards your organization against sophisticated cyber threats and compliance violations.',
+    details: 'Cybersecurity is not merely a technology investment—it\'s a strategic imperative. In today\'s threat landscape, breaches are not a matter of if, but when. Our comprehensive cybersecurity framework combines cutting-edge threat intelligence, behavioral analytics, and continuous monitoring to provide layered defense across your entire infrastructure.\n\nWe employ a zero-trust architecture approach, implementing strict access controls, multi-factor authentication, and endpoint protection that adapts to emerging threats in real time. Our Security Operations Center (SOC) provides round-the-clock vigilance, with certified analysts who respond to threats within minutes, not hours.\n\nBeyond detection and response, we architect a complete security posture assessment, identifying vulnerabilities before adversaries do. We then develop a strategic security roadmap aligned with regulatory requirements—whether HIPAA, PCI-DSS, SOC 2, or industry-specific compliance—ensuring your business operates confidently within all regulatory frameworks.',
+    highlights: ['24/7 Security Operations Center (SOC) monitoring', 'Zero-trust architecture implementation', 'Advanced threat detection & behavioral analysis', 'Comprehensive vulnerability assessment & penetration testing', 'Regulatory compliance management (HIPAA, PCI-DSS, SOC 2)', 'Incident response & forensic investigation', 'Employee security awareness training programs', 'Multi-layer endpoint & network protection'],
     seo_link: '/l/cybersecurity-guide',
   },
   {
     title: 'Live IT Support',
     slug: 'live-it-support',
-    description: 'Real humans, real solutions - available 24/7 for any IT issue, big or small.',
-    details: 'When IT issues happen, they can bring your business to a standstill. That\'s why we provide live, human IT support around the clock - no chatbots, no wait queues.\n\nOur certified technicians are available 24/7/365 to troubleshoot problems, answer questions, and get your systems back online fast. Whether it\'s a printer issue or a critical server problem, we handle it with the same level of expertise and urgency.\n\nWe offer both remote support for quick fixes and on-site support for hardware issues, with response times that meet your business needs.',
-    highlights: ['24/7 help desk access', 'Remote & on-site support', 'Fast resolution times', 'Ticket tracking system', 'Priority escalation', 'Knowledge base access'],
+    description: 'Human-centric IT support with certified technicians available 24/7, delivering rapid resolution and proactive assistance without the frustration of automated systems.',
+    details: 'Technology failures disrupt business operations and erode team morale. Our Live IT Support service ensures your organization always has access to experienced, certified technicians who understand your unique environment and priorities.\n\nUnlike impersonal ticketing systems, our support model emphasizes direct relationships and accountability. When you contact us, you reach a skilled human within minutes—not an automated queue. Our technicians are trained across infrastructure, applications, and user support, giving them the breadth of knowledge to resolve issues at first contact whenever possible.\n\nWe provide both remote assistance for immediate diagnostics and on-site support for hardware interventions. Our response time commitments are measured in minutes, not hours. We track every interaction through our integrated ticketing system, ensuring nothing falls through the cracks and providing you with complete transparency into your IT environment\'s health and reliability.',
+    highlights: ['Dedicated account management & priority routing', 'Sub-hour response times for critical issues', 'Remote & on-site technical support', 'Advanced ticket tracking with real-time updates', 'Comprehensive knowledge base & self-service portal', 'Escalation management & executive reporting', 'Phone, email, chat & in-person support channels', 'Technician training & continuous skill development'],
     seo_link: '/l/it-support-guide',
   },
   {
     title: 'IT Repair & Upgrades',
     slug: 'it-repair-upgrades',
-    description: 'Hardware failures and slow systems don\'t wait - neither do we. Fast, reliable repairs and strategic upgrades.',
-    details: 'Aging hardware and system failures don\'t just inconvenience your team - they cost you money in lost productivity and data risk.\n\nWe diagnose and repair hardware issues quickly, whether it\'s a failed hard drive, memory problems, or motherboard failures. We also specialize in strategic upgrades that breathe new life into aging systems without the expense of complete replacement.\n\nOur technicians use genuine parts and industry-standard repair procedures, and we stand behind our work with comprehensive warranties.',
-    highlights: ['Hardware repair & diagnostics', 'Component upgrades', 'Data recovery services', 'System optimization', 'Genuine parts used', 'Warranty protection'],
+    description: 'Strategic hardware management combining rapid repairs with intelligent upgrades that extend system life, improve performance, and reduce total cost of ownership.',
+    details: 'Aging IT infrastructure becomes a hidden cost drain—underperforming systems frustrate users, consume excessive power, require frequent repairs, and create security vulnerabilities. Our IT Repair & Upgrades service provides a sophisticated alternative to equipment replacement.\n\nWe employ advanced diagnostic techniques to pinpoint hardware failures with precision, whether it\'s memory degradation, storage subsystem faults, power delivery issues, or environmental factors. Once diagnosed, we implement repairs using genuine components and industry-standard procedures, with thorough testing ensuring components function at specification.\n\nBeyond repair, we design strategic upgrade paths that revitalize aging systems. Whether adding RAM to eliminate bottlenecks, upgrading to SSDs for dramatic performance gains, or improving thermal management for reliability, our engineers calculate ROI for each upgrade recommendation. This approach extends useful system life by years while maintaining manufacturer warranties and protecting your data through careful backup procedures.',
+    highlights: ['Professional hardware diagnostics & root cause analysis', 'Genuine component sourcing & installation', 'Strategic performance upgrade planning', 'Data preservation & backup procedures', 'Comprehensive system testing & validation', 'Extended warranty coverage on repairs', 'Environmental assessment (cooling, power delivery)', 'Lifecycle management & refresh planning'],
     seo_link: '/l/it-repair-guide',
   },
   {
     title: 'Managed IT Services',
     slug: 'managed-it-services',
-    description: 'Fully managed IT so you can focus on growing your business, not troubleshooting it.',
-    details: 'Managed IT Services is like having a complete IT department that works for your business 24/7. We proactively monitor your systems, apply patches before problems occur, and plan strategic upgrades that align with your business growth.\n\nRather than paying for IT support only when something breaks, managed services let you budget predictably while reducing downtime and extending the life of your technology investments.\n\nWe handle everything from network monitoring and security updates to backup management and hardware replacements - freeing your team to focus on what matters most: growing your business.',
-    highlights: ['Proactive monitoring 24/7', 'Patch management', 'IT roadmap & strategy', 'Backup & disaster recovery', 'Performance optimization', 'Technology planning'],
+    description: 'Outsourced IT management that transforms technology from a reactive cost center into a strategic asset driving competitive advantage and operational excellence.',
+    details: 'Managed IT Services represents a fundamental shift in how organizations approach technology. Rather than managing infrastructure reactively—responding only when systems fail—we proactively monitor, optimize, and evolve your entire technology environment in alignment with business objectives.\n\nOur managed approach provides several critical advantages: predictable monthly costs replace unpredictable emergency expenses, proactive patch management eliminates vulnerability windows, performance optimization extends infrastructure lifespan, and strategic planning ensures technology investments align with growth initiatives.\n\nWe assume responsibility for your complete IT infrastructure—from network availability and server health to workstation management, backup integrity, and security posture. Our team includes engineers, security specialists, and architects who bring enterprise-grade expertise to organizations of any size. You gain the benefit of a complete IT department without the overhead, recruiting challenges, or need to maintain deep technical expertise on every platform and technology in your environment.',
+    highlights: ['Proactive 24/7 monitoring & preventive maintenance', 'Strategic IT planning & roadmap development', 'Patch management & security updates', 'Backup & disaster recovery solutions', 'Cloud integration & migration support', 'Performance optimization & capacity planning', 'Consolidated billing & predictable budgeting', 'Technology refresh planning & lifecycle management'],
     seo_link: '/l/managed-it-guide',
   },
   {
     title: 'Cloud Solutions',
     slug: 'cloud-solutions',
-    description: 'Modernize your infrastructure with scalable, secure cloud environments built for your needs.',
-    details: 'Cloud computing isn\'t just for tech companies anymore. Whether you\'re looking to migrate existing applications, build new cloud-native solutions, or adopt Microsoft 365, cloud technology offers flexibility, scalability, and cost efficiency.\n\nWe help you navigate cloud options, plan migrations safely, and manage hybrid environments that blend on-premises and cloud resources. Our experience spans major platforms including Microsoft Azure, AWS, and Google Cloud.\n\nWe ensure your cloud environment is secure, properly configured for compliance, and optimized for performance and cost.',
-    highlights: ['Cloud migration planning', 'Microsoft 365 management', 'Hybrid environment support', 'Cloud security configuration', 'Cost optimization', 'Disaster recovery in cloud'],
+    description: 'Cloud architecture services that modernize infrastructure, enable scalability, and provide flexibility while maintaining security, compliance, and cost efficiency.',
+    details: 'Cloud computing has evolved from an emerging technology to a business imperative. However, successful cloud adoption requires more than simply lifting existing applications and moving them to the cloud. Effective cloud strategy demands architectural expertise, security discipline, and careful cost management.\n\nWe architect comprehensive cloud solutions across leading platforms—Microsoft Azure, Amazon Web Services, and Google Cloud—tailoring each environment to your specific requirements. For organizations migrating applications, we develop detailed migration strategies that minimize disruption, preserve data integrity, and optimize performance. For businesses building cloud-native applications, we provide guidance on microservices, containerization, and serverless architecture patterns.\n\nCloud environments demand specialized security approaches. We implement identity management, data encryption, access controls, and compliance configurations aligned with industry standards. We also optimize cloud spending through reserved capacity planning, resource right-sizing, and architectural efficiency—many organizations reduce cloud costs by 30-40% through proper optimization.',
+    highlights: ['Multi-cloud architecture & strategy', 'Application migration planning & execution', 'Microsoft 365 deployment & management', 'Hybrid cloud environment integration', 'Cloud security & compliance configuration', 'Cost optimization & resource efficiency', 'Backup & disaster recovery in cloud', 'Performance monitoring & optimization'],
     seo_link: '/l/cloud-solutions-guide',
   },
   {
     title: 'Network Infrastructure',
     slug: 'network-infrastructure',
-    description: 'Reliable, high-performance networks engineered for uptime and business continuity.',
-    details: 'Your network is the backbone of your business. A slow, unreliable network impacts productivity, security, and customer experience. A well-designed network is the foundation for growth.\n\nWe design, install, and manage networks that deliver reliability, speed, and security. From network design and cabling installation to WiFi optimization and remote access solutions, we handle the complete network lifecycle.\n\nWhether you need to upgrade aging infrastructure, add redundancy for critical applications, or optimize performance, we engineer solutions that match your business needs and budget.',
-    highlights: ['Network design & installation', 'WiFi solutions & optimization', 'VPN & remote access', 'Network security & firewalls', 'Redundancy & failover', 'Performance optimization'],
+    description: 'Enterprise network engineering delivering reliability, security, and performance—the foundational infrastructure enabling business continuity and growth.',
+    details: 'Your network is far more than a utility—it\'s the circulatory system of your organization. A poorly designed or inadequately managed network creates bottlenecks that frustrate users, exposes vulnerabilities that attackers exploit, and becomes a drag on organizational productivity.\n\nOur network engineering practice encompasses design, installation, and continuous optimization of complete network infrastructures. We employ a defense-in-depth approach, layering security controls throughout the network—from firewalls and intrusion prevention systems to network segmentation and advanced threat detection. We design for resilience, implementing redundancy, failover mechanisms, and load balancing that ensure critical services remain available even during component failures.\n\nWe optimize performance through careful capacity planning, quality-of-service configuration, and traffic engineering. We provide wireless solutions that deliver coverage and speed to every location, implement secure remote access for distributed workforces, and architect networks that scale as your organization grows. Our approach to network management emphasizes proactive monitoring, rapid issue detection, and continuous optimization—turning your network from a source of frustration into a competitive asset.',
+    highlights: ['Network design & architecture services', 'Fiber optic & structured cabling installation', 'Enterprise-grade WiFi & coverage optimization', 'Firewall & perimeter security deployment', 'Network segmentation & micro-segmentation', 'VPN & secure remote access solutions', 'Redundancy, failover & business continuity', 'Network monitoring & performance optimization'],
     seo_link: '/l/network-infrastructure-guide',
   },
 ];
@@ -108,38 +108,49 @@ export default function ServiceCategoryDetailPage() {
 
       {/* Hero Section */}
       <header
-        className="relative pt-32 pb-16 px-6 overflow-hidden"
+        className="relative pt-32 pb-20 px-6 overflow-hidden"
         style={{ background: 'linear-gradient(135deg, #0f1923 0%, #152232 100%)' }}
       >
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 right-0 w-96 h-96 rounded-full" style={{ background: '#39CCCC', filter: 'blur(100px)' }}></div>
+        </div>
         <div className="relative max-w-5xl mx-auto text-white">
           <Link
             to="/services"
-            className="inline-flex items-center gap-1 text-sm mb-4"
-            style={{ color: 'rgba(255,255,255,0.7)' }}
+            className="inline-flex items-center gap-1 text-sm mb-6"
+            style={{ color: 'rgba(255,255,255,0.6)' }}
           >
             ← Back to Services
           </Link>
-          <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-4">{service.title}</h1>
+          <h1 className="text-5xl md:text-6xl font-bold leading-tight mb-6 tracking-tight">{service.title}</h1>
           {service.description && (
-            <p className="text-lg md:text-xl max-w-3xl" style={{ color: 'rgba(255,255,255,0.85)' }}>
+            <p className="text-xl md:text-2xl max-w-3xl mb-8 font-light" style={{ color: 'rgba(255,255,255,0.9)' }}>
               {service.description}
             </p>
           )}
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-10 flex flex-wrap gap-4">
             <Link
               to="/#contact"
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold text-white"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
               style={{ background: '#39CCCC' }}
             >
-              Get in touch <ArrowRight size={14} />
+              Schedule Consultation <ArrowRight size={16} />
             </Link>
             {service.seo_link && (
               <Link
                 to={service.seo_link}
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold"
-                style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)' }}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-200"
+                style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.3)' }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.15)';
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.5)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)';
+                }}
               >
-                Read blog post <ExternalLink size={14} />
+                Read Complete Guide <ExternalLink size={16} />
               </Link>
             )}
           </div>
@@ -150,10 +161,10 @@ export default function ServiceCategoryDetailPage() {
         {/* Full Details */}
         {service.details && (
           <section>
-            <h2 className="text-3xl font-bold text-slate-900 mb-6">Service Overview</h2>
+            <h2 className="text-3xl font-bold text-slate-900 mb-6">Comprehensive Service Overview</h2>
             <div className="prose prose-lg max-w-none">
               {service.details.split(/\n\n+/).map((para, i) => (
-                <p key={i} className="text-slate-700 leading-relaxed mb-4">
+                <p key={i} className="text-slate-700 leading-relaxed mb-4 text-base">
                   {para}
                 </p>
               ))}
@@ -164,12 +175,12 @@ export default function ServiceCategoryDetailPage() {
         {/* Highlights */}
         {service.highlights.length > 0 && (
           <section>
-            <h2 className="text-3xl font-bold text-slate-900 mb-6">What We Provide</h2>
+            <h2 className="text-3xl font-bold text-slate-900 mb-6">Comprehensive Capabilities</h2>
             <div className="grid sm:grid-cols-2 gap-4">
               {service.highlights.map((highlight, i) => (
                 <div
                   key={i}
-                  className="p-4 rounded-xl flex gap-3"
+                  className="p-5 rounded-xl flex gap-4 transition-all duration-200 hover:shadow-lg"
                   style={{ background: 'rgba(57, 204, 204, 0.08)', border: '1px solid rgba(57, 204, 204, 0.2)' }}
                 >
                   <div
@@ -178,12 +189,69 @@ export default function ServiceCategoryDetailPage() {
                   >
                     <span className="text-white text-xs font-bold">✓</span>
                   </div>
-                  <p className="text-slate-700">{highlight}</p>
+                  <p className="text-slate-700 leading-snug">{highlight}</p>
                 </div>
               ))}
             </div>
           </section>
         )}
+
+        {/* Benefits Section */}
+        <section className="py-8">
+          <div className="rounded-2xl p-8 md:p-12" style={{ background: 'linear-gradient(135deg, rgba(57, 204, 204, 0.08) 0%, rgba(57, 204, 204, 0.04) 100%)', border: '1px solid rgba(57, 204, 204, 0.15)' }}>
+            <h2 className="text-3xl font-bold text-slate-900 mb-8">Strategic Benefits</h2>
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0">
+                    <div className="flex items-center justify-center h-10 w-10 rounded-lg" style={{ background: '#39CCCC' }}>
+                      <span className="text-white font-bold text-sm">✓</span>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-900 mb-2">Reduced Risk & Compliance</h3>
+                    <p className="text-slate-600 text-sm">Minimize security vulnerabilities, maintain regulatory compliance, and avoid costly breaches and penalties.</p>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0">
+                    <div className="flex items-center justify-center h-10 w-10 rounded-lg" style={{ background: '#39CCCC' }}>
+                      <span className="text-white font-bold text-sm">✓</span>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-900 mb-2">Predictable Costs</h3>
+                    <p className="text-slate-600 text-sm">Eliminate unpredictable emergency expenses with fixed, budgetable service costs.</p>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0">
+                    <div className="flex items-center justify-center h-10 w-10 rounded-lg" style={{ background: '#39CCCC' }}>
+                      <span className="text-white font-bold text-sm">✓</span>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-900 mb-2">Improved Performance</h3>
+                    <p className="text-slate-600 text-sm">Experience increased uptime, faster systems, and improved user productivity across your organization.</p>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0">
+                    <div className="flex items-center justify-center h-10 w-10 rounded-lg" style={{ background: '#39CCCC' }}>
+                      <span className="text-white font-bold text-sm">✓</span>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-900 mb-2">Strategic Focus</h3>
+                    <p className="text-slate-600 text-sm">Free your team to focus on core business initiatives instead of managing technology infrastructure.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* Blog Link */}
         {service.seo_link && (
@@ -214,16 +282,26 @@ export default function ServiceCategoryDetailPage() {
         )}
 
         {/* CTA */}
-        <section className="text-center py-8">
-          <h2 className="text-2xl font-bold text-slate-900 mb-4">Ready to get started?</h2>
-          <p className="text-slate-600 mb-6">Let's discuss how we can help with {service.title.toLowerCase()}.</p>
-          <Link
-            to="/#contact"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white"
-            style={{ background: '#39CCCC' }}
-          >
-            Schedule a consultation <ArrowRight size={14} />
-          </Link>
+        <section className="py-12">
+          <div className="rounded-2xl p-12 md:p-16 text-center" style={{ background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)', boxShadow: '0 20px 40px rgba(57, 204, 204, 0.15)' }}>
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Ready to Transform Your {service.title.toLowerCase()}?</h2>
+            <p className="text-lg text-white max-w-2xl mx-auto mb-8" style={{ opacity: 0.95 }}>
+              Let our team of certified experts develop a customized strategy aligned with your business goals and budget requirements.
+            </p>
+            <Link
+              to="/#contact"
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:shadow-xl hover:-translate-y-1"
+              style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.3)' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
+              }}
+            >
+              Schedule Your Consultation <ArrowRight size={18} />
+            </Link>
+          </div>
         </section>
       </main>
 
