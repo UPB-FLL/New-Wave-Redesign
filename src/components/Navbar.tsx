@@ -93,7 +93,7 @@ export default function Navbar() {
                 setServicesDropdownOpen(true);
               }}
               onMouseLeave={() => {
-                const timeout = setTimeout(() => setServicesDropdownOpen(false), 150);
+                const timeout = setTimeout(() => setServicesDropdownOpen(false), 300);
                 setDropdownTimeout(timeout);
               }}
             >
@@ -107,7 +107,7 @@ export default function Navbar() {
                 <ChevronDown size={14} className={`transition-transform duration-200 ${servicesDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
               {servicesDropdownOpen && (
-                <div className="absolute top-full left-0 mt-2 w-48 rounded-lg shadow-lg py-2 z-50" style={{ background: 'white', border: '1px solid rgba(21,34,50,0.1)' }}>
+                <div className="absolute top-full left-0 mt-0 pt-2 w-48 rounded-lg shadow-lg py-2 z-50" style={{ background: 'white', border: '1px solid rgba(21,34,50,0.1)' }}>
                   {serviceCategories.map((cat) => (
                     <button
                       key={cat.href}
