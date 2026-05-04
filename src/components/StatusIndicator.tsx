@@ -30,21 +30,21 @@ export default function StatusIndicator({ service }: { service: StatusService })
 
   return (
     <div
-      className="rounded-2xl p-4 transition-all duration-300 hover:-translate-y-0.5"
+      className="rounded-2xl p-4 transition-all duration-300 hover:-translate-y-0.5 flex flex-col"
       style={{
         background: 'white',
         border: `1px solid ${color}20`,
         boxShadow: `0 2px 12px ${color}10`,
       }}
     >
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-3 flex-1">
+      <div className="flex items-center justify-between mb-3 gap-2">
+        <div className="flex items-center gap-2 flex-1 min-w-0">
           <div
-            className="w-3 h-3 rounded-full"
+            className="w-3 h-3 rounded-full flex-shrink-0"
             style={{ background: color, boxShadow: `0 0 8px ${color}80` }}
           />
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-sm" style={{ color: '#152232' }}>
+            <h3 className="font-semibold text-sm leading-tight" style={{ color: '#152232' }}>
               {service.name}
             </h3>
             <p className="text-xs" style={{ color: 'rgba(21,34,50,0.5)' }}>
@@ -53,7 +53,7 @@ export default function StatusIndicator({ service }: { service: StatusService })
           </div>
         </div>
         <span
-          className="text-xs font-semibold px-2.5 py-1 rounded-lg whitespace-nowrap ml-2"
+          className="text-xs font-semibold px-2.5 py-1 rounded-lg whitespace-nowrap flex-shrink-0"
           style={{ background: `${color}15`, color }}
         >
           {label}
