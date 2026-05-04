@@ -36,6 +36,7 @@ import SeoPortal from './admin/seo/SeoPortal';
 import SeoPageEditor from './admin/seo/SeoPageEditor';
 import SeoLandingPage from './pages/SeoLandingPage';
 import { usePageMeta } from './lib/usePageMeta';
+import ElfsightChatbot from './components/ElfsightChatbot';
 
 function HomePage() {
   usePageMeta({
@@ -101,6 +102,7 @@ export default function App() {
         </Route>
       </Routes>
       </BrowserRouter>
+      <ElfsightChatbot />
     </>
   );
 }
