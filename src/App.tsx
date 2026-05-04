@@ -35,6 +35,12 @@ import StatusEditor from './admin/editors/StatusEditor';
 import SeoPortal from './admin/seo/SeoPortal';
 import SeoPageEditor from './admin/seo/SeoPageEditor';
 import SeoLandingPage from './pages/SeoLandingPage';
+import ServiceDetailPage from './pages/ServiceDetailPage';
+import ThreatDetailPage from './pages/ThreatDetailPage';
+import ServiceCategoryDetailPage from './pages/ServiceCategoryDetailPage';
+import ServicesDetailEditor from './admin/editors/ServicesDetailEditor';
+import ThreatsDetailEditor from './admin/editors/ThreatsDetailEditor';
+import ServicesCategoryEditor from './admin/editors/ServicesCategoryEditor';
 import { usePageMeta } from './lib/usePageMeta';
 import ElfsightChatbot from './components/ElfsightChatbot';
 
@@ -77,6 +83,9 @@ export default function App() {
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/status" element={<StatusPage />} />
         <Route path="/support" element={<SupportPage />} />
+        <Route path="/service/:slug" element={<ServiceDetailPage />} />
+        <Route path="/service-category/:slug" element={<ServiceCategoryDetailPage />} />
+        <Route path="/threat/:slug" element={<ThreatDetailPage />} />
         <Route path="/l/:slug" element={<SeoLandingPage />} />
         <Route
           path="/admin"
@@ -97,6 +106,9 @@ export default function App() {
           <Route path="pricing" element={<PricingEditor />} />
           <Route path="pricing-units" element={<PricingUnitsEditor />} />
           <Route path="status" element={<StatusEditor />} />
+          <Route path="services-detail" element={<ServicesDetailEditor />} />
+          <Route path="service-categories" element={<ServicesCategoryEditor />} />
+          <Route path="threats-detail" element={<ThreatsDetailEditor />} />
           <Route path="seo" element={<SeoPortal />} />
           <Route path="seo/:id" element={<SeoPageEditor />} />
         </Route>

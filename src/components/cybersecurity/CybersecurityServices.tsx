@@ -1,9 +1,11 @@
+import { Link } from 'react-router-dom';
 import { Shield, Lock, Eye, Gauge, Key, Users, ArrowUpRight } from 'lucide-react';
 
 const services = [
   {
     icon: Shield,
     title: 'Network Security',
+    slug: 'network-security',
     description: 'Multi-layered defense architecture protecting your infrastructure from external and internal threats.',
     features: ['Next-gen firewalls', 'Intrusion prevention', 'Network segmentation', 'DDoS mitigation'],
     accent: '#39CCCC',
@@ -11,6 +13,7 @@ const services = [
   {
     icon: Eye,
     title: 'Threat Detection & Response',
+    slug: 'threat-detection-response',
     description: '24/7 security operations center monitoring your environment with AI-powered analytics.',
     features: ['SIEM & SOAR', 'Incident response', 'Digital forensics', 'Threat hunting'],
     accent: '#5EBC67',
@@ -18,6 +21,7 @@ const services = [
   {
     icon: Lock,
     title: 'Endpoint Protection',
+    slug: 'endpoint-protection',
     description: 'Comprehensive security for every device — laptops, mobile, servers, and IoT.',
     features: ['EDR/XDR platform', 'Patch management', 'Device control', 'Mobile security'],
     accent: '#39CCCC',
@@ -25,6 +29,7 @@ const services = [
   {
     icon: Key,
     title: 'Identity & Access',
+    slug: 'identity-access',
     description: 'Zero-trust framework ensuring only the right people access your critical resources.',
     features: ['MFA enforcement', 'SSO integration', 'Privileged access', 'Conditional access'],
     accent: '#5EBC67',
@@ -32,6 +37,7 @@ const services = [
   {
     icon: Gauge,
     title: 'Compliance & Audit',
+    slug: 'compliance-audit',
     description: 'Stay audit-ready with automated compliance mapping and continuous monitoring.',
     features: ['HIPAA & PCI-DSS', 'SOC 2 readiness', 'Risk assessments', 'Audit reporting'],
     accent: '#39CCCC',
@@ -39,6 +45,7 @@ const services = [
   {
     icon: Users,
     title: 'Security Awareness',
+    slug: 'security-awareness',
     description: 'Build a human firewall through ongoing education and simulated phishing campaigns.',
     features: ['Phishing simulations', 'Interactive training', 'Policy management', 'Reporting'],
     accent: '#5EBC67',
@@ -72,9 +79,10 @@ export default function CybersecurityServices() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {services.map((service) => (
-            <div
+            <Link
               key={service.title}
-              className="group relative rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 cursor-pointer overflow-hidden"
+              to={`/service/${service.slug}`}
+              className="group relative rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 cursor-pointer overflow-hidden no-underline block"
               style={{
                 background: 'rgba(26, 47, 63, 0.8)',
                 border: `1px solid ${service.accent}40`,
@@ -131,7 +139,7 @@ export default function CybersecurityServices() {
                   ))}
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

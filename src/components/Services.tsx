@@ -1,4 +1,5 @@
 import { Shield, Headphones, Wrench, Monitor, Cloud, Network } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useContent } from '../lib/useContent';
 
 const iconMap: Record<string, React.ElementType> = {
@@ -8,6 +9,15 @@ const iconMap: Record<string, React.ElementType> = {
   'Managed IT Services': Monitor,
   'Cloud Solutions': Cloud,
   'Network Infrastructure': Network,
+};
+
+const slugMap: Record<string, string> = {
+  Cybersecurity: 'cybersecurity',
+  'Live IT Support': 'live-it-support',
+  'IT Repair & Upgrades': 'it-repair-upgrades',
+  'Managed IT Services': 'managed-it-services',
+  'Cloud Solutions': 'cloud-solutions',
+  'Network Infrastructure': 'network-infrastructure',
 };
 
 const defaultCards = [
@@ -56,11 +66,13 @@ export default function Services() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {cards.map((service) => {
             const Icon = iconMap[service.title] || Shield;
+            const slug = slugMap[service.title] || service.title.toLowerCase();
             const highlights = Array.isArray(service.highlights) ? service.highlights : [];
             return (
-              <div
+              <Link
                 key={service.title}
-                className="group rounded-2xl p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1"
+                to={`/service-category/${slug}`}
+                className="group rounded-2xl p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1 no-underline block"
                 style={{ background: 'rgba(26, 47, 63, 0.8)', border: `1px solid ${service.accent}40`, boxShadow: `0 2px 12px ${service.accent}10` }}
                 onMouseEnter={(e) => {
                   (e.currentTarget as HTMLElement).style.boxShadow = `0 12px 40px ${service.accent}30`;
@@ -83,7 +95,7 @@ export default function Services() {
                     </span>
                   ))}
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>
