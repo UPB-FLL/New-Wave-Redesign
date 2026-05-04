@@ -61,24 +61,24 @@ export default function Services() {
               <div
                 key={service.title}
                 className="group rounded-2xl p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1"
-                style={{ background: 'white', border: '1px solid rgba(21,34,50,0.08)', boxShadow: '0 2px 12px rgba(21,34,50,0.05)' }}
+                style={{ background: 'rgba(26, 47, 63, 0.8)', border: `1px solid ${service.accent}40`, boxShadow: `0 2px 12px ${service.accent}10` }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.boxShadow = '0 12px 40px rgba(21,34,50,0.12)';
-                  (e.currentTarget as HTMLElement).style.borderColor = `${service.accent}40`;
+                  (e.currentTarget as HTMLElement).style.boxShadow = `0 12px 40px ${service.accent}30`;
+                  (e.currentTarget as HTMLElement).style.borderColor = `${service.accent}80`;
                 }}
                 onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 12px rgba(21,34,50,0.05)';
-                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(21,34,50,0.08)';
+                  (e.currentTarget as HTMLElement).style.boxShadow = `0 2px 12px ${service.accent}10`;
+                  (e.currentTarget as HTMLElement).style.borderColor = `${service.accent}40`;
                 }}
               >
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: `${service.accent}15` }}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: `${service.accent}25` }}>
                   <Icon size={20} style={{ color: service.accent }} />
                 </div>
-                <h3 className="font-bold text-lg mb-2" style={{ color: '#152232' }}>{service.title}</h3>
-                <p className="text-sm leading-relaxed mb-3" style={{ color: 'rgba(21,34,50,0.6)' }}>{service.description}</p>
+                <h3 className="font-bold text-lg mb-2" style={{ color: '#E0F2F1' }}>{service.title}</h3>
+                <p className="text-sm leading-relaxed mb-3" style={{ color: 'rgba(224,242,241,0.75)' }}>{service.description}</p>
                 <div className="flex flex-wrap gap-1.5">
                   {highlights.map((h: string) => (
-                    <span key={h} className="text-xs font-medium px-2.5 py-0.5 rounded-full" style={{ background: `${service.accent}12`, color: service.accent }}>
+                    <span key={h} className="text-xs font-medium px-2.5 py-0.5 rounded-full" style={{ background: `${service.accent}35`, color: service.accent, border: `1px solid ${service.accent}60` }}>
                       {h}
                     </span>
                   ))}
