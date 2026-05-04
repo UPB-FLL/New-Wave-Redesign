@@ -65,7 +65,7 @@ export default function FloatingNav() {
       {showScroll && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-5 right-5 sm:bottom-8 sm:right-8 z-50 flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 hover:shadow-lg group"
+          className="fixed bottom-24 right-5 sm:bottom-28 sm:right-8 z-50 flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 hover:shadow-lg group"
           style={{
             background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)',
             animation: 'slideInUp 0.3s ease-out',
