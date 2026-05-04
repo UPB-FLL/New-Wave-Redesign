@@ -44,7 +44,7 @@ export default function StatusIndicator({ service }: { service: StatusService })
             style={{ background: color, boxShadow: `0 0 8px ${color}80` }}
           />
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-sm leading-tight" style={{ color: '#152232' }}>
+            <h3 className="font-semibold text-sm leading-tight line-clamp-1" style={{ color: '#152232' }}>
               {service.name}
             </h3>
             <p className="text-xs" style={{ color: 'rgba(21,34,50,0.5)' }}>
