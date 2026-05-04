@@ -5,6 +5,7 @@ const sections = [
   { label: 'Hero', path: '/admin/hero', icon: Star, desc: 'Headline, badge, stats, feature cards' },
   { label: 'Trust Bar', path: '/admin/trustbar', icon: ShieldCheck, desc: 'Certifications & partnership badges' },
   { label: 'Services', path: '/admin/services', icon: Layers, desc: 'Service cards, titles, highlights' },
+  { label: 'Service Categories', path: '/admin/service-categories', icon: Layers, desc: 'Category detail pages with SEO blog links' },
   { label: 'Service Details', path: '/admin/services-detail', icon: Zap, desc: 'Detailed pages for each service' },
   { label: 'Threat Details', path: '/admin/threats-detail', icon: AlertTriangle, desc: 'Detailed pages for each threat' },
   { label: 'Pricing', path: '/admin/pricing', icon: DollarSign, desc: 'Pricing tiers, plans, features' },
