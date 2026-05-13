@@ -4,10 +4,10 @@ import { useContent } from '../lib/useContent';
 type Stat = { value: string; label: string };
 
 const defaultStats: Stat[] = [
-  { value: '500+', label: 'Clients Served' },
-  { value: '99.9%', label: 'Uptime SLA' },
-  { value: '15+', label: 'Years in Business' },
-  { value: '<1hr', label: 'Avg Response' },
+  { value: '80+', label: 'Clients Served' },
+  { value: '99.9%', label: 'Uptime Guarantee' },
+  { value: '15+', label: 'Years Experience' },
+  { value: '<1hr', label: 'Avg Response Time' },
 ];
 
 export default function Hero() {
@@ -67,7 +67,7 @@ export default function Hero() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: '#39CCCC' }} />
                 <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: '#39CCCC' }} />
               </span>
-              {c.badge || '24/7 IT SUPPORT — ALWAYS ON, ALWAYS READY'}
+              {c.badge || '24/7 IT Support — Always On, Always Ready'}
             </div>
 
             <h1
