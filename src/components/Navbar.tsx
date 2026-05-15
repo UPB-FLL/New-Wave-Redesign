@@ -82,7 +82,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-8">
             <button
               onClick={() => navigate('/')}
-              className="text-base font-medium transition-colors duration-200"
+              className="text-lg font-medium transition-colors duration-200"
               style={{ color: 'rgba(21,34,50,0.7)' }}
               onMouseEnter={(e) => (e.currentTarget.style.color = '#152232')}
               onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(21,34,50,0.7)')}
@@ -103,7 +103,7 @@ export default function Navbar() {
               }}
             >
               <button
-                className="text-base font-medium transition-colors duration-200 flex items-center gap-1"
+                className="text-lg font-medium transition-colors duration-200 flex items-center gap-1"
                 style={{ color: 'rgba(21,34,50,0.7)' }}
                 onMouseEnter={(e) => (e.currentTarget.style.color = '#152232')}
                 onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(21,34,50,0.7)')}
@@ -123,7 +123,7 @@ export default function Navbar() {
                         }
                       }}
                       disabled={cat.disabled}
-                      className="w-full px-4 text-base text-left transition-colors duration-200"
+                      className="w-full px-4 text-lg text-left transition-colors duration-200"
                       style={{
                         color: cat.isOverview ? '#39CCCC' : cat.disabled ? 'rgba(21,34,50,0.4)' : 'rgba(21,34,50,0.7)',
                         paddingTop: cat.isOverview || cat.isSection ? '10px' : '10px',
@@ -160,7 +160,7 @@ export default function Navbar() {
                   <a
                     key={link.href}
                     href={link.href}
-                    className="text-base font-medium transition-colors duration-200"
+                    className="text-lg font-medium transition-colors duration-200"
                     style={{ color: 'rgba(21,34,50,0.7)' }}
                     onMouseEnter={(e) => (e.currentTarget.style.color = '#152232')}
                     onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(21,34,50,0.7)')}
@@ -174,7 +174,7 @@ export default function Navbar() {
                 <button
                   key={link.href}
                   onClick={() => handleNavClick(link.href)}
-                  className="text-base font-medium transition-colors duration-200"
+                  className="text-lg font-medium transition-colors duration-200"
                   style={{ color: 'rgba(21,34,50,0.7)' }}
                   onMouseEnter={(e) => (e.currentTarget.style.color = '#152232')}
                   onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(21,34,50,0.7)')}
@@ -185,7 +185,7 @@ export default function Navbar() {
             })}
             <button
               onClick={() => handleNavClick('/support')}
-              className="ml-auto px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105 text-white text-base"
+              className="ml-auto px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105 text-white text-lg"
               style={{
                 background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)',
                 boxShadow: '0 4px 12px rgba(57,204,204,0.3)',
