@@ -100,6 +100,29 @@ export default function WhyUsEditor() {
           defaultItem={{ title: '', desc: '' }}
         />
       </div>
+
+      <FormSection title="How It Works Section" subtitle="3-step process overview">
+        <EditorField label="Section Title" value={content.how_it_works_title ?? ''} onChange={(v) => set('how_it_works_title', v)} hint="E.g., 'How It Works'" />
+        <EditorField label="Section Description" value={content.how_it_works_desc ?? ''} onChange={(v) => set('how_it_works_desc', v)} multiline rows={2} hint="Introductory text" />
+
+        <div className="mt-4 pt-4 border-t border-white/10">
+          <h4 className="text-sm font-semibold text-white/70 mb-3">Step 1: Assessment</h4>
+          <EditorField label="Title" value={content.how_step1_title ?? ''} onChange={(v) => set('how_step1_title', v)} hint="E.g., 'Assessment'" />
+          <EditorField label="Description" value={content.how_step1_desc ?? ''} onChange={(v) => set('how_step1_desc', v)} multiline rows={2} />
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-white/10">
+          <h4 className="text-sm font-semibold text-white/70 mb-3">Step 2: Planning</h4>
+          <EditorField label="Title" value={content.how_step2_title ?? ''} onChange={(v) => set('how_step2_title', v)} hint="E.g., 'Planning'" />
+          <EditorField label="Description" value={content.how_step2_desc ?? ''} onChange={(v) => set('how_step2_desc', v)} multiline rows={2} />
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-white/10">
+          <h4 className="text-sm font-semibold text-white/70 mb-3">Step 3: Implementation & Support</h4>
+          <EditorField label="Title" value={content.how_step3_title ?? ''} onChange={(v) => set('how_step3_title', v)} hint="E.g., 'Implementation & Support'" />
+          <EditorField label="Description" value={content.how_step3_desc ?? ''} onChange={(v) => set('how_step3_desc', v)} multiline rows={2} />
+        </div>
+      </FormSection>
     </SectionEditor>
   );
 }
