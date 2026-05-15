@@ -13,6 +13,11 @@ const serviceCategories = [
   { label: 'Managed IT Services', href: '/service-category/managed-it-services' },
   { label: 'Cloud Solutions', href: '/service-category/cloud-solutions' },
   { label: 'Network Infrastructure', href: '/service-category/network-infrastructure' },
+  { label: '— Industry Solutions —', href: '#', isSection: true, disabled: true },
+  { label: 'Family Offices', href: '/service-category/family-offices' },
+  { label: 'Healthcare', href: '/service-category/healthcare' },
+  { label: 'Luxury', href: '/service-category/luxury' },
+  { label: 'Cellular DAS & Public Safety', href: '/service-category/cellular-das-and-public-safety' },
 ];
 
 const navLinks = [
@@ -112,25 +117,29 @@ export default function Navbar() {
                     <button
                       key={cat.href}
                       onClick={() => {
-                        navigate(cat.href);
-                        setServicesDropdownOpen(false);
+                        if (!cat.disabled) {
+                          navigate(cat.href);
+                          setServicesDropdownOpen(false);
+                        }
                       }}
+                      disabled={cat.disabled}
                       className="w-full px-4 text-base text-left transition-colors duration-200"
                       style={{
-                        color: cat.isOverview ? '#39CCCC' : 'rgba(21,34,50,0.7)',
-                        paddingTop: cat.isOverview ? '10px' : '10px',
+                        color: cat.isOverview ? '#39CCCC' : cat.disabled ? 'rgba(21,34,50,0.4)' : 'rgba(21,34,50,0.7)',
+                        paddingTop: cat.isOverview || cat.isSection ? '10px' : '10px',
                         paddingBottom: '10px',
-                        fontWeight: cat.isOverview ? '600' : '400',
-                        borderBottom: cat.isOverview ? '1px solid rgba(21,34,50,0.1)' : 'none',
+                        fontWeight: cat.isOverview || cat.isSection ? '600' : '400',
+                        borderBottom: cat.isOverview || cat.isSection ? '1px solid rgba(21,34,50,0.1)' : 'none',
+                        cursor: cat.disabled ? 'default' : 'pointer',
                       }}
                       onMouseEnter={(e) => {
-                        if (!cat.isOverview) {
+                        if (!cat.isOverview && !cat.disabled) {
                           e.currentTarget.style.background = 'rgba(57,204,204,0.08)';
                           e.currentTarget.style.color = '#152232';
                         }
                       }}
                       onMouseLeave={(e) => {
-                        if (!cat.isOverview) {
+                        if (!cat.isOverview && !cat.disabled) {
                           e.currentTarget.style.background = 'transparent';
                           e.currentTarget.style.color = 'rgba(21,34,50,0.7)';
                         }
@@ -249,14 +258,18 @@ export default function Navbar() {
                     <button
                       key={cat.href}
                       onClick={() => {
-                        navigate(cat.href);
-                        setIsOpen(false);
-                        setServicesDropdownOpen(false);
+                        if (!cat.disabled) {
+                          navigate(cat.href);
+                          setIsOpen(false);
+                          setServicesDropdownOpen(false);
+                        }
                       }}
+                      disabled={cat.disabled}
                       className="text-base text-left transition-colors"
                       style={{
-                        color: cat.isOverview ? '#39CCCC' : 'rgba(21,34,50,0.7)',
-                        fontWeight: cat.isOverview ? '600' : '400',
+                        color: cat.isOverview ? '#39CCCC' : cat.disabled ? 'rgba(21,34,50,0.4)' : 'rgba(21,34,50,0.7)',
+                        fontWeight: cat.isOverview || cat.isSection ? '600' : '400',
+                        cursor: cat.disabled ? 'default' : 'pointer',
                       }}
                     >
                       {cat.label}
