@@ -1,4 +1,4 @@
-import { Shield, Award, Star, Users, TrendingUp, CheckCircle, Lock, Cloud, Server, Zap, Globe, Briefcase } from 'lucide-react';
+import { Shield, Award, Star, Users, TrendingUp, CheckCircle, Lock, Cloud, Server, Zap, Globe, Briefcase, Sparkles } from 'lucide-react';
 import { useContent } from '../lib/useContent';
 
 type TrustItem = { icon: string; label: string; sub: string };
@@ -34,10 +34,37 @@ export default function TrustBar() {
       }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-5 sm:mb-6">
-          <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-widest px-2" style={{ color: 'rgba(21,34,50,0.5)' }}>
+        <div className="text-center mb-8 sm:mb-10 relative">
+          {/* Glow background */}
+          <div
+            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-2xl -z-10"
+            style={{
+              background: 'radial-gradient(circle, rgba(57,204,204,0.2) 0%, transparent 70%)',
+            }}
+          />
+
+          {/* Badge container */}
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-2 mb-4 sm:mb-5" style={{ background: 'rgba(57,204,204,0.1)', border: '1.5px solid rgba(57,204,204,0.3)', backdropFilter: 'blur(8px)' }}>
+            <Sparkles size={16} style={{ color: '#39CCCC' }} className="animate-pulse" />
+            <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
+              Trusted Partner
+            </span>
+          </div>
+
+          {/* Main heading */}
+          <h2
+            className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight"
+            style={{
+              background: 'linear-gradient(135deg, #152232 0%, #39CCCC 50%, #5EBC67 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif",
+              animation: 'fadeInUp 0.6s ease-out',
+            }}
+          >
             {heading}
-          </p>
+          </h2>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-4">
@@ -91,6 +118,16 @@ export default function TrustBar() {
 
         <style>{`
           @keyframes slideUp {
+            from {
+              opacity: 0;
+              transform: translateY(20px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+          @keyframes fadeInUp {
             from {
               opacity: 0;
               transform: translateY(20px);
