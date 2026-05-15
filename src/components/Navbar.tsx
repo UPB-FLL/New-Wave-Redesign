@@ -152,9 +152,8 @@ export default function Navbar() {
               )}
             </div>
 
-            {navLinks.map((link) => {
+            {navLinks.filter(link => link.label !== 'Support').map((link) => {
               const isExternal = 'isExternal' in link && link.isExternal;
-              const isSupport = link.label === 'Support';
 
               if (isExternal) {
                 return (
@@ -168,29 +167,6 @@ export default function Navbar() {
                   >
                     {link.label}
                   </a>
-                );
-              }
-
-              if (isSupport) {
-                return (
-                  <button
-                    key={link.href}
-                    onClick={() => handleNavClick(link.href)}
-                    className="px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105 text-white text-base"
-                    style={{
-                      background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)',
-                      boxShadow: '0 4px 12px rgba(57,204,204,0.3)',
-                      border: '1px solid rgba(255,255,255,0.2)',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.boxShadow = '0 6px 20px rgba(57,204,204,0.4)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(57,204,204,0.3)';
-                    }}
-                  >
-                    {link.label}
-                  </button>
                 );
               }
 
@@ -208,13 +184,21 @@ export default function Navbar() {
               );
             })}
             <button
-              onClick={() => handleNavClick('#contact')}
-              className="text-white text-base font-semibold px-5 py-2.5 rounded-lg transition-all duration-200 hover:-translate-y-0.5"
-              style={{ background: '#39CCCC', boxShadow: '0 4px 16px rgba(57,204,204,0.3)' }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = '#2db8b8')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = '#39CCCC')}
+              onClick={() => handleNavClick('/support')}
+              className="ml-auto px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105 text-white text-base"
+              style={{
+                background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)',
+                boxShadow: '0 4px 12px rgba(57,204,204,0.3)',
+                border: '1px solid rgba(255,255,255,0.2)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(57,204,204,0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(57,204,204,0.3)';
+              }}
             >
-              Free Assessment
+              Support
             </button>
           </div>
 
