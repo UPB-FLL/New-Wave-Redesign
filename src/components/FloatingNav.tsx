@@ -21,7 +21,9 @@ export default function FloatingNav() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleNav = (link: { label: string; path: string; hash?: string }) => {
+  const handleNav = (link: { label: string; path: string; hash?: string; disabled?: boolean }) => {
+    if (link.disabled) return;
+
     setIsOpen(false);
 
     if (link.hash) {
@@ -57,6 +59,11 @@ export default function FloatingNav() {
     { label: 'About', path: '/about' },
     { label: 'Support', path: '/support' },
     { label: 'Contact', path: '/', hash: '#contact' },
+    { label: '— Industry Solutions —', path: '#', disabled: true },
+    { label: 'Family Offices', path: '/service-category/family-offices' },
+    { label: 'Healthcare', path: '/service-category/healthcare' },
+    { label: 'Luxury', path: '/service-category/luxury' },
+    { label: 'Cellular DAS & Public Safety', path: '/service-category/cellular-das-and-public-safety' },
   ];
 
   return (
@@ -104,11 +111,23 @@ export default function FloatingNav() {
               <button
                 key={link.label}
                 onClick={() => handleNav(link)}
-                className="px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-medium text-white transition-all duration-200 hover:translate-x-1 hover:shadow-lg backdrop-blur-md text-left whitespace-nowrap"
-                style={{
-                  background: 'rgba(57, 204, 204, 0.9)',
-                  border: '1px solid rgba(57, 204, 204, 0.3)',
-                }}
+                disabled={link.disabled}
+                className={`px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-medium text-left whitespace-nowrap transition-all duration-200 backdrop-blur-md ${
+                  link.disabled
+                    ? 'text-gray-400 cursor-default opacity-60'
+                    : 'text-white hover:translate-x-1 hover:shadow-lg'
+                }`}
+                style={
+                  link.disabled
+                    ? {
+                        background: 'rgba(100, 100, 100, 0.3)',
+                        border: '1px solid rgba(100, 100, 100, 0.2)',
+                      }
+                    : {
+                        background: 'rgba(57, 204, 204, 0.9)',
+                        border: '1px solid rgba(57, 204, 204, 0.3)',
+                      }
+                }
               >
                 {link.label}
               </button>
