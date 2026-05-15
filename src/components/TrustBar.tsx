@@ -46,31 +46,61 @@ export default function TrustBar() {
             return (
               <div
                 key={`${item.label}-${idx}`}
-                className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-xl transition-all duration-200 hover:-translate-y-0.5"
+                className="relative group"
                 style={{
-                  background: 'white',
-                  border: '1px solid rgba(21,34,50,0.06)',
-                  boxShadow: '0 1px 4px rgba(21,34,50,0.03)',
+                  animation: `slideUp 0.6s ease-out ${idx * 0.1}s both`,
                 }}
               >
+                {/* Glow effect */}
                 <div
-                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-                  style={{ background: 'rgba(57,204,204,0.1)' }}
+                  className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(57,204,204,0.3) 0%, rgba(94,188,103,0.2) 100%)',
+                  }}
+                />
+
+                {/* Card */}
+                <div
+                  className="relative flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-2xl transition-all duration-300 group-hover:-translate-y-1"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.6) 100%)',
+                    border: '1.5px solid rgba(57,204,204,0.25)',
+                    boxShadow: '0 4px 20px rgba(57,204,204,0.08), inset 0 1px 0 rgba(255,255,255,0.9)',
+                    backdropFilter: 'blur(10px)',
+                  }}
                 >
-                  <Icon size={16} className="sm:w-[18px] sm:h-[18px]" style={{ color: '#39CCCC' }} />
-                </div>
-                <div className="min-w-0">
-                  <div className="text-[11px] sm:text-xs font-bold truncate" style={{ color: '#152232' }}>
-                    {item.label}
+                  <div
+                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center flex-shrink-0 transition-transform duration-300 group-hover:scale-110"
+                    style={{ background: 'rgba(57,204,204,0.15)' }}
+                  >
+                    <Icon size={16} className="sm:w-[18px] sm:h-[18px]" style={{ color: '#39CCCC' }} />
                   </div>
-                  <div className="text-[9px] sm:text-[10px] truncate" style={{ color: 'rgba(21,34,50,0.5)' }}>
-                    {item.sub}
+                  <div className="min-w-0">
+                    <div className="text-[11px] sm:text-xs font-bold truncate" style={{ color: '#152232' }}>
+                      {item.label}
+                    </div>
+                    <div className="text-[9px] sm:text-[10px] truncate" style={{ color: 'rgba(21,34,50,0.6)' }}>
+                      {item.sub}
+                    </div>
                   </div>
                 </div>
               </div>
             );
           })}
         </div>
+
+        <style>{`
+          @keyframes slideUp {
+            from {
+              opacity: 0;
+              transform: translateY(20px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+        `}</style>
       </div>
     </section>
   );
