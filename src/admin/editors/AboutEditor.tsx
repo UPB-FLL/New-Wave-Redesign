@@ -43,6 +43,58 @@ export default function AboutEditor() {
         <EditorField label="Team Tagline" value={content.team_tagline ?? ''} onChange={(v) => set('team_tagline', v)} hint="Main team message" />
         <EditorField label="Team Sub-text" value={content.team_sub ?? ''} onChange={(v) => set('team_sub', v)} hint="Supporting team message" />
       </FormSection>
+
+      <FormSection title="Our Approach Section" subtitle="How we work with clients — 4 key principles">
+        <EditorField label="Section Title" value={content.approach_title ?? ''} onChange={(v) => set('approach_title', v)} hint="E.g., 'Our Approach'" />
+        <EditorField label="Section Description" value={content.approach_desc ?? ''} onChange={(v) => set('approach_desc', v)} multiline rows={2} hint="Introductory text" />
+
+        <div className="mt-4 pt-4 border-t border-white/10">
+          <h4 className="text-sm font-semibold text-white/70 mb-3">Approach Point 1: Proactive</h4>
+          <EditorField label="Title" value={content.approach_point1_title ?? ''} onChange={(v) => set('approach_point1_title', v)} hint="E.g., 'Proactive'" />
+          <EditorField label="Description" value={content.approach_point1_desc ?? ''} onChange={(v) => set('approach_point1_desc', v)} multiline rows={2} />
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-white/10">
+          <h4 className="text-sm font-semibold text-white/70 mb-3">Approach Point 2: Collaborative</h4>
+          <EditorField label="Title" value={content.approach_point2_title ?? ''} onChange={(v) => set('approach_point2_title', v)} hint="E.g., 'Collaborative'" />
+          <EditorField label="Description" value={content.approach_point2_desc ?? ''} onChange={(v) => set('approach_point2_desc', v)} multiline rows={2} />
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-white/10">
+          <h4 className="text-sm font-semibold text-white/70 mb-3">Approach Point 3: Certified</h4>
+          <EditorField label="Title" value={content.approach_point3_title ?? ''} onChange={(v) => set('approach_point3_title', v)} hint="E.g., 'Certified'" />
+          <EditorField label="Description" value={content.approach_point3_desc ?? ''} onChange={(v) => set('approach_point3_desc', v)} multiline rows={2} />
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-white/10">
+          <h4 className="text-sm font-semibold text-white/70 mb-3">Approach Point 4: Responsive</h4>
+          <EditorField label="Title" value={content.approach_point4_title ?? ''} onChange={(v) => set('approach_point4_title', v)} hint="E.g., 'Responsive'" />
+          <EditorField label="Description" value={content.approach_point4_desc ?? ''} onChange={(v) => set('approach_point4_desc', v)} multiline rows={2} />
+        </div>
+      </FormSection>
+
+      <FormSection title="Why Choose Us Section" subtitle="3 key differentiators">
+        <EditorField label="Section Title" value={content.why_choose_title ?? ''} onChange={(v) => set('why_choose_title', v)} hint="E.g., 'Why Choose New Wave IT?'" />
+        <EditorField label="Section Description" value={content.why_choose_desc ?? ''} onChange={(v) => set('why_choose_desc', v)} multiline rows={2} hint="Introductory text" />
+
+        <div className="mt-4 pt-4 border-t border-white/10">
+          <h4 className="text-sm font-semibold text-white/70 mb-3">Reason 1: Flat-Rate Pricing</h4>
+          <EditorField label="Title" value={content.why_reason1_title ?? ''} onChange={(v) => set('why_reason1_title', v)} hint="E.g., 'Flat-Rate Pricing'" />
+          <EditorField label="Description" value={content.why_reason1_desc ?? ''} onChange={(v) => set('why_reason1_desc', v)} multiline rows={2} />
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-white/10">
+          <h4 className="text-sm font-semibold text-white/70 mb-3">Reason 2: Local Expertise</h4>
+          <EditorField label="Title" value={content.why_reason2_title ?? ''} onChange={(v) => set('why_reason2_title', v)} hint="E.g., 'Local Expertise'" />
+          <EditorField label="Description" value={content.why_reason2_desc ?? ''} onChange={(v) => set('why_reason2_desc', v)} multiline rows={2} />
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-white/10">
+          <h4 className="text-sm font-semibold text-white/70 mb-3">Reason 3: True Partnership</h4>
+          <EditorField label="Title" value={content.why_reason3_title ?? ''} onChange={(v) => set('why_reason3_title', v)} hint="E.g., 'True Partnership'" />
+          <EditorField label="Description" value={content.why_reason3_desc ?? ''} onChange={(v) => set('why_reason3_desc', v)} multiline rows={2} />
+        </div>
+      </FormSection>
     </SectionEditor>
   );
 }

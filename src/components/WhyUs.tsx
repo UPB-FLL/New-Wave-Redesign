@@ -140,6 +140,52 @@ export default function WhyUs() {
           </div>
         </div>
       </div>
+
+      {/* How It Works Section */}
+      {(c.how_it_works_title || c.how_it_works_desc || true) && (
+        <section className="py-12 sm:py-16 lg:py-24 relative" style={{ borderTop: '1px solid rgba(21,34,50,0.06)', zIndex: 10 }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-3xl mx-auto text-center mb-10 sm:mb-12">
+              <h3
+                className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-4"
+                style={{ color: '#152232', fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif" }}
+              >
+                {c.how_it_works_title || 'How It Works'}
+              </h3>
+              <p className="text-base sm:text-lg leading-relaxed" style={{ color: 'rgba(21,34,50,0.6)' }}>
+                {c.how_it_works_desc || 'A simple, straightforward process to get your technology working better.'}
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-6 sm:gap-8">
+              {[
+                { step: '1', title: c.how_step1_title || 'Assessment', desc: c.how_step1_desc || 'We audit your current setup, identify gaps, and understand your business priorities.' },
+                { step: '2', title: c.how_step2_title || 'Planning', desc: c.how_step2_desc || 'Together we create a roadmap that aligns technology with your business goals.' },
+                { step: '3', title: c.how_step3_title || 'Implementation & Support', desc: c.how_step3_desc || 'We execute the plan and stay with you through every step of the journey.' },
+              ].map((item, i) => (
+                <div
+                  key={i}
+                  className="relative p-6 sm:p-7 rounded-2xl text-center"
+                  style={{
+                    background: 'white',
+                    border: '1px solid rgba(21,34,50,0.06)',
+                    boxShadow: '0 4px 12px rgba(21,34,50,0.06)',
+                  }}
+                >
+                  <div
+                    className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 font-bold text-lg text-white"
+                    style={{ background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)' }}
+                  >
+                    {item.step}
+                  </div>
+                  <h4 className="font-bold text-lg mb-2" style={{ color: '#152232' }}>{item.title}</h4>
+                  <p className="text-sm leading-relaxed" style={{ color: 'rgba(21,34,50,0.6)' }}>{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
     </section>
   );
 }
