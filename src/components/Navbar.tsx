@@ -77,7 +77,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-8">
             <button
               onClick={() => navigate('/')}
-              className="text-sm font-medium transition-colors duration-200"
+              className="text-base font-medium transition-colors duration-200"
               style={{ color: 'rgba(21,34,50,0.7)' }}
               onMouseEnter={(e) => (e.currentTarget.style.color = '#152232')}
               onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(21,34,50,0.7)')}
@@ -98,13 +98,13 @@ export default function Navbar() {
               }}
             >
               <button
-                className="text-sm font-medium transition-colors duration-200 flex items-center gap-1"
+                className="text-base font-medium transition-colors duration-200 flex items-center gap-1"
                 style={{ color: 'rgba(21,34,50,0.7)' }}
                 onMouseEnter={(e) => (e.currentTarget.style.color = '#152232')}
                 onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(21,34,50,0.7)')}
               >
                 Services
-                <ChevronDown size={14} className={`transition-transform duration-200 ${servicesDropdownOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown size={16} className={`transition-transform duration-200 ${servicesDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
               {servicesDropdownOpen && (
                 <div className="absolute top-full left-0 mt-0 pt-2 w-52 rounded-lg shadow-lg py-1 z-50" style={{ background: 'white', border: '1px solid rgba(21,34,50,0.1)' }}>
@@ -115,7 +115,7 @@ export default function Navbar() {
                         navigate(cat.href);
                         setServicesDropdownOpen(false);
                       }}
-                      className="w-full px-4 text-sm text-left transition-colors duration-200"
+                      className="w-full px-4 text-base text-left transition-colors duration-200"
                       style={{
                         color: cat.isOverview ? '#39CCCC' : 'rgba(21,34,50,0.7)',
                         paddingTop: cat.isOverview ? '10px' : '10px',
@@ -152,7 +152,7 @@ export default function Navbar() {
                   <a
                     key={link.href}
                     href={link.href}
-                    className="text-sm font-medium transition-colors duration-200"
+                    className="text-base font-medium transition-colors duration-200"
                     style={{ color: 'rgba(21,34,50,0.7)' }}
                     onMouseEnter={(e) => (e.currentTarget.style.color = '#152232')}
                     onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(21,34,50,0.7)')}
@@ -167,7 +167,7 @@ export default function Navbar() {
                   <button
                     key={link.href}
                     onClick={() => handleNavClick(link.href)}
-                    className="px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105 text-white text-sm"
+                    className="px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105 text-white text-base"
                     style={{
                       background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)',
                       boxShadow: '0 4px 12px rgba(57,204,204,0.3)',
@@ -189,7 +189,7 @@ export default function Navbar() {
                 <button
                   key={link.href}
                   onClick={() => handleNavClick(link.href)}
-                  className="text-sm font-medium transition-colors duration-200"
+                  className="text-base font-medium transition-colors duration-200"
                   style={{ color: 'rgba(21,34,50,0.7)' }}
                   onMouseEnter={(e) => (e.currentTarget.style.color = '#152232')}
                   onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(21,34,50,0.7)')}
@@ -200,7 +200,7 @@ export default function Navbar() {
             })}
             <button
               onClick={() => handleNavClick('#contact')}
-              className="text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-all duration-200 hover:-translate-y-0.5"
+              className="text-white text-base font-semibold px-5 py-2.5 rounded-lg transition-all duration-200 hover:-translate-y-0.5"
               style={{ background: '#39CCCC', boxShadow: '0 4px 16px rgba(57,204,204,0.3)' }}
               onMouseEnter={(e) => (e.currentTarget.style.background = '#2db8b8')}
               onMouseLeave={(e) => (e.currentTarget.style.background = '#39CCCC')}
@@ -253,7 +253,7 @@ export default function Navbar() {
                         setIsOpen(false);
                         setServicesDropdownOpen(false);
                       }}
-                      className="text-sm text-left transition-colors"
+                      className="text-base text-left transition-colors"
                       style={{
                         color: cat.isOverview ? '#39CCCC' : 'rgba(21,34,50,0.7)',
                         fontWeight: cat.isOverview ? '600' : '400',
