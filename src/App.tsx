@@ -43,6 +43,10 @@ import ITRepairServicePage from './pages/ITRepairServicePage';
 import ManagedITServicePage from './pages/ManagedITServicePage';
 import CloudSolutionsServicePage from './pages/CloudSolutionsServicePage';
 import NetworkInfrastructureServicePage from './pages/NetworkInfrastructureServicePage';
+import FamilyOfficesServicePage from './pages/FamilyOfficesServicePage';
+import HealthcareServicePage from './pages/HealthcareServicePage';
+import LuxuryServicePage from './pages/LuxuryServicePage';
+import CellularDASPublicSafetyServicePage from './pages/CellularDASPublicSafetyServicePage';
 import ServiceGuidePage from './pages/ServiceGuidePage';
 import ServicesDetailEditor from './admin/editors/ServicesDetailEditor';
 import ThreatsDetailEditor from './admin/editors/ThreatsDetailEditor';
@@ -96,6 +100,10 @@ export default function App() {
         <Route path="/service-category/managed-it-services" element={<ManagedITServicePage />} />
         <Route path="/service-category/cloud-solutions" element={<CloudSolutionsServicePage />} />
         <Route path="/service-category/network-infrastructure" element={<NetworkInfrastructureServicePage />} />
+        <Route path="/service-category/family-offices" element={<FamilyOfficesServicePage />} />
+        <Route path="/service-category/healthcare" element={<HealthcareServicePage />} />
+        <Route path="/service-category/luxury" element={<LuxuryServicePage />} />
+        <Route path="/service-category/cellular-das-and-public-safety" element={<CellularDASPublicSafetyServicePage />} />
         <Route path="/threat/:slug" element={<ThreatDetailPage />} />
         <Route path="/l/:slug" element={<ServiceGuidePage />} />
         <Route

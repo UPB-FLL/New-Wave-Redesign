@@ -1,4 +1,4 @@
-import { Shield, Headphones, Wrench, Monitor, Cloud, Network } from 'lucide-react';
+import { Shield, Headphones, Wrench, Monitor, Cloud, Network, Briefcase, Stethoscope, Crown, Signal } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useContent } from '../lib/useContent';
 
@@ -9,6 +9,10 @@ const iconMap: Record<string, React.ElementType> = {
   'Managed IT Services': Monitor,
   'Cloud Solutions': Cloud,
   'Network Infrastructure': Network,
+  'Family Offices': Briefcase,
+  'Healthcare': Stethoscope,
+  'Luxury': Crown,
+  'Cellular DAS & Public Safety': Signal,
 };
 
 const slugMap: Record<string, string> = {
@@ -18,6 +22,10 @@ const slugMap: Record<string, string> = {
   'Managed IT Services': 'managed-it-services',
   'Cloud Solutions': 'cloud-solutions',
   'Network Infrastructure': 'network-infrastructure',
+  'Family Offices': 'family-offices',
+  'Healthcare': 'healthcare',
+  'Luxury': 'luxury',
+  'Cellular DAS & Public Safety': 'cellular-das-and-public-safety',
 };
 
 const defaultCards = [
@@ -98,6 +106,54 @@ export default function Services() {
               </Link>
             );
           })}
+        </div>
+
+        <div className="mt-16 pt-12 border-t" style={{ borderColor: 'rgba(21,34,50,0.1)' }}>
+          <div className="text-center mb-8 sm:mb-10">
+            <span className="text-xs sm:text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
+              Specialized Industries
+            </span>
+            <h3 className="text-3xl sm:text-4xl lg:text-5xl mt-2 mb-4 leading-[0.95] tracking-tight" style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}>
+              Industry-Specific <span style={{ display: 'inline-block', background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Solutions</span>
+            </h3>
+            <p className="text-sm sm:text-base max-w-2xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
+              Tailored technology for specialized industries with unique challenges and compliance requirements.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            {[
+              { title: 'Family Offices', description: 'Secure wealth management technology for multi-generational family enterprises with privacy-first infrastructure.', accent: '#39CCCC' },
+              { title: 'Healthcare', description: 'HIPAA-compliant systems with EHR integration and secure patient data management for medical practices.', accent: '#5EBC67' },
+              { title: 'Luxury', description: 'Premium smart home automation and guest experience technology for luxury properties and resorts.', accent: '#39CCCC' },
+              { title: 'Cellular DAS & Public Safety', description: 'FirstNet-compliant communications infrastructure for emergency responders and critical facilities.', accent: '#5EBC67' },
+            ].map((service) => {
+              const Icon = iconMap[service.title] || Shield;
+              const slug = slugMap[service.title] || service.title.toLowerCase();
+              return (
+                <Link
+                  key={service.title}
+                  to={`/service-category/${slug}`}
+                  className="group rounded-2xl p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1 no-underline block"
+                  style={{ background: 'rgba(26, 47, 63, 0.8)', border: `1px solid ${service.accent}40`, boxShadow: `0 2px 12px ${service.accent}10` }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLElement).style.boxShadow = `0 12px 40px ${service.accent}30`;
+                    (e.currentTarget as HTMLElement).style.borderColor = `${service.accent}80`;
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLElement).style.boxShadow = `0 2px 12px ${service.accent}10`;
+                    (e.currentTarget as HTMLElement).style.borderColor = `${service.accent}40`;
+                  }}
+                >
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: `${service.accent}25` }}>
+                    <Icon size={20} style={{ color: service.accent }} />
+                  </div>
+                  <h3 className="font-bold text-lg mb-2" style={{ color: '#E0F2F1' }}>{service.title}</h3>
+                  <p className="text-sm leading-relaxed" style={{ color: 'rgba(224,242,241,0.75)' }}>{service.description}</p>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>
