@@ -1,23 +1,33 @@
 import { useState, useEffect } from 'react';
-import { Menu, X, ChevronDown } from 'lucide-react';
+import { Menu, X, ChevronDown, Shield, Headphones, Wrench, Monitor, Cloud, Network, Briefcase, Stethoscope, Crown, Signal, ArrowRight } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const LOGO_URL =
   'https://images.squarespace-cdn.com/content/v1/64c044f11baf2d14ebb899c6/fb59af7c-4a76-48a9-ab9d-88a58a54496e/new-wave-it-high-resolution-logo-transparent.png?format=500w';
 
-const serviceCategories = [
-  { label: 'Overview', href: '/services', isOverview: true },
-  { label: 'Cybersecurity', href: '/service-category/cybersecurity' },
-  { label: 'Live IT Support', href: '/service-category/live-it-support' },
-  { label: 'IT Repair & Upgrades', href: '/service-category/it-repair-upgrades' },
-  { label: 'Managed IT Services', href: '/service-category/managed-it-services' },
-  { label: 'Cloud Solutions', href: '/service-category/cloud-solutions' },
-  { label: 'Network Infrastructure', href: '/service-category/network-infrastructure' },
-  { label: '— Industry Solutions —', href: '#', isSection: true, disabled: true },
-  { label: 'Family Offices', href: '/service-category/family-offices' },
-  { label: 'Healthcare', href: '/service-category/healthcare' },
-  { label: 'Luxury', href: '/service-category/luxury' },
-  { label: 'Cellular DAS & Public Safety', href: '/service-category/cellular-das-and-public-safety' },
+const serviceGroups = [
+  {
+    heading: 'Core Services',
+    accent: '#39CCCC',
+    items: [
+      { label: 'Cybersecurity', href: '/service-category/cybersecurity', icon: Shield },
+      { label: 'Live IT Support', href: '/service-category/live-it-support', icon: Headphones },
+      { label: 'IT Repair & Upgrades', href: '/service-category/it-repair-upgrades', icon: Wrench },
+      { label: 'Managed IT Services', href: '/service-category/managed-it-services', icon: Monitor },
+      { label: 'Cloud Solutions', href: '/service-category/cloud-solutions', icon: Cloud },
+      { label: 'Network Infrastructure', href: '/service-category/network-infrastructure', icon: Network },
+    ],
+  },
+  {
+    heading: 'Industry Solutions',
+    accent: '#5EBC67',
+    items: [
+      { label: 'Family Offices', href: '/service-category/family-offices', icon: Briefcase },
+      { label: 'Healthcare', href: '/service-category/healthcare', icon: Stethoscope },
+      { label: 'Luxury', href: '/service-category/luxury', icon: Crown },
+      { label: 'Cellular DAS & Public Safety', href: '/service-category/cellular-das-and-public-safety', icon: Signal },
+    ],
+  },
 ];
 
 const navLinks = [
@@ -128,42 +138,67 @@ export default function Navbar() {
                 <ChevronDown size={16} className={`transition-transform duration-200 ${servicesDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
               {servicesDropdownOpen && (
-                <div className="absolute top-full left-0 mt-0 pt-2 w-52 rounded-lg shadow-lg py-1 z-50" style={{ background: 'white', border: '1px solid rgba(21,34,50,0.1)' }}>
-                  {serviceCategories.map((cat, idx) => (
+                <div className="absolute top-full left-1/2 -translate-x-1/2 pt-3 z-50">
+                  <div
+                    className="w-[600px] rounded-2xl bg-white overflow-hidden"
+                    style={{ border: '1px solid rgba(21,34,50,0.08)', boxShadow: '0 24px 60px -12px rgba(21,34,50,0.22)' }}
+                  >
+                    <div className="grid grid-cols-2">
+                      {serviceGroups.map((group, gi) => (
+                        <div
+                          key={group.heading}
+                          className="p-3.5"
+                          style={gi === 1 ? { borderLeft: '1px solid rgba(21,34,50,0.06)', background: 'rgba(21,34,50,0.025)' } : undefined}
+                        >
+                          <p className="px-3 pt-1 pb-2 text-xs font-semibold uppercase tracking-widest" style={{ color: group.accent }}>
+                            {group.heading}
+                          </p>
+                          <div className="flex flex-col gap-0.5">
+                            {group.items.map((item) => {
+                              const ItemIcon = item.icon;
+                              return (
+                                <button
+                                  key={item.href}
+                                  onClick={() => {
+                                    navigate(item.href);
+                                    setServicesDropdownOpen(false);
+                                  }}
+                                  className="w-full flex items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors duration-150"
+                                  onMouseEnter={(e) => (e.currentTarget.style.background = `${group.accent}14`)}
+                                  onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                                >
+                                  <span className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${group.accent}1A` }}>
+                                    <ItemIcon size={17} style={{ color: group.accent }} />
+                                  </span>
+                                  <span className="text-[15px] font-medium leading-snug" style={{ color: '#152232' }}>
+                                    {item.label}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                     <button
-                      key={cat.href}
                       onClick={() => {
-                        if (!cat.disabled) {
-                          navigate(cat.href);
-                          setServicesDropdownOpen(false);
-                        }
+                        navigate('/services');
+                        setServicesDropdownOpen(false);
                       }}
-                      disabled={cat.disabled}
-                      className="w-full px-4 text-lg text-left transition-colors duration-200"
-                      style={{
-                        color: cat.isOverview ? '#39CCCC' : cat.disabled ? 'rgba(21,34,50,0.4)' : 'rgba(21,34,50,0.7)',
-                        paddingTop: cat.isOverview || cat.isSection ? '10px' : '10px',
-                        paddingBottom: '10px',
-                        fontWeight: cat.isOverview || cat.isSection ? '600' : '400',
-                        borderBottom: cat.isOverview || cat.isSection ? '1px solid rgba(21,34,50,0.1)' : 'none',
-                        cursor: cat.disabled ? 'default' : 'pointer',
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!cat.isOverview && !cat.disabled) {
-                          e.currentTarget.style.background = 'rgba(57,204,204,0.08)';
-                          e.currentTarget.style.color = '#152232';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!cat.isOverview && !cat.disabled) {
-                          e.currentTarget.style.background = 'transparent';
-                          e.currentTarget.style.color = 'rgba(21,34,50,0.7)';
-                        }
-                      }}
+                      className="w-full flex items-center justify-between px-7 py-3.5 transition-colors duration-150"
+                      style={{ background: 'rgba(57,204,204,0.07)', borderTop: '1px solid rgba(21,34,50,0.06)' }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(57,204,204,0.14)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(57,204,204,0.07)')}
                     >
-                      {cat.label}
+                      <span className="text-sm font-medium" style={{ color: 'rgba(21,34,50,0.65)' }}>
+                        Not sure where to start?
+                      </span>
+                      <span className="flex items-center gap-1.5 text-sm font-semibold" style={{ color: '#2db8b8' }}>
+                        View all services
+                        <ArrowRight size={15} />
+                      </span>
                     </button>
-                  ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -255,28 +290,45 @@ export default function Navbar() {
                 <ChevronDown size={16} className={`transition-transform duration-200 ${servicesDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
               {servicesDropdownOpen && (
-                <div className="mt-2 ml-4 flex flex-col gap-3 border-l-2 pl-3" style={{ borderColor: 'rgba(57,204,204,0.3)' }}>
-                  {serviceCategories.map((cat) => (
-                    <button
-                      key={cat.href}
-                      onClick={() => {
-                        if (!cat.disabled) {
-                          navigate(cat.href);
-                          setIsOpen(false);
-                          setServicesDropdownOpen(false);
-                        }
-                      }}
-                      disabled={cat.disabled}
-                      className="text-base text-left transition-colors"
-                      style={{
-                        color: cat.isOverview ? '#39CCCC' : cat.disabled ? 'rgba(21,34,50,0.4)' : 'rgba(21,34,50,0.7)',
-                        fontWeight: cat.isOverview || cat.isSection ? '600' : '400',
-                        cursor: cat.disabled ? 'default' : 'pointer',
-                      }}
-                    >
-                      {cat.label}
-                    </button>
+                <div className="mt-2 ml-2 flex flex-col gap-1">
+                  {serviceGroups.map((group) => (
+                    <div key={group.heading}>
+                      <p className="px-1 pt-2 pb-1 text-xs font-semibold uppercase tracking-widest" style={{ color: group.accent }}>
+                        {group.heading}
+                      </p>
+                      {group.items.map((item) => {
+                        const ItemIcon = item.icon;
+                        return (
+                          <button
+                            key={item.href}
+                            onClick={() => {
+                              navigate(item.href);
+                              setIsOpen(false);
+                              setServicesDropdownOpen(false);
+                            }}
+                            className="w-full flex items-center gap-2.5 px-1 py-2 text-left"
+                          >
+                            <span className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${group.accent}1A` }}>
+                              <ItemIcon size={14} style={{ color: group.accent }} />
+                            </span>
+                            <span className="text-base" style={{ color: 'rgba(21,34,50,0.75)' }}>{item.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   ))}
+                  <button
+                    onClick={() => {
+                      navigate('/services');
+                      setIsOpen(false);
+                      setServicesDropdownOpen(false);
+                    }}
+                    className="flex items-center gap-1.5 px-1 py-2 text-base font-semibold text-left"
+                    style={{ color: '#2db8b8' }}
+                  >
+                    View all services
+                    <ArrowRight size={15} />
+                  </button>
                 </div>
               )}
             </div>
