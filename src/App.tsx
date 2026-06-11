@@ -80,7 +80,6 @@ function HomePage() {
       <Services />
       <WhyUs />
       <Testimonials />
-      <About />
       <Contact />
       <Footer />
     </div>
