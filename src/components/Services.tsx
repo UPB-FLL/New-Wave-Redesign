@@ -170,7 +170,7 @@ function ServiceCardInner({
 
       {large && <BeamConnection />}
 
-      <div className="flex flex-wrap gap-1.5">
+      <div className={`flex flex-wrap gap-1.5 ${large ? 'justify-center' : ''}`}>
         {highlights.map((h: string) => (
           <span
             key={h}
