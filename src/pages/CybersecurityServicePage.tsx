@@ -80,7 +80,7 @@ export default function CybersecurityServicePage() {
 
           <div className="grid md:grid-cols-2 gap-6 mt-12">
             <button
-              onClick={() => navigate('/#contact')}
+              onClick={() => navigate('/contact')}
               className="px-6 py-4 rounded-xl font-semibold text-white text-left transition-all duration-200 hover:scale-105"
               style={{
                 background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)',
@@ -232,7 +232,7 @@ export default function CybersecurityServicePage() {
             Schedule a confidential security assessment with our team to identify vulnerabilities and develop a comprehensive security roadmap.
           </p>
           <button
-            onClick={() => navigate('/#contact')}
+            onClick={() => navigate('/contact')}
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white transition-all duration-200 hover:scale-105"
             style={{
               background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)',

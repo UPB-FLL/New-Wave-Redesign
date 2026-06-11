@@ -79,7 +79,7 @@ export default function HealthcareServicePage() {
           </div>
 
           <button
-            onClick={() => navigate('/#contact')}
+            onClick={() => navigate('/contact')}
             className="px-6 py-4 rounded-xl font-semibold text-white transition-all duration-200 hover:scale-105"
             style={{
               background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)',
@@ -232,7 +232,7 @@ export default function HealthcareServicePage() {
             Let's discuss how compliant, integrated IT infrastructure can support clinical excellence and operational efficiency in your practice.
           </p>
           <button
-            onClick={() => navigate('/#contact')}
+            onClick={() => navigate('/contact')}
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white transition-all duration-200 hover:scale-105"
             style={{
               background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)',

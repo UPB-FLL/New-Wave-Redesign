@@ -33,6 +33,7 @@ import AboutEditor from './admin/editors/AboutEditor';
 import ContactEditor from './admin/editors/ContactEditor';
 import FooterEditor from './admin/editors/FooterEditor';
 import PricingUnitsEditor from './admin/editors/PricingUnitsEditor';
+import ContactPage from './pages/ContactPage';
 import CybersecurityPage from './pages/CybersecurityPage';
 import WhyUsPage from './pages/WhyUsPage';
 import AboutPage from './pages/AboutPage';
@@ -80,7 +81,6 @@ function HomePage() {
       <Services />
       <WhyUs />
       <Testimonials />
-      <Contact />
       <Footer />
     </div>
   );
@@ -97,6 +97,7 @@ export default function App() {
         <FloatingNav />
         <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/contact" element={<ContactPage />} />
         <Route path="/cybersecurity" element={<CybersecurityPage />} />
         <Route path="/why-us" element={<WhyUsPage />} />
         <Route path="/about" element={<AboutPage />} />

@@ -73,7 +73,7 @@ export default function NetworkInfrastructureServicePage() {
 
           <div className="grid md:grid-cols-2 gap-4">
             <button
-              onClick={() => navigate('/#contact')}
+              onClick={() => navigate('/contact')}
               className="px-6 py-4 rounded-xl font-semibold text-white transition-all duration-200 hover:scale-105"
               style={{
                 background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)',
@@ -281,7 +281,7 @@ export default function NetworkInfrastructureServicePage() {
             Let's design a network that grows with your business. Fast, secure, and built to last.
           </p>
           <button
-            onClick={() => navigate('/#contact')}
+            onClick={() => navigate('/contact')}
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white transition-all duration-200 hover:scale-105"
             style={{
               background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)',

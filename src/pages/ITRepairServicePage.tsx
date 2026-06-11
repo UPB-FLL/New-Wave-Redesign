@@ -80,7 +80,7 @@ export default function ITRepairServicePage() {
 
           <div className="grid md:grid-cols-3 gap-4 mt-12">
             <button
-              onClick={() => navigate('/#contact')}
+              onClick={() => navigate('/contact')}
               className="px-6 py-4 rounded-xl font-semibold text-white transition-all duration-200 hover:scale-105"
               style={{
                 background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)',
@@ -100,7 +100,7 @@ export default function ITRepairServicePage() {
               Read Our Guide
             </a>
             <button
-              onClick={() => navigate('/#contact')}
+              onClick={() => navigate('/contact')}
               className="px-6 py-4 rounded-xl font-semibold text-white transition-all duration-200 hover:scale-105"
               style={{
                 background: 'rgba(255,255,255,0.05)',
@@ -291,7 +291,7 @@ export default function ITRepairServicePage() {
             Same-day diagnostics for most devices. We'll tell you exactly what's wrong and the best path forward.
           </p>
           <button
-            onClick={() => navigate('/#contact')}
+            onClick={() => navigate('/contact')}
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white transition-all duration-200 hover:scale-105"
             style={{
               background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)',

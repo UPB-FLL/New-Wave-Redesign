@@ -79,7 +79,7 @@ export default function CloudSolutionsServicePage() {
           </div>
 
           <button
-            onClick={() => navigate('/#contact')}
+            onClick={() => navigate('/contact')}
             className="px-6 py-4 rounded-xl font-semibold text-white transition-all duration-200 hover:scale-105"
             style={{
               background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)',
@@ -266,7 +266,7 @@ export default function CloudSolutionsServicePage() {
             Let's discuss your migration strategy. We'll assess your current environment and create a roadmap for successful cloud adoption.
           </p>
           <button
-            onClick={() => navigate('/#contact')}
+            onClick={() => navigate('/contact')}
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white transition-all duration-200 hover:scale-105"
             style={{
               background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)',

@@ -26,7 +26,7 @@ const navLinks = [
   { label: 'About', href: '/about' },
   { label: 'Support', href: '/support' },
   { label: 'Status', href: '/status' },
-  { label: 'Contact', href: '#contact' },
+  { label: 'Contact', href: '/contact' },
 ];
 
 export default function Navbar() {
@@ -330,7 +330,7 @@ export default function Navbar() {
               );
             })}
             <button
-              onClick={() => handleNavClick('#contact')}
+              onClick={() => handleNavClick('/contact')}
               className="text-white font-semibold px-5 py-3 rounded-lg transition-all duration-200 text-center"
               style={{ background: '#39CCCC' }}
             >
