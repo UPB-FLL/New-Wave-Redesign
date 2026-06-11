@@ -1,4 +1,13 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+  }, [pathname]);
+  return null;
+}
 import { Analytics } from '@vercel/analytics/react';
 import BackgroundCircles from './components/BackgroundCircles';
 import WaveBackground from './components/WaveBackground';
@@ -85,6 +94,7 @@ export default function App() {
       <BackgroundCircles />
       <WaveBackground />
       <BrowserRouter>
+        <ScrollToTop />
         <FloatingNav />
         <Routes>
         <Route path="/" element={<HomePage />} />
