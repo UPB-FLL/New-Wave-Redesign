@@ -58,7 +58,7 @@ export default function FloatingNav() {
     { label: 'Why Us', path: '/why-us' },
     { label: 'About', path: '/about' },
     { label: 'Support', path: '/support' },
-    { label: 'Contact', path: '/', hash: '#contact' },
+    { label: 'Contact', path: '/contact' },
     { label: '— Industry Solutions —', path: '#', disabled: true },
     { label: 'Family Offices', path: '/service-category/family-offices' },
     { label: 'Healthcare', path: '/service-category/healthcare' },

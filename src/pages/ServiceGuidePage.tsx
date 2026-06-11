@@ -553,7 +553,7 @@ export default function ServiceGuidePage() {
               Our team of certified experts can help you develop and execute a customized implementation plan.
             </p>
             <Link
-              to="/#contact"
+              to="/contact"
               className="inline-flex items-center gap-2 px-8 py-4 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:shadow-xl hover:-translate-y-1"
               style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.3)' }}
               onMouseEnter={(e) => {

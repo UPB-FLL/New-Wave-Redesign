@@ -1,5 +1,6 @@
 import { Clock, Award, Users, Lightbulb, CheckCircle2, ArrowRight } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { useContent } from '../lib/useContent';
 import { FadeIn } from './ui/fade-in';
 import { FADE_UP, DURATION, EASE, STAGGER_CONTAINER } from '../lib/animation';
@@ -30,6 +31,7 @@ const defaultCards: FeatureCard[] = [
 export default function WhyUs() {
   const c = useContent('whyus');
   const reduced = useReducedMotion();
+  const navigate = useNavigate();
 
   let proofPoints: string[] = defaultProofPoints;
   let cards: FeatureCard[] = defaultCards;
@@ -97,10 +99,7 @@ export default function WhyUs() {
               </div>
 
               <button
-                onClick={() => {
-                  const el = document.querySelector('#contact');
-                  if (el) el.scrollIntoView({ behavior: 'smooth' });
-                }}
+                onClick={() => navigate('/contact')}
                 className="group inline-flex items-center gap-2 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-200 hover:-translate-y-0.5"
                 style={{
                   background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)',

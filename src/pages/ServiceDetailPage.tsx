@@ -72,7 +72,7 @@ export default function ServiceDetailPage() {
           )}
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
-              to="/#contact"
+              to="/contact"
               className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold text-white"
               style={{ background: '#39CCCC' }}
             >
@@ -145,7 +145,7 @@ export default function ServiceDetailPage() {
           <h2 className="text-2xl font-bold text-slate-900 mb-4">Ready to get started?</h2>
           <p className="text-slate-600 mb-6">Contact our team for a free assessment and implementation plan.</p>
           <Link
-            to="/#contact"
+            to="/contact"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white"
             style={{ background: '#39CCCC' }}
           >

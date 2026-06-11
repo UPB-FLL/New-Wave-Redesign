@@ -1,10 +1,8 @@
 import { ArrowRight, Shield, Phone, Calendar, CheckCircle2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function CyberSecurityCTA() {
-  const handleScroll = (href: string) => {
-    const el = document.querySelector(href);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  };
+  const navigate = useNavigate();
 
   return (
     <section
@@ -91,6 +89,7 @@ export default function CyberSecurityCTA() {
 
               <div className="flex flex-col sm:flex-row gap-3 mb-5">
                 <button
+                  onClick={() => navigate('/contact')}
                   className="group flex items-center justify-center gap-2.5 font-semibold px-7 py-3.5 rounded-xl transition-all duration-200 hover:-translate-y-0.5 text-white"
                   style={{
                     background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)',
@@ -102,7 +101,7 @@ export default function CyberSecurityCTA() {
                   <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                 </button>
                 <button
-                  onClick={() => handleScroll('#contact')}
+                  onClick={() => navigate('/contact')}
                   className="font-semibold px-7 py-3.5 rounded-xl transition-all duration-200 hover:-translate-y-0.5 flex items-center justify-center gap-2"
                   style={{
                     border: '1.5px solid rgba(255,255,255,0.2)',

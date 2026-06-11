@@ -35,16 +35,7 @@ export default function Footer() {
   const address = c.address || '710 NW 5th Ave, Suite 1072, Fort Lauderdale, FL 33311';
 
   const handleContactClick = () => {
-    if (location.pathname === '/') {
-      const el = document.querySelector('#contact');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    } else {
-      navigate('/');
-      setTimeout(() => {
-        const el = document.querySelector('#contact');
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-      }, 300);
-    }
+    navigate('/contact');
   };
 
   return (

@@ -1,5 +1,6 @@
 import { ArrowRight, Phone } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { useContent } from '../lib/useContent';
 import { Spotlight } from './ui/spotlight';
 import { ShimmerButton } from './ui/shimmer-button';
@@ -42,11 +43,7 @@ function MotionDiv({
 
 export default function Hero() {
   const c = useContent('hero');
-
-  const handleScroll = (href: string) => {
-    const el = document.querySelector(href);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  };
+  const navigate = useNavigate();
 
   let stats: Stat[] = defaultStats;
   try { if (c.stats) stats = JSON.parse(c.stats); } catch { /* use default */ }
@@ -138,7 +135,7 @@ export default function Hero() {
         <MotionDiv delay={0.3}>
           <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 mb-6 sm:mb-7 justify-center">
             <ShimmerButton
-              onClick={() => handleScroll('#contact')}
+              onClick={() => navigate('/contact')}
               className="px-6 py-3 rounded-xl text-base"
             >
               {c.cta_primary || 'Get a Free Assessment'}

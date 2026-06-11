@@ -95,7 +95,7 @@ export default function ThreatDetailPage() {
           )}
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
-              to="/#contact"
+              to="/contact"
               className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold text-white"
               style={{ background: '#39CCCC' }}
             >
@@ -180,7 +180,7 @@ export default function ThreatDetailPage() {
           <h2 className="text-2xl font-bold text-slate-900 mb-4">Protect against {threat.name}</h2>
           <p className="text-slate-600 mb-6">Our security experts can help you build defenses against this threat.</p>
           <Link
-            to="/#contact"
+            to="/contact"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white"
             style={{ background: '#39CCCC' }}
           >

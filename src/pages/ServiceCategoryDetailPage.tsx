@@ -130,7 +130,7 @@ export default function ServiceCategoryDetailPage() {
           )}
           <div className="mt-10 flex flex-wrap gap-4">
             <Link
-              to="/#contact"
+              to="/contact"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
               style={{ background: '#39CCCC' }}
             >
@@ -289,7 +289,7 @@ export default function ServiceCategoryDetailPage() {
               Let our team of certified experts develop a customized strategy aligned with your business goals and budget requirements.
             </p>
             <Link
-              to="/#contact"
+              to="/contact"
               className="inline-flex items-center gap-2 px-8 py-4 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:shadow-xl hover:-translate-y-1"
               style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.3)' }}
               onMouseEnter={(e) => {

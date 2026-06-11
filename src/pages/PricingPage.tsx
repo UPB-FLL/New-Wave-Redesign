@@ -8,9 +8,11 @@ import { usePageMeta } from '../lib/usePageMeta';
 
 export default function PricingPage() {
   usePageMeta({
-    title: 'Pricing — Transparent IT Service Plans',
+    title: 'IT Services Pricing Fort Lauderdale — Transparent Flat-Rate Plans',
     description:
-      'Build your custom IT services quote. Select employees, computers, locations, and more. Get an instant estimate.',
+      'Transparent, flat-rate IT service pricing for South Florida businesses. Build a custom quote in seconds — no hidden fees, no long-term contracts. Get your estimate from New Wave IT.',
+    keywords: 'IT services pricing Fort Lauderdale, managed IT cost South Florida, flat-rate IT services, MSP pricing, IT support cost, how much managed IT services cost',
+    canonical: 'https://www.newwaveitfl.com/pricing',
   });
   const c = useContent('pricing');
 
