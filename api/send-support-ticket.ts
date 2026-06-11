@@ -9,6 +9,19 @@ interface SupportTicketData {
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+function escapeHtml(unsafe: string): string {
+  return String(unsafe ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function isValidEmail(email: string): boolean {
+  return /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(email);
+}
+
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -16,17 +29,27 @@ export default async function handler(req: any, res: any) {
 
   const { name, email, subject, description }: SupportTicketData = req.body;
 
-  // Validation
   if (!name || !email || !subject) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ error: 'Invalid email address' });
+  }
+  if (name.length > 100) return res.status(400).json({ error: 'Name too long' });
+  if (email.length > 254) return res.status(400).json({ error: 'Email too long' });
+  if (subject.length > 200) return res.status(400).json({ error: 'Subject too long' });
+  if (description && description.length > 5000) return res.status(400).json({ error: 'Description too long' });
+
+  const safeName = escapeHtml(name);
+  const safeEmail = escapeHtml(email);
+  const safeSubject = escapeHtml(subject);
+  const safeDescription = description ? escapeHtml(description) : '';
 
   try {
-    // Send ticket to support email
     const ticketEmailResult = await resend.emails.send({
       from: 'support@newwaveitfl.com',
       to: 'support@newwaveitfl.com',
-      subject: `[Support Ticket] ${subject}`,
+      subject: `[Support Ticket] ${safeSubject}`,
       replyTo: email,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -35,14 +58,14 @@ export default async function handler(req: any, res: any) {
           </h2>
 
           <div style="margin: 20px 0;">
-            <p><strong>Name:</strong> ${name}</p>
-            <p><strong>Email:</strong> ${email}</p>
-            <p><strong>Subject:</strong> ${subject}</p>
+            <p><strong>Name:</strong> ${safeName}</p>
+            <p><strong>Email:</strong> ${safeEmail}</p>
+            <p><strong>Subject:</strong> ${safeSubject}</p>
           </div>
 
           <div style="background-color: #f8fafb; padding: 15px; border-radius: 8px; margin: 20px 0;">
             <p><strong>Description:</strong></p>
-            <p style="white-space: pre-wrap; color: #555;">${description || 'No additional details provided'}</p>
+            <p style="white-space: pre-wrap; color: #555;">${safeDescription || 'No additional details provided'}</p>
           </div>
 
           <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0; font-size: 12px; color: #999;">
@@ -58,7 +81,10 @@ export default async function handler(req: any, res: any) {
       return res.status(500).json({ error: 'Failed to submit support ticket' });
     }
 
-    // Send confirmation email to user
+    const safeDescPreview = safeDescription
+      ? safeDescription.substring(0, 300) + (description && description.length > 300 ? '...' : '')
+      : '';
+
     const confirmationEmailResult = await resend.emails.send({
       from: 'support@newwaveitfl.com',
       to: email,
@@ -70,7 +96,7 @@ export default async function handler(req: any, res: any) {
           </h2>
 
           <p style="color: #555; font-size: 16px; line-height: 1.6;">
-            Thank you for submitting a support ticket, ${name}!
+            Thank you for submitting a support ticket, ${safeName}!
           </p>
 
           <p style="color: #555; font-size: 16px; line-height: 1.6;">
@@ -80,8 +106,8 @@ export default async function handler(req: any, res: any) {
 
           <div style="background-color: #f8fafb; padding: 15px; border-radius: 8px; margin: 20px 0;">
             <p style="color: #666; font-size: 14px;"><strong>Ticket Summary:</strong></p>
-            <p style="color: #666; font-size: 14px;"><strong>Subject:</strong> ${subject}</p>
-            ${description ? `<p style="color: #666; font-size: 14px; white-space: pre-wrap;"><strong>Description:</strong> ${description.substring(0, 300)}${description.length > 300 ? '...' : ''}</p>` : ''}
+            <p style="color: #666; font-size: 14px;"><strong>Subject:</strong> ${safeSubject}</p>
+            ${safeDescPreview ? `<p style="color: #666; font-size: 14px; white-space: pre-wrap;"><strong>Description:</strong> ${safeDescPreview}</p>` : ''}
           </div>
 
           <div style="background-color: #e8f5f4; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #39CCCC;">
@@ -92,9 +118,7 @@ export default async function handler(req: any, res: any) {
 
           <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0; font-size: 12px; color: #999;">
             <p>Best regards,<br><strong>New Wave IT Support Team</strong></p>
-            <p>
-              newwaveitfl.com | (954) 555-0100
-            </p>
+            <p>newwaveitfl.com | (954) 555-0100</p>
           </div>
         </div>
       `,
@@ -102,7 +126,6 @@ export default async function handler(req: any, res: any) {
 
     if (confirmationEmailResult.error) {
       console.error('Confirmation email error:', confirmationEmailResult.error);
-      // Don't fail the request if confirmation email fails - the support notification went through
     }
 
     return res.status(200).json({

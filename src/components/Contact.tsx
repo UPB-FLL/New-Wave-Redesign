@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Mail, Phone, MapPin, Send, CheckCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useContent } from '../lib/useContent';
+import { BorderBeam } from './ui/border-beam';
+import { FadeIn } from './ui/fade-in';
 
 interface FormData {
   name: string;
@@ -60,18 +62,8 @@ export default function Contact() {
     }
   };
 
-  const handleInputFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    e.currentTarget.style.borderColor = 'rgba(94, 188, 103, 0.7)';
-    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(94, 188, 103, 0.1)';
-  };
-
-  const handleInputBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    e.currentTarget.style.borderColor = 'rgba(94, 188, 103, 0.3)';
-    e.currentTarget.style.boxShadow = 'none';
-  };
-
-  const inputClass = "w-full rounded-xl px-3.5 py-2.5 text-sm outline-none transition-all focus:ring-2";
-  const inputStyle = { background: 'rgba(26, 47, 63, 0.6)', border: '1px solid rgba(94, 188, 103, 0.3)', color: '#E0F2F1' };
+  const inputClass = "input-dark";
+  const inputStyle = {};
 
   const phone = c.phone || '(954) 555-0100';
   const email = c.email || 'support@newwaveitfl.com';
@@ -85,6 +77,7 @@ export default function Contact() {
       style={{ background: '#f8fafb', borderTop: '1px solid rgba(21,34,50,0.06)', zIndex: 10 }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <FadeIn>
         <div className="text-center mb-8 sm:mb-10">
           <span className="text-xs sm:text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
             {c.section_label || 'Get In Touch'}
@@ -106,9 +99,11 @@ export default function Contact() {
             {c.subheadline || 'Fill out the form below and one of our technicians will reach out within one business day — or call us now for immediate assistance.'}
           </p>
         </div>
+        </FadeIn>
 
         <div className="grid lg:grid-cols-5 gap-5 sm:gap-8">
-          <div className="lg:col-span-2 flex flex-col gap-4">
+          <FadeIn className="lg:col-span-2">
+          <div className="flex flex-col gap-4">
             {[
               {
                 icon: Phone,
@@ -154,8 +149,10 @@ export default function Contact() {
               </div>
             ))}
           </div>
+          </FadeIn>
 
-          <div className="lg:col-span-3">
+          <FadeIn delay={0.15} className="lg:col-span-3">
+          <div>
             {submitted ? (
               <div
                 className="rounded-2xl p-12 flex flex-col items-center justify-center text-center h-full min-h-[400px]"
@@ -179,29 +176,30 @@ export default function Contact() {
             ) : (
               <form
                 onSubmit={handleSubmit}
-                className="rounded-2xl p-6"
+                className="relative rounded-2xl p-6 overflow-hidden"
                 style={{ background: 'rgba(26, 47, 63, 0.8)', border: '1px solid rgba(57,204,204,0.4)', boxShadow: '0 8px 32px rgba(57,204,204,0.15)' }}
               >
+                <BorderBeam duration={14} colorFrom="#39CCCC" colorTo="#5EBC67" borderWidth={1.5} />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                   <div>
                     <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(224,242,241,0.8)' }}>
                       Full Name <span style={{ color: '#39CCCC' }}>*</span>
                     </label>
-                    <input type="text" name="name" value={form.name} onChange={handleChange} required placeholder="John Smith" className={inputClass} style={inputStyle} onFocus={handleInputFocus} onBlur={handleInputBlur} />
+                    <input type="text" name="name" value={form.name} onChange={handleChange} required placeholder="John Smith" className={inputClass} style={inputStyle} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(224,242,241,0.8)' }}>
                       Email Address <span style={{ color: '#39CCCC' }}>*</span>
                     </label>
-                    <input type="email" name="email" value={form.email} onChange={handleChange} required placeholder="john@company.com" className={inputClass} style={inputStyle} onFocus={handleInputFocus} onBlur={handleInputBlur} />
+                    <input type="email" name="email" value={form.email} onChange={handleChange} required placeholder="john@company.com" className={inputClass} style={inputStyle} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(224,242,241,0.8)' }}>Phone Number</label>
-                    <input type="tel" name="phone" value={form.phone} onChange={handleChange} placeholder="(954) 555-0100" className={inputClass} style={inputStyle} onFocus={handleInputFocus} onBlur={handleInputBlur} />
+                    <input type="tel" name="phone" value={form.phone} onChange={handleChange} placeholder="(954) 555-0100" className={inputClass} style={inputStyle} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(224,242,241,0.8)' }}>Company Name</label>
-                    <input type="text" name="company" value={form.company} onChange={handleChange} placeholder="Acme Corp" className={inputClass} style={inputStyle} onFocus={handleInputFocus} onBlur={handleInputBlur} />
+                    <input type="text" name="company" value={form.company} onChange={handleChange} placeholder="Acme Corp" className={inputClass} style={inputStyle} />
                   </div>
                 </div>
 
@@ -218,8 +216,6 @@ export default function Contact() {
                     placeholder="Tell us about your IT needs or current challenges..."
                     className={`${inputClass} resize-none`}
                     style={inputStyle}
-                    onFocus={handleInputFocus}
-                    onBlur={handleInputBlur}
                   />
                 </div>
 
@@ -228,10 +224,7 @@ export default function Contact() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex items-center justify-center gap-2.5 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed hover:-translate-y-0.5"
-                  style={{ background: '#39CCCC', boxShadow: '0 8px 24px rgba(57,204,204,0.3)' }}
-                  onMouseEnter={(e) => { if (!loading) (e.currentTarget.style.background = '#2db8b8'); }}
-                  onMouseLeave={(e) => { if (!loading) (e.currentTarget.style.background = '#39CCCC'); }}
+                  className="w-full btn-primary justify-center disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                 >
                   {loading ? (
                     <span className="flex items-center gap-2">
@@ -251,6 +244,7 @@ export default function Contact() {
               </form>
             )}
           </div>
+          </FadeIn>
         </div>
       </div>
     </section>

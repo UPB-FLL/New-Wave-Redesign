@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Menu, X, ChevronDown } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const LOGO_URL =
   'https://images.squarespace-cdn.com/content/v1/64c044f11baf2d14ebb899c6/fb59af7c-4a76-48a9-ab9d-88a58a54496e/new-wave-it-high-resolution-logo-transparent.png?format=500w';
@@ -35,6 +35,7 @@ export default function Navbar() {
   const [servicesDropdownOpen, setServicesDropdownOpen] = useState(false);
   const [dropdownTimeout, setDropdownTimeout] = useState<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -45,16 +46,29 @@ export default function Navbar() {
   const handleNavClick = (href: string) => {
     setIsOpen(false);
     if (href.startsWith('#')) {
-      const el = document.querySelector(href);
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
+      if (location.pathname === '/') {
+        const el = document.querySelector(href);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        navigate('/');
+        setTimeout(() => {
+          const el = document.querySelector(href);
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }, 300);
+      }
     } else {
       navigate(href);
+      window.scrollTo({ top: 0 });
     }
   };
 
   const handleLogoClick = () => {
-    navigate('/');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (location.pathname === '/') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      navigate('/');
+      window.scrollTo({ top: 0 });
+    }
   };
 
   return (
@@ -107,6 +121,8 @@ export default function Navbar() {
                 style={{ color: 'rgba(21,34,50,0.7)' }}
                 onMouseEnter={(e) => (e.currentTarget.style.color = '#152232')}
                 onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(21,34,50,0.7)')}
+                aria-haspopup="true"
+                aria-expanded={servicesDropdownOpen}
               >
                 Services
                 <ChevronDown size={16} className={`transition-transform duration-200 ${servicesDropdownOpen ? 'rotate-180' : ''}`} />
@@ -203,9 +219,11 @@ export default function Navbar() {
           </div>
 
           <button
-            className="md:hidden p-2"
-            style={{ color: '#152232' }}
+            className="md:hidden p-2 text-brand-navy"
             onClick={() => setIsOpen(!isOpen)}
+            aria-label={isOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={isOpen}
+            aria-controls="mobile-nav-menu"
           >
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -213,7 +231,7 @@ export default function Navbar() {
       </div>
 
       {isOpen && (
-        <div className="md:hidden bg-white border-t border-gray-100">
+        <div id="mobile-nav-menu" className="md:hidden bg-white border-t border-gray-100">
           <div className="px-6 py-4 flex flex-col gap-4">
             <button
               onClick={() => {

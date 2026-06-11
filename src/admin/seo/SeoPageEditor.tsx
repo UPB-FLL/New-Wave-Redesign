@@ -58,7 +58,7 @@ export default function SeoPageEditor() {
     try {
       const res = await fetch('/api/seo/refresh-images', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': import.meta.env.VITE_ADMIN_API_KEY || '' },
         body: JSON.stringify({
           keyword: page.target_keyword || page.h1 || page.title,
           location: page.target_location,
