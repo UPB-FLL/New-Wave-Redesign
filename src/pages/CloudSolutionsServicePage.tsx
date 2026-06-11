@@ -38,10 +38,21 @@ export default function CloudSolutionsServicePage() {
   const navigate = useNavigate();
 
   usePageMeta({
-    title: 'Cloud Solutions & Migration | New Wave IT',
+    title: 'Cloud Solutions & Migration Fort Lauderdale — Azure, Microsoft 365',
     description:
-      'Expert cloud migration to Azure, AWS, and Google Cloud. Cloud optimization, cost management, and hybrid cloud strategy for South Florida businesses.',
-    keywords: 'cloud services, cloud migration, Azure, AWS, Google Cloud, cloud consulting',
+      'Cloud migration and management for Fort Lauderdale businesses. Azure, Microsoft 365, AWS, hybrid cloud strategy, and cost optimization. Zero-downtime migrations by New Wave IT.',
+    keywords: 'cloud migration Fort Lauderdale, cloud solutions South Florida, Microsoft 365 setup Fort Lauderdale, Azure migration, cloud consulting Fort Lauderdale, hybrid cloud South Florida, cloud services MSP',
+    canonical: 'https://www.newwaveitfl.com/service-category/cloud-solutions',
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'Service',
+      'provider': { '@id': 'https://www.newwaveitfl.com/#business' },
+      'name': 'Cloud Solutions & Migration',
+      'description': 'Expert cloud migration to Azure, Microsoft 365, and AWS with zero-downtime transitions, cost optimization, and hybrid cloud management for South Florida businesses.',
+      'areaServed': { '@type': 'City', 'name': 'Fort Lauderdale' },
+      'serviceType': 'Cloud Computing',
+      'url': 'https://www.newwaveitfl.com/service-category/cloud-solutions',
+    },
   });
 
   const service = defaultService;

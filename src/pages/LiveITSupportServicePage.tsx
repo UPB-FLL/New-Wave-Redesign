@@ -38,10 +38,21 @@ export default function LiveITSupportServicePage() {
   const navigate = useNavigate();
 
   usePageMeta({
-    title: '24/7 Live IT Support | New Wave IT',
+    title: '24/7 IT Support Fort Lauderdale — Live Help Desk South Florida',
     description:
-      'Round-the-clock technical support with response times under 1 hour. Phone, email, chat, and on-site support for South Florida businesses.',
-    keywords: 'IT support, technical support, 24/7 support, help desk, remote support',
+      'Round-the-clock IT support for Fort Lauderdale businesses. Response times under 1 hour — phone, remote, and on-site. Real technicians, real fast. New Wave IT.',
+    keywords: 'IT support Fort Lauderdale, 24/7 IT help desk South Florida, technical support Fort Lauderdale, managed help desk, remote IT support, on-site IT support South Florida, IT support company Fort Lauderdale',
+    canonical: 'https://www.newwaveitfl.com/service-category/live-it-support',
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'Service',
+      'provider': { '@id': 'https://www.newwaveitfl.com/#business' },
+      'name': '24/7 Live IT Support',
+      'description': 'Round-the-clock technical support for South Florida businesses with response times under 1 hour via phone, remote access, and on-site visits.',
+      'areaServed': { '@type': 'City', 'name': 'Fort Lauderdale' },
+      'serviceType': 'IT Support',
+      'url': 'https://www.newwaveitfl.com/service-category/live-it-support',
+    },
   });
 
   const service = defaultService;

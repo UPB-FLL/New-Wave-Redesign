@@ -39,10 +39,21 @@ export default function ManagedITServicePage() {
   const navigate = useNavigate();
 
   usePageMeta({
-    title: 'Managed IT Services | New Wave IT',
+    title: 'Managed IT Services Fort Lauderdale — MSP South Florida',
     description:
-      '24/7 proactive IT management with monitoring, patch management, backup, and disaster recovery. Predictable costs with transparent billing.',
-    keywords: 'managed IT services, managed IT services provider, IT outsourcing, managed services',
+      'Fully managed IT services for Fort Lauderdale and South Florida businesses. Flat-rate pricing, 24/7 monitoring, patch management, backup & disaster recovery. No long-term contracts.',
+    keywords: 'managed IT services Fort Lauderdale, MSP South Florida, IT outsourcing Fort Lauderdale, managed services provider Florida, proactive IT monitoring, flat-rate IT support, IT management South Florida, outsourced IT department',
+    canonical: 'https://www.newwaveitfl.com/service-category/managed-it-services',
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'Service',
+      'provider': { '@id': 'https://www.newwaveitfl.com/#business' },
+      'name': 'Managed IT Services',
+      'description': 'Fully managed IT services for South Florida businesses with 24/7 monitoring, patch management, backup, and disaster recovery at flat-rate pricing.',
+      'areaServed': { '@type': 'City', 'name': 'Fort Lauderdale' },
+      'serviceType': 'Managed IT Services',
+      'url': 'https://www.newwaveitfl.com/service-category/managed-it-services',
+    },
   });
 
   useEffect(() => {

@@ -69,8 +69,31 @@ function HomePage() {
   usePageMeta({
     title: 'New Wave IT — 24/7 Managed IT, Cybersecurity & Cloud in Fort Lauderdale',
     description:
-      "Fort Lauderdale's trusted managed IT services partner. 24/7 support, cybersecurity, cloud migration, and network infrastructure for South Florida businesses.",
+      "Fort Lauderdale's #1 managed IT services company. 24/7 support, cybersecurity, Microsoft 365, cloud migration, and network infrastructure for South Florida businesses. No long-term contracts.",
     includeSiteName: false,
+    keywords: 'managed IT services Fort Lauderdale, MSP Fort Lauderdale, cybersecurity South Florida, IT support Fort Lauderdale, cloud services South Florida, IT company Fort Lauderdale, New Wave IT',
+    canonical: 'https://www.newwaveitfl.com/',
+    jsonLd: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        '@id': 'https://www.newwaveitfl.com/#website',
+        'url': 'https://www.newwaveitfl.com',
+        'name': 'New Wave IT',
+        'description': "Fort Lauderdale's trusted managed IT services partner.",
+        'publisher': { '@id': 'https://www.newwaveitfl.com/#organization' },
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        '@id': 'https://www.newwaveitfl.com/#webpage',
+        'url': 'https://www.newwaveitfl.com',
+        'name': 'New Wave IT — 24/7 Managed IT, Cybersecurity & Cloud in Fort Lauderdale',
+        'isPartOf': { '@id': 'https://www.newwaveitfl.com/#website' },
+        'about': { '@id': 'https://www.newwaveitfl.com/#business' },
+        'description': "Fort Lauderdale's trusted managed IT services company.",
+      },
+    ],
   });
   return (
     <div className="min-h-screen relative" style={{ background: 'white' }}>

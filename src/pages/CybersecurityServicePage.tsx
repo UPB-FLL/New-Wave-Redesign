@@ -38,10 +38,21 @@ export default function CybersecurityServicePage() {
   const navigate = useNavigate();
 
   usePageMeta({
-    title: 'Enterprise Cybersecurity Solutions | New Wave IT',
+    title: 'Cybersecurity Services Fort Lauderdale — Threat Protection & Compliance',
     description:
-      'Protect your business with 24/7 threat monitoring, penetration testing, compliance management, and incident response. Enterprise-grade security for South Florida businesses.',
-    keywords: 'cybersecurity, threat detection, compliance, penetration testing, SOC monitoring',
+      'Enterprise cybersecurity for South Florida businesses: 24/7 SOC monitoring, endpoint protection, SIEM, penetration testing, and HIPAA/SOC 2 compliance. Call New Wave IT today.',
+    keywords: 'cybersecurity Fort Lauderdale, managed security services South Florida, threat detection Fort Lauderdale, SOC monitoring, SIEM, penetration testing South Florida, endpoint protection, HIPAA compliance IT, cybersecurity company Fort Lauderdale',
+    canonical: 'https://www.newwaveitfl.com/service-category/cybersecurity',
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'Service',
+      'provider': { '@id': 'https://www.newwaveitfl.com/#business' },
+      'name': 'Cybersecurity Services',
+      'description': 'Enterprise-grade cybersecurity for South Florida businesses including 24/7 SOC monitoring, endpoint protection, SIEM, penetration testing, and compliance management.',
+      'areaServed': { '@type': 'City', 'name': 'Fort Lauderdale' },
+      'serviceType': 'Cybersecurity',
+      'url': 'https://www.newwaveitfl.com/service-category/cybersecurity',
+    },
   });
 
   const service = defaultService;
