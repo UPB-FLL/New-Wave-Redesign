@@ -107,6 +107,8 @@ export default function Navbar() {
                 style={{ color: 'rgba(21,34,50,0.7)' }}
                 onMouseEnter={(e) => (e.currentTarget.style.color = '#152232')}
                 onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(21,34,50,0.7)')}
+                aria-haspopup="true"
+                aria-expanded={servicesDropdownOpen}
               >
                 Services
                 <ChevronDown size={16} className={`transition-transform duration-200 ${servicesDropdownOpen ? 'rotate-180' : ''}`} />
@@ -203,9 +205,11 @@ export default function Navbar() {
           </div>
 
           <button
-            className="md:hidden p-2"
-            style={{ color: '#152232' }}
+            className="md:hidden p-2 text-brand-navy"
             onClick={() => setIsOpen(!isOpen)}
+            aria-label={isOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={isOpen}
+            aria-controls="mobile-nav-menu"
           >
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -213,7 +217,7 @@ export default function Navbar() {
       </div>
 
       {isOpen && (
-        <div className="md:hidden bg-white border-t border-gray-100">
+        <div id="mobile-nav-menu" className="md:hidden bg-white border-t border-gray-100">
           <div className="px-6 py-4 flex flex-col gap-4">
             <button
               onClick={() => {

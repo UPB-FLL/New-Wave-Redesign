@@ -10,6 +10,19 @@ interface ContactFormData {
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+function escapeHtml(unsafe: string): string {
+  return String(unsafe ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function isValidEmail(email: string): boolean {
+  return /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(email);
+}
+
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -17,17 +30,29 @@ export default async function handler(req: any, res: any) {
 
   const { name, email, phone, company, message }: ContactFormData = req.body;
 
-  // Validation
   if (!name || !email || !message) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ error: 'Invalid email address' });
+  }
+  if (name.length > 100) return res.status(400).json({ error: 'Name too long' });
+  if (email.length > 254) return res.status(400).json({ error: 'Email too long' });
+  if (message.length > 5000) return res.status(400).json({ error: 'Message too long' });
+  if (phone && phone.length > 30) return res.status(400).json({ error: 'Phone number too long' });
+  if (company && company.length > 200) return res.status(400).json({ error: 'Company name too long' });
+
+  const safeName = escapeHtml(name);
+  const safeEmail = escapeHtml(email);
+  const safePhone = phone ? escapeHtml(phone) : '';
+  const safeCompany = company ? escapeHtml(company) : '';
+  const safeMessage = escapeHtml(message);
 
   try {
-    // Send email to admin
     const adminEmailResult = await resend.emails.send({
       from: 'support@newwaveitfl.com',
       to: 'contact@newwaveitfl.com',
-      subject: `New Contact Form Submission from ${name}`,
+      subject: `New Contact Form Submission from ${safeName}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #152232; border-bottom: 2px solid #39CCCC; padding-bottom: 10px;">
@@ -35,15 +60,15 @@ export default async function handler(req: any, res: any) {
           </h2>
 
           <div style="margin: 20px 0;">
-            <p><strong>Name:</strong> ${name}</p>
-            <p><strong>Email:</strong> ${email}</p>
-            ${phone ? `<p><strong>Phone:</strong> ${phone}</p>` : ''}
-            ${company ? `<p><strong>Company:</strong> ${company}</p>` : ''}
+            <p><strong>Name:</strong> ${safeName}</p>
+            <p><strong>Email:</strong> ${safeEmail}</p>
+            ${safePhone ? `<p><strong>Phone:</strong> ${safePhone}</p>` : ''}
+            ${safeCompany ? `<p><strong>Company:</strong> ${safeCompany}</p>` : ''}
           </div>
 
           <div style="background-color: #f8fafb; padding: 15px; border-radius: 8px; margin: 20px 0;">
             <p><strong>Message:</strong></p>
-            <p style="white-space: pre-wrap; color: #555;">${message}</p>
+            <p style="white-space: pre-wrap; color: #555;">${safeMessage}</p>
           </div>
 
           <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0; font-size: 12px; color: #999;">
@@ -58,7 +83,8 @@ export default async function handler(req: any, res: any) {
       return res.status(500).json({ error: 'Failed to send notification email' });
     }
 
-    // Send confirmation email to user
+    const safeMessagePreview = safeMessage.substring(0, 200) + (message.length > 200 ? '...' : '');
+
     const userEmailResult = await resend.emails.send({
       from: 'support@newwaveitfl.com',
       to: email,
@@ -66,7 +92,7 @@ export default async function handler(req: any, res: any) {
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #152232; border-bottom: 2px solid #39CCCC; padding-bottom: 10px;">
-            Thank You, ${name}!
+            Thank You, ${safeName}!
           </h2>
 
           <p style="color: #555; font-size: 16px; line-height: 1.6;">
@@ -80,14 +106,12 @@ export default async function handler(req: any, res: any) {
 
           <div style="background-color: #f8fafb; padding: 15px; border-radius: 8px; margin: 20px 0;">
             <p style="color: #666; font-size: 14px;"><strong>Your Message Summary:</strong></p>
-            <p style="color: #666; font-size: 14px; white-space: pre-wrap;">${message.substring(0, 200)}${message.length > 200 ? '...' : ''}</p>
+            <p style="color: #666; font-size: 14px; white-space: pre-wrap;">${safeMessagePreview}</p>
           </div>
 
           <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0; font-size: 12px; color: #999;">
             <p>Best regards,<br><strong>New Wave IT Support Team</strong></p>
-            <p>
-              newwaveitfl.com | (954) 555-0100
-            </p>
+            <p>newwaveitfl.com | (954) 555-0100</p>
           </div>
         </div>
       `,
@@ -95,7 +119,6 @@ export default async function handler(req: any, res: any) {
 
     if (userEmailResult.error) {
       console.error('User confirmation email error:', userEmailResult.error);
-      // Don't fail the request if confirmation email fails - the admin notification went through
     }
 
     return res.status(200).json({

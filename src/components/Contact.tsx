@@ -60,18 +60,8 @@ export default function Contact() {
     }
   };
 
-  const handleInputFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    e.currentTarget.style.borderColor = 'rgba(94, 188, 103, 0.7)';
-    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(94, 188, 103, 0.1)';
-  };
-
-  const handleInputBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    e.currentTarget.style.borderColor = 'rgba(94, 188, 103, 0.3)';
-    e.currentTarget.style.boxShadow = 'none';
-  };
-
-  const inputClass = "w-full rounded-xl px-3.5 py-2.5 text-sm outline-none transition-all focus:ring-2";
-  const inputStyle = { background: 'rgba(26, 47, 63, 0.6)', border: '1px solid rgba(94, 188, 103, 0.3)', color: '#E0F2F1' };
+  const inputClass = "input-dark";
+  const inputStyle = {};
 
   const phone = c.phone || '(954) 555-0100';
   const email = c.email || 'support@newwaveitfl.com';
@@ -187,21 +177,21 @@ export default function Contact() {
                     <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(224,242,241,0.8)' }}>
                       Full Name <span style={{ color: '#39CCCC' }}>*</span>
                     </label>
-                    <input type="text" name="name" value={form.name} onChange={handleChange} required placeholder="John Smith" className={inputClass} style={inputStyle} onFocus={handleInputFocus} onBlur={handleInputBlur} />
+                    <input type="text" name="name" value={form.name} onChange={handleChange} required placeholder="John Smith" className={inputClass} style={inputStyle} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(224,242,241,0.8)' }}>
                       Email Address <span style={{ color: '#39CCCC' }}>*</span>
                     </label>
-                    <input type="email" name="email" value={form.email} onChange={handleChange} required placeholder="john@company.com" className={inputClass} style={inputStyle} onFocus={handleInputFocus} onBlur={handleInputBlur} />
+                    <input type="email" name="email" value={form.email} onChange={handleChange} required placeholder="john@company.com" className={inputClass} style={inputStyle} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(224,242,241,0.8)' }}>Phone Number</label>
-                    <input type="tel" name="phone" value={form.phone} onChange={handleChange} placeholder="(954) 555-0100" className={inputClass} style={inputStyle} onFocus={handleInputFocus} onBlur={handleInputBlur} />
+                    <input type="tel" name="phone" value={form.phone} onChange={handleChange} placeholder="(954) 555-0100" className={inputClass} style={inputStyle} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(224,242,241,0.8)' }}>Company Name</label>
-                    <input type="text" name="company" value={form.company} onChange={handleChange} placeholder="Acme Corp" className={inputClass} style={inputStyle} onFocus={handleInputFocus} onBlur={handleInputBlur} />
+                    <input type="text" name="company" value={form.company} onChange={handleChange} placeholder="Acme Corp" className={inputClass} style={inputStyle} />
                   </div>
                 </div>
 
@@ -218,8 +208,6 @@ export default function Contact() {
                     placeholder="Tell us about your IT needs or current challenges..."
                     className={`${inputClass} resize-none`}
                     style={inputStyle}
-                    onFocus={handleInputFocus}
-                    onBlur={handleInputBlur}
                   />
                 </div>
 
@@ -228,10 +216,7 @@ export default function Contact() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex items-center justify-center gap-2.5 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed hover:-translate-y-0.5"
-                  style={{ background: '#39CCCC', boxShadow: '0 8px 24px rgba(57,204,204,0.3)' }}
-                  onMouseEnter={(e) => { if (!loading) (e.currentTarget.style.background = '#2db8b8'); }}
-                  onMouseLeave={(e) => { if (!loading) (e.currentTarget.style.background = '#39CCCC'); }}
+                  className="w-full btn-primary justify-center disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                 >
                   {loading ? (
                     <span className="flex items-center gap-2">

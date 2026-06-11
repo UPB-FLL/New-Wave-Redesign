@@ -123,15 +123,12 @@ export default function Hero() {
               </a>
             </div>
 
-            {/* Enhanced Stats row with Magic UI */}
+            {/* Stats row */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 pt-6 sm:pt-8 max-w-3xl mx-auto" style={{ borderTop: '1px solid rgba(21,34,50,0.1)' }}>
               {stats.map((stat, idx) => (
                 <div
                   key={stat.label}
-                  className="relative group"
-                  style={{
-                    animation: `slideUp 0.6s ease-out ${idx * 0.1}s both`,
-                  }}
+                  className={`relative group animate-slide-up-${Math.min(idx + 1, 4)}`}
                 >
                   {/* Glow effect */}
                   <div
@@ -170,18 +167,6 @@ export default function Hero() {
               ))}
             </div>
 
-            <style>{`
-              @keyframes slideUp {
-                from {
-                  opacity: 0;
-                  transform: translateY(20px);
-                }
-                to {
-                  opacity: 1;
-                  transform: translateY(0);
-                }
-              }
-            `}</style>
           </div>
       </div>
     </section>

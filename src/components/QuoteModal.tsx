@@ -77,17 +77,23 @@ export default function QuoteModal({ isOpen, onClose, tier }: QuoteModalProps) {
 
   if (!isOpen) return null;
 
-  const inputClass = "w-full rounded-lg px-4 py-2.5 text-sm outline-none transition-colors";
-  const inputStyle = { background: 'white', border: '1.5px solid rgba(21,34,50,0.12)', color: '#152232' };
+  const inputClass = "input-light";
+  const inputStyle = {};
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="quote-modal-title"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 flex items-center justify-between p-6 border-b border-gray-200 bg-white">
-          <h2 className="text-xl font-bold" style={{ color: '#152232' }}>
+          <h2 id="quote-modal-title" className="text-xl font-bold" style={{ color: '#152232' }}>
             Get a Quote
           </h2>
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-lg transition-colors">
+          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-lg transition-colors" aria-label="Close modal">
             <X size={24} style={{ color: '#152232' }} />
           </button>
         </div>
@@ -202,10 +208,7 @@ export default function QuoteModal({ isOpen, onClose, tier }: QuoteModalProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 text-white font-semibold py-2.5 rounded-lg transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed hover:-translate-y-0.5"
-                style={{ background: '#39CCCC', boxShadow: '0 4px 12px rgba(57,204,204,0.3)' }}
-                onMouseEnter={(e) => { if (!loading) (e.currentTarget.style.background = '#2db8b8'); }}
-                onMouseLeave={(e) => { if (!loading) (e.currentTarget.style.background = '#39CCCC'); }}
+                className="w-full btn-primary py-2.5 justify-center disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
               >
                 {loading ? (
                   <span className="flex items-center gap-2">

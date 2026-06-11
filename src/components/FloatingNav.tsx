@@ -72,12 +72,11 @@ export default function FloatingNav() {
       {showScroll && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-5 left-20 sm:bottom-8 sm:left-24 z-50 flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 hover:shadow-lg group"
+          className="fixed bottom-5 left-20 sm:bottom-8 sm:left-24 z-50 flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 hover:shadow-lg group animate-slide-up-1"
           style={{
             background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)',
-            animation: 'slideInUp 0.3s ease-out',
           }}
-          title="Back to top"
+          aria-label="Back to top"
         >
           <ArrowUp
             size={20}
@@ -95,7 +94,9 @@ export default function FloatingNav() {
           style={{
             background: 'linear-gradient(135deg, #5EBC67 0%, #4da856 100%)',
           }}
-          title="Quick navigation"
+          aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
+          aria-expanded={isOpen}
+          aria-controls="floating-nav-menu"
         >
           {isOpen ? (
             <X size={20} className="sm:w-6 sm:h-6 text-white" />
@@ -106,7 +107,7 @@ export default function FloatingNav() {
 
         {/* Quick Links Menu */}
         {isOpen && (
-          <div className="flex flex-col gap-1.5 sm:gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200 max-h-[60vh] overflow-y-auto pr-1">
+          <div id="floating-nav-menu" className="flex flex-col gap-1.5 sm:gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200 max-h-[60vh] overflow-y-auto pr-1">
             {links.map((link) => (
               <button
                 key={link.label}
@@ -136,23 +137,6 @@ export default function FloatingNav() {
         )}
       </div>
 
-      {/* Smooth Scroll Behavior */}
-      <style>{`
-        html {
-          scroll-behavior: smooth;
-        }
-
-        @keyframes slideInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
     </>
   );
 }

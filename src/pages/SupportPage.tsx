@@ -236,7 +236,7 @@ export default function SupportPage() {
                         onChange={(e) => setEmail(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && fetchTickets()}
                         placeholder="your@email.com"
-                        className="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 outline-none focus:border-cyan-400"
+                        className="input-light flex-1"
                       />
                       <button
                         onClick={() => fetchTickets()}
@@ -392,8 +392,8 @@ export default function SupportPage() {
                           onChange={(e) => setTicketForm({ ...ticketForm, name: e.target.value })}
                           placeholder="John Smith"
                           required
-                          className="w-full rounded-lg px-3 py-2 text-sm outline-none transition-colors"
-                          style={{ background: 'white', border: '1.5px solid rgba(21,34,50,0.12)', color: '#152232' }}
+                          className="input-light"
+                          style={{}}
                         />
                       </div>
                       <div>
@@ -406,8 +406,8 @@ export default function SupportPage() {
                           onChange={(e) => setTicketForm({ ...ticketForm, email: e.target.value })}
                           placeholder="john@company.com"
                           required
-                          className="w-full rounded-lg px-3 py-2 text-sm outline-none transition-colors"
-                          style={{ background: 'white', border: '1.5px solid rgba(21,34,50,0.12)', color: '#152232' }}
+                          className="input-light"
+                          style={{}}
                         />
                       </div>
                     </div>
@@ -436,8 +436,8 @@ export default function SupportPage() {
                         onChange={(e) => setTicketForm({ ...ticketForm, description: e.target.value })}
                         placeholder="Provide details about your issue..."
                         rows={4}
-                        className="w-full rounded-lg px-3 py-2 text-sm outline-none transition-colors resize-none"
-                        style={{ background: 'white', border: '1.5px solid rgba(21,34,50,0.12)', color: '#152232' }}
+                        className="input-light resize-none"
+                        style={{}}
                       />
                     </div>
 
