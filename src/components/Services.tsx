@@ -1,4 +1,4 @@
-import { Shield, Headphones, Wrench, Monitor, Cloud, Network, Briefcase, Stethoscope, Crown, Signal, Laptop } from 'lucide-react';
+import { Shield, Headphones, Wrench, Monitor, Cloud, Network, Briefcase, Stethoscope, Crown, Signal, Laptop, Lock, Mail, Eye, GraduationCap, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useContent } from '../lib/useContent';
@@ -38,6 +38,19 @@ const defaultCards = [
   { title: 'Managed IT Services', description: 'Fully managed IT so you can focus on growing your business, not troubleshooting it.', highlights: ['Proactive monitoring 24/7', 'Patch management', 'IT roadmap & strategy'], accent: '#5EBC67' },
   { title: 'Cloud Solutions', description: 'Modernize your infrastructure with scalable, secure cloud environments built for your needs.', highlights: ['Cloud migration & setup', 'Microsoft 365 management', 'Hybrid environment support'], accent: '#39CCCC' },
   { title: 'Network Infrastructure', description: 'Reliable, high-performance networks engineered for uptime and business continuity.', highlights: ['Network design & installation', 'WiFi solutions & optimization', 'VPN & remote access'], accent: '#5EBC67' },
+];
+
+const cyberFeatures = [
+  { icon: Lock, label: 'Managed EDR & Antivirus', detail: 'Every endpoint monitored, isolated, and remediated in real time' },
+  { icon: Mail, label: 'Email & Phishing Defense', detail: 'Advanced filtering that stops threats before the inbox' },
+  { icon: Eye, label: 'Dark Web Monitoring', detail: 'Instant alerts when company credentials surface online' },
+  { icon: GraduationCap, label: 'Security Awareness Training', detail: 'Ongoing phishing simulations that turn your team into defenders' },
+];
+
+const cyberStats = [
+  { value: '24/7', label: 'SOC monitoring' },
+  { value: '500+', label: 'businesses protected' },
+  { value: '99.9%', label: 'uptime maintained' },
 ];
 
 function BeamConnection() {
@@ -134,7 +147,7 @@ function ServiceCardInner({
   return (
     <Link
       to={`/service-category/${slug}`}
-      className="group rounded-2xl p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1 no-underline block h-full"
+      className="group rounded-2xl p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1 no-underline flex flex-col h-full"
       style={{ background: 'rgba(26, 47, 63, 0.8)', border: `1px solid ${service.accent}40`, boxShadow: `0 2px 12px ${service.accent}10` }}
       onMouseEnter={(e) => {
         (e.currentTarget as HTMLElement).style.boxShadow = `0 12px 40px ${service.accent}30`;
@@ -168,6 +181,46 @@ function ServiceCardInner({
           </span>
         ))}
       </div>
+
+      {large && (
+        <div className="mt-5 pt-5 flex flex-col flex-1" style={{ borderTop: `1px solid ${service.accent}25` }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {cyberFeatures.map(({ icon: FeatureIcon, label, detail }) => (
+              <div
+                key={label}
+                className="flex items-start gap-2.5 rounded-xl p-3"
+                style={{ background: `${service.accent}0D`, border: `1px solid ${service.accent}20` }}
+              >
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5" style={{ background: `${service.accent}20` }}>
+                  <FeatureIcon size={14} style={{ color: service.accent }} />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold leading-snug" style={{ color: '#E0F2F1' }}>{label}</p>
+                  <p className="text-xs leading-snug mt-0.5" style={{ color: 'rgba(224,242,241,0.6)' }}>{detail}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 mt-4">
+            {cyberStats.map(({ value, label }) => (
+              <div
+                key={label}
+                className="text-center rounded-xl py-2.5 px-1"
+                style={{ background: 'rgba(94,188,103,0.08)', border: '1px solid rgba(94,188,103,0.25)' }}
+              >
+                <p className="text-lg sm:text-xl font-bold" style={{ color: '#5EBC67' }}>{value}</p>
+                <p className="text-[10px] sm:text-xs" style={{ color: 'rgba(224,242,241,0.6)' }}>{label}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-1.5 mt-auto pt-4 text-sm font-semibold" style={{ color: service.accent }}>
+            Explore cybersecurity services
+            <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
+          </div>
+        </div>
+      )}
     </Link>
   );
 }
@@ -214,8 +267,10 @@ export default function Services() {
         {/* BentoGrid layout */}
         {reduced ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-            {cards.map((service) => (
-              <ServiceCardInner key={service.title} service={service} large={service.title === 'Cybersecurity'} />
+            {cards.map((service, i) => (
+              <div key={service.title} className={i === 0 ? 'md:col-span-2 lg:col-span-2 lg:row-span-2' : undefined}>
+                <ServiceCardInner service={service} large={i === 0} />
+              </div>
             ))}
           </div>
         ) : (
