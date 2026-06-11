@@ -101,3 +101,42 @@
     transform: translateY(0);
   }
 }
+
+@keyframes marquee-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@keyframes shimmer-sweep {
+  0% { transform: translateX(-150%) skewX(-12deg); }
+  100% { transform: translateX(250%) skewX(-12deg); }
+}
+
+@keyframes border-beam-rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .shimmer-sweep {
+    animation: shimmer-sweep 2.8s ease-in-out infinite;
+  }
+
+  .marquee-pause-on-hover:hover {
+    animation-play-state: paused;
+  }
+
+  .border-beam-glow {
+    width: 200%;
+    height: 200%;
+    animation: border-beam-rotate var(--beam-duration, 12s) linear infinite;
+    background: conic-gradient(
+      from 0deg,
+      transparent 0deg,
+      var(--beam-color-from, #39CCCC) 40deg,
+      var(--beam-color-to, #5EBC67) 80deg,
+      transparent 120deg
+    );
+    border-radius: inherit;
+  }
+}

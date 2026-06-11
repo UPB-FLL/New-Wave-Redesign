@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Mail, Phone, MapPin, Send, CheckCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useContent } from '../lib/useContent';
+import { BorderBeam } from './ui/border-beam';
+import { FadeIn } from './ui/fade-in';
 
 interface FormData {
   name: string;
@@ -75,6 +77,7 @@ export default function Contact() {
       style={{ background: '#f8fafb', borderTop: '1px solid rgba(21,34,50,0.06)', zIndex: 10 }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <FadeIn>
         <div className="text-center mb-8 sm:mb-10">
           <span className="text-xs sm:text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
             {c.section_label || 'Get In Touch'}
@@ -96,9 +99,11 @@ export default function Contact() {
             {c.subheadline || 'Fill out the form below and one of our technicians will reach out within one business day — or call us now for immediate assistance.'}
           </p>
         </div>
+        </FadeIn>
 
         <div className="grid lg:grid-cols-5 gap-5 sm:gap-8">
-          <div className="lg:col-span-2 flex flex-col gap-4">
+          <FadeIn className="lg:col-span-2">
+          <div className="flex flex-col gap-4">
             {[
               {
                 icon: Phone,
@@ -144,8 +149,10 @@ export default function Contact() {
               </div>
             ))}
           </div>
+          </FadeIn>
 
-          <div className="lg:col-span-3">
+          <FadeIn delay={0.15} className="lg:col-span-3">
+          <div>
             {submitted ? (
               <div
                 className="rounded-2xl p-12 flex flex-col items-center justify-center text-center h-full min-h-[400px]"
@@ -169,9 +176,10 @@ export default function Contact() {
             ) : (
               <form
                 onSubmit={handleSubmit}
-                className="rounded-2xl p-6"
+                className="relative rounded-2xl p-6 overflow-hidden"
                 style={{ background: 'rgba(26, 47, 63, 0.8)', border: '1px solid rgba(57,204,204,0.4)', boxShadow: '0 8px 32px rgba(57,204,204,0.15)' }}
               >
+                <BorderBeam duration={14} colorFrom="#39CCCC" colorTo="#5EBC67" borderWidth={1.5} />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                   <div>
                     <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(224,242,241,0.8)' }}>
@@ -236,6 +244,7 @@ export default function Contact() {
               </form>
             )}
           </div>
+          </FadeIn>
         </div>
       </div>
     </section>

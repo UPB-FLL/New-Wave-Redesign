@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 32" fill="none">
+  <path d="M24 20 Q28 20 28 16 Q28 12 24 12 Q23 8 19 8 Q15 8 14 11 Q11 11 11 14.5 Q11 18 14 18 Z" fill="#F38020" stroke="#F38020" stroke-width="0.5"/>
+  <path d="M18 20 Q20 18 22 20 L24 20 Q25 23 22 23 L16 23 Q14 23 14 21 Z" fill="white"/>
+  <text x="32" y="22" font-family="Arial, sans-serif" font-size="13" font-weight="600" fill="currentColor">Cloudflare</text>
+</svg>
