@@ -8,6 +8,22 @@ function ScrollToTop() {
   }, [pathname]);
   return null;
 }
+
+// Routes that render as standalone, full-bleed experiences and should not show
+// the global New Wave IT chrome (background art + floating quick-nav).
+const BARE_ROUTES = ['/codenest'];
+
+function SiteChrome() {
+  const { pathname } = useLocation();
+  if (BARE_ROUTES.includes(pathname)) return null;
+  return (
+    <>
+      <BackgroundCircles />
+      <WaveBackground />
+      <FloatingNav />
+    </>
+  );
+}
 import { Analytics } from '@vercel/analytics/react';
 import BackgroundCircles from './components/BackgroundCircles';
 import WaveBackground from './components/WaveBackground';
@@ -59,6 +75,7 @@ import HealthcareServicePage from './pages/HealthcareServicePage';
 import LuxuryServicePage from './pages/LuxuryServicePage';
 import CellularDASPublicSafetyServicePage from './pages/CellularDASPublicSafetyServicePage';
 import ServiceGuidePage from './pages/ServiceGuidePage';
+import CodeNestPage from './pages/CodeNestPage';
 import ServicesDetailEditor from './admin/editors/ServicesDetailEditor';
 import ThreatsDetailEditor from './admin/editors/ThreatsDetailEditor';
 import ServicesCategoryEditor from './admin/editors/ServicesCategoryEditor';
@@ -113,13 +130,12 @@ export default function App() {
   return (
     <>
       <Analytics />
-      <BackgroundCircles />
-      <WaveBackground />
       <BrowserRouter>
         <ScrollToTop />
-        <FloatingNav />
+        <SiteChrome />
         <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/codenest" element={<CodeNestPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/cybersecurity" element={<CybersecurityPage />} />
         <Route path="/why-us" element={<WhyUsPage />} />
