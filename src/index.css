@@ -70,6 +70,36 @@
     text-wrap: balance;
   }
 
+  /* CodeNest — Liquid Glass card.
+     The gradient border frame is drawn with a ::before that masks out its
+     own content box (xor / exclude), leaving only the 1.4px padding ring. */
+  .cn-liquid-glass {
+    position: relative;
+    background: rgba(255, 255, 255, 0.01);
+    background-blend-mode: luminosity;
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  }
+
+  .cn-liquid-glass::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 1.4px;
+    border-radius: inherit;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.04));
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
   .font-display {
     font-family: 'Staatliches', Impact, 'Arial Narrow', sans-serif;
   }
@@ -117,6 +147,13 @@
   100% { transform: rotate(360deg); }
 }
 
+/* CodeNest — gentle float for the liquid glass card.
+   Composes with the -50px lift via a CSS var so the base offset is preserved. */
+@keyframes cn-float {
+  0%, 100% { transform: translateY(calc(var(--cn-lift, -50px) - 6px)); }
+  50% { transform: translateY(calc(var(--cn-lift, -50px) + 6px)); }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .shimmer-sweep {
     animation: shimmer-sweep 2.8s ease-in-out infinite;
@@ -138,5 +175,9 @@
       transparent 120deg
     );
     border-radius: inherit;
+  }
+
+  .cn-animate-float {
+    animation: cn-float 6s ease-in-out infinite;
   }
 }

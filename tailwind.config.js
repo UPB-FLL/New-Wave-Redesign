@@ -13,10 +13,17 @@ export default {
           dark: '#0f1923',
           muted: '#f8fafb',
         },
+        codenest: {
+          green: '#5ed29c',
+          ink: '#070b0a',
+        },
       },
       fontFamily: {
         display: ["'Staatliches'", 'Impact', "'Arial Narrow'", 'sans-serif'],
         body: ["'Fira Sans Extra Condensed'", "'Arial Narrow'", "'Roboto Condensed'", 'system-ui', 'sans-serif'],
+        inter: ["'Inter'", 'system-ui', 'sans-serif'],
+        jakarta: ["'Plus Jakarta Sans'", "'Inter'", 'system-ui', 'sans-serif'],
+        instrument: ["'Instrument Serif'", 'Georgia', 'serif'],
       },
       animation: {
         'slide-up': 'slideUp 0.6s ease-out both',
