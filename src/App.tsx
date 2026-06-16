@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 
 function ScrollToTop() {
@@ -11,8 +11,7 @@ function ScrollToTop() {
 
 // Routes that render as standalone, full-bleed experiences and should not show
 // the global New Wave IT chrome (background art + floating quick-nav).
-// CodeNest is now the homepage, so '/' is bare too.
-const BARE_ROUTES = ['/', '/codenest'];
+const BARE_ROUTES = ['/codenest'];
 
 function SiteChrome() {
   const { pathname } = useLocation();
@@ -135,9 +134,8 @@ export default function App() {
         <ScrollToTop />
         <SiteChrome />
         <Routes>
-        <Route path="/" element={<CodeNestPage />} />
-        <Route path="/new-wave-it" element={<HomePage />} />
-        <Route path="/codenest" element={<Navigate to="/" replace />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/codenest" element={<CodeNestPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/cybersecurity" element={<CybersecurityPage />} />
         <Route path="/why-us" element={<WhyUsPage />} />
