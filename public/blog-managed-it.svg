@@ -1,0 +1,16 @@
+<svg width="740" height="480" viewBox="0 0 740 480" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Managed IT services monitoring dashboard</title>
+  <desc id="desc">A branded abstract dashboard showing monitoring cards and connected systems.</desc>
+  <rect width="740" height="480" fill="#0F1923"/>
+  <rect x="52" y="58" width="636" height="364" rx="18" fill="#152232" stroke="#39CCCC" stroke-opacity=".22"/>
+  <path d="M95 135H326M95 185H245M95 235H286" stroke="#39CCCC" stroke-width="18" stroke-linecap="round" opacity=".9"/>
+  <rect x="408" y="112" width="184" height="112" rx="14" fill="#F8FAFB"/>
+  <rect x="430" y="136" width="74" height="12" rx="6" fill="#39CCCC"/>
+  <rect x="430" y="164" width="120" height="10" rx="5" fill="#152232" opacity=".32"/>
+  <rect x="430" y="188" width="96" height="10" rx="5" fill="#5EBC67" opacity=".75"/>
+  <rect x="408" y="256" width="184" height="112" rx="14" fill="#F8FAFB"/>
+  <path d="M432 326L472 292L511 318L564 278" stroke="#5EBC67" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="612" cy="92" r="32" fill="#39CCCC" fill-opacity=".16"/>
+  <circle cx="612" cy="92" r="12" fill="#39CCCC"/>
+  <path d="M88 360C142 300 196 300 250 360C304 420 358 420 412 360" stroke="#5EBC67" stroke-width="12" stroke-linecap="round" opacity=".8"/>
+</svg>

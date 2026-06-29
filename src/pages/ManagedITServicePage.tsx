@@ -1,5 +1,5 @@
-import { ArrowRight, Monitor, BarChart3, Zap, Lock, TrendingUp, AlertCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { ArrowRight, Monitor, BarChart3, Lock, TrendingUp } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { usePageMeta } from '../lib/usePageMeta';
@@ -35,8 +35,8 @@ const defaultService: ServiceCategory = {
 };
 
 export default function ManagedITServicePage() {
-  const [service, setService] = useState<ServiceCategory | null>(null);
   const navigate = useNavigate();
+  const service = defaultService;
 
   usePageMeta({
     title: 'Managed IT Services Fort Lauderdale — MSP South Florida',
@@ -55,15 +55,6 @@ export default function ManagedITServicePage() {
       'url': 'https://www.newwaveitfl.com/service-category/managed-it-services',
     },
   });
-
-  useEffect(() => {
-    void (async () => {
-      const data = await getServiceCategory('managed-it-services');
-      setService(data || defaultService);
-    })();
-  }, []);
-
-  if (!service) return null;
 
   return (
     <div className="min-h-screen" style={{ background: 'white' }}>
@@ -108,19 +99,31 @@ export default function ManagedITServicePage() {
             </div>
           </div>
 
-          <button
-            onClick={() => navigate('/contact')}
-            className="px-6 py-4 rounded-xl font-semibold text-white transition-all duration-200 hover:scale-105"
-            style={{
-              background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)',
-              boxShadow: '0 8px 24px rgba(57,204,204,0.3)',
-            }}
-          >
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <button
+              onClick={() => navigate('/contact')}
+              className="inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-semibold text-white transition-all duration-200 hover:scale-105"
+              style={{
+                background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)',
+                boxShadow: '0 8px 24px rgba(57,204,204,0.3)',
+              }}
+            >
               <span>Schedule Consultation</span>
               <ArrowRight size={18} />
-            </div>
-          </button>
+            </button>
+            <Link
+              to={service.seo_link}
+              className="inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-semibold transition-all duration-200 hover:scale-105"
+              style={{
+                color: 'white',
+                background: 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.2)',
+              }}
+            >
+              Read Managed IT Guide
+              <ArrowRight size={18} />
+            </Link>
+          </div>
         </div>
       </header>
 

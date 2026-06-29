@@ -1,0 +1,15 @@
+<svg width="740" height="480" viewBox="0 0 740 480" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Cloud and Microsoft 365 infrastructure planning</title>
+  <desc id="desc">A branded cloud infrastructure illustration with connected systems and backup layers.</desc>
+  <rect width="740" height="480" fill="#0F1923"/>
+  <rect x="64" y="70" width="612" height="340" rx="24" fill="#152232" stroke="#39CCCC" stroke-opacity=".18"/>
+  <path d="M292 282H494C532 282 562 252 562 214C562 178 535 150 500 147C484 107 446 82 401 82C349 82 306 118 296 167C259 172 230 204 230 243C230 265 252 282 292 282Z" fill="#F8FAFB"/>
+  <path d="M314 222H474M314 252H430" stroke="#39CCCC" stroke-width="14" stroke-linecap="round"/>
+  <rect x="126" y="314" width="132" height="52" rx="10" fill="#39CCCC" fill-opacity=".18" stroke="#39CCCC" stroke-opacity=".55"/>
+  <rect x="304" y="314" width="132" height="52" rx="10" fill="#5EBC67" fill-opacity=".18" stroke="#5EBC67" stroke-opacity=".55"/>
+  <rect x="482" y="314" width="132" height="52" rx="10" fill="#39CCCC" fill-opacity=".18" stroke="#39CCCC" stroke-opacity=".55"/>
+  <path d="M370 282V314M258 340H304M436 340H482" stroke="#F8FAFB" stroke-opacity=".45" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="192" cy="340" r="10" fill="#39CCCC"/>
+  <circle cx="370" cy="340" r="10" fill="#5EBC67"/>
+  <circle cx="548" cy="340" r="10" fill="#39CCCC"/>
+</svg>

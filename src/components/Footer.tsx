@@ -13,6 +13,7 @@ const serviceLinks = [
 ];
 
 const companyLinks = [
+  { label: 'Blog', href: '/blog' },
   { label: 'About Us', href: '/about' },
   { label: 'Why Us', href: '/why-us' },
   { label: 'Pricing', href: '/pricing' },
