@@ -1,9 +1,7 @@
 import { Mail, Phone, MapPin, Linkedin, Facebook, Twitter } from 'lucide-react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useContent } from '../lib/useContent';
-
-const LOGO_URL =
-  'https://images.squarespace-cdn.com/content/v1/64c044f11baf2d14ebb899c6/fb59af7c-4a76-48a9-ab9d-88a58a54496e/new-wave-it-high-resolution-logo-transparent.png?format=500w';
+import Logo from './Logo';
 
 const serviceLinks = [
   { label: 'Cybersecurity', href: '/service-category/cybersecurity' },
@@ -28,7 +26,6 @@ const linkStyle = { color: 'rgba(255,255,255,0.45)' };
 export default function Footer() {
   const c = useContent('footer');
   const navigate = useNavigate();
-  const location = useLocation();
 
   const phone = c.phone || '(954) 555-0100';
   const email = c.email || 'support@newwaveitfl.com';
@@ -45,8 +42,8 @@ export default function Footer() {
 
           {/* Brand column */}
           <div className="lg:col-span-1">
-            <Link to="/" className="block mb-5" onClick={() => window.scrollTo({ top: 0 })}>
-              <img src={LOGO_URL} alt="New Wave IT" className="h-14 w-auto object-contain" />
+            <Link to="/" className="inline-block mb-5" onClick={() => window.scrollTo({ top: 0 })} aria-label="New Wave IT home">
+              <Logo tone="onDark" />
             </Link>
             <p className="text-sm leading-relaxed mb-6" style={{ color: 'rgba(255,255,255,0.5)' }}>
               {c.tagline || "Fort Lauderdale's trusted IT services partner. We keep your business secure, supported, and moving forward."}

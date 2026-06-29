@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Menu, X, ChevronDown, Shield, Headphones, Wrench, Monitor, Cloud, Network, Briefcase, Stethoscope, Crown, Signal, ArrowRight } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-
-const LOGO_URL =
-  'https://images.squarespace-cdn.com/content/v1/64c044f11baf2d14ebb899c6/fb59af7c-4a76-48a9-ab9d-88a58a54496e/new-wave-it-high-resolution-logo-transparent.png?format=500w';
+import Logo from './Logo';
 
 const serviceGroups = [
   {
@@ -94,13 +92,9 @@ export default function Navbar() {
           <button
             onClick={handleLogoClick}
             className="flex items-center hover:opacity-80 transition-opacity"
+            aria-label="New Wave IT home"
           >
-            <img
-              src={LOGO_URL}
-              alt="New Wave IT"
-              className="h-14 w-auto object-contain"
-              style={{ mixBlendMode: 'multiply' }}
-            />
+            <Logo tone="onLight" />
           </button>
 
           <div className="hidden md:flex items-center gap-8">
