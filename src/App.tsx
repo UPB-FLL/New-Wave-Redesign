@@ -76,6 +76,7 @@ import LuxuryServicePage from './pages/LuxuryServicePage';
 import CellularDASPublicSafetyServicePage from './pages/CellularDASPublicSafetyServicePage';
 import ServiceGuidePage from './pages/ServiceGuidePage';
 import CodeNestPage from './pages/CodeNestPage';
+import BlogPage from './pages/BlogPage';
 import ServicesDetailEditor from './admin/editors/ServicesDetailEditor';
 import ThreatsDetailEditor from './admin/editors/ThreatsDetailEditor';
 import ServicesCategoryEditor from './admin/editors/ServicesCategoryEditor';
@@ -141,6 +142,7 @@ export default function App() {
         <Route path="/why-us" element={<WhyUsPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/services" element={<ServicesPage />} />
+        <Route path="/blog" element={<BlogPage />} />
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/status" element={<StatusPage />} />
         <Route path="/support" element={<SupportPage />} />

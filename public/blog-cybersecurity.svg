@@ -1,0 +1,14 @@
+<svg width="740" height="480" viewBox="0 0 740 480" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Cybersecurity shield and network defense</title>
+  <desc id="desc">A branded security shield surrounded by network signals and protected endpoints.</desc>
+  <rect width="740" height="480" fill="#0F1923"/>
+  <circle cx="370" cy="240" r="172" fill="#39CCCC" fill-opacity=".08"/>
+  <path d="M370 92L502 142V236C502 318 449 384 370 410C291 384 238 318 238 236V142L370 92Z" fill="#152232" stroke="#39CCCC" stroke-width="12"/>
+  <path d="M315 244L353 282L431 198" stroke="#5EBC67" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="146" cy="145" r="22" fill="#39CCCC"/>
+  <circle cx="594" cy="145" r="22" fill="#5EBC67"/>
+  <circle cx="146" cy="336" r="22" fill="#5EBC67"/>
+  <circle cx="594" cy="336" r="22" fill="#39CCCC"/>
+  <path d="M168 145H238M502 145H572M168 336H248M492 336H572" stroke="#F8FAFB" stroke-width="8" stroke-linecap="round" opacity=".45"/>
+  <rect x="72" y="64" width="596" height="352" rx="26" stroke="#FFFFFF" stroke-opacity=".08"/>
+</svg>
