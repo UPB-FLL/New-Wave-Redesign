@@ -1,11 +1,8 @@
-import { useRef } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useContent } from '../lib/useContent';
-import { Spotlight } from './ui/spotlight';
 import { ShimmerButton } from './ui/shimmer-button';
-import { useHlsVideo } from '../lib/useHlsVideo';
 import { FADE_UP, DURATION, EASE } from '../lib/animation';
 
 type Stat = { value: string; label: string };
@@ -44,31 +41,39 @@ function MotionDiv({
   );
 }
 
-/** Full-bleed Mux video behind the hero, darkened so the content stays legible. */
-function HeroVideoBackground() {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  useHlsVideo(videoRef);
-
+/**
+ * Abstract "managed IT" hero artwork behind the copy. Brand radial glows over
+ * navy, the SVG art anchored center-right, and a left-to-right veil so the
+ * left-aligned text stays legible.
+ */
+function HeroImageBackground() {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-      <video
-        ref={videoRef}
-        muted
-        loop
-        playsInline
-        autoPlay
-        preload="auto"
-        className="absolute inset-0 h-full w-full object-cover"
-        style={{ opacity: 0.5 }}
-      />
-      {/* Uniform darkening for overall contrast. */}
-      <div className="absolute inset-0" style={{ background: 'rgba(7,13,20,0.5)' }} />
-      {/* Vertical gradient: darker at the top (navbar seam) and bottom (stats row). */}
+      {/* Brand glows over navy */}
       <div
         className="absolute inset-0"
         style={{
           background:
-            'linear-gradient(180deg, rgba(7,13,20,0.78) 0%, rgba(7,13,20,0.28) 40%, rgba(7,13,20,0.92) 100%)',
+            'radial-gradient(1200px 500px at 80% -10%, rgba(45,212,191,0.18), transparent 60%), radial-gradient(900px 500px at 0% 20%, rgba(33,200,216,0.12), transparent 55%), #081726',
+        }}
+      />
+      {/* Abstract artwork, anchored to the right */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: "url('/managed-it-hero.svg')",
+          backgroundPosition: 'center right',
+          backgroundSize: 'cover',
+          backgroundRepeat: 'no-repeat',
+          opacity: 0.56,
+        }}
+      />
+      {/* Left-to-right veil for text contrast */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            'linear-gradient(90deg, rgba(8,23,38,0.98) 0%, rgba(8,23,38,0.80) 45%, rgba(8,23,38,0.25) 100%)',
         }}
       />
     </div>
@@ -94,22 +99,8 @@ export default function Hero() {
       className="relative flex items-center overflow-hidden pt-28 pb-16 sm:pt-32 sm:pb-20 min-h-[640px] sm:min-h-[82vh]"
       style={{ zIndex: 20, background: INK }}
     >
-      {/* Cinematic video background */}
-      <HeroVideoBackground />
-
-      {/* Brand glow over the video */}
-      <Spotlight />
-
-      {/* Subtle grid texture */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          backgroundImage:
-            'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)',
-          backgroundSize: '60px 60px',
-        }}
-      />
+      {/* Abstract managed-IT artwork background */}
+      <HeroImageBackground />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="max-w-3xl text-left">
