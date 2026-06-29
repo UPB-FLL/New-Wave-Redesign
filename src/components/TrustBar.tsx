@@ -64,7 +64,7 @@ const slideVariants = {
 };
 
 /* ---------------------------------------------------------------- Slide 1 */
-function TrustedSlide({ heading, items }: { heading: string; items: TrustItem[] }) {
+function TrustedSlide({ items }: { items: TrustItem[] }) {
   return (
     <div
       className="rounded-3xl px-5 py-8 sm:px-10 sm:py-10"
@@ -76,20 +76,10 @@ function TrustedSlide({ heading, items }: { heading: string; items: TrustItem[] 
       }}
     >
       <div className="text-center mb-7 sm:mb-8">
-        <div className="inline-flex items-center gap-2 rounded-full px-4 py-2 mb-4" style={{ background: 'rgba(57,204,204,0.1)', border: '1.5px solid rgba(57,204,204,0.3)' }}>
+        <div className="inline-flex items-center gap-2 rounded-full px-4 py-2" style={{ background: 'rgba(57,204,204,0.1)', border: '1.5px solid rgba(57,204,204,0.3)' }}>
           <Sparkles size={16} style={{ color: '#39CCCC' }} className="animate-pulse" />
           <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>Trusted Partner</span>
         </div>
-        <h2
-          className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight"
-          style={{
-            background: 'linear-gradient(135deg, #152232 0%, #39CCCC 50%, #5EBC67 100%)',
-            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
-            fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif",
-          }}
-        >
-          {heading}
-        </h2>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-4 mb-7 sm:mb-8">
@@ -254,7 +244,6 @@ export default function TrustBar() {
 
   let items: TrustItem[] = defaultTrustItems;
   try { if (c.items) items = JSON.parse(c.items); } catch { /* use default */ }
-  const heading = c.heading || 'Trusted by 80+ businesses across South Florida';
 
   const [[index, direction], setSlide] = useState<[number, number]>([0, 0]);
   const [paused, setPaused] = useState(false);
@@ -277,7 +266,7 @@ export default function TrustBar() {
   }, [index, paused, reduced, goTo]);
 
   const slides = [
-    <TrustedSlide key="trusted" heading={heading} items={items} />,
+    <TrustedSlide key="trusted" items={items} />,
     <ToolsSlide key="tools" />,
     <ServicesSlide key="services" />,
   ];
