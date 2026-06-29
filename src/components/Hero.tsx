@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { ArrowRight, Phone } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useContent } from '../lib/useContent';
@@ -11,10 +11,9 @@ import { FADE_UP, DURATION, EASE } from '../lib/animation';
 type Stat = { value: string; label: string };
 
 const defaultStats: Stat[] = [
-  { value: '80+', label: 'Clients Served' },
-  { value: '99.9%', label: 'Uptime Guarantee' },
-  { value: '15+', label: 'Years Experience' },
-  { value: '<1hr', label: 'Avg Response Time' },
+  { value: '24/7', label: 'Service & Monitoring' },
+  { value: 'Certified', label: 'Technicians' },
+  { value: 'Dedicated', label: 'Project Managers' },
 ];
 
 const INK = '#070d14';
@@ -83,7 +82,11 @@ export default function Hero() {
   let stats: Stat[] = defaultStats;
   try { if (c.stats) stats = JSON.parse(c.stats); } catch { /* use default */ }
 
-  const phone = c.phone || '+19545550100';
+  const scrollToServices = () => {
+    const el = document.getElementById('services');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    else navigate('/services');
+  };
 
   return (
     <section
@@ -108,97 +111,79 @@ export default function Hero() {
         }}
       />
 
-      <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 w-full text-center">
-        <MotionDiv delay={0}>
-          <div
-            className="inline-flex items-center gap-2 rounded-full px-3 py-1 mb-4 sm:mb-5 text-[10px] sm:text-xs font-semibold"
-            style={{ background: 'rgba(57,204,204,0.12)', border: '1px solid rgba(57,204,204,0.35)', color: '#39CCCC' }}
-          >
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: '#39CCCC' }} />
-              <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: '#39CCCC' }} />
-            </span>
-            {c.badge || '24/7 IT Support — Always On, Always Ready'}
-          </div>
-        </MotionDiv>
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+        <div className="max-w-3xl text-left">
+          <MotionDiv delay={0}>
+            <div className="flex items-center gap-3 mb-5 sm:mb-6">
+              <span className="h-0.5 w-8 rounded-full" style={{ background: 'linear-gradient(90deg, #39CCCC 0%, #5EBC67 100%)' }} />
+              <span className="text-xs sm:text-sm font-semibold tracking-wide" style={{ color: 'rgba(255,255,255,0.85)' }}>
+                {c.badge || 'Managed IT • Cybersecurity • Cloud'}
+              </span>
+            </div>
+          </MotionDiv>
 
-        <MotionDiv delay={0.1}>
-          <h1
-            className="text-4xl sm:text-5xl lg:text-7xl leading-[0.95] tracking-tight mb-4 sm:mb-5"
-            style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#ffffff' }}
-          >
-            {c.headline_part1 || 'When technology'}{' '}
-            <span
-              style={{
-                background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-              }}
+          <MotionDiv delay={0.1}>
+            <h1
+              className="text-4xl sm:text-6xl lg:text-7xl leading-[0.95] tracking-tight mb-5 sm:mb-6"
+              style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#ffffff' }}
             >
-              {c.headline_accent || 'matters most'}
-            </span>
-            {c.headline_part2 || ", make sure it's in the"}{' '}
-            <span style={{ color: '#5EBC67' }}>{c.headline_accent2 || 'right hands.'}</span>
-          </h1>
-        </MotionDiv>
-
-        <MotionDiv delay={0.2}>
-          <p
-            className="text-sm sm:text-base lg:text-lg leading-relaxed mb-5 sm:mb-7 max-w-2xl mx-auto"
-            style={{ color: 'rgba(255,255,255,0.72)' }}
-          >
-            {c.subheadline || 'Industry-certified technicians, full-time project managers, and technology advisors — ready to protect, support, and scale your business IT infrastructure.'}
-          </p>
-        </MotionDiv>
-
-        <MotionDiv delay={0.3}>
-          <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 mb-6 sm:mb-7 justify-center">
-            <ShimmerButton
-              onClick={() => navigate('/contact')}
-              className="px-6 py-3 rounded-xl text-base"
-            >
-              {c.cta_primary || 'Get a Free Assessment'}
-              <ArrowRight size={16} />
-            </ShimmerButton>
-            <a
-              href={`tel:${phone}`}
-              className="flex items-center justify-center gap-2 font-semibold px-6 py-3 rounded-xl transition-all duration-200 hover:-translate-y-0.5"
-              style={{
-                border: '1.5px solid rgba(255,255,255,0.25)',
-                color: '#ffffff',
-                background: 'rgba(255,255,255,0.08)',
-                backdropFilter: 'blur(8px)',
-              }}
-            >
-              <Phone size={16} style={{ color: '#5EBC67' }} />
-              {c.cta_secondary || 'Call Us Now'}
-            </a>
-          </div>
-        </MotionDiv>
-
-        {/* Stats row */}
-        <MotionDiv delay={0.4}>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 pt-6 sm:pt-8 max-w-3xl mx-auto" style={{ borderTop: '1px solid rgba(255,255,255,0.12)' }}>
-            {stats.map((stat, idx) => (
-              <div
-                key={stat.label}
-                className={`relative group animate-slide-up-${Math.min(idx + 1, 4)}`}
+              {c.headline_part1 || 'IT support that keeps your business'}{' '}
+              <span
+                style={{
+                  background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}
               >
-                <div
-                  className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl"
-                  style={{ background: 'linear-gradient(135deg, rgba(57,204,204,0.3) 0%, rgba(94,188,103,0.2) 100%)' }}
-                />
-                <div
-                  className="relative p-4 sm:p-5 rounded-2xl backdrop-blur-md transition-all duration-300 group-hover:-translate-y-1"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 100%)',
-                    border: '1.5px solid rgba(255,255,255,0.14)',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.12)',
-                  }}
-                >
+                {c.headline_accent || 'ahead of the current'}
+              </span>
+              {c.headline_part2 ? <>{' '}{c.headline_part2}</> : null}
+              {c.headline_accent2 ? <>{' '}<span style={{ color: '#5EBC67' }}>{c.headline_accent2}</span></> : null}
+            </h1>
+          </MotionDiv>
+
+          <MotionDiv delay={0.2}>
+            <p
+              className="text-sm sm:text-base lg:text-lg leading-relaxed mb-6 sm:mb-8 max-w-xl"
+              style={{ color: 'rgba(255,255,255,0.72)' }}
+            >
+              {c.subheadline || 'New Wave IT helps small and mid-sized teams reduce downtime, strengthen security, and simplify day-to-day technology with responsive managed IT support.'}
+            </p>
+          </MotionDiv>
+
+          <MotionDiv delay={0.3}>
+            <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 mb-8 sm:mb-10">
+              <ShimmerButton
+                onClick={() => navigate('/contact')}
+                className="px-6 py-3 rounded-xl text-base"
+              >
+                {c.cta_primary || 'Schedule a Free Assessment'}
+                <ArrowRight size={16} />
+              </ShimmerButton>
+              <button
+                type="button"
+                onClick={scrollToServices}
+                className="flex items-center justify-center gap-2 font-semibold px-6 py-3 rounded-xl transition-all duration-200 hover:-translate-y-0.5"
+                style={{
+                  border: '1.5px solid rgba(255,255,255,0.25)',
+                  color: '#ffffff',
+                  background: 'rgba(255,255,255,0.08)',
+                  backdropFilter: 'blur(8px)',
+                }}
+              >
+                {c.cta_secondary || 'See How We Help'}
+              </button>
+            </div>
+          </MotionDiv>
+
+          {/* Stats row */}
+          <MotionDiv delay={0.4}>
+            <div className="flex flex-wrap gap-x-10 gap-y-6 sm:gap-x-14 pt-7 sm:pt-8" style={{ borderTop: '1px solid rgba(255,255,255,0.12)' }}>
+              {stats.map((stat) => (
+                <div key={stat.label} className="text-left">
                   <div
-                    className="text-2xl sm:text-3xl lg:text-4xl font-bold tabular-nums"
+                    className="text-3xl sm:text-4xl font-bold"
                     style={{
                       fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif",
                       background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)',
@@ -209,14 +194,14 @@ export default function Hero() {
                   >
                     {stat.value}
                   </div>
-                  <div className="text-[10px] sm:text-xs mt-1.5 font-medium" style={{ color: 'rgba(255,255,255,0.62)' }}>
+                  <div className="text-xs sm:text-sm mt-1 font-medium" style={{ color: 'rgba(255,255,255,0.62)' }}>
                     {stat.label}
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </MotionDiv>
+              ))}
+            </div>
+          </MotionDiv>
+        </div>
       </div>
     </section>
   );
