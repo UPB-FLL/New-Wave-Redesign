@@ -70,7 +70,7 @@ export default function ManagedITServicePage() {
         <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 30% 70%, rgba(57,204,204,0.2) 0%, transparent 50%)' }} />
 
         <div className="relative max-w-6xl mx-auto">
-          <h1 className="text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">
             Proactive IT
             <br />
             <span style={{ background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>

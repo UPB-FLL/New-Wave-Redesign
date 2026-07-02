@@ -23,7 +23,7 @@ export default function ContactPage() {
     <div className="min-h-screen bg-white">
       <Navbar />
       <div className="pt-20">
-        <Contact />
+        <Contact headlineAs="h1" />
       </div>
       <Footer />
     </div>

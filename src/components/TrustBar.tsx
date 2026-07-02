@@ -116,7 +116,7 @@ function TrustedSlide({ items }: { items: TrustItem[] }) {
             style={{ minWidth: '140px', filter: 'grayscale(1)', opacity: 0.5 }}
             title={logo.name}
           >
-            <img src={logo.src} alt={logo.name} className="h-7 w-auto object-contain" style={{ color: '#152232' }} />
+            <img src={logo.src} alt={logo.name} className="h-7 w-auto object-contain" style={{ color: '#152232' }} height={28} loading="lazy" decoding="async" />
           </div>
         ))}
       </Marquee>

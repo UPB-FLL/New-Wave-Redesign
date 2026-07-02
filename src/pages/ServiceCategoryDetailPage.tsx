@@ -122,7 +122,7 @@ export default function ServiceCategoryDetailPage() {
           >
             ← Back to Services
           </Link>
-          <h1 className="text-5xl md:text-6xl font-bold leading-tight mb-6 tracking-tight">{service.title}</h1>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight mb-6 tracking-tight">{service.title}</h1>
           {service.description && (
             <p className="text-xl md:text-2xl max-w-3xl mb-8 font-light" style={{ color: 'rgba(255,255,255,0.9)' }}>
               {service.description}

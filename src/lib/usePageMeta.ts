@@ -20,6 +20,10 @@ interface PageMetaOptions {
   keywords?: string;
   /** JSON-LD object(s) to inject as <script type="application/ld+json"> */
   jsonLd?: object | object[];
+  /** Open Graph type, e.g. 'website' or 'article' */
+  ogType?: string;
+  /** Set true to add <meta name="robots" content="noindex, nofollow"> */
+  noindex?: boolean;
 }
 
 type Restorer = () => void;
@@ -77,6 +81,8 @@ export function usePageMeta({
   ogImage = DEFAULT_OG_IMAGE,
   keywords,
   jsonLd,
+  ogType = 'website',
+  noindex = false,
 }: PageMetaOptions) {
   useEffect(() => {
     const prevTitle = document.title;
@@ -88,13 +94,17 @@ export function usePageMeta({
 
     const restorers: Restorer[] = [
       upsertMeta('name', 'description', description),
+      upsertMeta('property', 'og:type', ogType),
+      upsertMeta('property', 'og:site_name', SITE_NAME),
       upsertMeta('property', 'og:title', fullTitle),
       upsertMeta('property', 'og:description', description),
       upsertMeta('property', 'og:url', pageUrl),
       upsertMeta('property', 'og:image', ogImage),
+      upsertMeta('name', 'twitter:card', 'summary_large_image'),
       upsertMeta('name', 'twitter:title', fullTitle),
       upsertMeta('name', 'twitter:description', description),
       upsertMeta('name', 'twitter:image', ogImage),
+      upsertMeta('name', 'robots', noindex ? 'noindex, nofollow' : 'index, follow'),
       upsertCanonical(pageUrl),
     ];
 
@@ -105,5 +115,5 @@ export function usePageMeta({
       document.title = prevTitle;
       restorers.forEach((r) => r());
     };
-  }, [title, description, includeSiteName, canonical, ogImage, keywords, jsonLd]);
+  }, [title, description, includeSiteName, canonical, ogImage, keywords, jsonLd, ogType, noindex]);
 }

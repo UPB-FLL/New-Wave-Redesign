@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Menu, X, ChevronDown, Shield, Headphones, Wrench, Monitor, Cloud, Network, Briefcase, Stethoscope, Crown, Signal, ArrowRight } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import Logo from './Logo';
 
 const serviceGroups = [
@@ -43,7 +43,6 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [servicesDropdownOpen, setServicesDropdownOpen] = useState(false);
   const [dropdownTimeout, setDropdownTimeout] = useState<NodeJS.Timeout | null>(null);
-  const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
@@ -52,31 +51,10 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleNavClick = (href: string) => {
-    setIsOpen(false);
-    if (href.startsWith('#')) {
-      if (location.pathname === '/') {
-        const el = document.querySelector(href);
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-      } else {
-        navigate('/');
-        setTimeout(() => {
-          const el = document.querySelector(href);
-          if (el) el.scrollIntoView({ behavior: 'smooth' });
-        }, 300);
-      }
-    } else {
-      navigate(href);
-      window.scrollTo({ top: 0 });
-    }
-  };
-
-  const handleLogoClick = () => {
+  const handleLogoClick = (e: React.MouseEvent) => {
     if (location.pathname === '/') {
+      e.preventDefault();
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      navigate('/');
-      window.scrollTo({ top: 0 });
     }
   };
 
@@ -90,24 +68,25 @@ export default function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          <button
+          <Link
+            to="/"
             onClick={handleLogoClick}
             className="flex items-center hover:opacity-80 transition-opacity"
             aria-label="New Wave IT home"
           >
             <Logo tone="onLight" />
-          </button>
+          </Link>
 
           <div className="hidden md:flex items-center gap-8">
-            <button
-              onClick={() => navigate('/')}
+            <Link
+              to="/"
               className="text-lg font-medium transition-colors duration-200"
               style={{ color: 'rgba(21,34,50,0.7)' }}
               onMouseEnter={(e) => (e.currentTarget.style.color = '#152232')}
               onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(21,34,50,0.7)')}
             >
               Home
-            </button>
+            </Link>
 
             {/* Services Dropdown */}
             <div
@@ -152,12 +131,10 @@ export default function Navbar() {
                             {group.items.map((item) => {
                               const ItemIcon = item.icon;
                               return (
-                                <button
+                                <Link
                                   key={item.href}
-                                  onClick={() => {
-                                    navigate(item.href);
-                                    setServicesDropdownOpen(false);
-                                  }}
+                                  to={item.href}
+                                  onClick={() => setServicesDropdownOpen(false)}
                                   className="w-full flex items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors duration-150"
                                   onMouseEnter={(e) => (e.currentTarget.style.background = `${group.accent}14`)}
                                   onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
@@ -168,18 +145,16 @@ export default function Navbar() {
                                   <span className="text-[15px] font-medium leading-snug" style={{ color: '#152232' }}>
                                     {item.label}
                                   </span>
-                                </button>
+                                </Link>
                               );
                             })}
                           </div>
                         </div>
                       ))}
                     </div>
-                    <button
-                      onClick={() => {
-                        navigate('/services');
-                        setServicesDropdownOpen(false);
-                      }}
+                    <Link
+                      to="/services"
+                      onClick={() => setServicesDropdownOpen(false)}
                       className="w-full flex items-center justify-between px-7 py-3.5 transition-colors duration-150"
                       style={{ background: 'rgba(57,204,204,0.07)', borderTop: '1px solid rgba(21,34,50,0.06)' }}
                       onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(57,204,204,0.14)')}
@@ -192,7 +167,7 @@ export default function Navbar() {
                         View all services
                         <ArrowRight size={15} />
                       </span>
-                    </button>
+                    </Link>
                   </div>
                 </div>
               )}
@@ -217,20 +192,20 @@ export default function Navbar() {
               }
 
               return (
-                <button
+                <Link
                   key={link.href}
-                  onClick={() => handleNavClick(link.href)}
+                  to={link.href}
                   className="text-lg font-medium transition-colors duration-200"
                   style={{ color: 'rgba(21,34,50,0.7)' }}
                   onMouseEnter={(e) => (e.currentTarget.style.color = '#152232')}
                   onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(21,34,50,0.7)')}
                 >
                   {link.label}
-                </button>
+                </Link>
               );
             })}
-            <button
-              onClick={() => handleNavClick('/support')}
+            <Link
+              to="/support"
               className="ml-auto px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105 text-white text-lg"
               style={{
                 background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)',
@@ -245,7 +220,7 @@ export default function Navbar() {
               }}
             >
               Support
-            </button>
+            </Link>
           </div>
 
           <button
@@ -263,16 +238,14 @@ export default function Navbar() {
       {isOpen && (
         <div id="mobile-nav-menu" className="md:hidden bg-white border-t border-gray-100">
           <div className="px-6 py-4 flex flex-col gap-4">
-            <button
-              onClick={() => {
-                navigate('/');
-                setIsOpen(false);
-              }}
+            <Link
+              to="/"
+              onClick={() => setIsOpen(false)}
               className="text-base font-medium text-left transition-colors"
               style={{ color: 'rgba(21,34,50,0.7)' }}
             >
               Home
-            </button>
+            </Link>
 
             {/* Mobile Services Dropdown */}
             <div>
@@ -294,10 +267,10 @@ export default function Navbar() {
                       {group.items.map((item) => {
                         const ItemIcon = item.icon;
                         return (
-                          <button
+                          <Link
                             key={item.href}
+                            to={item.href}
                             onClick={() => {
-                              navigate(item.href);
                               setIsOpen(false);
                               setServicesDropdownOpen(false);
                             }}
@@ -307,14 +280,14 @@ export default function Navbar() {
                               <ItemIcon size={14} style={{ color: group.accent }} />
                             </span>
                             <span className="text-base" style={{ color: 'rgba(21,34,50,0.75)' }}>{item.label}</span>
-                          </button>
+                          </Link>
                         );
                       })}
                     </div>
                   ))}
-                  <button
+                  <Link
+                    to="/services"
                     onClick={() => {
-                      navigate('/services');
                       setIsOpen(false);
                       setServicesDropdownOpen(false);
                     }}
@@ -323,7 +296,7 @@ export default function Navbar() {
                   >
                     View all services
                     <ArrowRight size={15} />
-                  </button>
+                  </Link>
                 </div>
               )}
             </div>
@@ -347,12 +320,10 @@ export default function Navbar() {
 
               if (isSupport) {
                 return (
-                  <button
+                  <Link
                     key={link.href}
-                    onClick={() => {
-                      handleNavClick(link.href);
-                      setIsOpen(false);
-                    }}
+                    to={link.href}
+                    onClick={() => setIsOpen(false)}
                     className="px-4 py-3 rounded-lg font-medium text-white text-left"
                     style={{
                       background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)',
@@ -361,28 +332,30 @@ export default function Navbar() {
                     }}
                   >
                     {link.label}
-                  </button>
+                  </Link>
                 );
               }
 
               return (
-                <button
+                <Link
                   key={link.href}
-                  onClick={() => handleNavClick(link.href)}
+                  to={link.href}
+                  onClick={() => setIsOpen(false)}
                   className="text-base font-medium text-left transition-colors"
                   style={{ color: 'rgba(21,34,50,0.7)' }}
                 >
                   {link.label}
-                </button>
+                </Link>
               );
             })}
-            <button
-              onClick={() => handleNavClick('/contact')}
+            <Link
+              to="/contact"
+              onClick={() => setIsOpen(false)}
               className="text-white font-semibold px-5 py-3 rounded-lg transition-all duration-200 text-center"
               style={{ background: '#39CCCC' }}
             >
               Free Assessment
-            </button>
+            </Link>
           </div>
         </div>
       )}

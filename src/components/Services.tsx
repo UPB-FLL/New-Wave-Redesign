@@ -225,7 +225,7 @@ function ServiceCardInner({
   );
 }
 
-export default function Services() {
+export default function Services({ headlineAs: HeadlineTag = 'h2' }: { headlineAs?: 'h1' | 'h2' } = {}) {
   const c = useContent('services');
   const reduced = useReducedMotion();
 
@@ -242,7 +242,7 @@ export default function Services() {
             <span className="text-xs sm:text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
               {c.section_label || 'What We Do'}
             </span>
-            <h2
+            <HeadlineTag
               className="text-4xl sm:text-5xl lg:text-7xl mt-2 mb-4 leading-[0.95] tracking-tight"
               style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}
             >
@@ -257,7 +257,7 @@ export default function Services() {
                   <span style={{ display: 'inline-block', background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Modern Business</span>
                 </>
               )}
-            </h2>
+            </HeadlineTag>
             <p className="text-sm sm:text-base max-w-2xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
               {c.subheadline || 'From day-to-day support to long-term IT strategy, we provide everything your business needs to stay secure, efficient, and ahead of the curve.'}
             </p>

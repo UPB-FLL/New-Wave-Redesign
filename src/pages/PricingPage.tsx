@@ -37,7 +37,7 @@ export default function PricingPage() {
               <span className="text-xs sm:text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
                 {c.section_label || 'Custom Pricing'}
               </span>
-              <h2
+              <h1
                 className="text-4xl sm:text-5xl lg:text-7xl mt-2 mb-4 leading-[0.95] tracking-tight"
                 style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}
               >
@@ -52,7 +52,7 @@ export default function PricingPage() {
                     <span style={{ display: 'inline-block', background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}> Plans</span>
                   </>
                 )}
-              </h2>
+              </h1>
               <p className="text-sm sm:text-base max-w-2xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
                 {c.subheadline || 'Select the services you need and get an instant estimate. Our team will reach out with a customized proposal.'}
               </p>
