@@ -1,5 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
 import { useContent } from '../lib/useContent';
+import { usePageMeta } from '../lib/usePageMeta';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { ArrowRight } from 'lucide-react';
@@ -26,6 +27,27 @@ export default function ServiceDetailPage() {
   } catch {
     // use null
   }
+
+  usePageMeta({
+    title: service
+      ? `${service.name} in Fort Lauderdale`
+      : 'IT Services',
+    description: service?.description
+      ? `${service.description} Serving Fort Lauderdale and South Florida businesses 24/7.`
+      : undefined,
+    canonical: `https://www.newwaveitfl.com/service/${slug ?? ''}`,
+    jsonLd: service
+      ? {
+          '@context': 'https://schema.org',
+          '@type': 'Service',
+          'provider': { '@id': 'https://www.newwaveitfl.com/#business' },
+          'name': service.name,
+          'description': service.description,
+          'areaServed': { '@type': 'City', 'name': 'Fort Lauderdale' },
+          'url': `https://www.newwaveitfl.com/service/${slug ?? ''}`,
+        }
+      : undefined,
+  });
 
   if (!service) {
     return (

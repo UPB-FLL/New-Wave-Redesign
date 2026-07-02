@@ -72,7 +72,7 @@ export default function LiveITSupportServicePage() {
 
         <div className="relative max-w-6xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-5xl md:text-6xl font-bold text-white mb-4 leading-tight">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4 leading-tight">
               Always-On Technical
               <br />
               <span style={{ background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>

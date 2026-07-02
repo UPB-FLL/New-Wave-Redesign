@@ -2,6 +2,7 @@ import { useParams, Link } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, AlertCircle, TrendingUp, Shield, Users, Zap, BarChart3 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { usePageMeta } from '../lib/usePageMeta';
 
 interface GuideSection {
   title: string;
@@ -439,6 +440,36 @@ export default function ServiceGuidePage() {
   const { slug } = useParams<{ slug: string }>();
   const guide = slug ? guides[slug] : null;
 
+  usePageMeta({
+    title: guide ? `${guide.title} — ${guide.subtitle}` : 'Service Guides',
+    description: guide
+      ? guide.overview.slice(0, 155).replace(/\s+\S*$/, '') + '…'
+      : undefined,
+    canonical: `https://www.newwaveitfl.com/l/${slug ?? ''}`,
+    jsonLd: guide
+      ? [
+          {
+            '@context': 'https://schema.org',
+            '@type': 'Article',
+            'headline': guide.title,
+            'description': guide.overview,
+            'author': { '@id': 'https://www.newwaveitfl.com/#organization' },
+            'publisher': { '@id': 'https://www.newwaveitfl.com/#organization' },
+            'mainEntityOfPage': `https://www.newwaveitfl.com/l/${slug ?? ''}`,
+          },
+          {
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            'mainEntity': guide.faq.map((f) => ({
+              '@type': 'Question',
+              'name': f.question,
+              'acceptedAnswer': { '@type': 'Answer', 'text': f.answer },
+            })),
+          },
+        ]
+      : undefined,
+  });
+
   if (!guide) {
     return (
       <div className="min-h-screen" style={{ background: 'white' }}>
@@ -472,7 +503,7 @@ export default function ServiceGuidePage() {
           <Link to="/services" className="inline-flex items-center gap-1 text-sm mb-6" style={{ color: 'rgba(255,255,255,0.6)' }}>
             ← Back to Services
           </Link>
-          <h1 className="text-5xl md:text-6xl font-bold leading-tight mb-4">{guide.title}</h1>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight mb-4">{guide.title}</h1>
           <p className="text-2xl mb-8 font-light" style={{ color: 'rgba(255,255,255,0.9)' }}>
             {guide.subtitle}
           </p>

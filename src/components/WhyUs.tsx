@@ -28,7 +28,7 @@ const defaultCards: FeatureCard[] = [
   { title: 'Cloud Migration & Integration', desc: 'Seamless transitions to cloud platforms with zero downtime, plus integration with your existing systems.' },
 ];
 
-export default function WhyUs() {
+export default function WhyUs({ headlineAs: HeadlineTag = 'h2' }: { headlineAs?: 'h1' | 'h2' } = {}) {
   const c = useContent('whyus');
   const reduced = useReducedMotion();
   const navigate = useNavigate();
@@ -65,7 +65,7 @@ export default function WhyUs() {
               <span className="text-xs sm:text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
                 {c.section_label || 'Why New Wave IT'}
               </span>
-              <h2
+              <HeadlineTag
                 className="text-4xl sm:text-5xl lg:text-7xl mt-2 mb-4 leading-[0.95] tracking-tight"
                 style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}
               >
@@ -80,7 +80,7 @@ export default function WhyUs() {
                     <span style={{ display: 'inline-block', background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>can't afford downtime.</span>
                   </>
                 )}
-              </h2>
+              </HeadlineTag>
               <p className="text-sm sm:text-base leading-relaxed mb-5 sm:mb-6" style={{ color: 'rgba(21,34,50,0.6)' }}>
                 {c.subheadline || "We don't just fix problems — we build long-term partnerships that keep your business technology running at its best."}
               </p>

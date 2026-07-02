@@ -84,7 +84,11 @@ export default function BlogPage() {
                   <Link to={href} className="block rounded-lg overflow-hidden mb-8 group" aria-label={title}>
                     <img
                       src={image}
-                      alt=""
+                      alt={title}
+                      width={370}
+                      height={239}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full aspect-[1.55] object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                   </Link>

@@ -1,7 +1,7 @@
 import { useContent } from '../lib/useContent';
 import { Shield, Users, Award, Zap } from 'lucide-react';
 
-export default function About() {
+export default function About({ headlineAs: HeadlineTag = 'h2' }: { headlineAs?: 'h1' | 'h2' } = {}) {
   const c = useContent('about');
 
   return (
@@ -15,6 +15,10 @@ export default function About() {
                 src="https://images.pexels.com/photos/1181316/pexels-photo-1181316.jpeg?auto=compress&cs=tinysrgb&w=900"
                 alt="New Wave IT team at work"
                 className="w-full h-full object-cover"
+                width={900}
+                height={675}
+                loading="lazy"
+                decoding="async"
               />
             </div>
 
@@ -38,7 +42,7 @@ export default function About() {
             <span className="text-xs sm:text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
               {c.section_label || 'About Us'}
             </span>
-            <h2
+            <HeadlineTag
               className="text-4xl sm:text-5xl lg:text-7xl mt-2 mb-4 sm:mb-6 leading-[0.95] tracking-tight"
               style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}
             >
@@ -53,7 +57,7 @@ export default function About() {
                   <span style={{ display: 'inline-block', background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>trusted IT partner</span>
                 </>
               )}
-            </h2>
+            </HeadlineTag>
             <p className="text-sm sm:text-base lg:text-lg leading-relaxed mb-3 sm:mb-5" style={{ color: 'rgba(21,34,50,0.65)' }}>
               {c.paragraph1 || "New Wave IT was founded with a simple mission: provide businesses across South Florida with enterprise-grade IT support they can actually rely on — without the enterprise price tag."}
             </p>
@@ -74,8 +78,12 @@ export default function About() {
                   <img
                     key={i}
                     src={src}
-                    alt="Team member"
+                    alt="New Wave IT team member"
                     className="w-10 h-10 rounded-full object-cover"
+                    width={40}
+                    height={40}
+                    loading="lazy"
+                    decoding="async"
                     style={{ border: '2px solid white', boxShadow: '0 2px 8px rgba(21,34,50,0.1)' }}
                   />
                 ))}

@@ -7,6 +7,7 @@ export default function CodeNestPage() {
     description:
       'CodeNest is a coding education platform with project-based courses, real-world mentorship, and a career-ready curriculum taught by industry professionals.',
     includeSiteName: false,
+    canonical: 'https://www.newwaveitfl.com/codenest',
   });
 
   return (

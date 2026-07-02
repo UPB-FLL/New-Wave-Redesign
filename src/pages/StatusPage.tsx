@@ -31,6 +31,7 @@ export default function StatusPage() {
   usePageMeta({
     title: 'Service Status — New Wave IT',
     description: 'Real-time status of critical services and ISPs. Monitor uptime for cloud services your business depends on.',
+    canonical: 'https://www.newwaveitfl.com/status',
   });
 
   const c = useContent('status');

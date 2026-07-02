@@ -11,9 +11,11 @@ import { usePageMeta } from '../lib/usePageMeta';
 
 export default function CybersecurityPage() {
   usePageMeta({
-    title: 'Cybersecurity Services in Fort Lauderdale — Threat Protection & Compliance',
+    title: 'Cybersecurity Threat Center — Attack Types, Defenses & Compliance',
     description:
-      'Enterprise-grade cybersecurity for South Florida businesses: threat detection, endpoint protection, compliance audits, and 24/7 monitoring.',
+      'Explore the cyber threats targeting South Florida businesses — ransomware, phishing, insider risk — and how New Wave IT detects, defends, and keeps you compliant.',
+    keywords: 'cyber threats South Florida, ransomware protection, phishing defense, threat intelligence, security compliance, cybersecurity threat center',
+    canonical: 'https://www.newwaveitfl.com/cybersecurity',
   });
   return (
     <div className="min-h-screen" style={{ background: 'white' }}>

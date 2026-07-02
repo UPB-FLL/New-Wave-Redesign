@@ -27,6 +27,8 @@ export default function SupportPage() {
     title: 'IT Support Portal — Tickets, Knowledge Base & Live Chat',
     description:
       'Open a support ticket, browse the knowledge base, start a live chat, or connect a remote session with New Wave IT.',
+    keywords: 'IT support portal, submit IT ticket, IT knowledge base, remote IT support Fort Lauderdale, New Wave IT support',
+    canonical: 'https://www.newwaveitfl.com/support',
   });
   const [activeTab, setActiveTab] = useState<'tickets' | 'kb' | 'chat' | 'wave' | 'submit'>('tickets');
   const [tickets, setTickets] = useState<SupportTicket[]>([]);

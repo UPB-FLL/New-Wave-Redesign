@@ -16,7 +16,7 @@ export default function ServicesPage() {
     <div className="min-h-screen bg-slate-900">
       <Navbar />
       <div className="pt-20">
-        <Services />
+        <Services headlineAs="h1" />
       </div>
       <Contact />
       <Footer />

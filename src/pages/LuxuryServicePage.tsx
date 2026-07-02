@@ -42,6 +42,7 @@ export default function LuxuryServicePage() {
     description:
       'Premium IT solutions for luxury properties, resorts, and high-end hospitality. Smart home automation, guest WiFi, and white-glove technical support.',
     keywords: 'luxury property IT, smart home automation, high-end WiFi, concierge technology, resort IT services',
+    canonical: 'https://www.newwaveitfl.com/service-category/luxury',
   });
 
   const service = defaultService;
@@ -60,12 +61,12 @@ export default function LuxuryServicePage() {
         <div className="absolute inset-0 opacity-25" style={{ backgroundImage: 'radial-gradient(circle at 70% 30%, rgba(57,204,204,0.15) 0%, transparent 60%)' }} />
 
         <div className="relative max-w-6xl mx-auto">
-          <div className="flex items-start gap-6 mb-8">
-            <div className="p-4 rounded-2xl" style={{ background: 'rgba(57,204,204,0.15)', border: '1px solid rgba(57,204,204,0.3)' }}>
+          <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 mb-8">
+            <div className="p-4 rounded-2xl shrink-0" style={{ background: 'rgba(57,204,204,0.15)', border: '1px solid rgba(57,204,204,0.3)' }}>
               <Crown size={48} style={{ color: '#39CCCC' }} />
             </div>
             <div>
-              <h1 className="text-5xl md:text-6xl font-bold text-white mb-4 leading-tight">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4 leading-tight">
                 Luxury Living
                 <br />
                 <span style={{ background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>

@@ -15,7 +15,7 @@ interface FormData {
 
 const initialForm: FormData = { name: '', email: '', phone: '', company: '', message: '' };
 
-export default function Contact() {
+export default function Contact({ headlineAs: HeadlineTag = 'h2' }: { headlineAs?: 'h1' | 'h2' } = {}) {
   const c = useContent('contact');
   const [form, setForm] = useState<FormData>(initialForm);
   const [loading, setLoading] = useState(false);
@@ -82,7 +82,7 @@ export default function Contact() {
           <span className="text-xs sm:text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
             {c.section_label || 'Get In Touch'}
           </span>
-          <h2
+          <HeadlineTag
             className="text-4xl sm:text-5xl lg:text-7xl mt-2 mb-4 leading-[0.95] tracking-tight"
             style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}
           >
@@ -94,7 +94,7 @@ export default function Contact() {
                 <span style={{ display: 'inline-block', background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{c.headline_accent || "Let's talk."}</span>
               </>
             )}
-          </h2>
+          </HeadlineTag>
           <p className="text-sm sm:text-base max-w-xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
             {c.subheadline || 'Fill out the form below and one of our technicians will reach out within one business day — or call us now for immediate assistance.'}
           </p>

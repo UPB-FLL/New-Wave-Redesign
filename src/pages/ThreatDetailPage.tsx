@@ -1,5 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
 import { useContent } from '../lib/useContent';
+import { usePageMeta } from '../lib/usePageMeta';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { ArrowRight, AlertTriangle } from 'lucide-react';
@@ -36,6 +37,27 @@ export default function ThreatDetailPage() {
   } catch {
     // use null
   }
+
+  usePageMeta({
+    title: threat
+      ? `${threat.name} — Threat Protection & Mitigation`
+      : 'Cyber Threat Protection',
+    description: threat?.description
+      ? `${threat.description} Learn how New Wave IT protects South Florida businesses against ${threat.name.toLowerCase()}.`
+      : undefined,
+    canonical: `https://www.newwaveitfl.com/threat/${slug ?? ''}`,
+    jsonLd: threat
+      ? {
+          '@context': 'https://schema.org',
+          '@type': 'Article',
+          'headline': `${threat.name} — Threat Protection & Mitigation`,
+          'description': threat.description,
+          'author': { '@id': 'https://www.newwaveitfl.com/#organization' },
+          'publisher': { '@id': 'https://www.newwaveitfl.com/#organization' },
+          'mainEntityOfPage': `https://www.newwaveitfl.com/threat/${slug ?? ''}`,
+        }
+      : undefined,
+  });
 
   if (!threat) {
     return (
@@ -76,8 +98,8 @@ export default function ThreatDetailPage() {
           >
             ← Back to Threats
           </Link>
-          <div className="flex items-center gap-3 mb-4">
-            <h1 className="text-4xl md:text-5xl font-bold leading-tight">{threat.name}</h1>
+          <div className="flex flex-wrap items-center gap-3 mb-4">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight">{threat.name}</h1>
             <span
               className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-lg"
               style={{
