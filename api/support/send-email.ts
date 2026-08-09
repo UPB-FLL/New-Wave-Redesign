@@ -7,7 +7,7 @@ import {
   rateLimit,
   readJsonBody,
   sweepRateLimits,
-} from '../_lib/http';
+} from '../_lib/http.js';
 
 /**
  * "Email support" section of /support.

@@ -7,9 +7,9 @@ import {
   rateLimit,
   readJsonBody,
   sweepRateLimits,
-} from '../_lib/http';
-import { getSupabaseAdmin, isSupabaseConfigured } from '../_lib/supabaseAdmin';
-import { hashToken, randomLoginCode } from '../_lib/tokens';
+} from '../_lib/http.js';
+import { getSupabaseAdmin, isSupabaseConfigured } from '../_lib/supabaseAdmin.js';
+import { hashToken, randomLoginCode } from '../_lib/tokens.js';
 
 /**
  * Step 1 of the customer portal sign-in: email a one-time code.

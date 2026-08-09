@@ -1,5 +1,5 @@
-import { getSupabaseAdmin } from './supabaseAdmin';
-import { hashToken, randomToken } from './tokens';
+import { getSupabaseAdmin } from './supabaseAdmin.js';
+import { hashToken, randomToken } from './tokens.js';
 
 /** How long a customer stays signed in to the ticket portal. */
 export const SESSION_TTL_MS = 12 * 60 * 60 * 1000;

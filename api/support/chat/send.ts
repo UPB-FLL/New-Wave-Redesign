@@ -1,12 +1,12 @@
-import { clientIp, methodGuard, rateLimit, readJsonBody, sweepRateLimits } from '../../_lib/http';
-import { isSupabaseConfigured } from '../../_lib/supabaseAdmin';
+import { clientIp, methodGuard, rateLimit, readJsonBody, sweepRateLimits } from '../../_lib/http.js';
+import { isSupabaseConfigured } from '../../_lib/supabaseAdmin.js';
 import {
   MAX_MESSAGES_PER_SESSION,
   MAX_MESSAGE_LENGTH,
   appendMessage,
   notifyAgents,
   resolveChatSession,
-} from '../../_lib/chatSession';
+} from '../../_lib/chatSession.js';
 
 /** Sends a follow-up visitor message and forwards it to the technician by SMS. */
 export default async function handler(req: any, res: any) {

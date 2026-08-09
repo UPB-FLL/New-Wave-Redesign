@@ -6,15 +6,15 @@ import {
   readJsonBody,
   sweepRateLimits,
   toE164,
-} from '../../_lib/http';
-import { isSupabaseConfigured } from '../../_lib/supabaseAdmin';
-import { isTwilioConfigured } from '../../_lib/twilio';
+} from '../../_lib/http.js';
+import { isSupabaseConfigured } from '../../_lib/supabaseAdmin.js';
+import { isTwilioConfigured } from '../../_lib/twilio.js';
 import {
   MAX_MESSAGE_LENGTH,
   appendMessage,
   createChatSession,
   notifyAgents,
-} from '../../_lib/chatSession';
+} from '../../_lib/chatSession.js';
 
 /**
  * Opens a live chat conversation and texts the first message to the on-call

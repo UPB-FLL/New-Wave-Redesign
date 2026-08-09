@@ -1,6 +1,6 @@
-import { getSupabaseAdmin } from './supabaseAdmin';
-import { hashToken, randomChatCode, randomToken } from './tokens';
-import { getAgentNumbers, sendSms } from './twilio';
+import { getSupabaseAdmin } from './supabaseAdmin.js';
+import { hashToken, randomChatCode, randomToken } from './tokens.js';
+import { getAgentNumbers, sendSms } from './twilio.js';
 
 /**
  * Live chat <-> SMS bridge.
