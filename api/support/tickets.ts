@@ -1,108 +1,67 @@
-interface TicketQuery {
-  email: string;
-}
+import { methodGuard, readJsonBody } from '../_lib/http';
+import { bearerToken, resolvePortalSession } from '../_lib/portalSession';
+import { isSupabaseConfigured } from '../_lib/supabaseAdmin';
+import {
+  SuperOpsNotConfiguredError,
+  SuperOpsRequestError,
+  getTicketsForRequester,
+  isSuperOpsConfigured,
+} from '../_lib/superops';
 
+/**
+ * Returns the signed-in customer's SuperOps tickets.
+ *
+ * The email is taken from the verified portal session, never from the request
+ * body — otherwise anyone could read anyone else's tickets by typing their
+ * address.
+ */
 export default async function handler(req: any, res: any) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+  if (!methodGuard(req, res, ['POST'])) return;
+
+  if (!isSupabaseConfigured()) {
+    console.error('support/tickets: Supabase is not configured');
+    return res.status(503).json({ error: 'The customer portal is temporarily unavailable.' });
   }
 
-  const { email }: TicketQuery = req.body;
-
-  if (!email) {
-    return res.status(400).json({ error: 'Email is required' });
+  const session = await resolvePortalSession(bearerToken(req));
+  if (!session) {
+    return res.status(401).json({ error: 'Your session has expired. Please sign in again.' });
   }
+
+  if (!isSuperOpsConfigured()) {
+    console.error('support/tickets: SUPEROPS_API_TOKEN / SUPEROPS_SUBDOMAIN are not configured');
+    return res.status(503).json({
+      error: 'Ticket sync is not configured yet. Please use the portal link or email support.',
+    });
+  }
+
+  const { page = 1, pageSize = 50 } = readJsonBody(req) as { page?: number; pageSize?: number };
 
   try {
-    // Get Superops API credentials from environment
-    const superopsApiKey = process.env.SUPEROPS_API_KEY;
-    const superopsBaseUrl = process.env.SUPEROPS_BASE_URL || 'https://api.superops.ai/v1';
-
-    if (!superopsApiKey) {
-      console.error('Superops API Key not configured');
-      return res.status(500).json({ error: 'Superops API not configured', tickets: [] });
-    }
-
-    // Try multiple endpoint formats for SuperOps API
-    const endpoints = [
-      `${superopsBaseUrl}/tickets?customer_email=${encodeURIComponent(email)}`,
-      `${superopsBaseUrl}/tickets/?customer_email=${encodeURIComponent(email)}`,
-      `${superopsBaseUrl}/tickets?email=${encodeURIComponent(email)}`,
-    ];
-
-    let response;
-    let lastError = '';
-
-    for (const endpoint of endpoints) {
-      try {
-        response = await fetch(endpoint, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${superopsApiKey}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-        });
-
-        if (response.ok) {
-          break;
-        }
-        lastError = `${response.status}: ${response.statusText}`;
-      } catch (e) {
-        lastError = String(e);
-        continue;
-      }
-    }
-
-    if (!response || !response.ok) {
-      console.error('Superops API error:', lastError);
-      // For now, return empty tickets to avoid breaking the UI
-      return res.status(200).json({
-        success: true,
-        tickets: [],
-        count: 0,
-        message: 'No tickets found for this email address'
-      });
-    }
-
-    const data = await response.json();
-    console.log('Superops API response:', JSON.stringify(data).substring(0, 200));
-
-    // Transform Superops data to our format - handle various response structures
-    let tickets = [];
-
-    if (Array.isArray(data)) {
-      tickets = data;
-    } else if (data.tickets && Array.isArray(data.tickets)) {
-      tickets = data.tickets;
-    } else if (data.data && Array.isArray(data.data)) {
-      tickets = data.data;
-    } else if (data.result && Array.isArray(data.result)) {
-      tickets = data.result;
-    }
-
-    const transformedTickets = tickets.map((ticket: any) => ({
-      id: ticket.id || ticket._id || Math.random().toString(),
-      subject: ticket.title || ticket.subject || ticket.name || 'Untitled',
-      status: (ticket.status || 'open').toLowerCase(),
-      priority: (ticket.priority || 'medium').toLowerCase(),
-      createdAt: ticket.created_at || ticket.createdAt || ticket.date || new Date().toISOString(),
-      updatedAt: ticket.updated_at || ticket.updatedAt || ticket.modified_at || new Date().toISOString(),
-      description: ticket.description || ticket.body || ticket.content || '',
-    }));
+    const result = await getTicketsForRequester(session.email, {
+      page: Number(page) > 0 ? Number(page) : 1,
+      pageSize: Number(pageSize) > 0 ? Number(pageSize) : 50,
+    });
 
     return res.status(200).json({
       success: true,
-      tickets: transformedTickets,
-      count: transformedTickets.length
+      email: session.email,
+      tickets: result.tickets,
+      count: result.tickets.length,
+      totalCount: result.totalCount,
+      hasMore: result.hasMore,
     });
   } catch (error) {
-    console.error('Support tickets error:', error);
-    return res.status(200).json({
-      success: true,
-      tickets: [],
-      count: 0,
-      message: 'Unable to retrieve support tickets at this time'
-    });
+    if (error instanceof SuperOpsNotConfiguredError) {
+      return res.status(503).json({ error: 'Ticket sync is not configured yet.' });
+    }
+    if (error instanceof SuperOpsRequestError) {
+      console.error('support/tickets: SuperOps request failed', error.message);
+      return res.status(502).json({
+        error: 'We could not reach the ticketing system. Please try again in a moment.',
+      });
+    }
+    console.error('support/tickets: unexpected failure', error);
+    return res.status(500).json({ error: 'We could not load your tickets. Please try again.' });
   }
 }
