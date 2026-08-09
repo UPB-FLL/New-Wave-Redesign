@@ -165,7 +165,9 @@ AS $$
     RETURNING message_count;
 $$;
 
+-- Reachable only by the API's service-role key, never from the browser.
 REVOKE ALL ON FUNCTION increment_support_chat_message_count(uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION increment_support_chat_message_count(uuid) TO service_role;
 
 -- ---------------------------------------------------------------------------
 -- Housekeeping
