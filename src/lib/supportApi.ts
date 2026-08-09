@@ -148,11 +148,8 @@ export function clearChatSession(): void {
 export interface SupportEmailPayload {
   name: string;
   email: string;
-  company: string;
-  phone: string;
   subject: string;
   message: string;
-  urgency: string;
   website: string;
 }
 

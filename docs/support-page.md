@@ -10,20 +10,21 @@ an unavailable message while email and the customer portal keep working.
 
 **Route:** `POST /api/support/send-email`
 
-Sends the visitor's message to the support inbox (reply-to set to the visitor)
-and a receipt to the visitor.
+Deliberately simple: one Resend send to the support inbox, with the visitor as
+reply-to so a technician can just hit reply. Four fields — name, email,
+subject, message. No confirmation email, no ticket record, no database.
 
 | Variable | Required | Default |
 | --- | --- | --- |
 | `RESEND_API_KEY` | yes | — |
 | `SUPPORT_INBOX_EMAIL` | no | `support@newwaveitfl.com` |
 | `SUPPORT_FROM_EMAIL` | no | `New Wave IT Support <support@newwaveitfl.com>` |
-| `SUPPORT_PHONE` | no | `(954) 372-5100` |
 
 `SUPPORT_FROM_EMAIL` must be on a domain verified in Resend.
 
-Abuse controls: a hidden honeypot field, per-field length caps, and a
-5-per-10-minutes-per-IP limit.
+The only guards are a hidden honeypot field and a 5-per-10-minutes-per-IP
+limit — this form posts directly into a real inbox, so without them it is a
+spam relay.
 
 ---
 

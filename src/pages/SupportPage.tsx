@@ -21,7 +21,7 @@ const CHANNELS: Array<{
   {
     id: 'email',
     label: 'Email support',
-    blurb: 'Write to support@newwaveitfl.com and get a copy for your records.',
+    blurb: 'Send a message straight to support@newwaveitfl.com.',
     icon: Mail,
     accent: '#39CCCC',
   },
