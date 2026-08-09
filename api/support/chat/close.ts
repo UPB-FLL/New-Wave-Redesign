@@ -1,6 +1,6 @@
-import { methodGuard, readJsonBody } from '../../_lib/http';
-import { isSupabaseConfigured } from '../../_lib/supabaseAdmin';
-import { appendMessage, closeChatSession, notifyAgents, resolveChatSession } from '../../_lib/chatSession';
+import { methodGuard, readJsonBody } from '../../_lib/http.js';
+import { isSupabaseConfigured } from '../../_lib/supabaseAdmin.js';
+import { appendMessage, closeChatSession, notifyAgents, resolveChatSession } from '../../_lib/chatSession.js';
 
 /** Ends a chat from the visitor's side and tells the technician it is over. */
 export default async function handler(req: any, res: any) {

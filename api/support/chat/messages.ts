@@ -1,6 +1,6 @@
-import { methodGuard, readJsonBody } from '../../_lib/http';
-import { isSupabaseConfigured } from '../../_lib/supabaseAdmin';
-import { listMessages, resolveChatSession } from '../../_lib/chatSession';
+import { methodGuard, readJsonBody } from '../../_lib/http.js';
+import { isSupabaseConfigured } from '../../_lib/supabaseAdmin.js';
+import { listMessages, resolveChatSession } from '../../_lib/chatSession.js';
 
 /**
  * Polling endpoint for the chat transcript.

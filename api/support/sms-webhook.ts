@@ -1,12 +1,12 @@
-import { getAgentNumbers, validateTwilioSignature, webhookUrl } from '../_lib/twilio';
-import { isSupabaseConfigured } from '../_lib/supabaseAdmin';
+import { getAgentNumbers, validateTwilioSignature, webhookUrl } from '../_lib/twilio.js';
+import { isSupabaseConfigured } from '../_lib/supabaseAdmin.js';
 import {
   MAX_MESSAGE_LENGTH,
   appendMessage,
   closeChatSession,
   findSessionByCode,
   listRoutableSessions,
-} from '../_lib/chatSession';
+} from '../_lib/chatSession.js';
 
 /**
  * Twilio inbound-SMS webhook. Point the messaging service or phone number at

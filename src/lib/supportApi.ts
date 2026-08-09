@@ -72,7 +72,13 @@ async function post<T>(path: string, body: unknown, token?: string): Promise<T> 
   }
 
   if (!response.ok) {
-    throw new ApiError(payload.error || 'Something went wrong. Please try again.', response.status);
+    // A crashed function returns plain text, not our JSON error shape. Surface
+    // the status rather than an opaque "something went wrong".
+    throw new ApiError(
+      payload.error ||
+        `The server hit an unexpected error (HTTP ${response.status}). Please try again, or call us if it keeps happening.`,
+      response.status
+    );
   }
 
   return payload as unknown as T;

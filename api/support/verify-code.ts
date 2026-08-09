@@ -5,10 +5,10 @@ import {
   rateLimit,
   readJsonBody,
   sweepRateLimits,
-} from '../_lib/http';
-import { getSupabaseAdmin, isSupabaseConfigured } from '../_lib/supabaseAdmin';
-import { constantTimeEquals, hashToken } from '../_lib/tokens';
-import { createPortalSession } from '../_lib/portalSession';
+} from '../_lib/http.js';
+import { getSupabaseAdmin, isSupabaseConfigured } from '../_lib/supabaseAdmin.js';
+import { constantTimeEquals, hashToken } from '../_lib/tokens.js';
+import { createPortalSession } from '../_lib/portalSession.js';
 
 /**
  * Step 2 of the customer portal sign-in: redeem the one-time code for a

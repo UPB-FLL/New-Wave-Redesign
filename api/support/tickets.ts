@@ -1,12 +1,12 @@
-import { methodGuard, readJsonBody } from '../_lib/http';
-import { bearerToken, resolvePortalSession } from '../_lib/portalSession';
-import { isSupabaseConfigured } from '../_lib/supabaseAdmin';
+import { methodGuard, readJsonBody } from '../_lib/http.js';
+import { bearerToken, resolvePortalSession } from '../_lib/portalSession.js';
+import { isSupabaseConfigured } from '../_lib/supabaseAdmin.js';
 import {
   SuperOpsNotConfiguredError,
   SuperOpsRequestError,
   getTicketsForRequester,
   isSuperOpsConfigured,
-} from '../_lib/superops';
+} from '../_lib/superops.js';
 
 /**
  * Returns the signed-in customer's SuperOps tickets.

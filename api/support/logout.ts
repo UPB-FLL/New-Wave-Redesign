@@ -1,6 +1,6 @@
-import { methodGuard } from '../_lib/http';
-import { bearerToken, destroyPortalSession } from '../_lib/portalSession';
-import { isSupabaseConfigured } from '../_lib/supabaseAdmin';
+import { methodGuard } from '../_lib/http.js';
+import { bearerToken, destroyPortalSession } from '../_lib/portalSession.js';
+import { isSupabaseConfigured } from '../_lib/supabaseAdmin.js';
 
 /** Revokes a customer portal session server-side. */
 export default async function handler(req: any, res: any) {
