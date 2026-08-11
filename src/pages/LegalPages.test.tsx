@@ -36,6 +36,7 @@ describe('Footer legal links', () => {
       expect(link).toHaveAttribute('href', href);
       expect(link).toHaveClass('text-white/30', 'hover:text-white/60');
       expect(link.style.color).toBe('');
+      expect(link.parentElement).toHaveClass('pb-16', 'sm:pb-0');
     });
   });
 });
