@@ -124,8 +124,10 @@ export default function PrivacyPolicyPage() {
           described in this Policy. The period depends on the nature and sensitivity of the information,
           our service and customer-record needs, the duration of the relationship, dispute and enforcement
           needs, security requirements, and applicable legal, tax, accounting, and regulatory obligations.
-          We may delete, anonymize, or securely retain information when those purposes no longer require it,
-          subject to technical and legal constraints.
+          When those purposes end, we delete or anonymize the information unless a law requires continued
+          retention or deletion cannot be completed immediately because of backup or system constraints.
+          In those limited cases, we restrict further use and delete or anonymize the information when the
+          legal requirement or technical constraint ends.
         </p>
       </section>
 

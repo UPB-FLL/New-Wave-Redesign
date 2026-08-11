@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { usePageMeta } from '../lib/usePageMeta';
 import CookiePolicyPage from './CookiePolicyPage';
 import PrivacyPolicyPage from './PrivacyPolicyPage';
 import TermsAndConditionsPage from './TermsAndConditionsPage';
@@ -8,6 +9,10 @@ import TermsAndConditionsPage from './TermsAndConditionsPage';
 vi.mock('../lib/usePageMeta', () => ({ usePageMeta: vi.fn() }));
 vi.mock('../components/Navbar', () => ({ default: () => <nav aria-label="Primary">Navigation</nav> }));
 vi.mock('../components/Footer', () => ({ default: () => <footer>Footer</footer> }));
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
 
 describe('TermsAndConditionsPage', () => {
   it('identifies the operator, service-document precedence, and governing venue', () => {
@@ -22,11 +27,19 @@ describe('TermsAndConditionsPage', () => {
     expect(screen.getByRole('heading', { name: /Paid Services and Service Agreements/i })).toBeInTheDocument();
     expect(screen.getByText(/signed.*service agreement.*control/i)).toBeInTheDocument();
     expect(screen.getByText(/Broward County, Florida/i)).toBeInTheDocument();
+    expect(screen.getByText('Effective date: August 11, 2026')).toBeInTheDocument();
+    expect(screen.getByText(/710 NW 5th Ave, Suite 1072/)).toBeInTheDocument();
+    expect(screen.getByText(/Fort Lauderdale, FL 33311/)).toBeInTheDocument();
+    expect(vi.mocked(usePageMeta)).toHaveBeenCalledWith({
+      title: 'Terms and Conditions — New Wave IT',
+      description: 'Terms governing the New Wave IT website and IT services provided by New Wave IT LLC.',
+      canonical: 'https://www.newwaveitfl.com/terms-and-conditions',
+    });
   });
 });
 
 describe('PrivacyPolicyPage', () => {
-  it('discloses the information collected and the active service providers', () => {
+  it('discloses information, active providers, and bounded retention', () => {
     render(
       <MemoryRouter>
         <PrivacyPolicyPage />
@@ -39,11 +52,21 @@ describe('PrivacyPolicyPage', () => {
     expect(screen.getByText(/Elfsight/i)).toBeInTheDocument();
     expect(screen.getByText(/Twilio/i)).toBeInTheDocument();
     expect(screen.getByText(/SuperOps/i)).toBeInTheDocument();
+    expect(screen.getByText(/unless a law requires continued retention or deletion cannot be completed immediately because of backup or system constraints/i)).toBeInTheDocument();
+    expect(screen.queryByText(/securely retain information when those purposes no longer require it/i)).not.toBeInTheDocument();
+    expect(screen.getByText('Effective date: August 11, 2026')).toBeInTheDocument();
+    expect(screen.getByText(/710 NW 5th Ave, Suite 1072/)).toBeInTheDocument();
+    expect(screen.getByText(/Fort Lauderdale, FL 33311/)).toBeInTheDocument();
+    expect(vi.mocked(usePageMeta)).toHaveBeenCalledWith({
+      title: 'Privacy Policy — New Wave IT',
+      description: 'How New Wave IT LLC collects, uses, discloses, and protects personal information.',
+      canonical: 'https://www.newwaveitfl.com/privacy-policy',
+    });
   });
 });
 
 describe('CookiePolicyPage', () => {
-  it('states that Google Analytics is inactive and provides the legal contact', () => {
+  it('states the U.S. scope, inactive analytics, and legal contact', () => {
     render(
       <MemoryRouter>
         <CookiePolicyPage />
@@ -52,6 +75,15 @@ describe('CookiePolicyPage', () => {
 
     expect(screen.getByRole('heading', { level: 1, name: 'Cookie Policy' })).toBeInTheDocument();
     expect(screen.getByText(/Google Analytics is not currently active/i)).toBeInTheDocument();
+    expect(screen.getByText(/website and services are offered only in the United States/i)).toBeInTheDocument();
     expect(screen.getByText(/support@newwaveitfl\.com/i)).toBeInTheDocument();
+    expect(screen.getByText('Effective date: August 11, 2026')).toBeInTheDocument();
+    expect(screen.getByText(/710 NW 5th Ave, Suite 1072/)).toBeInTheDocument();
+    expect(screen.getByText(/Fort Lauderdale, FL 33311/)).toBeInTheDocument();
+    expect(vi.mocked(usePageMeta)).toHaveBeenCalledWith({
+      title: 'Cookie Policy — New Wave IT',
+      description: 'How New Wave IT uses cookies, storage, analytics, and embedded technologies on its website.',
+      canonical: 'https://www.newwaveitfl.com/cookie-policy',
+    });
   });
 });

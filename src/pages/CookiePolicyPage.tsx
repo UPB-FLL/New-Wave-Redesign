@@ -15,6 +15,12 @@ export default function CookiePolicyPage() {
 
   return (
     <LegalPageLayout title="Cookie Policy" effectiveDate="August 11, 2026">
+      <p>
+        This Cookie Policy explains technologies used by New Wave IT LLC. Our website and services are
+        offered only in the United States. The privacy rights and choices described below are subject
+        to applicable U.S. law.
+      </p>
+
       <section className={SECTION_CLASS} aria-labelledby="what-cookies-and-similar-technologies-are">
         <h2 id="what-cookies-and-similar-technologies-are" className={HEADING_CLASS}>What Cookies and Similar Technologies Are</h2>
         <p>
