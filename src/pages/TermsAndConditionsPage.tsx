@@ -164,11 +164,9 @@ export default function TermsAndConditionsPage() {
           or business interruption, arising from or related to the website, services, or these Terms.
         </p>
         <p>
-          Except where prohibited by law or where a controlling service agreement provides otherwise,
-          New Wave IT's aggregate liability arising from affected services will not exceed the fees the
-          customer paid to New Wave IT for those affected services during the six months immediately
-          before the event giving rise to the claim. For a claim based only on use of the website, the
-          aggregate limit is $100.
+          Any limitation or allocation of liability in an applicable signed service agreement will
+          control. If no signed service agreement governs the claim, New Wave IT's liability will be
+          limited only to the maximum extent permitted by applicable law.
         </p>
       </section>
 

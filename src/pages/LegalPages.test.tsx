@@ -52,7 +52,9 @@ describe('TermsAndConditionsPage', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Terms and Conditions' })).toBeInTheDocument();
     expect(screen.getByText(/New Wave IT LLC/)).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /Paid Services and Service Agreements/i })).toBeInTheDocument();
-    expect(screen.getByText(/signed.*service agreement.*control/i)).toBeInTheDocument();
+    expect(screen.getByText(/If a signed service agreement conflicts.*will control/i)).toBeInTheDocument();
+    expect(screen.queryByText(/\$100/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/six months immediately before/i)).not.toBeInTheDocument();
     expect(screen.getByText(/Broward County, Florida/i)).toBeInTheDocument();
     expect(screen.getByText('Effective date: August 11, 2026')).toBeInTheDocument();
     expect(screen.getByText(/710 NW 5th Ave, Suite 1072/)).toBeInTheDocument();
