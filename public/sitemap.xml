@@ -177,4 +177,14 @@
     <priority>0.6</priority>
   </url>
 
+  <url>
+    <loc>https://www.newwaveitfl.com/privacy-policy</loc>
+  </url>
+  <url>
+    <loc>https://www.newwaveitfl.com/terms-and-conditions</loc>
+  </url>
+  <url>
+    <loc>https://www.newwaveitfl.com/cookie-policy</loc>
+  </url>
+
 </urlset>

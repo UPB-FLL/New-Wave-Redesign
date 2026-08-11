@@ -50,6 +50,9 @@ import ContactEditor from './admin/editors/ContactEditor';
 import FooterEditor from './admin/editors/FooterEditor';
 import PricingUnitsEditor from './admin/editors/PricingUnitsEditor';
 import ContactPage from './pages/ContactPage';
+import TermsAndConditionsPage from './pages/TermsAndConditionsPage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import CookiePolicyPage from './pages/CookiePolicyPage';
 import CybersecurityPage from './pages/CybersecurityPage';
 import WhyUsPage from './pages/WhyUsPage';
 import AboutPage from './pages/AboutPage';
@@ -138,6 +141,9 @@ export default function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/codenest" element={<CodeNestPage />} />
         <Route path="/contact" element={<ContactPage />} />
+        <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+        <Route path="/cookie-policy" element={<CookiePolicyPage />} />
         <Route path="/cybersecurity" element={<CybersecurityPage />} />
         <Route path="/why-us" element={<WhyUsPage />} />
         <Route path="/about" element={<AboutPage />} />

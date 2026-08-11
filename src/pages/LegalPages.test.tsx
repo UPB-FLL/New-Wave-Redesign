@@ -2,16 +2,35 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { usePageMeta } from '../lib/usePageMeta';
+import { useContent } from '../lib/useContent';
 import CookiePolicyPage from './CookiePolicyPage';
 import PrivacyPolicyPage from './PrivacyPolicyPage';
 import TermsAndConditionsPage from './TermsAndConditionsPage';
 
 vi.mock('../lib/usePageMeta', () => ({ usePageMeta: vi.fn() }));
+vi.mock('../lib/useContent', () => ({ useContent: vi.fn() }));
 vi.mock('../components/Navbar', () => ({ default: () => <nav aria-label="Primary">Navigation</nav> }));
 vi.mock('../components/Footer', () => ({ default: () => <footer>Footer</footer> }));
 
+const { default: Footer } = await vi.importActual<typeof import('../components/Footer')>('../components/Footer');
+
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.mocked(useContent).mockReturnValue({});
+});
+
+describe('Footer legal links', () => {
+  it('links to every public legal policy when CMS URLs are absent', () => {
+    render(
+      <MemoryRouter>
+        <Footer />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole('link', { name: 'Privacy Policy' })).toHaveAttribute('href', '/privacy-policy');
+    expect(screen.getByRole('link', { name: 'Terms and Conditions' })).toHaveAttribute('href', '/terms-and-conditions');
+    expect(screen.getByRole('link', { name: 'Cookie Policy' })).toHaveAttribute('href', '/cookie-policy');
+  });
 });
 
 describe('TermsAndConditionsPage', () => {

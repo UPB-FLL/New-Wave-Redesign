@@ -166,33 +166,16 @@ export default function Footer() {
           <p className="text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>
             &copy; {new Date().getFullYear()} New Wave IT. All rights reserved.
           </p>
-          <div className="flex gap-6">
-            {c.privacy_url && c.privacy_url !== '#' ? (
-              <a
-                href={c.privacy_url}
-                className="text-sm transition-colors"
-                style={{ color: 'rgba(255,255,255,0.3)' }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.6)')}
-                onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.3)')}
-              >
-                Privacy Policy
-              </a>
-            ) : (
-              <span className="text-sm" style={{ color: 'rgba(255,255,255,0.2)' }}>Privacy Policy</span>
-            )}
-            {c.terms_url && c.terms_url !== '#' ? (
-              <a
-                href={c.terms_url}
-                className="text-sm transition-colors"
-                style={{ color: 'rgba(255,255,255,0.3)' }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.6)')}
-                onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.3)')}
-              >
-                Terms of Service
-              </a>
-            ) : (
-              <span className="text-sm" style={{ color: 'rgba(255,255,255,0.2)' }}>Terms of Service</span>
-            )}
+          <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
+            {[
+              { label: 'Privacy Policy', to: '/privacy-policy' },
+              { label: 'Terms and Conditions', to: '/terms-and-conditions' },
+              { label: 'Cookie Policy', to: '/cookie-policy' },
+            ].map(({ label, to }) => (
+              <Link key={to} to={to} className="text-sm transition-colors hover:text-white/60" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                {label}
+              </Link>
+            ))}
           </div>
         </div>
       </div>
