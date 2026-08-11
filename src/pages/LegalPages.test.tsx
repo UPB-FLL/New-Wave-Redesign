@@ -27,9 +27,16 @@ describe('Footer legal links', () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByRole('link', { name: 'Privacy Policy' })).toHaveAttribute('href', '/privacy-policy');
-    expect(screen.getByRole('link', { name: 'Terms and Conditions' })).toHaveAttribute('href', '/terms-and-conditions');
-    expect(screen.getByRole('link', { name: 'Cookie Policy' })).toHaveAttribute('href', '/cookie-policy');
+    [
+      { name: 'Privacy Policy', href: '/privacy-policy' },
+      { name: 'Terms and Conditions', href: '/terms-and-conditions' },
+      { name: 'Cookie Policy', href: '/cookie-policy' },
+    ].forEach(({ name, href }) => {
+      const link = screen.getByRole('link', { name });
+      expect(link).toHaveAttribute('href', href);
+      expect(link).toHaveClass('text-white/30', 'hover:text-white/60');
+      expect(link.style.color).toBe('');
+    });
   });
 });
 
