@@ -34,7 +34,8 @@ describe('Footer legal links', () => {
     ].forEach(({ name, href }) => {
       const link = screen.getByRole('link', { name });
       expect(link).toHaveAttribute('href', href);
-      expect(link).toHaveClass('text-white/30', 'hover:text-white/60');
+      expect(link).toHaveClass('text-white/60', 'hover:text-white/90');
+      expect(link).not.toHaveClass('text-white/30', 'hover:text-white/60');
       expect(link.style.color).toBe('');
       expect(link.parentElement).toHaveClass('pb-16', 'sm:pb-0');
     });
@@ -83,6 +84,10 @@ describe('PrivacyPolicyPage', () => {
     expect(screen.getByText(/SuperOps/i)).toBeInTheDocument();
     expect(screen.getByText(/unless a law requires continued retention or deletion cannot be completed immediately because of backup or system constraints/i)).toBeInTheDocument();
     expect(screen.queryByText(/securely retain information when those purposes no longer require it/i)).not.toBeInTheDocument();
+    const gpcSection = screen.getByRole('heading', { name: 'Global Privacy Control' }).closest('section');
+    expect(gpcSection).not.toHaveTextContent(/we honor/i);
+    expect(gpcSection).toHaveTextContent(/current practices described in this Policy do not involve the sale or sharing of personal information for cross-context behavioral advertising, so a Global Privacy Control signal does not presently change how this website behaves/i);
+    expect(gpcSection).toHaveTextContent(/support@newwaveitfl\.com/i);
     expect(screen.getByText('Effective date: August 11, 2026')).toBeInTheDocument();
     expect(screen.getByText(/710 NW 5th Ave, Suite 1072/)).toBeInTheDocument();
     expect(screen.getByText(/Fort Lauderdale, FL 33311/)).toBeInTheDocument();

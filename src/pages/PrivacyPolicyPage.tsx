@@ -174,10 +174,12 @@ export default function PrivacyPolicyPage() {
       <section className={SECTION_CLASS} aria-labelledby="global-privacy-control">
         <h2 id="global-privacy-control" className={HEADING_CLASS}>Global Privacy Control</h2>
         <p>
-          Where legally required and technically applicable to a covered activity, we honor recognized
-          browser-based opt-out preference signals, such as Global Privacy Control. This statement does not
-          mean that the website participates in an optional signal program or that a signal applies where no
-          covered processing occurs.
+          Our current practices described in this Policy do not involve the sale or sharing of personal
+          information for cross-context behavioral advertising, so a Global Privacy Control signal does not
+          presently change how this website behaves. If those practices change, New Wave IT LLC will implement
+          controls required by applicable law and update this Policy before that change. You may continue to
+          submit applicable privacy-rights requests through the process described above or by emailing{' '}
+          <a className={LINK_CLASS} href="mailto:support@newwaveitfl.com">support@newwaveitfl.com</a>.
         </p>
       </section>
 
