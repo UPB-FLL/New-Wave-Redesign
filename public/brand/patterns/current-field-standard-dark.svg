@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" aria-label="Current field pattern" role="img">
+  <rect fill="#09131D" height="900" width="1600" x="0" y="0"/>
+  <path d="M -180 270 C 80 80 270 80 480 270 S 850 460 1080 270 S 1450 80 1780 270" fill="none" stroke="#31C6CF" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.18" stroke-width="7"/>
+  <path d="M -180 450 C 80 260 270 260 480 450 S 850 640 1080 450 S 1450 260 1780 450" fill="none" stroke="#62BE68" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.14" stroke-width="7"/>
+  <path d="M -180 630 C 80 440 270 440 480 630 S 850 820 1080 630 S 1450 440 1780 630" fill="none" stroke="#317B92" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.14" stroke-width="7"/>
+  <path d="M 1020 270 h 1 M 1020 450 h 1 M 1020 630 h 1" fill="none" stroke="#F7FAFB" stroke-linecap="round" stroke-opacity="0.28" stroke-width="7"/>
+</svg>

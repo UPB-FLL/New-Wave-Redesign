@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { Mail, Phone, MapPin, Send, CheckCircle } from 'lucide-react';
+import { CheckCircle, Mail, MapPin, Phone, Send } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useContent } from '../lib/useContent';
-import { BorderBeam } from './ui/border-beam';
 import { FadeIn } from './ui/fade-in';
 
 interface FormData {
@@ -16,23 +15,22 @@ interface FormData {
 const initialForm: FormData = { name: '', email: '', phone: '', company: '', message: '' };
 
 export default function Contact({ headlineAs: HeadlineTag = 'h2' }: { headlineAs?: 'h1' | 'h2' } = {}) {
-  const c = useContent('contact');
+  const content = useContent('contact');
   const [form, setForm] = useState<FormData>(initialForm);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setForm((previous) => ({ ...previous, [event.target.name]: event.target.value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      // Send email via API
       const emailResponse = await fetch('/api/send-contact-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -44,191 +42,141 @@ export default function Contact({ headlineAs: HeadlineTag = 'h2' }: { headlineAs
         throw new Error(errorData.error || 'Failed to send email');
       }
 
-      // Also save to Supabase for record-keeping
-      const { error: dbError } = await supabase.from('contact_submissions').insert([form]);
-
-      if (dbError) {
-        console.error('Database error:', dbError);
-        // Still consider it a success if email was sent
-      }
+      const { error: databaseError } = await supabase.from('contact_submissions').insert([form]);
+      if (databaseError) console.error('Database error:', databaseError);
 
       setSubmitted(true);
       setForm(initialForm);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Something went wrong. Please try again or call us directly.';
-      setError(errorMessage);
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : 'Something went wrong. Please try again or call us directly.',
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const inputClass = "input-dark";
-  const inputStyle = {};
-
-  const phone = c.phone || '(954) 555-0100';
-  const email = c.email || 'support@newwaveitfl.com';
-  const address = c.address || '710 NW 5th Ave, Suite 1072';
-  const addressCity = c.address_city || 'Fort Lauderdale, FL 33311';
+  const phone = content.phone || '(954) 555-0100';
+  const email = content.email || 'support@newwaveitfl.com';
+  const address = content.address || '710 NW 5th Ave, Suite 1072';
+  const addressCity = content.address_city || 'Fort Lauderdale, FL 33311';
+  const contactMethods = [
+    {
+      icon: Phone,
+      title: 'Call us',
+      sub: content.phone_sub || 'Available 24/7 for emergencies',
+      content: <a href={`tel:${phone.replace(/\D/g, '')}`} className="font-medium text-brand-tide-blue hover:underline">{phone}</a>,
+      accent: 'var(--nw-signal-cyan)',
+    },
+    {
+      icon: Mail,
+      title: 'Email us',
+      sub: content.email_sub || 'We respond within one business day',
+      content: <a href={`mailto:${email}`} className="font-medium text-brand-tide-blue hover:underline">{email}</a>,
+      accent: 'var(--nw-tide-blue)',
+    },
+    {
+      icon: MapPin,
+      title: 'Visit us',
+      sub: `${address}\n${addressCity}`,
+      content: content.address_sub ? <span className="text-sm text-[var(--nw-slate)]">{content.address_sub}</span> : null,
+      accent: 'var(--nw-tide-blue)',
+    },
+  ];
 
   return (
     <section
       id="contact"
-      className="py-12 sm:py-16 relative"
-      style={{ background: '#f8fafb', borderTop: '1px solid rgba(21,34,50,0.06)', zIndex: 10 }}
+      className="relative py-12 sm:py-16"
+      style={{ background: 'var(--nw-cloud-white)', borderTop: '1px solid var(--nw-mist-gray)', zIndex: 10 }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <FadeIn>
-        <div className="text-center mb-8 sm:mb-10">
-          <span className="text-xs sm:text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
-            {c.section_label || 'Get In Touch'}
-          </span>
-          <HeadlineTag
-            className="text-4xl sm:text-5xl lg:text-7xl mt-2 mb-4 leading-[0.95] tracking-tight"
-            style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}
-          >
-            {c.headline ? (
-              c.headline
-            ) : (
-              <>
-                Ready to get started?{' '}
-                <span style={{ display: 'inline-block', background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{c.headline_accent || "Let's talk."}</span>
-              </>
-            )}
-          </HeadlineTag>
-          <p className="text-sm sm:text-base max-w-xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
-            {c.subheadline || 'Fill out the form below and one of our technicians will reach out within one business day — or call us now for immediate assistance.'}
-          </p>
-        </div>
+          <div className="mb-8 text-center sm:mb-10">
+            <span className="nw-kicker">{content.section_label || 'Get in touch'}</span>
+            <HeadlineTag className="nw-display mx-auto mb-4 mt-2 max-w-4xl text-4xl leading-[1.05] text-brand-navy sm:text-5xl lg:text-6xl">
+              {content.headline || (
+                <>
+                  Ready to get started? <span className="text-brand-tide-blue">Let&apos;s talk.</span>
+                </>
+              )}
+            </HeadlineTag>
+            <p className="mx-auto max-w-xl text-sm text-[var(--nw-slate)] sm:text-base">
+              {content.subheadline || 'Fill out the form and a technician will reach out within one business day. For urgent issues, call us now.'}
+            </p>
+          </div>
         </FadeIn>
 
-        <div className="grid lg:grid-cols-5 gap-5 sm:gap-8">
+        <div className="grid gap-5 sm:gap-8 lg:grid-cols-5">
           <FadeIn className="lg:col-span-2">
-          <div className="flex flex-col gap-4">
-            {[
-              {
-                icon: Phone,
-                title: 'Call Us',
-                sub: c.phone_sub || 'Available 24/7 for emergencies',
-                content: <a href={`tel:${phone.replace(/\D/g, '')}`} className="font-medium transition-colors" style={{ color: '#39CCCC' }}>{phone}</a>,
-                accent: '#39CCCC',
-              },
-              {
-                icon: Mail,
-                title: 'Email Us',
-                sub: c.email_sub || 'We respond within one business day',
-                content: <a href={`mailto:${email}`} className="font-medium transition-colors" style={{ color: '#39CCCC' }}>{email}</a>,
-                accent: '#39CCCC',
-              },
-              {
-                icon: MapPin,
-                title: 'Visit Us',
-                sub: `${address}\n${addressCity}`,
-                content: c.address_sub ? <span className="text-sm" style={{ color: 'rgba(21,34,50,0.55)' }}>{c.address_sub}</span> : null,
-                accent: '#5EBC67',
-              },
-            ].map(({ icon: Icon, title, sub, content, accent }) => (
-              <div
-                key={title}
-                className="rounded-2xl p-4 transition-all duration-300 hover:-translate-y-0.5"
-                style={{ background: 'rgba(26, 47, 63, 0.8)', border: `1px solid ${accent}40`, boxShadow: `0 2px 12px ${accent}10` }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.boxShadow = `0 12px 32px ${accent}25`;
-                  (e.currentTarget as HTMLElement).style.borderColor = `${accent}80`;
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.boxShadow = `0 2px 12px ${accent}10`;
-                  (e.currentTarget as HTMLElement).style.borderColor = `${accent}40`;
-                }}
-              >
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: `${accent}30` }}>
-                  <Icon size={18} style={{ color: accent }} />
+            <div className="flex flex-col gap-3">
+              {contactMethods.map(({ icon: Icon, title, sub, content: methodContent, accent }) => (
+                <div key={title} className="rounded-lg p-5 nw-surface">
+                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-md" style={{ background: 'var(--nw-cloud-white)', color: accent }}>
+                    <Icon size={18} />
+                  </div>
+                  <h3 className="mb-1 font-semibold text-brand-navy">{title}</h3>
+                  <p className="mb-1.5 whitespace-pre-line text-xs text-[var(--nw-slate)]">{sub}</p>
+                  {methodContent}
                 </div>
-                <h3 className="font-semibold text-sm mb-1" style={{ color: '#E0F2F1' }}>{title}</h3>
-                <p className="text-xs mb-1.5 whitespace-pre-line" style={{ color: 'rgba(224,242,241,0.65)' }}>{sub}</p>
-                {content}
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
           </FadeIn>
 
           <FadeIn delay={0.15} className="lg:col-span-3">
-          <div>
             {submitted ? (
-              <div
-                className="rounded-2xl p-12 flex flex-col items-center justify-center text-center h-full min-h-[400px]"
-                style={{ background: 'rgba(26, 47, 63, 0.8)', border: '1px solid rgba(94,188,103,0.4)', boxShadow: '0 8px 32px rgba(94,188,103,0.15)' }}
-              >
-                <div className="w-16 h-16 rounded-full flex items-center justify-center mb-5" style={{ background: 'rgba(94,188,103,0.2)' }}>
-                  <CheckCircle size={32} style={{ color: '#5EBC67' }} />
+              <div className="flex min-h-[400px] flex-col items-center justify-center rounded-lg p-8 text-center nw-surface" style={{ borderColor: 'var(--nw-continuity-green)' }}>
+                <div className="nw-icon-success mb-5 h-16 w-16">
+                  <CheckCircle size={32} />
                 </div>
-                <h3 className="text-2xl font-bold mb-3" style={{ color: '#E0F2F1' }}>{c.success_title || 'Message Received!'}</h3>
-                <p className="max-w-sm" style={{ color: 'rgba(224,242,241,0.75)' }}>
-                  {c.success_body || 'Thanks for reaching out. A member of our team will contact you within one business day. For urgent issues, please call us directly.'}
+                <h3 className="nw-display mb-3 text-2xl text-brand-navy">{content.success_title || 'Message received'}</h3>
+                <p className="max-w-sm text-[var(--nw-slate)]">
+                  {content.success_body || 'Thanks for reaching out. A member of our team will contact you within one business day. For urgent issues, please call us directly.'}
                 </p>
-                <button
-                  onClick={() => setSubmitted(false)}
-                  className="mt-6 text-sm font-medium transition-colors"
-                  style={{ color: '#39CCCC' }}
-                >
+                <button type="button" onClick={() => setSubmitted(false)} className="mt-6 text-sm font-semibold text-brand-tide-blue hover:underline">
                   Send another message
                 </button>
               </div>
             ) : (
-              <form
-                onSubmit={handleSubmit}
-                className="relative rounded-2xl p-6 overflow-hidden"
-                style={{ background: 'rgba(26, 47, 63, 0.8)', border: '1px solid rgba(57,204,204,0.4)', boxShadow: '0 8px 32px rgba(57,204,204,0.15)' }}
-              >
-                <BorderBeam duration={14} colorFrom="#39CCCC" colorTo="#5EBC67" borderWidth={1.5} />
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+              <form onSubmit={handleSubmit} className="rounded-lg p-5 sm:p-6 nw-surface">
+                <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(224,242,241,0.8)' }}>
-                      Full Name <span style={{ color: '#39CCCC' }}>*</span>
+                    <label htmlFor="contact-name" className="mb-1.5 block text-sm font-medium text-brand-navy">
+                      Full name <span className="text-brand-cyan">*</span>
                     </label>
-                    <input type="text" name="name" value={form.name} onChange={handleChange} required placeholder="John Smith" className={inputClass} style={inputStyle} />
+                    <input id="contact-name" type="text" name="name" value={form.name} onChange={handleChange} required placeholder="John Smith" className="input-light" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(224,242,241,0.8)' }}>
-                      Email Address <span style={{ color: '#39CCCC' }}>*</span>
+                    <label htmlFor="contact-email" className="mb-1.5 block text-sm font-medium text-brand-navy">
+                      Email address <span className="text-brand-cyan">*</span>
                     </label>
-                    <input type="email" name="email" value={form.email} onChange={handleChange} required placeholder="john@company.com" className={inputClass} style={inputStyle} />
+                    <input id="contact-email" type="email" name="email" value={form.email} onChange={handleChange} required placeholder="john@company.com" className="input-light" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(224,242,241,0.8)' }}>Phone Number</label>
-                    <input type="tel" name="phone" value={form.phone} onChange={handleChange} placeholder="(954) 555-0100" className={inputClass} style={inputStyle} />
+                    <label htmlFor="contact-phone" className="mb-1.5 block text-sm font-medium text-brand-navy">Phone number</label>
+                    <input id="contact-phone" type="tel" name="phone" value={form.phone} onChange={handleChange} placeholder="(954) 555-0100" className="input-light" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(224,242,241,0.8)' }}>Company Name</label>
-                    <input type="text" name="company" value={form.company} onChange={handleChange} placeholder="Acme Corp" className={inputClass} style={inputStyle} />
+                    <label htmlFor="contact-company" className="mb-1.5 block text-sm font-medium text-brand-navy">Company name</label>
+                    <input id="contact-company" type="text" name="company" value={form.company} onChange={handleChange} placeholder="Acme Corp" className="input-light" />
                   </div>
                 </div>
 
                 <div className="mb-4">
-                  <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(224,242,241,0.8)' }}>
-                    How can we help? <span style={{ color: '#39CCCC' }}>*</span>
+                  <label htmlFor="contact-message" className="mb-1.5 block text-sm font-medium text-brand-navy">
+                    How can we help? <span className="text-brand-cyan">*</span>
                   </label>
-                  <textarea
-                    name="message"
-                    value={form.message}
-                    onChange={handleChange}
-                    required
-                    rows={4}
-                    placeholder="Tell us about your IT needs or current challenges..."
-                    className={`${inputClass} resize-none`}
-                    style={inputStyle}
-                  />
+                  <textarea id="contact-message" name="message" value={form.message} onChange={handleChange} required rows={4} placeholder="Tell us about your IT needs or current challenges..." className="input-light resize-none" />
                 </div>
 
-                {error && <p className="text-sm mb-3" style={{ color: '#e05252' }}>{error}</p>}
+                {error ? <p className="mb-3 text-sm text-[#b42318]" role="alert">{error}</p> : null}
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full btn-primary justify-center disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-                >
+                <button type="submit" disabled={loading} className="btn-primary w-full disabled:cursor-not-allowed disabled:opacity-60">
                   {loading ? (
                     <span className="flex items-center gap-2">
-                      <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                      <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                       </svg>
@@ -237,13 +185,12 @@ export default function Contact({ headlineAs: HeadlineTag = 'h2' }: { headlineAs
                   ) : (
                     <>
                       <Send size={18} />
-                      Send Message
+                      Send message
                     </>
                   )}
                 </button>
               </form>
             )}
-          </div>
           </FadeIn>
         </div>
       </div>

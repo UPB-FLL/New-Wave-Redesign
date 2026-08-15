@@ -1,10 +1,12 @@
+@import './styles/brand.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   html {
-    font-family: 'Fira Sans Extra Condensed', 'Arial Narrow', 'Roboto Condensed', system-ui, sans-serif;
+    font-family: var(--nw-font-body);
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -14,8 +16,14 @@
     box-sizing: border-box;
   }
 
+  body {
+    margin: 0;
+    background: var(--nw-cloud-white);
+    color: var(--nw-current-navy);
+  }
+
   :focus-visible {
-    outline: 2px solid #39CCCC;
+    outline: 2px solid var(--nw-signal-cyan);
     outline-offset: 3px;
     border-radius: 4px;
   }
@@ -23,161 +31,126 @@
 
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 font-semibold px-6 py-3 rounded-xl text-white transition-all duration-200 hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-brand-cyan focus-visible:ring-offset-2;
-    background: linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%);
-    box-shadow: 0 8px 32px rgba(57, 204, 204, 0.25);
+    @apply inline-flex items-center justify-center gap-2 font-semibold px-5 py-3 rounded-md transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-brand-cyan focus-visible:ring-offset-2;
+    background: var(--nw-signal-cyan);
+    color: var(--nw-deep-current);
+    box-shadow: 0 2px 8px rgba(9, 19, 29, 0.16);
   }
 
   .btn-primary:hover {
-    box-shadow: 0 12px 40px rgba(57, 204, 204, 0.38);
+    background: var(--nw-tide-blue);
+    color: var(--nw-pure-white);
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 font-semibold px-6 py-3 rounded-xl transition-all duration-200 hover:-translate-y-0.5;
-    border: 1.5px solid rgba(21, 34, 50, 0.15);
-    color: #152232;
-    background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(8px);
+    @apply inline-flex items-center justify-center gap-2 font-semibold px-5 py-3 rounded-md transition-colors duration-200;
+    border: 1px solid var(--nw-mist-gray);
+    color: var(--nw-current-navy);
+    background: var(--nw-pure-white);
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--nw-tide-blue);
+    color: var(--nw-tide-blue);
+  }
+
+  .btn-dark {
+    @apply inline-flex items-center justify-center gap-2 font-semibold px-5 py-3 rounded-md transition-colors duration-200;
+    background: var(--nw-current-navy);
+    color: var(--nw-cloud-white);
+    box-shadow: 0 2px 8px rgba(9, 19, 29, 0.16);
+  }
+
+  .btn-dark:hover {
+    background: var(--nw-deep-current);
   }
 
   .input-dark {
-    @apply w-full rounded-xl px-3.5 py-2.5 text-sm outline-none transition-all;
-    background: rgba(26, 47, 63, 0.6);
-    border: 1px solid rgba(94, 188, 103, 0.3);
-    color: #E0F2F1;
+    @apply w-full rounded-md px-3.5 py-2.5 text-sm outline-none transition-colors;
+    background: var(--nw-current-navy);
+    border: 1px solid var(--nw-tide-blue);
+    color: var(--nw-cloud-white);
   }
 
   .input-dark:focus {
-    border-color: rgba(94, 188, 103, 0.7);
-    box-shadow: 0 0 0 3px rgba(94, 188, 103, 0.1);
+    border-color: var(--nw-signal-cyan);
+    box-shadow: 0 0 0 3px rgba(49, 198, 207, 0.18);
   }
 
   .input-light {
-    @apply w-full rounded-lg px-3 py-2.5 text-sm outline-none transition-all;
-    background: white;
-    border: 1.5px solid rgba(21, 34, 50, 0.12);
-    color: #152232;
+    @apply w-full rounded-md px-3 py-2.5 text-sm outline-none transition-colors;
+    background: var(--nw-pure-white);
+    border: 1px solid var(--nw-mist-gray);
+    color: var(--nw-current-navy);
   }
 
   .input-light:focus {
-    border-color: #39CCCC;
-    box-shadow: 0 0 0 3px rgba(57, 204, 204, 0.1);
+    border-color: var(--nw-signal-cyan);
+    box-shadow: 0 0 0 3px rgba(49, 198, 207, 0.16);
+  }
+
+  .nw-display {
+    font-family: var(--nw-font-display);
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+
+  .nw-kicker {
+    color: var(--nw-tide-blue);
+    font-family: var(--nw-font-technical);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+
+  .nw-meta {
+    color: var(--nw-slate);
+    font-family: var(--nw-font-technical);
+  }
+
+  .nw-surface {
+    background: var(--nw-pure-white);
+    border: 1px solid var(--nw-mist-gray);
+    box-shadow: 0 4px 16px rgba(9, 19, 29, 0.08);
+  }
+
+  .nw-surface-dark {
+    background: var(--nw-current-navy);
+    border: 1px solid var(--nw-tide-blue);
+    box-shadow: 0 4px 16px rgba(9, 19, 29, 0.18);
+  }
+
+  .nw-panel-muted {
+    background: var(--nw-cloud-white);
+    border: 1px solid var(--nw-mist-gray);
+  }
+
+  .nw-divider {
+    border-color: var(--nw-mist-gray);
+  }
+
+  .nw-icon-signal {
+    align-items: center;
+    background: color-mix(in srgb, var(--nw-signal-cyan) 14%, transparent);
+    border-radius: var(--nw-radius-control);
+    color: var(--nw-current-navy);
+    display: inline-flex;
+    justify-content: center;
+  }
+
+  .nw-icon-success {
+    align-items: center;
+    background: color-mix(in srgb, var(--nw-continuity-green) 16%, transparent);
+    border-radius: var(--nw-radius-control);
+    color: var(--nw-continuity-green);
+    display: inline-flex;
+    justify-content: center;
   }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
-  }
-
-  /* CodeNest — Liquid Glass card.
-     The gradient border frame is drawn with a ::before that masks out its
-     own content box (xor / exclude), leaving only the 1.4px padding ring. */
-  .cn-liquid-glass {
-    position: relative;
-    background: rgba(255, 255, 255, 0.01);
-    background-blend-mode: luminosity;
-    -webkit-backdrop-filter: blur(4px);
-    backdrop-filter: blur(4px);
-    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
-  }
-
-  .cn-liquid-glass::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    padding: 1.4px;
-    border-radius: inherit;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.04));
-    -webkit-mask:
-      linear-gradient(#fff 0 0) content-box,
-      linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask:
-      linear-gradient(#fff 0 0) content-box,
-      linear-gradient(#fff 0 0);
-    mask-composite: exclude;
-    pointer-events: none;
-  }
-
-  .font-display {
-    font-family: 'Staatliches', Impact, 'Arial Narrow', sans-serif;
-  }
-
-  .animate-slide-up-1 { animation: slideUp 0.6s ease-out 0s both; }
-  .animate-slide-up-2 { animation: slideUp 0.6s ease-out 0.1s both; }
-  .animate-slide-up-3 { animation: slideUp 0.6s ease-out 0.2s both; }
-  .animate-slide-up-4 { animation: slideUp 0.6s ease-out 0.3s both; }
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes marquee-scroll {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-
-@keyframes shimmer-sweep {
-  0% { transform: translateX(-150%) skewX(-12deg); }
-  100% { transform: translateX(250%) skewX(-12deg); }
-}
-
-@keyframes border-beam-rotate {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* CodeNest — gentle float for the liquid glass card.
-   Composes with the -50px lift via a CSS var so the base offset is preserved. */
-@keyframes cn-float {
-  0%, 100% { transform: translateY(calc(var(--cn-lift, -50px) - 6px)); }
-  50% { transform: translateY(calc(var(--cn-lift, -50px) + 6px)); }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .shimmer-sweep {
-    animation: shimmer-sweep 2.8s ease-in-out infinite;
-  }
-
-  .marquee-pause-on-hover:hover {
-    animation-play-state: paused;
-  }
-
-  .border-beam-glow {
-    width: 200%;
-    height: 200%;
-    animation: border-beam-rotate var(--beam-duration, 12s) linear infinite;
-    background: conic-gradient(
-      from 0deg,
-      transparent 0deg,
-      var(--beam-color-from, #39CCCC) 40deg,
-      var(--beam-color-to, #5EBC67) 80deg,
-      transparent 120deg
-    );
-    border-radius: inherit;
-  }
-
-  .cn-animate-float {
-    animation: cn-float 6s ease-in-out infinite;
   }
 }

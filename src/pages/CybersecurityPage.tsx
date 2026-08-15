@@ -18,7 +18,7 @@ export default function CybersecurityPage() {
     canonical: 'https://www.newwaveitfl.com/cybersecurity',
   });
   return (
-    <div className="min-h-screen" style={{ background: 'white' }}>
+    <div className="min-h-screen bg-[var(--nw-cloud-white)]">
       <Navbar />
       <CybersecurityHero />
       <SecurityStats />

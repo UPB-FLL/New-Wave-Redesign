@@ -5,13 +5,15 @@ export default {
     extend: {
       colors: {
         brand: {
-          cyan: '#39CCCC',
-          'cyan-dark': '#2db8b8',
-          green: '#5EBC67',
-          'green-dark': '#4da856',
-          navy: '#152232',
-          dark: '#0f1923',
-          muted: '#f8fafb',
+          cyan: 'var(--nw-signal-cyan)',
+          // Migration-only aliases retained while existing utilities are replaced.
+          'cyan-dark': 'var(--nw-tide-blue)',
+          'tide-blue': 'var(--nw-tide-blue)',
+          green: 'var(--nw-continuity-green)',
+          'green-dark': 'var(--nw-continuity-green)',
+          navy: 'var(--nw-current-navy)',
+          dark: 'var(--nw-deep-current)',
+          muted: 'var(--nw-cloud-white)',
         },
         codenest: {
           green: '#5ed29c',
@@ -19,10 +21,11 @@ export default {
         },
       },
       fontFamily: {
-        display: ["'Staatliches'", 'Impact', "'Arial Narrow'", 'sans-serif'],
-        body: ["'Fira Sans Extra Condensed'", "'Arial Narrow'", "'Roboto Condensed'", 'system-ui', 'sans-serif'],
-        inter: ["'Inter'", 'system-ui', 'sans-serif'],
-        jakarta: ["'Plus Jakarta Sans'", "'Inter'", 'system-ui', 'sans-serif'],
+        display: ['var(--nw-font-display)'],
+        body: ['var(--nw-font-body)'],
+        inter: ['var(--nw-font-body)'],
+        jakarta: ['var(--nw-font-display)'],
+        technical: ['var(--nw-font-technical)'],
         instrument: ["'Instrument Serif'", 'Georgia', 'serif'],
       },
       animation: {
@@ -39,15 +42,6 @@ export default {
           from: { opacity: '0' },
           to: { opacity: '1' },
         },
-      },
-      boxShadow: {
-        'brand-cyan': '0 8px 32px rgba(57,204,204,0.25)',
-        'brand-green': '0 8px 32px rgba(94,188,103,0.25)',
-        'glow-cyan': '0 0 24px rgba(57,204,204,0.4)',
-      },
-      backgroundImage: {
-        'brand-gradient': 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)',
-        'brand-gradient-dark': 'linear-gradient(135deg, #2db8b8 0%, #4da856 100%)',
       },
     },
   },

@@ -1,120 +1,27 @@
-import { ArrowRight } from 'lucide-react';
-import { motion, useReducedMotion, type Variants } from 'framer-motion';
-import CodeNestNav from './CodeNestNav';
-import VideoBackground from './VideoBackground';
+import { ArrowRight, Code2, GraduationCap, Users } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { CurrentField } from '../brand/CurrentField';
 import LiquidGlassCard from './LiquidGlassCard';
 
-const GREEN = '#5ed29c';
-const INK = '#070b0a';
-
-/** Soft horizontal ellipse glow (cyan / dark-green) blurred behind the headline. */
-function CentralGlow() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/3"
-      width="1100"
-      height="460"
-      viewBox="0 0 1100 460"
-      style={{ maxWidth: 'none' }}
-    >
-      <defs>
-        <filter id="cn-glow-blur" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="25" />
-        </filter>
-      </defs>
-      <ellipse cx="550" cy="230" rx="440" ry="120" fill="#0d5a45" opacity="0.55" filter="url(#cn-glow-blur)" />
-      <ellipse cx="550" cy="220" rx="300" ry="80" fill="#39CCCC" opacity="0.28" filter="url(#cn-glow-blur)" />
-    </svg>
-  );
-}
-
-/** Three thin vertical guide lines at 25 / 50 / 75% (desktop only). */
-function GridLines() {
-  return (
-    <div className="pointer-events-none absolute inset-0 hidden lg:block" aria-hidden="true">
-      <div className="absolute bottom-0 top-0 left-1/4 w-px bg-white/10" />
-      <div className="absolute bottom-0 top-0 left-1/2 w-px bg-white/10" />
-      <div className="absolute bottom-0 top-0 left-3/4 w-px bg-white/10" />
-    </div>
-  );
-}
-
 export default function CodeNestHero() {
-  const reduced = useReducedMotion();
-
-  const container: Variants = {
-    hidden: {},
-    visible: { transition: { staggerChildren: reduced ? 0 : 0.1, delayChildren: reduced ? 0 : 0.1 } },
-  };
-  const item: Variants = {
-    hidden: reduced ? { opacity: 1 } : { opacity: 0, y: 18 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0, 0, 0.2, 1] } },
-  };
-
   return (
-    <section
-      id="top"
-      className="relative min-h-screen w-full overflow-hidden font-inter"
-      style={{ background: INK }}
-    >
-      <VideoBackground />
-      <CentralGlow />
-      <GridLines />
-      <CodeNestNav />
-
-      <div className="relative z-10 mx-auto flex min-h-screen max-w-7xl flex-col justify-center px-6 pb-20 pt-28 lg:px-10">
-        <motion.div
-          className="max-w-2xl"
-          variants={container}
-          initial="hidden"
-          animate="visible"
-        >
-          {/* Floating liquid glass card, lifted above the headline. */}
-          <motion.div variants={item} className="mb-2">
-            <LiquidGlassCard />
-          </motion.div>
-
-          {/* Eyebrow */}
-          <motion.p
-            variants={item}
-            className="font-jakarta font-bold uppercase tracking-[0.18em]"
-            style={{ fontSize: '11px', color: GREEN }}
-          >
-            Career-Ready Curriculum
-          </motion.p>
-
-          {/* Main headline */}
-          <motion.h1
-            variants={item}
-            className="mt-4 font-inter font-extrabold uppercase tracking-tight text-white"
-            style={{ fontSize: 'clamp(40px, 7vw, 72px)', lineHeight: 1.02 }}
-          >
-            Launch your coding career<span style={{ color: GREEN }}>.</span>
-          </motion.h1>
-
-          {/* Description */}
-          <motion.p
-            variants={item}
-            className="mt-6 font-inter text-white/70"
-            style={{ fontSize: '14px', maxWidth: '512px', lineHeight: 1.7 }}
-          >
-            Master in-demand coding skills through project-based courses, real-world mentorship,
-            and a curriculum engineered around exactly what employers hire for today.
-          </motion.p>
-
-          {/* Primary CTA */}
-          <motion.div variants={item} className="mt-9">
-            <a
-              href="#get-started"
-              className="group inline-flex items-center gap-2 rounded-full px-7 py-3.5 font-inter font-bold uppercase tracking-wide transition-all duration-200 hover:-translate-y-0.5"
-              style={{ background: GREEN, color: INK, boxShadow: '0 10px 30px rgba(94,210,156,0.3)' }}
-            >
-              Get Started
-              <ArrowRight size={18} className="transition-transform duration-200 group-hover:translate-x-1" />
-            </a>
-          </motion.div>
-        </motion.div>
+    <section id="top" className="relative overflow-hidden px-4 pb-16 pt-28 sm:px-6 sm:pb-20 sm:pt-32" style={{ background: 'var(--nw-deep-current)' }}>
+      <CurrentField density="standard" tone="dark" className="pointer-events-none absolute inset-0 h-full w-full opacity-65" />
+      <div className="relative mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
+        <div>
+          <p className="nw-kicker text-[var(--nw-signal-cyan)]">CodeNest by New Wave IT</p>
+          <h1 className="nw-display mt-3 max-w-3xl text-4xl leading-[1.05] text-[var(--nw-cloud-white)] sm:text-5xl lg:text-6xl">Launch your <span className="text-[var(--nw-signal-cyan)]">coding career.</span></h1>
+          <p className="mt-5 max-w-2xl text-lg leading-relaxed text-[var(--nw-mist-gray)]">Build in-demand coding skills through project-based courses, real-world mentorship, and a career-ready curriculum shaped by working engineers.</p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row"><Link to="/contact" className="btn-primary">Explore CodeNest <ArrowRight size={17} aria-hidden="true" /></Link><a href="#program" className="btn-secondary">View the program</a></div>
+        </div>
+        <div id="program" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+          <LiquidGlassCard />
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
+            <article className="rounded-lg border p-5" style={{ background: 'var(--nw-current-navy)', borderColor: 'var(--nw-tide-blue)' }}><Code2 size={20} className="text-[var(--nw-signal-cyan)]" aria-hidden="true" /><h2 className="mt-4 font-bold text-[var(--nw-cloud-white)]">Project-Based</h2><p className="mt-2 text-sm leading-relaxed text-[var(--nw-mist-gray)]">Build a portfolio through practical work.</p></article>
+            <article className="rounded-lg border p-5" style={{ background: 'var(--nw-current-navy)', borderColor: 'var(--nw-tide-blue)' }}><Users size={20} className="text-[var(--nw-signal-cyan)]" aria-hidden="true" /><h2 className="mt-4 font-bold text-[var(--nw-cloud-white)]">Mentorship</h2><p className="mt-2 text-sm leading-relaxed text-[var(--nw-mist-gray)]">Learn with guidance from experienced practitioners.</p></article>
+            <article className="rounded-lg border p-5 sm:col-span-2" style={{ background: 'var(--nw-current-navy)', borderColor: 'var(--nw-tide-blue)' }}><GraduationCap size={20} className="text-[var(--nw-signal-cyan)]" aria-hidden="true" /><h2 className="mt-4 font-bold text-[var(--nw-cloud-white)]">Career-Ready Curriculum</h2><p className="mt-2 text-sm leading-relaxed text-[var(--nw-mist-gray)]">A focused progression for learners preparing to contribute to real-world products.</p></article>
+          </div>
+        </div>
       </div>
     </section>
   );

@@ -22,3 +22,8 @@ dist-ssr
 *.sw?
 .env
 .worktrees/
+/output/
+/.brand-build/
+__pycache__/
+*.py[cod]
+/tmp-*.png

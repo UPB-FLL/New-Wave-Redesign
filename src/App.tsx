@@ -18,14 +18,12 @@ function SiteChrome() {
   if (BARE_ROUTES.includes(pathname)) return null;
   return (
     <>
-      <BackgroundCircles />
       <WaveBackground />
       <FloatingNav />
     </>
   );
 }
 import { Analytics } from '@vercel/analytics/react';
-import BackgroundCircles from './components/BackgroundCircles';
 import WaveBackground from './components/WaveBackground';
 import FloatingNav from './components/FloatingNav';
 import Navbar from './components/Navbar';
@@ -35,8 +33,6 @@ import Stats from './components/Stats';
 import Services from './components/Services';
 import WhyUs from './components/WhyUs';
 import Testimonials from './components/Testimonials';
-import About from './components/About';
-import Contact from './components/Contact';
 import Footer from './components/Footer';
 import AdminGuard from './admin/AdminGuard';
 import AdminLayout from './admin/AdminLayout';
@@ -64,7 +60,6 @@ import StatusPage from './pages/StatusPage';
 import StatusEditor from './admin/editors/StatusEditor';
 import SeoPortal from './admin/seo/SeoPortal';
 import SeoPageEditor from './admin/seo/SeoPageEditor';
-import SeoLandingPage from './pages/SeoLandingPage';
 import ServiceDetailPage from './pages/ServiceDetailPage';
 import ThreatDetailPage from './pages/ThreatDetailPage';
 import CybersecurityServicePage from './pages/CybersecurityServicePage';
@@ -117,7 +112,7 @@ function HomePage() {
     ],
   });
   return (
-    <div className="min-h-screen relative" style={{ background: 'white' }}>
+    <div className="min-h-screen relative bg-[var(--nw-cloud-white)]">
       <Navbar />
       <Hero />
       <TrustBar />

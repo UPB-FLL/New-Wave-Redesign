@@ -1,13 +1,16 @@
+import type { ReactNode } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowRight, CheckCircle2, AlertCircle, TrendingUp, Shield, Users, Zap, BarChart3 } from 'lucide-react';
+import { ArrowRight, AlertCircle, TrendingUp, Shield, Users, Zap, BarChart3, ChevronDown } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { PublicPageHero } from '../components/brand/PublicPageHero';
+import { SectionHeading } from '../components/brand/SectionHeading';
 import { usePageMeta } from '../lib/usePageMeta';
 
 interface GuideSection {
   title: string;
   content: string[];
-  icon?: React.ReactNode;
+  icon?: ReactNode;
 }
 
 interface ServiceGuide {
@@ -472,143 +475,78 @@ export default function ServiceGuidePage() {
 
   if (!guide) {
     return (
-      <div className="min-h-screen" style={{ background: 'white' }}>
+      <div className="min-h-screen bg-[var(--nw-cloud-white)]">
         <Navbar />
-        <div className="pt-32 pb-20 max-w-3xl mx-auto px-6 text-center">
-          <h1 className="text-3xl font-bold text-slate-900 mb-3">Guide not found</h1>
-          <p className="text-slate-600 mb-6">This service guide is not available.</p>
-          <Link
-            to="/services"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white"
-            style={{ background: '#39CCCC' }}
-          >
-            Back to services <ArrowRight size={14} />
-          </Link>
-        </div>
+        <main className="mx-auto max-w-3xl px-6 pb-20 pt-32 text-center">
+          <p className="nw-kicker text-[var(--nw-tide-blue)]">Service Guides</p>
+          <h1 className="nw-display mt-3 text-3xl text-[var(--nw-current-navy)]">Guide not found</h1>
+          <p className="mt-4 text-[var(--nw-slate)]">This service guide is not available.</p>
+          <Link to="/services" className="btn-primary mt-8">Back to services <ArrowRight size={16} aria-hidden="true" /></Link>
+        </main>
         <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen" style={{ background: 'white' }}>
+    <div className="min-h-screen bg-[var(--nw-cloud-white)]">
       <Navbar />
-
-      {/* Hero */}
-      <header className="relative pt-32 pb-20 px-6" style={{ background: 'linear-gradient(135deg, #0f1923 0%, #152232 100%)' }}>
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-0 right-0 w-96 h-96 rounded-full" style={{ background: '#39CCCC', filter: 'blur(100px)' }}></div>
-        </div>
-        <div className="relative max-w-4xl mx-auto text-white">
-          <Link to="/services" className="inline-flex items-center gap-1 text-sm mb-6" style={{ color: 'rgba(255,255,255,0.6)' }}>
-            ← Back to Services
-          </Link>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight mb-4">{guide.title}</h1>
-          <p className="text-2xl mb-8 font-light" style={{ color: 'rgba(255,255,255,0.9)' }}>
-            {guide.subtitle}
-          </p>
-        </div>
-      </header>
-
-      <main className="max-w-4xl mx-auto px-6 py-16 space-y-16">
-        {/* Overview */}
+      <PublicPageHero title={guide.title} description={guide.subtitle} eyebrow="New Wave IT Guide" backTo="/services" backLabel="All services" />
+      <main className="mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-20">
         <section>
-          <p className="text-lg text-slate-700 leading-relaxed mb-8">{guide.overview}</p>
-
-          {/* Key Benefits Grid */}
-          <div className="grid md:grid-cols-2 gap-6">
-            {guide.keyBenefits.map((benefit, i) => (
-              <div key={i} className="p-6 rounded-xl" style={{ background: 'rgba(57, 204, 204, 0.08)', border: '1px solid rgba(57, 204, 204, 0.2)' }}>
-                <h3 className="font-semibold text-slate-900 mb-2">{benefit.title}</h3>
-                <p className="text-slate-600 text-sm">{benefit.description}</p>
-              </div>
+          <SectionHeading eyebrow="Overview" title="A practical guide for your next decision." />
+          <p className="mt-6 text-base leading-relaxed text-[var(--nw-slate)] sm:text-lg">{guide.overview}</p>
+          <div className="mt-10 grid gap-4 md:grid-cols-2">
+            {guide.keyBenefits.map((benefit) => (
+              <article key={benefit.title} className="rounded-lg border p-5" style={{ background: 'var(--nw-pure-white)', borderColor: 'var(--nw-mist-gray)' }}>
+                <h3 className="font-bold text-[var(--nw-current-navy)]">{benefit.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-[var(--nw-slate)]">{benefit.description}</p>
+              </article>
             ))}
           </div>
         </section>
 
-        {/* Detailed Sections */}
-        {guide.sections.map((section, idx) => (
-          <section key={idx} className="space-y-4">
-            <div className="flex items-center gap-3 mb-6">
-              <div style={{ color: '#39CCCC' }}>{section.icon}</div>
-              <h2 className="text-3xl font-bold text-slate-900">{section.title}</h2>
-            </div>
-            <div className="space-y-4">
-              {section.content.map((para, i) => (
-                <p key={i} className="text-slate-700 leading-relaxed">
-                  {para}
-                </p>
-              ))}
-            </div>
-          </section>
-        ))}
+        <div className="mt-20 space-y-16">
+          {guide.sections.map((section) => (
+            <section key={section.title}>
+              <div className="flex items-center gap-3"><span className="nw-icon-signal h-10 w-10 text-[var(--nw-tide-blue)]">{section.icon}</span><h2 className="nw-display text-3xl text-[var(--nw-current-navy)]">{section.title}</h2></div>
+              <div className="mt-6 space-y-4 text-base leading-relaxed text-[var(--nw-slate)]">{section.content.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}</div>
+            </section>
+          ))}
+        </div>
 
-        {/* Implementation Steps */}
-        <section className="py-8">
-          <h2 className="text-3xl font-bold text-slate-900 mb-8">Implementation Roadmap</h2>
-          <div className="space-y-3">
-            {guide.implementationSteps.map((step, i) => (
-              <div key={i} className="flex gap-4 items-start p-4 rounded-lg" style={{ background: 'rgba(57, 204, 204, 0.05)' }}>
-                <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full font-semibold text-sm" style={{ background: '#39CCCC', color: 'white' }}>
-                  {i + 1}
-                </div>
-                <p className="text-slate-700 leading-relaxed pt-0.5">{step}</p>
-              </div>
+        <section className="mt-20">
+          <SectionHeading title="Implementation roadmap" description="Use these steps to turn the guidance into a sequence your team can work through." />
+          <ol className="mt-8 space-y-3">
+            {guide.implementationSteps.map((step, index) => (
+              <li key={step} className="flex items-start gap-4 rounded-md border p-4" style={{ background: 'var(--nw-pure-white)', borderColor: 'var(--nw-mist-gray)' }}>
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--nw-signal-cyan)] text-sm font-bold text-[var(--nw-deep-current)]">{index + 1}</span>
+                <p className="pt-1 text-sm leading-relaxed text-[var(--nw-current-navy)]">{step}</p>
+              </li>
             ))}
-          </div>
+          </ol>
         </section>
 
-        {/* FAQ */}
-        <section>
-          <h2 className="text-3xl font-bold text-slate-900 mb-8">Frequently Asked Questions</h2>
-          <div className="space-y-4">
-            {guide.faq.map((item, i) => (
-              <details key={i} className="group border border-gray-200 rounded-lg p-6 cursor-pointer hover:border-gray-300 transition-colors">
-                <summary className="flex items-start gap-3 font-semibold text-slate-900">
-                  <span className="flex-shrink-0 pt-1">
-                    <ChevronDownIcon />
-                  </span>
-                  {item.question}
-                </summary>
-                <p className="text-slate-600 mt-4 ml-7 leading-relaxed">{item.answer}</p>
+        <section className="mt-20">
+          <SectionHeading title="Frequently asked questions" />
+          <div className="mt-8 space-y-3">
+            {guide.faq.map((item) => (
+              <details key={item.question} className="group rounded-lg border p-5 transition-colors hover:border-[var(--nw-tide-blue)]" style={{ background: 'var(--nw-pure-white)', borderColor: 'var(--nw-mist-gray)' }}>
+                <summary className="flex cursor-pointer list-none items-start gap-3 font-semibold text-[var(--nw-current-navy)]"><ChevronDown size={19} className="mt-0.5 shrink-0 text-[var(--nw-tide-blue)] transition-transform group-open:rotate-180" aria-hidden="true" />{item.question}</summary>
+                <p className="mt-4 pl-8 text-sm leading-relaxed text-[var(--nw-slate)]">{item.answer}</p>
               </details>
             ))}
           </div>
         </section>
 
-        {/* CTA */}
-        <section className="py-12">
-          <div className="rounded-2xl p-12 md:p-16 text-center" style={{ background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)', boxShadow: '0 20px 40px rgba(57, 204, 204, 0.15)' }}>
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Ready to implement these strategies?</h2>
-            <p className="text-lg text-white max-w-2xl mx-auto mb-8" style={{ opacity: 0.95 }}>
-              Our team of certified experts can help you develop and execute a customized implementation plan.
-            </p>
-            <Link
-              to="/contact"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:shadow-xl hover:-translate-y-1"
-              style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.3)' }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.3)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
-              }}
-            >
-              Schedule a Consultation <ArrowRight size={18} />
-            </Link>
-          </div>
+        <section className="mt-20 px-6 py-12 text-center sm:px-10" style={{ background: 'var(--nw-deep-current)', borderRadius: 'var(--nw-radius-panel)' }}>
+          <h2 className="nw-display text-3xl text-[var(--nw-cloud-white)]">Ready to implement these strategies?</h2>
+          <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-[var(--nw-mist-gray)]">Our team can help you develop and execute a customized implementation plan.</p>
+          <Link to="/contact" className="btn-primary mt-8">Schedule a Consultation <ArrowRight size={17} aria-hidden="true" /></Link>
         </section>
       </main>
 
       <Footer />
     </div>
-  );
-}
-
-function ChevronDownIcon() {
-  return (
-    <svg className="w-5 h-5 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-    </svg>
   );
 }

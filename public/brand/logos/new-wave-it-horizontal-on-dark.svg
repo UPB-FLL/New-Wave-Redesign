@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 120" role="img">
+  <title>New Wave IT</title>
+  <desc>New Wave IT wordmark and three-current mark.</desc>
+  <g transform="translate(20 28) scale(0.92)">
+    <g data-role="three-current-mark">
+      <path d="M 8 18 C 17 8 29 8 39 18 S 51 28 56 16" data-role="current-stroke" fill="none" stroke="#31C6CF" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"/>
+      <path d="M 8 31 C 17 21 29 21 39 31 S 51 41 56 29" data-role="current-stroke" fill="none" stroke="#62BE68" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"/>
+      <path d="M 8 44 C 17 34 29 34 39 44 S 51 54 56 42" data-role="current-stroke" fill="none" stroke="#317B92" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"/>
+    </g>
+  </g>
+  <path d="M66 0V-745H185L521 -302V-745H676V0H556L221 -453V0Z M808 0V-745H1309V-610H963V-441H1289V-306H963V-135H1309V0Z M1537 0 1342 -745H1510L1635 -214L1767 -745H1927L2059 -214L2184 -745H2352L2157 0H1977L1847 -500L1717 0Z M2749 0 2554 -745H2722L2847 -214L2979 -745H3139L3271 -214L3396 -745H3564L3369 0H3189L3059 -500L2929 0Z M3546 0 3798 -745H4004L4256 0H4087L4037 -152H3764L3714 0ZM3807 -287H3994L3901 -574Z M4493 0 4238 -745H4408L4583 -200L4758 -745H4928L4673 0Z M5005 0V-745H5506V-610H5160V-441H5486V-306H5160V-135H5506V0Z M5774 0V-745H5929V0Z M6195 0V-610H6006V-745H6536V-610H6350V0Z" data-role="wordmark-path" fill="#F7FAFB" transform="translate(96.000 69.000) scale(0.03500000)"/>
+</svg>

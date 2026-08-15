@@ -17,7 +17,7 @@ describe('LegalPageLayout', () => {
     );
 
     expect(screen.getByRole('navigation', { name: 'Primary' })).toBeInTheDocument();
-    expect(screen.getByText('Legal')).toHaveClass('text-teal-700');
+    expect(screen.getByText('Legal')).toHaveClass('nw-kicker');
     expect(screen.getByText('Legal')).not.toHaveClass('text-teal-600');
     expect(screen.getByRole('heading', { level: 1, name: 'Privacy Policy' })).toBeInTheDocument();
     expect(screen.getByText('Effective date: August 11, 2026')).toBeInTheDocument();

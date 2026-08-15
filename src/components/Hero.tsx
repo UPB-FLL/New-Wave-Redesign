@@ -1,19 +1,19 @@
 import { ArrowRight } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useContent } from '../lib/useContent';
-import { ShimmerButton } from './ui/shimmer-button';
 import { FADE_UP, DURATION, EASE } from '../lib/animation';
+import { CurrentField } from './brand/CurrentField';
+import { HeroRibbonField } from './hero/HeroRibbonField';
 
 type Stat = { value: string; label: string };
 
 const defaultStats: Stat[] = [
-  { value: '24/7', label: 'Service & Monitoring' },
+  { value: '24/7', label: 'Service and monitoring' },
   { value: 'Certified', label: 'Technicians' },
-  { value: 'Dedicated', label: 'Project Managers' },
+  { value: 'Dedicated', label: 'Project managers' },
 ];
-
-const INK = '#070d14';
 
 function MotionDiv({
   children,
@@ -25,7 +25,9 @@ function MotionDiv({
   className?: string;
 }) {
   const reduced = useReducedMotion();
+
   if (reduced) return <div className={className}>{children}</div>;
+
   return (
     <motion.div
       className={className}
@@ -41,153 +43,122 @@ function MotionDiv({
   );
 }
 
-/**
- * Abstract "managed IT" hero artwork behind the copy. Brand radial glows over
- * navy, the SVG art anchored center-right, and a left-to-right veil so the
- * left-aligned text stays legible.
- */
-function HeroImageBackground() {
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-      {/* Brand glows over navy */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            'radial-gradient(1200px 500px at 80% -10%, rgba(45,212,191,0.18), transparent 60%), radial-gradient(900px 500px at 0% 20%, rgba(33,200,216,0.12), transparent 55%), #081726',
-        }}
-      />
-      {/* Abstract artwork, anchored to the right */}
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundImage: "url('/managed-it-hero.svg')",
-          backgroundPosition: 'center right',
-          backgroundSize: 'cover',
-          backgroundRepeat: 'no-repeat',
-          opacity: 0.56,
-        }}
-      />
-      {/* Left-to-right veil for text contrast */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            'linear-gradient(90deg, rgba(8,23,38,0.98) 0%, rgba(8,23,38,0.80) 45%, rgba(8,23,38,0.25) 100%)',
-        }}
-      />
-    </div>
-  );
-}
-
 export default function Hero() {
-  const c = useContent('hero');
+  const content = useContent('hero');
   const navigate = useNavigate();
+  const reducedMotion = Boolean(useReducedMotion());
+  const [ribbonsReady, setRibbonsReady] = useState(false);
+  const [ribbonsFailed, setRibbonsFailed] = useState(false);
+  const handleRibbonsReady = useCallback(() => setRibbonsReady(true), []);
+  const handleRibbonsFailure = useCallback(() => {
+    setRibbonsReady(false);
+    setRibbonsFailed(true);
+  }, []);
+
+  useEffect(() => {
+    if (reducedMotion) setRibbonsReady(false);
+  }, [reducedMotion]);
 
   let stats: Stat[] = defaultStats;
-  try { if (c.stats) stats = JSON.parse(c.stats); } catch { /* use default */ }
+  try {
+    if (content.stats) stats = JSON.parse(content.stats);
+  } catch {
+    // Keep the approved default metrics when CMS content is malformed.
+  }
 
-  const scrollToServices = () => {
-    const el = document.getElementById('services');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-    else navigate('/services');
+  const secondaryAction = () => {
+    if (content.cta_secondary) {
+      const services = document.getElementById('services');
+      if (services) services.scrollIntoView({ behavior: 'smooth' });
+      else navigate('/services');
+      return;
+    }
+    navigate('/support');
   };
+
+  const fallbackVisible = reducedMotion || ribbonsFailed || !ribbonsReady;
 
   return (
     <section
       id="hero"
-      className="relative flex items-center overflow-hidden pt-28 pb-16 sm:pt-32 sm:pb-20 min-h-[640px] sm:min-h-[82vh]"
-      style={{ zIndex: 20, background: INK }}
+      className="relative flex min-h-[640px] items-center overflow-hidden pb-16 pt-28 sm:min-h-[82vh] sm:pb-20 sm:pt-32"
+      style={{ background: 'var(--nw-deep-current)', zIndex: 20 }}
     >
-      {/* Abstract managed-IT artwork background */}
-      <HeroImageBackground />
+      <div
+        data-testid="hero-current-fallback"
+        aria-hidden="true"
+        className={`pointer-events-none absolute inset-0 transition-opacity duration-700 motion-reduce:transition-none ${
+          fallbackVisible ? 'opacity-80' : 'opacity-0'
+        }`}
+      >
+        <CurrentField density="highImpact" tone="dark" className="h-full w-full" />
+      </div>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+      <HeroRibbonField
+        disabled={reducedMotion || ribbonsFailed}
+        onReady={handleRibbonsReady}
+        onFailure={handleRibbonsFailure}
+      />
+
+      <div
+        data-testid="hero-readability-veil"
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            'linear-gradient(90deg, rgba(9,19,29,0.96) 0%, rgba(9,19,29,0.78) 44%, rgba(9,19,29,0.18) 78%, rgba(9,19,29,0.08) 100%)',
+        }}
+      />
+
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl text-left">
           <MotionDiv delay={0}>
-            <div className="flex items-center gap-3 mb-5 sm:mb-6">
-              <span className="h-0.5 w-8 rounded-full" style={{ background: 'linear-gradient(90deg, #39CCCC 0%, #5EBC67 100%)' }} />
-              <span className="text-xs sm:text-sm font-semibold tracking-wide" style={{ color: 'rgba(255,255,255,0.85)' }}>
-                {c.badge || 'Managed IT • Cybersecurity • Cloud'}
+            <div className="mb-5 flex items-center gap-3 sm:mb-6">
+              <span className="h-0.5 w-8 bg-[var(--nw-signal-cyan)]" />
+              <span className="nw-meta text-xs font-semibold text-[var(--nw-cloud-white)] sm:text-sm">
+                {content.badge || 'Fort Lauderdale, Florida'}
               </span>
             </div>
           </MotionDiv>
 
           <MotionDiv delay={0.1}>
-            <h1
-              className="text-4xl sm:text-6xl lg:text-7xl leading-[0.95] tracking-tight mb-5 sm:mb-6"
-              style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#ffffff' }}
-            >
-              {c.headline_part1 || 'IT support that keeps your business'}{' '}
-              <span
-                style={{
-                  background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                }}
-              >
-                {c.headline_accent || 'ahead of the current'}
-              </span>
-              {c.headline_part2 ? <>{' '}{c.headline_part2}</> : null}
-              {c.headline_accent2 ? <>{' '}<span style={{ color: '#5EBC67' }}>{c.headline_accent2}</span></> : null}
+            <h1 className="nw-display mb-5 text-4xl leading-[1.05] text-[var(--nw-cloud-white)] sm:mb-6 sm:text-6xl lg:text-7xl">
+              {content.headline_part1 || 'Technology that keeps business moving.'}{' '}
+              {content.headline_accent ? <span className="text-[var(--nw-signal-cyan)]">{content.headline_accent}</span> : null}
+              {content.headline_part2 ? ` ${content.headline_part2}` : null}
+              {content.headline_accent2 ? <span className="text-[var(--nw-tide-blue)]"> {content.headline_accent2}</span> : null}
             </h1>
           </MotionDiv>
 
           <MotionDiv delay={0.2}>
-            <p
-              className="text-sm sm:text-base lg:text-lg leading-relaxed mb-6 sm:mb-8 max-w-xl"
-              style={{ color: 'rgba(255,255,255,0.72)' }}
-            >
-              {c.subheadline || 'New Wave IT helps small and mid-sized teams reduce downtime, strengthen security, and simplify day-to-day technology with responsive managed IT support.'}
+            <p className="mb-7 max-w-xl text-base leading-relaxed text-[var(--nw-mist-gray)] sm:mb-8 lg:text-lg">
+              {content.subheadline || 'Managed IT, cybersecurity, cloud, and support built around the way your business actually works.'}
             </p>
           </MotionDiv>
 
           <MotionDiv delay={0.3}>
-            <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 mb-8 sm:mb-10">
-              <ShimmerButton
-                onClick={() => navigate('/contact')}
-                className="px-6 py-3 rounded-xl text-base"
-              >
-                {c.cta_primary || 'Schedule a Free Assessment'}
+            <div className="mb-8 flex flex-col gap-3 sm:mb-10 sm:flex-row">
+              <button type="button" onClick={() => navigate('/contact')} className="btn-primary">
+                {content.cta_primary || 'Request an assessment'}
                 <ArrowRight size={16} />
-              </ShimmerButton>
+              </button>
               <button
                 type="button"
-                onClick={scrollToServices}
-                className="flex items-center justify-center gap-2 font-semibold px-6 py-3 rounded-xl transition-all duration-200 hover:-translate-y-0.5"
-                style={{
-                  border: '1.5px solid rgba(255,255,255,0.25)',
-                  color: '#ffffff',
-                  background: 'rgba(255,255,255,0.08)',
-                  backdropFilter: 'blur(8px)',
-                }}
+                onClick={secondaryAction}
+                className="inline-flex items-center justify-center gap-2 rounded-md border px-5 py-3 font-semibold text-[var(--nw-cloud-white)] transition-colors hover:border-[var(--nw-signal-cyan)] hover:text-[var(--nw-signal-cyan)]"
+                style={{ borderColor: 'var(--nw-slate)', background: 'transparent' }}
               >
-                {c.cta_secondary || 'See How We Help'}
+                {content.cta_secondary || 'Get support'}
               </button>
             </div>
           </MotionDiv>
 
-          {/* Stats row */}
           <MotionDiv delay={0.4}>
-            <div className="flex flex-wrap gap-x-10 gap-y-6 sm:gap-x-14 pt-7 sm:pt-8" style={{ borderTop: '1px solid rgba(255,255,255,0.12)' }}>
+            <div className="flex flex-wrap gap-x-10 gap-y-6 border-t pt-7 sm:gap-x-14 sm:pt-8" style={{ borderColor: 'var(--nw-slate)' }}>
               {stats.map((stat) => (
                 <div key={stat.label} className="text-left">
-                  <div
-                    className="text-3xl sm:text-4xl font-bold"
-                    style={{
-                      fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif",
-                      background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      backgroundClip: 'text',
-                    }}
-                  >
-                    {stat.value}
-                  </div>
-                  <div className="text-xs sm:text-sm mt-1 font-medium" style={{ color: 'rgba(255,255,255,0.62)' }}>
-                    {stat.label}
-                  </div>
+                  <div className="nw-display text-3xl text-[var(--nw-signal-cyan)] sm:text-4xl">{stat.value}</div>
+                  <div className="mt-1 text-xs font-medium text-[var(--nw-mist-gray)] sm:text-sm">{stat.label}</div>
                 </div>
               ))}
             </div>

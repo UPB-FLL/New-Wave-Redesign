@@ -9,7 +9,10 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit -p tsconfig.app.json"
+    "typecheck": "tsc --noEmit -p tsconfig.app.json",
+    "brand:build": "python scripts/build_brand_package.py",
+    "brand:verify": "python scripts/verify_brand_package.py",
+    "brand:test": "python -m pytest tests/brandkit -q"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",
@@ -20,7 +23,8 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.14.0",
-    "resend": "^6.12.0"
+    "resend": "^6.12.0",
+    "three": "^0.185.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
@@ -28,6 +32,7 @@
     "@testing-library/react": "^16.1.0",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
+    "@types/three": "^0.185.4",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.18",
     "eslint": "^9.9.1",

@@ -13,7 +13,7 @@ export default function WhyUsPage() {
     canonical: 'https://www.newwaveitfl.com/why-us',
   });
   return (
-    <div className="min-h-screen bg-slate-900">
+    <div className="min-h-screen bg-[var(--nw-cloud-white)]">
       <Navbar />
       <div className="pt-20">
         <WhyUs headlineAs="h1" />

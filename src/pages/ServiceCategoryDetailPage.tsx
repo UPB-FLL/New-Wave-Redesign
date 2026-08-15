@@ -91,8 +91,8 @@ export default function ServiceCategoryDetailPage() {
           <p className="text-slate-600 mb-6">This service page is not available.</p>
           <Link
             to="/services"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white"
-            style={{ background: '#39CCCC' }}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold text-[var(--nw-deep-current)]"
+            style={{ background: 'var(--nw-signal-cyan)' }}
           >
             Back to services <ArrowRight size={14} />
           </Link>
@@ -109,11 +109,8 @@ export default function ServiceCategoryDetailPage() {
       {/* Hero Section */}
       <header
         className="relative pt-32 pb-20 px-6 overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #0f1923 0%, #152232 100%)' }}
+        style={{ background: 'var(--nw-deep-current)' }}
       >
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 right-0 w-96 h-96 rounded-full" style={{ background: '#39CCCC', filter: 'blur(100px)' }}></div>
-        </div>
         <div className="relative max-w-5xl mx-auto text-white">
           <Link
             to="/services"
@@ -131,8 +128,8 @@ export default function ServiceCategoryDetailPage() {
           <div className="mt-10 flex flex-wrap gap-4">
             <Link
               to="/contact"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
-              style={{ background: '#39CCCC' }}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-md text-sm font-semibold text-[var(--nw-deep-current)] transition-colors"
+              style={{ background: 'var(--nw-signal-cyan)' }}
             >
               Schedule Consultation <ArrowRight size={16} />
             </Link>
@@ -185,9 +182,9 @@ export default function ServiceCategoryDetailPage() {
                 >
                   <div
                     className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
-                    style={{ background: '#39CCCC' }}
-                  >
-                    <span className="text-white text-xs font-bold">✓</span>
+                  style={{ background: 'var(--nw-signal-cyan)' }}
+                >
+                    <span className="text-[var(--nw-deep-current)] text-xs font-bold">✓</span>
                   </div>
                   <p className="text-slate-700 leading-snug">{highlight}</p>
                 </div>
@@ -198,14 +195,14 @@ export default function ServiceCategoryDetailPage() {
 
         {/* Benefits Section */}
         <section className="py-8">
-          <div className="rounded-2xl p-8 md:p-12" style={{ background: 'linear-gradient(135deg, rgba(57, 204, 204, 0.08) 0%, rgba(57, 204, 204, 0.04) 100%)', border: '1px solid rgba(57, 204, 204, 0.15)' }}>
+          <div className="rounded-lg p-8 md:p-12" style={{ background: 'var(--nw-cloud-white)', border: '1px solid var(--nw-mist-gray)' }}>
             <h2 className="text-3xl font-bold text-slate-900 mb-8">Strategic Benefits</h2>
             <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-4">
                 <div className="flex gap-4">
                   <div className="flex-shrink-0">
-                    <div className="flex items-center justify-center h-10 w-10 rounded-lg" style={{ background: '#39CCCC' }}>
-                      <span className="text-white font-bold text-sm">✓</span>
+                    <div className="flex items-center justify-center h-10 w-10 rounded-lg" style={{ background: 'var(--nw-signal-cyan)' }}>
+                      <span className="text-[var(--nw-deep-current)] font-bold text-sm">✓</span>
                     </div>
                   </div>
                   <div>
@@ -215,8 +212,8 @@ export default function ServiceCategoryDetailPage() {
                 </div>
                 <div className="flex gap-4">
                   <div className="flex-shrink-0">
-                    <div className="flex items-center justify-center h-10 w-10 rounded-lg" style={{ background: '#39CCCC' }}>
-                      <span className="text-white font-bold text-sm">✓</span>
+                    <div className="flex items-center justify-center h-10 w-10 rounded-lg" style={{ background: 'var(--nw-signal-cyan)' }}>
+                      <span className="text-[var(--nw-deep-current)] font-bold text-sm">✓</span>
                     </div>
                   </div>
                   <div>
@@ -228,8 +225,8 @@ export default function ServiceCategoryDetailPage() {
               <div className="space-y-4">
                 <div className="flex gap-4">
                   <div className="flex-shrink-0">
-                    <div className="flex items-center justify-center h-10 w-10 rounded-lg" style={{ background: '#39CCCC' }}>
-                      <span className="text-white font-bold text-sm">✓</span>
+                    <div className="flex items-center justify-center h-10 w-10 rounded-lg" style={{ background: 'var(--nw-signal-cyan)' }}>
+                      <span className="text-[var(--nw-deep-current)] font-bold text-sm">✓</span>
                     </div>
                   </div>
                   <div>
@@ -239,8 +236,8 @@ export default function ServiceCategoryDetailPage() {
                 </div>
                 <div className="flex gap-4">
                   <div className="flex-shrink-0">
-                    <div className="flex items-center justify-center h-10 w-10 rounded-lg" style={{ background: '#39CCCC' }}>
-                      <span className="text-white font-bold text-sm">✓</span>
+                    <div className="flex items-center justify-center h-10 w-10 rounded-lg" style={{ background: 'var(--nw-signal-cyan)' }}>
+                      <span className="text-[var(--nw-deep-current)] font-bold text-sm">✓</span>
                     </div>
                   </div>
                   <div>
@@ -263,7 +260,7 @@ export default function ServiceCategoryDetailPage() {
             }}
           >
             <div className="flex items-start gap-4">
-              <ExternalLink size={24} style={{ color: '#39CCCC', flexShrink: 0 }} />
+              <ExternalLink size={24} style={{ color: 'var(--nw-tide-blue)', flexShrink: 0 }} />
               <div className="flex-1">
                 <h2 className="text-2xl font-bold text-slate-900 mb-2">Deep Dive Guide</h2>
                 <p className="text-slate-700 mb-4">
@@ -271,8 +268,8 @@ export default function ServiceCategoryDetailPage() {
                 </p>
                 <Link
                   to={service.seo_link}
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white"
-                  style={{ background: '#39CCCC' }}
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-md text-sm font-semibold text-[var(--nw-deep-current)]"
+                  style={{ background: 'var(--nw-signal-cyan)' }}
                 >
                   Read the full guide <ExternalLink size={16} />
                 </Link>
@@ -283,20 +280,22 @@ export default function ServiceCategoryDetailPage() {
 
         {/* CTA */}
         <section className="py-12">
-          <div className="rounded-2xl p-12 md:p-16 text-center" style={{ background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)', boxShadow: '0 20px 40px rgba(57, 204, 204, 0.15)' }}>
+          <div className="rounded-lg p-12 md:p-16 text-center" style={{ background: 'var(--nw-deep-current)', boxShadow: '0 20px 40px rgba(9, 19, 29, 0.15)' }}>
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Ready to Transform Your {service.title.toLowerCase()}?</h2>
             <p className="text-lg text-white max-w-2xl mx-auto mb-8" style={{ opacity: 0.95 }}>
               Let our team of certified experts develop a customized strategy aligned with your business goals and budget requirements.
             </p>
             <Link
               to="/contact"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:shadow-xl hover:-translate-y-1"
-              style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.3)' }}
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-md text-base font-semibold text-[var(--nw-deep-current)] transition-colors"
+              style={{ background: 'var(--nw-signal-cyan)', border: '1px solid var(--nw-signal-cyan)' }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.3)';
+                e.currentTarget.style.background = 'var(--nw-tide-blue)';
+                e.currentTarget.style.color = 'var(--nw-cloud-white)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
+                e.currentTarget.style.background = 'var(--nw-signal-cyan)';
+                e.currentTarget.style.color = 'var(--nw-deep-current)';
               }}
             >
               Schedule Your Consultation <ArrowRight size={18} />

@@ -3,6 +3,7 @@ import Navbar from '../components/Navbar';
 import Contact from '../components/Contact';
 import Footer from '../components/Footer';
 import DynamicPricingBuilder from '../components/DynamicPricingBuilder';
+import { SectionHeading } from '../components/brand/SectionHeading';
 import { useContent } from '../lib/useContent';
 import { usePageMeta } from '../lib/usePageMeta';
 
@@ -28,37 +29,20 @@ export default function PricingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-900">
+    <div className="min-h-screen bg-[var(--nw-cloud-white)]">
       <Navbar />
       <div className="pt-20">
-        <section className="py-12 sm:py-16" style={{ background: '#f8fafb', borderTop: '1px solid rgba(21,34,50,0.06)' }}>
+        <section className="py-16 sm:py-20" style={{ background: 'var(--nw-cloud-white)' }}>
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-8 sm:mb-10">
-              <span className="text-xs sm:text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
-                {c.section_label || 'Custom Pricing'}
-              </span>
-              <h1
-                className="text-4xl sm:text-5xl lg:text-7xl mt-2 mb-4 leading-[0.95] tracking-tight"
-                style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}
-              >
-                {c.headline && c.headline_accent ? (
-                  <>
-                    {c.headline}
-                    <span style={{ display: 'inline-block', background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}> {c.headline_accent}</span>
-                  </>
-                ) : (
-                  <>
-                    Simple, Scalable
-                    <span style={{ display: 'inline-block', background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}> Plans</span>
-                  </>
-                )}
-              </h1>
-              <p className="text-sm sm:text-base max-w-2xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
-                {c.subheadline || 'Select the services you need and get an instant estimate. Our team will reach out with a customized proposal.'}
-              </p>
-            </div>
+            <SectionHeading
+              as="h1"
+              align="center"
+              eyebrow={c.section_label || 'Custom Pricing'}
+              title={<>{c.headline || 'Simple, scalable'} <span className="text-[var(--nw-tide-blue)]">{c.headline_accent || 'plans'}</span></>}
+              description={c.subheadline || 'Select the services you need and get an instant estimate. Our team will follow up with a customized proposal.'}
+            />
 
-            <DynamicPricingBuilder />
+            <div className="mt-10"><DynamicPricingBuilder /></div>
           </div>
         </section>
       </div>

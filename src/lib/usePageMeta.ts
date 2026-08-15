@@ -5,7 +5,7 @@ const SITE_URL = 'https://www.newwaveitfl.com';
 const DEFAULT_DESCRIPTION =
   "Fort Lauderdale's trusted managed IT services partner. 24/7 support, cybersecurity, cloud migration, and network infrastructure for South Florida businesses.";
 const DEFAULT_OG_IMAGE =
-  'https://images.squarespace-cdn.com/content/v1/64c044f11baf2d14ebb899c6/fb59af7c-4a76-48a9-ab9d-88a58a54496e/new-wave-it-high-resolution-logo-transparent.png?format=1200w';
+  'https://www.newwaveitfl.com/brand/og/open-graph-1200x630.png';
 
 interface PageMetaOptions {
   title: string;

@@ -1,6 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowUp, Menu, X } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+
+const links = [
+  { label: 'Home', path: '/' },
+  { label: 'Services', path: '/services' },
+  { label: 'Pricing', path: '/pricing' },
+  { label: 'Cybersecurity', path: '/cybersecurity' },
+  { label: 'Why Us', path: '/why-us' },
+  { label: 'About', path: '/about' },
+  { label: 'Support', path: '/support' },
+  { label: 'Contact', path: '/contact' },
+  { label: 'Industry solutions', path: '#', disabled: true },
+  { label: 'Family Offices', path: '/service-category/family-offices' },
+  { label: 'Healthcare', path: '/service-category/healthcare' },
+  { label: 'Luxury', path: '/service-category/luxury' },
+  { label: 'Cellular DAS & Public Safety', path: '/service-category/cellular-das-and-public-safety' },
+];
 
 export default function FloatingNav() {
   const [showScroll, setShowScroll] = useState(false);
@@ -9,40 +25,19 @@ export default function FloatingNav() {
   const location = useLocation();
 
   useEffect(() => {
-    const handleScroll = () => {
-      setShowScroll(window.scrollY > 300);
-    };
-
+    const handleScroll = () => setShowScroll(window.scrollY > 300);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
-  const handleNav = (link: { label: string; path: string; hash?: string; disabled?: boolean }) => {
+  const handleNav = (link: (typeof links)[number]) => {
     if (link.disabled) return;
-
     setIsOpen(false);
 
-    if (link.hash) {
-      // Hash-based: scroll to section if on home, otherwise nav home + scroll
-      if (location.pathname === '/') {
-        const el = document.querySelector(link.hash);
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-      } else {
-        navigate('/');
-        setTimeout(() => {
-          const el = document.querySelector(link.hash!);
-          if (el) el.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
-      }
-      return;
-    }
-
     if (link.path === '/' && location.pathname === '/') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      scrollToTop();
       return;
     }
 
@@ -50,93 +45,57 @@ export default function FloatingNav() {
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
   };
 
-  const links = [
-    { label: 'Home', path: '/' },
-    { label: 'Services', path: '/services' },
-    { label: 'Pricing', path: '/pricing' },
-    { label: 'Cybersecurity', path: '/cybersecurity' },
-    { label: 'Why Us', path: '/why-us' },
-    { label: 'About', path: '/about' },
-    { label: 'Support', path: '/support' },
-    { label: 'Contact', path: '/contact' },
-    { label: '— Industry Solutions —', path: '#', disabled: true },
-    { label: 'Family Offices', path: '/service-category/family-offices' },
-    { label: 'Healthcare', path: '/service-category/healthcare' },
-    { label: 'Luxury', path: '/service-category/luxury' },
-    { label: 'Cellular DAS & Public Safety', path: '/service-category/cellular-das-and-public-safety' },
-  ];
-
   return (
-    <>
-      {/* Floating Back to Top Button */}
-      {showScroll && (
+    <div className="fixed bottom-8 left-8 z-50 hidden flex-col gap-2 lg:flex" style={{ color: 'var(--nw-current-navy)' }}>
+      {showScroll ? (
         <button
+          type="button"
           onClick={scrollToTop}
-          className="fixed bottom-5 left-20 sm:bottom-8 sm:left-24 z-50 flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 hover:shadow-lg group animate-slide-up-1"
-          style={{
-            background: 'linear-gradient(135deg, #39CCCC 0%, #2db8b8 100%)',
-          }}
+          className="flex h-12 w-12 items-center justify-center rounded-full border transition-colors hover:border-[var(--nw-signal-cyan)] sm:h-14 sm:w-14"
+          style={{ background: 'var(--nw-current-navy)', borderColor: 'var(--nw-slate)', color: 'var(--nw-cloud-white)' }}
           aria-label="Back to top"
+          title="Back to top"
         >
-          <ArrowUp
-            size={20}
-            className="sm:w-6 sm:h-6 text-white transition-transform duration-300 group-hover:-translate-y-1"
-          />
+          <ArrowUp size={20} />
         </button>
-      )}
+      ) : null}
 
-      {/* Quick Navigation Menu */}
-      <div className="fixed bottom-5 left-5 sm:bottom-8 sm:left-8 z-50 flex flex-col gap-2 sm:gap-3">
-        {/* Menu Toggle Button */}
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-2xl transition-all duration-300 hover:scale-110"
-          style={{
-            background: 'linear-gradient(135deg, #5EBC67 0%, #4da856 100%)',
-          }}
-          aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
-          aria-expanded={isOpen}
-          aria-controls="floating-nav-menu"
+      {isOpen ? (
+        <div
+          id="floating-nav-menu"
+          className="max-h-[60vh] w-56 overflow-y-auto rounded-lg border p-2 shadow-lg"
+          style={{ background: 'var(--nw-current-navy)', borderColor: 'var(--nw-slate)' }}
         >
-          {isOpen ? (
-            <X size={20} className="sm:w-6 sm:h-6 text-white" />
-          ) : (
-            <Menu size={20} className="sm:w-6 sm:h-6 text-white" />
-          )}
-        </button>
+          {links.map((link) => (
+            <button
+              key={link.label}
+              type="button"
+              onClick={() => handleNav(link)}
+              disabled={link.disabled}
+              className={`block w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
+                link.disabled
+                  ? 'cursor-default text-[var(--nw-slate)]'
+                  : 'text-[var(--nw-cloud-white)] hover:bg-[var(--nw-deep-current)] hover:text-[var(--nw-signal-cyan)]'
+              }`}
+            >
+              {link.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
 
-        {/* Quick Links Menu */}
-        {isOpen && (
-          <div id="floating-nav-menu" className="flex flex-col gap-1.5 sm:gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200 max-h-[60vh] overflow-y-auto pr-1">
-            {links.map((link) => (
-              <button
-                key={link.label}
-                onClick={() => handleNav(link)}
-                disabled={link.disabled}
-                className={`px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-medium text-left whitespace-nowrap transition-all duration-200 backdrop-blur-md ${
-                  link.disabled
-                    ? 'text-gray-400 cursor-default opacity-60'
-                    : 'text-white hover:translate-x-1 hover:shadow-lg'
-                }`}
-                style={
-                  link.disabled
-                    ? {
-                        background: 'rgba(100, 100, 100, 0.3)',
-                        border: '1px solid rgba(100, 100, 100, 0.2)',
-                      }
-                    : {
-                        background: 'rgba(57, 204, 204, 0.9)',
-                        border: '1px solid rgba(57, 204, 204, 0.3)',
-                      }
-                }
-              >
-                {link.label}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-    </>
+      <button
+        type="button"
+        onClick={() => setIsOpen((open) => !open)}
+        className="flex h-12 w-12 items-center justify-center rounded-full border transition-colors hover:bg-[var(--nw-tide-blue)] sm:h-14 sm:w-14"
+        style={{ background: 'var(--nw-signal-cyan)', borderColor: 'var(--nw-signal-cyan)', color: 'var(--nw-deep-current)' }}
+        aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
+        aria-expanded={isOpen}
+        aria-controls="floating-nav-menu"
+        title={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
+      >
+        {isOpen ? <X size={20} /> : <Menu size={20} />}
+      </button>
+    </div>
   );
 }

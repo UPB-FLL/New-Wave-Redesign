@@ -1,9 +1,10 @@
-import { useParams, Link } from 'react-router-dom';
+import { AlertTriangle, ArrowRight } from 'lucide-react';
+import { Link, useParams } from 'react-router-dom';
+import { PublicPageHero } from '../components/brand/PublicPageHero';
+import Footer from '../components/Footer';
+import Navbar from '../components/Navbar';
 import { useContent } from '../lib/useContent';
 import { usePageMeta } from '../lib/usePageMeta';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import { ArrowRight, AlertTriangle } from 'lucide-react';
 
 interface ThreatDetail {
   name: string;
@@ -15,202 +16,110 @@ interface ThreatDetail {
   impact: string;
 }
 
-const getSeverityColor = (severity: string) => {
+function severityColor(severity: string): string {
   switch (severity) {
-    case 'CRITICAL': return '#ef4444';
-    case 'HIGH': return '#f59e0b';
-    case 'MEDIUM': return '#3b82f6';
-    default: return '#6b7280';
+    case 'CRITICAL': return '#b42318';
+    case 'HIGH': return '#b54708';
+    case 'MEDIUM': return 'var(--nw-tide-blue)';
+    default: return 'var(--nw-slate)';
   }
-};
+}
 
 export default function ThreatDetailPage() {
   const { slug } = useParams<{ slug: string }>();
-  const c = useContent('threats-detail');
-
+  const content = useContent('threats-detail');
   let threat: ThreatDetail | null = null;
+
   try {
-    if (c.threats_list) {
-      const threats = JSON.parse(c.threats_list) as ThreatDetail[];
-      threat = threats.find(t => t.slug === slug) || null;
+    if (content.threats_list) {
+      const threats = JSON.parse(content.threats_list) as ThreatDetail[];
+      threat = threats.find((candidate) => candidate.slug === slug) || null;
     }
   } catch {
-    // use null
+    // Keep the existing not-found behavior when CMS content is malformed.
   }
 
   usePageMeta({
-    title: threat
-      ? `${threat.name} — Threat Protection & Mitigation`
-      : 'Cyber Threat Protection',
-    description: threat?.description
-      ? `${threat.description} Learn how New Wave IT protects South Florida businesses against ${threat.name.toLowerCase()}.`
-      : undefined,
+    title: threat ? `${threat.name} - Threat Protection & Mitigation` : 'Cyber Threat Protection',
+    description: threat?.description ? `${threat.description} Learn how New Wave IT protects South Florida businesses against ${threat.name.toLowerCase()}.` : undefined,
     canonical: `https://www.newwaveitfl.com/threat/${slug ?? ''}`,
     jsonLd: threat
       ? {
           '@context': 'https://schema.org',
           '@type': 'Article',
-          'headline': `${threat.name} — Threat Protection & Mitigation`,
-          'description': threat.description,
-          'author': { '@id': 'https://www.newwaveitfl.com/#organization' },
-          'publisher': { '@id': 'https://www.newwaveitfl.com/#organization' },
-          'mainEntityOfPage': `https://www.newwaveitfl.com/threat/${slug ?? ''}`,
+          headline: `${threat.name} - Threat Protection & Mitigation`,
+          description: threat.description,
+          author: { '@id': 'https://www.newwaveitfl.com/#organization' },
+          publisher: { '@id': 'https://www.newwaveitfl.com/#organization' },
+          mainEntityOfPage: `https://www.newwaveitfl.com/threat/${slug ?? ''}`,
         }
       : undefined,
   });
 
   if (!threat) {
     return (
-      <div className="min-h-screen" style={{ background: 'white' }}>
+      <div className="min-h-screen" style={{ background: 'var(--nw-cloud-white)' }}>
         <Navbar />
-        <div className="pt-32 pb-20 max-w-3xl mx-auto px-6 text-center">
-          <h1 className="text-3xl font-bold text-slate-900 mb-3">Threat not found</h1>
-          <p className="text-slate-600 mb-6">This threat detail page is not available.</p>
-          <Link
-            to="/cybersecurity"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white"
-            style={{ background: '#39CCCC' }}
-          >
-            Back to threat coverage <ArrowRight size={14} />
-          </Link>
-        </div>
+        <main className="mx-auto max-w-3xl px-6 pb-20 pt-32 text-center">
+          <h1 className="nw-display mb-3 text-3xl text-brand-navy">Threat not found</h1>
+          <p className="mb-6 text-[var(--nw-slate)]">This threat detail page is not available.</p>
+          <Link to="/cybersecurity" className="btn-primary">Back to threat coverage <ArrowRight size={14} /></Link>
+        </main>
         <Footer />
       </div>
     );
   }
 
-  const severityColor = getSeverityColor(threat.severity);
-
+  const color = severityColor(threat.severity);
   return (
-    <div className="min-h-screen" style={{ background: 'white' }}>
+    <div className="min-h-screen" style={{ background: 'var(--nw-cloud-white)' }}>
       <Navbar />
+      <PublicPageHero title={threat.name} description={threat.description} eyebrow="Threat protection" backTo="/cybersecurity" backLabel="Back to threats">
+        <span className="rounded-md px-3 py-2 text-xs font-semibold" style={{ background: color, color: 'var(--nw-cloud-white)' }}>{threat.severity}</span>
+        <Link to="/contact" className="btn-primary">Get a threat assessment <ArrowRight size={14} /></Link>
+        <Link to="/pricing" className="btn-secondary">See protection plans</Link>
+      </PublicPageHero>
 
-      {/* Hero Section */}
-      <header
-        className="relative pt-32 pb-16 px-6 overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #0f1923 0%, #152232 100%)' }}
-      >
-        <div className="relative max-w-5xl mx-auto text-white">
-          <Link
-            to="/cybersecurity"
-            className="inline-flex items-center gap-1 text-sm mb-4"
-            style={{ color: 'rgba(255,255,255,0.7)' }}
-          >
-            ← Back to Threats
-          </Link>
-          <div className="flex flex-wrap items-center gap-3 mb-4">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight">{threat.name}</h1>
-            <span
-              className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-lg"
-              style={{
-                background: `${severityColor}30`,
-                color: severityColor,
-              }}
-            >
-              {threat.severity}
-            </span>
-          </div>
-          {threat.description && (
-            <p className="text-lg md:text-xl max-w-3xl" style={{ color: 'rgba(255,255,255,0.85)' }}>
-              {threat.description}
-            </p>
-          )}
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              to="/contact"
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold text-white"
-              style={{ background: '#39CCCC' }}
-            >
-              Get threat assessment <ArrowRight size={14} />
-            </Link>
-            <Link
-              to="/pricing"
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold"
-              style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)' }}
-            >
-              See protection plans
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-5xl mx-auto px-6 py-14 space-y-14">
-        {/* Full Details */}
-        {threat.details && (
+      <main className="mx-auto max-w-5xl space-y-12 px-4 py-12 sm:px-6 sm:py-14">
+        {threat.details ? (
           <section>
-            <h2 className="text-3xl font-bold text-slate-900 mb-6">Understanding This Threat</h2>
-            <div className="prose prose-lg max-w-none">
-              {threat.details.split(/\n\n+/).map((para, i) => (
-                <p key={i} className="text-slate-700 leading-relaxed mb-4">
-                  {para}
-                </p>
-              ))}
-            </div>
+            <h2 className="nw-display mb-6 text-3xl text-brand-navy">Understanding this threat</h2>
+            {threat.details.split(/\n\n+/).map((paragraph) => <p key={paragraph} className="mb-4 leading-relaxed text-[var(--nw-current-navy)]">{paragraph}</p>)}
           </section>
-        )}
+        ) : null}
 
-        {/* Impact */}
-        {threat.impact && (
-          <section
-            className="p-8 rounded-2xl border-l-4"
-            style={{
-              background: `${severityColor}08`,
-              borderColor: severityColor,
-            }}
-          >
+        {threat.impact ? (
+          <section className="rounded-lg border-l-4 p-6" style={{ background: 'var(--nw-pure-white)', borderColor: color }}>
             <div className="flex gap-4">
-              <AlertTriangle size={24} style={{ color: severityColor, flexShrink: 0 }} />
+              <AlertTriangle size={24} style={{ color, flexShrink: 0 }} />
               <div>
-                <h2 className="text-xl font-bold text-slate-900 mb-2">Impact</h2>
-                <p className="text-slate-700">{threat.impact}</p>
+                <h2 className="nw-display mb-2 text-xl text-brand-navy">Impact</h2>
+                <p className="text-[var(--nw-current-navy)]">{threat.impact}</p>
               </div>
             </div>
           </section>
-        )}
+        ) : null}
 
-        {/* Mitigation Strategies */}
-        {threat.mitigation_strategies.length > 0 && (
+        {threat.mitigation_strategies.length > 0 ? (
           <section>
-            <h2 className="text-3xl font-bold text-slate-900 mb-6">Our Defense Strategy</h2>
-            <div className="grid sm:grid-cols-2 gap-4">
-              {threat.mitigation_strategies.map((strategy, i) => (
-                <div
-                  key={i}
-                  className="p-5 rounded-xl border-l-4"
-                  style={{
-                    background: 'rgba(94, 188, 103, 0.08)',
-                    borderColor: '#5EBC67',
-                  }}
-                >
-                  <div className="flex gap-3">
-                    <div
-                      className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
-                      style={{ background: '#5EBC67' }}
-                    >
-                      <span className="text-white text-xs font-bold">{i + 1}</span>
-                    </div>
-                    <p className="text-slate-700">{strategy}</p>
-                  </div>
+            <h2 className="nw-display mb-6 text-3xl text-brand-navy">Our defense strategy</h2>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {threat.mitigation_strategies.map((strategy, index) => (
+                <div key={strategy} className="flex gap-3 rounded-lg p-5 nw-surface" style={{ borderColor: 'var(--nw-continuity-green)' }}>
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold" style={{ background: 'var(--nw-continuity-green)', color: 'var(--nw-deep-current)' }}>{index + 1}</span>
+                  <p className="text-[var(--nw-current-navy)]">{strategy}</p>
                 </div>
               ))}
             </div>
           </section>
-        )}
+        ) : null}
 
-        {/* CTA */}
-        <section className="text-center py-8">
-          <h2 className="text-2xl font-bold text-slate-900 mb-4">Protect against {threat.name}</h2>
-          <p className="text-slate-600 mb-6">Our security experts can help you build defenses against this threat.</p>
-          <Link
-            to="/contact"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white"
-            style={{ background: '#39CCCC' }}
-          >
-            Schedule security audit <ArrowRight size={14} />
-          </Link>
+        <section className="border-t py-8 text-center" style={{ borderColor: 'var(--nw-mist-gray)' }}>
+          <h2 className="nw-display mb-3 text-2xl text-brand-navy">Protect against {threat.name}</h2>
+          <p className="mx-auto mb-6 max-w-xl text-[var(--nw-slate)]">Our security experts can help you build defenses against this threat.</p>
+          <Link to="/contact" className="btn-primary">Schedule security audit <ArrowRight size={14} /></Link>
         </section>
       </main>
-
       <Footer />
     </div>
   );

@@ -32,12 +32,12 @@ const slugMap: Record<string, string> = {
 };
 
 const defaultCards = [
-  { title: 'Cybersecurity', description: 'Protect your business from evolving threats with enterprise-grade security solutions.', highlights: ['Threat detection & response', 'Firewall & endpoint protection', 'Compliance audits'], accent: '#39CCCC' },
-  { title: 'Live IT Support', description: 'Real humans, real solutions — available 24/7 for any IT issue, big or small.', highlights: ['24/7 help desk access', 'Remote & on-site support', 'Fast resolution times'], accent: '#5EBC67' },
-  { title: 'IT Repair & Upgrades', description: "Hardware failures and slow systems don't wait — neither do we.", highlights: ['Hardware repair & replacement', 'System upgrades & optimization', 'Data recovery services'], accent: '#39CCCC' },
-  { title: 'Managed IT Services', description: 'Fully managed IT so you can focus on growing your business, not troubleshooting it.', highlights: ['Proactive monitoring 24/7', 'Patch management', 'IT roadmap & strategy'], accent: '#5EBC67' },
-  { title: 'Cloud Solutions', description: 'Modernize your infrastructure with scalable, secure cloud environments built for your needs.', highlights: ['Cloud migration & setup', 'Microsoft 365 management', 'Hybrid environment support'], accent: '#39CCCC' },
-  { title: 'Network Infrastructure', description: 'Reliable, high-performance networks engineered for uptime and business continuity.', highlights: ['Network design & installation', 'WiFi solutions & optimization', 'VPN & remote access'], accent: '#5EBC67' },
+  { title: 'Cybersecurity', description: 'Protect your business from evolving threats with enterprise-grade security solutions.', highlights: ['Threat detection & response', 'Firewall & endpoint protection', 'Compliance audits'], accent: '#31C6CF' },
+  { title: 'Live IT Support', description: 'Real humans, real solutions — available 24/7 for any IT issue, big or small.', highlights: ['24/7 help desk access', 'Remote & on-site support', 'Fast resolution times'], accent: '#62BE68' },
+  { title: 'IT Repair & Upgrades', description: "Hardware failures and slow systems don't wait — neither do we.", highlights: ['Hardware repair & replacement', 'System upgrades & optimization', 'Data recovery services'], accent: '#31C6CF' },
+  { title: 'Managed IT Services', description: 'Fully managed IT so you can focus on growing your business, not troubleshooting it.', highlights: ['Proactive monitoring 24/7', 'Patch management', 'IT roadmap & strategy'], accent: '#62BE68' },
+  { title: 'Cloud Solutions', description: 'Modernize your infrastructure with scalable, secure cloud environments built for your needs.', highlights: ['Cloud migration & setup', 'Microsoft 365 management', 'Hybrid environment support'], accent: '#31C6CF' },
+  { title: 'Network Infrastructure', description: 'Reliable, high-performance networks engineered for uptime and business continuity.', highlights: ['Network design & installation', 'WiFi solutions & optimization', 'VPN & remote access'], accent: '#62BE68' },
 ];
 
 const cyberFeatures = [
@@ -57,14 +57,18 @@ function BeamConnection() {
   const reduced = useReducedMotion();
 
   return (
-    <div className="relative flex items-center justify-between gap-3 mt-4 mb-2 px-2">
+    <div
+      data-testid="cybersecurity-beam"
+      data-motion={reduced ? 'static' : 'animated'}
+      className="relative flex items-center justify-between gap-3 mt-4 mb-2 px-2"
+    >
       {/* Your Business node */}
       <div className="flex flex-col items-center gap-1.5 shrink-0">
         <div
           className="w-11 h-11 rounded-xl flex items-center justify-center"
           style={{ background: 'rgba(57,204,204,0.2)', border: '1px solid rgba(57,204,204,0.4)' }}
         >
-          <Laptop size={18} style={{ color: '#39CCCC' }} />
+          <Laptop size={18} style={{ color: '#31C6CF' }} />
         </div>
         <span className="text-[10px] font-medium text-center" style={{ color: 'rgba(224,242,241,0.6)' }}>
           Your Business
@@ -82,8 +86,8 @@ function BeamConnection() {
           <defs>
             <linearGradient id="beam-grad" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="transparent" />
-              <stop offset="40%" stopColor="#39CCCC" stopOpacity="0.8" />
-              <stop offset="60%" stopColor="#5EBC67" stopOpacity="0.8" />
+              <stop offset="40%" stopColor="#31C6CF" stopOpacity="0.8" />
+              <stop offset="60%" stopColor="#62BE68" stopOpacity="0.8" />
               <stop offset="100%" stopColor="transparent" />
             </linearGradient>
           </defs>
@@ -123,7 +127,7 @@ function BeamConnection() {
           className="w-11 h-11 rounded-xl flex items-center justify-center"
           style={{ background: 'rgba(94,188,103,0.2)', border: '1px solid rgba(94,188,103,0.4)' }}
         >
-          <Shield size={18} style={{ color: '#5EBC67' }} />
+          <Shield size={18} style={{ color: '#62BE68' }} />
         </div>
         <span className="text-[10px] font-medium text-center" style={{ color: 'rgba(224,242,241,0.6)' }}>
           New Wave SOC
@@ -161,7 +165,7 @@ function ServiceCardInner({
       <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: `${service.accent}25` }}>
         <Icon size={20} style={{ color: service.accent }} />
       </div>
-      <h3 className={`font-bold mb-2 ${large ? 'text-xl sm:text-2xl' : 'text-lg'}`} style={{ color: '#E0F2F1' }}>
+      <h3 className={`font-bold mb-2 ${large ? 'text-xl sm:text-2xl' : 'text-lg'}`} style={{ color: 'var(--nw-mist-gray)' }}>
         {service.title}
       </h3>
       <p className="text-sm leading-relaxed mb-3" style={{ color: 'rgba(224,242,241,0.75)' }}>
@@ -195,7 +199,7 @@ function ServiceCardInner({
                   <FeatureIcon size={14} style={{ color: service.accent }} />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold leading-snug" style={{ color: '#E0F2F1' }}>{label}</p>
+                  <p className="text-sm font-semibold leading-snug" style={{ color: 'var(--nw-mist-gray)' }}>{label}</p>
                   <p className="text-xs leading-snug mt-0.5" style={{ color: 'rgba(224,242,241,0.6)' }}>{detail}</p>
                 </div>
               </div>
@@ -209,7 +213,7 @@ function ServiceCardInner({
                 className="text-center rounded-xl py-2.5 px-1"
                 style={{ background: 'rgba(94,188,103,0.08)', border: '1px solid rgba(94,188,103,0.25)' }}
               >
-                <p className="text-lg sm:text-xl font-bold" style={{ color: '#5EBC67' }}>{value}</p>
+                <p className="text-lg sm:text-xl font-bold" style={{ color: '#62BE68' }}>{value}</p>
                 <p className="text-[10px] sm:text-xs" style={{ color: 'rgba(224,242,241,0.6)' }}>{label}</p>
               </div>
             ))}
@@ -239,22 +243,23 @@ export default function Services({ headlineAs: HeadlineTag = 'h2' }: { headlineA
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <FadeIn>
           <div className="text-center mb-8 sm:mb-10">
-            <span className="text-xs sm:text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
+            <span className="text-xs sm:text-sm font-semibold uppercase tracking-widest" style={{ color: 'var(--nw-signal-cyan)' }}>
               {c.section_label || 'What We Do'}
             </span>
             <HeadlineTag
               className="text-4xl sm:text-5xl lg:text-7xl mt-2 mb-4 leading-[0.95] tracking-tight"
-              style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}
+              style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: 'var(--nw-current-navy)' }}
             >
               {c.headline && c.headline_accent ? (
                 <>
                   {c.headline}{' '}
-                  <span style={{ display: 'inline-block', background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{c.headline_accent}</span>
+                  <span style={{ display: 'inline-block', color: 'var(--nw-signal-cyan)' }}>{c.headline_accent}</span>
                 </>
               ) : (
                 <>
                   IT Services Built for{' '}
-                  <span style={{ display: 'inline-block', background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Modern Business</span>
+                  <span style={{ display: 'inline-block', color: 'var(--nw-signal-cyan)' }}>Modern</span>{' '}
+                  <span style={{ display: 'inline-block', color: 'var(--nw-continuity-green)' }}>Business</span>
                 </>
               )}
             </HeadlineTag>
@@ -266,15 +271,20 @@ export default function Services({ headlineAs: HeadlineTag = 'h2' }: { headlineA
 
         {/* BentoGrid layout */}
         {reduced ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+          <div data-testid="service-bento-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {cards.map((service, i) => (
-              <div key={service.title} className={i === 0 ? 'md:col-span-2 lg:col-span-2 lg:row-span-2' : undefined}>
+              <div
+                key={service.title}
+                data-testid={i === 0 ? 'cybersecurity-bento-card' : 'supporting-service-card'}
+                className={i === 0 ? 'md:col-span-2 lg:col-span-2 lg:row-span-2' : undefined}
+              >
                 <ServiceCardInner service={service} large={i === 0} />
               </div>
             ))}
           </div>
         ) : (
           <motion.div
+            data-testid="service-bento-grid"
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
             initial="hidden"
             whileInView="visible"
@@ -283,6 +293,7 @@ export default function Services({ headlineAs: HeadlineTag = 'h2' }: { headlineA
           >
             {/* Cybersecurity — large bento cell (col-span-2, row-span-2) */}
             <motion.div
+              data-testid="cybersecurity-bento-card"
               className="md:col-span-2 lg:col-span-2 lg:row-span-2"
               variants={{
                 hidden: FADE_UP.hidden,
@@ -296,6 +307,7 @@ export default function Services({ headlineAs: HeadlineTag = 'h2' }: { headlineA
             {restCards.map((service) => (
               <motion.div
                 key={service.title}
+                data-testid="supporting-service-card"
                 variants={{
                   hidden: FADE_UP.hidden,
                   visible: { ...FADE_UP.visible, transition: { duration: DURATION.base, ease: EASE.out } },
@@ -311,12 +323,12 @@ export default function Services({ headlineAs: HeadlineTag = 'h2' }: { headlineA
         <div className="mt-16 pt-12 border-t" style={{ borderColor: 'rgba(21,34,50,0.1)' }}>
           <FadeIn>
             <div className="text-center mb-8 sm:mb-10">
-              <span className="text-xs sm:text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
+              <span className="text-xs sm:text-sm font-semibold uppercase tracking-widest" style={{ color: 'var(--nw-signal-cyan)' }}>
                 Specialized Industries
               </span>
-              <h3 className="text-3xl sm:text-4xl lg:text-5xl mt-2 mb-4 leading-[0.95] tracking-tight" style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}>
+              <h3 className="text-3xl sm:text-4xl lg:text-5xl mt-2 mb-4 leading-[0.95] tracking-tight" style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: 'var(--nw-current-navy)' }}>
                 Industry-Specific{' '}
-                <span style={{ display: 'inline-block', background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Solutions</span>
+                <span style={{ display: 'inline-block', color: 'var(--nw-continuity-green)' }}>Solutions</span>
               </h3>
               <p className="text-sm sm:text-base max-w-2xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
                 Tailored technology for specialized industries with unique challenges and compliance requirements.
@@ -325,6 +337,7 @@ export default function Services({ headlineAs: HeadlineTag = 'h2' }: { headlineA
           </FadeIn>
 
           <motion.div
+            data-testid="industry-service-grid"
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"
             initial="hidden"
             whileInView="visible"
@@ -332,16 +345,17 @@ export default function Services({ headlineAs: HeadlineTag = 'h2' }: { headlineA
             variants={STAGGER_CONTAINER}
           >
             {[
-              { title: 'Family Offices', description: 'Secure wealth management technology for multi-generational family enterprises with privacy-first infrastructure.', accent: '#39CCCC' },
-              { title: 'Healthcare', description: 'HIPAA-compliant systems with EHR integration and secure patient data management for medical practices.', accent: '#5EBC67' },
-              { title: 'Luxury', description: 'Premium smart home automation and guest experience technology for luxury properties and resorts.', accent: '#39CCCC' },
-              { title: 'Cellular DAS & Public Safety', description: 'FirstNet-compliant communications infrastructure for emergency responders and critical facilities.', accent: '#5EBC67' },
+              { title: 'Family Offices', description: 'Secure wealth management technology for multi-generational family enterprises with privacy-first infrastructure.', accent: '#31C6CF' },
+              { title: 'Healthcare', description: 'HIPAA-compliant systems with EHR integration and secure patient data management for medical practices.', accent: '#62BE68' },
+              { title: 'Luxury', description: 'Premium smart home automation and guest experience technology for luxury properties and resorts.', accent: '#31C6CF' },
+              { title: 'Cellular DAS & Public Safety', description: 'FirstNet-compliant communications infrastructure for emergency responders and critical facilities.', accent: '#62BE68' },
             ].map((service) => {
               const Icon = iconMap[service.title] || Shield;
               const slug = slugMap[service.title] || service.title.toLowerCase();
               return (
                 <motion.div
                   key={service.title}
+                  data-testid="industry-service-card"
                   variants={{
                     hidden: FADE_UP.hidden,
                     visible: { ...FADE_UP.visible, transition: { duration: DURATION.base, ease: EASE.out } },
@@ -363,7 +377,7 @@ export default function Services({ headlineAs: HeadlineTag = 'h2' }: { headlineA
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: `${service.accent}25` }}>
                       <Icon size={20} style={{ color: service.accent }} />
                     </div>
-                    <h3 className="font-bold text-lg mb-2" style={{ color: '#E0F2F1' }}>{service.title}</h3>
+                    <h3 className="font-bold text-lg mb-2" style={{ color: 'var(--nw-mist-gray)' }}>{service.title}</h3>
                     <p className="text-sm leading-relaxed" style={{ color: 'rgba(224,242,241,0.75)' }}>{service.description}</p>
                   </Link>
                 </motion.div>

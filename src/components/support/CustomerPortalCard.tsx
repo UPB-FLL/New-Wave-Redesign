@@ -24,29 +24,31 @@ import {
   verifyLoginCode,
 } from '../../lib/supportApi';
 
-/** Full SuperOps client portal — everything the embedded ticket list does not cover. */
-const SUPEROPS_PORTAL_URL =
-  import.meta.env.VITE_SUPEROPS_PORTAL_URL || 'https://super-ops.newwaveitfl.com';
+const superOpsPortalUrl = import.meta.env.VITE_SUPEROPS_PORTAL_URL || 'https://super-ops.newwaveitfl.com';
 
-const STATUS_STYLES: Record<PortalTicket['status'], { label: string; color: string; icon: typeof Clock }> = {
-  open: { label: 'Open', color: '#39CCCC', icon: AlertCircle },
-  'in-progress': { label: 'In progress', color: '#FFA500', icon: Clock },
-  resolved: { label: 'Resolved', color: '#5EBC67', icon: CheckCircle },
-  closed: { label: 'Closed', color: '#8a94a0', icon: MessageCircle },
+const statusStyles: Record<PortalTicket['status'], { label: string; color: string; icon: typeof Clock }> = {
+  open: { label: 'Open', color: 'var(--nw-signal-cyan)', icon: AlertCircle },
+  'in-progress': { label: 'In progress', color: '#b54708', icon: Clock },
+  resolved: { label: 'Resolved', color: 'var(--nw-continuity-green)', icon: CheckCircle },
+  closed: { label: 'Closed', color: 'var(--nw-slate)', icon: MessageCircle },
 };
 
-const PRIORITY_COLORS: Record<PortalTicket['priority'], string> = {
-  critical: '#FF4444',
-  high: '#FF8800',
-  medium: '#39CCCC',
-  low: '#5EBC67',
+const priorityColors: Record<PortalTicket['priority'], string> = {
+  critical: '#b42318',
+  high: '#b54708',
+  medium: 'var(--nw-tide-blue)',
+  low: 'var(--nw-slate)',
 };
 
 function formatDate(value: string): string {
-  if (!value) return '—';
+  if (!value) return '-';
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return value;
   return parsed.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function priorityTextColor(priority: PortalTicket['priority']): string {
+  return priority === 'critical' || priority === 'high' ? 'var(--nw-cloud-white)' : 'var(--nw-current-navy)';
 }
 
 type Step = 'email' | 'code' | 'signed-in';
@@ -68,21 +70,20 @@ export default function CustomerPortalCard() {
     try {
       const result = await fetchTickets(activeSession.token);
       setTickets(result.tickets);
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 401) {
+    } catch (requestError) {
+      if (requestError instanceof ApiError && requestError.status === 401) {
         clearPortalSession();
         setSession(null);
         setStep('email');
         setError('Your session expired. Please sign in again.');
       } else {
-        setError(err instanceof ApiError ? err.message : 'We could not load your tickets.');
+        setError(requestError instanceof ApiError ? requestError.message : 'We could not load your tickets.');
       }
     } finally {
       setLoadingTickets(false);
     }
   }, []);
 
-  // Restore a session left over from earlier in this tab.
   useEffect(() => {
     const stored = loadPortalSession();
     if (!stored) return;
@@ -92,8 +93,8 @@ export default function CustomerPortalCard() {
     void loadTickets(stored);
   }, [loadTickets]);
 
-  const handleRequestCode = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleRequestCode = async (event: React.FormEvent) => {
+    event.preventDefault();
     setError('');
     setNotice('');
     setBusy(true);
@@ -101,32 +102,28 @@ export default function CustomerPortalCard() {
       await requestLoginCode(email);
       setStep('code');
       setNotice(`We sent a 6-digit code to ${email}. It expires in 10 minutes.`);
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'We could not send the code.');
+    } catch (requestError) {
+      setError(requestError instanceof ApiError ? requestError.message : 'We could not send the code.');
     } finally {
       setBusy(false);
     }
   };
 
-  const handleVerify = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleVerify = async (event: React.FormEvent) => {
+    event.preventDefault();
     setError('');
     setBusy(true);
     try {
       const result = await verifyLoginCode(email, code);
-      const next: PortalSession = {
-        token: result.token,
-        email: result.email,
-        expiresAt: result.expiresAt,
-      };
+      const next: PortalSession = { token: result.token, email: result.email, expiresAt: result.expiresAt };
       savePortalSession(next);
       setSession(next);
       setStep('signed-in');
       setCode('');
       setNotice('');
       void loadTickets(next);
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'We could not verify that code.');
+    } catch (requestError) {
+      setError(requestError instanceof ApiError ? requestError.message : 'We could not verify that code.');
     } finally {
       setBusy(false);
     }
@@ -145,119 +142,59 @@ export default function CustomerPortalCard() {
 
   return (
     <div className="space-y-5">
-      <div
-        className="bg-white rounded-2xl p-6 sm:p-8 shadow-lg"
-        style={{ border: '1px solid rgba(21,34,50,0.07)' }}
-      >
-        <div className="flex items-start gap-4 mb-6">
-          <div
-            className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
-            style={{ background: 'rgba(57,204,204,0.12)' }}
-          >
-            <LogIn size={20} style={{ color: '#39CCCC' }} />
+      <div className="rounded-lg p-6 sm:p-8 nw-surface">
+        <div className="mb-6 flex items-start gap-4">
+          <div className="nw-icon-signal h-11 w-11 shrink-0">
+            <LogIn size={20} />
           </div>
           <div className="flex-1">
-            <h3
-              className="text-xl sm:text-2xl leading-tight"
-              style={{ fontFamily: "'Staatliches', 'Impact', sans-serif", color: '#152232' }}
-            >
-              Customer login
-            </h3>
-            <p className="text-sm mt-1" style={{ color: 'rgba(21,34,50,0.6)' }}>
-              Sign in with your email to see your live SuperOps tickets.
-            </p>
+            <h3 className="nw-display text-xl text-brand-navy sm:text-2xl">Customer login</h3>
+            <p className="mt-1 text-sm text-[var(--nw-slate)]">Sign in with your email to see your live SuperOps tickets.</p>
           </div>
         </div>
 
-        {step === 'email' && (
+        {step === 'email' ? (
           <form onSubmit={handleRequestCode} className="space-y-4">
             <div>
-              <label
-                htmlFor="portal-email"
-                className="block text-sm font-medium mb-2"
-                style={{ color: 'rgba(21,34,50,0.75)' }}
-              >
-                Work email
-              </label>
-              <input
-                id="portal-email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@company.com"
-                autoComplete="email"
-                required
-                className="input-light"
-              />
-              <p className="text-xs mt-2" style={{ color: 'rgba(21,34,50,0.5)' }}>
-                We email you a one-time code — no password to remember, and nobody can pull up your
-                tickets by guessing your address.
-              </p>
+              <label htmlFor="portal-email" className="mb-2 block text-sm font-medium text-brand-navy">Work email</label>
+              <input id="portal-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@company.com" autoComplete="email" required className="input-light" />
+              <p className="mt-2 text-xs text-[var(--nw-slate)]">We email you a one-time code. Nobody can pull up your tickets by guessing your address.</p>
             </div>
-
-            {error && <InlineError message={error} />}
-
-            <button
-              type="submit"
-              disabled={busy || !email}
-              className="w-full flex items-center justify-center gap-2 text-white font-semibold py-3 rounded-lg transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed hover:-translate-y-0.5"
-              style={{ background: '#39CCCC', boxShadow: '0 4px 12px rgba(57,204,204,0.3)' }}
-            >
-              {busy ? 'Sending code…' : 'Email me a sign-in code'}
+            {error ? <InlineError message={error} /> : null}
+            <button type="submit" disabled={busy || !email} className="btn-primary w-full disabled:cursor-not-allowed disabled:opacity-60">
+              {busy ? 'Sending code...' : 'Email me a sign-in code'}
             </button>
           </form>
-        )}
+        ) : null}
 
-        {step === 'code' && (
+        {step === 'code' ? (
           <form onSubmit={handleVerify} className="space-y-4">
-            {notice && (
-              <div
-                className="flex items-start gap-2 p-3 rounded-lg text-sm"
-                style={{ background: 'rgba(57,204,204,0.1)', color: '#0f7b7b' }}
-              >
-                <CheckCircle size={16} className="mt-0.5 shrink-0" />
+            {notice ? (
+              <div className="flex items-start gap-2 rounded-md border p-3 text-sm text-brand-navy" style={{ background: 'var(--nw-cloud-white)', borderColor: 'var(--nw-tide-blue)' }}>
+                <CheckCircle size={16} className="mt-0.5 shrink-0 text-brand-tide-blue" />
                 <span>{notice}</span>
               </div>
-            )}
-
+            ) : null}
             <div>
-              <label
-                htmlFor="portal-code"
-                className="block text-sm font-medium mb-2"
-                style={{ color: 'rgba(21,34,50,0.75)' }}
-              >
-                6-digit code
-              </label>
+              <label htmlFor="portal-code" className="mb-2 block text-sm font-medium text-brand-navy">6-digit code</label>
               <input
                 id="portal-code"
                 type="text"
                 inputMode="numeric"
                 autoComplete="one-time-code"
                 value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
                 placeholder="000000"
                 maxLength={6}
                 required
-                className="w-full rounded-lg px-4 py-3 text-center font-mono text-2xl tracking-[0.5em] outline-none transition-colors"
-                style={{
-                  background: 'white',
-                  border: `1.5px solid ${code.length === 6 ? '#39CCCC' : 'rgba(21,34,50,0.12)'}`,
-                  color: '#152232',
-                }}
+                className="w-full rounded-md px-4 py-3 text-center font-technical text-2xl outline-none transition-colors"
+                style={{ background: 'var(--nw-pure-white)', border: `1px solid ${code.length === 6 ? 'var(--nw-signal-cyan)' : 'var(--nw-mist-gray)'}`, color: 'var(--nw-current-navy)' }}
               />
             </div>
-
-            {error && <InlineError message={error} />}
-
-            <button
-              type="submit"
-              disabled={busy || code.length !== 6}
-              className="w-full flex items-center justify-center gap-2 text-white font-semibold py-3 rounded-lg transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed hover:-translate-y-0.5"
-              style={{ background: '#39CCCC', boxShadow: '0 4px 12px rgba(57,204,204,0.3)' }}
-            >
-              {busy ? 'Verifying…' : 'View my tickets'}
+            {error ? <InlineError message={error} /> : null}
+            <button type="submit" disabled={busy || code.length !== 6} className="btn-primary w-full disabled:cursor-not-allowed disabled:opacity-60">
+              {busy ? 'Verifying...' : 'View my tickets'}
             </button>
-
             <button
               type="button"
               onClick={() => {
@@ -266,100 +203,68 @@ export default function CustomerPortalCard() {
                 setError('');
                 setNotice('');
               }}
-              className="w-full flex items-center justify-center gap-1.5 text-sm py-2 transition-colors"
-              style={{ color: 'rgba(21,34,50,0.6)' }}
+              className="flex w-full items-center justify-center gap-1.5 py-2 text-sm text-[var(--nw-slate)] transition-colors hover:text-brand-tide-blue"
             >
               <ArrowLeft size={14} />
               Use a different email
             </button>
           </form>
-        )}
+        ) : null}
 
-        {step === 'signed-in' && session && (
+        {step === 'signed-in' && session ? (
           <div className="space-y-4">
-            <div
-              className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-lg"
-              style={{ background: 'rgba(94,188,103,0.08)' }}
-            >
-              <span className="flex items-center gap-2 text-sm" style={{ color: '#152232' }}>
-                <ShieldCheck size={16} style={{ color: '#5EBC67' }} />
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-md p-3" style={{ background: 'color-mix(in srgb, var(--nw-continuity-green) 14%, transparent)' }}>
+              <span className="flex items-center gap-2 text-sm text-brand-navy">
+                <ShieldCheck size={16} className="text-brand-green" />
                 Signed in as <strong>{session.email}</strong>
               </span>
               <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => void loadTickets(session)}
-                  disabled={loadingTickets}
-                  className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg transition-colors disabled:opacity-60"
-                  style={{ color: '#39CCCC', border: '1px solid #39CCCC' }}
-                >
+                <button type="button" onClick={() => void loadTickets(session)} disabled={loadingTickets} className="btn-secondary px-3 py-1.5 text-sm disabled:opacity-60">
                   <RefreshCw size={14} className={loadingTickets ? 'animate-spin' : ''} />
                   Refresh
                 </button>
-                <button
-                  type="button"
-                  onClick={() => void handleSignOut()}
-                  className="text-sm px-3 py-1.5 rounded-lg transition-colors"
-                  style={{ color: 'rgba(21,34,50,0.6)', border: '1px solid rgba(21,34,50,0.15)' }}
-                >
-                  Sign out
-                </button>
+                <button type="button" onClick={() => void handleSignOut()} className="btn-secondary px-3 py-1.5 text-sm">Sign out</button>
               </div>
             </div>
 
-            {error && <InlineError message={error} />}
+            {error ? <InlineError message={error} /> : null}
 
             {loadingTickets && tickets.length === 0 ? (
               <TicketSkeleton />
             ) : tickets.length === 0 && !error ? (
-              <div className="rounded-2xl p-8 text-center" style={{ background: '#f8fafb' }}>
-                <Ticket size={28} style={{ color: 'rgba(21,34,50,0.3)' }} className="mx-auto mb-3" />
-                <p className="font-medium" style={{ color: '#152232' }}>
-                  No tickets on file
-                </p>
-                <p className="text-sm mt-1" style={{ color: 'rgba(21,34,50,0.55)' }}>
-                  Nothing open under {session.email}. Email us or start a chat and we will open one.
-                </p>
+              <div className="rounded-md p-8 text-center nw-panel-muted">
+                <Ticket size={28} className="mx-auto mb-3 text-[var(--nw-slate)]" />
+                <p className="font-medium text-brand-navy">No tickets on file</p>
+                <p className="mt-1 text-sm text-[var(--nw-slate)]">Nothing open under {session.email}. Email us or start a chat and we will open one.</p>
               </div>
             ) : (
               <ul className="space-y-3">
                 {tickets.map((ticket) => {
-                  const status = STATUS_STYLES[ticket.status] ?? STATUS_STYLES.open;
+                  const status = statusStyles[ticket.status] ?? statusStyles.open;
                   const StatusIcon = status.icon;
+                  const priorityColor = priorityColors[ticket.priority] ?? 'var(--nw-slate)';
                   return (
-                    <li
-                      key={ticket.id}
-                      className="rounded-2xl p-5 transition-shadow hover:shadow-md"
-                      style={{ border: '1px solid rgba(21,34,50,0.1)' }}
-                    >
-                      <div className="flex items-start justify-between gap-3 mb-2">
-                        <div className="flex items-start gap-3 min-w-0">
+                    <li key={ticket.id} className="rounded-md p-5 nw-panel-muted">
+                      <div className="mb-2 flex items-start justify-between gap-3">
+                        <div className="flex min-w-0 items-start gap-3">
                           <StatusIcon size={18} style={{ color: status.color }} className="mt-0.5 shrink-0" />
                           <div className="min-w-0">
-                            <h4 className="font-semibold truncate" style={{ color: '#152232' }}>
-                              {ticket.subject}
-                            </h4>
-                            <p className="text-xs mt-0.5" style={{ color: 'rgba(21,34,50,0.5)' }}>
+                            <h4 className="truncate font-semibold text-brand-navy">{ticket.subject}</h4>
+                            <p className="nw-meta mt-0.5 text-xs text-[var(--nw-slate)]">
                               {ticket.displayId ? `#${ticket.displayId}` : `#${ticket.id}`}
-                              {ticket.technician ? ` · ${ticket.technician}` : ''}
+                              {ticket.technician ? ` - ${ticket.technician}` : ''}
                             </p>
                           </div>
                         </div>
-                        <span
-                          className="px-2.5 py-1 rounded-full text-xs font-semibold text-white shrink-0 capitalize"
-                          style={{ background: PRIORITY_COLORS[ticket.priority] ?? '#39CCCC' }}
-                        >
+                        <span className="rounded-md px-2.5 py-1 text-xs font-semibold capitalize" style={{ background: priorityColor, color: priorityTextColor(ticket.priority) }}>
                           {ticket.priority}
                         </span>
                       </div>
-                      <div
-                        className="flex flex-wrap gap-x-4 gap-y-1 text-xs pt-2"
-                        style={{ color: 'rgba(21,34,50,0.55)', borderTop: '1px solid rgba(21,34,50,0.06)' }}
-                      >
-                        <span style={{ color: status.color, fontWeight: 600 }}>{status.label}</span>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 border-t pt-2 text-xs text-[var(--nw-slate)]" style={{ borderColor: 'var(--nw-mist-gray)' }}>
+                        <span className="font-semibold" style={{ color: status.color }}>{status.label}</span>
                         <span>Opened {formatDate(ticket.createdAt)}</span>
                         <span>Updated {formatDate(ticket.updatedAt)}</span>
-                        {ticket.resolutionDueAt && <span>Due {formatDate(ticket.resolutionDueAt)}</span>}
+                        {ticket.resolutionDueAt ? <span>Due {formatDate(ticket.resolutionDueAt)}</span> : null}
                       </div>
                     </li>
                   );
@@ -367,28 +272,15 @@ export default function CustomerPortalCard() {
               </ul>
             )}
           </div>
-        )}
+        ) : null}
       </div>
 
-      <a
-        href={SUPEROPS_PORTAL_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center justify-between gap-4 rounded-2xl p-5 transition-all duration-200 hover:-translate-y-0.5"
-        style={{
-          background: 'linear-gradient(135deg, rgba(57,204,204,0.1) 0%, rgba(94,188,103,0.1) 100%)',
-          border: '1px solid rgba(57,204,204,0.25)',
-        }}
-      >
-        <div>
-          <p className="font-semibold" style={{ color: '#152232' }}>
-            Open the full SuperOps portal
-          </p>
-          <p className="text-sm mt-0.5" style={{ color: 'rgba(21,34,50,0.6)' }}>
-            Reply on a ticket, upload files, view invoices, and manage your assets.
-          </p>
-        </div>
-        <ExternalLink size={20} style={{ color: '#39CCCC' }} className="shrink-0" />
+      <a href={superOpsPortalUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between gap-4 rounded-lg p-5 transition-colors hover:bg-[var(--nw-pure-white)] nw-panel-muted">
+        <span>
+          <span className="block font-semibold text-brand-navy">Open the full SuperOps portal</span>
+          <span className="mt-0.5 block text-sm text-[var(--nw-slate)]">Reply on a ticket, upload files, view invoices, and manage your assets.</span>
+        </span>
+        <ExternalLink size={20} className="shrink-0 text-brand-tide-blue" />
       </a>
     </div>
   );
@@ -396,11 +288,7 @@ export default function CustomerPortalCard() {
 
 function InlineError({ message }: { message: string }) {
   return (
-    <div
-      className="flex items-start gap-2 p-3 rounded-lg text-sm"
-      style={{ background: 'rgba(255,68,68,0.08)', color: '#c53030' }}
-      role="alert"
-    >
+    <div className="flex items-start gap-2 rounded-md bg-[#fef3f2] p-3 text-sm text-[#b42318]" role="alert">
       <AlertCircle size={16} className="mt-0.5 shrink-0" />
       <span>{message}</span>
     </div>
@@ -410,14 +298,10 @@ function InlineError({ message }: { message: string }) {
 function TicketSkeleton() {
   return (
     <ul className="space-y-3" aria-hidden="true">
-      {[0, 1, 2].map((i) => (
-        <li
-          key={i}
-          className="rounded-2xl p-5 animate-pulse"
-          style={{ border: '1px solid rgba(21,34,50,0.08)' }}
-        >
-          <div className="h-4 w-2/3 rounded mb-3" style={{ background: 'rgba(21,34,50,0.08)' }} />
-          <div className="h-3 w-1/3 rounded" style={{ background: 'rgba(21,34,50,0.06)' }} />
+      {[0, 1, 2].map((index) => (
+        <li key={index} className="rounded-md p-5 nw-panel-muted">
+          <div className="mb-3 h-4 w-2/3 rounded" style={{ background: 'var(--nw-mist-gray)' }} />
+          <div className="h-3 w-1/3 rounded" style={{ background: 'var(--nw-mist-gray)' }} />
         </li>
       ))}
     </ul>

@@ -143,7 +143,7 @@ export default function SeoLandingPage() {
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'white' }}>
         <div
           className="w-6 h-6 rounded-full border-2 border-t-transparent animate-spin"
-          style={{ borderColor: '#39CCCC', borderTopColor: 'transparent' }}
+          style={{ borderColor: 'var(--nw-signal-cyan)', borderTopColor: 'transparent' }}
         />
       </div>
     );
@@ -158,8 +158,8 @@ export default function SeoLandingPage() {
           <p className="text-slate-600 mb-6">This landing page is not available or has been unpublished.</p>
           <Link
             to="/"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white"
-            style={{ background: '#39CCCC' }}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold text-[var(--nw-deep-current)]"
+            style={{ background: 'var(--nw-signal-cyan)' }}
           >
             Back to home <ArrowRight size={14} />
           </Link>
@@ -175,7 +175,7 @@ export default function SeoLandingPage() {
 
       <header
         className="relative pt-32 pb-16 px-6 overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #0f1923 0%, #152232 100%)' }}
+        style={{ background: 'var(--nw-deep-current)' }}
       >
         {page.hero_image && (
           <>
@@ -188,7 +188,7 @@ export default function SeoLandingPage() {
             />
             <div
               className="absolute inset-0"
-              style={{ background: 'linear-gradient(rgba(15,25,35,0.72), rgba(15,25,35,0.82))' }}
+              style={{ background: 'rgba(9, 19, 29, 0.82)' }}
             />
           </>
         )}
@@ -214,8 +214,8 @@ export default function SeoLandingPage() {
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
               to="/contact"
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold text-white"
-              style={{ background: '#39CCCC' }}
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-md text-sm font-semibold text-[var(--nw-deep-current)]"
+              style={{ background: 'var(--nw-signal-cyan)' }}
             >
               Get a free assessment <ArrowRight size={14} />
             </Link>
@@ -316,7 +316,7 @@ export default function SeoLandingPage() {
                         target="_blank"
                         rel="noreferrer"
                         className="text-xs flex items-center gap-1"
-                        style={{ color: '#39CCCC' }}
+                        style={{ color: 'var(--nw-tide-blue)' }}
                       >
                         Visit <ExternalLink size={11} />
                       </a>
@@ -333,7 +333,7 @@ export default function SeoLandingPage() {
         {page.faq.length > 0 && (
           <section>
             <div className="flex items-center gap-2 mb-6">
-              <HelpCircle size={20} style={{ color: '#39CCCC' }} />
+              <HelpCircle size={20} style={{ color: 'var(--nw-tide-blue)' }} />
               <h2 className="text-2xl font-bold text-slate-900">Frequently asked questions</h2>
             </div>
             <div className="space-y-3">
@@ -360,7 +360,7 @@ export default function SeoLandingPage() {
             <ul className="space-y-2">
               {page.backlinks.map((b, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm">
-                  <CheckCircle2 size={14} style={{ color: '#5EBC67' }} className="mt-1 flex-shrink-0" />
+                  <CheckCircle2 size={14} style={{ color: 'var(--nw-continuity-green)' }} className="mt-1 flex-shrink-0" />
                   <a
                     href={b.url}
                     target="_blank"
@@ -379,7 +379,7 @@ export default function SeoLandingPage() {
 
         <section
           className="p-8 rounded-3xl text-center text-white"
-          style={{ background: 'linear-gradient(135deg, #0f1923 0%, #152232 100%)' }}
+          style={{ background: 'var(--nw-deep-current)' }}
         >
           <h2 className="text-2xl md:text-3xl font-bold mb-3">
             Ready to upgrade your {page.target_keyword || 'IT'} in {page.target_location || 'your area'}?
@@ -389,8 +389,8 @@ export default function SeoLandingPage() {
           </p>
           <Link
             to="/contact"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white"
-            style={{ background: '#39CCCC' }}
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-md text-sm font-semibold text-[var(--nw-deep-current)]"
+            style={{ background: 'var(--nw-signal-cyan)' }}
           >
             Get a free assessment <ArrowRight size={14} />
           </Link>

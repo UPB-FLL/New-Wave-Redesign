@@ -1,177 +1,62 @@
+import { AlertTriangle, Bug, CheckCircle, Lock, Mail, ShieldOff, Wifi, Zap, type LucideIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { CheckCircle, AlertTriangle, Zap, Bug, Mail, Lock, ShieldOff, Wifi } from 'lucide-react';
+import { SectionHeading } from '../brand/SectionHeading';
 
-const threats = [
-  {
-    icon: Bug,
-    name: 'Ransomware',
-    slug: 'ransomware',
-    severity: 'CRITICAL',
-    severityColor: '#ef4444',
-    description: 'AI-driven behavior analysis detects encryption attempts and isolates infected endpoints in seconds.',
-    stat: '99.7%',
-    statLabel: 'detection rate',
-  },
-  {
-    icon: Mail,
-    name: 'Phishing',
-    slug: 'phishing',
-    severity: 'HIGH',
-    severityColor: '#f59e0b',
-    description: 'Advanced email security with URL rewriting, attachment sandboxing, and impersonation detection.',
-    stat: '15M+',
-    statLabel: 'emails scanned daily',
-  },
-  {
-    icon: AlertTriangle,
-    name: 'DDoS Attacks',
-    slug: 'ddos-attacks',
-    severity: 'HIGH',
-    severityColor: '#f59e0b',
-    description: 'Multi-layer mitigation with edge-network filtering and automatic traffic scrubbing.',
-    stat: '10 Tbps',
-    statLabel: 'mitigation capacity',
-  },
-  {
-    icon: Lock,
-    name: 'Data Breaches',
-    slug: 'data-breaches',
-    severity: 'CRITICAL',
-    severityColor: '#ef4444',
-    description: 'End-to-end encryption, DLP policies, and continuous monitoring of sensitive data flows.',
-    stat: 'AES-256',
-    statLabel: 'encryption standard',
-  },
-  {
-    icon: Zap,
-    name: 'Zero-Day Exploits',
-    slug: 'zero-day-exploits',
-    severity: 'CRITICAL',
-    severityColor: '#ef4444',
-    description: 'Behavioral detection engines identify novel attack patterns before signatures exist.',
-    stat: '<60s',
-    statLabel: 'mean detection time',
-  },
-  {
-    icon: ShieldOff,
-    name: 'Insider Threats',
-    slug: 'insider-threats',
-    severity: 'MEDIUM',
-    severityColor: '#3b82f6',
-    description: 'User behavior analytics flag anomalous access patterns and policy violations.',
-    stat: '24/7',
-    statLabel: 'continuous monitoring',
-  },
-  {
-    icon: Wifi,
-    name: 'Network Intrusions',
-    slug: 'network-intrusions',
-    severity: 'HIGH',
-    severityColor: '#f59e0b',
-    description: 'Next-gen firewalls with deep packet inspection and intrusion prevention systems.',
-    stat: '5M+',
-    statLabel: 'packets inspected/sec',
-  },
-  {
-    icon: CheckCircle,
-    name: 'Compliance Violations',
-    slug: 'compliance-violations',
-    severity: 'MEDIUM',
-    severityColor: '#3b82f6',
-    description: 'Automated audits map your environment to HIPAA, PCI-DSS, SOC 2, and GDPR requirements.',
-    stat: '100%',
-    statLabel: 'audit readiness',
-  },
+type Threat = {
+  icon: LucideIcon;
+  name: string;
+  slug: string;
+  severity: 'CRITICAL' | 'HIGH' | 'MEDIUM';
+  description: string;
+  stat: string;
+  statLabel: string;
+};
+
+const threats: Threat[] = [
+  { icon: Bug, name: 'Ransomware', slug: 'ransomware', severity: 'CRITICAL', description: 'Behavior analysis can identify encryption attempts and isolate affected endpoints quickly.', stat: '99.7%', statLabel: 'detection rate' },
+  { icon: Mail, name: 'Phishing', slug: 'phishing', severity: 'HIGH', description: 'Email defenses can combine URL rewriting, attachment sandboxing, and impersonation detection.', stat: '15M+', statLabel: 'emails scanned daily' },
+  { icon: AlertTriangle, name: 'DDoS Attacks', slug: 'ddos-attacks', severity: 'HIGH', description: 'Layered mitigation with edge-network filtering and automatic traffic scrubbing.', stat: '10 Tbps', statLabel: 'mitigation capacity' },
+  { icon: Lock, name: 'Data Breaches', slug: 'data-breaches', severity: 'CRITICAL', description: 'Encryption, DLP policies, and monitoring for sensitive data flows.', stat: 'AES-256', statLabel: 'encryption standard' },
+  { icon: Zap, name: 'Zero-Day Exploits', slug: 'zero-day-exploits', severity: 'CRITICAL', description: 'Behavioral detection can recognize unfamiliar attack patterns before traditional signatures exist.', stat: '<60s', statLabel: 'mean detection time' },
+  { icon: ShieldOff, name: 'Insider Threats', slug: 'insider-threats', severity: 'MEDIUM', description: 'User behavior analytics can flag anomalous access patterns and policy violations.', stat: '24/7', statLabel: 'continuous monitoring' },
+  { icon: Wifi, name: 'Network Intrusions', slug: 'network-intrusions', severity: 'HIGH', description: 'Next-generation firewalls with deep packet inspection and intrusion prevention.', stat: '5M+', statLabel: 'packets inspected/sec' },
+  { icon: CheckCircle, name: 'Compliance Violations', slug: 'compliance-violations', severity: 'MEDIUM', description: 'Automated reviews can map an environment to HIPAA, PCI-DSS, SOC 2, and GDPR requirements.', stat: '100%', statLabel: 'audit readiness' },
 ];
+
+const severityClasses: Record<Threat['severity'], string> = {
+  CRITICAL: 'border-red-200 bg-red-50 text-red-700',
+  HIGH: 'border-amber-200 bg-amber-50 text-amber-800',
+  MEDIUM: 'border-sky-200 bg-sky-50 text-sky-800',
+};
 
 export default function ThreatProtection() {
   return (
-    <section
-      className="py-12 sm:py-16 relative"
-      style={{
-        background: 'linear-gradient(180deg, #f8fafb 0%, #ffffff 100%)',
-        borderTop: '1px solid rgba(21,34,50,0.06)',
-        zIndex: 10,
-      }}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-8 sm:mb-10">
-          <span className="text-xs sm:text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
-            Threat Coverage
-          </span>
-          <h2
-            className="text-3xl sm:text-4xl lg:text-5xl mt-2 mb-4 leading-tight tracking-tight"
-            style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}
-          >
-            Defense against every{' '}
-            <span style={{ display: 'inline-block', background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>attack vector.</span>
-          </h2>
-          <p className="text-sm sm:text-base max-w-2xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
-            Here's how we stop the eight most damaging threats facing businesses today.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
-          {threats.map((threat) => (
-            <Link
-              key={threat.name}
-              to={`/threat/${threat.slug}`}
-              className="group rounded-2xl p-4 transition-all duration-300 hover:-translate-y-1 no-underline block"
-              style={{
-                background: 'rgba(26, 47, 63, 0.8)',
-                border: '1px solid rgba(57,204,204,0.4)',
-                boxShadow: '0 2px 12px rgba(57,204,204,0.1)',
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow = '0 16px 48px rgba(57,204,204,0.25)';
-                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(57,204,204,0.8)';
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 12px rgba(57,204,204,0.1)';
-                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(57,204,204,0.4)';
-              }}
-            >
-              <div className="flex items-start justify-between mb-2.5">
-                <div
-                  className="w-9 h-9 rounded-lg flex items-center justify-center"
-                  style={{ background: 'rgba(57,204,204,0.25)' }}
-                >
-                  <threat.icon size={16} style={{ color: '#39CCCC' }} />
+    <section className="bg-[var(--nw-cloud-white)] py-16 sm:py-20">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <SectionHeading
+          align="center"
+          eyebrow="Threat Coverage"
+          title={<>Defense against every <span className="text-[var(--nw-tide-blue)]">attack vector.</span></>}
+          description="A practical view of common risks facing businesses and the safeguards that help address them."
+        />
+        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {threats.map((threat) => {
+            const Icon = threat.icon;
+            return (
+              <Link key={threat.name} to={`/threat/${threat.slug}`} className="group flex h-full flex-col rounded-lg border p-5 no-underline transition-colors hover:border-[var(--nw-tide-blue)] hover:bg-[var(--nw-pure-white)]" style={{ background: 'var(--nw-pure-white)', borderColor: 'var(--nw-mist-gray)' }}>
+                <div className="flex items-start justify-between gap-3">
+                  <span className="nw-icon-signal h-9 w-9"><Icon size={17} aria-hidden="true" /></span>
+                  <span className={`rounded border px-2 py-1 text-[10px] font-bold ${severityClasses[threat.severity]}`}>{threat.severity}</span>
                 </div>
-                <span
-                  className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
-                  style={{
-                    background: `${threat.severityColor}30`,
-                    color: threat.severityColor,
-                  }}
-                >
-                  {threat.severity}
-                </span>
-              </div>
-
-              <h3 className="font-bold text-base mb-1.5" style={{ color: '#E0F2F1' }}>
-                {threat.name}
-              </h3>
-              <p className="text-xs leading-relaxed mb-3" style={{ color: 'rgba(224,242,241,0.75)' }}>
-                {threat.description}
-              </p>
-
-              <div
-                className="rounded-lg p-2.5"
-                style={{ background: 'rgba(57,204,204,0.15)', border: '1px solid rgba(57,204,204,0.3)' }}
-              >
-                <div
-                  className="text-lg font-bold tabular-nums"
-                  style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#39CCCC' }}
-                >
-                  {threat.stat}
+                <h3 className="mt-5 font-bold text-[var(--nw-current-navy)]">{threat.name}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-[var(--nw-slate)]">{threat.description}</p>
+                <div className="mt-5 border-t pt-4" style={{ borderColor: 'var(--nw-mist-gray)' }}>
+                  <p className="nw-display text-2xl text-[var(--nw-tide-blue)]">{threat.stat}</p>
+                  <p className="nw-meta mt-1 text-xs text-[var(--nw-slate)]">{threat.statLabel}</p>
                 </div>
-                <div className="text-[9px] uppercase tracking-wider font-semibold" style={{ color: 'rgba(224,242,241,0.65)' }}>
-                  {threat.statLabel}
-                </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       </div>
     </section>

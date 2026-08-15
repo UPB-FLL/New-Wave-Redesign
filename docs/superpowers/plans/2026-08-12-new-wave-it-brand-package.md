@@ -8,6 +8,8 @@
 
 **Tech Stack:** Python 3.11+, Pillow, CairoSVG, ReportLab, python-docx, python-pptx, fontTools, lxml, PyMuPDF, pytest, React 18, TypeScript, Tailwind CSS, Vitest, Testing Library, Vite, GitHub, Vercel.
 
+**Delivery approval:** The full package scope and controlled-evolution architecture were approved on August 13, 2026. Read the companion delivery design at `docs/superpowers/specs/2026-08-13-new-wave-it-full-package-delivery-design.md` and the approved reference package in `docs/brand/` before beginning implementation.
+
 ## Global Constraints
 
 - Preserve the New Wave IT name, three-current concept, cyan/green recognition, and the heritage line `Don’t get lost in the current`.
@@ -15,6 +17,7 @@
 - Supporting service statement: `Managed IT, cybersecurity, cloud, and support built around the way your business actually works.`
 - Palette values are exact: Deep Current `#09131D`, Current Navy `#101E2D`, Signal Cyan `#31C6CF`, Continuity Green `#62BE68`, Tide Blue `#317B92`, Cloud White `#F7FAFB`, Mist Gray `#E8EFF1`, Slate `#526271`, Pure White `#FFFFFF`.
 - Typography: Plus Jakarta Sans for display, Inter for body/interface, IBM Plex Mono for technical labels, Instrument Serif only as an optional editorial accent.
+- Pure black `#000000` is permitted only for monochrome print/PDF logo exports. It is not a web, social, or application-interface brand token.
 - Do not redistribute font files in the final package. Font files may be used only as internal build inputs.
 - The standard icon has three strokes; the two-stroke optical variant is permitted only for outputs rendered at 24 px or smaller.
 - Do not introduce shields, padlocks, hexagons, circuit-board filler, hooded-hacker imagery, neon cyberpunk effects, or generic stock-tech identity devices.
@@ -25,6 +28,9 @@
 - X header critical content must avoid the top and bottom 60 pixels on a `1500 × 500` canvas.
 - Website routes, Supabase behavior, forms, analytics, support functionality, legal content, and current service-page content remain unchanged unless a targeted brand migration requires a shared-style adjustment.
 - Generated SVG, PNG, PDF, DOCX, PPTX, HTML, TXT, CSV, JSON, and ZIP assets must be validated before completion.
+- The brand guide PDF and preview in `docs/brand/` are the visual authority. Do not recreate, replace, or reinterpret the approved identity outside the canonical brand source.
+- Do not stage, commit, push, or deploy any changes without separate explicit user authorization. A plan step labeled "Commit" means prepare the exact file list and verification evidence for authorization; it does not grant authorization by itself.
+- A Vercel preview is an optional release action. Request explicit authorization after local verification before invoking any deployment command.
 
 ---
 
@@ -319,6 +325,7 @@ git commit -m "feat: codify approved New Wave IT brand tokens"
 - Create: `brandkit/typography.py`
 - Create: `brandkit/logo.py`
 - Create: `tests/brandkit/test_logo.py`
+- Modify: `scripts/build_brand_package.py`
 - Create during build: `.brand-build/fonts/` internal-only font cache
 - Generate: `output/new-wave-it-brand-package/02-logos/svg/*.svg`
 - Generate: `output/new-wave-it-brand-package/02-logos/monochrome/*.svg`
@@ -364,7 +371,7 @@ Expected: FAIL because the logo modules do not exist.
 
 - [ ] **Step 3: Implement safe SVG primitives**
 
-`brandkit/svg.py` must provide namespace-aware helpers for `<svg>`, `<g>`, `<path>`, `<rect>`, `<defs>`, `<linearGradient>`, metadata, and deterministic pretty serialization. Reject scripts, external references, and unsupported URL values.
+`brandkit/svg.py` must provide namespace-aware helpers for `<svg>`, `<g>`, `<path>`, `<rect>`, `<defs>`, metadata, and deterministic pretty serialization. Reject scripts, external references, gradient elements, and unsupported URL values. Approved logo assets use solid semantic colors only.
 
 - [ ] **Step 4: Implement text outlining with fontTools**
 
@@ -376,13 +383,15 @@ Use one `64 × 64` viewBox. Keep the visible geometry within `x=8..56` and `y=8.
 
 - [ ] **Step 6: Implement lockups and colorways**
 
-Generate horizontal, horizontal-tagline, stacked, stacked-tagline, icon, micro-icon, and wordmark files in full color, Current Navy, Cloud White, black, on-light, and on-dark variants. Add `<title>` and `<desc>` only to standalone assets intended for direct use; decorative website SVGs will use `aria-hidden` in React.
+Generate horizontal, horizontal-tagline, stacked, stacked-tagline, icon, micro-icon, and wordmark files in full color, Current Navy, Cloud White, print-only black, on-light, and on-dark variants. Add `<title>` and `<desc>` only to standalone assets intended for direct use; decorative website SVGs will use `aria-hidden` in React.
 
 - [ ] **Step 7: Generate the construction sheet**
 
 Create `logo-construction.svg` showing the `64 × 64` viewBox, optical field, stroke centers, clear-space `x`, and minimum-size notes. Use technical labels in IBM Plex Mono or the approved fallback, converted to paths for portability.
 
-- [ ] **Step 8: Run tests and inspect source**
+- [ ] **Step 8: Add the explicit logo build stage, then run tests and inspect source**
+
+Extend `scripts/build_brand_package.py` with an `argparse` `--stage` option whose choices are `all` and `logos`, defaulting to `all`. Both modes create the package root; `logos` invokes `export_logo_family(output_root)` and returns without invoking later asset stages. Preserve repository-root execution and the existing no-argument behavior from Task 1.
 
 Run: `python -m pytest tests/brandkit/test_logo.py -q`
 
@@ -395,7 +404,7 @@ Expected: every required logo SVG exists and contains no `<text>`, `<image>`, `<
 - [ ] **Step 9: Commit**
 
 ```bash
-git add brandkit/svg.py brandkit/typography.py brandkit/logo.py tests/brandkit/test_logo.py
+git add brandkit/svg.py brandkit/typography.py brandkit/logo.py scripts/build_brand_package.py tests/brandkit/test_logo.py
 git commit -m "feat: build canonical New Wave IT logo family"
 ```
 
@@ -417,19 +426,31 @@ git commit -m "feat: build canonical New Wave IT logo family"
 - [ ] **Step 1: Add raster-contract tests**
 
 ```python
+from pathlib import Path
+
+import pytest
 from PIL import Image
-from brandkit.render import inspect_png
+from brandkit.cli import build
+from brandkit.logo import export_logo_family
+from brandkit.render import export_raster_family, inspect_png
 
 
-def test_transparent_logo_png_has_alpha(tmp_path):
-    png = tmp_path / "logo.png"
-    # render a known transparent logo fixture
+@pytest.fixture()
+def package_root(tmp_path: Path) -> Path:
+    root = build(tmp_path / "new-wave-it-brand-package")
+    export_logo_family(root)
+    export_raster_family(root)
+    return root
+
+
+def test_transparent_logo_png_has_alpha(package_root: Path) -> None:
+    png = next((package_root / "02-logos" / "png").glob("*.png"))
     info = inspect_png(png)
     assert info.mode == "RGBA"
     assert info.has_transparency is True
 
 
-def test_favicon_contract_contains_required_sizes(package_root):
+def test_favicon_contract_contains_required_sizes(package_root: Path) -> None:
     expected = {"favicon-16x16.png": (16, 16), "favicon-32x32.png": (32, 32), "favicon-48x48.png": (48, 48)}
     for name, size in expected.items():
         with Image.open(package_root / "03-favicons-app-icons" / name) as image:
@@ -496,7 +517,7 @@ git commit -m "feat: export raster logos and application icons"
 - Generate/copy later: `public/brand/patterns/*`, `public/brand/og/*`, `public/brand/icons/*`
 
 **Interfaces:**
-- Produces: `current_field_svg(density, tone)`, `technical_grid_svg(tone)`, `signal_points_svg(tone)`, `build_og_image()`, `build_hero_atmosphere()`, `build_email_header()`, and `build_support_app_icon()`.
+- Produces: `current_field_svg(density, tone)`, `technical_grid_svg(tone)`, `signal_points_svg(tone)`, `build_og_image()`, `build_hero_current_field()`, `build_email_header()`, and `build_support_app_icon()`.
 
 - [ ] **Step 1: Write pattern tests**
 
@@ -517,7 +538,7 @@ Generate:
 ```text
 open-graph-1200x630.png
 social-share-square-1200x1200.png
-website-hero-atmosphere-2400x1400.png
+website-hero-current-field-2400x1400.png
 email-header-1200x300.png
 support-portal-app-icon-512x512.png
 ```
@@ -933,7 +954,7 @@ type NewWaveLogoProps = {
 };
 ```
 
-Use stable IDs for gradients through `useId()`. Decorative instances use `aria-hidden`; linked/navigation instances expose `aria-label="New Wave IT"` at the link level.
+Use the approved solid semantic colors for all logo paths; do not introduce SVG color gradients. If an SVG definition ever needs a unique ID for a non-color purpose, use `useId()`. Decorative instances use `aria-hidden`; linked/navigation instances expose `aria-label="New Wave IT"` at the link level.
 
 - [ ] **Step 5: Keep the existing import path working**
 
@@ -1144,17 +1165,17 @@ Open and review:
 
 Document issues and rebuild until all checks pass.
 
-- [ ] **Step 6: Create a preview deployment**
+- [ ] **Step 6: Request authorization, then create a preview deployment**
 
-Deploy the branch to the existing Vercel project as a preview. Verify the preview uses first-party assets, has no broken routes, and preserves forms/support behavior.
+After local QA is complete, request explicit user authorization to deploy the branch to the existing Vercel project as a preview. If authorized, verify the preview uses first-party assets, has no broken routes, and preserves forms/support behavior. If not authorized, record that preview deployment remains deferred.
 
 - [ ] **Step 7: Perform final source scans**
 
-```bash
+```powershell
 rg -n "TBD|TODO|lorem ipsum|100% secure|zero downtime|never get hacked" output src public
 rg -n "squarespace-cdn|#39CCCC|#5EBC67|#152232|#0f1923" output src public index.html tailwind.config.js
-find output/new-wave-it-brand-package -type f | sort
-sha256sum output/new-wave-it-brand-package.zip
+Get-ChildItem -LiteralPath "output/new-wave-it-brand-package" -File -Recurse | Sort-Object FullName | Select-Object -ExpandProperty FullName
+Get-FileHash -Algorithm SHA256 "output/new-wave-it-brand-package.zip"
 ```
 
 Expected: no placeholders or prohibited guarantees; legacy hits only where explicitly documented; all expected files present.

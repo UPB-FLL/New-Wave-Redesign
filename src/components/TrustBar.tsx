@@ -1,26 +1,62 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
-  Shield, Award, Star, Users, TrendingUp, CheckCircle, Lock, Cloud, Server, Zap, Globe, Briefcase,
-  Sparkles, ChevronLeft, ChevronRight, Mail, Eye, Monitor, Headphones, Network, Wrench, ArrowRight,
+  ArrowRight,
+  Award,
+  Briefcase,
+  CheckCircle,
+  ChevronLeft,
+  ChevronRight,
+  Cloud,
+  Eye,
+  Globe,
+  Headphones,
+  Lock,
+  Mail,
+  Monitor,
+  Network,
+  Server,
+  Shield,
+  Star,
+  TrendingUp,
+  Users,
+  Wrench,
+  Zap,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { useContent } from '../lib/useContent';
-import { Marquee } from './ui/marquee';
 import { FadeIn } from './ui/fade-in';
 
 type TrustItem = { icon: string; label: string; sub: string };
 
+const requiredTrustItem: TrustItem = {
+  icon: 'CheckCircle',
+  label: '24/7 Support',
+  sub: 'Always available',
+};
+
 const iconMap: Record<string, typeof Shield> = {
-  Shield, Award, Star, Users, TrendingUp, CheckCircle, Lock, Cloud, Server, Zap, Globe, Briefcase,
+  Shield,
+  Award,
+  Star,
+  Users,
+  TrendingUp,
+  CheckCircle,
+  Lock,
+  Cloud,
+  Server,
+  Zap,
+  Globe,
+  Briefcase,
 };
 
 const defaultTrustItems: TrustItem[] = [
-  { icon: 'Shield', label: 'SOC 2 Type II', sub: 'Audited & Certified' },
-  { icon: 'Award', label: 'Microsoft Gold', sub: 'Cloud Solutions Partner' },
-  { icon: 'Users', label: 'Cisco Premier', sub: 'Network Solutions' },
-  { icon: 'Star', label: 'CompTIA', sub: 'Authorized Partner' },
-  { icon: 'TrendingUp', label: 'HIPAA Compliant', sub: 'Healthcare Ready' },
+  { icon: 'Shield', label: 'SOC 2 Type II', sub: 'Audited and certified' },
+  { icon: 'Award', label: 'Microsoft Gold', sub: 'Cloud solutions partner' },
+  { icon: 'Users', label: 'Cisco Premier', sub: 'Network solutions' },
+  { icon: 'Star', label: 'CompTIA', sub: 'Authorized partner' },
+  { icon: 'TrendingUp', label: 'HIPAA Compliant', sub: 'Healthcare ready' },
+  requiredTrustItem,
 ];
 
 const partnerLogos = [
@@ -32,143 +68,166 @@ const partnerLogos = [
   { name: 'Cloudflare', src: '/logos/cloudflare.svg' },
 ];
 
-// Slide 2 — the platforms we manage and harden behind the scenes.
+const SIGNAL_CYAN = '#31C6CF';
+const CONTINUITY_GREEN = '#62BE68';
+const cardAccents = [SIGNAL_CYAN, CONTINUITY_GREEN];
+
 const tools = [
-  { icon: Mail, name: 'Microsoft 365', role: 'Email, Teams & Office', accent: '#39CCCC' },
-  { icon: Cloud, name: 'Azure & Entra ID', role: 'Identity & cloud infra', accent: '#5EBC67' },
-  { icon: Globe, name: 'Google Workspace', role: 'Mail & collaboration', accent: '#39CCCC' },
-  { icon: Shield, name: 'SentinelOne', role: 'Managed EDR', accent: '#5EBC67' },
-  { icon: Eye, name: 'Huntress', role: 'Managed threat detection', accent: '#39CCCC' },
-  { icon: Network, name: 'Cloudflare', role: 'Zero-trust & DNS', accent: '#5EBC67' },
-  { icon: Monitor, name: 'NinjaOne', role: 'Remote monitoring (RMM)', accent: '#39CCCC' },
-  { icon: Headphones, name: 'ConnectWise', role: 'Service desk & ticketing', accent: '#5EBC67' },
+  { icon: Mail, name: 'Microsoft 365', role: 'Email, Teams and Office', accent: SIGNAL_CYAN },
+  { icon: Cloud, name: 'Azure & Entra ID', role: 'Identity and cloud infrastructure', accent: CONTINUITY_GREEN },
+  { icon: Globe, name: 'Google Workspace', role: 'Mail and collaboration', accent: SIGNAL_CYAN },
+  { icon: Shield, name: 'SentinelOne', role: 'Managed EDR', accent: CONTINUITY_GREEN },
+  { icon: Eye, name: 'Huntress', role: 'Managed threat detection', accent: SIGNAL_CYAN },
+  { icon: Network, name: 'Cloudflare', role: 'Zero-trust and DNS', accent: CONTINUITY_GREEN },
+  { icon: Monitor, name: 'NinjaOne', role: 'Remote monitoring', accent: SIGNAL_CYAN },
+  { icon: Headphones, name: 'ConnectWise', role: 'Service desk and ticketing', accent: CONTINUITY_GREEN },
 ];
 
-// Slide 3 — core service offerings (mirrors the Services bento).
 const services = [
-  { icon: Shield, title: 'Cybersecurity', blurb: 'Enterprise-grade protection against evolving threats.', slug: 'cybersecurity', accent: '#39CCCC' },
-  { icon: Headphones, title: 'Live IT Support', blurb: 'Real humans, 24/7 — for any issue, big or small.', slug: 'live-it-support', accent: '#5EBC67' },
-  { icon: Wrench, title: 'IT Repair & Upgrades', blurb: 'Fast hardware repair, upgrades & data recovery.', slug: 'it-repair-upgrades', accent: '#39CCCC' },
-  { icon: Monitor, title: 'Managed IT Services', blurb: 'Fully managed IT so you can focus on growth.', slug: 'managed-it-services', accent: '#5EBC67' },
-  { icon: Cloud, title: 'Cloud Solutions', blurb: 'Scalable, secure cloud built for your business.', slug: 'cloud-solutions', accent: '#39CCCC' },
-  { icon: Network, title: 'Network Infrastructure', blurb: 'High-performance networks engineered for uptime.', slug: 'network-infrastructure', accent: '#5EBC67' },
+  { icon: Shield, title: 'Cybersecurity', blurb: 'Protection against evolving threats.', slug: 'cybersecurity', accent: SIGNAL_CYAN },
+  { icon: Headphones, title: 'Live IT Support', blurb: 'Real people, available 24/7.', slug: 'live-it-support', accent: CONTINUITY_GREEN },
+  { icon: Wrench, title: 'IT Repair and Upgrades', blurb: 'Repair, upgrades, and data recovery.', slug: 'it-repair-upgrades', accent: SIGNAL_CYAN },
+  { icon: Monitor, title: 'Managed IT Services', blurb: 'IT management for focused teams.', slug: 'managed-it-services', accent: CONTINUITY_GREEN },
+  { icon: Cloud, title: 'Cloud Solutions', blurb: 'Secure, scalable cloud operations.', slug: 'cloud-solutions', accent: SIGNAL_CYAN },
+  { icon: Network, title: 'Network Infrastructure', blurb: 'Networks engineered for uptime.', slug: 'network-infrastructure', accent: CONTINUITY_GREEN },
 ];
 
-const SLIDE_COUNT = 3;
-const AUTO_ADVANCE_MS = 6500;
+const SLIDE_CLASS = 'flex h-full flex-col justify-center rounded-lg bg-[var(--nw-pure-white)] p-5 sm:p-8';
+const SERVICE_CARD_CLASS = 'h-full min-w-0 rounded-2xl border text-[var(--nw-mist-gray)]';
+
+function serviceCardStyle(accent: string) {
+  return {
+    background: 'rgba(26, 47, 63, 0.8)',
+    borderColor: `${accent}40`,
+    boxShadow: `0 2px 12px ${accent}10`,
+    color: 'var(--nw-mist-gray)',
+  };
+}
+
+function normalizeTrustItems(rawItems?: string): TrustItem[] {
+  if (!rawItems) return defaultTrustItems;
+
+  try {
+    const parsed = JSON.parse(rawItems);
+    if (!Array.isArray(parsed) || parsed.length === 0) return defaultTrustItems;
+    if (parsed.length !== 5) return parsed as TrustItem[];
+
+    const items = parsed as TrustItem[];
+    const fallback = items.some((item) => item?.label === requiredTrustItem.label)
+      ? defaultTrustItems.find((candidate) => !items.some((item) => item?.label === candidate.label))
+      : requiredTrustItem;
+
+    return fallback ? [...items, fallback] : items;
+  } catch {
+    return defaultTrustItems;
+  }
+}
 
 const slideVariants = {
-  enter: (dir: number) => ({ opacity: 0, x: dir > 0 ? 48 : -48 }),
+  enter: (direction: number) => ({ opacity: 0, x: direction > 0 ? 36 : -36 }),
   center: { opacity: 1, x: 0 },
-  exit: (dir: number) => ({ opacity: 0, x: dir > 0 ? -48 : 48 }),
+  exit: (direction: number) => ({ opacity: 0, x: direction > 0 ? -36 : 36 }),
 };
 
-/* ---------------------------------------------------------------- Slide 1 */
 function TrustedSlide({ items }: { items: TrustItem[] }) {
   return (
-    <div
-      className="rounded-3xl px-5 py-8 sm:px-10 sm:py-10"
-      style={{
-        background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,250,251,0.85) 100%)',
-        border: '1.5px solid rgba(57,204,204,0.22)',
-        boxShadow: '0 12px 40px rgba(57,204,204,0.1), inset 0 1px 0 rgba(255,255,255,0.9)',
-        backdropFilter: 'blur(10px)',
-      }}
-    >
-      <div className="text-center mb-7 sm:mb-8">
-        <div className="inline-flex items-center gap-2 rounded-full px-4 py-2" style={{ background: 'rgba(57,204,204,0.1)', border: '1.5px solid rgba(57,204,204,0.3)' }}>
-          <Sparkles size={16} style={{ color: '#39CCCC' }} className="animate-pulse" />
-          <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>Trusted Partner</span>
-        </div>
+    <div data-testid="trusted-slide" className={SLIDE_CLASS}>
+      <div className="mb-6 text-center">
+        <p className="nw-kicker text-[var(--nw-signal-cyan)]">Trusted partner</p>
+        <h2 className="nw-display mt-2 text-2xl text-brand-navy sm:text-3xl">Trusted foundations for daily work</h2>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-4 mb-7 sm:mb-8">
-        {items.map((item, idx) => {
+      <div
+        data-testid="trusted-proof-grid"
+        className="mx-auto mb-7 grid w-full max-w-5xl grid-cols-2 auto-rows-[104px] gap-3 md:grid-cols-3"
+      >
+        {items.map((item, index) => {
           const Icon = iconMap[item.icon] || Shield;
+          const accent = cardAccents[index % cardAccents.length];
           return (
-            <div key={`${item.label}-${idx}`} className="relative group">
+            <div
+              key={`${item.label}-${index}`}
+              data-testid="trusted-proof-card"
+              className={`${SERVICE_CARD_CLASS} flex items-center gap-2.5 p-3`}
+              style={serviceCardStyle(accent)}
+            >
               <div
-                className="relative flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-2xl transition-all duration-300 group-hover:-translate-y-1"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.6) 100%)',
-                  border: '1.5px solid rgba(57,204,204,0.25)',
-                  boxShadow: '0 4px 20px rgba(57,204,204,0.08), inset 0 1px 0 rgba(255,255,255,0.9)',
-                }}
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl"
+                style={{ background: `${accent}25`, color: accent }}
               >
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(57,204,204,0.15)' }}>
-                  <Icon size={16} className="sm:w-[18px] sm:h-[18px]" style={{ color: '#39CCCC' }} />
-                </div>
-                <div className="min-w-0">
-                  <div className="text-[11px] sm:text-xs font-bold truncate" style={{ color: '#152232' }}>{item.label}</div>
-                  <div className="text-[9px] sm:text-[10px] truncate" style={{ color: 'rgba(21,34,50,0.6)' }}>{item.sub}</div>
-                </div>
+                <Icon size={16} />
+              </div>
+              <div className="min-w-0">
+                <p className="truncate whitespace-nowrap text-xs font-semibold text-[var(--nw-mist-gray)]">{item.label}</p>
+                <p className="mt-1 truncate whitespace-nowrap text-[10px] text-[rgba(224,242,241,0.75)]">{item.sub}</p>
               </div>
             </div>
           );
         })}
       </div>
 
-      <Marquee duration={28} pauseOnHover>
+      <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-4 border-t pt-6" style={{ borderColor: 'var(--nw-mist-gray)' }}>
         {partnerLogos.map((logo) => (
-          <div
-            key={logo.name}
-            className="flex items-center justify-center px-6 py-3 rounded-xl cursor-default select-none partner-logo-item"
-            style={{ minWidth: '140px', filter: 'grayscale(1)', opacity: 0.5 }}
-            title={logo.name}
-          >
-            <img src={logo.src} alt={logo.name} className="h-7 w-auto object-contain" style={{ color: '#152232' }} height={28} loading="lazy" decoding="async" />
+          <div key={logo.name} data-testid="partner-logo-tile" className="rounded-md bg-[var(--nw-pure-white)] px-3 py-2">
+            <img
+              src={logo.src}
+              alt={logo.name}
+              className="h-6 w-auto max-w-[128px] object-contain opacity-65 grayscale transition-opacity hover:opacity-100"
+              height={24}
+              loading="lazy"
+              decoding="async"
+            />
           </div>
         ))}
-      </Marquee>
+      </div>
     </div>
   );
 }
 
-/* ---------------------------------------------------------------- Slide 2 */
 function ToolsSlide() {
   return (
-    <div
-      className="rounded-3xl px-5 py-8 sm:px-10 sm:py-10 h-full"
-      style={{
-        background: 'linear-gradient(150deg, #152232 0%, #1A2F3F 60%, #14202b 100%)',
-        border: '1.5px solid rgba(57,204,204,0.25)',
-        boxShadow: '0 12px 40px rgba(21,34,50,0.35)',
-      }}
-    >
-      <div className="text-center mb-7 sm:mb-8">
-        <div className="inline-flex items-center gap-2 rounded-full px-4 py-2 mb-4" style={{ background: 'rgba(94,188,103,0.12)', border: '1.5px solid rgba(94,188,103,0.3)' }}>
-          <Zap size={16} style={{ color: '#5EBC67' }} />
-          <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#5EBC67' }}>Your Stack, Managed</span>
-        </div>
-        <h2
-          className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight"
-          style={{ color: '#E0F2F1', fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif" }}
-        >
-          Familiar tools,{' '}
-          <span style={{ background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-            stronger operations
-          </span>
-        </h2>
-        <p className="text-sm sm:text-base max-w-2xl mx-auto mt-3" style={{ color: 'rgba(224,242,241,0.7)' }}>
-          We run the platforms your team already knows — and harden, monitor, and optimize them behind the scenes.
+    <div data-testid="tools-slide" className={SLIDE_CLASS}>
+      <div className="mb-4 text-center sm:mb-6">
+        <p className="nw-kicker text-[var(--nw-signal-cyan)]">Your stack, managed</p>
+        <h2 className="nw-display mt-2 text-2xl text-brand-navy sm:text-3xl lg:text-4xl">Familiar tools, stronger operations</h2>
+        <p className="mx-auto mt-2 max-w-2xl text-xs leading-relaxed text-[var(--nw-slate)] sm:mt-3 sm:text-base">
+          We run the platforms your team already knows and harden, monitor, and optimize them behind the scenes.
         </p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+      <div
+        data-testid="tools-slide-grid"
+        className="mx-auto grid w-full max-w-5xl grid-cols-2 auto-rows-[104px] gap-3 sm:auto-rows-[96px] md:grid-cols-4 md:auto-rows-[104px] lg:auto-rows-[108px]"
+      >
         {tools.map((tool) => {
           const Icon = tool.icon;
           return (
             <div
               key={tool.name}
-              className="flex items-start gap-3 rounded-2xl p-3 sm:p-4 transition-all duration-300 hover:-translate-y-1"
-              style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${tool.accent}33` }}
+              data-testid="trust-tool-card"
+              className={`${SERVICE_CARD_CLASS} flex items-center gap-2 p-2.5`}
+              style={serviceCardStyle(tool.accent)}
             >
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${tool.accent}25` }}>
-                <Icon size={18} style={{ color: tool.accent }} />
+              <div
+                data-testid="trust-tool-icon"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl"
+                style={{ background: `${tool.accent}25`, color: tool.accent }}
+              >
+                <Icon size={18} />
               </div>
               <div className="min-w-0">
-                <div className="text-sm font-bold leading-snug" style={{ color: '#E0F2F1' }}>{tool.name}</div>
-                <div className="text-[11px] sm:text-xs leading-snug mt-0.5" style={{ color: 'rgba(224,242,241,0.6)' }}>{tool.role}</div>
+                <p
+                  data-testid="trust-tool-title"
+                  className="overflow-hidden text-ellipsis whitespace-nowrap text-xs font-semibold leading-4 text-[var(--nw-mist-gray)] lg:text-sm"
+                >
+                  {tool.name}
+                </p>
+                <p
+                  data-testid="trust-tool-role"
+                  className="mt-1 h-8 overflow-hidden text-[10px] leading-4 text-[rgba(224,242,241,0.75)] sm:text-[11px] lg:text-xs"
+                >
+                  {tool.role}
+                </p>
               </div>
             </div>
           );
@@ -178,58 +237,55 @@ function ToolsSlide() {
   );
 }
 
-/* ---------------------------------------------------------------- Slide 3 */
 function ServicesSlide() {
   return (
-    <div
-      className="rounded-3xl px-5 py-8 sm:px-10 sm:py-10 h-full"
-      style={{
-        background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,250,251,0.85) 100%)',
-        border: '1.5px solid rgba(94,188,103,0.22)',
-        boxShadow: '0 12px 40px rgba(94,188,103,0.1), inset 0 1px 0 rgba(255,255,255,0.9)',
-      }}
-    >
-      <div className="text-center mb-7 sm:mb-8">
-        <span className="text-xs sm:text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>What We Do</span>
-        <h2
-          className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight mt-2"
-          style={{ color: '#152232', fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif" }}
-        >
-          IT Services Built for{' '}
-          <span style={{ background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-            Modern Business
-          </span>
-        </h2>
+    <div data-testid="services-slide" className={SLIDE_CLASS}>
+      <div className="mb-5 text-center sm:mb-6">
+        <p className="nw-kicker text-[var(--nw-signal-cyan)]">What we do</p>
+        <h2 className="nw-display mt-2 text-2xl text-brand-navy sm:text-3xl lg:text-4xl">IT services built for modern business</h2>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3">
-        {services.map((s) => {
-          const Icon = s.icon;
+      <div
+        data-testid="services-slide-grid"
+        className="mx-auto grid w-full max-w-5xl grid-cols-2 auto-rows-[116px] gap-3 sm:auto-rows-[120px] md:grid-cols-3 md:auto-rows-[112px] lg:auto-rows-[112px]"
+      >
+        {services.map((service) => {
+          const Icon = service.icon;
           return (
             <Link
-              key={s.title}
-              to={`/service-category/${s.slug}`}
-              className="group flex items-start gap-3 rounded-2xl p-3 sm:p-4 no-underline transition-all duration-300 hover:-translate-y-1"
-              style={{ background: 'rgba(26,47,63,0.85)', border: `1px solid ${s.accent}40` }}
+              key={service.title}
+              to={`/service-category/${service.slug}`}
+              data-testid="trust-service-card"
+              className={`${SERVICE_CARD_CLASS} flex flex-col justify-center gap-2 overflow-hidden p-3 no-underline transition-all duration-300 hover:-translate-y-1 sm:flex-row sm:items-center sm:gap-3 sm:p-4`}
+              style={serviceCardStyle(service.accent)}
             >
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${s.accent}25` }}>
-                <Icon size={18} style={{ color: s.accent }} />
-              </div>
-              <div className="min-w-0">
-                <div className="text-sm font-bold leading-snug" style={{ color: '#E0F2F1' }}>{s.title}</div>
-                <div className="text-[11px] sm:text-xs leading-snug mt-0.5" style={{ color: 'rgba(224,242,241,0.65)' }}>{s.blurb}</div>
-              </div>
+              <span
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl sm:h-9 sm:w-9"
+                style={{ background: `${service.accent}25`, color: service.accent }}
+              >
+                <Icon size={18} />
+              </span>
+              <span className="min-w-0">
+                <span
+                  data-testid="trust-service-title"
+                  className="block overflow-hidden text-ellipsis whitespace-nowrap text-xs font-semibold leading-4 text-[var(--nw-mist-gray)] lg:text-sm"
+                >
+                  {service.title}
+                </span>
+                <span
+                  data-testid="trust-service-blurb"
+                  className="mt-1 block h-8 overflow-hidden text-[10px] leading-4 text-[rgba(224,242,241,0.75)] sm:text-[11px] lg:text-xs"
+                >
+                  {service.blurb}
+                </span>
+              </span>
             </Link>
           );
         })}
       </div>
 
-      <div className="text-center mt-7 sm:mt-8">
-        <Link
-          to="/services"
-          className="inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-semibold no-underline transition-all duration-300 hover:gap-3"
-          style={{ background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)', color: '#0c1620' }}
-        >
+      <div className="mt-5 text-center sm:mt-7">
+        <Link to="/services" className="btn-primary">
           View all services
           <ArrowRight size={16} />
         </Link>
@@ -239,31 +295,29 @@ function ServicesSlide() {
 }
 
 export default function TrustBar() {
-  const c = useContent('trustbar');
-  const reduced = useReducedMotion();
-
-  let items: TrustItem[] = defaultTrustItems;
-  try { if (c.items) items = JSON.parse(c.items); } catch { /* use default */ }
+  const content = useContent('trustbar');
+  const reducedMotion = useReducedMotion();
+  const items = normalizeTrustItems(content.items);
 
   const [[index, direction], setSlide] = useState<[number, number]>([0, 0]);
   const [paused, setPaused] = useState(false);
+  const slideCount = 3;
 
   const goTo = useCallback((next: number) => {
-    setSlide(([prev]) => {
-      const wrapped = (next + SLIDE_COUNT) % SLIDE_COUNT;
-      return [wrapped, wrapped > prev || (prev === SLIDE_COUNT - 1 && wrapped === 0) ? 1 : -1];
+    setSlide(([previous]) => {
+      const wrapped = (next + slideCount) % slideCount;
+      return [wrapped, wrapped > previous || (previous === slideCount - 1 && wrapped === 0) ? 1 : -1];
     });
   }, []);
 
   const next = useCallback(() => goTo(index + 1), [goTo, index]);
-  const prev = useCallback(() => goTo(index - 1), [goTo, index]);
+  const previous = useCallback(() => goTo(index - 1), [goTo, index]);
 
-  // Auto-advance (paused on hover/focus; disabled for reduced-motion users).
   useEffect(() => {
-    if (paused || reduced) return;
-    const id = window.setTimeout(() => goTo(index + 1), AUTO_ADVANCE_MS);
-    return () => window.clearTimeout(id);
-  }, [index, paused, reduced, goTo]);
+    if (paused || reducedMotion) return;
+    const timeout = window.setTimeout(() => goTo(index + 1), 6500);
+    return () => window.clearTimeout(timeout);
+  }, [goTo, index, paused, reducedMotion]);
 
   const slides = [
     <TrustedSlide key="trusted" items={items} />,
@@ -272,16 +326,8 @@ export default function TrustBar() {
   ];
 
   return (
-    <section
-      className="py-10 sm:py-14 relative"
-      style={{
-        background: 'linear-gradient(180deg, #ffffff 0%, #f8fafb 100%)',
-        borderTop: '1px solid rgba(21,34,50,0.06)',
-        borderBottom: '1px solid rgba(21,34,50,0.06)',
-        zIndex: 10,
-      }}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="relative border-y bg-[var(--nw-pure-white)] py-10 sm:py-14" style={{ borderColor: 'var(--nw-mist-gray)', zIndex: 10 }}>
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <FadeIn>
           <div
             className="relative"
@@ -293,20 +339,24 @@ export default function TrustBar() {
             aria-roledescription="carousel"
             aria-label="New Wave IT highlights"
           >
-            {/* Slide viewport */}
-            <div className="relative overflow-hidden">
-              {reduced ? (
-                <div>{slides[index]}</div>
+            <div
+              data-testid="carousel-viewport"
+              data-stable-height="true"
+              className="h-[660px] overflow-hidden sm:h-[620px] lg:h-[500px]"
+            >
+              {reducedMotion ? (
+                slides[index]
               ) : (
                 <AnimatePresence mode="wait" custom={direction} initial={false}>
                   <motion.div
                     key={index}
+                    className="h-full"
                     custom={direction}
                     variants={slideVariants}
                     initial="enter"
                     animate="center"
                     exit="exit"
-                    transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+                    transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
                   >
                     {slides[index]}
                   </motion.div>
@@ -314,13 +364,13 @@ export default function TrustBar() {
               )}
             </div>
 
-            {/* Arrow controls */}
             <button
               type="button"
-              onClick={prev}
+              onClick={previous}
               aria-label="Previous slide"
-              className="hidden sm:flex absolute top-1/2 -translate-y-1/2 -left-3 lg:-left-5 w-11 h-11 rounded-full items-center justify-center transition-all duration-300 hover:scale-110"
-              style={{ background: 'rgba(255,255,255,0.95)', border: '1.5px solid rgba(57,204,204,0.3)', boxShadow: '0 4px 16px rgba(21,34,50,0.12)', color: '#152232' }}
+              title="Previous slide"
+              className="absolute -left-3 top-1/2 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border bg-[var(--nw-pure-white)] text-brand-navy shadow-sm transition-colors hover:border-[var(--nw-signal-cyan)] sm:flex lg:-left-5"
+              style={{ borderColor: 'var(--nw-mist-gray)' }}
             >
               <ChevronLeft size={20} />
             </button>
@@ -328,40 +378,29 @@ export default function TrustBar() {
               type="button"
               onClick={next}
               aria-label="Next slide"
-              className="hidden sm:flex absolute top-1/2 -translate-y-1/2 -right-3 lg:-right-5 w-11 h-11 rounded-full items-center justify-center transition-all duration-300 hover:scale-110"
-              style={{ background: 'rgba(255,255,255,0.95)', border: '1.5px solid rgba(57,204,204,0.3)', boxShadow: '0 4px 16px rgba(21,34,50,0.12)', color: '#152232' }}
+              title="Next slide"
+              className="absolute -right-3 top-1/2 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border bg-[var(--nw-pure-white)] text-brand-navy shadow-sm transition-colors hover:border-[var(--nw-signal-cyan)] sm:flex lg:-right-5"
+              style={{ borderColor: 'var(--nw-mist-gray)' }}
             >
               <ChevronRight size={20} />
             </button>
           </div>
         </FadeIn>
 
-        {/* Dot indicators */}
-        <div className="flex items-center justify-center gap-2.5 mt-6">
-          {Array.from({ length: SLIDE_COUNT }).map((_, i) => (
+        <div className="mt-6 flex items-center justify-center gap-2.5">
+          {Array.from({ length: slideCount }).map((_, slideIndex) => (
             <button
-              key={i}
+              key={slideIndex}
               type="button"
-              onClick={() => goTo(i)}
-              aria-label={`Go to slide ${i + 1}`}
-              aria-current={i === index}
-              className="rounded-full transition-all duration-300"
-              style={{
-                height: '8px',
-                width: i === index ? '28px' : '8px',
-                background: i === index ? 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)' : 'rgba(21,34,50,0.2)',
-              }}
+              onClick={() => goTo(slideIndex)}
+              aria-label={`Go to slide ${slideIndex + 1}`}
+              aria-current={slideIndex === index}
+              className="h-2 rounded-full transition-colors"
+              style={{ width: slideIndex === index ? '28px' : '8px', background: slideIndex === index ? 'var(--nw-signal-cyan)' : 'var(--nw-slate)' }}
             />
           ))}
         </div>
       </div>
-
-      <style>{`
-        .partner-logo-item:hover {
-          filter: grayscale(0) !important;
-          opacity: 1 !important;
-        }
-      `}</style>
     </section>
   );
 }

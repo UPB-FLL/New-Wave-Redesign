@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Send } from 'lucide-react';
+import { CheckCircle, Send, X } from 'lucide-react';
 
 interface QuoteModalProps {
   isOpen: boolean;
@@ -33,12 +33,17 @@ export default function QuoteModal({ isOpen, onClose, tier }: QuoteModalProps) {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  const reset = () => {
+    setSubmitted(false);
+    setForm({ name: '', email: '', phone: '', company: '', tier: tier?.name || '', message: '' });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setForm((previous) => ({ ...previous, [event.target.name]: event.target.value }));
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setLoading(true);
     setError('');
 
@@ -55,21 +60,12 @@ export default function QuoteModal({ isOpen, onClose, tier }: QuoteModalProps) {
       }
 
       setSubmitted(true);
-      setTimeout(() => {
+      window.setTimeout(() => {
         onClose();
-        setSubmitted(false);
-        setForm({
-          name: '',
-          email: '',
-          phone: '',
-          company: '',
-          tier: tier?.name || '',
-          message: '',
-        });
+        reset();
       }, 2000);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Something went wrong. Please try again.';
-      setError(errorMessage);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -77,142 +73,70 @@ export default function QuoteModal({ isOpen, onClose, tier }: QuoteModalProps) {
 
   if (!isOpen) return null;
 
-  const inputClass = "input-light";
-  const inputStyle = {};
-
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(9, 19, 29, 0.72)' }}
       role="dialog"
       aria-modal="true"
       aria-labelledby="quote-modal-title"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
     >
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 flex items-center justify-between p-6 border-b border-gray-200 bg-white">
-          <h2 id="quote-modal-title" className="text-xl font-bold" style={{ color: '#152232' }}>
-            Get a Quote
-          </h2>
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-lg transition-colors" aria-label="Close modal">
-            <X size={24} style={{ color: '#152232' }} />
+      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg nw-surface">
+        <div className="sticky top-0 flex items-center justify-between border-b p-5" style={{ background: 'var(--nw-pure-white)', borderColor: 'var(--nw-mist-gray)' }}>
+          <h2 id="quote-modal-title" className="nw-display text-xl text-brand-navy">Get a quote</h2>
+          <button type="button" onClick={onClose} className="rounded-md p-1 text-brand-navy transition-colors hover:bg-[var(--nw-cloud-white)]" aria-label="Close modal" title="Close modal">
+            <X size={22} />
           </button>
         </div>
 
-        <div className="p-6">
+        <div className="p-5 sm:p-6">
           {submitted ? (
-            <div className="text-center py-8">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4 mx-auto" style={{ background: 'rgba(94,188,103,0.12)' }}>
-                <svg className="w-8 h-8" style={{ color: '#5EBC67' }} fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
+            <div className="py-8 text-center">
+              <div className="nw-icon-success mx-auto mb-4 h-16 w-16">
+                <CheckCircle size={32} />
               </div>
-              <h3 className="text-lg font-semibold mb-2" style={{ color: '#152232' }}>
-                Quote Request Sent!
-              </h3>
-              <p style={{ color: 'rgba(21,34,50,0.6)' }}>
-                We'll review your request and get back to you shortly.
-              </p>
+              <h3 className="nw-display mb-2 text-lg text-brand-navy">Quote request sent</h3>
+              <p className="text-[var(--nw-slate)]">We&apos;ll review your request and get back to you shortly.</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
-              {tier && (
-                <div className="p-4 rounded-lg mb-4" style={{ background: 'rgba(57,204,204,0.08)', border: '1px solid rgba(57,204,204,0.2)' }}>
-                  <p className="text-sm font-medium" style={{ color: '#152232' }}>
-                    {tier.name}
-                  </p>
-                  <p className="text-xs mt-1" style={{ color: 'rgba(21,34,50,0.6)' }}>
-                    {tier.price} {tier.period}
-                  </p>
+              {tier ? (
+                <div className="rounded-md border p-4" style={{ background: 'var(--nw-cloud-white)', borderColor: 'var(--nw-tide-blue)' }}>
+                  <p className="text-sm font-medium text-brand-navy">{tier.name}</p>
+                  <p className="mt-1 text-xs text-[var(--nw-slate)]">{tier.price} {tier.period}</p>
                 </div>
-              )}
+              ) : null}
 
               <div>
-                <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(21,34,50,0.75)' }}>
-                  Full Name <span style={{ color: '#39CCCC' }}>*</span>
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={form.name}
-                  onChange={handleChange}
-                  required
-                  placeholder="John Smith"
-                  className={inputClass}
-                  style={inputStyle}
-                />
+                <label htmlFor="quote-name" className="mb-1.5 block text-sm font-medium text-brand-navy">Full name <span className="text-brand-cyan">*</span></label>
+                <input id="quote-name" type="text" name="name" value={form.name} onChange={handleChange} required placeholder="John Smith" className="input-light" />
               </div>
-
               <div>
-                <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(21,34,50,0.75)' }}>
-                  Email Address <span style={{ color: '#39CCCC' }}>*</span>
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  required
-                  placeholder="john@company.com"
-                  className={inputClass}
-                  style={inputStyle}
-                />
+                <label htmlFor="quote-email" className="mb-1.5 block text-sm font-medium text-brand-navy">Email address <span className="text-brand-cyan">*</span></label>
+                <input id="quote-email" type="email" name="email" value={form.email} onChange={handleChange} required placeholder="john@company.com" className="input-light" />
               </div>
-
               <div>
-                <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(21,34,50,0.75)' }}>
-                  Phone Number
-                </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={form.phone}
-                  onChange={handleChange}
-                  placeholder="(954) 555-0100"
-                  className={inputClass}
-                  style={inputStyle}
-                />
+                <label htmlFor="quote-phone" className="mb-1.5 block text-sm font-medium text-brand-navy">Phone number</label>
+                <input id="quote-phone" type="tel" name="phone" value={form.phone} onChange={handleChange} placeholder="(954) 555-0100" className="input-light" />
               </div>
-
               <div>
-                <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(21,34,50,0.75)' }}>
-                  Company Name
-                </label>
-                <input
-                  type="text"
-                  name="company"
-                  value={form.company}
-                  onChange={handleChange}
-                  placeholder="Acme Corp"
-                  className={inputClass}
-                  style={inputStyle}
-                />
+                <label htmlFor="quote-company" className="mb-1.5 block text-sm font-medium text-brand-navy">Company name</label>
+                <input id="quote-company" type="text" name="company" value={form.company} onChange={handleChange} placeholder="Acme Corp" className="input-light" />
               </div>
-
               <div>
-                <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(21,34,50,0.75)' }}>
-                  Additional Details
-                </label>
-                <textarea
-                  name="message"
-                  value={form.message}
-                  onChange={handleChange}
-                  rows={3}
-                  placeholder="Tell us about your needs..."
-                  className={`${inputClass} resize-none`}
-                  style={inputStyle}
-                />
+                <label htmlFor="quote-message" className="mb-1.5 block text-sm font-medium text-brand-navy">Additional details</label>
+                <textarea id="quote-message" name="message" value={form.message} onChange={handleChange} rows={3} placeholder="Tell us about your needs..." className="input-light resize-none" />
               </div>
 
-              {error && <p className="text-sm" style={{ color: '#e05252' }}>{error}</p>}
+              {error ? <p className="text-sm text-[#b42318]" role="alert">{error}</p> : null}
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full btn-primary py-2.5 justify-center disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-              >
+              <button type="submit" disabled={loading} className="btn-primary w-full disabled:cursor-not-allowed disabled:opacity-60">
                 {loading ? (
                   <span className="flex items-center gap-2">
-                    <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                    <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                     </svg>
@@ -220,8 +144,8 @@ export default function QuoteModal({ isOpen, onClose, tier }: QuoteModalProps) {
                   </span>
                 ) : (
                   <>
-                    <Send size={16} />
-                    Request Quote
+                    <Send size={17} />
+                    Request quote
                   </>
                 )}
               </button>

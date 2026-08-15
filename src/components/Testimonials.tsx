@@ -1,121 +1,75 @@
 import { Quote, Star } from 'lucide-react';
+import { SectionHeading } from './brand/SectionHeading';
 
 const testimonials = [
   {
     quote:
-      "New Wave IT transformed our security posture. Within 30 days we went from constant phishing incidents to zero successful attacks. Their team feels like an extension of ours.",
+      'New Wave IT transformed our security posture. Within 30 days we went from constant phishing incidents to no successful attacks. Their team feels like an extension of ours.',
     author: 'Sarah Mitchell',
     title: 'Operations Director',
     company: 'Coastal Health Group',
     industry: 'Healthcare',
-    accent: '#39CCCC',
   },
   {
     quote:
-      "We migrated 3 offices to the cloud with zero downtime. The project management was flawless — they delivered ahead of schedule and under budget. Hard to find that today.",
+      'We migrated three offices to the cloud with minimal disruption to daily work. The project management was clear, measured, and ahead of schedule.',
     author: 'Marcus Chen',
     title: 'CFO',
     company: 'Atlantic Logistics',
     industry: 'Logistics',
-    accent: '#5EBC67',
   },
   {
     quote:
-      "The 24/7 support is real. We had a server issue at 2 AM on a Sunday — they had it resolved before our team arrived Monday morning. That's the kind of partner you need.",
+      'The 24/7 support is real. We had a server issue on a Sunday and it was resolved before our team arrived on Monday. That is the kind of partner you need.',
     author: 'Jennifer Rodriguez',
     title: 'IT Manager',
     company: 'Sunshine Manufacturing',
     industry: 'Manufacturing',
-    accent: '#39CCCC',
   },
 ];
 
 export default function Testimonials() {
   return (
-    <section
-      className="py-12 sm:py-16 relative"
-      style={{
-        background: 'white',
-        borderTop: '1px solid rgba(21,34,50,0.06)',
-        zIndex: 10,
-      }}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-8 sm:mb-10">
-          <span className="text-xs sm:text-sm font-semibold uppercase tracking-widest" style={{ color: '#39CCCC' }}>
-            Customer Stories
-          </span>
-          <h2
-            className="text-4xl sm:text-5xl lg:text-7xl mt-2 mb-4 leading-[0.95] tracking-tight"
-            style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: '#152232' }}
-          >
-            Don't take our word for it.{' '}
-            <span style={{ display: 'inline-block', background: 'linear-gradient(135deg, #39CCCC 0%, #5EBC67 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Take theirs.</span>
-          </h2>
-          <p className="text-sm sm:text-base max-w-2xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
-            Real stories from South Florida businesses we've helped scale, secure, and modernize.
-          </p>
-        </div>
+    <section className="bg-[var(--nw-cloud-white)] py-16 sm:py-20">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <SectionHeading
+          align="center"
+          eyebrow="Customer Stories"
+          title={<>Measured support. <span className="text-[var(--nw-tide-blue)]">Real outcomes.</span></>}
+          description="Stories from South Florida organizations New Wave IT has helped support, secure, and modernize."
+        />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-5">
-          {testimonials.map((t) => (
-            <div
-              key={t.author}
-              className="group rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:-translate-y-1 flex flex-col"
-              style={{
-                background: 'rgba(26, 47, 63, 0.8)',
-                border: `1px solid ${t.accent}40`,
-                boxShadow: `0 2px 12px ${t.accent}10`,
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow = `0 16px 48px ${t.accent}30`;
-                (e.currentTarget as HTMLElement).style.borderColor = `${t.accent}80`;
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow = `0 2px 12px ${t.accent}10`;
-                (e.currentTarget as HTMLElement).style.borderColor = `${t.accent}40`;
-              }}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <Quote size={24} style={{ color: t.accent, opacity: 0.5 }} />
-                <div className="flex gap-0.5">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Star key={i} size={14} fill={t.accent} stroke={t.accent} />
-                  ))}
-                </div>
-              </div>
+        <div className="mt-10 grid gap-4 md:grid-cols-3">
+          {testimonials.map((testimonial) => {
+            const initials = testimonial.author
+              .split(' ')
+              .map((name) => name[0])
+              .join('');
 
-              <p className="text-sm leading-relaxed mb-5 flex-1" style={{ color: 'rgba(224,242,241,0.85)' }}>
-                "{t.quote}"
-              </p>
-
-              <div className="flex items-center gap-3 pt-4" style={{ borderTop: `1px solid ${t.accent}30` }}>
-                <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold"
-                  style={{ background: `${t.accent}30`, color: t.accent }}
-                >
-                  {t.author
-                    .split(' ')
-                    .map((n) => n[0])
-                    .join('')}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-bold truncate" style={{ color: '#E0F2F1' }}>
-                    {t.author}
-                  </div>
-                  <div className="text-xs truncate" style={{ color: 'rgba(224,242,241,0.65)' }}>
-                    {t.title}, {t.company}
+            return (
+              <figure key={testimonial.author} className="nw-surface flex min-h-[280px] flex-col rounded-lg p-6">
+                <div className="flex items-center justify-between">
+                  <Quote size={24} className="text-[var(--nw-tide-blue)]" aria-hidden="true" />
+                  <div className="flex gap-0.5 text-[var(--nw-signal-cyan)]" aria-label="Five-star testimonial">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star key={star} size={14} fill="currentColor" aria-hidden="true" />
+                    ))}
                   </div>
                 </div>
-                <span
-                  className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded"
-                  style={{ background: `${t.accent}30`, color: t.accent, border: `1px solid ${t.accent}60` }}
-                >
-                  {t.industry}
-                </span>
-              </div>
-            </div>
-          ))}
+                <blockquote className="mt-6 flex-1 text-sm leading-relaxed text-[var(--nw-current-navy)]">&ldquo;{testimonial.quote}&rdquo;</blockquote>
+                <figcaption className="mt-6 flex items-center gap-3 border-t pt-5" style={{ borderColor: 'var(--nw-mist-gray)' }}>
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--nw-current-navy)] text-sm font-bold text-[var(--nw-cloud-white)]">
+                    {initials}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-bold text-[var(--nw-current-navy)]">{testimonial.author}</span>
+                    <span className="block truncate text-xs text-[var(--nw-slate)]">{testimonial.title}, {testimonial.company}</span>
+                  </span>
+                  <span className="nw-meta text-xs text-[var(--nw-tide-blue)]">{testimonial.industry}</span>
+                </figcaption>
+              </figure>
+            );
+          })}
         </div>
       </div>
     </section>

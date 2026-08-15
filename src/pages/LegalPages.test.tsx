@@ -34,7 +34,7 @@ describe('Footer legal links', () => {
     ].forEach(({ name, href }) => {
       const link = screen.getByRole('link', { name });
       expect(link).toHaveAttribute('href', href);
-      expect(link).toHaveClass('text-white/60', 'hover:text-white/90');
+      expect(link).toHaveClass('text-[var(--nw-mist-gray)]', 'hover:text-[var(--nw-signal-cyan)]');
       expect(link).not.toHaveClass('text-white/30', 'hover:text-white/60');
       expect(link.style.color).toBe('');
       expect(link.parentElement).toHaveClass('pb-16', 'sm:pb-0');

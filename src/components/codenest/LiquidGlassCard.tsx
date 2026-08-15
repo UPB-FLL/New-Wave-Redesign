@@ -1,51 +1,12 @@
-import { useReducedMotion } from 'framer-motion';
+import { Briefcase, Code2 } from 'lucide-react';
 
-/**
- * 200×200 "liquid glass" card that floats above the headline.
- *
- * The frosted surface, inner highlight and gradient border frame live in the
- * `.cn-liquid-glass` utility (see index.css) because the masked border relies
- * on a ::before pseudo-element. The -50px lift is applied here; when motion is
- * allowed it is handed to the float keyframes via the `--cn-lift` custom prop
- * so the animation oscillates around the lifted position.
- */
 export default function LiquidGlassCard() {
-  const reduced = useReducedMotion();
-
   return (
-    <div
-      className={`cn-liquid-glass relative h-[200px] w-[200px] rounded-2xl p-5 text-white ${
-        reduced ? '' : 'cn-animate-float'
-      }`}
-      style={
-        reduced
-          ? { transform: 'translateY(-50px)' }
-          : ({ '--cn-lift': '-50px', transform: 'translateY(-50px)' } as React.CSSProperties)
-      }
-    >
-      <div className="flex h-full flex-col justify-between">
-        <span
-          className="font-jakarta font-medium tracking-[0.25em] text-white/70"
-          style={{ fontSize: '14px' }}
-        >
-          [ 2025 ]
-        </span>
-
-        <h3
-          className="font-inter font-semibold leading-snug text-white"
-          style={{ fontSize: '18px' }}
-        >
-          Taught by{' '}
-          <span className="font-instrument italic font-normal" style={{ color: '#5ed29c' }}>
-            Industry
-          </span>{' '}
-          Professionals
-        </h3>
-
-        <p className="font-inter leading-relaxed text-white/55" style={{ fontSize: '11px' }}>
-          Learn directly from engineers shipping real products at scale.
-        </p>
-      </div>
-    </div>
+    <article className="rounded-lg border p-6 sm:p-7" style={{ background: 'var(--nw-pure-white)', borderColor: 'var(--nw-mist-gray)' }}>
+      <div className="flex items-start justify-between gap-6"><span className="nw-icon-signal h-11 w-11"><Code2 size={21} aria-hidden="true" /></span><span className="nw-meta text-xs text-[var(--nw-tide-blue)]">CODE NEST</span></div>
+      <h2 className="nw-display mt-8 text-2xl text-[var(--nw-current-navy)]">Taught by industry professionals.</h2>
+      <p className="mt-3 text-sm leading-relaxed text-[var(--nw-slate)]">Learn directly from engineers who build and support real products at scale.</p>
+      <div className="mt-6 flex items-center gap-2 border-t pt-5 text-sm font-semibold text-[var(--nw-current-navy)]" style={{ borderColor: 'var(--nw-mist-gray)' }}><Briefcase size={17} className="text-[var(--nw-tide-blue)]" aria-hidden="true" />Career-focused learning</div>
+    </article>
   );
 }

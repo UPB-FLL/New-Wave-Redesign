@@ -13,7 +13,7 @@ export default function ServicesPage() {
     canonical: 'https://www.newwaveitfl.com/services',
   });
   return (
-    <div className="min-h-screen bg-slate-900">
+    <div className="min-h-screen bg-[var(--nw-cloud-white)]">
       <Navbar />
       <div className="pt-20">
         <Services headlineAs="h1" />
