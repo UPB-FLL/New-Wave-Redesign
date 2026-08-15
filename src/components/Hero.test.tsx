@@ -104,7 +104,7 @@ describe('Hero', () => {
     expect(currentField).toHaveClass('h-full', 'w-full');
     expect(fallback.querySelectorAll('g')).toHaveLength(3);
     expect(Array.from(fallback.querySelectorAll('[data-role="current-field-stroke"]')).slice(0, 3).map((stroke) => stroke.getAttribute('stroke')))
-      .toEqual(['#31C6CF', '#62BE68', '#317B92']);
+      .toEqual(['#F7FBFA', '#F7FBFA', '#F7FBFA']);
 
     expect(veil).toHaveAttribute('aria-hidden', 'true');
     expect(veil).toHaveClass('pointer-events-none', 'absolute', 'inset-0');
@@ -119,7 +119,7 @@ describe('Hero', () => {
     const fallback = screen.getByTestId('hero-current-fallback');
     expect(fallback).toHaveClass('opacity-80');
     fireEvent.click(screen.getByRole('button', { name: 'Signal first WebGL frame' }));
-    expect(fallback).toHaveClass('opacity-0');
+    expect(fallback).toHaveClass('opacity-25');
     expect(screen.getByTestId('hero-ribbon-canvas')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Signal WebGL failure' }));
     expect(fallback).toHaveClass('opacity-80');
@@ -158,7 +158,7 @@ describe('Hero', () => {
     const view = renderHero();
     const fallback = screen.getByTestId('hero-current-fallback');
     fireEvent.click(screen.getByRole('button', { name: 'Signal first WebGL frame' }));
-    expect(fallback).toHaveClass('opacity-0');
+    expect(fallback).toHaveClass('opacity-25');
 
     reducedMotion.mockReturnValue(true);
     view.rerender(

@@ -88,10 +88,15 @@ export default function Hero() {
         data-testid="hero-current-fallback"
         aria-hidden="true"
         className={`pointer-events-none absolute inset-0 transition-opacity duration-700 motion-reduce:transition-none ${
-          fallbackVisible ? 'opacity-80' : 'opacity-0'
+          fallbackVisible ? 'opacity-80' : 'opacity-25'
         }`}
       >
-        <CurrentField density="highImpact" tone="dark" className="h-full w-full" />
+        <CurrentField
+          density="highImpact"
+          tone="dark"
+          strokeColor="#F7FBFA"
+          className="h-full w-full"
+        />
       </div>
 
       <HeroRibbonField

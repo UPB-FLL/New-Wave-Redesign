@@ -40,8 +40,11 @@ const fragmentShader = `
     float edgeDistance = min(vUv.y, 1.0 - vUv.y);
     float edgeHighlight = 1.0 - smoothstep(0.02, 0.14, edgeDistance);
     float liftLight = 0.88 + clamp(vLift * 0.22, -0.08, 0.12);
-    vec3 color = uColor * liftLight + edgeHighlight * 0.08;
-    float alpha = sideFade * (0.12 + widthFade * 0.88) * uOpacity * uDepthFade;
+    vec3 bodyColor = uColor * liftLight;
+    vec3 color = mix(bodyColor, vec3(0.97, 0.99, 0.98), edgeHighlight * 0.92);
+    float bodyAlpha = sideFade * (0.12 + widthFade * 0.88) * uOpacity * uDepthFade;
+    float edgeAlpha = sideFade * edgeHighlight * 0.62 * uDepthFade;
+    float alpha = max(bodyAlpha, edgeAlpha);
     gl_FragColor = vec4(color, alpha);
     #include <colorspace_fragment>
   }

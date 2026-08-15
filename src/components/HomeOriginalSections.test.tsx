@@ -55,8 +55,12 @@ describe('original home-page sections', () => {
 
     expect(screen.getAllByTestId('supporting-service-card')).toHaveLength(5);
     expect(screen.getByRole('heading', { name: /Industry-specific solutions/i })).toBeInTheDocument();
-    expect(screen.getByTestId('industry-service-grid')).toHaveClass('lg:grid-cols-4');
+    const industryGrid = screen.getByTestId('industry-service-grid');
+    expect(industryGrid).toHaveClass('lg:grid-cols-4', 'items-stretch');
     expect(screen.getAllByTestId('industry-service-card')).toHaveLength(4);
+    screen.getAllByTestId('industry-service-card').forEach((card) => {
+      expect(within(card).getByRole('link')).toHaveClass('h-full', 'min-h-[16rem]', 'sm:min-h-[17.25rem]');
+    });
     expect(screen.getAllByRole('link', { name: /Family Offices/i })[0]).toHaveAttribute('href', '/service-category/family-offices');
   });
 });

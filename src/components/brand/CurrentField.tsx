@@ -6,6 +6,7 @@ type CurrentFieldProps = {
   tone?: 'light' | 'dark';
   className?: string;
   decorative?: boolean;
+  strokeColor?: string;
 };
 
 const densityGroups = {
@@ -29,6 +30,7 @@ export function CurrentField({
   tone = 'dark',
   className,
   decorative = true,
+  strokeColor,
 }: CurrentFieldProps) {
   const colors = colorsFor(tone);
 
@@ -50,7 +52,7 @@ export function CurrentField({
               data-role="current-field-stroke"
               d={d}
               fill="none"
-              stroke={colors[index]}
+              stroke={strokeColor ?? colors[index]}
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth="1.6"

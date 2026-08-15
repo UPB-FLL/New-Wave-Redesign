@@ -338,7 +338,7 @@ export default function Services({ headlineAs: HeadlineTag = 'h2' }: { headlineA
 
           <motion.div
             data-testid="industry-service-grid"
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"
+            className="grid grid-cols-1 items-stretch gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-4"
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: '-60px' }}
@@ -356,6 +356,7 @@ export default function Services({ headlineAs: HeadlineTag = 'h2' }: { headlineA
                 <motion.div
                   key={service.title}
                   data-testid="industry-service-card"
+                  className="h-full"
                   variants={{
                     hidden: FADE_UP.hidden,
                     visible: { ...FADE_UP.visible, transition: { duration: DURATION.base, ease: EASE.out } },
@@ -363,7 +364,7 @@ export default function Services({ headlineAs: HeadlineTag = 'h2' }: { headlineA
                 >
                   <Link
                     to={`/service-category/${slug}`}
-                    className="group rounded-2xl p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1 no-underline block"
+                    className="group flex h-full min-h-[16rem] flex-col rounded-2xl p-4 transition-all duration-300 hover:-translate-y-1 no-underline sm:min-h-[17.25rem] sm:p-5"
                     style={{ background: 'rgba(26, 47, 63, 0.8)', border: `1px solid ${service.accent}40`, boxShadow: `0 2px 12px ${service.accent}10` }}
                     onMouseEnter={(e) => {
                       (e.currentTarget as HTMLElement).style.boxShadow = `0 12px 40px ${service.accent}30`;

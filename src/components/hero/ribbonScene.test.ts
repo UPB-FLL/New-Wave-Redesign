@@ -278,8 +278,10 @@ describe('createRibbonScene', () => {
       expect(material.vertexShader).toContain('float travel = displaced.x * uFrequency + uTime + uPhase;');
       expect(material.fragmentShader).toContain('uniform float uDepthFade;');
       expect(material.fragmentShader).toContain(
-        'float alpha = sideFade * (0.12 + widthFade * 0.88) * uOpacity * uDepthFade;',
+        'float bodyAlpha = sideFade * (0.12 + widthFade * 0.88) * uOpacity * uDepthFade;',
       );
+      expect(material.fragmentShader).toContain('float edgeAlpha = sideFade * edgeHighlight * 0.62 * uDepthFade;');
+      expect(material.fragmentShader).toContain('float alpha = max(bodyAlpha, edgeAlpha);');
       expect(material.fragmentShader).toContain('gl_FragColor = vec4(color, alpha);\n    #include <colorspace_fragment>');
       expect(material.uniforms.uAmplitude.value).toBe(layer.amplitude);
       expect(material.uniforms.uFrequency.value).toBe(layer.frequency);
