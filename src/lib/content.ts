@@ -40,9 +40,10 @@ export async function fetchSectionContent(section: string): Promise<ContentMap> 
   return Object.fromEntries(data.map((row) => [row.key, row.value]));
 }
 
+let channel: BroadcastChannel | null = null;
 export function broadcastContentChange(section: string, key: string, value: string): void {
   try {
-    const channel = new BroadcastChannel(CONTENT_CHANNEL);
+    if (!channel) channel = new BroadcastChannel(CONTENT_CHANNEL);
     channel.postMessage({
       section,
       key,
