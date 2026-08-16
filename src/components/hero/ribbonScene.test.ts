@@ -62,7 +62,7 @@ function createThreeHarness() {
   }> = [];
   const scenes: Array<{ add: ReturnType<typeof vi.fn> }> = [];
   const renderer = {
-    options: undefined as { alpha: boolean; canvas: HTMLCanvasElement } | undefined,
+    options: undefined as { alpha: boolean; antialias: boolean; canvas: HTMLCanvasElement } | undefined,
     setClearColor: vi.fn(),
     setPixelRatio: vi.fn(),
     setSize: vi.fn(),
@@ -77,7 +77,7 @@ function createThreeHarness() {
     render = renderer.render;
     dispose = renderer.dispose;
 
-    constructor(options: { alpha: boolean; canvas: HTMLCanvasElement }) {
+    constructor(options: { alpha: boolean; antialias: boolean; canvas: HTMLCanvasElement }) {
       renderer.options = options;
     }
   }
@@ -250,16 +250,16 @@ describe('createRibbonScene', () => {
       { three: harness.three, scheduler: createSchedulerHarness() },
     );
 
-    expect(harness.renderer.options).toEqual({ alpha: true, canvas });
+    expect(harness.renderer.options).toEqual({ alpha: true, antialias: true, canvas });
     expect(harness.renderer.setClearColor).toHaveBeenCalledWith(0x000000, 0);
     expect(harness.cameras[0].args).toEqual([42, 1, 0.1, 100]);
     expect(harness.cameras[0].position.set).toHaveBeenCalledWith(0, 0, 8);
     expect(harness.groups[0].position.x).toBe(2.2);
     expect(harness.scenes[0].add).toHaveBeenCalledWith(harness.groups[0]);
     expect(harness.geometries.map((geometry) => geometry.args)).toEqual([
-      [14, 2.2, 128, 8],
-      [14, 2.2, 128, 8],
-      [14, 2.2, 128, 8],
+      [14, 2.2, 256, 24],
+      [14, 2.2, 256, 24],
+      [14, 2.2, 256, 24],
     ]);
     const expectedRenderOrders = [1, 2, 0];
     const expectedDepthFades = [0.93, 1, 0.86];
@@ -269,24 +269,28 @@ describe('createRibbonScene', () => {
       const mesh = harness.meshes[index];
 
       expect(material).toMatchObject({
-        transparent: true,
+        transparent: false,
         side: 2,
         depthWrite: false,
         depthTest: true,
         blending: 1,
       });
-      expect(material.vertexShader).toContain('float travel = displaced.x * uFrequency + uTime + uPhase;');
+      expect(material.vertexShader).toContain('float travel = x * uFrequency + uTime + uPhase;');
+      expect(material.vertexShader).toContain('float roll = sin(travel * 0.62 + uTime * 0.35 + 1.3) * uTwist;');
+      expect(material.vertexShader).toContain('vNormal = normalize(normalMatrix * normalize(cross(tangentX, tangentY)));');
       expect(material.fragmentShader).toContain('uniform float uDepthFade;');
+      expect(material.fragmentShader).toContain('vec3 reflected = reflect(-viewDir, normal);');
       expect(material.fragmentShader).toContain(
-        'float bodyAlpha = sideFade * (0.12 + widthFade * 0.88) * uOpacity * uDepthFade;',
+        'vec3 fresnel = baseReflectance + (1.0 - baseReflectance) * pow(1.0 - facing, 5.0);',
       );
-      expect(material.fragmentShader).toContain('float edgeAlpha = sideFade * edgeHighlight * 0.62 * uDepthFade;');
-      expect(material.fragmentShader).toContain('float alpha = max(bodyAlpha, edgeAlpha);');
-      expect(material.fragmentShader).toContain('gl_FragColor = vec4(color, alpha);\n    #include <colorspace_fragment>');
+      expect(material.fragmentShader).toContain('vec3 color = chromeEnvironment(reflected) * fresnel;');
+      expect(material.fragmentShader).toContain('color += (dither - 0.5) / 255.0;');
+      expect(material.fragmentShader).toContain('gl_FragColor = vec4(color, 1.0);\n    #include <colorspace_fragment>');
       expect(material.uniforms.uAmplitude.value).toBe(layer.amplitude);
       expect(material.uniforms.uFrequency.value).toBe(layer.frequency);
       expect(material.uniforms.uPhase.value).toBe(layer.phase);
-      expect(material.uniforms.uOpacity.value).toBe(layer.opacity);
+      expect(material.uniforms.uTwist.value).toBe(layer.twist);
+      expect(material.uniforms.uOpacity).toBeUndefined();
       expect(material.uniforms.uDepthFade?.value).toBe(expectedDepthFades[index]);
       expect((material.uniforms.uColor.value as { value: string }).value).toBe(layer.color);
       expect(mesh.position.set).toHaveBeenCalledWith(0, layer.y, layer.z);
@@ -307,9 +311,9 @@ describe('createRibbonScene', () => {
 
     expect(harness.groups[0].position.x).toBe(1);
     expect(harness.geometries.map((geometry) => geometry.args)).toEqual([
-      [14, 2.2, 64, 4],
-      [14, 2.2, 64, 4],
-      [14, 2.2, 64, 4],
+      [14, 2.2, 128, 12],
+      [14, 2.2, 128, 12],
+      [14, 2.2, 128, 12],
     ]);
   });
 

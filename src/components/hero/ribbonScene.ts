@@ -6,46 +6,91 @@ import {
   type RibbonSceneOptions,
 } from './ribbonSceneConfig';
 
+const RIBBON_WIDTH = 14;
+const RIBBON_HEIGHT = 2.2;
+
 const vertexShader = `
   uniform float uTime;
   uniform float uAmplitude;
   uniform float uFrequency;
   uniform float uPhase;
+  uniform float uTwist;
   varying vec2 vUv;
-  varying float vLift;
+  varying vec3 vNormal;
+  varying vec3 vViewPosition;
+
+  const float RIBBON_WIDTH = ${RIBBON_WIDTH.toFixed(1)};
+
+  // Ribbon ends narrow to a point instead of fading with alpha, so the chrome can stay opaque and depth-tested.
+  float ribbonTaper(float x) {
+    float u = x / RIBBON_WIDTH + 0.5;
+    float taper = smoothstep(0.0, 0.14, u) * (1.0 - smoothstep(0.86, 1.0, u));
+    return mix(0.003, 1.0, taper);
+  }
+
+  vec3 ribbonPoint(float x, float span) {
+    float travel = x * uFrequency + uTime + uPhase;
+    float lift = sin(travel) * uAmplitude;
+    float drift = sin(travel * 0.48 - uTime * 0.7) * uAmplitude * 0.32;
+    float roll = sin(travel * 0.62 + uTime * 0.35 + 1.3) * uTwist;
+    float halfSpan = span * ribbonTaper(x);
+    return vec3(x, halfSpan * cos(roll) + drift, halfSpan * sin(roll) + lift);
+  }
 
   void main() {
     vUv = uv;
-    vec3 displaced = position;
-    float travel = displaced.x * uFrequency + uTime + uPhase;
-    float primary = sin(travel) * uAmplitude;
-    float secondary = sin(travel * 0.48 - uTime * 0.7) * uAmplitude * 0.32;
-    displaced.y += secondary;
-    displaced.z += primary;
-    vLift = primary;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(displaced, 1.0);
+    vec3 displaced = ribbonPoint(position.x, position.y);
+    vec3 tangentX = ribbonPoint(position.x + 0.02, position.y) - ribbonPoint(position.x - 0.02, position.y);
+    vec3 tangentY = ribbonPoint(position.x, position.y + 0.02) - ribbonPoint(position.x, position.y - 0.02);
+    vNormal = normalize(normalMatrix * normalize(cross(tangentX, tangentY)));
+    vec4 mvPosition = modelViewMatrix * vec4(displaced, 1.0);
+    vViewPosition = -mvPosition.xyz;
+    gl_Position = projectionMatrix * mvPosition;
   }
 `;
 
 const fragmentShader = `
   uniform vec3 uColor;
-  uniform float uOpacity;
   uniform float uDepthFade;
   varying vec2 vUv;
-  varying float vLift;
+  varying vec3 vNormal;
+  varying vec3 vViewPosition;
+
+  // Procedural studio environment: dark navy floor, cool overhead softbox, brand-tinted horizon band.
+  vec3 chromeEnvironment(vec3 reflected) {
+    float sky = smoothstep(-0.18, 0.7, reflected.y);
+    vec3 floorTone = vec3(0.012, 0.024, 0.034) + uColor * 0.05;
+    vec3 env = mix(floorTone, vec3(0.16, 0.23, 0.28), sky);
+    float horizon = exp(-pow(reflected.y * 6.0, 2.0));
+    env += horizon * mix(vec3(0.34, 0.42, 0.46), uColor, 0.55) * 0.95;
+    vec3 keyDir = normalize(vec3(-0.45, 0.65, 0.6));
+    vec3 rimDir = normalize(vec3(0.7, -0.35, 0.45));
+    float keyAlign = max(dot(reflected, keyDir), 0.0);
+    float rimAlign = max(dot(reflected, rimDir), 0.0);
+    env += pow(keyAlign, 60.0) * vec3(0.82, 0.90, 0.92) + pow(keyAlign, 8.0) * vec3(0.10, 0.14, 0.16);
+    env += pow(rimAlign, 40.0) * mix(vec3(0.6), uColor, 0.6) * 0.8;
+    return env;
+  }
 
   void main() {
-    float sideFade = smoothstep(0.0, 0.12, vUv.x) * (1.0 - smoothstep(0.88, 1.0, vUv.x));
-    float widthFade = smoothstep(0.0, 0.18, vUv.y) * (1.0 - smoothstep(0.82, 1.0, vUv.y));
-    float edgeDistance = min(vUv.y, 1.0 - vUv.y);
-    float edgeHighlight = 1.0 - smoothstep(0.02, 0.14, edgeDistance);
-    float liftLight = 0.88 + clamp(vLift * 0.22, -0.08, 0.12);
-    vec3 bodyColor = uColor * liftLight;
-    vec3 color = mix(bodyColor, vec3(0.97, 0.99, 0.98), edgeHighlight * 0.92);
-    float bodyAlpha = sideFade * (0.12 + widthFade * 0.88) * uOpacity * uDepthFade;
-    float edgeAlpha = sideFade * edgeHighlight * 0.62 * uDepthFade;
-    float alpha = max(bodyAlpha, edgeAlpha);
-    gl_FragColor = vec4(color, alpha);
+    vec3 normal = normalize(vNormal);
+    if (!gl_FrontFacing) normal = -normal;
+    vec3 viewDir = normalize(vViewPosition);
+    vec3 reflected = reflect(-viewDir, normal);
+    float facing = clamp(dot(normal, viewDir), 0.0, 1.0);
+
+    vec3 baseReflectance = mix(vec3(0.62, 0.66, 0.68), uColor, 0.35);
+    vec3 fresnel = baseReflectance + (1.0 - baseReflectance) * pow(1.0 - facing, 5.0);
+    vec3 color = chromeEnvironment(reflected) * fresnel;
+
+    float edge = 1.0 - smoothstep(0.0, 0.1, min(vUv.y, 1.0 - vUv.y));
+    color += edge * mix(vec3(0.05), uColor, 0.5) * 0.35;
+
+    color *= uDepthFade;
+    // Ordered dither at sub-LSB amplitude removes 8-bit banding across the wide chrome gradients.
+    float dither = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453);
+    color += (dither - 0.5) / 255.0;
+    gl_FragColor = vec4(color, 1.0);
     #include <colorspace_fragment>
   }
 `;
@@ -92,7 +137,7 @@ export function createRibbonScene(
   dependencies: RibbonSceneDependencies = defaultDependencies,
 ): RibbonSceneController {
   const { scheduler, three } = dependencies;
-  const renderer = new three.WebGLRenderer({ alpha: true, canvas });
+  const renderer = new three.WebGLRenderer({ alpha: true, antialias: true, canvas });
   const scene = new three.Scene();
   const camera = new three.PerspectiveCamera(42, 1, 0.1, 100);
   const group = new three.Group();
@@ -111,21 +156,21 @@ export function createRibbonScene(
   scene.add(group);
 
   RIBBON_LAYERS.forEach((layer, index) => {
-    const geometry = new three.PlaneGeometry(14, 2.2, initialQuality.segmentsX, initialQuality.segmentsY);
+    const geometry = new three.PlaneGeometry(RIBBON_WIDTH, RIBBON_HEIGHT, initialQuality.segmentsX, initialQuality.segmentsY);
     const uniforms = {
       uTime: { value: 0 },
       uAmplitude: { value: layer.amplitude },
       uFrequency: { value: layer.frequency },
       uPhase: { value: layer.phase },
+      uTwist: { value: layer.twist },
       uColor: { value: new three.Color(layer.color) },
-      uOpacity: { value: layer.opacity },
       uDepthFade: { value: depthComposition[index].depthFade },
     };
     const material = new three.ShaderMaterial({
       uniforms,
       vertexShader,
       fragmentShader,
-      transparent: true,
+      transparent: false,
       side: three.DoubleSide,
       depthWrite: false,
       depthTest: true,
