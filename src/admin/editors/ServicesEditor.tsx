@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { fetchSectionContent, upsertManyContent } from '../../lib/content';
 import SectionEditor from '../components/SectionEditor';
 import EditorField from '../components/EditorField';
 import FormSection from '../components/FormSection';
-import { Plus, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
+import { contentManager } from '../ContentManager';
+import type { ContentManagerState } from '../ContentManager';
 
 type ServiceCard = {
   title: string;
@@ -13,60 +14,82 @@ type ServiceCard = {
 };
 
 export default function ServicesEditor() {
-  const [content, setContent] = useState<Record<string, string>>({});
+  const [state, setState] = useState<ContentManagerState>(contentManager.getState());
   const [cards, setCards] = useState<ServiceCard[]>([]);
-  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    fetchSectionContent('services').then((data) => {
-      setContent(data);
-      try { setCards(JSON.parse(data.cards || '[]')); } catch { setCards([]); }
-      setLoaded(true);
+    const unsubscribe = contentManager.subscribe((newState) => {
+      setState(newState);
+      const servicesContent = newState.sections.services ?? {};
+
+      try {
+        setCards(JSON.parse(servicesContent.cards ?? '[]'));
+      } catch {
+        setCards([]);
+      }
     });
+
+    if (!state.sections.services) {
+      contentManager.loadSection('services');
+    }
+
+    return unsubscribe;
   }, []);
 
-  const set = (key: string, val: string) => setContent((prev) => ({ ...prev, [key]: val }));
+  const content = state.sections.services ?? {};
 
-  const updateCard = (index: number, field: keyof ServiceCard, value: string | string[]) => {
-    setCards((prev) => prev.map((c, i) => i === index ? { ...c, [field]: value } : c));
-  };
-
-  const updateHighlight = (cardIdx: number, hlIdx: number, value: string) => {
-    setCards((prev) => prev.map((c, i) => {
-      if (i !== cardIdx) return c;
-      const highlights = [...c.highlights];
-      highlights[hlIdx] = value;
-      return { ...c, highlights };
-    }));
-  };
-
-  const addHighlight = (cardIdx: number) => {
-    setCards((prev) => prev.map((c, i) => i === cardIdx ? { ...c, highlights: [...c.highlights, ''] } : c));
-  };
-
-  const removeHighlight = (cardIdx: number, hlIdx: number) => {
-    setCards((prev) => prev.map((c, i) => {
-      if (i !== cardIdx) return c;
-      return { ...c, highlights: c.highlights.filter((_, j) => j !== hlIdx) };
-    }));
+  const setField = (key: string, value: string) => {
+    contentManager.updateField('services', key, value);
   };
 
   const handleSave = async () => {
-    await upsertManyContent('services', {
-      ...content,
-      cards: JSON.stringify(cards),
-    });
+    await contentManager.publishChanges();
   };
 
-  if (!loaded) return <div className="text-white/50">Loading…</div>;
+  const updateCard = (index: number, field: keyof ServiceCard, value: string | string[]) => {
+    const newCards = [...cards];
+    newCards[index] = { ...newCards[index], [field]: value };
+    setCards(newCards);
+    setField('cards', JSON.stringify(newCards));
+  };
+
+  const updateHighlight = (cardIdx: number, hlIdx: number, value: string) => {
+    const newCards = [...cards];
+    const highlights = [...newCards[cardIdx].highlights];
+    highlights[hlIdx] = value;
+    newCards[cardIdx] = { ...newCards[cardIdx], highlights };
+    setCards(newCards);
+    setField('cards', JSON.stringify(newCards));
+  };
+
+  const addHighlight = (cardIdx: number) => {
+    const newCards = [...cards];
+    newCards[cardIdx] = { ...newCards[cardIdx], highlights: [...newCards[cardIdx].highlights, ''] };
+    setCards(newCards);
+    setField('cards', JSON.stringify(newCards));
+  };
+
+  const removeHighlight = (cardIdx: number, hlIdx: number) => {
+    const newCards = [...cards];
+    newCards[cardIdx] = {
+      ...newCards[cardIdx],
+      highlights: newCards[cardIdx].highlights.filter((_, j) => j !== hlIdx)
+    };
+    setCards(newCards);
+    setField('cards', JSON.stringify(newCards));
+  };
+
+  if (!Object.keys(content).length && !state.sections.services) {
+    return <div className="text-white/50">Loading…</div>;
+  }
 
   return (
     <SectionEditor title="Services Section" description="Service offerings and feature cards" onSave={handleSave}>
       <FormSection title="Page Header" subtitle="Section headline and description">
-        <EditorField label="Section Label" value={content.section_label ?? ''} onChange={(v) => set('section_label', v)} hint="Label above headline" />
-        <EditorField label="Headline" value={content.headline ?? ''} onChange={(v) => set('headline', v)} hint="Main heading" />
-        <EditorField label="Accent Word" value={content.headline_accent ?? ''} onChange={(v) => set('headline_accent', v)} hint="Gradient-colored word in headline (e.g. Modern Business)" />
-        <EditorField label="Subheadline" value={content.subheadline ?? ''} onChange={(v) => set('subheadline', v)} multiline rows={2} hint="Supporting text" />
+        <EditorField label="Section Label" value={content.section_label ?? ''} onChange={(v) => setField('section_label', v)} hint="Label above headline" />
+        <EditorField label="Headline" value={content.headline ?? ''} onChange={(v) => setField('headline', v)} hint="Main heading" />
+        <EditorField label="Accent Word" value={content.headline_accent ?? ''} onChange={(v) => setField('headline_accent', v)} hint="Gradient-colored word in headline (e.g. Modern Business)" />
+        <EditorField label="Subheadline" value={content.subheadline ?? ''} onChange={(v) => setField('subheadline', v)} multiline rows={2} hint="Supporting text" />
       </FormSection>
 
       <div className="space-y-4">
