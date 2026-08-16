@@ -76,6 +76,7 @@ import CellularDASPublicSafetyServicePage from './pages/CellularDASPublicSafetyS
 import ServiceGuidePage from './pages/ServiceGuidePage';
 import CodeNestPage from './pages/CodeNestPage';
 import BlogPage from './pages/BlogPage';
+import BlogPostPage from './pages/BlogPostPage';
 import ServicesDetailEditor from './admin/editors/ServicesDetailEditor';
 import ThreatsDetailEditor from './admin/editors/ThreatsDetailEditor';
 import ServicesCategoryEditor from './admin/editors/ServicesCategoryEditor';
@@ -145,6 +146,7 @@ export default function App() {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/blog" element={<BlogPage />} />
+        <Route path="/blog/:slug" element={<BlogPostPage />} />
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/status" element={<StatusPage />} />
         <Route path="/support" element={<SupportPage />} />
