@@ -155,6 +155,38 @@ User Input → Editor Component → ContentManager.updateField()
 5. Component re-renders with new content
 6. Polling fallback catches missed updates (production)
 
+## Blog System (2026-08-16)
+
+### Database
+- `blog_posts` table with SEO-optimized fields
+- Row Level Security: public read, authenticated write
+- Indexes on published_at, category, slug
+
+### API Endpoints
+- `POST /api/blog/generate-post` - AI generation (admin auth)
+- `GET /api/blog/list` - List/fetch posts with pagination
+- `GET /api/blog/[id]` - Fetch single post
+- `PUT /api/blog/[id]` - Update post (admin auth)
+- `DELETE /api/blog/[id]` - Delete post (admin auth)
+
+### Admin Components
+- `src/admin/blog/BlogPostManager.tsx` - List view with actions
+- `src/admin/blog/BlogEditor.tsx` - Edit/create with Markdown preview
+- `src/admin/blog/BlogSettings.tsx` - AI parameters and schedule
+
+### Frontend Pages
+- `/blog` - Dynamic blog listing from database
+- `/blog/:slug` - Individual post with SEO metadata
+
+### AI Generation
+- GPT-4o-mini for content generation
+- Pexels API for featured images
+- Weekly automation via Supabase pg_cron
+
+### Utilities
+- `src/lib/blog.ts` - Database operations and helpers
+- `types/blog.ts` - TypeScript interfaces
+
 ## Git History
 
 Recent commits for unified admin dashboard:
@@ -171,3 +203,16 @@ Recent commits for unified admin dashboard:
 - `859cdca` feat: create ContentManager for centralized state
 - `79a68c4` fix: reuse BroadcastChannel instance to prevent resource leak
 - `10d3c11` feat: add BroadcastChannel support for real-time content sync
+
+Recent commits for blog system:
+- `de177ca` feat: add weekly blog generation scheduling
+- `8800d29` feat: integrate blog into unified admin dashboard
+- `50fc049` feat: add blog settings component
+- `57f8a0d` feat: add blog editor component
+- `2b7ff27` feat: add blog post manager component
+- `fd6b8a9` feat: add dynamic blog pages and individual post page
+- `637ca63` feat: add AI blog post generation endpoint
+- `4cf4600` feat: add blog CRUD API endpoint
+- `90f7100` feat: add blog list API endpoint
+- `b3f2ac9` feat: add blog utility functions
+- `70eca85` feat: create blog_posts table with RLS policies

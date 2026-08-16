@@ -13,13 +13,14 @@ The New Wave IT admin dashboard allows you to manage all website content from a 
 
 ### Navigation
 
-The sidebar is organized into 5 sections:
+The sidebar is organized into 6 sections:
 
 1. **Homepage Content** - Hero, Trust Bar, Testimonials
 2. **Services Content** - Services, Categories, Details, Threats
 3. **Company Content** - Why Us, About, Pricing
 4. **Contact & Footer** - Contact info, Footer content
-5. **SEO & Settings** - SEO Portal, Status page
+5. **Blog** - Blog posts, AI generation settings
+6. **SEO & Settings** - SEO Portal, Status page
 
 ### Editing Content
 
