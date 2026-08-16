@@ -12,11 +12,13 @@ describe('ribbon scene configuration', () => {
     RIBBON_LAYERS.forEach((layer) => {
       expect(layer.cycleSeconds).toBeGreaterThanOrEqual(18);
       expect(layer.cycleSeconds).toBeLessThanOrEqual(24);
+      expect(layer.twist).toBeGreaterThan(0);
+      expect(layer.twist).toBeLessThanOrEqual(0.7);
     });
   });
 
   it('reduces mobile segments and caps device pixel ratio', () => {
-    expect(getRibbonQuality(390, 3)).toEqual({ segmentsX: 64, segmentsY: 4, pixelRatio: 1.25 });
-    expect(getRibbonQuality(1440, 3)).toEqual({ segmentsX: 128, segmentsY: 8, pixelRatio: 1.5 });
+    expect(getRibbonQuality(390, 3)).toEqual({ segmentsX: 128, segmentsY: 12, pixelRatio: 1.25 });
+    expect(getRibbonQuality(1440, 3)).toEqual({ segmentsX: 256, segmentsY: 24, pixelRatio: 1.5 });
   });
 });
