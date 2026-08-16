@@ -5,12 +5,17 @@ import SidebarNavigation from './components/SidebarNavigation';
 import PublishBar from './components/PublishBar';
 import HeroEditor from './editors/HeroEditor';
 import ServicesEditor from './editors/ServicesEditor';
+import BlogPostManager from './blog/BlogPostManager';
+import BlogEditor from './blog/BlogEditor';
+import BlogSettings from './blog/BlogSettings';
+import type { BlogPost } from '../../types/blog';
 
-type SectionType = 'hero' | 'services' | string;
+type SectionType = 'hero' | 'services' | 'blog-posts' | 'blog-settings' | string;
 
 export default function UnifiedAdminDashboard() {
   const [state, setState] = useState<ContentManagerState>(contentManager.getState());
   const [activeSection, setActiveSection] = useState<SectionType>('hero');
+  const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
 
   useEffect(() => {
     const unsubscribe = contentManager.subscribe((newState) => {
@@ -42,6 +47,35 @@ export default function UnifiedAdminDashboard() {
         return <HeroEditor />;
       case 'services':
         return <ServicesEditor />;
+      case 'blog-posts':
+        if (editingPost) {
+          return (
+            <BlogEditor
+              post={editingPost}
+              onCancel={() => setEditingPost(null)}
+              onSave={(updated) => {
+                setEditingPost(null);
+                // Refresh the list by reloading the section
+                contentManager.loadSection('blog-posts');
+              }}
+            />
+          );
+        }
+        return (
+          <BlogPostManager
+            onEdit={(post) => setEditingPost(post)}
+            onGenerate={() => {
+              // Trigger generation - could open a modal or just navigate
+              window.open('/api/blog/generate-post', '_blank');
+            }}
+            onRefresh={() => {
+              // Refresh blog posts
+              window.location.reload();
+            }}
+          />
+        );
+      case 'blog-settings':
+        return <BlogSettings />;
       default:
         return (
           <div className="flex items-center justify-center h-full">

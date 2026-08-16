@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronRight, Star, Layers, Info, Mail, Search } from 'lucide-react';
+import { ChevronDown, ChevronRight, Star, Layers, Info, Mail, Search, FileText } from 'lucide-react';
 
 interface SectionGroup {
   id: string;
@@ -62,6 +62,15 @@ const SECTION_GROUPS: SectionGroup[] = [
     sections: [
       { id: 'contact', label: 'Contact', path: 'contact', description: 'Phone, email, address, messages' },
       { id: 'footer', label: 'Footer', path: 'footer', description: 'Tagline, contact info, links' },
+    ],
+  },
+  {
+    id: 'blog',
+    label: 'Blog',
+    icon: FileText,
+    sections: [
+      { id: 'blog-posts', label: 'All Posts', path: 'blog-posts', description: 'Manage and edit blog posts' },
+      { id: 'blog-settings', label: 'Settings', path: 'blog-settings', description: 'AI generation and schedule settings' },
     ],
   },
   {
