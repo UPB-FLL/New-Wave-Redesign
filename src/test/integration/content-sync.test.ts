@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { ContentManager, ContentManagerState } from '../../admin/ContentManager';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import type { ContentManagerState } from '../../admin/ContentManager';
 import type { ContentMap } from '../../lib/content';
 
 // Simple test class that mimics ContentManager without Supabase dependency
@@ -166,7 +166,6 @@ describe('Content Sync Integration', () => {
 
   it('should discard unsaved changes', async () => {
     await contentManager.loadSection('hero');
-    const originalHeadline = contentManager.getState().sections.hero?.headline;
 
     contentManager.updateField('hero', 'headline', 'Discarded Headline');
     contentManager.discardChanges();
