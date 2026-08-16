@@ -21,8 +21,18 @@ export default function AdminDashboard() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white mb-1">Dashboard</h1>
-        <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>Select a section to edit its content.</p>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-2xl font-bold text-white mb-1">Dashboard</h1>
+            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>Select a section to edit its content.</p>
+          </div>
+          <a
+            href="/admin/unified"
+            className="px-4 py-2 rounded-lg text-sm font-medium bg-teal-600 hover:bg-teal-500 text-white transition-colors"
+          >
+            Try New Unified Dashboard
+          </a>
+        </div>
       </div>
 
       <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
