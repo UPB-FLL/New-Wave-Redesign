@@ -37,6 +37,7 @@ import Footer from './components/Footer';
 import AdminGuard from './admin/AdminGuard';
 import AdminLayout from './admin/AdminLayout';
 import AdminDashboard from './admin/AdminDashboard';
+import UnifiedAdminDashboard from './admin/UnifiedAdminDashboard';
 import HeroEditor from './admin/editors/HeroEditor';
 import TrustBarEditor from './admin/editors/TrustBarEditor';
 import ServicesEditor from './admin/editors/ServicesEditor';
@@ -168,6 +169,7 @@ export default function App() {
             </AdminGuard>
           }
         >
+          <Route path="unified" element={<UnifiedAdminDashboard />} />
           <Route index element={<AdminDashboard />} />
           <Route path="hero" element={<HeroEditor />} />
           <Route path="trustbar" element={<TrustBarEditor />} />
