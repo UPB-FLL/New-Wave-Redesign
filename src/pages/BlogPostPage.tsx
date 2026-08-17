@@ -111,15 +111,10 @@ export default function BlogPostPage() {
   // SEO metadata
   usePageMeta({
     title: post.meta_title || post.title,
-    description: post.meta_description || post.excerpt,
+    description: post.meta_description || post.excerpt || undefined,
     canonical: `https://www.newwaveitfl.com/blog/${post.slug}`,
-    openGraph: {
-      title: post.meta_title || post.title,
-      description: post.meta_description || post.excerpt,
-      images: post.featured_image ? [{ url: post.featured_image }] : undefined,
-      type: 'article',
-      publishedTime: post.published_at,
-    },
+    ogImage: post.featured_image || undefined,
+    ogType: 'article',
   });
 
   return (

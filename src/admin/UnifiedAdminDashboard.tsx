@@ -8,6 +8,7 @@ import ServicesEditor from './editors/ServicesEditor';
 import BlogPostManager from './blog/BlogPostManager';
 import BlogEditor from './blog/BlogEditor';
 import BlogSettings from './blog/BlogSettings';
+import { fetchBlogPosts } from '../lib/blog';
 import type { BlogPost } from '../../types/blog';
 
 type SectionType = 'hero' | 'services' | 'blog-posts' | 'blog-settings' | string;
@@ -16,6 +17,8 @@ export default function UnifiedAdminDashboard() {
   const [state, setState] = useState<ContentManagerState>(contentManager.getState());
   const [activeSection, setActiveSection] = useState<SectionType>('hero');
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+  const [blogLoading, setBlogLoading] = useState(false);
 
   useEffect(() => {
     const unsubscribe = contentManager.subscribe((newState) => {
@@ -41,6 +44,23 @@ export default function UnifiedAdminDashboard() {
     contentManager.discardChanges();
   };
 
+  const loadBlogPosts = async () => {
+    try {
+      setBlogLoading(true);
+      const result = await fetchBlogPosts({ limit: 12 });
+      setBlogPosts(result.posts);
+    } catch (err) {
+      console.error('Failed to load blog posts:', err);
+    } finally {
+      setBlogLoading(false);
+    }
+  };
+
+  // Load blog posts on mount
+  useEffect(() => {
+    loadBlogPosts();
+  }, []);
+
   const renderEditor = () => {
     switch (activeSection) {
       case 'hero':
@@ -53,10 +73,10 @@ export default function UnifiedAdminDashboard() {
             <BlogEditor
               post={editingPost}
               onCancel={() => setEditingPost(null)}
-              onSave={(updated) => {
+              onSave={() => {
                 setEditingPost(null);
-                // Refresh the list by reloading the section
-                contentManager.loadSection('blog-posts');
+                // Refresh the blog posts
+                loadBlogPosts();
               }}
             />
           );
@@ -64,14 +84,36 @@ export default function UnifiedAdminDashboard() {
         return (
           <BlogPostManager
             onEdit={(post) => setEditingPost(post)}
-            onGenerate={() => {
-              // Trigger generation - could open a modal or just navigate
-              window.open('/api/blog/generate-post', '_blank');
+            onGenerate={async () => {
+              try {
+                const response = await fetch('/api/blog/generate-post', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'x-admin-key': import.meta.env.VITE_ADMIN_API_KEY || '',
+                  },
+                  body: JSON.stringify({}),
+                });
+
+                if (!response.ok) {
+                  throw new Error('Generation failed');
+                }
+
+                const data = await response.json();
+                alert(`Blog post generated: "${data.title}"`);
+                // Refresh the blog posts list
+                await loadBlogPosts();
+              } catch (err) {
+                console.error('Blog generation failed:', err);
+                alert('Blog generation failed. Please try again.');
+              }
             }}
-            onRefresh={() => {
+            onRefresh={async () => {
               // Refresh blog posts
-              window.location.reload();
+              await loadBlogPosts();
             }}
+            posts={blogPosts}
+            loading={blogLoading}
           />
         );
       case 'blog-settings':

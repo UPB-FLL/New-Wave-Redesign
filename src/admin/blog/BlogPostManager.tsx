@@ -1,17 +1,19 @@
 import { useState, useEffect } from 'react';
-import { Trash2, Edit, RefreshCw, Plus, Search, Filter } from 'lucide-react';
-import { fetchBlogPosts, deleteBlogPost } from '../../lib/blog';
+import { Trash2, Edit, RefreshCw, Plus, Search } from 'lucide-react';
+import { deleteBlogPost, fetchBlogPosts } from '../../lib/blog';
 import type { BlogPost } from '../../../types/blog';
 
 interface BlogPostManagerProps {
   onEdit: (post: BlogPost) => void;
   onGenerate: () => void;
   onRefresh: () => void;
+  posts?: BlogPost[];
+  loading?: boolean;
 }
 
-export default function BlogPostManager({ onEdit, onGenerate, onRefresh }: BlogPostManagerProps) {
-  const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function BlogPostManager({ onEdit, onGenerate, onRefresh, posts: externalPosts, loading: externalLoading }: BlogPostManagerProps) {
+  const [posts, setPosts] = useState<BlogPost[]>(externalPosts || []);
+  const [loading, setLoading] = useState(externalLoading || false);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -32,6 +34,21 @@ export default function BlogPostManager({ onEdit, onGenerate, onRefresh }: BlogP
     }, 500);
     return () => clearTimeout(handler);
   }, [searchTerm]);
+
+  // Sync with external posts when provided
+  useEffect(() => {
+    if (externalPosts) {
+      setPosts(externalPosts);
+      setTotal(externalPosts.length);
+    }
+  }, [externalPosts]);
+
+  // Sync loading state with external
+  useEffect(() => {
+    if (externalLoading !== undefined) {
+      setLoading(externalLoading);
+    }
+  }, [externalLoading]);
 
   async function loadPosts() {
     try {
@@ -62,6 +79,7 @@ export default function BlogPostManager({ onEdit, onGenerate, onRefresh }: BlogP
       setDeleting(id);
       await deleteBlogPost(id);
       await loadPosts();
+      onRefresh(); // Notify parent to refresh
     } catch (err) {
       console.error('Failed to delete post:', err);
       alert('Failed to delete blog post. Please try again.');

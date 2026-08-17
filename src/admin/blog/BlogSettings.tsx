@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Settings, Save, Zap } from 'lucide-react';
+import { Save, Zap } from 'lucide-react';
 
 interface BlogSettingsProps {
   onSave?: (settings: BlogSettingsState) => void;
@@ -56,7 +56,7 @@ export default function BlogSettings({ onSave }: BlogSettingsProps) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-key': process.env.ADMIN_API_KEY || '',
+          'x-admin-key': import.meta.env.VITE_ADMIN_API_KEY || '',
         },
         body: JSON.stringify({}),
       });

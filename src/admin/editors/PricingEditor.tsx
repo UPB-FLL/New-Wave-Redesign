@@ -197,7 +197,7 @@ export default function PricingEditor() {
   if (!loaded) return <div className="text-white/50">Loading...</div>;
 
   return (
-    <SectionEditor title="Pricing Section" description="Manage pricing plans and page header text">
+    <SectionEditor title="Pricing Section" description="Manage pricing plans and page header text" onSave={handleSave}>
       <FormSection title="Page Header" subtitle="The headline and subheading displayed at the top of the pricing page">
         <EditorField label="Section Label" value={content.section_label || ''} onChange={(v) => set('section_label', v)} hint="E.g. 'Transparent Pricing'" />
         <EditorField label="Headline" value={content.headline || ''} onChange={(v) => set('headline', v)} hint="Main heading text" />
