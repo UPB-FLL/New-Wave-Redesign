@@ -124,7 +124,6 @@ export default function BlogPostPage() {
 
   return (
     <div className="min-h-screen bg-[var(--nw-cloud-white)]">
-      <Navbar />
       <main className="px-4 pb-20 pt-32 sm:px-6 lg:pt-40">
         <div className="mx-auto max-w-4xl">
           {/* Back button */}
