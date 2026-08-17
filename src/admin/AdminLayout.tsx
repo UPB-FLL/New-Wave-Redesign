@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import {
-  LayoutDashboard, Star, Layers, HelpCircle, Info, Mail, AlignLeft, LogOut, Menu, X, Waves, Search, ShieldCheck, Activity,
+  LayoutDashboard, Star, Layers, HelpCircle, Info, Mail, AlignLeft, LogOut, Menu, X, Waves, Search, ShieldCheck, Activity, FileText,
 } from 'lucide-react';
 import { usePageMeta } from '../lib/usePageMeta';
 
@@ -18,6 +18,7 @@ const navItems = [
   { label: 'Pricing Units', path: '/admin/pricing-units', icon: Layers },
   { label: 'Status Page', path: '/admin/status', icon: Activity },
   { label: 'Footer', path: '/admin/footer', icon: AlignLeft },
+  { label: 'Blog', path: '/admin/unified', icon: FileText },
   { label: 'SEO Portal', path: '/admin/seo', icon: Search },
 ];
 

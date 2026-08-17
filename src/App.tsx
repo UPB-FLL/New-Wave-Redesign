@@ -171,7 +171,8 @@ export default function App() {
             </AdminGuard>
           }
         >
-          <Route index element={<UnifiedAdminDashboard />} />
+          <Route index element={<AdminDashboard />} />
+          <Route path="unified" element={<UnifiedAdminDashboard />} />
           <Route path="legacy" element={<AdminDashboard />} />
           <Route path="hero" element={<HeroEditor />} />
           <Route path="trustbar" element={<TrustBarEditor />} />
