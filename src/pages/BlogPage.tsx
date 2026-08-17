@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { SectionHeading } from '../components/brand/SectionHeading';
 import Footer from '../components/Footer';
-import Navbar from '../components/Navbar';
 import { usePageMeta } from '../lib/usePageMeta';
 import { fetchBlogPosts } from '../lib/blog';
 import type { BlogPost } from '../../types/blog';
@@ -58,8 +57,7 @@ export default function BlogPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[var(--nw-cloud-white)]">
-        <Navbar />
-        <main className="px-4 pb-20 pt-32 sm:px-6 lg:pt-40">
+                <main className="px-4 pb-20 pt-32 sm:px-6 lg:pt-40">
           <div className="mx-auto max-w-7xl">
             <SectionHeading
               as="h1"
@@ -83,8 +81,7 @@ export default function BlogPage() {
   if (error) {
     return (
       <div className="min-h-screen bg-[var(--nw-cloud-white)]">
-        <Navbar />
-        <main className="px-4 pb-20 pt-32 sm:px-6 lg:pt-40">
+                <main className="px-4 pb-20 pt-32 sm:px-6 lg:pt-40">
           <div className="mx-auto max-w-7xl text-center">
             <SectionHeading
               as="h1"
@@ -105,8 +102,7 @@ export default function BlogPage() {
 
   return (
     <div className="min-h-screen bg-[var(--nw-cloud-white)]">
-      <Navbar />
-      <main className="px-4 pb-20 pt-32 sm:px-6 lg:pt-40">
+            <main className="px-4 pb-20 pt-32 sm:px-6 lg:pt-40">
         <div className="mx-auto max-w-7xl">
           <SectionHeading
             as="h1"

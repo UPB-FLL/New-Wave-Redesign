@@ -1,7 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { ArrowLeft, CalendarDays, Clock, Share2, Tag } from 'lucide-react';
-import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { usePageMeta } from '../lib/usePageMeta';
 import { fetchBlogPostBySlug, fetchBlogPosts, estimateReadTime } from '../lib/blog';
@@ -66,7 +65,6 @@ export default function BlogPostPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[var(--nw-cloud-white)]">
-        <Navbar />
         <main className="px-4 pb-20 pt-32 sm:px-6 lg:pt-40">
           <div className="mx-auto max-w-4xl">
             <div className="h-96 bg-gray-200 rounded-lg animate-pulse" />
@@ -89,7 +87,6 @@ export default function BlogPostPage() {
   if (error || !post) {
     return (
       <div className="min-h-screen bg-[var(--nw-cloud-white)]">
-        <Navbar />
         <main className="px-4 pb-20 pt-32 sm:px-6 lg:pt-40">
           <div className="mx-auto max-w-4xl text-center">
             <h1 className="text-2xl font-bold text-[var(--nw-current-navy)]">Blog Post Not Found</h1>
