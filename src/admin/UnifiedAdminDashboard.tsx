@@ -9,6 +9,7 @@ import BlogPostManager from './blog/BlogPostManager';
 import BlogEditor from './blog/BlogEditor';
 import BlogSettings from './blog/BlogSettings';
 import { fetchBlogPosts } from '../lib/blog';
+import { generateBlogPost } from '../lib/blogGeneration';
 import type { BlogPost } from '../../types/blog';
 
 type SectionType = 'hero' | 'services' | 'blog-posts' | 'blog-settings' | string;
@@ -86,26 +87,13 @@ export default function UnifiedAdminDashboard() {
             onEdit={(post) => setEditingPost(post)}
             onGenerate={async () => {
               try {
-                const response = await fetch('/api/blog/generate-post', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'x-admin-key': import.meta.env.VITE_ADMIN_API_KEY || '',
-                  },
-                  body: JSON.stringify({}),
-                });
-
-                if (!response.ok) {
-                  throw new Error('Generation failed');
-                }
-
-                const data = await response.json();
+                const data = await generateBlogPost({});
                 alert(`Blog post generated: "${data.title}"`);
                 // Refresh the blog posts list
                 await loadBlogPosts();
               } catch (err) {
                 console.error('Blog generation failed:', err);
-                alert('Blog generation failed. Please try again.');
+                alert(`Blog generation failed: ${err instanceof Error ? err.message : 'Unknown error'}. Make sure VITE_OPENAI_API_KEY is configured.`);
               }
             }}
             onRefresh={async () => {

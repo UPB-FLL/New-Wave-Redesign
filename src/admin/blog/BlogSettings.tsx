@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Save, Zap } from 'lucide-react';
+import { generateBlogPost } from '../../lib/blogGeneration';
 
 interface BlogSettingsProps {
   onSave?: (settings: BlogSettingsState) => void;
@@ -52,24 +53,11 @@ export default function BlogSettings({ onSave }: BlogSettingsProps) {
 
     setTestGenerating(true);
     try {
-      const response = await fetch('/api/blog/generate-post', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-admin-key': import.meta.env.VITE_ADMIN_API_KEY || '',
-        },
-        body: JSON.stringify({}),
-      });
-
-      if (!response.ok) {
-        throw new Error('Generation failed');
-      }
-
-      const data = await response.json();
+      const data = await generateBlogPost({});
       alert(`Test post generated: "${data.title}"`);
     } catch (err) {
       console.error('Test generation failed:', err);
-      alert('Test generation failed. Check console for details.');
+      alert(`Test generation failed: ${err instanceof Error ? err.message : 'Unknown error'}. Make sure VITE_OPENAI_API_KEY is configured.`);
     } finally {
       setTestGenerating(false);
     }
