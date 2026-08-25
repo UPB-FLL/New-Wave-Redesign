@@ -2,6 +2,24 @@
 
 ## Recent Changes
 
+### Contact Form Spam Prevention (2026-08-25)
+
+Layered, server-enforced screening on `/api/send-contact-email`:
+
+- **Shared checks** (`api/_lib/spam.ts`): stateless HMAC timing token
+  (GET issues it, POST must return it aged 3s–6h; secret is
+  `CONTACT_FORM_TOKEN_SECRET`, falling back to `RESEND_API_KEY`),
+  honeypot field, gibberish-name and message-content heuristics,
+  gmail-alias-collapsing email normalization
+- **Route**: in-memory rate limits (5/10min per IP, 3/hour per mailbox),
+  detected spam gets a fake success response and no email; the
+  `contact_submissions` insert moved server-side (service role)
+- **Contact.tsx**: fetches the token on mount, renders the hidden
+  `company_website` honeypot, no longer inserts into Supabase directly
+- **Migration** `20260825120000` drops the public INSERT policy on
+  `contact_submissions` (apply after deploying the frontend)
+- **Tests**: `src/test/api/` covers the token, heuristics, and route
+
 ### Unified Admin Dashboard (2026-08-16)
 
 Implemented a unified admin dashboard with centralized content management:

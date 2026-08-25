@@ -1,34 +1,38 @@
 import { Resend } from 'resend';
-
-interface ContactFormData {
-  name: string;
-  email: string;
-  phone: string;
-  company: string;
-  message: string;
-}
+import { clientIp, escapeHtml, isValidEmail, methodGuard, rateLimit, readJsonBody, sweepRateLimits } from './_lib/http';
+import { checkContactSpam, issueFormToken, normalizeEmailForKey } from './_lib/spam';
+import { getSupabaseAdmin, isSupabaseConfigured } from './_lib/supabaseAdmin';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-function escapeHtml(unsafe: string): string {
-  return String(unsafe ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
+/** Identical body for real and silently-dropped submissions so bots cannot tell them apart. */
+const SUCCESS_RESPONSE = { success: true, message: 'Contact form submitted successfully' };
 
-function isValidEmail(email: string): boolean {
-  return /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(email);
+function asTrimmedString(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : '';
 }
 
 export default async function handler(req: any, res: any) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+  if (!methodGuard(req, res, ['GET', 'POST'])) return;
+  sweepRateLimits();
+  const ip = clientIp(req);
+
+  // The contact form fetches a timing token here when it mounts and sends it
+  // back with the POST; direct-POST bots never make this round trip.
+  if (req.method === 'GET') {
+    if (!rateLimit(`contact-token:${ip}`, 30, 10 * 60_000)) {
+      return res.status(429).json({ error: 'Too many requests' });
+    }
+    res.setHeader('Cache-Control', 'no-store');
+    return res.status(200).json({ token: issueFormToken() });
   }
 
-  const { name, email, phone, company, message }: ContactFormData = req.body;
+  const body = readJsonBody(req);
+  const name = asTrimmedString(body.name);
+  const email = asTrimmedString(body.email);
+  const phone = asTrimmedString(body.phone);
+  const company = asTrimmedString(body.company);
+  const message = asTrimmedString(body.message);
 
   if (!name || !email || !message) {
     return res.status(400).json({ error: 'Missing required fields' });
@@ -41,6 +45,21 @@ export default async function handler(req: any, res: any) {
   if (message.length > 5000) return res.status(400).json({ error: 'Message too long' });
   if (phone && phone.length > 30) return res.status(400).json({ error: 'Phone number too long' });
   if (company && company.length > 200) return res.status(400).json({ error: 'Company name too long' });
+
+  const rateLimitError = 'Too many messages. Please wait a few minutes and try again, or call us directly.';
+  if (!rateLimit(`contact-ip:${ip}`, 5, 10 * 60_000)) {
+    return res.status(429).json({ error: rateLimitError });
+  }
+  if (!rateLimit(`contact-email:${normalizeEmailForKey(email)}`, 3, 60 * 60_000)) {
+    return res.status(429).json({ error: rateLimitError });
+  }
+
+  // `company_website` is the hidden honeypot field rendered by Contact.tsx.
+  const verdict = checkContactSpam({ name, message, honeypot: body.company_website, token: body.token });
+  if (verdict.spam) {
+    console.warn('Dropped contact submission as spam:', { reasons: verdict.reasons, ip, email });
+    return res.status(200).json(SUCCESS_RESPONSE);
+  }
 
   const safeName = escapeHtml(name);
   const safeEmail = escapeHtml(email);
@@ -83,6 +102,19 @@ export default async function handler(req: any, res: any) {
       return res.status(500).json({ error: 'Failed to send notification email' });
     }
 
+    // Recorded server-side (service role) so screened-out spam never reaches
+    // the table; the browser no longer inserts with the anon key.
+    if (isSupabaseConfigured()) {
+      try {
+        const { error: insertError } = await getSupabaseAdmin()
+          .from('contact_submissions')
+          .insert([{ name, email, phone, company, message }]);
+        if (insertError) console.error('Failed to record contact submission:', insertError);
+      } catch (recordError) {
+        console.error('Failed to record contact submission:', recordError);
+      }
+    }
+
     const safeMessagePreview = safeMessage.substring(0, 200) + (message.length > 200 ? '...' : '');
 
     const userEmailResult = await resend.emails.send({
@@ -121,11 +153,7 @@ export default async function handler(req: any, res: any) {
       console.error('User confirmation email error:', userEmailResult.error);
     }
 
-    return res.status(200).json({
-      success: true,
-      message: 'Contact form submitted successfully',
-      adminEmailId: adminEmailResult.data?.id,
-    });
+    return res.status(200).json(SUCCESS_RESPONSE);
   } catch (error) {
     console.error('Contact form error:', error);
     return res.status(500).json({ error: 'Failed to process contact form' });
