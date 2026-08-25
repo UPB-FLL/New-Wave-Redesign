@@ -1,8 +1,8 @@
 import { Resend } from 'resend';
-import { isGeoBlocked, requestCountry } from './_lib/geo';
-import { clientIp, escapeHtml, isValidEmail, methodGuard, rateLimit, readJsonBody, sweepRateLimits } from './_lib/http';
-import { checkContactSpam, issueFormToken, normalizeEmailForKey } from './_lib/spam';
-import { getSupabaseAdmin, isSupabaseConfigured } from './_lib/supabaseAdmin';
+import { isGeoBlocked, requestCountry } from './_lib/geo.js';
+import { clientIp, escapeHtml, isValidEmail, methodGuard, rateLimit, readJsonBody, sweepRateLimits } from './_lib/http.js';
+import { checkContactSpam, issueFormToken, normalizeEmailForKey } from './_lib/spam.js';
+import { getSupabaseAdmin, isSupabaseConfigured } from './_lib/supabaseAdmin.js';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 

@@ -1,7 +1,7 @@
 import { Resend } from 'resend';
-import { isGeoBlocked, requestCountry } from './_lib/geo';
-import { clientIp, escapeHtml, isValidEmail, methodGuard, rateLimit, readJsonBody, sweepRateLimits } from './_lib/http';
-import { normalizeEmailForKey } from './_lib/spam';
+import { isGeoBlocked, requestCountry } from './_lib/geo.js';
+import { clientIp, escapeHtml, isValidEmail, methodGuard, rateLimit, readJsonBody, sweepRateLimits } from './_lib/http.js';
+import { normalizeEmailForKey } from './_lib/spam.js';
 
 interface SupportTicketData {
   name: string;
