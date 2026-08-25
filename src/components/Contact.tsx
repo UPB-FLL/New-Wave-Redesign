@@ -1,6 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CheckCircle, Mail, MapPin, Phone, Send } from 'lucide-react';
-import { supabase } from '../lib/supabase';
 import { useContent } from '../lib/useContent';
 import { FadeIn } from './ui/fade-in';
 
@@ -10,9 +9,37 @@ interface FormData {
   phone: string;
   company: string;
   message: string;
+  /** Honeypot — hidden from people, so any value means a bot filled the form. */
+  company_website: string;
 }
 
-const initialForm: FormData = { name: '', email: '', phone: '', company: '', message: '' };
+const initialForm: FormData = { name: '', email: '', phone: '', company: '', message: '', company_website: '' };
+
+const CONTACT_ENDPOINT = '/api/send-contact-email';
+/** Refresh threshold, safely under the server's six-hour token expiry. */
+const TOKEN_REFRESH_AGE_MS = 5 * 60 * 60 * 1000;
+/** Slightly over the server's minimum token age to absorb network latency. */
+const TOKEN_MIN_AGE_MS = 3_500;
+
+interface SpamToken {
+  token: string;
+  /** Local receipt time — ages are measured against this, never the token's own
+   *  server timestamp, so a wrong client clock cannot skew them. */
+  receivedAt: number;
+}
+
+async function fetchSpamToken(): Promise<SpamToken | null> {
+  try {
+    const response = await fetch(CONTACT_ENDPOINT, { cache: 'no-store' });
+    if (!response.ok) return null;
+    const data = await response.json();
+    return typeof data?.token === 'string' ? { token: data.token, receivedAt: Date.now() } : null;
+  } catch {
+    return null;
+  }
+}
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export default function Contact({ headlineAs: HeadlineTag = 'h2' }: { headlineAs?: 'h1' | 'h2' } = {}) {
   const content = useContent('contact');
@@ -20,6 +47,32 @@ export default function Contact({ headlineAs: HeadlineTag = 'h2' }: { headlineAs
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const spamTokenRef = useRef<SpamToken | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchSpamToken().then((fetched) => {
+      if (!cancelled && fetched) spamTokenRef.current = fetched;
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // The server drops submissions whose token is missing or younger than a
+  // human could fill the form in, so top up the age on the rare paths where
+  // the mount-time fetch failed or the tab sat open past the expiry.
+  const ensureSpamToken = async (): Promise<string> => {
+    let current = spamTokenRef.current;
+    if (!current || Date.now() - current.receivedAt > TOKEN_REFRESH_AGE_MS) {
+      current = await fetchSpamToken();
+      spamTokenRef.current = current;
+    }
+    if (!current) return '';
+    const age = Date.now() - current.receivedAt;
+    if (age < TOKEN_MIN_AGE_MS) await sleep(TOKEN_MIN_AGE_MS - age);
+    return current.token;
+  };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm((previous) => ({ ...previous, [event.target.name]: event.target.value }));
@@ -31,19 +84,17 @@ export default function Contact({ headlineAs: HeadlineTag = 'h2' }: { headlineAs
     setError('');
 
     try {
-      const emailResponse = await fetch('/api/send-contact-email', {
+      const token = await ensureSpamToken();
+      const emailResponse = await fetch(CONTACT_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, token }),
       });
 
       if (!emailResponse.ok) {
-        const errorData = await emailResponse.json();
-        throw new Error(errorData.error || 'Failed to send email');
+        const errorData = await emailResponse.json().catch(() => null);
+        throw new Error(errorData?.error || 'Failed to send email');
       }
-
-      const { error: databaseError } = await supabase.from('contact_submissions').insert([form]);
-      if (databaseError) console.error('Database error:', databaseError);
 
       setSubmitted(true);
       setForm(initialForm);
@@ -162,6 +213,20 @@ export default function Contact({ headlineAs: HeadlineTag = 'h2' }: { headlineAs
                     <label htmlFor="contact-company" className="mb-1.5 block text-sm font-medium text-brand-navy">Company name</label>
                     <input id="contact-company" type="text" name="company" value={form.company} onChange={handleChange} placeholder="Acme Corp" className="input-light" />
                   </div>
+                </div>
+
+                {/* Honeypot: parked off-screen and out of the tab order; bots that fill every field give themselves away. */}
+                <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', overflow: 'hidden' }}>
+                  <label htmlFor="contact-company-website">Leave this field empty</label>
+                  <input
+                    id="contact-company-website"
+                    type="text"
+                    name="company_website"
+                    value={form.company_website}
+                    onChange={handleChange}
+                    tabIndex={-1}
+                    autoComplete="off"
+                  />
                 </div>
 
                 <div className="mb-4">
