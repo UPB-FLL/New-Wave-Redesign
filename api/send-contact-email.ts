@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { isGeoBlocked, requestCountry } from './_lib/geo';
 import { clientIp, escapeHtml, isValidEmail, methodGuard, rateLimit, readJsonBody, sweepRateLimits } from './_lib/http';
 import { checkContactSpam, issueFormToken, normalizeEmailForKey } from './_lib/spam';
 import { getSupabaseAdmin, isSupabaseConfigured } from './_lib/supabaseAdmin';
@@ -52,6 +53,11 @@ export default async function handler(req: any, res: any) {
   }
   if (!rateLimit(`contact-email:${normalizeEmailForKey(email)}`, 3, 60 * 60_000)) {
     return res.status(429).json({ error: rateLimitError });
+  }
+
+  if (isGeoBlocked(req)) {
+    console.warn('Dropped contact submission from blocked country:', { country: requestCountry(req), ip, email });
+    return res.status(200).json(SUCCESS_RESPONSE);
   }
 
   // `company_website` is the hidden honeypot field rendered by Contact.tsx.
