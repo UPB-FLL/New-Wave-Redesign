@@ -41,8 +41,16 @@ function makeRes(): MockResponse {
   };
 }
 
-function makeReq(method: string, body: unknown, ip: string) {
-  return { method, body, headers: { 'x-forwarded-for': ip }, socket: { remoteAddress: ip } };
+function makeReq(method: string, body: unknown, ip: string, country?: string) {
+  return {
+    method,
+    body,
+    headers: {
+      'x-forwarded-for': ip,
+      ...(country ? { 'x-vercel-ip-country': country } : {}),
+    },
+    socket: { remoteAddress: ip },
+  };
 }
 
 const validToken = () => issueFormToken(Date.now() - TOKEN_MIN_AGE_MS - 5000);
@@ -137,6 +145,18 @@ describe('POST /api/send-contact-email', () => {
 
     expect(res.statusCode).toBe(200);
     expect(sendSpy).not.toHaveBeenCalled();
+  });
+
+  it('silently drops submissions from blocked countries but allows US traffic', async () => {
+    const blocked = makeRes();
+    await handler(makeReq('POST', humanBody({ email: freshEmail() }), freshIp(), 'RU'), blocked);
+    expect(blocked.statusCode).toBe(200);
+    expect(sendSpy).not.toHaveBeenCalled();
+
+    const allowed = makeRes();
+    await handler(makeReq('POST', humanBody({ email: freshEmail() }), freshIp(), 'US'), allowed);
+    expect(allowed.statusCode).toBe(200);
+    expect(sendSpy).toHaveBeenCalledTimes(2);
   });
 
   it('still rejects invalid input with an honest error', async () => {

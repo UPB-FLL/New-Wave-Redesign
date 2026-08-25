@@ -1,4 +1,7 @@
 import { Resend } from 'resend';
+import { isGeoBlocked, requestCountry } from './_lib/geo';
+import { clientIp, escapeHtml, isValidEmail, methodGuard, rateLimit, readJsonBody, sweepRateLimits } from './_lib/http';
+import { normalizeEmailForKey } from './_lib/spam';
 
 interface SupportTicketData {
   name: string;
@@ -9,25 +12,14 @@ interface SupportTicketData {
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-function escapeHtml(unsafe: string): string {
-  return String(unsafe ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
-
-function isValidEmail(email: string): boolean {
-  return /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(email);
-}
+/** Identical body for real and silently-dropped submissions so bots cannot tell them apart. */
+const SUCCESS_RESPONSE = { success: true, message: 'Support ticket submitted successfully' };
 
 export default async function handler(req: any, res: any) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  if (!methodGuard(req, res, ['POST'])) return;
+  sweepRateLimits();
 
-  const { name, email, subject, description }: SupportTicketData = req.body;
+  const { name, email, subject, description }: SupportTicketData = readJsonBody(req) as SupportTicketData;
 
   if (!name || !email || !subject) {
     return res.status(400).json({ error: 'Missing required fields' });
@@ -39,6 +31,20 @@ export default async function handler(req: any, res: any) {
   if (email.length > 254) return res.status(400).json({ error: 'Email too long' });
   if (subject.length > 200) return res.status(400).json({ error: 'Subject too long' });
   if (description && description.length > 5000) return res.status(400).json({ error: 'Description too long' });
+
+  const ip = clientIp(req);
+  const rateLimitError = 'Too many requests. Please wait a few minutes and try again, or call us directly.';
+  if (!rateLimit(`ticket-ip:${ip}`, 5, 10 * 60_000)) {
+    return res.status(429).json({ error: rateLimitError });
+  }
+  if (!rateLimit(`ticket-email:${normalizeEmailForKey(email)}`, 3, 60 * 60_000)) {
+    return res.status(429).json({ error: rateLimitError });
+  }
+
+  if (isGeoBlocked(req)) {
+    console.warn('Dropped support ticket from blocked country:', { country: requestCountry(req), ip, email });
+    return res.status(200).json(SUCCESS_RESPONSE);
+  }
 
   const safeName = escapeHtml(name);
   const safeEmail = escapeHtml(email);
@@ -128,11 +134,7 @@ export default async function handler(req: any, res: any) {
       console.error('Confirmation email error:', confirmationEmailResult.error);
     }
 
-    return res.status(200).json({
-      success: true,
-      message: 'Support ticket submitted successfully',
-      ticketEmailId: ticketEmailResult.data?.id,
-    });
+    return res.status(200).json(SUCCESS_RESPONSE);
   } catch (error) {
     console.error('Support ticket error:', error);
     return res.status(500).json({ error: 'Failed to submit support ticket' });

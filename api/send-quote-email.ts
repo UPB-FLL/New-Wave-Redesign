@@ -1,4 +1,7 @@
 import { Resend } from 'resend';
+import { isGeoBlocked, requestCountry } from './_lib/geo';
+import { clientIp, escapeHtml, isValidEmail, methodGuard, rateLimit, readJsonBody, sweepRateLimits } from './_lib/http';
+import { normalizeEmailForKey } from './_lib/spam';
 
 interface SelectionItem {
   name: string;
@@ -19,18 +22,8 @@ interface QuoteFormData {
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-function escapeHtml(unsafe: string): string {
-  return String(unsafe ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
-
-function isValidEmail(email: string): boolean {
-  return /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(email);
-}
+/** Identical body for real and silently-dropped submissions so bots cannot tell them apart. */
+const SUCCESS_RESPONSE = { success: true, message: 'Quote request submitted successfully' };
 
 function sanitizeNumber(val: unknown): number {
   const n = Number(val);
@@ -38,11 +31,11 @@ function sanitizeNumber(val: unknown): number {
 }
 
 export default async function handler(req: any, res: any) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  if (!methodGuard(req, res, ['POST'])) return;
+  sweepRateLimits();
 
-  const { name, email, phone, company, tier, selections, estimated_total, message }: QuoteFormData = req.body;
+  const { name, email, phone, company, selections, estimated_total, message }: QuoteFormData =
+    readJsonBody(req) as QuoteFormData;
 
   if (!name || !email) {
     return res.status(400).json({ error: 'Missing required fields' });
@@ -56,6 +49,20 @@ export default async function handler(req: any, res: any) {
   if (company && company.length > 200) return res.status(400).json({ error: 'Company name too long' });
   if (message && message.length > 5000) return res.status(400).json({ error: 'Message too long' });
   if (selections && selections.length > 50) return res.status(400).json({ error: 'Too many selections' });
+
+  const ip = clientIp(req);
+  const rateLimitError = 'Too many requests. Please wait a few minutes and try again, or call us directly.';
+  if (!rateLimit(`quote-ip:${ip}`, 5, 10 * 60_000)) {
+    return res.status(429).json({ error: rateLimitError });
+  }
+  if (!rateLimit(`quote-email:${normalizeEmailForKey(email)}`, 3, 60 * 60_000)) {
+    return res.status(429).json({ error: rateLimitError });
+  }
+
+  if (isGeoBlocked(req)) {
+    console.warn('Dropped quote request from blocked country:', { country: requestCountry(req), ip, email });
+    return res.status(200).json(SUCCESS_RESPONSE);
+  }
 
   const safeName = escapeHtml(name);
   const safeEmail = escapeHtml(email);
@@ -205,11 +212,7 @@ export default async function handler(req: any, res: any) {
       console.error('User confirmation email error:', userEmailResult.error);
     }
 
-    return res.status(200).json({
-      success: true,
-      message: 'Quote request submitted successfully',
-      adminEmailId: adminEmailResult.data?.id,
-    });
+    return res.status(200).json(SUCCESS_RESPONSE);
   } catch (error) {
     console.error('Quote request error:', error);
     return res.status(500).json({ error: 'Failed to process quote request' });

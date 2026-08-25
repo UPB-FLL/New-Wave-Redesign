@@ -18,7 +18,14 @@ Layered, server-enforced screening on `/api/send-contact-email`:
   `company_website` honeypot, no longer inserts into Supabase directly
 - **Migration** `20260825120000` drops the public INSERT policy on
   `contact_submissions` (apply after deploying the frontend)
-- **Tests**: `src/test/api/` covers the token, heuristics, and route
+- **Geo gate** (`api/_lib/geo.ts`): non-US traffic (per Vercel's
+  `x-vercel-ip-country` header) is silently dropped on the contact, quote,
+  and support-ticket endpoints; override with `GEO_ALLOWED_COUNTRIES`
+  (comma-separated, `*` disables); fails open off-Vercel
+- **Quote + support-ticket endpoints** also got the IP/mailbox rate limits
+  (no honeypot/token yet — their forms are untouched)
+- **Tests**: `src/test/api/` covers the token, heuristics, geo gate, and
+  all three routes
 
 ### Unified Admin Dashboard (2026-08-16)
 
