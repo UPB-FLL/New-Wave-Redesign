@@ -68,7 +68,7 @@ export default function SupportPage() {
     <div className="flex min-h-screen flex-col" style={{ background: 'var(--nw-cloud-white)' }}>
       <Navbar />
       <main className="flex-1 pt-20">
-        <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+        <div className="relative z-10 mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
           <FadeIn>
             <div className="mb-8 sm:mb-10">
               <p className="nw-kicker">We are on it</p>

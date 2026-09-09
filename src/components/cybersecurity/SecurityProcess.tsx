@@ -10,7 +10,7 @@ const steps: { number: string; icon: LucideIcon; title: string; description: str
 
 export default function SecurityProcess() {
   return (
-    <section className="bg-[var(--nw-pure-white)] py-16 sm:py-20">
+    <section className="relative z-10 bg-[var(--nw-pure-white)] py-16 sm:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
           align="center"

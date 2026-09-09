@@ -81,7 +81,7 @@ export function ServiceCategoryPage({ data }: { data: ServiceCategoryPageData })
       </PublicPageHero>
 
       <main>
-        <section className="bg-[var(--nw-pure-white)] py-16 sm:py-20">
+        <section className="relative z-10 bg-[var(--nw-pure-white)] py-16 sm:py-20">
           <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16 lg:px-8">
             <div>
               <SectionHeading eyebrow={data.name} title="Technology designed around your operation." />
@@ -97,7 +97,7 @@ export function ServiceCategoryPage({ data }: { data: ServiceCategoryPageData })
         </section>
 
         {data.featureCards?.length ? (
-          <section className="bg-[var(--nw-cloud-white)] py-16 sm:py-20">
+          <section className="relative z-10 py-16 sm:py-20">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
               <SectionHeading title={data.featureTitle || `${data.name} capabilities`} description={data.featureDescription} />
               <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">{data.featureCards.map((card) => <DetailCard key={card.title} card={card} />)}</div>
@@ -106,7 +106,7 @@ export function ServiceCategoryPage({ data }: { data: ServiceCategoryPageData })
         ) : null}
 
         {data.sections?.map((section, index) => (
-          <section key={section.title} className={index % 2 ? 'bg-[var(--nw-pure-white)] py-16 sm:py-20' : 'bg-[var(--nw-cloud-white)] py-16 sm:py-20'}>
+          <section key={section.title} className={index % 2 ? 'relative z-10 bg-[var(--nw-pure-white)] py-16 sm:py-20' : 'relative z-10 py-16 sm:py-20'}>
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
               <SectionHeading title={section.title} description={section.description} />
               {section.cards?.length ? <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">{section.cards.map((card) => <DetailCard key={card.title} card={card} />)}</div> : null}
@@ -116,7 +116,7 @@ export function ServiceCategoryPage({ data }: { data: ServiceCategoryPageData })
           </section>
         ))}
 
-        <section className="py-16 sm:py-20" style={{ background: 'var(--nw-deep-current)' }}>
+        <section className="relative z-10 py-16 sm:py-20" style={{ background: 'var(--nw-deep-current)' }}>
           <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
             <p className="nw-kicker text-[var(--nw-signal-cyan)]">New Wave IT</p>
             <h2 className="nw-display mt-3 text-3xl leading-[1.1] text-[var(--nw-cloud-white)] sm:text-4xl">{data.ctaTitle || `Ready to plan your ${data.name.toLowerCase()}?`}</h2>
