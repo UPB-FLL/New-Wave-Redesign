@@ -20,8 +20,8 @@ vi.mock('react-router-dom', async (importOriginal) => {
 
 vi.mock('../lib/useContent', () => ({ useContent: vi.fn() }));
 
-vi.mock('./hero/HeroRibbonField', () => ({
-  HeroRibbonField: ({
+vi.mock('./hero/HeroVideoCollage', () => ({
+  HeroVideoCollage: ({
     disabled,
     onReady,
     onFailure,
@@ -30,10 +30,10 @@ vi.mock('./hero/HeroRibbonField', () => ({
     onReady: () => void;
     onFailure: () => void;
   }) => (disabled ? null : (
-    <div data-testid="hero-ribbon-field-mock">
-      <canvas data-testid="hero-ribbon-canvas" aria-hidden="true" />
-      <button type="button" onClick={onReady}>Signal first WebGL frame</button>
-      <button type="button" onClick={onFailure}>Signal WebGL failure</button>
+    <div data-testid="hero-video-collage-mock">
+      <video data-testid="hero-collage-video" aria-hidden="true" />
+      <button type="button" onClick={onReady}>Signal first video frame</button>
+      <button type="button" onClick={onFailure}>Signal video failure</button>
     </div>
   )),
 }));
@@ -77,18 +77,18 @@ describe('Hero', () => {
     expect(navigate).toHaveBeenNthCalledWith(2, '/support');
   });
 
-  it('layers the fallback, canvas, veil, and foreground content in order', () => {
+  it('layers the fallback, video collage, veil, and foreground content in order', () => {
     renderHero();
 
     const fallback = screen.getByTestId('hero-current-fallback');
-    const ribbonField = screen.getByTestId('hero-ribbon-field-mock');
+    const collage = screen.getByTestId('hero-video-collage-mock');
     const veil = screen.getByTestId('hero-readability-veil');
     const section = screen.getByRole('heading', { level: 1 }).closest('section');
     if (!section) throw new Error('Hero section was not rendered');
 
     expect(section.children).toHaveLength(4);
     expect(section.children[0]).toBe(fallback);
-    expect(section.children[1]).toBe(ribbonField);
+    expect(section.children[1]).toBe(collage);
     expect(section.children[2]).toBe(veil);
     expect(section.children[3]).toHaveClass('relative', 'z-10');
 
@@ -113,25 +113,25 @@ describe('Hero', () => {
     );
   });
 
-  it('keeps the static field visible until WebGL is ready and unmounts a failed canvas', () => {
+  it('keeps the static field visible until a clip plays and unmounts a failed collage', () => {
     const view = renderHero();
 
     const fallback = screen.getByTestId('hero-current-fallback');
     expect(fallback).toHaveClass('opacity-80');
-    fireEvent.click(screen.getByRole('button', { name: 'Signal first WebGL frame' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Signal first video frame' }));
     expect(fallback).toHaveClass('opacity-25');
-    expect(screen.getByTestId('hero-ribbon-canvas')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Signal WebGL failure' }));
+    expect(screen.getByTestId('hero-collage-video')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Signal video failure' }));
     expect(fallback).toHaveClass('opacity-80');
-    expect(screen.queryByTestId('hero-ribbon-field-mock')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('hero-ribbon-canvas')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('hero-video-collage-mock')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('hero-collage-video')).not.toBeInTheDocument();
 
     view.rerender(
       <MemoryRouter>
         <Hero />
       </MemoryRouter>,
     );
-    expect(screen.queryByTestId('hero-ribbon-canvas')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('hero-collage-video')).not.toBeInTheDocument();
   });
 
   it('uses the CMS secondary action to scroll to services or navigate there when unavailable', () => {
@@ -154,10 +154,10 @@ describe('Hero', () => {
     expect(navigate).toHaveBeenCalledWith('/services');
   });
 
-  it('disables the ribbon field and restores the static fallback for reduced motion', () => {
+  it('disables the video collage and restores the static fallback for reduced motion', () => {
     const view = renderHero();
     const fallback = screen.getByTestId('hero-current-fallback');
-    fireEvent.click(screen.getByRole('button', { name: 'Signal first WebGL frame' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Signal first video frame' }));
     expect(fallback).toHaveClass('opacity-25');
 
     reducedMotion.mockReturnValue(true);
@@ -167,7 +167,7 @@ describe('Hero', () => {
       </MemoryRouter>,
     );
 
-    expect(screen.queryByTestId('hero-ribbon-field-mock')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('hero-video-collage-mock')).not.toBeInTheDocument();
     expect(fallback).toHaveClass('opacity-80');
   });
 
