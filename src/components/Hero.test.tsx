@@ -20,8 +20,8 @@ vi.mock('react-router-dom', async (importOriginal) => {
 
 vi.mock('../lib/useContent', () => ({ useContent: vi.fn() }));
 
-vi.mock('./hero/HeroVideoCollage', () => ({
-  HeroVideoCollage: ({
+vi.mock('./hero/HeroVideoRotator', () => ({
+  HeroVideoRotator: ({
     disabled,
     onReady,
     onFailure,
@@ -30,8 +30,8 @@ vi.mock('./hero/HeroVideoCollage', () => ({
     onReady: () => void;
     onFailure: () => void;
   }) => (disabled ? null : (
-    <div data-testid="hero-video-collage-mock">
-      <video data-testid="hero-collage-video" aria-hidden="true" />
+    <div data-testid="hero-video-rotator-mock">
+      <video data-testid="hero-rotator-video" aria-hidden="true" />
       <button type="button" onClick={onReady}>Signal first video frame</button>
       <button type="button" onClick={onFailure}>Signal video failure</button>
     </div>
@@ -77,18 +77,18 @@ describe('Hero', () => {
     expect(navigate).toHaveBeenNthCalledWith(2, '/support');
   });
 
-  it('layers the fallback, video collage, veil, and foreground content in order', () => {
+  it('layers the fallback, rotating video, veil, and foreground content in order', () => {
     renderHero();
 
     const fallback = screen.getByTestId('hero-current-fallback');
-    const collage = screen.getByTestId('hero-video-collage-mock');
+    const rotator = screen.getByTestId('hero-video-rotator-mock');
     const veil = screen.getByTestId('hero-readability-veil');
     const section = screen.getByRole('heading', { level: 1 }).closest('section');
     if (!section) throw new Error('Hero section was not rendered');
 
     expect(section.children).toHaveLength(4);
     expect(section.children[0]).toBe(fallback);
-    expect(section.children[1]).toBe(collage);
+    expect(section.children[1]).toBe(rotator);
     expect(section.children[2]).toBe(veil);
     expect(section.children[3]).toHaveClass('relative', 'z-10');
 
@@ -113,25 +113,25 @@ describe('Hero', () => {
     );
   });
 
-  it('keeps the static field visible until a clip plays and unmounts a failed collage', () => {
+  it('keeps the static field visible until a clip plays and unmounts a failed video', () => {
     const view = renderHero();
 
     const fallback = screen.getByTestId('hero-current-fallback');
     expect(fallback).toHaveClass('opacity-80');
     fireEvent.click(screen.getByRole('button', { name: 'Signal first video frame' }));
     expect(fallback).toHaveClass('opacity-25');
-    expect(screen.getByTestId('hero-collage-video')).toBeInTheDocument();
+    expect(screen.getByTestId('hero-rotator-video')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Signal video failure' }));
     expect(fallback).toHaveClass('opacity-80');
-    expect(screen.queryByTestId('hero-video-collage-mock')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('hero-collage-video')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('hero-video-rotator-mock')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('hero-rotator-video')).not.toBeInTheDocument();
 
     view.rerender(
       <MemoryRouter>
         <Hero />
       </MemoryRouter>,
     );
-    expect(screen.queryByTestId('hero-collage-video')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('hero-rotator-video')).not.toBeInTheDocument();
   });
 
   it('uses the CMS secondary action to scroll to services or navigate there when unavailable', () => {
@@ -154,7 +154,7 @@ describe('Hero', () => {
     expect(navigate).toHaveBeenCalledWith('/services');
   });
 
-  it('disables the video collage and restores the static fallback for reduced motion', () => {
+  it('disables the rotating video and restores the static fallback for reduced motion', () => {
     const view = renderHero();
     const fallback = screen.getByTestId('hero-current-fallback');
     fireEvent.click(screen.getByRole('button', { name: 'Signal first video frame' }));
@@ -167,7 +167,7 @@ describe('Hero', () => {
       </MemoryRouter>,
     );
 
-    expect(screen.queryByTestId('hero-video-collage-mock')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('hero-video-rotator-mock')).not.toBeInTheDocument();
     expect(fallback).toHaveClass('opacity-80');
   });
 
