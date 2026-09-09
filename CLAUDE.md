@@ -2,6 +2,23 @@
 
 ## Recent Changes
 
+### Hero Video Collage (2026-09-09)
+
+The home hero's animated WebGL wave (`HeroRibbonField` / `ribbonScene`) was
+replaced with a collage of muted, looping Pexels clips:
+
+- **Clips** (`src/components/hero/heroCollageClips.ts`): seven curated
+  Pexels videos covering IT services, managed services, and help desk,
+  hotlinked from `videos.pexels.com` at 960px with Pexels poster frames
+- **Component** (`src/components/hero/HeroVideoCollage.tsx`): 6x3 grid
+  (4x3 with the first four clips under 640px), slow drift animation,
+  brand tint, pauses when off-screen or the tab is hidden; reports
+  `onReady` on the first playing
+  clip and `onFailure` if every clip errors or Data Saver is on, so
+  `Hero.tsx` keeps its static `CurrentField` fallback logic unchanged
+- **CSP**: `vercel.json` `media-src` now allows `https://videos.pexels.com`
+- **Tests**: `src/components/hero/HeroVideoCollage.test.tsx`
+
 ### Contact Form Spam Prevention (2026-08-25)
 
 Layered, server-enforced screening on `/api/send-contact-email`:

@@ -32,6 +32,7 @@ export default {
         'slide-up': 'slideUp 0.6s ease-out both',
         'fade-in': 'fadeIn 0.4s ease-out both',
         'ping-slow': 'ping 2.5s cubic-bezier(0, 0, 0.2, 1) infinite',
+        'collage-drift': 'collageDrift 28s ease-in-out infinite alternate',
       },
       keyframes: {
         slideUp: {
@@ -41,6 +42,10 @@ export default {
         fadeIn: {
           from: { opacity: '0' },
           to: { opacity: '1' },
+        },
+        collageDrift: {
+          from: { transform: 'scale(1)' },
+          to: { transform: 'scale(1.08)' },
         },
       },
     },
