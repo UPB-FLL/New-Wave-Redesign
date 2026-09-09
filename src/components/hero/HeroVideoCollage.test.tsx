@@ -101,7 +101,7 @@ describe('HeroVideoCollage', () => {
 
     const grid = tiles[0].parentElement;
     expect(grid?.getAttribute('style')).toContain('repeat(6, minmax(0, 1fr))');
-    expect(screen.getByRole('link', { name: 'Footage via Pexels' })).toHaveAttribute('href', 'https://www.pexels.com');
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 
   it('covers a balanced mix of IT services, managed services, and help desk footage', () => {

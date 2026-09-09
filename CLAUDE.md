@@ -12,8 +12,8 @@ replaced with a collage of muted, looping Pexels clips:
   hotlinked from `videos.pexels.com` at 960px with Pexels poster frames
 - **Component** (`src/components/hero/HeroVideoCollage.tsx`): 6x3 grid
   (4x3 with the first four clips under 640px), slow drift animation,
-  brand tint, pauses when off-screen or the tab is hidden, and a
-  "Footage via Pexels" credit; reports `onReady` on the first playing
+  brand tint, pauses when off-screen or the tab is hidden; reports
+  `onReady` on the first playing
   clip and `onFailure` if every clip errors or Data Saver is on, so
   `Hero.tsx` keeps its static `CurrentField` fallback logic unchanged
 - **CSP**: `vercel.json` `media-src` now allows `https://videos.pexels.com`

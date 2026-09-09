@@ -2,7 +2,7 @@
  * Curated Pexels clips for the hero collage.
  *
  * Every clip is free to use under the Pexels license (no attribution
- * required, but we credit Pexels in the hero). The `src` URLs are the
+ * required). The `src` URLs are the
  * 960px-wide renditions served from Pexels' CDN, which is the largest any
  * collage tile is displayed at. `poster` is the clip's still frame so the
  * collage has an image while the video buffers (or if it never plays).

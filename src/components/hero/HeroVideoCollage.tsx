@@ -168,15 +168,6 @@ export function HeroVideoCollage({
         className="absolute inset-0"
         style={{ background: 'rgba(9,19,29,0.42)' }}
       />
-
-      <a
-        href="https://www.pexels.com"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="nw-meta pointer-events-auto absolute bottom-3 right-4 text-[10px] uppercase tracking-wider text-[var(--nw-mist-gray)] opacity-60 transition-opacity hover:opacity-100 focus-visible:opacity-100"
-      >
-        Footage via Pexels
-      </a>
     </div>
   );
 }
