@@ -109,6 +109,17 @@
     font-family: var(--nw-font-technical);
   }
 
+  /* Surfaces are "windows" over the page. The global WaveBackground is a fixed,
+     z-index: 0 overlay, which in paint order sits above non-positioned content,
+     so an unpositioned card would have the wave drawn across it. Lifting every
+     surface into its own layer keeps the wave behind the windows. */
+  .nw-surface,
+  .nw-surface-dark,
+  .nw-panel-muted {
+    position: relative;
+    z-index: 1;
+  }
+
   .nw-surface {
     background: var(--nw-pure-white);
     border: 1px solid var(--nw-mist-gray);
