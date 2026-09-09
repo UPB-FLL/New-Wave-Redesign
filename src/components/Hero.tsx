@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useContent } from '../lib/useContent';
 import { FADE_UP, DURATION, EASE } from '../lib/animation';
 import { CurrentField } from './brand/CurrentField';
-import { HeroVideoCollage } from './hero/HeroVideoCollage';
+import { HeroVideoRotator } from './hero/HeroVideoRotator';
 
 type Stat = { value: string; label: string };
 
@@ -47,16 +47,16 @@ export default function Hero() {
   const content = useContent('hero');
   const navigate = useNavigate();
   const reducedMotion = Boolean(useReducedMotion());
-  const [collageReady, setCollageReady] = useState(false);
-  const [collageFailed, setCollageFailed] = useState(false);
-  const handleCollageReady = useCallback(() => setCollageReady(true), []);
-  const handleCollageFailure = useCallback(() => {
-    setCollageReady(false);
-    setCollageFailed(true);
+  const [videoReady, setVideoReady] = useState(false);
+  const [videoFailed, setVideoFailed] = useState(false);
+  const handleVideoReady = useCallback(() => setVideoReady(true), []);
+  const handleVideoFailure = useCallback(() => {
+    setVideoReady(false);
+    setVideoFailed(true);
   }, []);
 
   useEffect(() => {
-    if (reducedMotion) setCollageReady(false);
+    if (reducedMotion) setVideoReady(false);
   }, [reducedMotion]);
 
   let stats: Stat[] = defaultStats;
@@ -76,7 +76,7 @@ export default function Hero() {
     navigate('/support');
   };
 
-  const fallbackVisible = reducedMotion || collageFailed || !collageReady;
+  const fallbackVisible = reducedMotion || videoFailed || !videoReady;
 
   return (
     <section
@@ -99,10 +99,10 @@ export default function Hero() {
         />
       </div>
 
-      <HeroVideoCollage
-        disabled={reducedMotion || collageFailed}
-        onReady={handleCollageReady}
-        onFailure={handleCollageFailure}
+      <HeroVideoRotator
+        disabled={reducedMotion || videoFailed}
+        onReady={handleVideoReady}
+        onFailure={handleVideoFailure}
       />
 
       <div
