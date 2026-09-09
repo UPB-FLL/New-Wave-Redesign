@@ -109,13 +109,19 @@
     font-family: var(--nw-font-technical);
   }
 
-  /* Surfaces are "windows" over the page. The global WaveBackground is a fixed,
-     z-index: 0 overlay, which in paint order sits above non-positioned content,
-     so an unpositioned card would have the wave drawn across it. Lifting every
-     surface into its own layer keeps the wave behind the windows. */
+  /* Surfaces and buttons are "windows" over the page. The global WaveBackground
+     is a fixed, z-index: 0 overlay, which in paint order sits above
+     non-positioned content, so an unpositioned card would have the wave drawn
+     across it. Lifting each into its own layer keeps the wave behind the
+     windows. Page bands do the same with `relative z-10`; a band painting the
+     page's own base colour drops that background instead, so the wave still
+     shows through it. */
   .nw-surface,
   .nw-surface-dark,
-  .nw-panel-muted {
+  .nw-panel-muted,
+  .btn-primary,
+  .btn-secondary,
+  .btn-dark {
     position: relative;
     z-index: 1;
   }

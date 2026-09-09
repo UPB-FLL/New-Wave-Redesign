@@ -84,7 +84,7 @@ export default function StatusPage() {
           </div>
         </section>
 
-        <section className="py-12 sm:py-16">
+        <section className="relative z-10 py-12 sm:py-16">
           <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
             <StatusGroup title="SaaS services" description="Cloud applications your business relies on" services={saasServices} />
             <StatusGroup title="Internet service providers" description="Major ISPs serving South Florida" services={ispServices} />

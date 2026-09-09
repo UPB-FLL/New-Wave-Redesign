@@ -76,7 +76,7 @@ export default function WhyUs({ headlineAs: Heading = 'h2' }: { headlineAs?: 'h1
   ];
 
   return (
-    <section id="why-us" className="bg-[var(--nw-pure-white)] py-16 sm:py-20">
+    <section id="why-us" className="relative z-10 bg-[var(--nw-pure-white)] py-16 sm:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
           <div>

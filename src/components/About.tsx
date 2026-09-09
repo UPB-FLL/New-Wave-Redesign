@@ -43,7 +43,7 @@ export default function About({ headlineAs: Heading = 'h2' }: { headlineAs?: 'h1
   ];
 
   return (
-    <section id="about" className="bg-[var(--nw-pure-white)] py-16 sm:py-20">
+    <section id="about" className="relative z-10 bg-[var(--nw-pure-white)] py-16 sm:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid items-stretch gap-10 lg:grid-cols-2 lg:gap-16">
           <aside className="relative min-h-[330px] overflow-hidden rounded-lg p-8 sm:p-10" style={{ background: 'var(--nw-deep-current)' }}>
