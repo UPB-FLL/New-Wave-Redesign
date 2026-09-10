@@ -46,7 +46,6 @@ const serviceGroups = [
 ];
 
 const navLinks = [
-  { label: 'Blog', href: '/blog' },
   { label: 'Pricing', href: '/pricing' },
   { label: 'Why Us', href: '/why-us' },
   { label: 'About', href: '/about' },
