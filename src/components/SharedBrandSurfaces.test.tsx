@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import Navbar from './Navbar';
@@ -78,5 +78,29 @@ describe('shared New Wave IT surfaces', () => {
     );
 
     expect(screen.getByRole('button', { name: 'Open navigation menu' }).parentElement).toHaveClass('hidden', 'lg:flex');
+  });
+
+  it('opens a short, unscrolled floating menu with only the essential destinations', () => {
+    render(
+      <MemoryRouter initialEntries={['/pricing']}>
+        <FloatingNav />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Open navigation menu' }));
+
+    const menu = screen.getByRole('navigation', { name: 'Quick navigation' });
+    expect(menu.className).not.toMatch(/overflow|max-h/);
+    expect(within(menu).getAllByRole('button').map((button) => button.textContent)).toEqual([
+      'Home',
+      'Services',
+      'Pricing',
+      'About',
+      'Support',
+      'Contact',
+    ]);
+    expect(within(menu).getByRole('button', { name: 'Pricing' })).toHaveAttribute('aria-current', 'page');
+    expect(within(menu).queryByText('Industry solutions')).not.toBeInTheDocument();
+    expect(within(menu).queryByText('Blog')).not.toBeInTheDocument();
   });
 });

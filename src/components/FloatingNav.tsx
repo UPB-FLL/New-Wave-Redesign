@@ -5,18 +5,10 @@ import { useLocation, useNavigate } from 'react-router-dom';
 const links = [
   { label: 'Home', path: '/' },
   { label: 'Services', path: '/services' },
-  { label: 'Blog', path: '/blog' },
   { label: 'Pricing', path: '/pricing' },
-  { label: 'Cybersecurity', path: '/cybersecurity' },
-  { label: 'Why Us', path: '/why-us' },
   { label: 'About', path: '/about' },
   { label: 'Support', path: '/support' },
   { label: 'Contact', path: '/contact' },
-  { label: 'Industry solutions', path: '#', disabled: true },
-  { label: 'Family Offices', path: '/service-category/family-offices' },
-  { label: 'Healthcare', path: '/service-category/healthcare' },
-  { label: 'Luxury', path: '/service-category/luxury' },
-  { label: 'Cellular DAS & Public Safety', path: '/service-category/cellular-das-and-public-safety' },
 ];
 
 export default function FloatingNav() {
@@ -34,7 +26,6 @@ export default function FloatingNav() {
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
   const handleNav = (link: (typeof links)[number]) => {
-    if (link.disabled) return;
     setIsOpen(false);
 
     if (link.path === '/' && location.pathname === '/') {
@@ -62,27 +53,31 @@ export default function FloatingNav() {
       ) : null}
 
       {isOpen ? (
-        <div
+        <nav
           id="floating-nav-menu"
-          className="max-h-[60vh] w-56 overflow-y-auto rounded-lg border p-2 shadow-lg"
+          aria-label="Quick navigation"
+          className="w-52 rounded-xl border p-1.5 shadow-xl"
           style={{ background: 'var(--nw-current-navy)', borderColor: 'var(--nw-slate)' }}
         >
-          {links.map((link) => (
-            <button
-              key={link.label}
-              type="button"
-              onClick={() => handleNav(link)}
-              disabled={link.disabled}
-              className={`block w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
-                link.disabled
-                  ? 'cursor-default text-[var(--nw-slate)]'
-                  : 'text-[var(--nw-cloud-white)] hover:bg-[var(--nw-deep-current)] hover:text-[var(--nw-signal-cyan)]'
-              }`}
-            >
-              {link.label}
-            </button>
-          ))}
-        </div>
+          <ul className="flex flex-col gap-0.5">
+            {links.map((link) => (
+              <li key={link.label}>
+                <button
+                  type="button"
+                  onClick={() => handleNav(link)}
+                  aria-current={location.pathname === link.path ? 'page' : undefined}
+                  className={`block w-full rounded-lg px-3.5 py-2.5 text-left text-sm font-medium transition-colors hover:bg-[var(--nw-deep-current)] hover:text-[var(--nw-signal-cyan)] ${
+                    location.pathname === link.path
+                      ? 'bg-[var(--nw-deep-current)] text-[var(--nw-signal-cyan)]'
+                      : 'text-[var(--nw-cloud-white)]'
+                  }`}
+                >
+                  {link.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </nav>
       ) : null}
 
       <button
