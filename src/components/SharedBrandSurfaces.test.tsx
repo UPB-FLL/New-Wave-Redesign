@@ -26,6 +26,8 @@ describe('shared New Wave IT surfaces', () => {
     );
 
     expect(screen.getAllByRole('link', { name: 'Support' }).some((link) => link.getAttribute('href') === '/support')).toBe(true);
+    expect(screen.queryByRole('link', { name: 'Blog' })).not.toBeInTheDocument();
+    expect(screen.queryAllByRole('link').filter((link) => link.getAttribute('href') === '/blog')).toHaveLength(0);
 
     [
       { name: 'Privacy Policy', href: '/privacy-policy' },
