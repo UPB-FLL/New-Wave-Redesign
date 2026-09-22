@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
-import { ArrowRight, Check, ChevronDown } from 'lucide-react';
+import { ArrowRight, Check, ChevronDown, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { DIVISION_CONTACT_PATH } from '../site';
-import type { DivisionFaq, DivisionPageSeo, DivisionPoint } from '../types';
+import { DIVISION_CONTACT_PATH, DIVISION_PRIMARY_CTA } from '../site';
+import type { DivisionFaq, DivisionPageSeo, DivisionPoint, DivisionRoadmapPhase } from '../types';
 import { DivisionCurrents } from './DivisionCurrents';
 
 export function Breadcrumbs({ trail }: { trail: DivisionPageSeo['breadcrumbs'] }) {
@@ -79,7 +79,7 @@ export function DivisionHero({
   );
 }
 
-export function PrimaryCta({ children = 'Scope an assessment' }: { children?: ReactNode }) {
+export function PrimaryCta({ children = DIVISION_PRIMARY_CTA }: { children?: ReactNode }) {
   return (
     <Link to={DIVISION_CONTACT_PATH} className="nwse-btn nwse-btn-amber">
       {children}
@@ -141,6 +141,44 @@ export function StepList({ steps }: { steps: readonly DivisionPoint[] }) {
           <p className="nwse-label">Step {String(index + 1).padStart(2, '0')}</p>
           <h3 className="mt-3 text-lg font-bold text-[var(--nw-current-navy)]">{step.title}</h3>
           <p className="mt-2 text-sm leading-relaxed text-[var(--nw-slate)]">{step.detail}</p>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+/** The customer journey the work is mapped against, as one ordered strip. */
+export function JourneyStrip({ stages }: { stages: readonly string[] }) {
+  return (
+    <ol className="mt-8 flex flex-wrap items-center gap-2" aria-label="Customer journey">
+      {stages.map((stage, index) => (
+        <li key={stage} className="flex items-center gap-2">
+          <span className="nwse-label rounded-md border px-3 py-1.5" style={{ borderColor: 'var(--nw-mist-gray)', background: 'var(--nw-pure-white)' }}>
+            <span className="text-[var(--nwse-lure-amber-deep)]">{String(index + 1).padStart(2, '0')}</span> {stage}
+          </span>
+          {index < stages.length - 1 ? <ChevronRight size={14} aria-hidden="true" className="text-[var(--nw-slate)]" /> : null}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+/** Three-phase roadmap: foundation, demand, engine. */
+export function RoadmapGrid({ phases }: { phases: readonly DivisionRoadmapPhase[] }) {
+  return (
+    <ol className="mt-10 grid gap-4 md:grid-cols-3">
+      {phases.map((phase) => (
+        <li key={phase.phase} className="nwse-card p-6">
+          <p className="nwse-label">{phase.phase}</p>
+          <h3 className="mt-3 text-xl font-bold text-[var(--nw-current-navy)]">{phase.title}</h3>
+          <ul className="mt-4 flex flex-col gap-2 border-t pt-4" style={{ borderColor: 'var(--nw-mist-gray)' }}>
+            {phase.items.map((item) => (
+              <li key={item} className="flex items-center gap-2 text-sm text-[var(--nw-current-navy)]">
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: 'var(--nwse-lure-amber)' }} aria-hidden="true" />
+                {item}
+              </li>
+            ))}
+          </ul>
         </li>
       ))}
     </ol>

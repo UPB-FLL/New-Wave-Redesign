@@ -7,7 +7,7 @@ import SocialEngineeringHubPage from './pages/SocialEngineeringHubPage';
 import SocialEngineeringServicePage from './pages/SocialEngineeringServicePage';
 import { DIVISION_JSONLD_ELEMENT_ID } from './prerender';
 import { DivisionHeader } from './components/DivisionHeader';
-import { DIVISION_ASSETS, DIVISION_NAME, SITE_URL, divisionServicePath } from './site';
+import { DIVISION_ASSETS, DIVISION_NAME, DIVISION_PRIMARY_CTA, SITE_URL, divisionServicePath } from './site';
 
 vi.mock('../../lib/useContent', () => ({ useContent: vi.fn(() => ({})) }));
 
@@ -137,6 +137,26 @@ describe('SocialEngineeringServicePage', () => {
   });
 });
 
+describe('division positioning', () => {
+  // The division's first launch described security testing; it is a social
+  // media, brand, web, and marketing division. Keep that copy from creeping back.
+  const SECURITY_WORDING = /phishing|vishing|pretext|penetration|red team|security awareness|human risk|human-risk/i;
+
+  const pages: [string, React.ReactElement][] = [
+    ['hub', <SocialEngineeringHubPage />],
+    ...divisionServices.map((service): [string, React.ReactElement] => [service.slug, <SocialEngineeringServicePage slug={service.slug} />]),
+    ['contact', <SocialEngineeringContactPage />],
+  ];
+
+  it.each(pages)('%s never describes security testing', (_name, page) => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ token: '1.test' }), { status: 200 })));
+    renderAt(page);
+    expect(document.body.textContent ?? '').not.toMatch(SECURITY_WORDING);
+    expect(document.title).not.toMatch(SECURITY_WORDING);
+    expect(document.head.querySelector('meta[name="description"]')?.getAttribute('content') ?? '').not.toMatch(SECURITY_WORDING);
+  });
+});
+
 describe('SocialEngineeringContactPage', () => {
   it('tags submissions as division leads', async () => {
     let now = 1_000_000;
@@ -156,7 +176,7 @@ describe('SocialEngineeringContactPage', () => {
     now += 60_000; // the token is comfortably past its minimum age
     fireEvent.change(screen.getByLabelText(/Full name/), { target: { value: 'Jane Doe' } });
     fireEvent.change(screen.getByLabelText(/Email address/), { target: { value: 'jane@example.com' } });
-    fireEvent.change(screen.getByLabelText(/How can we help/), { target: { value: 'We want a phishing baseline.' } });
+    fireEvent.change(screen.getByLabelText(/How can we help/), { target: { value: 'We need a new website and a social media plan.' } });
     fireEvent.click(screen.getByRole('button', { name: /Send message/ }));
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
@@ -170,7 +190,7 @@ describe('SocialEngineeringContactPage', () => {
 });
 
 describe('DivisionHeader menus', () => {
-  const openMenu = () => screen.queryByRole('link', { name: 'Phishing simulation' });
+  const openMenu = () => screen.queryByRole('link', { name: divisionServices[0].navLabel });
 
   it('toggles Services on click/tap and ignores emulated (non-mouse) hover', () => {
     renderAt(<DivisionHeader />);
@@ -200,7 +220,7 @@ describe('DivisionHeader menus', () => {
     renderAt(<DivisionHeader />);
     const services = screen.getByRole('button', { name: /Services/ });
     fireEvent.click(services);
-    fireEvent.blur(services, { relatedTarget: screen.getByRole('link', { name: 'Scope an assessment' }) });
+    fireEvent.blur(services, { relatedTarget: screen.getByRole('link', { name: DIVISION_PRIMARY_CTA }) });
     expect(openMenu()).toBeNull();
   });
 

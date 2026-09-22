@@ -5,7 +5,14 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { allDivisionPages } from '../../divisions/socialEngineering/seo';
-import { DIVISION_PUBLISHED, SITE_URL } from '../../divisions/socialEngineering/site';
+import {
+  DIVISION_BASE_PATH,
+  DIVISION_PUBLISHED,
+  DIVISION_SERVICE_SLUGS,
+  RETIRED_SERVICE_SLUGS,
+  SITE_URL,
+  divisionServicePath,
+} from '../../divisions/socialEngineering/site';
 import { prerenderedItRoutes } from '../../lib/routeMeta';
 
 const root = path.resolve(__dirname, '../../..');
@@ -56,7 +63,10 @@ describe('division visibility', () => {
   it(DIVISION_PUBLISHED ? 'publishes the division (no redirect away)' : 'temporarily redirects every division URL to the home page', () => {
     const redirects = (config.redirects ?? []).filter((rule) => rule.source.startsWith('/social-engineering'));
     if (DIVISION_PUBLISHED) {
-      expect(redirects.filter((rule) => rule.destination === '/')).toHaveLength(0);
+      // Only the retired first-launch service URLs redirect, permanently, to the hub.
+      expect(redirects).toEqual(
+        RETIRED_SERVICE_SLUGS.map((slug) => ({ source: divisionServicePath(slug), destination: DIVISION_BASE_PATH, permanent: true })),
+      );
     } else {
       expect(redirects).toEqual([
         { source: '/social-engineering', destination: '/', permanent: false },
@@ -64,6 +74,13 @@ describe('division visibility', () => {
       ]);
       expect(read('public/sitemap.xml')).not.toContain('/social-engineering');
     }
+  });
+});
+
+describe('retired division URLs', () => {
+  it('are never reused for a current service', () => {
+    const current: readonly string[] = DIVISION_SERVICE_SLUGS;
+    RETIRED_SERVICE_SLUGS.forEach((slug) => expect(current).not.toContain(slug));
   });
 });
 

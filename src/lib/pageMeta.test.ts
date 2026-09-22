@@ -1,5 +1,7 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE, SITE_URL, headEntries, resolvePageMeta } from './pageMeta';
+import { DEFAULT_DESCRIPTION, DEFAULT_KEYWORDS, DEFAULT_OG_IMAGE, SITE_URL, headEntries, resolvePageMeta } from './pageMeta';
 
 describe('resolvePageMeta', () => {
   it('appends the site name unless the title already carries it or the page opts out', () => {
@@ -18,7 +20,7 @@ describe('resolvePageMeta', () => {
       ogType: 'website',
       siteName: 'New Wave IT',
       robots: 'index, follow',
-      keywords: undefined,
+      keywords: DEFAULT_KEYWORDS,
     });
     expect(resolvePageMeta({ title: 'T', canonical: 'https://x.test/y', noindex: true }, '/ignored')).toMatchObject({
       canonical: 'https://x.test/y',
@@ -28,16 +30,30 @@ describe('resolvePageMeta', () => {
 });
 
 describe('headEntries', () => {
-  it('lists canonical + og:url from one value and only emits keywords when present', () => {
+  it('lists canonical + og:url from one value and always emits keywords, defaulting to the site keywords', () => {
     const entries = headEntries(resolvePageMeta({ title: 'T' }, '/a'));
     expect(entries).toContainEqual({ kind: 'canonical', href: `${SITE_URL}/a` });
     expect(entries).toContainEqual({ kind: 'meta', attr: 'property', key: 'og:url', value: `${SITE_URL}/a` });
-    expect(entries.some((entry) => entry.kind === 'meta' && entry.key === 'keywords')).toBe(false);
+    expect(entries).toContainEqual({ kind: 'meta', attr: 'name', key: 'keywords', value: DEFAULT_KEYWORDS });
+    expect(headEntries(resolvePageMeta({ title: 'T', keywords: '' }, '/a'))).toContainEqual({
+      kind: 'meta',
+      attr: 'name',
+      key: 'keywords',
+      value: DEFAULT_KEYWORDS,
+    });
     expect(headEntries(resolvePageMeta({ title: 'T', keywords: 'a, b' }, '/a'))).toContainEqual({
       kind: 'meta',
       attr: 'name',
       key: 'keywords',
       value: 'a, b',
     });
+  });
+});
+
+describe('DEFAULT_KEYWORDS', () => {
+  it('matches the shell (index.html) keywords, so pages without their own restore the homepage value', () => {
+    const shell = readFileSync(path.resolve(__dirname, '../../index.html'), 'utf8');
+    const doc = new DOMParser().parseFromString(shell, 'text/html');
+    expect(doc.head.querySelector('meta[name="keywords"]')?.getAttribute('content')).toBe(DEFAULT_KEYWORDS);
   });
 });

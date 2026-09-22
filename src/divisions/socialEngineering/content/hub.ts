@@ -1,147 +1,149 @@
 import type { DivisionHubContent } from '../types';
 
 export const hubContent: DivisionHubContent = {
-  metaTitle: 'Social engineering testing | New Wave: Social Engineering',
+  metaTitle: 'Marketing agency in Fort Lauderdale | New Wave: Social Engineering',
   metaDescription:
-    'Social engineering testing in Fort Lauderdale and South Florida: phishing, vishing, and on-site assessments, plus awareness training. Scope a baseline with us.',
+    'Social media, branding, web design, and marketing agency in Fort Lauderdale, serving South Florida businesses as a New Wave IT division. Book a discovery call.',
   keywords:
-    'social engineering testing fort lauderdale, social engineering assessment south florida, human risk management, human risk assessment, social engineering penetration testing, social engineering testing miami, social engineering assessment broward',
-  kicker: 'Social engineering testing in South Florida',
-  headline: 'Your people are the perimeter.',
+    'marketing agency fort lauderdale, social media and web design agency south florida, branding and marketing south florida, digital marketing agency broward county, marketing agency palm beach county, marketing agency miami-dade, social media branding and web design fort lauderdale',
+  kicker: 'Social media, brand, web & marketing in South Florida',
+  headline: 'Growth decisions made on data, not guesswork.',
   summary:
-    'New Wave: Social Engineering is the human-risk division of New Wave IT. We provide social engineering testing and training for organizations across Fort Lauderdale and South Florida: phishing simulation, voice phishing and pretext calls, on-site assessments, and security awareness training that sticks.',
-  problem: {
-    heading: 'Attackers go around the firewall',
+    'New Wave: Social Engineering is a social media, branding, web design, and marketing agency in Fort Lauderdale, and a division of New Wave IT. We handle social media, brand development, website design, and marketing, connect the tools you already use into one path to booking, and oversee your whole digital presence as one accountable team.',
+  intro: {
+    heading: 'The business is built. The front door online isn’t.',
     paragraphs: [
-      'Firewalls, mail filters, and endpoint tools make direct break-ins harder. So attackers take the easier route. They persuade someone inside to open the door for them: a convincing email, a calm call from “the bank,” or a stranger with a coffee tray at the side entrance.',
-      'None of that needs malware. It needs a person who is busy, helpful, and trying to do the right thing. That’s why technical controls alone can’t close the gap, and why blaming staff after the fact doesn’t either.',
-      'People aren’t the weakest link. They’re the perimeter. A good lure looks almost exactly like normal work: three currents, and one is a hook. Our work is teaching people to spot the one current that isn’t like the rest.',
+      'You’ve built something real: a place people visit, a service people rely on, a product people come back for. Online, though, that business is often spread across a website, a few listings, social accounts, a booking tool, and an inbox, each set up at a different time by a different person.',
+      'Customers feel the gaps. They find you on Instagram, land on a page that doesn’t match, call to ask something the website should have answered, and sometimes give up before they book. Every post, ad, and listing should land somewhere that can take a booking.',
+      'The goal isn’t necessarily to replace the systems already working. It’s to connect them through a clearer customer experience: one path from discovery to booking, with one team accountable for all of it.',
     ],
   },
-  approach: [
+  method: [
     {
-      title: 'Test like an attacker',
+      title: 'Discover',
       detail:
-        'We use the pretexts real attackers use, by email, by phone, and at the front door. Every test runs inside a scope and rules of engagement you approve in writing.',
+        'Before we recommend anything, we get to understand the business, its goals, and the digital environment it runs on today.',
     },
     {
-      title: 'Train in the moment',
+      title: 'Prioritize',
       detail:
-        'When a simulated lure works on someone, they get a short, private explanation of what they missed and what to look for next time. Training is brief, specific to your business, and never used to shame anyone.',
+        'We identify the highest-value opportunities, the changes most likely to move bookings and revenue, and put them in order.',
     },
     {
-      title: 'Measure what changes',
-      detail:
-        'We track behavior over time, not one-off scores: who reports, how quickly, and whether the same lures keep working on the same people. You see what improved and what to fix next.',
+      title: 'Build',
+      detail: 'We create the roadmap and execute what makes sense, starting with the foundation and building from there.',
     },
   ],
-  process: [
+  dataWeGather: [
     {
-      title: 'Authorize and scope',
+      title: 'Touchpoint audit',
       detail:
-        'We agree on goals, channels, targets, and rules of engagement with your leadership, and get authorization in writing before anything starts. Off-limits people, topics, and hours are written down too.',
+        'We review every public touchpoint: the website, listings, booking and registration portals, apps, social accounts, and the paths phone and email inquiries take. The result is a clear picture of what customers see today and where it breaks down.',
     },
     {
-      title: 'Run a baseline',
+      title: 'Customer journey',
       detail:
-        'An initial round of phishing and phone tests, plus on-site visits where they’re in scope, shows how your organization responds today, before any new training.',
+        'We map how people discover the business, understand what it offers, book, attend, return, and refer others. Each stage shows where people drop off and what would move them forward.',
     },
     {
-      title: 'Coach and train',
+      title: 'Audience funnels',
       detail:
-        'People who click a simulated lure get an immediate, private explanation; after phone and on-site tests, the people involved get a private debrief as agreed in your rules of engagement. Everyone gets short training built around the lures that actually worked in your organization.',
+        'Different audiences take different routes, so we map a funnel for each one, from awareness and a first visit through booking, repeat business, and referrals.',
     },
     {
-      title: 'Close the process gaps',
+      title: 'Revenue paths',
       detail:
-        'Many findings aren’t people problems. They’re missing verification steps, unclear escalation paths, or doors that don’t stay shut. We hand technical fixes to your IT team or to New Wave IT.',
+        'We list every way the business earns and how each one is reached online. The aim is one digital destination with multiple revenue paths, not a separate front door for each.',
     },
     {
-      title: 'Re-test and report',
+      title: 'Discovery questions',
       detail:
-        'Where re-testing is in scope, we test again to confirm what changed, then deliver an executive report with trends, findings, and a prioritized plan for the next cycle.',
+        'We ask where you want to be in 12 months, which revenue areas have the most room to grow, how leads come in and get handled, what content already exists, and what you spend on ads today. We also ask who owns the brand, website, and social accounts now, and where the gaps are.',
+    },
+  ],
+  journey: ['Discover', 'Understand', 'Book', 'Attend', 'Return', 'Refer'],
+  roadmap: [
+    {
+      phase: 'Phase 01',
+      title: 'Digital foundation',
+      items: ['Website', 'Digital architecture', 'SEO', 'Google Business Profile', 'Analytics', 'Conversion paths'],
+    },
+    {
+      phase: 'Phase 02',
+      title: 'Demand generation',
+      items: ['Social content', 'Video', 'Paid campaigns', 'Promotions', 'Event marketing', 'Lead management'],
+    },
+    {
+      phase: 'Phase 03',
+      title: 'Marketing engine',
+      items: [
+        'Paid social & search',
+        'Email & SMS',
+        'Ongoing promotions',
+        'Group & corporate leads',
+        'Local partnerships',
+        'Monthly reporting',
+      ],
     },
   ],
   metrics: [
     {
-      title: 'Click rate',
-      detail: 'The share of simulated phishing messages that led someone to click a link or open an attachment.',
+      title: 'Bookings and inquiries',
+      detail: 'The actions that bring in revenue, such as bookings, registrations, calls, and form inquiries, tracked by source.',
     },
     {
-      title: 'Report rate',
-      detail: 'The share of people who flagged a simulated lure through your reporting channel, the behavior we most want to grow.',
+      title: 'Cost per lead',
+      detail: 'What each inquiry or booking costs across paid channels, so budget goes where it earns.',
     },
     {
-      title: 'Time to first report',
-      detail: 'How quickly the first person raised the alarm, which is how fast your team could start containing a real attack.',
+      title: 'Conversion rate',
+      detail: 'How many website visitors go on to book, inquire, or buy, and where the rest leave.',
     },
     {
-      title: 'Repeat-clicker trend',
-      detail: 'Whether the same people click round after round, so coaching goes where it helps most.',
+      title: 'Search visibility',
+      detail: 'How often the business shows up in Google Search and local map results for the searches that matter.',
     },
     {
-      title: 'Verification-procedure adherence',
-      detail: 'How often staff follow callback and verification steps before releasing money, data, or access.',
-    },
-  ],
-  industries: [
-    {
-      title: 'Healthcare practices',
-      detail:
-        'Front desks field calls from “patients,” “insurers,” and “vendors” all day, and the HIPAA Security Rule calls for security awareness training across the workforce.',
-    },
-    {
-      title: 'Family offices and wealth management',
-      detail:
-        'Small, trusted teams that move money are a natural target for wire-transfer requests and principal impersonation, by email and by phone.',
-    },
-    {
-      title: 'Luxury and hospitality',
-      detail:
-        'Guest-facing staff are trained to say yes, which makes reservation pretexts, VIP impersonation, and back-of-house tailgating hard to spot.',
-    },
-    {
-      title: 'Law, accounting, and real estate',
-      detail:
-        'Firms that handle closings, filings, and client funds see invoice fraud, payment-change requests, and fake document-share links dressed up as routine work.',
+      title: 'Engagement that turns into visits',
+      detail: 'Social activity judged by what it leads to, such as profile visits, website clicks, and bookings, not likes alone.',
     },
   ],
   relationship: {
-    heading: 'Part of New Wave IT, open to everyone',
+    heading: 'Part of New Wave IT, open to every business',
     paragraphs: [
-      'NW Social Engineering works as a standalone service. You don’t need to be a New Wave IT client. We work alongside in-house IT teams and other managed service providers, and deliver findings in a format any team can act on.',
-      'For New Wave IT managed clients, testing plugs into the security stack you already have. When an assessment turns up a technical gap, such as a mail filter rule, a help desk password-reset step, or a missing multi-factor prompt, New Wave IT can handle the fix, and we can re-test to confirm it held.',
+      'NW Social Engineering is a division of New Wave IT, the Fort Lauderdale managed IT company. We work with New Wave IT clients and with businesses that have never used New Wave IT, and we can work alongside an existing agency, web host, or in-house team.',
+      'Being part of an IT company helps with the less visible parts of digital work: accounts set up properly with the right access, tracking that is tested before anyone relies on it, and data that moves cleanly between the website, booking tools, and reporting. That makes integration and oversight easier to do well.',
     ],
   },
   faqs: [
     {
-      question: 'What is social engineering testing?',
+      question: 'What does New Wave: Social Engineering do?',
       answer:
-        'Social engineering testing is an authorized simulation of the ways attackers manipulate people instead of breaking technology. It can include phishing emails, pretext phone calls, and on-site attempts to get past a front desk or a locked door. The goal is to show where people and processes can be tricked, then fix it with coaching and better procedures.',
+        'New Wave: Social Engineering is the social media, branding, web design, and marketing division of New Wave IT, based in Fort Lauderdale. We cover six areas: social media, brand development, website design, marketing, integration of the tools you already use, and oversight of your whole digital presence. The goal is one clear path from the moment someone finds you to the moment they book.',
     },
     {
-      question: 'Is social engineering testing legal, and how is it authorized?',
+      question: 'How do we get started?',
       answer:
-        'Authorized testing is an established security practice, and authorization is the part we never skip. Every New Wave: Social Engineering engagement starts with written sign-off from someone with the authority to grant it, plus documented rules of engagement covering scope, channels, timing, and anything off-limits. We never target employees’ personal accounts or their lives outside work, and we avoid any action that could cause real harm.',
+        'Every engagement starts with a discovery call. Before we recommend anything, we want to understand the business: where you want to be in 12 months, how people find and book with you today, and who owns what. From there we review your public touchpoints, prioritize the highest-value opportunities, and build a roadmap.',
     },
     {
-      question: 'Will our employees be embarrassed or punished?',
+      question: 'Do we need to be a New Wave IT client?',
       answer:
-        'Our programs are designed so they aren’t. We agree up front that results are used for coaching, not discipline, and people who click or share during a test get a short, private explanation, never a public callout. Reports focus on trends and process gaps rather than naming individuals.',
+        'No. We work with New Wave IT clients and with businesses that use another IT provider or none at all. We can also work alongside an existing agency, web host, or in-house marketing team, taking on the parts that make sense. If you are a New Wave IT client, we coordinate directly with the team that already supports your technology.',
     },
     {
-      question: 'Do we need to be a New Wave IT client to work with you?',
+      question: 'Who owns our accounts, content, and website?',
       answer:
-        'No. New Wave: Social Engineering works with any organization, including those with in-house IT or another managed service provider. If you are a New Wave IT client, findings can feed straight into technical fixes handled by the same team.',
+        'Your business should own its domain, website, social accounts, Google Business Profile, and ad accounts, and we set things up that way, with our team working through access you control. If ownership is unclear today, such as a page created by a former employee or a domain registered to an old vendor, sorting it out is part of our digital oversight work. Ownership of the content we create is agreed in writing before work begins.',
     },
     {
-      question: 'How often should we run social engineering tests?',
+      question: 'How do you measure and report results?',
       answer:
-        'A steady rhythm works better than a single annual test. We usually recommend phishing simulations throughout the year, with phone and on-site assessments periodically and after big changes like new offices, new staff, or new payment processes. HIPAA and PCI DSS both call for security awareness training, cyber-insurance questionnaires commonly ask about it, and a regular cadence helps you document it.',
+        'We measure against bookings and inquiries, not vanity metrics. Tracking is set up and checked early so each channel can be tied to the actions that matter, such as bookings, calls, form inquiries, and cost per lead. You get a monthly report that shows what moved, what didn’t, and what we plan to do next.',
     },
   ],
   cta: {
-    heading: 'Start with a baseline assessment',
-    body: 'Tell us about your team and we’ll scope a baseline social engineering assessment that shows where you stand today, with written authorization and rules of engagement agreed before anything begins.',
+    heading: 'Start with discovery',
+    body: 'Book a discovery call and tell us where the business is headed, and we’ll look at how customers find you today and where the highest-value opportunities are.',
   },
 };

@@ -2,7 +2,7 @@
 // folder's data modules may import React or touch the DOM: vite.config.ts imports
 // them at build time to prerender each division page's <head>.
 
-export type DivisionServiceIcon = 'mail' | 'phone' | 'building' | 'graduation';
+export type DivisionServiceIcon = 'social' | 'brand' | 'web' | 'marketing' | 'integration' | 'oversight';
 
 export interface DivisionFaq {
   question: string;
@@ -15,13 +15,13 @@ export interface DivisionPoint {
 }
 
 export interface DivisionServiceContent {
-  /** URL segment under /social-engineering, e.g. 'phishing-simulation'. */
+  /** URL segment under /social-engineering, e.g. 'social-media'. */
   slug: string;
   /** Short label for navigation and cards, sentence case. */
   navLabel: string;
   /** Full <title>, including the " | New Wave: Social Engineering" suffix. */
   metaTitle: string;
-  /** Meta description, 150–160 characters. */
+  /** Meta description, 140–160 characters. */
   metaDescription: string;
   /** Comma-separated keywords for meta[name="keywords"]. */
   keywords: string;
@@ -36,31 +36,47 @@ export interface DivisionServiceContent {
   summary: string;
   /** One or two sentences for the hub's service card. */
   cardSummary: string;
-  whatWeTest: DivisionPoint[];
-  howItWorks: DivisionPoint[];
+  /** What the service includes ("What's included"). */
+  scope: DivisionPoint[];
+  /** How the engagement runs for this service. */
+  process: DivisionPoint[];
   deliverables: string[];
-  /** Metric labels a program reports on. Labels only — never invented numbers. */
+  /** Metric labels the work is measured and reported against. Labels only — never invented numbers. */
   metrics: string[];
   faqs: DivisionFaq[];
-  /** Overrides the "What we test" section heading (e.g. for training). */
+  /** Overrides the "What's included" section heading. */
   scopeHeading?: string;
   /** Overrides the closing call-to-action heading. */
   ctaHeading?: string;
+}
+
+export interface DivisionRoadmapPhase {
+  /** e.g. 'Phase 01' */
+  phase: string;
+  title: string;
+  items: string[];
 }
 
 export interface DivisionHubContent {
   metaTitle: string;
   metaDescription: string;
   keywords: string;
+  /** Topic line rendered as the first line of the H1 (carries the page's primary keyword). */
   kicker: string;
-  /** The hub's H1 — the brand line. */
+  /** The brand line, rendered large as the rest of the H1. */
   headline: string;
   summary: string;
-  problem: { heading: string; paragraphs: string[] };
-  approach: DivisionPoint[];
-  process: DivisionPoint[];
+  /** The opportunity: why a business's digital presence needs one owner. */
+  intro: { heading: string; paragraphs: string[] };
+  /** How we work: Discover → Prioritize → Build. */
+  method: DivisionPoint[];
+  /** The data gathered in discovery. */
+  dataWeGather: DivisionPoint[];
+  /** Customer-journey stages the work is mapped against, in order (short labels). */
+  journey: string[];
+  roadmap: DivisionRoadmapPhase[];
+  /** What the work is measured against. Labels + one-line explanation; no numbers. */
   metrics: DivisionPoint[];
-  industries: DivisionPoint[];
   relationship: { heading: string; paragraphs: string[] };
   faqs: DivisionFaq[];
   cta: { heading: string; body: string };
@@ -68,7 +84,7 @@ export interface DivisionHubContent {
 
 /** Everything the prerenderer and the runtime meta hook need for one URL. */
 export interface DivisionPageSeo {
-  /** Absolute path, no trailing slash, e.g. '/social-engineering/phishing-simulation'. */
+  /** Absolute path, no trailing slash, e.g. '/social-engineering/social-media'. */
   path: string;
   title: string;
   description: string;

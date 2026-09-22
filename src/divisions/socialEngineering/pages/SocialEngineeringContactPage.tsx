@@ -22,14 +22,14 @@ export default function SocialEngineeringContactPage() {
         inquiry="social-engineering"
         intro={{
           label: 'New Wave: Social Engineering',
-          headline: 'Tell us what you want tested',
+          headline: 'Tell us about the business',
           subheadline:
-            'Phishing, phone, onsite, or training — or not sure yet. We’ll reply within one business day with next steps.',
+            'Social media, brand, website, marketing, or not sure yet. We’ll reply within one business day to set up a discovery call.',
           messagePlaceholder:
-            'Team size, locations, what you want tested (email, phone, onsite, training), and any compliance or insurance requirements...',
-          phoneNote: 'Talk through scope with our team',
+            'What the business does, where you want to be in 12 months, and what’s in place today (website, social accounts, booking or CRM tools)...',
+          phoneNote: 'Talk through your goals with our team',
           successBody:
-            'Thanks for reaching out. We’ll reply within one business day with next steps for scoping your assessment.',
+            'Thanks for reaching out. We’ll reply within one business day to set up your discovery call.',
         }}
       />
     </DivisionLayout>

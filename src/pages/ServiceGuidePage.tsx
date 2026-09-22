@@ -5,7 +5,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { PublicPageHero } from '../components/brand/PublicPageHero';
 import { SectionHeading } from '../components/brand/SectionHeading';
-import { SERVICE_GUIDE_SUMMARIES, serviceGuideMeta } from '../lib/serviceGuides';
+import { SERVICE_GUIDE_SUMMARIES, serviceGuideMeta, type ServiceGuideSlug } from '../lib/serviceGuides';
 import { usePageMeta } from '../lib/usePageMeta';
 
 interface GuideSection {
@@ -24,7 +24,9 @@ interface ServiceGuide {
   faq: { question: string; answer: string }[];
 }
 
-const guides: Record<string, ServiceGuide> = {
+// Keyed by ServiceGuideSlug so a guide can't exist here without a prerendered
+// summary (and therefore a dist file and rewrite) in serviceGuides.ts.
+const guides: Record<ServiceGuideSlug, ServiceGuide> = {
   'cybersecurity-guide': {
     ...SERVICE_GUIDE_SUMMARIES['cybersecurity-guide'],
     keyBenefits: [
@@ -430,7 +432,7 @@ const guides: Record<string, ServiceGuide> = {
 
 export default function ServiceGuidePage() {
   const { slug } = useParams<{ slug: string }>();
-  const guide = slug ? guides[slug] : null;
+  const guide = slug && Object.prototype.hasOwnProperty.call(guides, slug) ? guides[slug as ServiceGuideSlug] : null;
 
   usePageMeta({
     ...(guide && slug

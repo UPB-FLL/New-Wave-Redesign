@@ -2,7 +2,14 @@ import { useEffect, useRef, useState, type FocusEvent, type PointerEvent } from 
 import { ArrowUpRight, ChevronDown, Menu, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { divisionServices } from '../content';
-import { DIVISION_BASE_PATH, DIVISION_CONTACT_PATH, DIVISION_ENDORSEMENT, PARENT_NAME, divisionServicePath } from '../site';
+import {
+  DIVISION_BASE_PATH,
+  DIVISION_CONTACT_PATH,
+  DIVISION_ENDORSEMENT,
+  DIVISION_PRIMARY_CTA,
+  PARENT_NAME,
+  divisionServicePath,
+} from '../site';
 import { DivisionLogo } from './DivisionLogo';
 import { ServiceIcon } from './ServiceIcon';
 
@@ -147,7 +154,7 @@ export function DivisionHeader() {
             </div>
 
             <Link onClick={closeMenus} to={DIVISION_CONTACT_PATH} className="nwse-btn nwse-btn-amber-deep min-h-10 px-4 py-2 text-sm">
-              Scope an assessment
+              {DIVISION_PRIMARY_CTA}
             </Link>
           </div>
 
@@ -185,7 +192,7 @@ export function DivisionHeader() {
                 ))}
               </ul>
               <Link onClick={closeMenus} to={DIVISION_CONTACT_PATH} className="nwse-btn nwse-btn-amber-deep mt-2 text-sm">
-                Scope an assessment
+                {DIVISION_PRIMARY_CTA}
               </Link>
             </div>
           </div>

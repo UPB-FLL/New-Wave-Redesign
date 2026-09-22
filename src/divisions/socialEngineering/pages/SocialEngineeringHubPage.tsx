@@ -9,15 +9,17 @@ import {
   CtaBand,
   DivisionHero,
   FaqList,
+  JourneyStrip,
   MetricLabels,
   PointGrid,
   PrimaryCta,
+  RoadmapGrid,
   SectionIntro,
   StepList,
 } from '../components/sections';
 import { divisionServices, hubContent } from '../content';
 import { hubPageSeo } from '../seo';
-import { PARENT_NAME, divisionServicePath } from '../site';
+import { DIVISION_DESCRIPTOR, PARENT_NAME, divisionServicePath } from '../site';
 import { useDivisionMeta } from '../useDivisionMeta';
 
 const seo = hubPageSeo();
@@ -45,19 +47,19 @@ export default function SocialEngineeringHubPage() {
         footnote={
           <div className="flex flex-col gap-3">
             <p className="nwse-label" style={{ color: 'var(--nw-mist-gray)' }}>
-              What we measure
+              {DIVISION_DESCRIPTOR}
             </p>
-            <MetricLabels labels={content.metrics.map((metric) => metric.title)} onDark />
+            <MetricLabels labels={divisionServices.map((service) => service.navLabel)} onDark />
           </div>
         }
       />
 
-      <Band tone="white" labelledBy="nwse-problem">
+      <Band tone="white" labelledBy="nwse-intro">
         <div className="grid items-center gap-10 lg:grid-cols-[1.4fr_1fr]">
           <div>
-            <SectionIntro kicker="The hook" title={content.problem.heading} id="nwse-problem" />
+            <SectionIntro kicker="The opportunity" title={content.intro.heading} id="nwse-intro" />
             <div className="mt-6 flex max-w-3xl flex-col gap-4 text-base leading-relaxed text-[var(--nw-slate)]">
-              {content.problem.paragraphs.map((paragraph) => (
+              {content.intro.paragraphs.map((paragraph) => (
                 <p key={paragraph}>{paragraph}</p>
               ))}
             </div>
@@ -71,10 +73,10 @@ export default function SocialEngineeringHubPage() {
       <Band id="services" labelledBy="nwse-services">
         <SectionIntro
           kicker="Services"
-          title="Four ways we test and train your people"
+          title="Social, brand, web, and marketing under one roof"
           id="nwse-services"
         />
-        <ul className="mt-10 grid gap-4 md:grid-cols-2">
+        <ul className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {divisionServices.map((service) => (
             <li key={service.slug}>
               <Link
@@ -103,14 +105,29 @@ export default function SocialEngineeringHubPage() {
         </ul>
       </Band>
 
-      <Band tone="white" labelledBy="nwse-approach">
-        <SectionIntro kicker="Approach" title="Test, teach, measure" id="nwse-approach" />
-        <PointGrid points={content.approach} />
+      <Band tone="white" id="process" labelledBy="nwse-method">
+        <SectionIntro
+          kicker="How we work"
+          title="Discover, prioritize, build"
+          description="Every engagement follows the same three steps, whichever services it includes."
+          id="nwse-method"
+        />
+        <StepList steps={content.method} />
       </Band>
 
-      <Band id="process" labelledBy="nwse-process">
-        <SectionIntro kicker="How an engagement runs" title="From signed authorization to a re-test" id="nwse-process" />
-        <StepList steps={content.process} />
+      <Band labelledBy="nwse-data">
+        <SectionIntro
+          kicker="What we gather"
+          title="Every touchpoint, mapped to the customer journey"
+          id="nwse-data"
+        />
+        <JourneyStrip stages={content.journey} />
+        <PointGrid points={content.dataWeGather} />
+      </Band>
+
+      <Band tone="white" labelledBy="nwse-roadmap">
+        <SectionIntro kicker="The roadmap" title="A practical path forward" id="nwse-roadmap" />
+        <RoadmapGrid phases={content.roadmap} />
       </Band>
 
       <section
@@ -119,9 +136,9 @@ export default function SocialEngineeringHubPage() {
         style={{ background: 'var(--nw-deep-current)' }}
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <p className="nwse-kicker nwse-kicker-on-dark">Reporting</p>
+          <p className="nwse-kicker nwse-kicker-on-dark">What we measure</p>
           <h2 id="nwse-metrics" className="nwse-display mt-3 max-w-3xl text-3xl leading-tight text-[var(--nw-cloud-white)] sm:text-4xl">
-            Numbers that show behavior changing
+            Measured against bookings and inquiries
           </h2>
           <dl className="mt-10 grid gap-x-8 gap-y-6 md:grid-cols-2 lg:grid-cols-3">
             {content.metrics.map((metric) => (
@@ -135,11 +152,6 @@ export default function SocialEngineeringHubPage() {
           </dl>
         </div>
       </section>
-
-      <Band tone="white" labelledBy="nwse-industries">
-        <SectionIntro kicker="Who we work with" title="Built for South Florida organizations" id="nwse-industries" />
-        <PointGrid points={content.industries} columns={2} />
-      </Band>
 
       <Band labelledBy="nwse-family">
         <div className="nwse-card grid gap-8 p-6 sm:p-10 lg:grid-cols-[1fr_1.4fr] lg:items-center">
@@ -162,7 +174,7 @@ export default function SocialEngineeringHubPage() {
       </Band>
 
       <Band tone="white" id="faq" labelledBy="nwse-faq">
-        <SectionIntro kicker="FAQ" title="Questions buyers ask first" id="nwse-faq" />
+        <SectionIntro kicker="FAQ" title="Questions we hear first" id="nwse-faq" />
         <FaqList faqs={content.faqs} />
       </Band>
 

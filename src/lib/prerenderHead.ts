@@ -32,15 +32,21 @@ export const escapeJsonForScript = (json: string) => json.replace(/</g, '\\u003c
 
 const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
+/**
+ * The inside of a tag up to its closing '>': quoted attribute values are
+ * consumed whole, so a '>' inside one (legal HTML) doesn't end the tag.
+ */
+const TAG_BODY = `(?:[^>"']|"[^"]*"|'[^']*')*`;
+
 /** Lookahead requiring attribute `name` to equal `value`, in any position and either quote style. */
 export const hasAttr = (name: string, value: string) =>
-  `(?=[^>]*\\s${name}\\s*=\\s*["']${escapeRegex(value)}["'])`;
+  `(?=${TAG_BODY}?\\s${name}\\s*=\\s*["']${escapeRegex(value)}["'])`;
 
 export const metaTagPattern = (attr: 'name' | 'property', key: string) =>
-  new RegExp(`<meta\\b${hasAttr(attr, key)}[^>]*>`, 'gi');
+  new RegExp(`<meta\\b${hasAttr(attr, key)}${TAG_BODY}>`, 'gi');
 
 export const linkTagPattern = (rel: string, ...extra: [string, string][]) =>
-  new RegExp(`<link\\b${hasAttr('rel', rel)}${extra.map(([n, v]) => hasAttr(n, v)).join('')}[^>]*>`, 'gi');
+  new RegExp(`<link\\b${hasAttr('rel', rel)}${extra.map(([n, v]) => hasAttr(n, v)).join('')}${TAG_BODY}>`, 'gi');
 
 export interface HeadTag {
   label: string;

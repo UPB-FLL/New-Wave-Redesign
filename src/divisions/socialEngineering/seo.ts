@@ -44,7 +44,7 @@ export function divisionOrganizationNode(): JsonLdNode {
     image: absoluteUrl(DIVISION_ASSETS.ogImage),
     slogan: DIVISION_TAGLINE,
     description:
-      'The human-risk division of New Wave IT: phishing simulation, vishing and pretext testing, physical social engineering assessments, and security awareness training.',
+      'The social media, brand development, website design, and marketing division of New Wave IT, serving Fort Lauderdale and South Florida.',
     parentOrganization: {
       '@type': 'Organization',
       '@id': PARENT_ORGANIZATION_ID,
@@ -53,13 +53,13 @@ export function divisionOrganizationNode(): JsonLdNode {
     },
     areaServed: AREA_SERVED,
     knowsAbout: [
-      'Social engineering',
-      'Phishing simulation',
-      'Vishing',
-      'Pretexting',
-      'Physical security testing',
-      'Security awareness training',
-      'Human risk management',
+      'Social media management',
+      'Brand development',
+      'Website design',
+      'Digital marketing',
+      'Marketing technology integration',
+      'Digital presence management',
+      'Local SEO',
     ],
   };
 }

@@ -1,18 +1,22 @@
 import type { DivisionServiceContent } from '../types';
+import { brandDevelopment } from './brand-development';
+import { digitalOversight } from './digital-oversight';
 import { hubContent } from './hub';
-import { phishingSimulation } from './phishing-simulation';
-import { physicalSocialEngineering } from './physical-social-engineering';
-import { securityAwarenessTraining } from './security-awareness-training';
-import { vishingPretextTesting } from './vishing-pretext-testing';
+import { integration } from './integration';
+import { marketing } from './marketing';
+import { socialMedia } from './social-media';
+import { websiteDesign } from './website-design';
 
 export { hubContent };
 
 /** Display order for navigation, the hub's service grid, and the sitemap. */
 export const divisionServices: readonly DivisionServiceContent[] = [
-  phishingSimulation,
-  vishingPretextTesting,
-  physicalSocialEngineering,
-  securityAwarenessTraining,
+  socialMedia,
+  brandDevelopment,
+  websiteDesign,
+  marketing,
+  integration,
+  digitalOversight,
 ];
 
 export function findDivisionService(slug: string | undefined): DivisionServiceContent | undefined {
@@ -20,13 +24,13 @@ export function findDivisionService(slug: string | undefined): DivisionServiceCo
 }
 
 export const contactContent = {
-  metaTitle: 'Contact | New Wave: Social Engineering',
+  metaTitle: 'Book a discovery call | New Wave: Social Engineering',
   metaDescription:
-    'Talk with New Wave: Social Engineering about phishing simulation, vishing tests, onsite assessments, or awareness training for your South Florida team.',
+    'Book a discovery call with New Wave: Social Engineering, the social media, brand, web, and marketing division of New Wave IT in Fort Lauderdale.',
   keywords:
-    'social engineering assessment quote, phishing test quote, security awareness training quote fort lauderdale, contact new wave it',
-  kicker: 'Start a conversation',
-  headline: 'Scope your first assessment',
+    'book a discovery call, marketing agency fort lauderdale contact, social media and web design quote south florida, new wave it',
+  kicker: 'Start with discovery',
+  headline: 'Book a discovery call',
   summary:
-    'Tell us about your team and what worries you most. We’ll come back with a proposed scope, rules of engagement, and a timeline — no obligation.',
+    'Before we recommend anything, we’d like to understand the business: where you want to be in 12 months, how customers find you today, and where the gaps are.',
 } as const;
