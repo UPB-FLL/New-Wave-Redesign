@@ -1,4 +1,3 @@
-import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { DivisionLayout } from '../components/DivisionLayout';
 import { DivisionLogo } from '../components/DivisionLogo';
@@ -18,6 +17,7 @@ import {
   StepList,
 } from '../components/sections';
 import { divisionServices, hubContent } from '../content';
+import { NwseIcon } from '../icons/NwseIcon';
 import { hubPageSeo } from '../seo';
 import { DIVISION_DESCRIPTOR, PARENT_NAME, divisionServicePath } from '../site';
 import { useDivisionMeta } from '../useDivisionMeta';
@@ -46,7 +46,7 @@ export default function SocialEngineeringHubPage() {
         }
         footnote={
           <div className="flex flex-col gap-3">
-            <p className="nwse-label" style={{ color: 'var(--nw-mist-gray)' }}>
+            <p className="nwse-type-label" style={{ color: 'var(--nw-mist-gray)' }}>
               {DIVISION_DESCRIPTOR}
             </p>
             <MetricLabels labels={divisionServices.map((service) => service.navLabel)} onDark />
@@ -58,7 +58,7 @@ export default function SocialEngineeringHubPage() {
         <div className="grid items-center gap-10 lg:grid-cols-[1.4fr_1fr]">
           <div>
             <SectionIntro kicker="The opportunity" title={content.intro.heading} id="nwse-intro" />
-            <div className="mt-6 flex max-w-3xl flex-col gap-4 text-base leading-relaxed text-[var(--nw-slate)]">
+            <div className="nwse-type-body mt-6 flex max-w-3xl flex-col gap-4 text-[var(--nw-slate)]">
               {content.intro.paragraphs.map((paragraph) => (
                 <p key={paragraph}>{paragraph}</p>
               ))}
@@ -87,17 +87,17 @@ export default function SocialEngineeringHubPage() {
                   <span className="nwse-icon h-11 w-11">
                     <ServiceIcon icon={service.icon} size={20} />
                   </span>
-                  <ArrowUpRight
+                  <NwseIcon
+                    name="arrow-up-right"
                     size={18}
-                    aria-hidden="true"
                     className="text-[var(--nw-slate)] transition-colors group-hover:text-[var(--nwse-lure-amber-deep)]"
                   />
                 </div>
-                <h3 className="mt-5 text-xl font-bold text-[var(--nw-current-navy)]">{service.navLabel}</h3>
-                <p className="mt-2 flex-1 text-sm leading-relaxed text-[var(--nw-slate)]">{service.cardSummary}</p>
+                <h3 className="nwse-type-title-1 mt-5 text-[var(--nw-current-navy)]">{service.navLabel}</h3>
+                <p className="nwse-type-body-small mt-2 flex-1 text-[var(--nw-slate)]">{service.cardSummary}</p>
                 <span className="nwse-link mt-5 inline-flex items-center gap-1.5 text-sm">
                   Learn more <span className="sr-only">about {service.navLabel.toLowerCase()}</span>
-                  <ArrowRight size={14} aria-hidden="true" />
+                  <NwseIcon name="arrow-right" size={14} />
                 </span>
               </Link>
             </li>
@@ -136,17 +136,20 @@ export default function SocialEngineeringHubPage() {
         style={{ background: 'var(--nw-deep-current)' }}
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <p className="nwse-kicker nwse-kicker-on-dark">What we measure</p>
-          <h2 id="nwse-metrics" className="nwse-display mt-3 max-w-3xl text-3xl leading-tight text-[var(--nw-cloud-white)] sm:text-4xl">
+          <p className="nwse-type-kicker nwse-kicker-on-dark">What we measure</p>
+          <h2 id="nwse-metrics" className="nwse-type-display-2 mt-3 max-w-3xl text-[var(--nw-cloud-white)]">
             Measured against bookings and inquiries
           </h2>
           <dl className="mt-10 grid gap-x-8 gap-y-6 md:grid-cols-2 lg:grid-cols-3">
             {content.metrics.map((metric) => (
               <div key={metric.title} className="border-t pt-5" style={{ borderColor: 'color-mix(in srgb, var(--nw-slate) 70%, transparent)' }}>
-                <dt className="nwse-label" style={{ color: 'var(--nwse-lure-amber)' }}>
-                  {metric.title}
+                <dt className="flex items-center gap-3">
+                  {metric.icon ? <NwseIcon name={metric.icon} size={24} className="shrink-0 text-[var(--nw-cloud-white)]" /> : null}
+                  <span className="nwse-type-label" style={{ color: 'var(--nwse-lure-amber)' }}>
+                    {metric.title}
+                  </span>
                 </dt>
-                <dd className="mt-2 text-sm leading-relaxed text-[var(--nw-mist-gray)]">{metric.detail}</dd>
+                <dd className="nwse-type-body-small mt-2 text-[var(--nw-mist-gray)]">{metric.detail}</dd>
               </div>
             ))}
           </dl>
@@ -160,14 +163,14 @@ export default function SocialEngineeringHubPage() {
           </div>
           <div>
             <SectionIntro kicker="Part of New Wave IT" title={content.relationship.heading} id="nwse-family" />
-            <div className="mt-5 flex flex-col gap-4 text-base leading-relaxed text-[var(--nw-slate)]">
+            <div className="nwse-type-body mt-5 flex flex-col gap-4 text-[var(--nw-slate)]">
               {content.relationship.paragraphs.map((paragraph) => (
                 <p key={paragraph}>{paragraph}</p>
               ))}
             </div>
             <Link to="/" className="nwse-link mt-6 inline-flex items-center gap-1.5 text-sm">
               Visit {PARENT_NAME}
-              <ArrowUpRight size={14} aria-hidden="true" />
+              <NwseIcon name="arrow-up-right" size={14} />
             </Link>
           </div>
         </div>

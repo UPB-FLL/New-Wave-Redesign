@@ -2,6 +2,8 @@
 // folder's data modules may import React or touch the DOM: vite.config.ts imports
 // them at build time to prerender each division page's <head>.
 
+import type { DivisionIconName } from './icons/iconData';
+
 export type DivisionServiceIcon = 'social' | 'brand' | 'web' | 'marketing' | 'integration' | 'oversight';
 
 export interface DivisionFaq {
@@ -12,6 +14,8 @@ export interface DivisionFaq {
 export interface DivisionPoint {
   title: string;
   detail: string;
+  /** Optional icon from the division set (icons/iconData.ts). */
+  icon?: DivisionIconName;
 }
 
 export interface DivisionServiceContent {
@@ -55,6 +59,8 @@ export interface DivisionRoadmapPhase {
   phase: string;
   title: string;
   items: string[];
+  /** Optional icon from the division set (icons/iconData.ts). */
+  icon?: DivisionIconName;
 }
 
 export interface DivisionHubContent {

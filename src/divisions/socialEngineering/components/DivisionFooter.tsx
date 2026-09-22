@@ -1,8 +1,8 @@
-import { Mail, MapPin, Phone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { NewWaveLogo } from '../../../components/brand/NewWaveLogo';
 import { useContent } from '../../../lib/useContent';
 import { divisionServices } from '../content';
+import { NwseIcon } from '../icons/NwseIcon';
 import {
   DIVISION_BASE_PATH,
   DIVISION_CONTACT_PATH,
@@ -28,8 +28,8 @@ const parentLinks = [
 ];
 
 const linkClass = 'text-sm text-[var(--nw-mist-gray)] transition-colors hover:text-[var(--nwse-lure-amber)]';
-const headingClass = 'nwse-kicker nwse-kicker-on-dark mb-3';
-const listClass = 'flex flex-col gap-2 text-sm leading-5';
+const headingClass = 'nwse-type-kicker nwse-kicker-on-dark mb-3';
+const listClass = 'flex flex-col gap-2 text-sm';
 
 // The family lockup at the smallest size the guidelines allow: the division's
 // primary lockup at its 160px minimum, the parent scaled by the same factor so
@@ -67,14 +67,14 @@ export function DivisionFooter() {
             <Link to={DIVISION_BASE_PATH} aria-label={`${DIVISION_NAME} home`} className="mt-1 shrink-0">
               <DivisionLogo lockup="primary" ground="dark" width={FOOTER_DIVISION_WIDTH} decorative />
             </Link>
-            <p className="nwse-label mt-1" style={{ color: 'var(--nwse-lure-amber)' }}>
+            <p className="nwse-type-label mt-1" style={{ color: 'var(--nwse-lure-amber)' }}>
               {DIVISION_DESCRIPTOR}
             </p>
           </div>
 
           <div className="col-span-2 lg:col-span-1">
             <h2 className={headingClass}>{DIVISION_SHORT_NAME}</h2>
-            <ul className="flex flex-row flex-wrap gap-x-5 gap-y-2 text-sm leading-5 lg:flex-col lg:gap-2">
+            <ul className="flex flex-row flex-wrap gap-x-5 gap-y-2 text-sm lg:flex-col lg:gap-2">
               <li>
                 <Link to={DIVISION_BASE_PATH} className={linkClass}>
                   Division overview
@@ -118,15 +118,15 @@ export function DivisionFooter() {
             <h2 className={headingClass}>Get in touch</h2>
             <div className="flex flex-row flex-wrap gap-x-5 gap-y-2 text-[var(--nw-mist-gray)] xl:flex-col xl:flex-nowrap">
               <a href={`tel:${phone.replace(/\D/g, '')}`} className="flex items-start gap-2.5 text-sm transition-colors hover:text-[var(--nw-cloud-white)]">
-                <Phone size={16} className="mt-0.5 shrink-0 text-[var(--nwse-lure-amber)]" aria-hidden="true" />
+                <NwseIcon name="phone" size={16} className="mt-0.5 shrink-0 text-[var(--nwse-lure-amber)]" />
                 <span>{phone}</span>
               </a>
               <a href={`mailto:${email}`} className="flex items-start gap-2.5 text-sm transition-colors hover:text-[var(--nw-cloud-white)]">
-                <Mail size={16} className="mt-0.5 shrink-0 text-[var(--nwse-lure-amber)]" aria-hidden="true" />
+                <NwseIcon name="mail" size={16} className="mt-0.5 shrink-0 text-[var(--nwse-lure-amber)]" />
                 <span className="min-w-0 [overflow-wrap:anywhere]">{email}</span>
               </a>
               <div className="flex basis-full items-start gap-2.5 text-sm md:basis-auto">
-                <MapPin size={16} className="mt-0.5 shrink-0 text-[var(--nw-tide-blue)]" aria-hidden="true" />
+                <NwseIcon name="map-pin" size={16} className="mt-0.5 shrink-0 text-[var(--nw-tide-blue)]" />
                 <span>{address}</span>
               </div>
             </div>

@@ -163,3 +163,245 @@ division is a New Wave IT division, not a separate company.
 - The brand guide PDF's positioning page, tagline, and the kit's
   `03_Social/og-image-1200x630.*` still describe security testing. The site
   uses a regenerated OG image; the guide itself needs updating by its owner.
+
+## Typography
+
+The division renders in self-hosted copies of the three brand families, with a
+defined type scale. New Wave IT pages are unchanged: they still load the same
+Google Fonts stylesheet, and their prerendered HTML is byte-identical apart
+from hashed asset names.
+
+### Files
+
+`public/brand/social-engineering/fonts/`: the latin subsets exactly as the
+Google Fonts css2 API serves them (fetched 2026-09-22, unmodified):
+
+| File | Family | Weights | Size |
+|---|---|---|---|
+| `plus-jakarta-sans-latin-var.woff2` | Plus Jakarta Sans v2.071 (gf v12) | 200–800 variable | 27 kB |
+| `inter-latin-var.woff2` | Inter v4.001 (gf v20) | 100–900 variable | 48 kB |
+| `ibm-plex-mono-latin-{400,500,600}.woff2` | IBM Plex Mono v2.3 (gf v20) | 400, 500, 600 static | 15 kB each |
+
+- **Licences**: all three families are SIL OFL 1.1. `OFL-<family>.txt` sits
+  beside each file (from `google/fonts`, `ofl/<family>/OFL.txt`).
+  IBM Plex has the Reserved Font Name "Plex", so don't re-subset or otherwise
+  modify the Plex files yourself. Replace them with Google's builds.
+- **Coverage**: Google's latin block, `U+0000-00FF, U+0131, U+0152-0153,
+  U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F,
+  U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD`. That covers
+  ASCII, curly quotes, en and em dashes, `·`, `•`, `…`, `€`, and `™`, but
+  not `→` (U+2192). Use `<NwseIcon name="arrow-right" />` (see "Icons");
+  the copy has none today.
+
+### How it's wired
+
+- `src/divisions/socialEngineering/type.css` is imported by `DivisionLayout`,
+  so it ships only in the division's lazy chunk. IT pages never download it.
+- Family names are division-only: `'NWSE Display'`, `'NWSE Text'`, and
+  `'NWSE Mono'`. They can never override the parent's Google-hosted
+  `'Inter'` or `'Plus Jakarta Sans'`. These are internal CSS names that
+  readers never see, so the "never NWSE" naming rule, which covers copy, is
+  unaffected.
+- `.nwse-root` redefines `--nw-font-display`, `--nw-font-body`, and
+  `--nw-font-technical`, and re-declares `font-family`. The type classes,
+  Tailwind's `font-display`, and the shared Contact form therefore use the
+  self-hosted files. Nothing is
+  declared on `:root`, `html`, or `body`; `type.test.ts` enforces this.
+- **Metric-matched fallbacks**: `'NWSE Display Fallback'`,
+  `'NWSE Text Fallback'`, and `'NWSE Mono Fallback'` sit next in each stack.
+  They are `local()` Arial and Courier New (or their metric twins Liberation,
+  Arimo, and Cousine) with `size-adjust` and ascent, descent, and line-gap
+  overrides computed the way next/font does. Regular and bold weights get
+  separate values, and the numbers and method are in the `type.css` header.
+  With the web fonts blocked, the hub's hero renders at identical box sizes;
+  measured layout shift on load is 0.
+- **Prerender** (`prerender.ts`, division pages only):
+  - Adds `<link rel="preload" as="font" type="font/woff2" crossorigin>` for
+    the Jakarta and Inter files (`DIVISION_CRITICAL_FONTS`, which must match
+    the `url()`s in `type.css`). Plex Mono loads on demand.
+  - Makes the parent's Google Fonts `<link>` non-blocking with
+    `media="print" onload="this.media='all'"`, plus a `<noscript>` copy of the
+    original. It still loads because a client-side navigation to an IT page
+    needs it. The site CSP already allows both (`script-src 'unsafe-inline'`,
+    `style-src https://fonts.googleapis.com`).
+  - The build throws unless the shell has exactly one Google Fonts stylesheet
+    link without a `media` or `onload` attribute.
+
+### Type scale
+
+The tokens are `--nwse-type-<style>-{family,size,line-height,tracking,weight}`
+on `.nwse-root`, and the classes are `.nwse-type-<style>`. Every division
+heading, hero summary, body paragraph, label, and kicker uses them in place of
+the Tailwind font utilities in the "Replaces" column. Each class reproduces the
+computed style it replaced, so the swap caused no visual jump. Checked on the
+hub, a service page, and the contact page at 390 and 1440px: apart from the
+new icons, the only change is a footer blurb about 2px shorter, because its
+descriptor label now uses the label line height (18px) instead of inheriting
+the paragraph's 1.625 (19.5px).
+
+- Colour stays separate. `.nwse-kicker` (Lure Amber Deep),
+  `.nwse-kicker-on-dark` (Lure Amber), and `.nwse-label` (Tide Blue) in
+  `division.css` now set colour only, so write `nwse-type-kicker nwse-kicker`
+  or `nwse-type-label nwse-label`, or put the colour on the element.
+  `.nwse-display` is gone; use `nwse-type-display-1` or `-2`.
+- Don't stack a Tailwind font utility (`font-medium`, `text-lg`, `leading-*`)
+  on an element that has a type class. `type.css` loads after the IT
+  stylesheet, so the type class wins. Change the token, or leave the element
+  on plain utilities.
+- Deliberately left on Tailwind utilities: nav links, the endorsement-bar link
+  (`text-xs font-medium`, since caption is 400), footer links, FAQ questions,
+  related-service titles, roadmap list items, and buttons.
+- `type.test.ts` fails if a kicker or label class loses its type class, if a
+  division component uses `leading-*` or a `text-lg`-or-larger size, or if
+  `.nwse-display` comes back.
+
+| Class | Family | Size / line height | Weight, tracking | Replaces |
+|---|---|---|---|---|
+| `nwse-type-display-1` | Display | `clamp(2.25rem, 1.59rem + 2.7vw, 3.75rem)`, 1.05 → 1 from 640px | 800, −0.01em | hero H1 `text-4xl leading-[1.05] sm:text-5xl lg:text-6xl` |
+| `nwse-type-display-2` | Display | 30/37.5px → 36/40px from 640px | 800, −0.01em | section H2 `text-3xl leading-tight sm:text-4xl` |
+| `nwse-type-title-1` | Text | 20/28px | 700 | `text-xl font-bold` card H3 |
+| `nwse-type-title-2` | Text | 18/28px | 700 | `text-lg font-bold` card and step H3 |
+| `nwse-type-lead` | Text | 16/26px → 18/28px from 640px | 400 | hero summary `text-base leading-relaxed sm:text-lg` |
+| `nwse-type-body` | Text | 16/26px | 400 | `text-base leading-relaxed` |
+| `nwse-type-body-small` | Text | 14/22.75px | 400 | `text-sm leading-relaxed` |
+| `nwse-type-caption` | Text | 12/16px | 400 | `text-xs` (breadcrumbs) |
+| `nwse-type-label` | Mono, caps | 12/18px | 500, 0.12em | `.nwse-label` |
+| `nwse-type-kicker` | Mono, caps | 12/18px | 600, 0.14em | `.nwse-kicker` type properties; keep `.nwse-kicker` or `.nwse-kicker-on-dark` for the amber |
+| `nwse-type-numeric` | any | — | `tabular-nums` | figures that must align |
+
+- `display-1` is the only fluid style. It matches today's 36px on phones and
+  60px from 1280px; between those it is within about 7px of today's steps.
+- The 640px line heights are what today's pages actually render. Tailwind's
+  `sm:text-*` utilities carry their own line height, which overrides the
+  `leading-*` class. To restore the intended leading (1.05, 1.25, 1.625),
+  change the token in the `@media (min-width: 640px)` block.
+- OpenType features stay at the family defaults. Inter's `cv11`
+  (single-storey a) is deliberately off, and tabular figures appear only in
+  `nwse-type-numeric`.
+
+### Updating the fonts
+
+1. Request
+   `https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200..800&family=Inter:wght@100..900&family=IBM+Plex+Mono:wght@400;500;600&display=swap`
+   with a current Chrome User-Agent and download the `/* latin */` block's
+   files over the old ones, keeping the file names.
+2. Recompute the fallback values if the fonts' metrics changed. Use fonttools
+   to average advance widths weighted by capsize's English "latin" frequency
+   table (`@capsizecss/unpack`), then apply the formulas in the `type.css`
+   header. Arial and Courier New widths can be measured on Liberation Sans and
+   Liberation Mono.
+3. Run `npx vitest run src/divisions/socialEngineering`. `type.test.ts` checks
+   the files, licences, family names, and scoping; `prerender.test.ts` checks
+   the preloads and the deferred Google stylesheet.
+
+## Icons
+
+The division draws with its own 35-icon set. New Wave IT pages keep Lucide.
+
+### Files
+
+- `src/divisions/socialEngineering/icons/iconData.ts`: pure data with no
+  React, so `types.ts` and the content modules can name icons. It exports
+  `DIVISION_ICONS` (name → `{ label, group, paths: { d, accent? }[] }`),
+  `type DivisionIconName`, and `DIVISION_ICON_NAMES` in display order. Groups
+  are `services`, `phases`, `method`, `journey`, `metrics`, and `ui`.
+- `src/divisions/socialEngineering/icons/NwseIcon.tsx`: the component.
+- The same icons ship as SVG files in the brand kit. `iconData.ts` was
+  converted from those files, and the two must stay identical.
+
+### Using `NwseIcon`
+
+```tsx
+<NwseIcon name="service-web" size={20} className="text-[var(--nwse-lure-amber-deep)]" />
+<NwseIcon name="map-pin" title="Service area" /> {/* meaningful: role="img" + <title> */}
+```
+
+- `size` sets the rendered size in px (default 24). The grid is always 24 x 24,
+  with `stroke="currentColor"`, a 1.75 stroke, and round caps and joins. Set the
+  colour with a `text-*` class or an inherited `color`.
+- The accent (the brand wave) is stroked with
+  `var(--nwse-icon-accent, currentColor)`. `.nwse-root` sets
+  `--nwse-icon-accent` to Lure Amber in `division.css`. Pass `accentColor`, or
+  set the variable on a parent, to change it.
+- By default an icon is decorative: `aria-hidden="true"` and
+  `focusable="false"`. Give it a `title` only when the icon itself carries
+  meaning that no nearby text states. It then renders `role="img"`,
+  `aria-labelledby`, and a `<title>`. Icon-only buttons put their name on the
+  button (`aria-label`), as the header menu toggle does.
+- Sizes in use, all the same as the Lucide icons they replaced:
+  - 13: check bullets.
+  - 14: inline link arrows, the endorsement-bar arrow, journey chevrons.
+  - 16: the Services dropdown and its chevron, footer contact rows, the CTA
+    arrow, related-card arrows.
+  - 18: the FAQ chevron, hub service-card arrows, related-service icons, the
+    contact form.
+  - 20: hub service tiles.
+  - 24: menu and close.
+  - 32: contact success.
+
+  The new content icons (steps, phases, metrics) are 24.
+
+### Where the icons appear
+
+| Place | Icons |
+|---|---|
+| Service cards, dropdown, related services (`ServiceIcon`) | `service-*`, mapped from `DivisionServiceIcon` (`social` → `service-social` …) |
+| Hub "How we work" (`StepList`) | `method-*`, via `hubContent.method[].icon`; a 24px icon in a 48px `.nwse-icon` tile beside the step label |
+| Hub roadmap (`RoadmapGrid`) | `phase-*`, via `hubContent.roadmap[].icon`; same tile |
+| Hub "What we measure" | `metric-*`, via `hubContent.metrics[].icon`; 24px, Cloud White with the amber accent, inline with the label |
+| Header, footer, FAQ, CTAs, check lists | `arrow-right`, `arrow-up-right`, `chevron-down`, `chevron-right`, `menu`, `close`, `check`, `phone`, `mail`, `map-pin` |
+| Contact page (shared IT form) | `phone`, `mail`, `map-pin`, `send`, `check-circle`, through `Contact`'s `icons` prop |
+
+- `DivisionPoint.icon` and `DivisionRoadmapPhase.icon` are optional.
+  `StepList` and `RoadmapGrid` show the tile only when an item has one, so the
+  service pages' process steps are unchanged.
+- The journey strip has no icons. At chip size (16px) the ticket and the
+  two-person icons turn muddy and the accent waves shrink to amber specks next
+  to the step numbers. The chips also get wider, so the strip wraps to three
+  rows on a 390px phone, and `journey-discover` is the only journey icon
+  without an accent. The `journey-*` icons remain in the set and the brand kit
+  for larger uses.
+- `components/Contact.tsx` takes an optional
+  `icons?: Partial<Record<'phone' | 'mail' | 'mapPin' | 'send' | 'success', ReactNode>>`.
+  Each slot falls back to the Lucide icon IT pages have always used, so IT
+  pages render exactly as before. `Contact.test.tsx` pins that.
+
+### The accent rule
+
+- Each icon has at most one accent: one or two paths, drawn last, marked
+  `accent: true` (`data-accent="true"` in the SVG). The accent is the brand
+  wave, an S-curve echoing the logo, such as `c2.2-2.4 4.8-2.4 7 0s4.8 2.4 7 0`
+  for a 14-unit run. It is never the logo's hook shape.
+- The accent is decorative. Every icon must still read in one colour.
+- UI arrows, chevrons, close, and check never have an accent. The contact
+  glyphs (`phone`, `mail`, `map-pin`, `send`) don't either.
+- No security metaphors, ever: no locks, shields, hooks, fishing, masks, or
+  hackers. This division is social, brand, web, and marketing work, not
+  security testing.
+
+### Adding an icon
+
+1. Draw it to the spec: one SVG, `viewBox="0 0 24 24"`, root attributes
+   `fill="none" stroke="currentColor" stroke-width="1.75"
+   stroke-linecap="round" stroke-linejoin="round"`, and only `<path d>`
+   elements. That means no circle, rect, or line elements (use arcs), and no
+   transforms, fills, text, masks, or per-path stroke widths. Keep all ink,
+   including the stroke, inside 2–22 on both axes, and leave at least 2 units
+   between parallel strokes. Circles are about 18 across, rounded corners are
+   r2.5, and dots are zero-length segments (`M12 17h.01`).
+2. Check it at 16, 24, and 48px on white and on Deep Current, in full colour
+   and in one colour.
+3. Add the SVG and its manifest entry (name, group, label) to the brand kit.
+4. Add it to `iconData.ts` at its group's position. Each `<path d>` becomes
+   `{ d: '…' }`, and accent paths become `{ d: '…', accent: true }` at the end.
+   Keep the `d` strings exactly as they are in the SVG.
+5. Run `npx vitest run src/divisions/socialEngineering`. `icons.test.ts` checks:
+   - every path parses and stays on the grid;
+   - accents are 1–2 curved paths, drawn last, and absent from UI glyphs;
+   - labels are unique within a group;
+   - names and labels use no security wording;
+   - every icon name used in code or content exists;
+   - no file under `src/divisions` imports `lucide-react`.
+
+   `NwseIcon.test.tsx` covers rendering and accessibility, and
+   `pages.test.tsx` checks the rendered pages.

@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, type FocusEvent, type PointerEvent } from 'react';
-import { ArrowUpRight, ChevronDown, Menu, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { divisionServices } from '../content';
 import {
@@ -10,6 +9,7 @@ import {
   PARENT_NAME,
   divisionServicePath,
 } from '../site';
+import { NwseIcon } from '../icons/NwseIcon';
 import { DivisionLogo } from './DivisionLogo';
 import { ServiceIcon } from './ServiceIcon';
 
@@ -78,7 +78,7 @@ export function DivisionHeader() {
       {/* Endorsement bar: the parent leads, the division follows (guidelines page 10). */}
       <div className="nwse-dark" style={{ background: 'var(--nw-deep-current)' }}>
         <div className="mx-auto flex h-9 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-          <p className="nwse-label truncate" style={{ color: 'var(--nw-mist-gray)' }}>
+          <p className="nwse-type-label truncate" style={{ color: 'var(--nw-mist-gray)' }}>
             {DIVISION_ENDORSEMENT}
           </p>
           <Link
@@ -86,7 +86,7 @@ export function DivisionHeader() {
             className="flex shrink-0 items-center gap-1 text-xs font-medium text-[var(--nw-cloud-white)] transition-colors hover:text-[var(--nwse-lure-amber)]"
           >
             <span className="hidden sm:inline">Managed IT &amp; cybersecurity at</span> {PARENT_NAME}
-            <ArrowUpRight size={14} aria-hidden="true" />
+            <NwseIcon name="arrow-up-right" size={14} />
           </Link>
         </div>
       </div>
@@ -125,9 +125,9 @@ export function DivisionHeader() {
                 aria-controls="nwse-services-menu"
               >
                 Services
-                <ChevronDown
+                <NwseIcon
+                  name="chevron-down"
                   size={16}
-                  aria-hidden="true"
                   className={`transition-transform duration-200 ${servicesOpen ? 'rotate-180' : ''}`}
                 />
               </button>
@@ -167,7 +167,7 @@ export function DivisionHeader() {
             aria-expanded={menuOpen}
             aria-controls="nwse-mobile-menu"
           >
-            {menuOpen ? <X size={24} /> : <Menu size={24} />}
+            <NwseIcon name={menuOpen ? 'close' : 'menu'} size={24} />
           </button>
         </div>
 
@@ -181,7 +181,7 @@ export function DivisionHeader() {
               <Link to={DIVISION_BASE_PATH} onClick={closeMenus} className={navLinkClass}>
                 Overview
               </Link>
-              <p className="nwse-kicker mt-1">Services</p>
+              <p className="nwse-type-kicker nwse-kicker mt-1">Services</p>
               <ul className="flex flex-col gap-2 border-l pl-3" style={{ borderColor: 'var(--nw-mist-gray)' }}>
                 {divisionServices.map((service) => (
                   <li key={service.slug}>

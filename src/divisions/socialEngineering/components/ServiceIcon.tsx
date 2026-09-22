@@ -1,16 +1,16 @@
-import { Megaphone, MonitorSmartphone, Palette, Radar, Share2, Workflow, type LucideProps } from 'lucide-react';
+import { NwseIcon } from '../icons/NwseIcon';
+import type { DivisionIconName } from '../icons/iconData';
 import type { DivisionServiceIcon } from '../types';
 
-const ICONS = {
-  social: Share2,
-  brand: Palette,
-  web: MonitorSmartphone,
-  marketing: Megaphone,
-  integration: Workflow,
-  oversight: Radar,
-} as const;
+const ICONS: Record<DivisionServiceIcon, DivisionIconName> = {
+  social: 'service-social',
+  brand: 'service-brand',
+  web: 'service-web',
+  marketing: 'service-marketing',
+  integration: 'service-integration',
+  oversight: 'service-oversight',
+};
 
-export function ServiceIcon({ icon, ...props }: { icon: DivisionServiceIcon } & LucideProps) {
-  const Icon = ICONS[icon];
-  return <Icon aria-hidden="true" {...props} />;
+export function ServiceIcon({ icon, size, className }: { icon: DivisionServiceIcon; size?: number; className?: string }) {
+  return <NwseIcon name={ICONS[icon]} size={size} className={className} />;
 }

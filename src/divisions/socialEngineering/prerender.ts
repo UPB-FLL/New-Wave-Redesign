@@ -2,8 +2,9 @@
 // description, canonical, and Open Graph/Twitter tags come from the shared
 // applyPageHead() (src/lib/prerenderHead.ts), fed the same options the runtime
 // hook uses; this module adds what is division-specific: favicon and manifest,
-// the division's JSON-LD in place of the parent's, preload links, and a no-JS
-// fallback.
+// the division's JSON-LD in place of the parent's, preload links (page chunks
+// and the self-hosted fonts in type.css), a non-render-blocking copy of the
+// parent's Google Fonts stylesheet, and a no-JS fallback.
 
 import { resolvePageMeta } from '../../lib/pageMeta';
 import {
@@ -30,6 +31,51 @@ const JSON_LD_BLOCK = new RegExp(
   'gi',
 );
 
+/**
+ * The self-hosted files a division page paints its first screen with: the
+ * display (H1) and text faces from type.css. The URLs must match type.css
+ * exactly, or the preload is wasted and the font downloads twice. Plex Mono
+ * (labels) loads on demand.
+ */
+export const DIVISION_CRITICAL_FONTS = [
+  '/brand/social-engineering/fonts/plus-jakarta-sans-latin-var.woff2',
+  '/brand/social-engineering/fonts/inter-latin-var.woff2',
+] as const;
+
+const GOOGLE_FONTS_HREF = /\shref\s*=\s*["']https:\/\/fonts\.googleapis\.com\//i;
+
+/**
+ * Division pages render in the self-hosted NWSE families, so they must not
+ * wait on the parent shell's Google Fonts stylesheet. It still has to load,
+ * because a client-side navigation to a New Wave IT page needs it, so it is
+ * fetched as a print stylesheet (low priority, non-blocking) and switched to
+ * all media once loaded. The CSP allows the inline handler (script-src
+ * 'unsafe-inline') and the stylesheet (style-src fonts.googleapis.com). A
+ * <noscript> copy of the original link covers browsers without JavaScript.
+ * The font preloads go where the link was, early in the head.
+ */
+function deferGoogleFontsStylesheet(html: string): string {
+  const links = (html.match(linkTagPattern('stylesheet')) ?? []).filter((tag) => GOOGLE_FONTS_HREF.test(tag));
+  if (links.length !== 1) {
+    throw new Error(
+      `Prerender: expected exactly one Google Fonts stylesheet link in index.html, found ${links.length}. ` +
+        'Update src/divisions/socialEngineering/prerender.ts to match the new shell.',
+    );
+  }
+  const [link] = links;
+  if (/\s(?:media|onload)\s*=/i.test(link)) {
+    throw new Error(
+      'Prerender: the Google Fonts stylesheet link in index.html already has a media or onload attribute. ' +
+        'Update src/divisions/socialEngineering/prerender.ts to match the new shell.',
+    );
+  }
+  const deferred = link.replace(/\s*\/?>$/, (end) => ` media="print" onload="this.media='all'"${end}`);
+  const preloads = DIVISION_CRITICAL_FONTS.map(
+    (href) => `<link rel="preload" as="font" type="font/woff2" crossorigin href="${href}" />`,
+  );
+  return html.replace(link, () => [...preloads, deferred, `<noscript>${link}</noscript>`].join('\n    '));
+}
+
 export interface RenderOptions {
   /** Extra <head> markup, e.g. modulepreload links for the page's lazy chunks. */
   headExtras?: readonly string[];
@@ -46,6 +92,7 @@ export function renderDivisionPageHtml(shell: string, page: DivisionPageSeo, opt
     { label: 'manifest link', pattern: linkTagPattern('manifest'), tag: `<link rel="manifest" href="${DIVISION_ASSETS.manifest}" />` },
   ];
   for (const icon of icons) html = upsertHeadTag(html, { ...icon, required: false });
+  html = deferGoogleFontsStylesheet(html);
 
   // Every shell JSON-LD block describes the parent; division pages carry their
   // own graph instead, which links back to the parent by @id.

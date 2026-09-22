@@ -14,6 +14,9 @@
 .nwse-root {
   background: var(--nw-cloud-white);
   color: var(--nw-current-navy);
+  /* The brand-wave accent in NwseIcon (icons/NwseIcon.tsx). Base strokes use
+     currentColor; set this on an element to recolour the accent beneath it. */
+  --nwse-icon-accent: var(--nwse-lure-amber);
 }
 
 /* In-page anchors (#services, #faq) land below the fixed header, not under it. */
@@ -21,14 +24,12 @@
   scroll-margin-top: calc(var(--nwse-header-height) + 16px);
 }
 
-/* Plex Mono labels: caps with wide tracking (guidelines page 07). */
+/* Colour roles for the Plex Mono labels. Their type (family, size, weight,
+   tracking, caps) comes from .nwse-type-kicker and .nwse-type-label in
+   type.css, so pair them: "nwse-type-kicker nwse-kicker",
+   "nwse-type-label nwse-label" (guidelines page 07). */
 .nwse-kicker {
   color: var(--nwse-lure-amber-deep);
-  font-family: var(--nw-font-technical);
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
 }
 
 .nwse-kicker-on-dark {
@@ -37,17 +38,6 @@
 
 .nwse-label {
   color: var(--nw-tide-blue);
-  font-family: var(--nw-font-technical);
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.nwse-display {
-  font-family: var(--nw-font-display);
-  font-weight: 800;
-  letter-spacing: -0.01em;
 }
 
 .nwse-btn {

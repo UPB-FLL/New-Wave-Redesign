@@ -21,16 +21,19 @@ export const hubContent: DivisionHubContent = {
   method: [
     {
       title: 'Discover',
+      icon: 'method-discover',
       detail:
         'We learn the business, its goals, and the digital environment it runs on today: the accounts, the tools, and the paths customers take to reach you.',
     },
     {
       title: 'Prioritize',
+      icon: 'method-prioritize',
       detail:
         'We identify the highest-value opportunities, the changes most likely to move bookings and revenue, and put them in order.',
     },
     {
       title: 'Build',
+      icon: 'method-build',
       detail: 'We create the roadmap and execute what makes sense, starting with the foundation and building from there.',
     },
   ],
@@ -66,16 +69,19 @@ export const hubContent: DivisionHubContent = {
     {
       phase: 'Phase 01',
       title: 'Digital foundation',
+      icon: 'phase-foundation',
       items: ['Website', 'Digital architecture', 'SEO', 'Google Business Profile', 'Analytics', 'Conversion paths'],
     },
     {
       phase: 'Phase 02',
       title: 'Demand generation',
+      icon: 'phase-demand',
       items: ['Social content', 'Video', 'Paid campaigns', 'Promotions', 'Event marketing', 'Lead management'],
     },
     {
       phase: 'Phase 03',
       title: 'Marketing engine',
+      icon: 'phase-engine',
       items: [
         'Paid social & search',
         'Email & SMS',
@@ -89,22 +95,27 @@ export const hubContent: DivisionHubContent = {
   metrics: [
     {
       title: 'Bookings and inquiries',
+      icon: 'metric-bookings',
       detail: 'The actions that bring in revenue, such as bookings, registrations, calls, and form inquiries, tracked by source.',
     },
     {
       title: 'Cost per lead',
+      icon: 'metric-cost-per-lead',
       detail: 'What each inquiry or booking costs across paid channels, so budget goes where it earns.',
     },
     {
       title: 'Conversion rate',
+      icon: 'metric-conversion',
       detail: 'How many website visitors go on to book, inquire, or buy, and where the rest leave.',
     },
     {
       title: 'Search visibility',
+      icon: 'metric-search',
       detail: 'How often the business shows up in Google Search and local map results for the searches that matter.',
     },
     {
       title: 'Engagement that turns into visits',
+      icon: 'metric-engagement',
       detail: 'Social activity judged by what it leads to, such as profile visits, website clicks, and bookings, not likes alone.',
     },
   ],

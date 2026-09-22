@@ -31,7 +31,7 @@ export function FamilyLockup({
     >
       <div className="flex flex-col gap-2">
         {labelled ? (
-          <span className="nwse-label" style={{ color: labelColor }}>
+          <span className="nwse-type-label" style={{ color: labelColor }}>
             Parent · New Wave IT
           </span>
         ) : null}
@@ -46,7 +46,7 @@ export function FamilyLockup({
       />
       <div className="flex flex-col gap-2">
         {labelled ? (
-          <span className="nwse-label" style={{ color: divisionLabelColor }}>
+          <span className="nwse-type-label" style={{ color: divisionLabelColor }}>
             Division · New Wave: Social Engineering
           </span>
         ) : null}

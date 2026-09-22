@@ -1,14 +1,34 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { DIVISION_JSONLD_ELEMENT_ID, escapeJsonForScript, renderDivisionPageHtml } from './prerender';
+import { renderRouteHtml } from '../../lib/prerenderHead';
+import { prerenderedItRoutes } from '../../lib/routeMeta';
+import {
+  DIVISION_CRITICAL_FONTS,
+  DIVISION_JSONLD_ELEMENT_ID,
+  escapeJsonForScript,
+  renderDivisionPageHtml,
+} from './prerender';
 import { allDivisionPages, hubPageSeo } from './seo';
 import { DIVISION_ASSETS, DIVISION_NAME, SITE_URL } from './site';
 import type { DivisionPageSeo } from './types';
 
 const shell = readFileSync(path.resolve(__dirname, '../../../index.html'), 'utf8');
+const publicDir = path.resolve(__dirname, '../../../public');
+const typeCss = readFileSync(path.resolve(__dirname, 'type.css'), 'utf8');
+
+/** The parent shell's Google Fonts <link>, exactly as index.html writes it. */
+const shellGoogleFontsLinks = shell.match(/<link\b[^>]*https:\/\/fonts\.googleapis\.com\/css2[^>]*>/g) ?? [];
+const googleFontsLink = shellGoogleFontsLinks[0] ?? '';
+const googleFontsHref = googleFontsLink.match(/href="([^"]+)"/)?.[1] ?? '';
 
 const count = (html: string, needle: string) => html.split(needle).length - 1;
+
+/** The body's no-JS fallback (the head also has a <noscript> for the Google Fonts link). */
+function noJsFallback(html: string) {
+  const start = html.indexOf('<noscript><main>');
+  return html.slice(start, html.indexOf('</noscript>', start));
+}
 
 function parseHead(html: string) {
   const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -60,7 +80,7 @@ describe('renderDivisionPageHtml', () => {
     expect(html).not.toContain('24/7 Managed IT, Cybersecurity & Cloud');
 
     // Crawlers that never run JS still get the H1 and a path back to the parent.
-    const noscript = html.slice(html.indexOf('<noscript>'), html.indexOf('</noscript>'));
+    const noscript = noJsFallback(html);
     expect(noscript).toContain(`<h1>${page.h1.replace(/&/g, '&amp;')}</h1>`);
     expect(noscript).toContain('<a href="/">New Wave IT</a>');
 
@@ -125,7 +145,7 @@ describe('renderDivisionPageHtml', () => {
   it('links every other division page from the no-JS fallback', () => {
     const pages = allDivisionPages();
     const html = renderDivisionPageHtml(shell, hubPageSeo());
-    const noscript = html.slice(html.indexOf('<noscript>'), html.indexOf('</noscript>'));
+    const noscript = noJsFallback(html);
     pages
       .filter((page) => page.path !== '/social-engineering')
       .forEach((page) => expect(noscript).toContain(`<a href="${page.path}">`));
@@ -137,5 +157,110 @@ describe('renderDivisionPageHtml', () => {
     });
     const head = html.slice(0, html.indexOf('</head>'));
     expect(head).toContain('<link rel="modulepreload" crossorigin href="/assets/Hub.js">');
+  });
+});
+
+describe('division fonts in the prerendered head', () => {
+  const headOf = (html: string) => new DOMParser().parseFromString(html, 'text/html').head;
+  const outsideNoscript = (elements: Iterable<Element>) => [...elements].filter((el) => !el.closest('noscript'));
+
+  it('finds exactly one Google Fonts stylesheet in the parent shell', () => {
+    expect(shellGoogleFontsLinks).toHaveLength(1);
+    expect(googleFontsLink).toMatch(/rel="stylesheet"/);
+    expect(googleFontsLink).not.toMatch(/\smedia=/);
+  });
+
+  it('points the critical-font preloads at files that exist and that type.css serves', () => {
+    expect(DIVISION_CRITICAL_FONTS).toHaveLength(2);
+    for (const href of DIVISION_CRITICAL_FONTS) {
+      expect(href).toMatch(/^\/brand\/social-engineering\/fonts\/[a-z0-9-]+\.woff2$/);
+      expect(existsSync(path.join(publicDir, href))).toBe(true);
+      // Same URL as the @font-face src, or the browser downloads the file twice.
+      expect(typeCss).toContain(`url('${href}') format('woff2')`);
+    }
+    expect(DIVISION_CRITICAL_FONTS.some((href) => href.includes('plus-jakarta-sans'))).toBe(true);
+    expect(DIVISION_CRITICAL_FONTS.some((href) => href.includes('inter'))).toBe(true);
+  });
+
+  it.each(allDivisionPages().map((page) => [page.path, page] as const))(
+    'preloads both critical fonts and defers the Google stylesheet on %s',
+    (_path, page) => {
+      const html = renderDivisionPageHtml(shell, page);
+      const head = headOf(html);
+
+      const preloads = [...head.querySelectorAll('link[rel="preload"][as="font"]')];
+      expect(preloads.map((el) => el.getAttribute('href'))).toEqual([...DIVISION_CRITICAL_FONTS]);
+      for (const preload of preloads) {
+        expect(preload.getAttribute('type')).toBe('font/woff2');
+        // Fonts are always fetched in CORS mode; without crossorigin the preload goes unused.
+        expect(preload.hasAttribute('crossorigin')).toBe(true);
+        expect(preload.getAttribute('crossorigin')).toBe('');
+      }
+
+      // Still present (IT pages reached by client-side navigation need it), but
+      // fetched as print media and switched to all media once loaded.
+      const google = outsideNoscript(head.querySelectorAll('link[href^="https://fonts.googleapis.com/"]'));
+      expect(google).toHaveLength(1);
+      expect(google[0].getAttribute('rel')).toBe('stylesheet');
+      expect(google[0].getAttribute('href')).toBe(googleFontsHref);
+      expect(google[0].getAttribute('media')).toBe('print');
+      expect(google[0].getAttribute('onload')).toBe("this.media='all'");
+
+      // No-JS fallback: the original, unmodified link.
+      expect(html).toContain(`<noscript>${googleFontsLink}</noscript>`);
+      expect(count(html, googleFontsHref)).toBe(2);
+
+      // Preloads come first, ahead of every stylesheet.
+      const firstPreload = html.indexOf('<link rel="preload" as="font"');
+      expect(firstPreload).toBeGreaterThan(-1);
+      expect(firstPreload).toBeLessThan(html.search(/<link\b[^>]*rel="stylesheet"/));
+
+      // The preconnects stay for the deferred stylesheet.
+      expect(html).toContain('<link rel="preconnect" href="https://fonts.googleapis.com" />');
+    },
+  );
+
+  it('keeps chunk preloads from headExtras alongside the font preloads', () => {
+    const html = renderDivisionPageHtml(shell, hubPageSeo(), {
+      headExtras: ['<link rel="stylesheet" crossorigin href="/assets/Hub.css">'],
+    });
+    expect(count(html, 'rel="preload" as="font"')).toBe(2);
+    expect(html).toContain('<link rel="stylesheet" crossorigin href="/assets/Hub.css">');
+  });
+
+  it('leaves New Wave IT pages with the render-blocking Google stylesheet and no division fonts', () => {
+    const routes = prerenderedItRoutes();
+    expect(routes.length).toBeGreaterThan(0);
+    for (const route of routes) {
+      const html = renderRouteHtml(shell, route.path, route.meta);
+      expect(html).toContain(googleFontsLink);
+      expect(count(html, googleFontsHref)).toBe(1);
+      expect(html).not.toContain('media="print"');
+      expect(html).not.toContain('rel="preload" as="font"');
+      expect(html).not.toContain('/brand/social-engineering/fonts/');
+    }
+    // Rendering a division page never mutates the shell the IT routes share.
+    const before = shell;
+    allDivisionPages().forEach((page) => renderDivisionPageHtml(shell, page));
+    expect(shell).toBe(before);
+    expect(shell).not.toContain('rel="preload" as="font"');
+  });
+
+  it('fails the build loudly when the Google Fonts link is missing, duplicated, or already deferred', () => {
+    const without = shell.replace(googleFontsLink, '');
+    expect(() => renderDivisionPageHtml(without, hubPageSeo())).toThrow(/exactly one Google Fonts stylesheet link.*found 0/);
+
+    const doubled = shell.replace(googleFontsLink, `${googleFontsLink}\n${googleFontsLink}`);
+    expect(() => renderDivisionPageHtml(doubled, hubPageSeo())).toThrow(/exactly one Google Fonts stylesheet link.*found 2/);
+
+    const alreadyDeferred = shell.replace(googleFontsLink, googleFontsLink.replace('rel="stylesheet"', 'rel="stylesheet" media="print"'));
+    expect(() => renderDivisionPageHtml(alreadyDeferred, hubPageSeo())).toThrow(/already has a media or onload attribute/);
+  });
+
+  it('tolerates a reformatted Google Fonts link', () => {
+    const oneLine = shell.replace(googleFontsLink, `<link href='${googleFontsHref}' rel='stylesheet'>`);
+    const html = renderDivisionPageHtml(oneLine, hubPageSeo());
+    expect(html).toContain(`<link href='${googleFontsHref}' rel='stylesheet' media="print" onload="this.media='all'">`);
+    expect(html).toContain(`<noscript><link href='${googleFontsHref}' rel='stylesheet'></noscript>`);
   });
 });

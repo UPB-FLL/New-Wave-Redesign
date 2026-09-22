@@ -68,10 +68,21 @@ No New Wave IT URL, title, canonical, or structured data changed. Full notes:
   outlined SVG logos, icons, OG image, and manifest. Naming is "New Wave: Social
   Engineering" on first reference, then "NW Social Engineering", and never
   "NWSE".
+- **Type (division only)**: `type.css` self-hosts Plus Jakarta Sans, Inter, and
+  IBM Plex Mono (OFL, `public/brand/social-engineering/fonts/`) as
+  `'NWSE Display/Text/Mono'`, scoped to `.nwse-root`. Headings, body, labels,
+  and kickers use its `nwse-type-*` scale, not Tailwind font utilities.
+  `.nwse-kicker` and `.nwse-label` set colour only.
+- **Icons (division only)**: `icons/iconData.ts` (pure data, 35 icons) and
+  `<NwseIcon name size title? accentColor? />`. The single amber accent wave
+  follows `--nwse-icon-accent`. There is no `lucide-react` under
+  `src/divisions`, and a test enforces it. The shared `Contact` takes an
+  optional `icons` prop that defaults to Lucide. See the "Icons" section of
+  the division doc.
 - **IT touch points**: a Navbar Services-menu entry and mobile link, a Footer
   link ("Social Media & Marketing"), and sitemap entries. `App.tsx` hides the IT
   `WaveBackground` and `FloatingNav` on division paths.
-- **Leads**: `Contact` accepts optional `inquiry` and `intro` props. The API
+- **Leads**: `Contact` accepts optional `inquiry`, `intro`, and `icons` props. The API
   allow-lists `inquiry: 'social-engineering'` and prefixes the notification
   subject.
 - **Adding a service**: update the content file, `divisionServices`,
