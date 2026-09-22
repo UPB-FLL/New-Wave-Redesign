@@ -10,6 +10,9 @@ export const SITE_URL = 'https://www.newwaveitfl.com';
 export const DEFAULT_DESCRIPTION =
   "Fort Lauderdale's trusted managed IT services partner. 24/7 support, cybersecurity, cloud migration, and network infrastructure for South Florida businesses.";
 export const DEFAULT_OG_IMAGE = 'https://www.newwaveitfl.com/brand/og/open-graph-1200x630.png';
+/** The shell's (index.html) keywords; a test keeps the two identical. */
+export const DEFAULT_KEYWORDS =
+  'managed IT services Fort Lauderdale, MSP South Florida, cybersecurity Fort Lauderdale, cloud migration South Florida, IT support Fort Lauderdale, network infrastructure, HIPAA compliance IT, 24/7 IT support';
 
 export interface PageMetaOptions {
   title: string;
@@ -20,7 +23,7 @@ export interface PageMetaOptions {
   canonical?: string;
   /** Open Graph / Twitter image URL */
   ogImage?: string;
-  /** Comma-separated keywords for meta[name="keywords"] */
+  /** Comma-separated keywords for meta[name="keywords"]. Defaults to the site keywords. */
   keywords?: string;
   /** JSON-LD object(s) to inject as <script type="application/ld+json"> (runtime only) */
   jsonLd?: object | object[];
@@ -42,7 +45,7 @@ export interface ResolvedPageMeta {
   ogType: string;
   siteName: string;
   robots: string;
-  keywords?: string;
+  keywords: string;
 }
 
 export function resolvePageMeta(
@@ -67,7 +70,7 @@ export function resolvePageMeta(
     ogType,
     siteName,
     robots: noindex ? 'noindex, nofollow' : 'index, follow',
-    keywords,
+    keywords: keywords || DEFAULT_KEYWORDS,
   };
 }
 
@@ -92,8 +95,9 @@ export function headEntries(meta: ResolvedPageMeta): HeadEntry[] {
     tag('name', 'twitter:image', meta.ogImage),
     tag('name', 'robots', meta.robots),
     { kind: 'canonical', href: meta.canonical },
+    // Every page writes keywords (the site default when it has none), so the
+    // value after client-side navigation never depends on the entry URL.
+    tag('name', 'keywords', meta.keywords),
   ];
-  // Pages without keywords leave the shell's keywords tag alone, at runtime and prerendered.
-  if (meta.keywords) entries.push(tag('name', 'keywords', meta.keywords));
   return entries;
 }

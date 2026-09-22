@@ -4,11 +4,12 @@ export const SITE_URL = 'https://www.newwaveitfl.com';
 
 /**
  * Master switch for the division's public presence: its routes, prerendered
- * pages, and the New Wave IT navbar/footer entries. While false, vercel.json
- * temporarily redirects /social-engineering/* to the home page and the
- * sitemap omits the division. Turn it back on together with those two files.
+ * pages, and the New Wave IT navbar/footer entries. To take the division
+ * offline, set it to false and, in the same change, drop the division's
+ * rewrites and sitemap URLs and redirect /social-engineering/* to the home page
+ * in vercel.json (a test holds the three in step).
  */
-export const DIVISION_PUBLISHED = false;
+export const DIVISION_PUBLISHED = true;
 
 /** Every division URL lives under this path on the parent domain. */
 export const DIVISION_BASE_PATH = '/social-engineering';
@@ -20,6 +21,19 @@ export const DIVISION_CONTACT_PATH = `${DIVISION_BASE_PATH}/contact`;
  * into the main bundle; a test asserts it matches content/index.ts.
  */
 export const DIVISION_SERVICE_SLUGS = [
+  'social-media',
+  'brand-development',
+  'website-design',
+  'marketing',
+  'integration',
+  'digital-oversight',
+] as const;
+
+/**
+ * Service URLs from the division's first launch (which described the wrong
+ * services). vercel.json permanently redirects each to the division hub.
+ */
+export const RETIRED_SERVICE_SLUGS = [
   'phishing-simulation',
   'vishing-pretext-testing',
   'physical-social-engineering',
@@ -38,7 +52,11 @@ export const DIVISION_SHORT_NAME = 'NW Social Engineering';
 export const DIVISION_ENDORSEMENT = 'A New Wave IT division';
 export const PARENT_NAME = 'New Wave IT';
 
-export const DIVISION_TAGLINE = 'Your people are the perimeter.';
+export const DIVISION_TAGLINE = 'Growth decisions made on data, not guesswork.';
+/** Descriptor that sits with the logo, as in the division's pitch materials. */
+export const DIVISION_DESCRIPTOR = 'Social · Brand · Web · Marketing';
+/** Primary call to action on every division page: every engagement starts with discovery. */
+export const DIVISION_PRIMARY_CTA = 'Book a discovery call';
 
 /** Schema.org @id anchors. The parent ids match those declared in index.html. */
 export const PARENT_ORGANIZATION_ID = `${SITE_URL}/#organization`;
@@ -60,7 +78,7 @@ export const DIVISION_ASSETS = {
   microMarkOnLight: `${ASSET_BASE}/logos/nwse-mark-micro_fullcolor-light.svg`,
   /** Raster logo for schema.org Organization.logo (Google prefers raster). */
   logoPng: `${ASSET_BASE}/logos/nwse-logo-primary_fullcolor-light_1200w.png`,
-  ogImage: `${ASSET_BASE}/og/og-image-1200x630.png`,
+  ogImage: `${ASSET_BASE}/og/og-image-v2-1200x630.png`,
   faviconSvg: `${ASSET_BASE}/icons/favicon.svg`,
   faviconIco: `${ASSET_BASE}/icons/favicon.ico`,
   appleTouchIcon: `${ASSET_BASE}/icons/apple-touch-icon.png`,

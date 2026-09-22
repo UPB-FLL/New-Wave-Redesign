@@ -49,14 +49,24 @@
   ],
   "redirects": [
     {
-      "source": "/social-engineering",
-      "destination": "/",
-      "permanent": false
+      "source": "/social-engineering/phishing-simulation",
+      "destination": "/social-engineering",
+      "permanent": true
     },
     {
-      "source": "/social-engineering/:path*",
-      "destination": "/",
-      "permanent": false
+      "source": "/social-engineering/vishing-pretext-testing",
+      "destination": "/social-engineering",
+      "permanent": true
+    },
+    {
+      "source": "/social-engineering/physical-social-engineering",
+      "destination": "/social-engineering",
+      "permanent": true
+    },
+    {
+      "source": "/social-engineering/security-awareness-training",
+      "destination": "/social-engineering",
+      "permanent": true
     }
   ],
   "rewrites": [
@@ -179,6 +189,38 @@
     {
       "source": "/l/network-infrastructure-guide",
       "destination": "/l/network-infrastructure-guide/index.html"
+    },
+    {
+      "source": "/social-engineering",
+      "destination": "/social-engineering/index.html"
+    },
+    {
+      "source": "/social-engineering/social-media",
+      "destination": "/social-engineering/social-media/index.html"
+    },
+    {
+      "source": "/social-engineering/brand-development",
+      "destination": "/social-engineering/brand-development/index.html"
+    },
+    {
+      "source": "/social-engineering/website-design",
+      "destination": "/social-engineering/website-design/index.html"
+    },
+    {
+      "source": "/social-engineering/marketing",
+      "destination": "/social-engineering/marketing/index.html"
+    },
+    {
+      "source": "/social-engineering/integration",
+      "destination": "/social-engineering/integration/index.html"
+    },
+    {
+      "source": "/social-engineering/digital-oversight",
+      "destination": "/social-engineering/digital-oversight/index.html"
+    },
+    {
+      "source": "/social-engineering/contact",
+      "destination": "/social-engineering/contact/index.html"
     },
     {
       "source": "/(.*)",

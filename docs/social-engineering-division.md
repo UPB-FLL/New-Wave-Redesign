@@ -1,19 +1,55 @@
-# New Wave: Social Engineering — division launch
+# New Wave: Social Engineering — division
 
-The human-risk division of New Wave IT, added to www.newwaveitfl.com without
-changing any existing New Wave IT URL. Brand source: *NWSE Brand Guidelines
-v1.0* (September 2026).
+New Wave IT's social media, brand development, website design, marketing,
+integration, and digital oversight division, served from www.newwaveitfl.com
+without changing any existing New Wave IT URL.
+
+- **Brand line**: "Growth decisions made on data, not guesswork."
+- **Descriptor**: Social · Brand · Web · Marketing
+- **Primary call to action**: Book a discovery call
+- **Method**: Discover → Prioritize → Build. Discovery maps every touchpoint
+  against the customer journey, the roadmap runs in three phases, and the work
+  is measured against bookings and inquiries.
+
+Brand source: *NWSE Brand Guidelines v1.0* (September 2026) for the logos,
+colors, and naming. The guide's positioning page and tagline describe security
+testing and are superseded by this document (see "History").
 
 ## URLs
 
 | Page | URL |
 |---|---|
 | Division hub | `/social-engineering` |
-| Phishing simulation | `/social-engineering/phishing-simulation` |
-| Vishing & pretext testing | `/social-engineering/vishing-pretext-testing` |
-| Physical social engineering | `/social-engineering/physical-social-engineering` |
-| Security awareness training | `/social-engineering/security-awareness-training` |
-| Contact | `/social-engineering/contact` |
+| Social media | `/social-engineering/social-media` |
+| Brand development | `/social-engineering/brand-development` |
+| Website design | `/social-engineering/website-design` |
+| Marketing | `/social-engineering/marketing` |
+| Integration | `/social-engineering/integration` |
+| Digital oversight | `/social-engineering/digital-oversight` |
+| Contact (book a discovery call) | `/social-engineering/contact` |
+
+Retired first-launch URLs, each a permanent (308) redirect to the hub:
+`/social-engineering/phishing-simulation`, `/vishing-pretext-testing`,
+`/physical-social-engineering`, `/security-awareness-training`.
+
+## History
+
+1. **#73** launched the division as a security-testing ("human risk") practice,
+   taking the brand kit's copy at face value. That positioning was wrong.
+2. **#74** took the division offline (`DIVISION_PUBLISHED = false`, temporary
+   redirects to `/`, sitemap entries removed).
+3. **The relaunch** rebuilt the content model and every page around the six
+   services above, working from the business's own planning deck (method and
+   data only; no client is named or described).
+
+## Search positioning
+
+"Social engineering" is also a security term, and the security meaning
+dominates search results for it. The division keeps the name as its brand but
+never targets it as a keyword: titles, descriptions, and H1s lead with
+marketing terms (social media, branding, web design, marketing agency, Fort
+Lauderdale / South Florida). Expect branded searches to reach the division and
+generic "social engineering" searches not to.
 
 ## Why a subfolder
 
@@ -48,16 +84,15 @@ division is a New Wave IT division, not a separate company.
 - **Entity linking, not impersonation.** Division pages drop the parent's
   `LocalBusiness` block and declare their own `Organization` with
   `parentOrganization` → `https://www.newwaveitfl.com/#organization`.
-- **No keyword collisions.** Each division page targets one cluster (hub:
-  social engineering testing; then phishing simulation, vishing/pretext,
-  physical assessments, awareness training). The IT cybersecurity page's
-  "Security Awareness" card now links to the division's training page, so the
-  topic has one owner instead of two competing pages.
+- **No keyword collisions.** Division pages target marketing clusters
+  (hub: marketing agency Fort Lauderdale; then social media, branding, web
+  design, marketing, integration, digital presence). None overlaps a New Wave
+  IT page's cluster.
 - **Performance.** Division pages are lazy-loaded chunks; IT pages download
   ~1.8 kB (gzip) of extra router code and nothing else.
-- **Internal links.** The IT navbar Services menu, the IT footer, and the
-  cybersecurity page link into the division; every division page links back to
-  New Wave IT (endorsement bar, breadcrumbs, footer).
+- **Internal links.** The IT navbar Services menu and the IT footer ("Social
+  Media & Marketing") link into the division; every division page links back
+  to New Wave IT (endorsement bar, breadcrumbs, footer).
 
 ## Brand implementation
 
@@ -80,18 +115,25 @@ division is a New Wave IT division, not a separate company.
 
 - Copy lives in `src/divisions/socialEngineering/content/`. Tests enforce
   unique titles/H1s, description lengths, the naming rule, sentence-case
-  headlines, and no `%` claims.
+  headlines, no `%` claims, and no security-testing wording on any rendered
+  division page.
 - To add a service: add a content file, add it to `divisionServices` in
   `content/index.ts`, add its slug to `DIVISION_SERVICE_SLUGS` in `site.ts`, add
   a rewrite in `vercel.json` and a `<url>` in `public/sitemap.xml`. The tests
   fail until all five agree.
+- To retire a service URL: remove it as above, add its slug to
+  `RETIRED_SERVICE_SLUGS`, and add a permanent redirect to the hub in
+  `vercel.json` (the integration test expects exactly those redirects).
+- To take the division offline: set `DIVISION_PUBLISHED = false` and, in the
+  same change, replace the division's rewrites with temporary redirects to `/`
+  and remove its sitemap URLs (see #74).
 
 ## Launch checklist (owner)
 
-1. **Review the copy** — it states process commitments the business must
-   honor (written authorization before any test, coaching not discipline, no
-   targeting of personal accounts, private coaching, re-tests, report
-   contents). Adjust anything that isn't how you operate.
+1. **Review the copy.** It describes how engagements run (discovery before
+   recommendations, a three-phase roadmap, reporting against bookings and
+   inquiries, reply within one business day). Change anything that isn't how
+   you operate.
 2. After deploy, confirm the prerendered heads are live:
    `curl -s https://www.newwaveitfl.com/social-engineering | grep -E '<title>|canonical'`
    should show the division title and `…/social-engineering` canonical.
@@ -99,7 +141,9 @@ division is a New Wave IT division, not a separate company.
    page; request indexing.
 4. Rich Results Test / Schema validator on the hub (Organization, Breadcrumb,
    FAQ) and one service page (Service).
-5. LinkedIn Post Inspector on the hub URL to refresh the link-preview card.
+5. LinkedIn Post Inspector and the Facebook Sharing Debugger on the hub URL to
+   refresh the link-preview card (the OG image moved to
+   `og/og-image-v2-1200x630.png` with the new brand line).
 6. Google Business Profile: add the division's services to the existing New
    Wave IT profile rather than creating a second listing at the same address.
 7. Social profiles: use `03_Social` from the brand kit; link to
@@ -113,3 +157,6 @@ division is a New Wave IT division, not a separate company.
 - The homepage shell's raw meta description (`index.html`) differs from the
   one `HomePage` sets at runtime. The title and canonical match.
 - The Elfsight chat widget is global and appears on division pages too.
+- The brand guide PDF's positioning page, tagline, and the kit's
+  `03_Social/og-image-1200x630.*` still describe security testing. The site
+  uses a regenerated OG image; the guide itself needs updating by its owner.

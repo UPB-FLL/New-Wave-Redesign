@@ -6,7 +6,9 @@ import { divisionServices } from '../content';
 import {
   DIVISION_BASE_PATH,
   DIVISION_CONTACT_PATH,
+  DIVISION_DESCRIPTOR,
   DIVISION_NAME,
+  DIVISION_PRIMARY_CTA,
   DIVISION_SHORT_NAME,
   PARENT_NAME,
   divisionServicePath,
@@ -53,7 +55,9 @@ export function DivisionFooter() {
             <DivisionLogo lockup="primary" ground="dark" width={FAMILY_DIVISION_WIDTH} decorative />
           </Link>
           <p className="max-w-sm text-sm leading-relaxed text-[var(--nw-mist-gray)] sm:ml-auto">
-            {DIVISION_NAME} is the human-risk division of {PARENT_NAME}, serving Fort Lauderdale and South Florida.
+            {DIVISION_NAME} is the social media, brand, web, and marketing division of {PARENT_NAME}, serving Fort Lauderdale and
+            South Florida.
+            <span className="nwse-label mt-3 block" style={{ color: 'var(--nwse-lure-amber)' }}>{DIVISION_DESCRIPTOR}</span>
           </p>
         </div>
 
@@ -81,7 +85,7 @@ export function DivisionFooter() {
               </li>
               <li>
                 <Link to={DIVISION_CONTACT_PATH} className={linkClass}>
-                  Scope an assessment
+                  {DIVISION_PRIMARY_CTA}
                 </Link>
               </li>
             </ul>

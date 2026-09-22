@@ -63,10 +63,27 @@ describe('prerendered New Wave IT routes', () => {
     expect(h.titles[0]).not.toBe('New Wave IT — 24/7 Managed IT, Cybersecurity & Cloud in Fort Lauderdale');
   });
 
-  it('leaves the shell itself (the homepage) untouched', () => {
-    const before = shell;
-    routes.forEach((route) => renderRouteHtml(shell, route.path, route.meta));
-    expect(shell).toBe(before);
+  it('never writes over the shell itself (the homepage)', () => {
+    // vite.config.ts writes each route to dist/<path>/index.html; none may resolve to dist/index.html.
+    routes.forEach((route) => expect(path.join(route.path.replace(/^\//, ''), 'index.html'), route.path).not.toBe('index.html'));
     expect(head(shell).canonicals).toEqual([`${SITE_URL}/`]);
+  });
+});
+
+describe('prerender tag scanner', () => {
+  const meta = IT_PAGE_META['/pricing'];
+  const withGt = (tag: string) => shell.replace(/<meta name="twitter:title"[^>]*>/, tag);
+
+  it.each([
+    ['name first', '<meta name="twitter:title" content="Downtime -> uptime" />'],
+    ['content first', '<meta content="Response < 1h > SLA" name="twitter:title" />'],
+  ])('treats a ">" inside a quoted attribute as part of the tag (%s)', (_order, tag) => {
+    const shellWithGt = withGt(tag);
+    expect(shellWithGt).toContain(tag);
+    const doc = new DOMParser().parseFromString(renderRouteHtml(shellWithGt, '/pricing', meta), 'text/html');
+    const title = resolvePageMeta(meta, '/pricing').title;
+    expect([...doc.head.querySelectorAll('meta[name="twitter:title"]')].map((el) => el.getAttribute('content'))).toEqual([title]);
+    expect(doc.head.querySelectorAll('link[rel="canonical"]')).toHaveLength(1);
+    expect(doc.body.querySelector('link[rel="canonical"], meta')).toBeNull();
   });
 });

@@ -51,13 +51,13 @@ function ServicePageBody({ service }: { service: DivisionServiceContent }) {
       />
 
       <Band tone="white" labelledBy="nwse-scope">
-        <SectionIntro kicker="Scope" title={service.scopeHeading ?? 'What we test'} id="nwse-scope" />
-        <PointGrid points={service.whatWeTest} />
+        <SectionIntro kicker="Scope" title={service.scopeHeading ?? 'What’s included'} id="nwse-scope" />
+        <PointGrid points={service.scope} />
       </Band>
 
       <Band labelledBy="nwse-steps">
-        <SectionIntro kicker="How it works" title="How an engagement runs" id="nwse-steps" />
-        <StepList steps={service.howItWorks} />
+        <SectionIntro kicker="How it works" title="How the work runs" id="nwse-steps" />
+        <StepList steps={service.process} />
       </Band>
 
       <Band tone="white" labelledBy="nwse-deliverables">
@@ -67,7 +67,7 @@ function ServicePageBody({ service }: { service: DivisionServiceContent }) {
             <CheckList items={service.deliverables} />
           </div>
           <div>
-            <SectionIntro kicker="Reporting" title="What we measure" />
+            <SectionIntro kicker="Reporting" title="What we report on" />
             <div className="mt-6">
               <MetricLabels labels={service.metrics} />
             </div>
@@ -81,8 +81,8 @@ function ServicePageBody({ service }: { service: DivisionServiceContent }) {
       </Band>
 
       <Band tone="white" labelledBy="nwse-related">
-        <SectionIntro kicker="Related services" title="Pair it with" id="nwse-related" />
-        <ul className="mt-8 grid gap-4 md:grid-cols-3">
+        <SectionIntro kicker="Related services" title="Works best alongside" id="nwse-related" />
+        <ul className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {related.map((item) => (
             <li key={item.slug}>
               <Link
@@ -108,8 +108,8 @@ function ServicePageBody({ service }: { service: DivisionServiceContent }) {
       </Band>
 
       <CtaBand
-        heading={service.ctaHeading ?? 'Find out where the hook lands'}
-        body={`Start with a scoped ${service.navLabel.toLowerCase()} engagement and a baseline your leadership can act on.`}
+        heading={service.ctaHeading ?? 'Start with discovery'}
+        body="Before we recommend anything, we’d like to understand the business, where customers find you today, and where the gaps are."
       />
     </DivisionLayout>
   );

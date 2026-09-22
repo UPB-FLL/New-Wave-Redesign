@@ -13,7 +13,7 @@ const serviceLinks = [
   { label: 'Cloud Solutions', href: '/service-category/cloud-solutions' },
   { label: 'Network Infrastructure', href: '/service-category/network-infrastructure' },
   // Division: New Wave: Social Engineering (listed only while it's published).
-  ...(DIVISION_PUBLISHED ? [{ label: 'Social Engineering Testing', href: '/social-engineering' }] : []),
+  ...(DIVISION_PUBLISHED ? [{ label: 'Social Media & Marketing', href: '/social-engineering' }] : []),
 ];
 
 const companyLinks = [

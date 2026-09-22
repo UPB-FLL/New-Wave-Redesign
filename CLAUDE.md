@@ -21,6 +21,8 @@ of them declared the homepage canonical until JavaScript ran.
   called from the `vite.config.ts` plugin, writes `dist/<route>/index.html`.
   `vercel.json` has one exact rewrite per route before the catch-all. The
   division prerender uses the same module.
+- **Keywords**: every page writes `meta[name="keywords"]`; pages without their
+  own get `DEFAULT_KEYWORDS` (the shell's value, pinned by a test).
 - **Not prerendered**: `/` (the untouched shell) and the data-driven routes
   `/service/:slug`, `/threat/:slug`, and `/blog/:slug`.
 - **Adding a static page**: add it to `IT_PAGE_META`, use it in the page, add
@@ -34,9 +36,22 @@ of them declared the homepage canonical until JavaScript ran.
 
 ### New Wave: Social Engineering division (2026-09-22)
 
-A new division lives in the `/social-engineering` subfolder. No New Wave IT URL,
-title, canonical, or structured data changed. Full notes:
+A new division lives in the `/social-engineering` subfolder: New Wave IT's
+social media, brand development, website design, marketing, integration, and
+digital oversight division ("Growth decisions made on data, not guesswork.").
+No New Wave IT URL, title, canonical, or structured data changed. Full notes:
 `docs/social-engineering-division.md`.
+
+- **Positioning**: the first launch (#73) described security testing
+  (phishing, vishing, awareness training), which was wrong. #74 took it
+  offline; the relaunch rebuilt the content around six services. "Social
+  Engineering" is the brand name only: never describe the division as
+  security testing (a test in `pages.test.tsx` guards this). The four retired
+  service URLs 308 to the hub (`RETIRED_SERVICE_SLUGS`).
+- **Publish switch**: `DIVISION_PUBLISHED` in `site.ts` gates the routes, the
+  prerender, and the IT navbar/footer entries. Flip it together with
+  `vercel.json` and the sitemap; `division-integration.test.ts` holds them in
+  step.
 
 - **Code**: `src/divisions/socialEngineering/`. `site.ts` holds paths and
   constants, `content/` holds the copy, `seo.ts` the per-page SEO and JSON-LD,
@@ -54,8 +69,7 @@ title, canonical, or structured data changed. Full notes:
   Engineering" on first reference, then "NW Social Engineering", and never
   "NWSE".
 - **IT touch points**: a Navbar Services-menu entry and mobile link, a Footer
-  link, the cybersecurity "Security Awareness" card (now points at the
-  division's training page), and new sitemap entries. `App.tsx` hides the IT
+  link ("Social Media & Marketing"), and sitemap entries. `App.tsx` hides the IT
   `WaveBackground` and `FloatingNav` on division paths.
 - **Leads**: `Contact` accepts optional `inquiry` and `intro` props. The API
   allow-lists `inquiry: 'social-engineering'` and prefixes the notification
