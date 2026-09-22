@@ -35,6 +35,14 @@ export function Breadcrumbs({ trail }: { trail: DivisionPageSeo['breadcrumbs'] }
   );
 }
 
+// The hero's currents stay as quiet texture: the footer's 18% opacity, faded
+// further behind the text column (left) so they never compete with the H1.
+const HERO_CURRENTS_OPACITY = 0.18;
+const HERO_CURRENTS_FADE = {
+  maskImage: 'linear-gradient(to right, rgba(0, 0, 0, 0.35), #000 70%)',
+  WebkitMaskImage: 'linear-gradient(to right, rgba(0, 0, 0, 0.35), #000 70%)',
+} as const;
+
 export function DivisionHero({
   kicker,
   headline,
@@ -56,7 +64,7 @@ export function DivisionHero({
   const headingClass = 'nwse-type-display-1 mt-4 max-w-4xl text-[var(--nw-cloud-white)]';
   return (
     <section className="nwse-dark relative overflow-hidden" style={{ background: 'var(--nw-deep-current)' }}>
-      <DivisionCurrents className="pointer-events-none absolute inset-0 h-full w-full" />
+      <DivisionCurrents className="pointer-events-none absolute inset-0 h-full w-full" opacity={HERO_CURRENTS_OPACITY} style={HERO_CURRENTS_FADE} />
       <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-12 sm:px-6 sm:pb-20 sm:pt-16 lg:px-8 lg:pb-24">
         {breadcrumbs ? <Breadcrumbs trail={breadcrumbs} /> : null}
         {kickerInHeading ? (
