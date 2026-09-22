@@ -7,8 +7,32 @@
 :root {
   --nwse-lure-amber: #F2A33A;
   --nwse-lure-amber-deep: #A65B0B;
-  /* Fixed endorsement bar (36px) + nav (80px) + nav border (1px). */
-  --nwse-header-height: 117px;
+  /* Height of the fixed header (DivisionHeader). Phones: nav (56px) + its 1px
+     border; the endorsement bar moves into the menu there. */
+  --nwse-header-height: 57px;
+}
+
+/* Tablets: endorsement bar (32px) + nav (64px) + border. */
+@media (min-width: 640px) {
+  :root {
+    --nwse-header-height: 97px;
+  }
+}
+
+/* Desktop: endorsement bar (36px) + nav (80px) + border. */
+@media (min-width: 1024px) {
+  :root {
+    --nwse-header-height: 117px;
+  }
+}
+
+/* Landscape phones (tablet widths, short screens): the phone header, with the
+   endorsement in the menu. DivisionHeader's max-lg:[@media(max-height:500px)]
+   classes are the markup side of this tier; type.css sizes the H1 for it. */
+@media (min-width: 640px) and (max-width: 1023.98px) and (max-height: 500px) {
+  :root {
+    --nwse-header-height: 57px;
+  }
 }
 
 .nwse-root {
@@ -19,9 +43,19 @@
   --nwse-icon-accent: var(--nwse-lure-amber);
 }
 
-/* In-page anchors (#services, #faq) land below the fixed header, not under it. */
-.nwse-root [id] {
-  scroll-margin-top: calc(var(--nwse-header-height) + 16px);
+/* Anything scrolled into view (in-page anchors such as #services and #faq, and
+   keyboard focus moving in either direction) stops below the fixed header,
+   not under it. On the scroller itself, so it covers focus as well as anchors;
+   :has() limits it to while a division page is mounted. */
+:root:has(.nwse-root) {
+  scroll-padding-top: calc(var(--nwse-header-height) + 16px);
+}
+
+/* index.css scrolls smoothly site-wide; not for readers who ask for less motion. */
+@media (prefers-reduced-motion: reduce) {
+  :root:has(.nwse-root) {
+    scroll-behavior: auto;
+  }
 }
 
 /* Colour roles for the Plex Mono labels. Their type (family, size, weight,
@@ -158,4 +192,287 @@
 .nwse-root .nw-icon-success {
   background: color-mix(in srgb, var(--nwse-lure-amber) 16%, transparent);
   color: var(--nwse-lure-amber-deep);
+}
+
+/* ---------------------------------------------------------------------------
+   Phones and tablets. This file loads after the Tailwind utilities, so the
+   .nwse-card, .nwse-btn, and .nwse-icon rules above beat same-specificity
+   utilities. Their small-screen variants therefore live here, keyed on
+   component classes and inside max-width queries: nothing below applies from
+   1024px up, where the pages stay exactly as they were.
+   --------------------------------------------------------------------------- */
+
+@media (max-width: 639.98px) {
+  /* Hero and CTA-band actions: full width and 48px tall, primary first. */
+  .nwse-actions > .nwse-btn {
+    min-height: 48px;
+    padding-block: 0;
+    width: 100%;
+  }
+
+  /* Boxed blocks inside a band sit flush on the 16px gutter like every other
+     section: the hub's "Part of New Wave IT" card and the contact form. */
+  .nwse-familycard,
+  .nwse-root [data-contact-section] form {
+    background: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
+  }
+}
+
+/* Phones and small tablets (up to 767px, where the 2-column grids begin): the
+   list layouts below instead of a single column of separate cards. */
+@media (max-width: 767.98px) {
+  /* One grouped list (services, related services, FAQ, reporting labels): the
+     items drop their own card chrome and share one panel with hairlines. */
+  .nwse-rowlist {
+    background: var(--nw-pure-white);
+    border: 1px solid var(--nw-mist-gray);
+    border-radius: var(--nw-radius-panel);
+    overflow: hidden;
+  }
+
+  .nwse-rowlist > li,
+  .nwse-rowlist > .nwse-card,
+  .nwse-rowlist > li > .nwse-card {
+    border-radius: 0;
+    border-width: 0;
+  }
+
+  .nwse-rowlist > :not(:first-child) {
+    border-top: 1px solid var(--nw-mist-gray);
+  }
+
+  /* Focus rings inside the row, where the panel's overflow cannot clip them. */
+  .nwse-rowlist a:focus-visible,
+  .nwse-rowlist summary:focus-visible {
+    outline-offset: -3px;
+  }
+
+  .nwse-rowlist a:active,
+  .nwse-rowlist summary:active {
+    background: var(--nw-cloud-white);
+  }
+
+  /* Point grids ("What we gather", "What's included"): hairline rows. */
+  .nwse-hairlines {
+    border-top: 1px solid var(--nw-mist-gray);
+  }
+
+  .nwse-hairlines > li {
+    background: none;
+    border-radius: 0;
+    border-width: 0 0 1px;
+  }
+
+  /* Steps: a timeline instead of cards. Each step's marker (its icon tile, or
+     an amber node when it has none) sits on a rail at the left edge. */
+  .nwse-timeline > li {
+    background: none;
+    border: 0;
+    border-radius: 0;
+    padding: 0 0 1.5rem 3.5rem;
+  }
+
+  .nwse-timeline > li:last-child {
+    padding-bottom: 0;
+  }
+
+  .nwse-timeline > li:not(:last-child)::after {
+    background: var(--nw-mist-gray);
+    bottom: 0.5rem;
+    content: '';
+    left: 19.5px;
+    position: absolute;
+    top: 3rem;
+    width: 1px;
+  }
+
+  .nwse-timeline .nwse-icon {
+    left: 0;
+    position: absolute;
+    top: 0;
+  }
+
+  .nwse-timeline[data-markers='node'] > li {
+    padding-left: 1.75rem;
+  }
+
+  /* Centred on the Plex Mono label's 18px line. */
+  .nwse-timeline[data-markers='node'] > li::before {
+    border: 2px solid var(--nwse-lure-amber);
+    border-radius: 999px;
+    content: '';
+    height: 12px;
+    left: 0;
+    position: absolute;
+    top: 3px;
+    width: 12px;
+  }
+
+  .nwse-timeline[data-markers='node'] > li:not(:last-child)::after {
+    bottom: 3px;
+    left: 5.5px;
+    top: 21px;
+  }
+
+  /* Roadmap phases: the icon tile beside the phase label and title. */
+  .nwse-roadmap .nwse-icon {
+    left: 1rem;
+    position: absolute;
+    top: 1rem;
+  }
+
+  .nwse-roadmap .nwse-cardlabel,
+  .nwse-roadmap .nwse-cardlabel + h3 {
+    padding-left: 3.25rem;
+  }
+}
+
+@media (max-width: 1023.98px) {
+  /* Enlarged text: a word wider than its column (a long title at 200%, an
+     email address) breaks instead of widening the page, which would carry the
+     fixed header's menu toggle off-screen. The lists' grid-cols-1 tracks let
+     them shrink to the screen; this lets their words follow. */
+  .nwse-root {
+    overflow-wrap: break-word;
+  }
+
+  /* Reporting labels (MetricLabels on light grounds): one grouped list of
+     rows, like .nwse-rowlist, while they sit in a single narrow column. */
+  .nwse-labelrows {
+    background: var(--nw-pure-white);
+    border: 1px solid var(--nw-mist-gray);
+    border-radius: var(--nw-radius-panel);
+    overflow: hidden;
+  }
+
+  .nwse-labelrows > li {
+    border-radius: 0;
+    border-width: 0;
+  }
+
+  .nwse-labelrows > li + li {
+    border-top-width: 1px;
+  }
+
+  /* The customer journey scrolls sideways as one row; the right edge fades to
+     show there is more, except while the row has keyboard focus. */
+  .nwse-journey {
+    scrollbar-width: none;
+  }
+
+  .nwse-journey::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nwse-journey:not(:focus-visible) {
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent);
+  }
+
+  .nwse-journey:focus-visible {
+    outline-offset: -2px;
+  }
+
+  /* 16px text keeps iOS Safari from zooming the page when a field takes focus. */
+  .nwse-root .input-light {
+    font-size: 1rem;
+    min-height: 2.75rem;
+  }
+}
+
+/* The shared contact form below lg (where its columns stack), through
+   Contact.tsx's data-contact-* hooks (attributes only, so New Wave IT's pages
+   never change): a left-aligned intro that follows the hero like any section
+   intro, and the contact methods as one grouped list whose Call and Email
+   rows are whole-row links. */
+@media (max-width: 1023.98px) {
+  .nwse-root [data-contact-section] {
+    padding-block: 3.5rem;
+  }
+
+  .nwse-root [data-contact-intro] {
+    margin-bottom: 2rem;
+    text-align: left;
+  }
+
+  .nwse-root [data-contact-intro] > :is(h1, h2) {
+    font-family: var(--nwse-type-display-2-family);
+    font-size: var(--nwse-type-display-2-size);
+    font-weight: var(--nwse-type-display-2-weight);
+    letter-spacing: var(--nwse-type-display-2-tracking);
+    line-height: var(--nwse-type-display-2-line-height);
+    margin: 0.75rem 0 1rem;
+    max-width: none;
+    word-spacing: var(--nwse-type-display-2-word-spacing);
+  }
+
+  .nwse-root [data-contact-intro] > p {
+    margin: 0;
+  }
+
+  .nwse-root [data-contact-methods] {
+    background: var(--nw-pure-white);
+    border: 1px solid var(--nw-mist-gray);
+    border-radius: var(--nw-radius-panel);
+    gap: 0;
+    overflow: hidden;
+  }
+
+  .nwse-root [data-contact-method] {
+    border-radius: 0;
+    border-width: 0;
+    box-shadow: none;
+    padding: 0.75rem 0.875rem 0.75rem 3.875rem;
+  }
+
+  .nwse-root [data-contact-method] + [data-contact-method] {
+    border-top-width: 1px;
+  }
+
+  .nwse-root [data-contact-method] > :first-child {
+    height: 2.25rem;
+    left: 0.875rem;
+    margin: 0;
+    position: absolute;
+    top: 0.75rem;
+    width: 2.25rem;
+  }
+
+  .nwse-root [data-contact-method] > h3 {
+    margin-bottom: 0;
+  }
+
+  /* The email address is the widest unbreakable string on the page; 'anywhere'
+     also lowers its min-content, so the form's single column can shrink. */
+  .nwse-root [data-contact-method] {
+    overflow-wrap: anywhere;
+  }
+
+  .nwse-root [data-contact-method] > p {
+    margin-bottom: 0.125rem;
+  }
+
+  .nwse-root [data-contact-method] a::after {
+    content: '';
+    inset: 0;
+    position: absolute;
+  }
+}
+
+@media (max-width: 639.98px) {
+  .nwse-root [data-contact-section] {
+    padding-block: 2rem;
+  }
+
+  .nwse-root [data-contact-intro] {
+    margin-bottom: 1.25rem;
+  }
+
+  .nwse-root [data-contact-intro] > :is(h1, h2) {
+    margin: 0.5rem 0 0.75rem;
+  }
 }

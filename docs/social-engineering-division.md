@@ -92,7 +92,8 @@ division is a New Wave IT division, not a separate company.
   ~1.8 kB (gzip) of extra router code and nothing else.
 - **Internal links.** The IT navbar Services menu and the IT footer ("Social
   Media & Marketing") link into the division; every division page links back
-  to New Wave IT (endorsement bar, breadcrumbs, footer).
+  to New Wave IT (the endorsement bar, which moves into the menu on phones;
+  breadcrumbs; footer).
 
 ## Brand implementation
 
@@ -110,6 +111,66 @@ division is a New Wave IT division, not a separate company.
   Engineering" after; never "NWSE" — enforced by `seo.test.ts`.
 - Leads from `/social-engineering/contact` arrive with the subject prefixed
   `[New Wave: Social Engineering]` and a "Division" line in the notification.
+
+## Phones and tablets
+
+Desktop (1024px and up) renders exactly as it did before the phone and tablet
+layouts; every small-screen rule is either a `max-width` media query in
+`division.css` or a Tailwind class whose `lg:` twin restores the desktop value
+(`responsive.test.tsx` guards the CSS half).
+
+- **Header.** `--nwse-header-height` is 57px on phones (56px nav + border),
+  97px on tablets (32px endorsement bar + 64px nav + border), and 117px on
+  desktop. The page offset follows the token, and so does the root's
+  `scroll-padding-top`, which keeps in-page anchors and keyboard focus (in
+  either direction) below the header. On phones the endorsement bar is hidden
+  and its content ("A New Wave IT division" and the link to New Wave IT) sits
+  at the foot of the menu, which opens as a full-height sheet; tablets keep the
+  bar and open the menu over a dimmed page. While the menu is open the page
+  behind it is `inert`, and focus leaving the header closes it. The phone nav
+  row, logo (160px), and menu toggle are sized in px, so enlarged text cannot
+  push the toggle off-screen.
+- **Landscape phones.** Tablet widths (640–1023px) at most 500px tall get the
+  phone header (57px, the endorsement in the menu, the menu's services in two
+  columns), a 36px H1, and the phone hero spacing: one media query,
+  `(min-width: 640px) and (max-width: 1023.98px) and (max-height: 500px)`, in
+  `division.css` and `type.css`, and `max-lg:[@media(max-height:500px)]:`
+  classes in the markup.
+- **Component classes** (styled in `division.css`, because it loads after the
+  Tailwind utilities and its `.nwse-card`/`.nwse-btn`/`.nwse-icon` rules win
+  over same-specificity utilities):
+  - `nwse-actions`: hero and CTA-band buttons, full width and 48px on phones.
+  - `nwse-rowlist`: services, related services, and FAQ as one grouped list
+    below 768px (where the 2-column grids begin); each service row is a single
+    link (icon, title, arrow, summary).
+  - `nwse-labelrows`: reporting labels as a grouped list below 1024px.
+  - `nwse-hairlines`: "What we gather" / "What's included" as hairline rows
+    below 768px.
+  - `nwse-timeline`: steps as a timeline below 768px, with the icon tile or an
+    amber node (`data-markers`) on the rail.
+  - `nwse-roadmap`: compact phase cards below 768px, their items flowing in
+    rows at natural width; on tablets the three cards share row tracks
+    (subgrid), so their dividers line up when a title wraps.
+  - `nwse-familycard`: the hub's "Part of New Wave IT" card, flush on the
+    gutter on phones (so is the contact form).
+  - `nwse-journey`: the customer journey as one sideways-scrolling row below
+    1024px, a Tab stop only while it overflows.
+- **Enlarged text.** Below 1024px `.nwse-root` sets `overflow-wrap:
+  break-word`, and the list grids use `grid-cols-1` / `minmax(0, 1fr)` tracks,
+  so at 200% text no page is wider than the screen (a wider page would carry
+  the fixed header's toggle off-screen).
+- **Hidden below a breakpoint** (decorative or repeated, never unique copy):
+  the hub hero's service chips and descriptor (repeated by the services list
+  and the footer), "Learn more" on service cards (the whole row is the link),
+  the intro brand mark, and the family lockup on phones (the footer carries
+  it).
+- **Contact form.** `components/Contact.tsx` carries `data-contact-*`
+  attributes only; `division.css` uses them below 1024px for a left-aligned
+  intro, grouped contact methods whose Call and Email rows are whole-row links,
+  and 16px inputs (no iOS zoom on focus). New Wave IT pages are unchanged.
+- **Hero animation (future).** On phones it belongs after the actions, at most
+  `min(200px, 56vw)` tall on the hub; omit it or cap it at about 120px on
+  service pages, whose summaries already run 9–13 lines at 320–390px.
 
 ## Editing
 
@@ -257,24 +318,25 @@ the paragraph's 1.625 (19.5px).
 
 | Class | Family | Size / line height | Weight, tracking | Replaces |
 |---|---|---|---|---|
-| `nwse-type-display-1` | Display | 36px on phones; `clamp(2.25rem, 1.59rem + 2.7vw, 3.75rem)` from 640px; 1.05 → 1 from 640px | 800, −0.01em; word-spacing 0.06em from 640px | hero H1 `text-4xl leading-[1.05] sm:text-5xl lg:text-6xl` |
-| `nwse-type-display-2` | Display | 30/37.5px → 36/40px from 640px | 800, −0.01em | section H2 `text-3xl leading-tight sm:text-4xl` |
-| `nwse-type-title-1` | Text | 20/28px | 700 | `text-xl font-bold` card H3 |
-| `nwse-type-title-2` | Text | 18/28px | 700 | `text-lg font-bold` card and step H3 |
-| `nwse-type-lead` | Text | 16/26px → 18/28px from 640px | 400 | hero summary `text-base leading-relaxed sm:text-lg` |
-| `nwse-type-body` | Text | 16/26px | 400 | `text-base leading-relaxed` |
-| `nwse-type-body-small` | Text | 14/22.75px | 400 | `text-sm leading-relaxed` |
+| `nwse-type-display-1` | Display | phones 32px at 1.06; from 640px `clamp(2.25rem, 1.59rem + 2.7vw, 3.75rem)` at 1 (landscape phones 36px) | 800, −0.01em; word-spacing 0.06em from 640px | hero H1 `text-4xl leading-[1.05] sm:text-5xl lg:text-6xl` |
+| `nwse-type-display-2` | Display | phones 24/28.8px; 36/40px from 640px | 800, −0.01em; word-spacing 0.06em from 640px | section H2 `text-3xl leading-tight sm:text-4xl` |
+| `nwse-type-title-1` | Text | phones 18/24px; 20/28px from 640px | 700 | `text-xl font-bold` card H3 |
+| `nwse-type-title-2` | Text | phones 17/24px; 18/28px from 640px | 700 | `text-lg font-bold` card and step H3 |
+| `nwse-type-lead` | Text | phones 16px at 1.55; 18/28px from 640px | 400 | hero summary `text-base leading-relaxed sm:text-lg` |
+| `nwse-type-body` | Text | phones 16px at 1.6; 16/26px from 640px | 400 | `text-base leading-relaxed` |
+| `nwse-type-body-small` | Text | phones 14px at 1.55; 14/22.75px from 640px | 400 | `text-sm leading-relaxed` |
 | `nwse-type-caption` | Text | 12/16px | 400 | `text-xs` (breadcrumbs) |
 | `nwse-type-label` | Mono, caps | 12/18px | 500, 0.12em | `.nwse-label` |
 | `nwse-type-kicker` | Mono, caps | 12/18px | 600, 0.14em | `.nwse-kicker` type properties; keep `.nwse-kicker` or `.nwse-kicker-on-dark` for the amber |
 | `nwse-type-numeric` | any | — | `tabular-nums` | figures that must align |
 
-- `display-1` is the only fluid style, and only from 640px. It matches today's
-  36px on phones and 60px from 1280px; between those it is within about 7px of
-  today's steps.
+- Phones (below 640px) get their own tighter scale in the base tokens (H1 32
+  / H2 24 / card titles 18: about a 1.33 step, so a section head never reads
+  as a second headline); the `@media (min-width: 640px)` block restores the
+  tablet and desktop values, which `type.test.ts` pins. From 640px, `display-1` is the only fluid style:
+  60px from 1280px and within about 7px of the replaced steps in between.
 - `display-1` and `display-2` add 0.06em of word spacing from 640px (Plus
-  Jakarta Sans ExtraBold's word space is narrow). Phones keep normal spacing so
-  headings wrap exactly as before.
+  Jakarta Sans ExtraBold's word space is narrow). Phones keep normal spacing.
 - The 640px line heights are what today's pages actually render. Tailwind's
   `sm:text-*` utilities carry their own line height, which overrides the
   `leading-*` class. To restore the intended leading (1.05, 1.25, 1.625),

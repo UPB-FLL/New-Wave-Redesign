@@ -61,14 +61,14 @@ function ServicePageBody({ service }: { service: DivisionServiceContent }) {
       </Band>
 
       <Band tone="white" labelledBy="nwse-deliverables">
-        <div className="grid gap-10 lg:grid-cols-2">
+        <div className="grid gap-8 sm:gap-10 md:grid-cols-2">
           <div>
             <SectionIntro kicker="Deliverables" title="What you receive" id="nwse-deliverables" />
             <CheckList items={service.deliverables} />
           </div>
           <div>
             <SectionIntro kicker="Reporting" title="What we report on" />
-            <div className="mt-6">
+            <div className="mt-4 sm:mt-6">
               <MetricLabels labels={service.metrics} />
             </div>
           </div>
@@ -82,24 +82,28 @@ function ServicePageBody({ service }: { service: DivisionServiceContent }) {
 
       <Band tone="white" labelledBy="nwse-related">
         <SectionIntro kicker="Related services" title="Works best alongside" id="nwse-related" />
-        <ul className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {/* Below lg each service is a row: icon, title, and arrow on one line, the
+            summary beneath, the whole row the link (grouped into one list below
+            md). From lg, the cards as before. minmax(0, …) tracks keep the rows
+            inside the panel when text is enlarged. */}
+        <ul className="nwse-rowlist mt-6 grid grid-cols-1 gap-0 sm:mt-8 md:gap-4 md:grid-cols-2 lg:grid-cols-3 md:max-lg:[&>li:last-child:nth-child(odd)]:col-span-2">
           {related.map((item) => (
             <li key={item.slug}>
               <Link
                 to={divisionServicePath(item.slug)}
-                className="nwse-card group flex h-full items-start gap-4 p-5 transition-colors hover:border-[var(--nwse-lure-amber)]"
+                className="nwse-card group grid h-full grid-cols-[2.25rem_minmax(0,1fr)_1rem] content-start items-center gap-x-3 gap-y-1.5 p-4 transition-colors hover:border-[var(--nwse-lure-amber)] sm:p-5 lg:flex lg:items-start lg:gap-4"
               >
-                <span className="nwse-icon h-10 w-10 shrink-0">
+                <span className="nwse-icon col-start-1 row-start-1 h-9 w-9 shrink-0 lg:h-10 lg:w-10">
                   <ServiceIcon icon={item.icon} size={18} />
                 </span>
-                <span className="flex-1">
-                  <span className="block font-semibold text-[var(--nw-current-navy)]">{item.navLabel}</span>
-                  <span className="nwse-type-body-small mt-1 block text-[var(--nw-slate)]">{item.cardSummary}</span>
+                <span className="contents lg:block lg:flex-1">
+                  <span className="col-start-2 row-start-1 block font-semibold text-[var(--nw-current-navy)] max-lg:break-words">{item.navLabel}</span>
+                  <span className="nwse-type-body-small col-span-3 block text-[var(--nw-slate)] lg:mt-1">{item.cardSummary}</span>
                 </span>
                 <NwseIcon
                   name="arrow-up-right"
                   size={16}
-                  className="shrink-0 text-[var(--nw-slate)] transition-colors group-hover:text-[var(--nwse-lure-amber-deep)]"
+                  className="col-start-3 row-start-1 shrink-0 justify-self-end text-[var(--nw-slate)] transition-colors group-hover:text-[var(--nwse-lure-amber-deep)]"
                 />
               </Link>
             </li>
