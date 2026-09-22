@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { usePageMeta } from '../../lib/usePageMeta';
 import { DIVISION_JSONLD_ELEMENT_ID } from './prerender';
-import { divisionJsonLdDocument } from './seo';
-import { DIVISION_ASSETS, DIVISION_NAME, absoluteUrl } from './site';
+import { divisionJsonLdDocument, divisionPageMetaOptions } from './seo';
+import { DIVISION_ASSETS } from './site';
 import type { DivisionPageSeo } from './types';
 
 /**
@@ -11,15 +11,7 @@ import type { DivisionPageSeo } from './types';
  * (prerendered HTML) or reached by in-app navigation.
  */
 export function useDivisionMeta(page: DivisionPageSeo) {
-  usePageMeta({
-    title: page.title,
-    description: page.description,
-    includeSiteName: false,
-    canonical: absoluteUrl(page.path),
-    ogImage: absoluteUrl(DIVISION_ASSETS.ogImage),
-    keywords: page.keywords,
-    siteName: DIVISION_NAME,
-  });
+  usePageMeta(divisionPageMetaOptions(page));
 
   const jsonLd = divisionJsonLdDocument(page);
 

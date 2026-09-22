@@ -107,9 +107,9 @@ division is a New Wave IT division, not a separate company.
 
 ## Follow-ups (not in this change)
 
-- **IT pages share the homepage's pre-JavaScript canonical.** Every New Wave IT
-  URL other than `/` is served `index.html`, whose raw canonical points at `/`
-  until JavaScript corrects it. Google generally uses the rendered value, but
-  it advises against changing canonicals with JavaScript. The division's
-  prerender mechanism can be extended to the IT routes to fix this.
+- ~~IT pages share the homepage's pre-JavaScript canonical.~~ Fixed. Every
+  static New Wave IT route is now prerendered too (see "Prerendered page heads"
+  in `CLAUDE.md`).
+- The homepage shell's raw meta description (`index.html`) differs from the
+  one `HomePage` sets at runtime. The title and canonical match.
 - The Elfsight chat widget is global and appears on division pages too.

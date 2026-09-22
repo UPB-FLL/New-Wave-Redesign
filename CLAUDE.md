@@ -2,6 +2,36 @@
 
 ## Recent Changes
 
+### Prerendered page heads for every static route (2026-09-22)
+
+Every static New Wave IT page now serves raw HTML with its own `<title>`,
+description, canonical, and Open Graph/Twitter tags. Before this change, each
+of them declared the homepage canonical until JavaScript ran.
+
+- **One source of truth**: `src/lib/routeMeta.ts` (`IT_PAGE_META`) holds the
+  metadata for 23 static routes. The 6 `/l/*` guides come from
+  `src/lib/serviceGuides.ts`. Pages call
+  `usePageMeta(IT_PAGE_META['/path'])` or spread that entry and add `jsonLd`,
+  which stays runtime-only. To change a page's title or description, edit the
+  registry, not the page.
+- **Shared resolver**: `src/lib/pageMeta.ts` provides `resolvePageMeta()` and
+  `headEntries()`. `usePageMeta` and the prerender both use them, so the raw
+  head and the hydrated head cannot drift.
+- **Build**: `src/lib/prerenderHead.ts` (`applyPageHead`, `renderRouteHtml`),
+  called from the `vite.config.ts` plugin, writes `dist/<route>/index.html`.
+  `vercel.json` has one exact rewrite per route before the catch-all. The
+  division prerender uses the same module.
+- **Not prerendered**: `/` (the untouched shell) and the data-driven routes
+  `/service/:slug`, `/threat/:slug`, and `/blog/:slug`.
+- **Adding a static page**: add it to `IT_PAGE_META`, use it in the page, add
+  a `vercel.json` rewrite and a sitemap `<url>`. The tests fail until all of
+  them agree.
+- **Tests**:
+  - `src/test/seo/it-prerender.test.ts` checks the raw head of each route.
+  - `src/test/seo/it-route-parity.test.tsx` renders each page at its real
+    `App.tsx` route and compares its runtime meta with the prerender.
+  - `src/lib/pageMeta.test.ts` covers the resolver.
+
 ### New Wave: Social Engineering division (2026-09-22)
 
 A new division lives in the `/social-engineering` subfolder. No New Wave IT URL,

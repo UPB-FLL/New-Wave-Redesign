@@ -7,6 +7,7 @@ import SupportChatCard from '../components/support/SupportChatCard';
 import SupportEmailCard from '../components/support/SupportEmailCard';
 import { FadeIn } from '../components/ui/fade-in';
 import { useContent } from '../lib/useContent';
+import { IT_PAGE_META } from '../lib/routeMeta';
 import { usePageMeta } from '../lib/usePageMeta';
 
 type Channel = 'email' | 'portal' | 'chat';
@@ -43,12 +44,7 @@ const channels: Array<{
 
 export default function SupportPage() {
   usePageMeta({
-    title: 'IT Support - Email, Customer Login & Live Chat',
-    description:
-      'Reach New Wave IT support three ways: email support@newwaveitfl.com, sign in to view your SuperOps tickets, or start a live chat that texts an on-call technician.',
-    keywords:
-      'IT support Fort Lauderdale, support ticket portal, SuperOps customer login, live IT chat, New Wave IT support',
-    canonical: 'https://www.newwaveitfl.com/support',
+    ...IT_PAGE_META['/support'],
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'ContactPage',

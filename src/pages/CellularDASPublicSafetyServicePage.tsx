@@ -1,5 +1,6 @@
 import { AlertTriangle, Radio, Signal, Users, Wifi, Zap } from 'lucide-react';
 import { ServiceCategoryPage, type ServiceCategoryPageData } from '../components/brand/ServiceCategoryPage';
+import { IT_PAGE_META } from '../lib/routeMeta';
 import { usePageMeta } from '../lib/usePageMeta';
 
 const service: ServiceCategoryPageData = {
@@ -38,12 +39,7 @@ const service: ServiceCategoryPageData = {
 };
 
 export default function CellularDASPublicSafetyServicePage() {
-  usePageMeta({
-    title: 'Cellular DAS & Public Safety Communications | FirstNet Solutions',
-    description: 'Distributed antenna systems for emergency responders, public safety agencies, and large venues. FirstNet integration, in-building coverage, and critical communications.',
-    keywords: 'cellular DAS, public safety networks, FirstNet, in-building coverage, emergency communications, responder networks',
-    canonical: 'https://www.newwaveitfl.com/service-category/cellular-das-and-public-safety',
-  });
+  usePageMeta(IT_PAGE_META['/service-category/cellular-das-and-public-safety']);
 
   return <ServiceCategoryPage data={service} />;
 }

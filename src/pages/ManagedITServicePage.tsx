@@ -1,5 +1,6 @@
 import { BarChart3, Lock, Monitor, TrendingUp } from 'lucide-react';
 import { ServiceCategoryPage, type ServiceCategoryPageData } from '../components/brand/ServiceCategoryPage';
+import { IT_PAGE_META } from '../lib/routeMeta';
 import { usePageMeta } from '../lib/usePageMeta';
 
 const service: ServiceCategoryPageData = {
@@ -47,10 +48,7 @@ const service: ServiceCategoryPageData = {
 
 export default function ManagedITServicePage() {
   usePageMeta({
-    title: 'Managed IT Services Fort Lauderdale — MSP South Florida',
-    description: 'Fully managed IT services for Fort Lauderdale and South Florida businesses. Flat-rate pricing, 24/7 monitoring, patch management, backup & disaster recovery. No long-term contracts.',
-    keywords: 'managed IT services Fort Lauderdale, MSP South Florida, IT outsourcing Fort Lauderdale, managed services provider Florida, proactive IT monitoring, flat-rate IT support, IT management South Florida, outsourced IT department',
-    canonical: 'https://www.newwaveitfl.com/service-category/managed-it-services',
+    ...IT_PAGE_META['/service-category/managed-it-services'],
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'Service',

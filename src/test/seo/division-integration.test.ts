@@ -6,6 +6,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { allDivisionPages } from '../../divisions/socialEngineering/seo';
 import { SITE_URL } from '../../divisions/socialEngineering/site';
+import { prerenderedItRoutes } from '../../lib/routeMeta';
 
 const root = path.resolve(__dirname, '../../..');
 const read = (file: string) => readFileSync(path.join(root, file), 'utf8');
@@ -23,6 +24,8 @@ const PARENT_SITEMAP_PATHS = [
 ];
 
 const divisionPaths = allDivisionPages().map((page) => page.path);
+const itPrerenderedPaths = prerenderedItRoutes().map((route) => route.path);
+const prerenderedPaths = [...itPrerenderedPaths, ...divisionPaths];
 
 describe('sitemap.xml', () => {
   const locs = [...read('public/sitemap.xml').matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
@@ -34,6 +37,15 @@ describe('sitemap.xml', () => {
   it('lists every division URL exactly once and nothing else new', () => {
     divisionPaths.forEach((p) => expect(locs.filter((loc) => loc === `${SITE_URL}${p}`)).toHaveLength(1));
     expect(locs).toHaveLength(PARENT_SITEMAP_PATHS.length + divisionPaths.length);
+  });
+
+  it('only lists URLs whose raw HTML is prerendered, apart from the homepage shell', () => {
+    // A new sitemap URL without a prerendered head would be served the
+    // homepage's canonical until JavaScript runs; register it in routeMeta.ts.
+    locs
+      .map((loc) => loc.replace(SITE_URL, ''))
+      .filter((p) => p !== '/')
+      .forEach((p) => expect(prerenderedPaths, p).toContain(p));
   });
 });
 
@@ -56,8 +68,8 @@ describe('vercel.json rewrites', () => {
     expect(rewrites[catchAll].destination).toBe('/index.html');
   });
 
-  it('serves each division URL its prerendered file, ahead of the catch-all', () => {
-    divisionPaths.forEach((p) => {
+  it('serves each prerendered URL its own file, ahead of the catch-all', () => {
+    prerenderedPaths.forEach((p) => {
       const index = rewrites.findIndex((rule) => rule.source === p);
       expect(index, p).toBeGreaterThan(0);
       expect(index, p).toBeLessThan(catchAll);
@@ -65,9 +77,10 @@ describe('vercel.json rewrites', () => {
     });
   });
 
-  it('adds no rewrite for any parent URL', () => {
+  it('rewrites exactly the prerendered URLs — never the homepage or data-driven routes', () => {
     const extra = rewrites.filter((rule) => rule.source !== '/api/(.*)' && rule.source !== '/(.*)');
-    expect(extra.map((rule) => rule.source).sort()).toEqual([...divisionPaths].sort());
+    expect(extra.map((rule) => rule.source).sort()).toEqual([...prerenderedPaths].sort());
+    expect(extra.map((rule) => rule.source)).not.toContain('/');
   });
 });
 

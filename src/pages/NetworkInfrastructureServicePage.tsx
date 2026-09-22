@@ -1,5 +1,6 @@
 import { AlertTriangle, GitBranch, Network, Shield, Wifi, Zap } from 'lucide-react';
 import { ServiceCategoryPage, type ServiceCategoryPageData } from '../components/brand/ServiceCategoryPage';
+import { IT_PAGE_META } from '../lib/routeMeta';
 import { usePageMeta } from '../lib/usePageMeta';
 
 const service: ServiceCategoryPageData = {
@@ -56,10 +57,7 @@ const service: ServiceCategoryPageData = {
 
 export default function NetworkInfrastructureServicePage() {
   usePageMeta({
-    title: 'Network Infrastructure Fort Lauderdale — WiFi, Cabling & Firewalls',
-    description: 'Business network design, structured cabling, WiFi 6, firewall deployment, and VPN for Fort Lauderdale and South Florida. Fast, secure, and redundant — built by New Wave IT.',
-    keywords: 'network infrastructure Fort Lauderdale, business WiFi South Florida, structured cabling Fort Lauderdale, firewall installation, VPN setup, network design South Florida, network security Fort Lauderdale',
-    canonical: 'https://www.newwaveitfl.com/service-category/network-infrastructure',
+    ...IT_PAGE_META['/service-category/network-infrastructure'],
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'Service',

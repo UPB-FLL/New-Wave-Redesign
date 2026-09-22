@@ -1,5 +1,6 @@
 import { Briefcase, Lock, Shield, TrendingUp, Users, Zap } from 'lucide-react';
 import { ServiceCategoryPage, type ServiceCategoryPageData } from '../components/brand/ServiceCategoryPage';
+import { IT_PAGE_META } from '../lib/routeMeta';
 import { usePageMeta } from '../lib/usePageMeta';
 
 const service: ServiceCategoryPageData = {
@@ -41,11 +42,7 @@ const service: ServiceCategoryPageData = {
 };
 
 export default function FamilyOfficesServicePage() {
-  usePageMeta({
-    title: 'Family Office IT Services | Secure Wealth Management Technology',
-    description: 'Secure IT infrastructure for family offices. Privacy-focused, compliant technology solutions for multi-generational wealth management and operations.',
-    keywords: 'family office IT, wealth management technology, private network security, family enterprise IT',
-  });
+  usePageMeta(IT_PAGE_META['/service-category/family-offices']);
 
   return <ServiceCategoryPage data={service} />;
 }

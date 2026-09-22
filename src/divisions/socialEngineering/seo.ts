@@ -18,6 +18,7 @@ import {
   absoluteUrl,
   divisionServicePath,
 } from './site';
+import type { PageMetaOptions } from '../../lib/pageMeta';
 import type { DivisionFaq, DivisionPageSeo, DivisionServiceContent } from './types';
 
 type JsonLdNode = Record<string, unknown>;
@@ -185,4 +186,17 @@ export function allDivisionPages(): DivisionPageSeo[] {
 /** Serialises a page's nodes into one JSON-LD document. */
 export function divisionJsonLdDocument(page: DivisionPageSeo): string {
   return JSON.stringify({ '@context': 'https://schema.org', '@graph': page.jsonLd });
+}
+
+/** usePageMeta options for a division page — shared by the runtime hook and the prerender. */
+export function divisionPageMetaOptions(page: DivisionPageSeo): Omit<PageMetaOptions, 'jsonLd'> {
+  return {
+    title: page.title,
+    description: page.description,
+    includeSiteName: false,
+    canonical: absoluteUrl(page.path),
+    ogImage: absoluteUrl(DIVISION_ASSETS.ogImage),
+    keywords: page.keywords,
+    siteName: DIVISION_NAME,
+  };
 }

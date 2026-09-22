@@ -8,6 +8,8 @@ import { preloadTagsFor, type BundleChunk, type DivisionPageModule } from './src
 import { renderDivisionPageHtml } from './src/divisions/socialEngineering/prerender';
 import { allDivisionPages } from './src/divisions/socialEngineering/seo';
 import { DIVISION_BASE_PATH, DIVISION_CONTACT_PATH } from './src/divisions/socialEngineering/site';
+import { renderRouteHtml } from './src/lib/prerenderHead';
+import { prerenderedItRoutes } from './src/lib/routeMeta';
 
 const pageModuleFor = (pagePath: string): DivisionPageModule =>
   pagePath === DIVISION_BASE_PATH
@@ -17,24 +19,32 @@ const pageModuleFor = (pagePath: string): DivisionPageModule =>
       : 'SocialEngineeringServicePage';
 
 /**
- * Writes dist/social-engineering/<page>/index.html for every division URL: the
- * built SPA shell with that page's own title, canonical, Open Graph tags, and
- * JSON-LD (see src/divisions/socialEngineering/prerender.ts), plus preload
- * links for the page's lazy chunks. vercel.json rewrites each division URL to
- * its file; every other URL keeps the shell.
+ * Writes dist/<route>/index.html for every static page: the built SPA shell
+ * with that page's own title, description, canonical, and Open Graph/Twitter
+ * tags (src/lib/prerenderHead.ts), so crawlers that don't run JavaScript never
+ * read one page as a copy of the homepage. New Wave IT routes come from
+ * src/lib/routeMeta.ts; division pages also get their own JSON-LD, icons, and
+ * preload links. vercel.json rewrites each route to its file; the homepage and
+ * data-driven routes keep the shell.
  */
-function divisionPrerender(): Plugin {
+function prerenderPages(): Plugin {
   return {
-    name: 'nw-division-prerender',
+    name: 'nw-prerender-pages',
     apply: 'build',
     writeBundle(options, bundle) {
       const outDir = options.dir ?? path.resolve('dist');
       const shell = readFileSync(path.join(outDir, 'index.html'), 'utf8');
+      const write = (route: string, html: string) => {
+        const file = path.join(outDir, route.replace(/^\//, ''), 'index.html');
+        mkdirSync(path.dirname(file), { recursive: true });
+        writeFileSync(file, html);
+      };
+      for (const route of prerenderedItRoutes()) {
+        write(route.path, renderRouteHtml(shell, route.path, route.meta));
+      }
       for (const page of allDivisionPages()) {
         const headExtras = preloadTagsFor(bundle as unknown as Record<string, BundleChunk>, pageModuleFor(page.path));
-        const file = path.join(outDir, page.path.replace(/^\//, ''), 'index.html');
-        mkdirSync(path.dirname(file), { recursive: true });
-        writeFileSync(file, renderDivisionPageHtml(shell, page, { headExtras }));
+        write(page.path, renderDivisionPageHtml(shell, page, { headExtras }));
       }
     },
   };
@@ -42,7 +52,7 @@ function divisionPrerender(): Plugin {
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), divisionPrerender()],
+  plugins: [react(), prerenderPages()],
   optimizeDeps: {
     exclude: ['lucide-react'],
   },

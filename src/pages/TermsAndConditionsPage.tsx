@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import LegalPageLayout from '../components/legal/LegalPageLayout';
+import { IT_PAGE_META } from '../lib/routeMeta';
 import { usePageMeta } from '../lib/usePageMeta';
 
 const SECTION_CLASS = 'space-y-3';
@@ -8,11 +9,7 @@ const LIST_CLASS = 'list-disc space-y-2 pl-6';
 const LINK_CLASS = 'font-medium text-teal-700 underline decoration-teal-300 underline-offset-4 hover:text-teal-900';
 
 export default function TermsAndConditionsPage() {
-  usePageMeta({
-    title: 'Terms and Conditions — New Wave IT',
-    description: 'Terms governing the New Wave IT website and IT services provided by New Wave IT LLC.',
-    canonical: 'https://www.newwaveitfl.com/terms-and-conditions',
-  });
+  usePageMeta(IT_PAGE_META['/terms-and-conditions']);
 
   return (
     <LegalPageLayout title="Terms and Conditions" effectiveDate="August 11, 2026">

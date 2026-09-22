@@ -1,32 +1,7 @@
 import { useEffect } from 'react';
+import { headEntries, resolvePageMeta, type PageMetaOptions } from './pageMeta';
 
-const SITE_NAME = 'New Wave IT';
-const SITE_URL = 'https://www.newwaveitfl.com';
-const DEFAULT_DESCRIPTION =
-  "Fort Lauderdale's trusted managed IT services partner. 24/7 support, cybersecurity, cloud migration, and network infrastructure for South Florida businesses.";
-const DEFAULT_OG_IMAGE =
-  'https://www.newwaveitfl.com/brand/og/open-graph-1200x630.png';
-
-interface PageMetaOptions {
-  title: string;
-  description?: string;
-  /** Appended to title as "| New Wave IT" unless false or title already contains SITE_NAME */
-  includeSiteName?: boolean;
-  /** Absolute canonical URL. Defaults to current href. */
-  canonical?: string;
-  /** Open Graph / Twitter image URL */
-  ogImage?: string;
-  /** Comma-separated keywords for meta[name="keywords"] */
-  keywords?: string;
-  /** JSON-LD object(s) to inject as <script type="application/ld+json"> */
-  jsonLd?: object | object[];
-  /** Open Graph type, e.g. 'website' or 'article' */
-  ogType?: string;
-  /** Set true to add <meta name="robots" content="noindex, nofollow"> */
-  noindex?: boolean;
-  /** Brand for the title suffix and og:site_name. Defaults to "New Wave IT"; divisions pass their own. */
-  siteName?: string;
-}
+export type { PageMetaOptions } from './pageMeta';
 
 type Restorer = () => void;
 
@@ -77,41 +52,28 @@ function injectJsonLd(data: object | object[]): Restorer {
 
 export function usePageMeta({
   title,
-  description = DEFAULT_DESCRIPTION,
-  includeSiteName = true,
+  description,
+  includeSiteName,
   canonical,
-  ogImage = DEFAULT_OG_IMAGE,
+  ogImage,
   keywords,
   jsonLd,
-  ogType = 'website',
-  noindex = false,
-  siteName = SITE_NAME,
+  ogType,
+  noindex,
+  siteName,
 }: PageMetaOptions) {
   useEffect(() => {
     const prevTitle = document.title;
-    const fullTitle =
-      includeSiteName && !title.includes(siteName) ? `${title} | ${siteName}` : title;
-    document.title = fullTitle;
+    // Same resolver and tag list as the build-time prerender (src/lib/prerenderHead.ts).
+    const meta = resolvePageMeta(
+      { title, description, includeSiteName, canonical, ogImage, keywords, ogType, noindex, siteName },
+      window.location.pathname,
+    );
+    document.title = meta.title;
 
-    const pageUrl = canonical ?? (SITE_URL + window.location.pathname);
-
-    const restorers: Restorer[] = [
-      upsertMeta('name', 'description', description),
-      upsertMeta('property', 'og:type', ogType),
-      upsertMeta('property', 'og:site_name', siteName),
-      upsertMeta('property', 'og:title', fullTitle),
-      upsertMeta('property', 'og:description', description),
-      upsertMeta('property', 'og:url', pageUrl),
-      upsertMeta('property', 'og:image', ogImage),
-      upsertMeta('name', 'twitter:card', 'summary_large_image'),
-      upsertMeta('name', 'twitter:title', fullTitle),
-      upsertMeta('name', 'twitter:description', description),
-      upsertMeta('name', 'twitter:image', ogImage),
-      upsertMeta('name', 'robots', noindex ? 'noindex, nofollow' : 'index, follow'),
-      upsertCanonical(pageUrl),
-    ];
-
-    if (keywords) restorers.push(upsertMeta('name', 'keywords', keywords));
+    const restorers: Restorer[] = headEntries(meta).map((entry) =>
+      entry.kind === 'canonical' ? upsertCanonical(entry.href) : upsertMeta(entry.attr, entry.key, entry.value),
+    );
     if (jsonLd) restorers.push(injectJsonLd(jsonLd));
 
     return () => {

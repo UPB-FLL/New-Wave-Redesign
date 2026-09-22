@@ -1,5 +1,6 @@
 import { Cloud, Database, Globe, Lock, TrendingUp, Zap } from 'lucide-react';
 import { ServiceCategoryPage, type ServiceCategoryPageData } from '../components/brand/ServiceCategoryPage';
+import { IT_PAGE_META } from '../lib/routeMeta';
 import { usePageMeta } from '../lib/usePageMeta';
 
 const service: ServiceCategoryPageData = {
@@ -47,10 +48,7 @@ const service: ServiceCategoryPageData = {
 
 export default function CloudSolutionsServicePage() {
   usePageMeta({
-    title: 'Cloud Solutions & Migration Fort Lauderdale — Azure, Microsoft 365',
-    description: 'Cloud migration and management for Fort Lauderdale businesses. Azure, Microsoft 365, AWS, hybrid cloud strategy, and cost optimization from New Wave IT.',
-    keywords: 'cloud migration Fort Lauderdale, cloud solutions South Florida, Microsoft 365 setup Fort Lauderdale, Azure migration, cloud consulting Fort Lauderdale, hybrid cloud South Florida, cloud services MSP',
-    canonical: 'https://www.newwaveitfl.com/service-category/cloud-solutions',
+    ...IT_PAGE_META['/service-category/cloud-solutions'],
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'Service',

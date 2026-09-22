@@ -7,16 +7,11 @@ import SecurityProcess from '../components/cybersecurity/SecurityProcess';
 import ComplianceFrameworks from '../components/cybersecurity/ComplianceFrameworks';
 import CyberSecurityCTA from '../components/cybersecurity/CyberSecurityCTA';
 import Footer from '../components/Footer';
+import { IT_PAGE_META } from '../lib/routeMeta';
 import { usePageMeta } from '../lib/usePageMeta';
 
 export default function CybersecurityPage() {
-  usePageMeta({
-    title: 'Cybersecurity Threat Center — Attack Types, Defenses & Compliance',
-    description:
-      'Explore the cyber threats targeting South Florida businesses — ransomware, phishing, insider risk — and how New Wave IT detects, defends, and keeps you compliant.',
-    keywords: 'cyber threats South Florida, ransomware protection, phishing defense, threat intelligence, security compliance, cybersecurity threat center',
-    canonical: 'https://www.newwaveitfl.com/cybersecurity',
-  });
+  usePageMeta(IT_PAGE_META['/cybersecurity']);
   return (
     <div className="min-h-screen bg-[var(--nw-cloud-white)]">
       <Navbar />

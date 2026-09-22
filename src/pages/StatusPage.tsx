@@ -2,6 +2,7 @@ import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
 import StatusIndicator from '../components/StatusIndicator';
 import { useContent } from '../lib/useContent';
+import { IT_PAGE_META } from '../lib/routeMeta';
 import { usePageMeta } from '../lib/usePageMeta';
 
 interface StatusService {
@@ -33,11 +34,7 @@ function averageUptime(services: StatusService[]): number {
 }
 
 export default function StatusPage() {
-  usePageMeta({
-    title: 'Service Status - New Wave IT',
-    description: 'Real-time status of critical services and ISPs. Monitor uptime for cloud services your business depends on.',
-    canonical: 'https://www.newwaveitfl.com/status',
-  });
+  usePageMeta(IT_PAGE_META['/status']);
 
   const content = useContent('status');
   let services: StatusService[] = defaultServices;

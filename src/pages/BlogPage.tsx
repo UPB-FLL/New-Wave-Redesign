@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { SectionHeading } from '../components/brand/SectionHeading';
 import Footer from '../components/Footer';
+import { IT_PAGE_META } from '../lib/routeMeta';
 import { usePageMeta } from '../lib/usePageMeta';
 import { fetchBlogPosts } from '../lib/blog';
 import type { BlogPost } from '../../types/blog';
@@ -40,10 +41,7 @@ export default function BlogPage() {
   }, []);
 
   usePageMeta({
-    title: 'IT Support Blog Fort Lauderdale - MSP Guides',
-    description: 'New Wave IT blog with managed IT services, cybersecurity, cloud, Microsoft 365, network infrastructure, and IT support guidance for Fort Lauderdale businesses.',
-    keywords: 'Fort Lauderdale MSP blog, IT support blog Fort Lauderdale, managed IT services guide, cybersecurity tips South Florida, Microsoft 365 support Fort Lauderdale, cloud backup planning',
-    canonical: 'https://www.newwaveitfl.com/blog',
+    ...IT_PAGE_META['/blog'],
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'Blog',

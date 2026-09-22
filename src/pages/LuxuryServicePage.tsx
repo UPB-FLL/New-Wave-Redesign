@@ -1,5 +1,6 @@
 import { Crown, Home, Lock, Users, Wifi, Zap } from 'lucide-react';
 import { ServiceCategoryPage, type ServiceCategoryPageData } from '../components/brand/ServiceCategoryPage';
+import { IT_PAGE_META } from '../lib/routeMeta';
 import { usePageMeta } from '../lib/usePageMeta';
 
 const service: ServiceCategoryPageData = {
@@ -41,12 +42,7 @@ const service: ServiceCategoryPageData = {
 };
 
 export default function LuxuryServicePage() {
-  usePageMeta({
-    title: 'Luxury Property IT Services | High-End Smart Home & Automation',
-    description: 'Premium IT solutions for luxury properties, resorts, and high-end hospitality. Smart home automation, guest WiFi, and white-glove technical support.',
-    keywords: 'luxury property IT, smart home automation, high-end WiFi, concierge technology, resort IT services',
-    canonical: 'https://www.newwaveitfl.com/service-category/luxury',
-  });
+  usePageMeta(IT_PAGE_META['/service-category/luxury']);
 
   return <ServiceCategoryPage data={service} />;
 }
