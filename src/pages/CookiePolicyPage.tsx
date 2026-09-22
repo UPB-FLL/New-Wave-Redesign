@@ -1,4 +1,5 @@
 import LegalPageLayout from '../components/legal/LegalPageLayout';
+import { IT_PAGE_META } from '../lib/routeMeta';
 import { usePageMeta } from '../lib/usePageMeta';
 
 const SECTION_CLASS = 'space-y-3';
@@ -7,11 +8,7 @@ const LIST_CLASS = 'list-disc space-y-2 pl-6';
 const LINK_CLASS = 'font-medium text-teal-700 underline decoration-teal-300 underline-offset-4 hover:text-teal-900';
 
 export default function CookiePolicyPage() {
-  usePageMeta({
-    title: 'Cookie Policy — New Wave IT',
-    description: 'How New Wave IT uses cookies, storage, analytics, and embedded technologies on its website.',
-    canonical: 'https://www.newwaveitfl.com/cookie-policy',
-  });
+  usePageMeta(IT_PAGE_META['/cookie-policy']);
 
   return (
     <LegalPageLayout title="Cookie Policy" effectiveDate="August 11, 2026">

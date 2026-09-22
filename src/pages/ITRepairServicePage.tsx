@@ -1,5 +1,6 @@
 import { Cpu, HardDrive, Shield, TrendingUp, Wrench, Zap } from 'lucide-react';
 import { ServiceCategoryPage, type ServiceCategoryPageData } from '../components/brand/ServiceCategoryPage';
+import { IT_PAGE_META } from '../lib/routeMeta';
 import { usePageMeta } from '../lib/usePageMeta';
 
 const service: ServiceCategoryPageData = {
@@ -39,12 +40,7 @@ const service: ServiceCategoryPageData = {
 };
 
 export default function ITRepairServicePage() {
-  usePageMeta({
-    title: 'IT Hardware Repair & Upgrades | New Wave IT',
-    description: 'Expert laptop, desktop, and server repair with data protection. Strategic hardware upgrades to extend equipment life and boost performance.',
-    keywords: 'hardware repair, computer repair, laptop repair, server repair, hardware upgrades, SSD upgrade',
-    canonical: 'https://www.newwaveitfl.com/service-category/it-repair-upgrades',
-  });
+  usePageMeta(IT_PAGE_META['/service-category/it-repair-upgrades']);
 
   return <ServiceCategoryPage data={service} />;
 }

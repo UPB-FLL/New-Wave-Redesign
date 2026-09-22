@@ -13,6 +13,9 @@ function asTrimmedString(value: unknown): string {
   return typeof value === 'string' ? value.trim() : '';
 }
 
+/** Lead-routing tags the site's forms may send. Unknown values are ignored, never echoed. */
+const INQUIRY_LABELS = new Map<string, string>([['social-engineering', 'New Wave: Social Engineering']]);
+
 export default async function handler(req: any, res: any) {
   if (!methodGuard(req, res, ['GET', 'POST'])) return;
   sweepRateLimits();
@@ -72,12 +75,13 @@ export default async function handler(req: any, res: any) {
   const safePhone = phone ? escapeHtml(phone) : '';
   const safeCompany = company ? escapeHtml(company) : '';
   const safeMessage = escapeHtml(message);
+  const inquiryLabel = typeof body.inquiry === 'string' ? INQUIRY_LABELS.get(body.inquiry) : undefined;
 
   try {
     const adminEmailResult = await resend.emails.send({
       from: 'support@newwaveitfl.com',
       to: 'contact@newwaveitfl.com',
-      subject: `New Contact Form Submission from ${safeName}`,
+      subject: `${inquiryLabel ? `[${inquiryLabel}] ` : ''}New Contact Form Submission from ${safeName}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #152232; border-bottom: 2px solid #39CCCC; padding-bottom: 10px;">
@@ -85,6 +89,7 @@ export default async function handler(req: any, res: any) {
           </h2>
 
           <div style="margin: 20px 0;">
+            ${inquiryLabel ? `<p><strong>Division:</strong> ${inquiryLabel}</p>` : ''}
             <p><strong>Name:</strong> ${safeName}</p>
             <p><strong>Email:</strong> ${safeEmail}</p>
             ${safePhone ? `<p><strong>Phone:</strong> ${safePhone}</p>` : ''}

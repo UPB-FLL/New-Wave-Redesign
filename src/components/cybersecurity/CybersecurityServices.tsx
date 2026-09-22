@@ -2,13 +2,13 @@ import { ArrowUpRight, Eye, Gauge, Key, Lock, Shield, Users, type LucideIcon } f
 import { Link } from 'react-router-dom';
 import { SectionHeading } from '../brand/SectionHeading';
 
-const services: { icon: LucideIcon; title: string; slug: string; description: string; features: string[] }[] = [
+const services: { icon: LucideIcon; title: string; slug: string; href?: string; description: string; features: string[] }[] = [
   { icon: Shield, title: 'Network Security', slug: 'network-security', description: 'Multi-layered defense architecture for external and internal infrastructure threats.', features: ['Next-gen firewalls', 'Intrusion prevention', 'Network segmentation', 'DDoS mitigation'] },
   { icon: Eye, title: 'Threat Detection & Response', slug: 'threat-detection-response', description: 'Security operations center monitoring with practical analytics and response support.', features: ['SIEM & SOAR', 'Incident response', 'Digital forensics', 'Threat hunting'] },
   { icon: Lock, title: 'Endpoint Protection', slug: 'endpoint-protection', description: 'Comprehensive security for laptops, mobile devices, servers, and connected equipment.', features: ['EDR/XDR platform', 'Patch management', 'Device control', 'Mobile security'] },
   { icon: Key, title: 'Identity & Access', slug: 'identity-access', description: 'A zero-trust approach that helps the right people reach the right resources.', features: ['MFA enforcement', 'SSO integration', 'Privileged access', 'Conditional access'] },
   { icon: Gauge, title: 'Compliance & Audit', slug: 'compliance-audit', description: 'Audit preparation, compliance mapping, and ongoing monitoring for your environment.', features: ['HIPAA & PCI-DSS', 'SOC 2 readiness', 'Risk assessments', 'Audit reporting'] },
-  { icon: Users, title: 'Security Awareness', slug: 'security-awareness', description: 'Ongoing education and simulated phishing programs that build confident teams.', features: ['Phishing simulations', 'Interactive training', 'Policy management', 'Reporting'] },
+  { icon: Users, title: 'Security Awareness', slug: 'security-awareness', href: '/social-engineering/security-awareness-training', description: 'Ongoing education and simulated phishing programs that build confident teams.', features: ['Phishing simulations', 'Interactive training', 'Policy management', 'Reporting'] },
 ];
 
 export default function CybersecurityServices() {
@@ -24,7 +24,7 @@ export default function CybersecurityServices() {
           {services.map((service) => {
             const Icon = service.icon;
             return (
-              <Link key={service.title} to={`/service/${service.slug}`} className="group flex h-full flex-col rounded-lg border p-5 no-underline transition-colors hover:border-[var(--nw-tide-blue)] hover:bg-[var(--nw-cloud-white)]" style={{ background: 'var(--nw-pure-white)', borderColor: 'var(--nw-mist-gray)' }}>
+              <Link key={service.title} to={service.href ?? `/service/${service.slug}`} className="group flex h-full flex-col rounded-lg border p-5 no-underline transition-colors hover:border-[var(--nw-tide-blue)] hover:bg-[var(--nw-cloud-white)]" style={{ background: 'var(--nw-pure-white)', borderColor: 'var(--nw-mist-gray)' }}>
                 <div className="flex items-start justify-between">
                   <span className="nw-icon-signal h-10 w-10"><Icon size={19} aria-hidden="true" /></span>
                   <ArrowUpRight size={18} className="text-[var(--nw-slate)] transition-colors group-hover:text-[var(--nw-tide-blue)]" aria-hidden="true" />

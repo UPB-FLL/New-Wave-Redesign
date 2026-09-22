@@ -41,7 +41,27 @@ async function fetchSpamToken(): Promise<SpamToken | null> {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export default function Contact({ headlineAs: HeadlineTag = 'h2' }: { headlineAs?: 'h1' | 'h2' } = {}) {
+/** Copy a division page shows in place of the CMS-managed New Wave IT defaults. */
+export interface ContactIntro {
+  label: string;
+  headline: string;
+  subheadline: string;
+  messagePlaceholder: string;
+  /** Replaces the phone card's note (the default promotes 24/7 IT emergencies). */
+  phoneNote?: string;
+  successBody?: string;
+}
+
+export default function Contact({
+  headlineAs: HeadlineTag = 'h2',
+  inquiry,
+  intro,
+}: {
+  headlineAs?: 'h1' | 'h2';
+  /** Lead-routing tag the API allow-lists (e.g. 'social-engineering'). */
+  inquiry?: 'social-engineering';
+  intro?: ContactIntro;
+} = {}) {
   const content = useContent('contact');
   const [form, setForm] = useState<FormData>(initialForm);
   const [loading, setLoading] = useState(false);
@@ -88,7 +108,7 @@ export default function Contact({ headlineAs: HeadlineTag = 'h2' }: { headlineAs
       const emailResponse = await fetch(CONTACT_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, token }),
+        body: JSON.stringify({ ...form, token, ...(inquiry ? { inquiry } : {}) }),
       });
 
       if (!emailResponse.ok) {
@@ -117,7 +137,7 @@ export default function Contact({ headlineAs: HeadlineTag = 'h2' }: { headlineAs
     {
       icon: Phone,
       title: 'Call us',
-      sub: content.phone_sub || 'Available 24/7 for emergencies',
+      sub: intro?.phoneNote ?? (content.phone_sub || 'Available 24/7 for emergencies'),
       content: <a href={`tel:${phone.replace(/\D/g, '')}`} className="font-medium text-brand-tide-blue hover:underline">{phone}</a>,
       accent: 'var(--nw-signal-cyan)',
     },
@@ -146,16 +166,18 @@ export default function Contact({ headlineAs: HeadlineTag = 'h2' }: { headlineAs
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <FadeIn>
           <div className="mb-8 text-center sm:mb-10">
-            <span className="nw-kicker">{content.section_label || 'Get in touch'}</span>
+            <span className="nw-kicker">{intro?.label ?? (content.section_label || 'Get in touch')}</span>
             <HeadlineTag className="nw-display mx-auto mb-4 mt-2 max-w-4xl text-4xl leading-[1.05] text-brand-navy sm:text-5xl lg:text-6xl">
-              {content.headline || (
-                <>
-                  Ready to get started? <span className="text-brand-tide-blue">Let&apos;s talk.</span>
-                </>
-              )}
+              {intro?.headline ??
+                (content.headline || (
+                  <>
+                    Ready to get started? <span className="text-brand-tide-blue">Let&apos;s talk.</span>
+                  </>
+                ))}
             </HeadlineTag>
             <p className="mx-auto max-w-xl text-sm text-[var(--nw-slate)] sm:text-base">
-              {content.subheadline || 'Fill out the form and a technician will reach out within one business day. For urgent issues, call us now.'}
+              {intro?.subheadline ??
+                (content.subheadline || 'Fill out the form and a technician will reach out within one business day. For urgent issues, call us now.')}
             </p>
           </div>
         </FadeIn>
@@ -178,13 +200,14 @@ export default function Contact({ headlineAs: HeadlineTag = 'h2' }: { headlineAs
 
           <FadeIn delay={0.15} className="lg:col-span-3">
             {submitted ? (
-              <div className="flex min-h-[400px] flex-col items-center justify-center rounded-lg p-8 text-center nw-surface" style={{ borderColor: 'var(--nw-continuity-green)' }}>
+              <div className="flex min-h-[400px] flex-col items-center justify-center rounded-lg p-8 text-center nw-surface" style={{ borderColor: 'var(--contact-success-accent, var(--nw-continuity-green))' }}>
                 <div className="nw-icon-success mb-5 h-16 w-16">
                   <CheckCircle size={32} />
                 </div>
                 <h3 className="nw-display mb-3 text-2xl text-brand-navy">{content.success_title || 'Message received'}</h3>
                 <p className="max-w-sm text-[var(--nw-slate)]">
-                  {content.success_body || 'Thanks for reaching out. A member of our team will contact you within one business day. For urgent issues, please call us directly.'}
+                  {intro?.successBody ??
+                    (content.success_body || 'Thanks for reaching out. A member of our team will contact you within one business day. For urgent issues, please call us directly.')}
                 </p>
                 <button type="button" onClick={() => setSubmitted(false)} className="mt-6 text-sm font-semibold text-brand-tide-blue hover:underline">
                   Send another message
@@ -233,7 +256,7 @@ export default function Contact({ headlineAs: HeadlineTag = 'h2' }: { headlineAs
                   <label htmlFor="contact-message" className="mb-1.5 block text-sm font-medium text-brand-navy">
                     How can we help? <span className="text-brand-cyan">*</span>
                   </label>
-                  <textarea id="contact-message" name="message" value={form.message} onChange={handleChange} required rows={4} placeholder="Tell us about your IT needs or current challenges..." className="input-light resize-none" />
+                  <textarea id="contact-message" name="message" value={form.message} onChange={handleChange} required rows={4} placeholder={intro?.messagePlaceholder ?? 'Tell us about your IT needs or current challenges...'} className="input-light resize-none" />
                 </div>
 
                 {error ? <p className="mb-3 text-sm text-[#b42318]" role="alert">{error}</p> : null}

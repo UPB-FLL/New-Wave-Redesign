@@ -5,6 +5,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { PublicPageHero } from '../components/brand/PublicPageHero';
 import { SectionHeading } from '../components/brand/SectionHeading';
+import { SERVICE_GUIDE_SUMMARIES, serviceGuideMeta } from '../lib/serviceGuides';
 import { usePageMeta } from '../lib/usePageMeta';
 
 interface GuideSection {
@@ -25,9 +26,7 @@ interface ServiceGuide {
 
 const guides: Record<string, ServiceGuide> = {
   'cybersecurity-guide': {
-    title: 'Complete Cybersecurity Guide',
-    subtitle: 'Building Enterprise-Grade Security Defense',
-    overview: 'Modern cybersecurity requires a multi-layered approach that goes far beyond simple password policies. This comprehensive guide walks you through building a security program that protects your organization from sophisticated threats while maintaining compliance with industry regulations.',
+    ...SERVICE_GUIDE_SUMMARIES['cybersecurity-guide'],
     keyBenefits: [
       { title: 'Threat Prevention', description: 'Identify and neutralize threats before they impact your business' },
       { title: 'Regulatory Compliance', description: 'Meet HIPAA, PCI-DSS, SOC 2 and industry-specific requirements' },
@@ -94,9 +93,7 @@ const guides: Record<string, ServiceGuide> = {
   },
 
   'it-support-guide': {
-    title: 'IT Support Excellence Guide',
-    subtitle: 'Delivering Responsive, Expert Technical Assistance',
-    overview: 'Great IT support goes beyond quick fixes. This guide explains how to establish support that minimizes downtime, builds user confidence, and gives your team the tools they need to be productive.',
+    ...SERVICE_GUIDE_SUMMARIES['it-support-guide'],
     keyBenefits: [
       { title: 'Reduced Downtime', description: 'Fast resolution times minimize productivity loss' },
       { title: 'User Satisfaction', description: 'Responsive support builds trust and improves morale' },
@@ -163,9 +160,7 @@ const guides: Record<string, ServiceGuide> = {
   },
 
   'it-repair-guide': {
-    title: 'IT Repair & Upgrade Strategy Guide',
-    subtitle: 'Extending Equipment Life and Optimizing Performance',
-    overview: 'Equipment replacement represents a significant expense. Strategic repairs and upgrades can extend useful equipment life by years while improving performance. This guide covers the economics of repair vs. replacement.',
+    ...SERVICE_GUIDE_SUMMARIES['it-repair-guide'],
     keyBenefits: [
       { title: 'Extended Equipment Life', description: 'Strategic upgrades can add 2-3 years to system useful life' },
       { title: 'Cost Savings', description: 'Repairs often cost 30-50% less than replacement' },
@@ -232,9 +227,7 @@ const guides: Record<string, ServiceGuide> = {
   },
 
   'managed-it-guide': {
-    title: 'Managed IT Services Strategy Guide',
-    subtitle: 'Transforming IT from Cost Center to Strategic Asset',
-    overview: 'Managed IT Services represents a fundamental shift in how organizations approach technology. Instead of paying for support only when something breaks, managed services provide proactive oversight, strategic planning, and predictable costs.',
+    ...SERVICE_GUIDE_SUMMARIES['managed-it-guide'],
     keyBenefits: [
       { title: 'Predictable Costs', description: 'Fixed monthly fees replace emergency expenses' },
       { title: 'Proactive Management', description: 'Issues are prevented, not just reacted to' },
@@ -301,9 +294,7 @@ const guides: Record<string, ServiceGuide> = {
   },
 
   'cloud-solutions-guide': {
-    title: 'Cloud Solutions Strategy Guide',
-    subtitle: 'Modernizing Infrastructure with Cloud Technology',
-    overview: 'Cloud computing isn\'t a single product—it\'s a set of platforms and services. This guide covers cloud architecture, migration strategy, and cost optimization to help you make informed cloud decisions.',
+    ...SERVICE_GUIDE_SUMMARIES['cloud-solutions-guide'],
     keyBenefits: [
       { title: 'Scalability', description: 'Grow infrastructure without large capital expenditures' },
       { title: 'Flexibility', description: 'Deploy services globally, support remote work, respond to changes' },
@@ -370,9 +361,7 @@ const guides: Record<string, ServiceGuide> = {
   },
 
   'network-infrastructure-guide': {
-    title: 'Network Infrastructure Design Guide',
-    subtitle: 'Engineering Reliable, Secure, High-Performance Networks',
-    overview: 'Your network is the foundation of everything. This guide covers network design principles, security architecture, and optimization strategies to build networks that support business growth while protecting against threats.',
+    ...SERVICE_GUIDE_SUMMARIES['network-infrastructure-guide'],
     keyBenefits: [
       { title: 'Reliability & Uptime', description: 'Redundancy and failover ensure continuous availability' },
       { title: 'Security', description: 'Layered defenses protect against internal and external threats' },
@@ -444,11 +433,9 @@ export default function ServiceGuidePage() {
   const guide = slug ? guides[slug] : null;
 
   usePageMeta({
-    title: guide ? `${guide.title} — ${guide.subtitle}` : 'Service Guides',
-    description: guide
-      ? guide.overview.slice(0, 155).replace(/\s+\S*$/, '') + '…'
-      : undefined,
-    canonical: `https://www.newwaveitfl.com/l/${slug ?? ''}`,
+    ...(guide && slug
+      ? serviceGuideMeta(slug, guide)
+      : { title: 'Service Guides', canonical: `https://www.newwaveitfl.com/l/${slug ?? ''}` }),
     jsonLd: guide
       ? [
           {

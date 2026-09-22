@@ -177,6 +177,44 @@
     <priority>0.6</priority>
   </url>
 
+  <!-- New Wave: Social Engineering division -->
+  <url>
+    <loc>https://www.newwaveitfl.com/social-engineering</loc>
+    <lastmod>2026-09-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.newwaveitfl.com/social-engineering/phishing-simulation</loc>
+    <lastmod>2026-09-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.newwaveitfl.com/social-engineering/vishing-pretext-testing</loc>
+    <lastmod>2026-09-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.newwaveitfl.com/social-engineering/physical-social-engineering</loc>
+    <lastmod>2026-09-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.newwaveitfl.com/social-engineering/security-awareness-training</loc>
+    <lastmod>2026-09-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.newwaveitfl.com/social-engineering/contact</loc>
+    <lastmod>2026-09-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
   <url>
     <loc>https://www.newwaveitfl.com/privacy-policy</loc>
   </url>

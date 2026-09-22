@@ -1,0 +1,169 @@
+/* New Wave: Social Engineering — extends the parent tokens in styles/brand.css.
+   The division adds exactly two colours (brand guidelines v1.0, page 06); every
+   other colour, typeface, radius, and space is inherited from --nw-* unchanged.
+
+   Lure Amber is for graphics and for text on dark grounds only. On light
+   grounds, amber text and links use Lure Amber Deep (5.09:1 on white, AA). */
+:root {
+  --nwse-lure-amber: #F2A33A;
+  --nwse-lure-amber-deep: #A65B0B;
+  /* Fixed endorsement bar (36px) + nav (80px) + nav border (1px). */
+  --nwse-header-height: 117px;
+}
+
+.nwse-root {
+  background: var(--nw-cloud-white);
+  color: var(--nw-current-navy);
+}
+
+/* In-page anchors (#services, #faq) land below the fixed header, not under it. */
+.nwse-root [id] {
+  scroll-margin-top: calc(var(--nwse-header-height) + 16px);
+}
+
+/* Plex Mono labels: caps with wide tracking (guidelines page 07). */
+.nwse-kicker {
+  color: var(--nwse-lure-amber-deep);
+  font-family: var(--nw-font-technical);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.nwse-kicker-on-dark {
+  color: var(--nwse-lure-amber);
+}
+
+.nwse-label {
+  color: var(--nw-tide-blue);
+  font-family: var(--nw-font-technical);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.nwse-display {
+  font-family: var(--nw-font-display);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.nwse-btn {
+  align-items: center;
+  border-radius: var(--nw-radius-control);
+  display: inline-flex;
+  font-weight: 600;
+  gap: 0.5rem;
+  justify-content: center;
+  padding: 0.75rem 1.25rem;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+
+/* Primary CTA on dark grounds: Lure Amber with Deep Current text. */
+.nwse-btn-amber {
+  background: var(--nwse-lure-amber);
+  color: var(--nw-deep-current);
+}
+
+.nwse-btn-amber:hover {
+  background: var(--nw-cloud-white);
+}
+
+/* Primary CTA on light grounds: Lure Amber Deep with white text (AA). */
+.nwse-btn-amber-deep {
+  background: var(--nwse-lure-amber-deep);
+  color: var(--nw-pure-white);
+}
+
+.nwse-btn-amber-deep:hover {
+  background: var(--nw-current-navy);
+}
+
+.nwse-btn-ghost-dark {
+  border: 1px solid color-mix(in srgb, var(--nw-cloud-white) 35%, transparent);
+  color: var(--nw-cloud-white);
+}
+
+.nwse-btn-ghost-dark:hover {
+  border-color: var(--nwse-lure-amber);
+  color: var(--nwse-lure-amber);
+}
+
+.nwse-link {
+  color: var(--nwse-lure-amber-deep);
+  font-weight: 600;
+}
+
+.nwse-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.nwse-root :focus-visible {
+  outline-color: var(--nwse-lure-amber-deep);
+}
+
+.nwse-dark :focus-visible {
+  outline-color: var(--nwse-lure-amber);
+}
+
+.nwse-card {
+  background: var(--nw-pure-white);
+  border: 1px solid var(--nw-mist-gray);
+  border-radius: var(--nw-radius-panel);
+}
+
+.nwse-icon {
+  align-items: center;
+  background: color-mix(in srgb, var(--nwse-lure-amber) 16%, transparent);
+  border-radius: var(--nw-radius-control);
+  color: var(--nwse-lure-amber-deep);
+  display: inline-flex;
+  justify-content: center;
+}
+
+.nwse-faq summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.nwse-faq summary::-webkit-details-marker {
+  display: none;
+}
+
+.nwse-faq[open] .nwse-faq-chevron {
+  transform: rotate(180deg);
+}
+
+/* The shared contact form (components/Contact.tsx) inside division pages: the
+   division's CTA colour and its amber accent in place of the parent's cyan
+   and green. */
+.nwse-root {
+  --contact-success-accent: var(--nwse-lure-amber-deep);
+}
+
+.nwse-root .btn-primary {
+  background: var(--nwse-lure-amber-deep);
+  color: var(--nw-pure-white);
+}
+
+.nwse-root .btn-primary:hover {
+  background: var(--nw-current-navy);
+  color: var(--nw-pure-white);
+}
+
+.nwse-root .nw-kicker {
+  color: var(--nwse-lure-amber-deep);
+  letter-spacing: 0.14em;
+}
+
+.nwse-root .text-brand-cyan {
+  color: var(--nwse-lure-amber-deep);
+}
+
+.nwse-root .nw-icon-success {
+  background: color-mix(in srgb, var(--nwse-lure-amber) 16%, transparent);
+  color: var(--nwse-lure-amber-deep);
+}

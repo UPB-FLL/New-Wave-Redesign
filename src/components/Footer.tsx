@@ -11,6 +11,8 @@ const serviceLinks = [
   { label: 'Managed IT Services', href: '/service-category/managed-it-services' },
   { label: 'Cloud Solutions', href: '/service-category/cloud-solutions' },
   { label: 'Network Infrastructure', href: '/service-category/network-infrastructure' },
+  // Division: New Wave: Social Engineering.
+  { label: 'Social Engineering Testing', href: '/social-engineering' },
 ];
 
 const companyLinks = [

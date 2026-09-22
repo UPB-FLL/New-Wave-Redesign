@@ -1,5 +1,6 @@
 import { Activity, FileText, Lock, Stethoscope, Users, Zap } from 'lucide-react';
 import { ServiceCategoryPage, type ServiceCategoryPageData } from '../components/brand/ServiceCategoryPage';
+import { IT_PAGE_META } from '../lib/routeMeta';
 import { usePageMeta } from '../lib/usePageMeta';
 
 const service: ServiceCategoryPageData = {
@@ -42,10 +43,7 @@ const service: ServiceCategoryPageData = {
 
 export default function HealthcareServicePage() {
   usePageMeta({
-    title: 'Healthcare IT Services Fort Lauderdale — HIPAA Compliance & EHR',
-    description: 'HIPAA-compliant IT services for medical practices in Fort Lauderdale and South Florida. EHR integration, patient data security, telehealth support, and 24/7 monitoring.',
-    keywords: 'healthcare IT Fort Lauderdale, HIPAA compliance South Florida, EHR support Fort Lauderdale, medical practice IT, HIPAA IT services, telehealth technology, healthcare cybersecurity Florida',
-    canonical: 'https://www.newwaveitfl.com/service-category/healthcare',
+    ...IT_PAGE_META['/service-category/healthcare'],
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'Service',

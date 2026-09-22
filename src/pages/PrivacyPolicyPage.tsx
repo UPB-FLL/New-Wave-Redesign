@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import LegalPageLayout from '../components/legal/LegalPageLayout';
+import { IT_PAGE_META } from '../lib/routeMeta';
 import { usePageMeta } from '../lib/usePageMeta';
 
 const SECTION_CLASS = 'space-y-3';
@@ -8,11 +9,7 @@ const LIST_CLASS = 'list-disc space-y-2 pl-6';
 const LINK_CLASS = 'font-medium text-teal-700 underline decoration-teal-300 underline-offset-4 hover:text-teal-900';
 
 export default function PrivacyPolicyPage() {
-  usePageMeta({
-    title: 'Privacy Policy — New Wave IT',
-    description: 'How New Wave IT LLC collects, uses, discloses, and protects personal information.',
-    canonical: 'https://www.newwaveitfl.com/privacy-policy',
-  });
+  usePageMeta(IT_PAGE_META['/privacy-policy']);
 
   return (
     <LegalPageLayout title="Privacy Policy" effectiveDate="August 11, 2026">

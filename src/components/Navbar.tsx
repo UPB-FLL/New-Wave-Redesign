@@ -16,6 +16,7 @@ import {
   X,
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { DIVISION_ASSETS, DIVISION_BASE_PATH } from '../divisions/socialEngineering/site';
 import Logo from './Logo';
 
 const serviceGroups = [
@@ -175,6 +176,21 @@ export default function Navbar() {
                       ))}
                     </div>
                     <Link
+                      to={DIVISION_BASE_PATH}
+                      onClick={() => setServicesDropdownOpen(false)}
+                      className="flex items-center gap-4 border-t px-5 py-3 transition-colors hover:bg-[var(--nw-cloud-white)]"
+                      style={{ borderColor: 'var(--nw-mist-gray)' }}
+                    >
+                      <img src={DIVISION_ASSETS.markOnLight} width={32} height={33} alt="" aria-hidden="true" />
+                      <span className="flex-1">
+                        <span className="block text-sm font-semibold text-brand-navy">New Wave: Social Engineering</span>
+                        <span className="block text-xs" style={{ color: 'var(--nw-slate)' }}>
+                          Our human-risk division: phishing simulation, vishing tests, and awareness training
+                        </span>
+                      </span>
+                      <ArrowRight size={15} className="shrink-0 text-brand-tide-blue" />
+                    </Link>
+                    <Link
                       to="/services"
                       onClick={() => setServicesDropdownOpen(false)}
                       className="flex items-center justify-between border-t px-5 py-3 text-sm transition-colors hover:bg-[var(--nw-cloud-white)]"
@@ -270,6 +286,14 @@ export default function Navbar() {
                   >
                     View all services
                     <ArrowRight size={15} />
+                  </Link>
+                  <Link
+                    to={DIVISION_BASE_PATH}
+                    onClick={closeMobileNavigation}
+                    className="flex items-center gap-3 text-sm font-semibold text-brand-navy"
+                  >
+                    <img src={DIVISION_ASSETS.microMarkOnLight} width={24} height={21} alt="" aria-hidden="true" />
+                    New Wave: Social Engineering
                   </Link>
                 </div>
               ) : null}

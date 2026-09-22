@@ -47,6 +47,146 @@
       "destination": "/api/$1"
     },
     {
+      "source": "/services",
+      "destination": "/services/index.html"
+    },
+    {
+      "source": "/pricing",
+      "destination": "/pricing/index.html"
+    },
+    {
+      "source": "/contact",
+      "destination": "/contact/index.html"
+    },
+    {
+      "source": "/why-us",
+      "destination": "/why-us/index.html"
+    },
+    {
+      "source": "/about",
+      "destination": "/about/index.html"
+    },
+    {
+      "source": "/support",
+      "destination": "/support/index.html"
+    },
+    {
+      "source": "/status",
+      "destination": "/status/index.html"
+    },
+    {
+      "source": "/cybersecurity",
+      "destination": "/cybersecurity/index.html"
+    },
+    {
+      "source": "/codenest",
+      "destination": "/codenest/index.html"
+    },
+    {
+      "source": "/blog",
+      "destination": "/blog/index.html"
+    },
+    {
+      "source": "/service-category/cybersecurity",
+      "destination": "/service-category/cybersecurity/index.html"
+    },
+    {
+      "source": "/service-category/live-it-support",
+      "destination": "/service-category/live-it-support/index.html"
+    },
+    {
+      "source": "/service-category/it-repair-upgrades",
+      "destination": "/service-category/it-repair-upgrades/index.html"
+    },
+    {
+      "source": "/service-category/managed-it-services",
+      "destination": "/service-category/managed-it-services/index.html"
+    },
+    {
+      "source": "/service-category/cloud-solutions",
+      "destination": "/service-category/cloud-solutions/index.html"
+    },
+    {
+      "source": "/service-category/network-infrastructure",
+      "destination": "/service-category/network-infrastructure/index.html"
+    },
+    {
+      "source": "/service-category/family-offices",
+      "destination": "/service-category/family-offices/index.html"
+    },
+    {
+      "source": "/service-category/healthcare",
+      "destination": "/service-category/healthcare/index.html"
+    },
+    {
+      "source": "/service-category/luxury",
+      "destination": "/service-category/luxury/index.html"
+    },
+    {
+      "source": "/service-category/cellular-das-and-public-safety",
+      "destination": "/service-category/cellular-das-and-public-safety/index.html"
+    },
+    {
+      "source": "/privacy-policy",
+      "destination": "/privacy-policy/index.html"
+    },
+    {
+      "source": "/terms-and-conditions",
+      "destination": "/terms-and-conditions/index.html"
+    },
+    {
+      "source": "/cookie-policy",
+      "destination": "/cookie-policy/index.html"
+    },
+    {
+      "source": "/l/cybersecurity-guide",
+      "destination": "/l/cybersecurity-guide/index.html"
+    },
+    {
+      "source": "/l/it-support-guide",
+      "destination": "/l/it-support-guide/index.html"
+    },
+    {
+      "source": "/l/it-repair-guide",
+      "destination": "/l/it-repair-guide/index.html"
+    },
+    {
+      "source": "/l/managed-it-guide",
+      "destination": "/l/managed-it-guide/index.html"
+    },
+    {
+      "source": "/l/cloud-solutions-guide",
+      "destination": "/l/cloud-solutions-guide/index.html"
+    },
+    {
+      "source": "/l/network-infrastructure-guide",
+      "destination": "/l/network-infrastructure-guide/index.html"
+    },
+    {
+      "source": "/social-engineering",
+      "destination": "/social-engineering/index.html"
+    },
+    {
+      "source": "/social-engineering/phishing-simulation",
+      "destination": "/social-engineering/phishing-simulation/index.html"
+    },
+    {
+      "source": "/social-engineering/vishing-pretext-testing",
+      "destination": "/social-engineering/vishing-pretext-testing/index.html"
+    },
+    {
+      "source": "/social-engineering/physical-social-engineering",
+      "destination": "/social-engineering/physical-social-engineering/index.html"
+    },
+    {
+      "source": "/social-engineering/security-awareness-training",
+      "destination": "/social-engineering/security-awareness-training/index.html"
+    },
+    {
+      "source": "/social-engineering/contact",
+      "destination": "/social-engineering/contact/index.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

@@ -1,0 +1,17 @@
+{
+  "name": "New Wave: Social Engineering",
+  "short_name": "NW Social Eng",
+  "description": "Phishing simulation, social engineering assessments, and security awareness training from New Wave IT.",
+  "start_url": "/social-engineering",
+  "scope": "/social-engineering",
+  "display": "standalone",
+  "theme_color": "#101E2D",
+  "background_color": "#101E2D",
+  "icons": [
+    { "src": "/brand/social-engineering/icons/favicon.svg", "type": "image/svg+xml", "sizes": "any", "purpose": "any" },
+    { "src": "/brand/social-engineering/icons/apple-touch-icon.png", "type": "image/png", "sizes": "180x180", "purpose": "any" },
+    { "src": "/brand/social-engineering/icons/android-chrome-192.png", "type": "image/png", "sizes": "192x192", "purpose": "any" },
+    { "src": "/brand/social-engineering/icons/android-chrome-512.png", "type": "image/png", "sizes": "512x512", "purpose": "any" },
+    { "src": "/brand/social-engineering/icons/maskable-icon-512.png", "type": "image/png", "sizes": "512x512", "purpose": "maskable" }
+  ]
+}

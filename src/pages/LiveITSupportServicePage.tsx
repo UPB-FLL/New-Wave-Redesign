@@ -1,5 +1,6 @@
 import { Award, Clock, Globe, Headphones, MessageSquare, Zap } from 'lucide-react';
 import { ServiceCategoryPage, type ServiceCategoryPageData } from '../components/brand/ServiceCategoryPage';
+import { IT_PAGE_META } from '../lib/routeMeta';
 import { usePageMeta } from '../lib/usePageMeta';
 
 const service: ServiceCategoryPageData = {
@@ -52,10 +53,7 @@ const service: ServiceCategoryPageData = {
 
 export default function LiveITSupportServicePage() {
   usePageMeta({
-    title: '24/7 IT Support Fort Lauderdale — Live Help Desk South Florida',
-    description: 'Round-the-clock IT support for Fort Lauderdale businesses. Response times under 1 hour — phone, remote, and on-site. Real technicians, real fast. New Wave IT.',
-    keywords: 'IT support Fort Lauderdale, 24/7 IT help desk South Florida, technical support Fort Lauderdale, managed help desk, remote IT support, on-site IT support South Florida, IT support company Fort Lauderdale',
-    canonical: 'https://www.newwaveitfl.com/service-category/live-it-support',
+    ...IT_PAGE_META['/service-category/live-it-support'],
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'Service',

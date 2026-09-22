@@ -108,6 +108,29 @@ describe('POST /api/send-contact-email', () => {
     expect(sendSpy).toHaveBeenCalledTimes(2);
   });
 
+  it('tags division leads in the notification subject and body', async () => {
+    const res = makeRes();
+    await handler(makeReq('POST', humanBody({ email: freshEmail(), inquiry: 'social-engineering' }), freshIp()), res);
+
+    expect(res.statusCode).toBe(200);
+    const notification = (sendSpy.mock.calls[0] as unknown[])[0] as { subject: string; html: string };
+    expect(notification.subject).toBe('[New Wave: Social Engineering] New Contact Form Submission from John Smith');
+    expect(notification.html).toContain('<strong>Division:</strong> New Wave: Social Engineering');
+  });
+
+  it('ignores unknown inquiry tags instead of echoing them', async () => {
+    for (const inquiry of ['<script>x</script>', '__proto__', 'constructor', 42]) {
+      sendSpy.mockClear();
+      const res = makeRes();
+      await handler(makeReq('POST', humanBody({ email: freshEmail(), inquiry }), freshIp()), res);
+
+      expect(res.statusCode).toBe(200);
+      const notification = (sendSpy.mock.calls[0] as unknown[])[0] as { subject: string; html: string };
+      expect(notification.subject).toBe('New Contact Form Submission from John Smith');
+      expect(notification.html).not.toContain('Division:');
+    }
+  });
+
   it('silently drops the observed bot payload without sending email', async () => {
     const res = makeRes();
     await handler(

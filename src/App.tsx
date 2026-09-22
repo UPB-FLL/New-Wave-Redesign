@@ -15,7 +15,8 @@ const BARE_ROUTES = ['/codenest'];
 
 function SiteChrome() {
   const { pathname } = useLocation();
-  if (BARE_ROUTES.includes(pathname)) return null;
+  // Division pages bring their own background and navigation.
+  if (BARE_ROUTES.includes(pathname) || isDivisionPath(pathname)) return null;
   return (
     <>
       <WaveBackground />
@@ -82,6 +83,18 @@ import ThreatsDetailEditor from './admin/editors/ThreatsDetailEditor';
 import ServicesCategoryEditor from './admin/editors/ServicesCategoryEditor';
 import { usePageMeta } from './lib/usePageMeta';
 import ElfsightChatbot from './components/ElfsightChatbot';
+import {
+  DIVISION_BASE_PATH,
+  DIVISION_CONTACT_PATH,
+  DIVISION_SERVICE_SLUGS,
+  divisionServicePath,
+  isDivisionPath,
+} from './divisions/socialEngineering/site';
+import {
+  SocialEngineeringContactRoute,
+  SocialEngineeringHubRoute,
+  SocialEngineeringServiceRoute,
+} from './divisions/socialEngineering/routes';
 
 function HomePage() {
   usePageMeta({
@@ -163,6 +176,12 @@ export default function App() {
         <Route path="/service-category/cellular-das-and-public-safety" element={<CellularDASPublicSafetyServicePage />} />
         <Route path="/threat/:slug" element={<ThreatDetailPage />} />
         <Route path="/l/:slug" element={<ServiceGuidePage />} />
+        {/* New Wave: Social Engineering division */}
+        <Route path={DIVISION_BASE_PATH} element={<SocialEngineeringHubRoute />} />
+        {DIVISION_SERVICE_SLUGS.map((slug) => (
+          <Route key={slug} path={divisionServicePath(slug)} element={<SocialEngineeringServiceRoute slug={slug} />} />
+        ))}
+        <Route path={DIVISION_CONTACT_PATH} element={<SocialEngineeringContactRoute />} />
         <Route
           path="/admin"
           element={

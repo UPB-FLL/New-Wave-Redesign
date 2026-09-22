@@ -2,16 +2,11 @@ import Navbar from '../components/Navbar';
 import WhyUs from '../components/WhyUs';
 import Contact from '../components/Contact';
 import Footer from '../components/Footer';
+import { IT_PAGE_META } from '../lib/routeMeta';
 import { usePageMeta } from '../lib/usePageMeta';
 
 export default function WhyUsPage() {
-  usePageMeta({
-    title: 'Why Choose New Wave IT — Trusted MSP in Fort Lauderdale',
-    description:
-      'Flat-rate pricing, no long-term contracts, 24/7 monitoring, sub-1-hour average response. See why South Florida businesses choose New Wave IT.',
-    keywords: 'best MSP Fort Lauderdale, why choose New Wave IT, IT provider comparison South Florida, flat-rate IT services',
-    canonical: 'https://www.newwaveitfl.com/why-us',
-  });
+  usePageMeta(IT_PAGE_META['/why-us']);
   return (
     <div className="min-h-screen bg-[var(--nw-cloud-white)]">
       <Navbar />
