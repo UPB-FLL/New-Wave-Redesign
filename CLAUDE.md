@@ -2,6 +2,41 @@
 
 ## Recent Changes
 
+### New Wave: Social Engineering division (2026-09-22)
+
+A new division lives in the `/social-engineering` subfolder. No New Wave IT URL,
+title, canonical, or structured data changed. Full notes:
+`docs/social-engineering-division.md`.
+
+- **Code**: `src/divisions/socialEngineering/`. `site.ts` holds paths and
+  constants, `content/` holds the copy, `seo.ts` the per-page SEO and JSON-LD,
+  `prerender.ts` the build-time head rewrite, `useDivisionMeta.ts` its runtime
+  twin, and `routes.tsx` the lazy route components. It also holds the division
+  components and pages, plus `division.css`, which adds only Lure Amber and
+  Lure Amber Deep.
+- **Prerender**: a `vite.config.ts` plugin writes
+  `dist/social-engineering/**/index.html` with each page's own title,
+  canonical, OG tags, favicon, and JSON-LD. `vercel.json` rewrites each
+  division URL to its file before the SPA catch-all. The build throws if
+  `index.html` changes shape.
+- **Brand assets**: `public/brand/social-engineering/` holds the kit's
+  outlined SVG logos, icons, OG image, and manifest. Naming is "New Wave: Social
+  Engineering" on first reference, then "NW Social Engineering", and never
+  "NWSE".
+- **IT touch points**: a Navbar Services-menu entry and mobile link, a Footer
+  link, the cybersecurity "Security Awareness" card (now points at the
+  division's training page), and new sitemap entries. `App.tsx` hides the IT
+  `WaveBackground` and `FloatingNav` on division paths.
+- **Leads**: `Contact` accepts optional `inquiry` and `intro` props. The API
+  allow-lists `inquiry: 'social-engineering'` and prefixes the notification
+  subject.
+- **Adding a service**: update the content file, `divisionServices`,
+  `DIVISION_SERVICE_SLUGS`, the `vercel.json` rewrite, and the sitemap. The
+  tests fail until all of them agree.
+- **Tests**: `src/divisions/socialEngineering/*.test.ts(x)` and
+  `src/test/seo/division-integration.test.ts`, which pins every pre-existing
+  sitemap URL and the IT homepage head.
+
 ### Rotating Hero Video (2026-09-09)
 
 The home hero's animated WebGL wave (`HeroRibbonField` / `ribbonScene`) was

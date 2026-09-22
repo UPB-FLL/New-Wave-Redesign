@@ -47,6 +47,30 @@
       "destination": "/api/$1"
     },
     {
+      "source": "/social-engineering",
+      "destination": "/social-engineering/index.html"
+    },
+    {
+      "source": "/social-engineering/phishing-simulation",
+      "destination": "/social-engineering/phishing-simulation/index.html"
+    },
+    {
+      "source": "/social-engineering/vishing-pretext-testing",
+      "destination": "/social-engineering/vishing-pretext-testing/index.html"
+    },
+    {
+      "source": "/social-engineering/physical-social-engineering",
+      "destination": "/social-engineering/physical-social-engineering/index.html"
+    },
+    {
+      "source": "/social-engineering/security-awareness-training",
+      "destination": "/social-engineering/security-awareness-training/index.html"
+    },
+    {
+      "source": "/social-engineering/contact",
+      "destination": "/social-engineering/contact/index.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

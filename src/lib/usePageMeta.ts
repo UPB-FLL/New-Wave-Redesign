@@ -24,6 +24,8 @@ interface PageMetaOptions {
   ogType?: string;
   /** Set true to add <meta name="robots" content="noindex, nofollow"> */
   noindex?: boolean;
+  /** Brand for the title suffix and og:site_name. Defaults to "New Wave IT"; divisions pass their own. */
+  siteName?: string;
 }
 
 type Restorer = () => void;
@@ -83,11 +85,12 @@ export function usePageMeta({
   jsonLd,
   ogType = 'website',
   noindex = false,
+  siteName = SITE_NAME,
 }: PageMetaOptions) {
   useEffect(() => {
     const prevTitle = document.title;
     const fullTitle =
-      includeSiteName && !title.includes(SITE_NAME) ? `${title} | ${SITE_NAME}` : title;
+      includeSiteName && !title.includes(siteName) ? `${title} | ${siteName}` : title;
     document.title = fullTitle;
 
     const pageUrl = canonical ?? (SITE_URL + window.location.pathname);
@@ -95,7 +98,7 @@ export function usePageMeta({
     const restorers: Restorer[] = [
       upsertMeta('name', 'description', description),
       upsertMeta('property', 'og:type', ogType),
-      upsertMeta('property', 'og:site_name', SITE_NAME),
+      upsertMeta('property', 'og:site_name', siteName),
       upsertMeta('property', 'og:title', fullTitle),
       upsertMeta('property', 'og:description', description),
       upsertMeta('property', 'og:url', pageUrl),
@@ -115,5 +118,5 @@ export function usePageMeta({
       document.title = prevTitle;
       restorers.forEach((r) => r());
     };
-  }, [title, description, includeSiteName, canonical, ogImage, keywords, jsonLd, ogType, noindex]);
+  }, [title, description, includeSiteName, canonical, ogImage, keywords, jsonLd, ogType, noindex, siteName]);
 }
