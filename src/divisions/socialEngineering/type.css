@@ -224,6 +224,7 @@
   --nwse-type-display-1-size: clamp(2.25rem, 1.59rem + 2.7vw, 3.75rem);
   --nwse-type-display-1-line-height: 1.05;
   --nwse-type-display-1-tracking: -0.01em;
+  --nwse-type-display-1-word-spacing: 0.06em;
   --nwse-type-display-1-weight: 800;
 
   /* display-2: section H2 */
@@ -231,6 +232,7 @@
   --nwse-type-display-2-size: 1.875rem;
   --nwse-type-display-2-line-height: 1.25;
   --nwse-type-display-2-tracking: -0.01em;
+  --nwse-type-display-2-word-spacing: 0.06em;
   --nwse-type-display-2-weight: 800;
 
   /* title-1: large card H3 */
@@ -303,6 +305,11 @@
   }
 }
 
+/* Plus Jakarta Sans ExtraBold sets a narrow word space (0.18em; Inter's is
+   0.22em), and the -0.01em tracking narrows it further, so display headings
+   read as run-together words ("Apractical path"). word-spacing restores a
+   ~0.23em gap without loosening the letters. */
+
 /* :where() keeps each class at one-class specificity while still limiting
    it to the division root. */
 :where(.nwse-root) .nwse-type-display-1 {
@@ -311,6 +318,7 @@
   font-weight: var(--nwse-type-display-1-weight);
   letter-spacing: var(--nwse-type-display-1-tracking);
   line-height: var(--nwse-type-display-1-line-height);
+  word-spacing: var(--nwse-type-display-1-word-spacing);
 }
 
 :where(.nwse-root) .nwse-type-display-2 {
@@ -319,6 +327,7 @@
   font-weight: var(--nwse-type-display-2-weight);
   letter-spacing: var(--nwse-type-display-2-tracking);
   line-height: var(--nwse-type-display-2-line-height);
+  word-spacing: var(--nwse-type-display-2-word-spacing);
 }
 
 :where(.nwse-root) .nwse-type-title-1 {
