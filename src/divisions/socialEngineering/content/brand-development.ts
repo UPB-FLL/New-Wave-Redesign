@@ -13,7 +13,7 @@ export const brandDevelopment: DivisionServiceContent = {
   kicker: 'Brand development',
   headline: 'Brand development in Fort Lauderdale, so you look the same everywhere',
   summary:
-    'New Wave: Social Engineering handles brand development for Fort Lauderdale and South Florida businesses that want to look and sound the same everywhere they show up. We work out your positioning and messaging, build the identity and voice, and turn it all into brand guidelines and templates for social, print, and signage. Then we apply the brand to your website, listings, and social profiles so customers recognize you wherever they find you.',
+    'New Wave: Social Engineering leads brand development for Broward, Palm Beach, and Miami-Dade businesses that want to look and sound the same everywhere they show up. We work out your positioning and messaging, build the identity and voice, and turn it all into brand guidelines and templates for social, print, and signage. Then we apply the brand to your website, listings, and social profiles so customers recognize you wherever they find you.',
   cardSummary:
     'Positioning, identity, voice, and brand guidelines, so the business looks the same on the website, listings, social, and in person.',
   scope: [
@@ -88,7 +88,7 @@ export const brandDevelopment: DivisionServiceContent = {
     {
       question: 'How does a brand development project start, and how long does it take?',
       answer:
-        'It starts with a discovery call about who you serve, what sets you apart, and where the brand shows up today. Together we decide what to keep, refine, or rebuild. The schedule follows from that decision and from how many touchpoints need updating, so we set it once discovery is done.',
+        'It starts with a discovery call. We talk about who you serve, what sets you apart, and where the brand shows up today. Together we decide what to keep, refine, or rebuild. The schedule follows from that decision and from how many touchpoints need updating, so we set it once discovery is done.',
     },
     {
       question: 'How do you measure whether the branding is working?',
@@ -98,7 +98,7 @@ export const brandDevelopment: DivisionServiceContent = {
     {
       question: 'Who owns the logo, brand files, and guidelines?',
       answer:
-        'You receive the final logo files, color and type specifications, templates, and guidelines in organized folders your business controls, not in one person’s inbox. Ownership of the brand work is set out in writing before the project begins. If you work with an in-house team, a printer, or another agency, they work from the same files and guidelines.',
+        'You receive the final logo files, color and type specifications, templates, and guidelines in organized folders your business controls, not in one person’s inbox. Rights to the finished brand work are spelled out in the project agreement before design starts. If you work with an in-house team, a printer, or another agency, they work from the same files and guidelines.',
     },
   ],
 };

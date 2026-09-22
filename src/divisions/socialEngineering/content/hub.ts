@@ -58,7 +58,7 @@ export const hubContent: DivisionHubContent = {
     {
       title: 'Discovery questions',
       detail:
-        'We ask where you want to be in 12 months, which revenue areas have the most room to grow, how leads come in and get handled, what content already exists, and what you spend on ads today. We also ask who owns the brand, website, and social accounts now, and where the gaps are.',
+        'We ask where you want to be in 12 months, which revenue areas have the most room to grow, how leads come in and get handled, what content already exists, and what you spend on ads today. We also ask who is responsible for the brand, website, and social accounts now, and where the gaps are.',
     },
   ],
   journey: ['Discover', 'Understand', 'Book', 'Attend', 'Return', 'Refer'],

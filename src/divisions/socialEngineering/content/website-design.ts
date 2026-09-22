@@ -13,7 +13,7 @@ export const websiteDesign: DivisionServiceContent = {
   kicker: 'Website design',
   headline: 'Website design in Fort Lauderdale that turns visits into bookings',
   summary:
-    'New Wave: Social Engineering designs and builds websites for Fort Lauderdale and South Florida businesses, with a clear path for every way the business earns, from services and appointments to memberships, events, and products. Booking and inquiry tools are connected and local SEO is in place at launch, because every post, ad, and listing should land somewhere that can take a booking.',
+    'New Wave: Social Engineering designs and builds small business websites throughout Fort Lauderdale and South Florida, with a clear path for every way the business earns, from services and appointments to memberships, events, and products. Booking and inquiry tools are connected and local SEO is in place at launch, because every post, ad, and listing should land somewhere that can take a booking.',
   cardSummary:
     'A website built to convert, with a clear path for every revenue stream, booking and inquiry tools connected, and local SEO in place at launch.',
   scope: [
@@ -47,7 +47,7 @@ export const websiteDesign: DivisionServiceContent = {
     {
       title: 'Discover',
       detail:
-        'We look at which revenue areas have the most room to grow and how people find, book, and return today. Then we walk through your current site, listings, booking portals, and inquiry paths the way a customer would and note where visitors get stuck.',
+        'We look at which parts of the business you most want to grow and how people find, book, and return today. Then we walk through your current site, listings, booking portals, and inquiry paths the way a customer would and note where visitors get stuck.',
     },
     {
       title: 'Structure and copy',
@@ -84,22 +84,22 @@ export const websiteDesign: DivisionServiceContent = {
     {
       question: 'What’s included in your small business website design?',
       answer:
-        'Site structure, copy, design, the build, booking and inquiry forms, and a launch with local SEO and analytics in place. Each page is planned around one way the business earns and ends with a clear next step. Ongoing social media and paid campaigns are separate services, planned so they send people to the right pages.',
+        'Site structure, copy, design, the build, booking and inquiry forms, and a launch with local SEO and analytics in place. Each page is planned around one way the business earns and ends with a clear next step. Ongoing social media and paid campaigns are their own services, planned so they send people to the right pages.',
     },
     {
-      question: 'How does a website project start, and how long does it take?',
+      question: 'How long does a website design project take?',
       answer:
-        'It starts with a discovery call. We learn your goals, review your current site, listings, and booking tools, and map how customers find and book with you today. The build schedule depends on how many revenue paths the site carries, how much copy and photography already exists, and what needs to be connected, and we lay it out once discovery is complete.',
+        'The schedule is set after a discovery call, where we learn your goals, review your current site, listings, and booking tools, and map how customers find and book with you today. It depends on how many revenue paths the site carries, how much copy and photography already exists, and what needs to be connected.',
     },
     {
       question: 'How do you measure whether the new website is working?',
       answer:
-        'Against bookings, inquiries, and purchases, not traffic alone. Analytics and conversion tracking are set up and tested before launch, so you can see which pages and sources lead to bookings and where visitors leave. While we work together, those numbers go into a monthly report along with what we’d change next.',
+        'Against bookings, inquiries, and purchases, not traffic alone. Analytics and conversion tracking are set up and tested before launch, so you can see which pages and channels bring in bookings and where visitors leave. While we work together, those numbers go into a monthly report along with what we’d change next.',
     },
     {
       question: 'Who owns the website, and can you work with our current web host or team?',
       answer:
-        'Your business owns its domain, hosting, and analytics accounts, which we set up in your name, with our team working through access you control. Ownership of the design and copy we create is set out in writing before the project begins. If you already have a web host, developer, in-house team, or agency, we can work alongside them and keep the tools that already work.',
+        'Your business owns its domain, hosting, and analytics accounts, which we set up in your name, with our team added as users you can remove. Who owns the finished design and copy is agreed in writing at the start of the project. If you already have a web host, developer, in-house team, or agency, we can work with them directly and keep the tools that already work.',
     },
   ],
 };

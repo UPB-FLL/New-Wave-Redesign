@@ -87,9 +87,9 @@ export const integration: DivisionServiceContent = {
         'It connects your website, booking or scheduling tools, forms, CRM, email and SMS lists, listings, and analytics so information moves between them without retyping. It also covers lead routing, so every inquiry reaches a person, and conversion tracking, so you can see which sources lead to bookings. In most cases we keep the tools you already use, and if one can’t do what the business needs, we explain the options before anything changes.',
     },
     {
-      question: 'How does an integration project start, and how long does it take?',
+      question: 'Where does an integration project start?',
       answer:
-        'It starts with a discovery call about the tools you use and where inquiries get lost today. From there we trace a real booking from first search to confirmation and agree on which connections to fix first. How long the work takes depends on how many tools are involved and what access already exists, which becomes clear during that review.',
+        'The first step is a discovery call about the tools you use and where inquiries get lost today. From there we trace a real booking from first search to confirmation and agree on which connections to fix first. How long the work takes depends on how many tools are involved and what access already exists, which becomes clear during that review.',
     },
     {
       question: 'How do you measure whether the integration is working?',
@@ -97,9 +97,9 @@ export const integration: DivisionServiceContent = {
         'Every connection is tested before launch with test inquiries and bookings, and we check the data afterward to confirm contacts, bookings, and conversions are recorded correctly. From there, we measure against bookings and inquiries traced to their source, how quickly new inquiries get a response, and where people drop off. While we work together, these go into a monthly report.',
     },
     {
-      question: 'Who owns the accounts, and can you work with our current IT provider or agency?',
+      question: 'Who owns the accounts, and will you coordinate with our IT provider?',
       answer:
-        'Your business owns its accounts, data, and tools, and we work through access you control rather than logins in our name. We can work alongside your current web host, IT provider, agency, or in-house team, and coordinating with other technical teams is routine for us. You also get plain-language documentation of how everything connects, so nothing depends on one person’s memory.',
+        'Your business owns its accounts, data, and tools, and the connections we build run under your accounts, not ours. We can work alongside your current web host, IT provider, agency, or in-house team, and coordinating with other technical teams is routine for us. You also get plain-language documentation of how everything connects, so nothing depends on one person’s memory.',
     },
   ],
 };

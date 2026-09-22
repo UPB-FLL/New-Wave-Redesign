@@ -13,9 +13,9 @@ export const marketing: DivisionServiceContent = {
   kicker: 'Marketing',
   headline: 'Paid social and search ads in Fort Lauderdale that bring in inquiries',
   summary:
-    'New Wave: Social Engineering runs paid social and search advertising, email and SMS marketing, promotions, and event marketing for Fort Lauderdale and South Florida businesses. Every campaign sends people to a page that can take a booking, with a plan for following up on the leads it brings in. We measure the work against bookings and inquiries, not likes and impressions, and report on it every month.',
+    'New Wave: Social Engineering runs paid social and search advertising for South Florida businesses, along with the email and SMS marketing, promotions, and event marketing that turn a first visit into a repeat one. Every campaign sends people to a page that can take a booking, with a plan for following up on the leads it brings in. We measure the work against bookings and inquiries, not likes and impressions, and report on it every month.',
   cardSummary:
-    'Paid social and search, email and SMS, promotions, and local partnerships, measured against bookings and inquiries, not vanity metrics.',
+    'Paid social and search, email and SMS, promotions, and local partnerships, judged by the bookings and inquiries they bring in.',
   scope: [
     {
       title: 'Paid social campaigns',
@@ -47,12 +47,12 @@ export const marketing: DivisionServiceContent = {
     {
       title: 'Discover',
       detail:
-        'We ask about your current ad budget, which revenue areas have the most room to grow, and how leads are generated and handled today. Then we review past campaigns, lists, and tracking to see what’s already working and what can’t be measured yet.',
+        'We ask about your current ad budget, which services, programs, or dates you most need to fill, and how leads are generated and handled today. Then we review past campaigns, lists, and tracking to see what’s already working and what can’t be measured yet.',
     },
     {
       title: 'Prioritize',
       detail:
-        'We pick the channels and offers with the most room to grow and agree on what each campaign should produce, such as bookings, inquiries, or group leads. Tracking gets checked first, so the numbers we report can be trusted.',
+        'We pick the channels and offers that fit the budget best and agree on what each campaign should produce, such as bookings, inquiries, or group leads. Tracking gets checked first, so the numbers we report can be trusted.',
     },
     {
       title: 'Launch and manage',
@@ -62,7 +62,7 @@ export const marketing: DivisionServiceContent = {
     {
       title: 'Report monthly',
       detail:
-        'Each month you get a plain report on spend, inquiries, and bookings by channel, what we learned, and what we’d change next.',
+        'Once a month, you see spend, inquiries, and bookings by channel, what we learned, and what we’d change next.',
     },
   ],
   deliverables: [
@@ -87,19 +87,19 @@ export const marketing: DivisionServiceContent = {
         'Campaign strategy, ad copy and creative, audience and keyword setup, ongoing management, and a monthly report. We can also run email and SMS, promotions, event marketing, and local partnerships, so every channel works from one plan. If the pages your ads send people to aren’t ready to take a booking, we’ll say so and recommend what to fix first.',
     },
     {
-      question: 'How do we get started, and how soon can campaigns run?',
+      question: 'How soon can campaigns start running?',
       answer:
-        'It starts with a discovery call about your goals, current ad budget, and how leads are handled today, followed by a review of past campaigns, lists, and tracking. Campaigns go live once tracking works and the landing pages can take a booking, so the start date depends on how ready those are and how many offers we’re promoting.',
+        'After a discovery call about your goals, current ad budget, and how leads are handled today, we review past campaigns, lists, and tracking. Campaigns go live once tracking works and the landing pages can take a booking, so the start date depends on how ready those are and how many offers we’re promoting.',
     },
     {
-      question: 'How do you measure and report results?',
+      question: 'How do you report on ad spend and results?',
       answer:
-        'Against bookings and inquiries, not clicks or followers alone. Before campaigns scale, we confirm that calls, forms, and bookings are recorded correctly. Each month you get a report on spend, leads, and bookings by channel, with what we’d change next.',
+        'We report against bookings and inquiries, not clicks or followers alone. Before campaigns scale, we confirm that calls, forms, and bookings are recorded correctly, and the monthly report breaks spend, leads, and bookings down by channel with our next recommendations.',
     },
     {
-      question: 'Who owns the ad accounts and lists, and can you work with our current agency?',
+      question: 'Who owns the ad accounts and lists, and what if we already have an agency?',
       answer:
-        'Your business owns its ad accounts, email and SMS lists, and customer data, and we work through access you control. If you already have an agency, an in-house marketer, or someone running ads, we can take on specific channels or work alongside them from a shared plan. Because the accounts are yours, the campaign history and results stay with the business if the arrangement ever changes.',
+        'Your business owns its ad accounts, email and SMS lists, and customer data, and our team is added to those accounts as users, not owners. If you already have an agency, an in-house marketer, or someone running ads, we can take on specific channels or work alongside them from a shared plan. Because the accounts are yours, the campaign history and results stay with the business if the arrangement ever changes.',
     },
   ],
 };

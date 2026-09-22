@@ -13,7 +13,7 @@ export const digitalOversight: DivisionServiceContent = {
   kicker: 'Digital oversight',
   headline: 'Digital presence management in Fort Lauderdale, one accountable team',
   summary:
-    'New Wave: Social Engineering oversees the whole digital presence for Fort Lauderdale and South Florida businesses: the website, social accounts, Google Business Profile and listings, reviews, and analytics, with one team accountable for all of it. We start with a simple question: who owns the brand, website, and social today, and where are the gaps? Every account stays in your business’s name, and each month you get a report and an updated roadmap for what comes next.',
+    'New Wave: Social Engineering oversees the whole digital presence of a business, from the website and social accounts to Google Business Profile, listings, reviews, and analytics, with one Fort Lauderdale team accountable for all of it. We start with a simple question: who owns the brand, website, and social today, and where are the gaps? Every account stays in your business’s name, and each month you get a report and an updated roadmap for what comes next.',
   cardSummary:
     'One accountable team for your website, social accounts, Google Business Profile, listings, reviews, and analytics, with a report every month.',
   scope: [
@@ -25,7 +25,7 @@ export const digitalOversight: DivisionServiceContent = {
     {
       title: 'Ownership and access in the business’s name',
       detail:
-        'Your business owns its accounts. If a profile was set up by a former employee, an old vendor, or on a personal email, we help bring it back under the business’s control, and our team works through access you grant and can remove. NW Social Engineering is part of New Wave IT, so account ownership and access get the same discipline as any other business system.',
+        'Your business owns its accounts. If a profile was set up by a former employee, an old vendor, or on a personal email, we help bring it back under the business’s control, and our own access is granted by you and can be withdrawn at any time. NW Social Engineering is part of New Wave IT, so account ownership and access get the same discipline as any other business system.',
     },
     {
       title: 'Google Business Profile, listings, and reviews',
@@ -89,17 +89,17 @@ export const digitalOversight: DivisionServiceContent = {
     {
       question: 'How do we get started, and how long does it take to get organized?',
       answer:
-        'It starts with a discovery call, where we ask who owns the brand, website, and social today, and where the gaps are. We then inventory your accounts and touchpoints, and the first round of work focuses on ownership, access, and listing accuracy. How long that takes depends on how many accounts exist and how easy they are to recover, and you’ll have a plan for it before the work starts.',
+        'It starts with a discovery call about who manages each part of your online presence today and what has been falling through the cracks. We then inventory your accounts and touchpoints, and the first round of work focuses on ownership, access, and listing accuracy. How long that takes depends on how many accounts exist and how easy they are to recover, and you’ll have a plan for it before the work starts.',
     },
     {
       question: 'Who owns our accounts, and can you work alongside our current agency or web host?',
       answer:
-        'Every account stays in the business’s name, and our access can be removed whenever you choose. If an account was opened by someone who has since left, recovering it is part of the work. If you already have an agency, web host, or in-house team, we can work alongside them and keep watch over the whole picture so nothing falls between them.',
+        'Every account stays in the business’s name, with the business as owner and our team as a user. If an account was opened by someone who has since left, recovering it is part of the work. If you already have an agency, web host, or in-house team, we can work alongside them and keep watch over the whole picture so nothing falls between them.',
     },
     {
-      question: 'How do you measure and report on our digital presence?',
+      question: 'What does the monthly oversight report cover?',
       answer:
-        'Each month, you get one report covering the website, social accounts, Google Business Profile, listings, reviews, and analytics. It shows what changed, what we fixed, and how people found and contacted you, including calls, website clicks, and bookings and inquiries by source. It ends with the updated roadmap: what we recommend next and why.',
+        'One report covers your site, social profiles, Google Business Profile, listings, reviews, and analytics. It shows what changed, what we fixed, and how people found and contacted you, including calls, website clicks, and bookings and inquiries by source. It ends with the updated roadmap: what we recommend next and why.',
     },
   ],
 };
