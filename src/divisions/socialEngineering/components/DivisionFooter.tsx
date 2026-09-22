@@ -38,6 +38,11 @@ const LOCKUP_SCALE = DIVISION_LOGO_MIN_WIDTH.primary / FAMILY_DIVISION_WIDTH;
 const FOOTER_DIVISION_WIDTH = DIVISION_LOGO_MIN_WIDTH.primary;
 const FOOTER_PARENT_WIDTH = Math.round(FAMILY_PARENT_WIDTH * LOCKUP_SCALE);
 const FOOTER_PARENT_INSET_PX = Math.round(PARENT_INSET_CORRECTION_PX * LOCKUP_SCALE);
+// The parent SVG (360x120 viewBox) carries empty space above and below its
+// artwork: ~22px and ~26px at 211px wide. Trim most of it so the wordmark lines
+// up with the column headings and the rule sits midway between the two logos.
+const FOOTER_PARENT_PAD_TOP_PX = 18;
+const FOOTER_PARENT_PAD_BOTTOM_PX = 20;
 
 export function DivisionFooter() {
   // Same CMS source and fallbacks as the parent footer: one company, one inbox.
@@ -50,19 +55,19 @@ export function DivisionFooter() {
     <footer className="nwse-dark relative overflow-hidden" style={{ background: 'var(--nw-deep-current)' }}>
       <DivisionCurrents className="pointer-events-none absolute inset-0 h-full w-full" opacity={0.18} />
       <div className="relative mx-auto max-w-7xl px-4 pb-6 pt-8 sm:px-6 lg:px-8 lg:pt-10">
-        <div className="grid grid-cols-2 gap-x-6 gap-y-6 lg:grid-cols-[auto_repeat(3,minmax(0,1fr))] lg:gap-x-8 lg:gap-y-8 xl:grid-cols-[auto_repeat(3,minmax(0,1fr))_minmax(0,1.25fr)]">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-6 md:grid-cols-[fit-content(280px)_repeat(2,minmax(0,1fr))] md:gap-x-8 lg:grid-cols-[fit-content(280px)_repeat(3,minmax(0,1fr))] lg:gap-y-8 xl:grid-cols-[fit-content(280px)_repeat(3,minmax(0,1fr))_minmax(0,1.25fr)]">
           {/* Family lockup: parent leads, division below at equal height (guidelines page 10). */}
-          <div className="col-span-2 flex flex-col items-start gap-3 lg:col-span-1">
+          <div className="col-span-2 flex flex-col items-start gap-3 md:col-span-1 md:row-span-2 lg:row-span-1">
             <Link to="/" aria-label={`${PARENT_NAME} home`} className="shrink-0">
-              <div style={{ marginLeft: -FOOTER_PARENT_INSET_PX }}>
+              <div style={{ marginLeft: -FOOTER_PARENT_INSET_PX, marginTop: -FOOTER_PARENT_PAD_TOP_PX, marginBottom: -FOOTER_PARENT_PAD_BOTTOM_PX }}>
                 <NewWaveLogo tone="onDark" size={FOOTER_PARENT_WIDTH} decorative />
               </div>
             </Link>
             <span className="h-px w-full max-w-[160px]" style={{ background: 'var(--nw-slate)' }} aria-hidden="true" />
-            <Link to={DIVISION_BASE_PATH} aria-label={`${DIVISION_NAME} home`} className="shrink-0">
+            <Link to={DIVISION_BASE_PATH} aria-label={`${DIVISION_NAME} home`} className="mt-1 shrink-0">
               <DivisionLogo lockup="primary" ground="dark" width={FOOTER_DIVISION_WIDTH} decorative />
             </Link>
-            <p className="nwse-label mt-1 whitespace-nowrap" style={{ color: 'var(--nwse-lure-amber)' }}>
+            <p className="nwse-label mt-1" style={{ color: 'var(--nwse-lure-amber)' }}>
               {DIVISION_DESCRIPTOR}
             </p>
           </div>
@@ -109,18 +114,18 @@ export function DivisionFooter() {
             </ul>
           </div>
 
-          <div className="col-span-2 lg:col-span-1">
+          <div className="col-span-2 md:col-span-3 lg:col-span-4 xl:col-span-1">
             <h2 className={headingClass}>Get in touch</h2>
-            <div className="flex flex-row flex-wrap gap-x-5 gap-y-2.5 text-[var(--nw-mist-gray)] lg:flex-col">
+            <div className="flex flex-row flex-wrap gap-x-5 gap-y-2 text-[var(--nw-mist-gray)] xl:flex-col xl:flex-nowrap">
               <a href={`tel:${phone.replace(/\D/g, '')}`} className="flex items-start gap-2.5 text-sm transition-colors hover:text-[var(--nw-cloud-white)]">
                 <Phone size={16} className="mt-0.5 shrink-0 text-[var(--nwse-lure-amber)]" aria-hidden="true" />
                 <span>{phone}</span>
               </a>
               <a href={`mailto:${email}`} className="flex items-start gap-2.5 text-sm transition-colors hover:text-[var(--nw-cloud-white)]">
                 <Mail size={16} className="mt-0.5 shrink-0 text-[var(--nwse-lure-amber)]" aria-hidden="true" />
-                <span className="break-words">{email}</span>
+                <span className="min-w-0 [overflow-wrap:anywhere]">{email}</span>
               </a>
-              <div className="flex basis-full items-start gap-2.5 text-sm lg:basis-auto">
+              <div className="flex basis-full items-start gap-2.5 text-sm md:basis-auto">
                 <MapPin size={16} className="mt-0.5 shrink-0 text-[var(--nw-tide-blue)]" aria-hidden="true" />
                 <span>{address}</span>
               </div>
