@@ -1,12 +1,12 @@
 import type { DivisionHubContent } from '../types';
 
 export const hubContent: DivisionHubContent = {
-  metaTitle: 'Social engineering testing, South Florida | New Wave: Social Engineering',
+  metaTitle: 'Social engineering testing | New Wave: Social Engineering',
   metaDescription:
     'Social engineering testing in Fort Lauderdale and South Florida: phishing, vishing, and on-site assessments, plus awareness training. Scope a baseline with us.',
   keywords:
     'social engineering testing fort lauderdale, social engineering assessment south florida, human risk management, human risk assessment, social engineering penetration testing, social engineering testing miami, social engineering assessment broward',
-  kicker: 'Human-risk division',
+  kicker: 'Social engineering testing in South Florida',
   headline: 'Your people are the perimeter.',
   summary:
     'New Wave: Social Engineering is the human-risk division of New Wave IT. We provide social engineering testing and training for organizations across Fort Lauderdale and South Florida: phishing simulation, voice phishing and pretext calls, on-site assessments, and security awareness training that sticks.',
@@ -49,7 +49,7 @@ export const hubContent: DivisionHubContent = {
     {
       title: 'Coach and train',
       detail:
-        'People who click, share, or let a tester in get immediate, private coaching. Everyone gets short training built around the lures that actually worked in your organization.',
+        'People who click a simulated lure get an immediate, private explanation; after phone and on-site tests, the people involved get a private debrief as agreed in your rules of engagement. Everyone gets short training built around the lures that actually worked in your organization.',
     },
     {
       title: 'Close the process gaps',
@@ -59,7 +59,7 @@ export const hubContent: DivisionHubContent = {
     {
       title: 'Re-test and report',
       detail:
-        'We test again to confirm what changed, then deliver an executive report with trends, findings, and a prioritized plan for the next cycle.',
+        'Where re-testing is in scope, we test again to confirm what changed, then deliver an executive report with trends, findings, and a prioritized plan for the next cycle.',
     },
   ],
   metrics: [
@@ -110,7 +110,7 @@ export const hubContent: DivisionHubContent = {
     heading: 'Part of New Wave IT, open to everyone',
     paragraphs: [
       'NW Social Engineering works as a standalone service. You don’t need to be a New Wave IT client. We work alongside in-house IT teams and other managed service providers, and deliver findings in a format any team can act on.',
-      'For New Wave IT managed clients, testing plugs into the security stack you already have. When an assessment turns up a technical gap, such as a mail filter rule, a help desk password-reset step, or a missing multi-factor prompt, New Wave IT can handle the fix, and we re-test to confirm it held.',
+      'For New Wave IT managed clients, testing plugs into the security stack you already have. When an assessment turns up a technical gap, such as a mail filter rule, a help desk password-reset step, or a missing multi-factor prompt, New Wave IT can handle the fix, and we can re-test to confirm it held.',
     ],
   },
   faqs: [
@@ -127,7 +127,7 @@ export const hubContent: DivisionHubContent = {
     {
       question: 'Will our employees be embarrassed or punished?',
       answer:
-        'Our programs are designed so they aren’t. We agree up front that results are used for coaching, not discipline, and anyone who clicks or shares during a test gets a short, private explanation instead of a public callout. Reports focus on trends and process gaps rather than naming individuals.',
+        'Our programs are designed so they aren’t. We agree up front that results are used for coaching, not discipline, and people who click or share during a test get a short, private explanation, never a public callout. Reports focus on trends and process gaps rather than naming individuals.',
     },
     {
       question: 'Do we need to be a New Wave IT client to work with you?',

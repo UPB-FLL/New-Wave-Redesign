@@ -47,6 +47,9 @@ export interface ContactIntro {
   headline: string;
   subheadline: string;
   messagePlaceholder: string;
+  /** Replaces the phone card's note (the default promotes 24/7 IT emergencies). */
+  phoneNote?: string;
+  successBody?: string;
 }
 
 export default function Contact({
@@ -134,7 +137,7 @@ export default function Contact({
     {
       icon: Phone,
       title: 'Call us',
-      sub: content.phone_sub || 'Available 24/7 for emergencies',
+      sub: intro?.phoneNote ?? (content.phone_sub || 'Available 24/7 for emergencies'),
       content: <a href={`tel:${phone.replace(/\D/g, '')}`} className="font-medium text-brand-tide-blue hover:underline">{phone}</a>,
       accent: 'var(--nw-signal-cyan)',
     },
@@ -197,13 +200,14 @@ export default function Contact({
 
           <FadeIn delay={0.15} className="lg:col-span-3">
             {submitted ? (
-              <div className="flex min-h-[400px] flex-col items-center justify-center rounded-lg p-8 text-center nw-surface" style={{ borderColor: 'var(--nw-continuity-green)' }}>
+              <div className="flex min-h-[400px] flex-col items-center justify-center rounded-lg p-8 text-center nw-surface" style={{ borderColor: 'var(--contact-success-accent, var(--nw-continuity-green))' }}>
                 <div className="nw-icon-success mb-5 h-16 w-16">
                   <CheckCircle size={32} />
                 </div>
                 <h3 className="nw-display mb-3 text-2xl text-brand-navy">{content.success_title || 'Message received'}</h3>
                 <p className="max-w-sm text-[var(--nw-slate)]">
-                  {content.success_body || 'Thanks for reaching out. A member of our team will contact you within one business day. For urgent issues, please call us directly.'}
+                  {intro?.successBody ??
+                    (content.success_body || 'Thanks for reaching out. A member of our team will contact you within one business day. For urgent issues, please call us directly.')}
                 </p>
                 <button type="button" onClick={() => setSubmitted(false)} className="mt-6 text-sm font-semibold text-brand-tide-blue hover:underline">
                   Send another message

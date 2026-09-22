@@ -27,6 +27,9 @@ export default function SocialEngineeringContactPage() {
             'Phishing, phone, onsite, or training — or not sure yet. We’ll reply within one business day with next steps.',
           messagePlaceholder:
             'Team size, locations, what you want tested (email, phone, onsite, training), and any compliance or insurance requirements...',
+          phoneNote: 'Talk through scope with our team',
+          successBody:
+            'Thanks for reaching out. We’ll reply within one business day with next steps for scoping your assessment.',
         }}
       />
     </DivisionLayout>

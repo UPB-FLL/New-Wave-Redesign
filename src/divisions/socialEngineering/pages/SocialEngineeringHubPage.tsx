@@ -29,6 +29,8 @@ export default function SocialEngineeringHubPage() {
   return (
     <DivisionLayout>
       <DivisionHero
+        breadcrumbs={seo.breadcrumbs}
+        kickerInHeading
         kicker={content.kicker}
         headline={content.headline}
         summary={content.summary}

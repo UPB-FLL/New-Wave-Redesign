@@ -50,7 +50,7 @@ describe('division metadata', () => {
 
   it('keeps titles and descriptions within search-snippet lengths', () => {
     pages.forEach((page) => {
-      expect(page.title.length, page.title).toBeLessThanOrEqual(72);
+      expect(page.title.length, page.title).toBeLessThanOrEqual(66);
       expect(page.description.length, page.description).toBeGreaterThanOrEqual(120);
       expect(page.description.length, page.description).toBeLessThanOrEqual(160);
       expect(page.keywords.length, `${page.path} keywords`).toBeGreaterThan(0);

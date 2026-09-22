@@ -30,7 +30,7 @@ export const phishingSimulation: DivisionServiceContent = {
     {
       title: 'Credential-harvest landing pages',
       detail:
-        'Look-alike sign-in pages record that a submission happened, never what was typed. No real password or personal data is captured, stored, or transmitted.',
+        'Look-alike sign-in pages record that a submission happened, never what was typed. No password or anything else entered on the page is captured, stored, or transmitted.',
     },
     {
       title: 'MFA prompts and code requests',

@@ -30,7 +30,7 @@ export const securityAwarenessTraining: DivisionServiceContent = {
     {
       title: 'Front desk and clinical staff',
       detail:
-        'Callers posing as patients, insurers, or vendors, requests for records over the phone, and visitors who want to be let through a door. Lessons focus on polite verification and on protecting patient information, which the HIPAA Security Rule expects across the workforce.',
+        'Callers posing as patients, insurers, or vendors, requests for records over the phone, and visitors who want to be let through a door. Lessons focus on polite verification and on protecting patient information, which HIPAA expects across the workforce.',
     },
     {
       title: 'Remote and mobile workers',
@@ -102,4 +102,6 @@ export const securityAwarenessTraining: DivisionServiceContent = {
         'Cost depends mainly on how many people are in scope, how many distinct roles need their own modules, how often lessons run, and whether you want live leadership sessions. Pairing training with phishing simulation or other testing, and the level of compliance reporting you need, also changes the scope. We scope it on a short call and confirm everything in writing.',
     },
   ],
+  scopeHeading: 'What the training covers',
+  ctaHeading: 'Build habits that hold',
 };

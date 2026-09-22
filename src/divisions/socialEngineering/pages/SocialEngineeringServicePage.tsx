@@ -51,7 +51,7 @@ function ServicePageBody({ service }: { service: DivisionServiceContent }) {
       />
 
       <Band tone="white" labelledBy="nwse-scope">
-        <SectionIntro kicker="Scope" title="What we test" id="nwse-scope" />
+        <SectionIntro kicker="Scope" title={service.scopeHeading ?? 'What we test'} id="nwse-scope" />
         <PointGrid points={service.whatWeTest} />
       </Band>
 
@@ -108,7 +108,7 @@ function ServicePageBody({ service }: { service: DivisionServiceContent }) {
       </Band>
 
       <CtaBand
-        heading="Find out where the hook lands"
+        heading={service.ctaHeading ?? 'Find out where the hook lands'}
         body={`Start with a scoped ${service.navLabel.toLowerCase()} engagement and a baseline your leadership can act on.`}
       />
     </DivisionLayout>

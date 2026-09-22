@@ -3,7 +3,14 @@ import { Link } from 'react-router-dom';
 import { NewWaveLogo } from '../../../components/brand/NewWaveLogo';
 import { useContent } from '../../../lib/useContent';
 import { divisionServices } from '../content';
-import { DIVISION_BASE_PATH, DIVISION_CONTACT_PATH, DIVISION_NAME, PARENT_NAME, divisionServicePath } from '../site';
+import {
+  DIVISION_BASE_PATH,
+  DIVISION_CONTACT_PATH,
+  DIVISION_NAME,
+  DIVISION_SHORT_NAME,
+  PARENT_NAME,
+  divisionServicePath,
+} from '../site';
 
 import { DivisionCurrents } from './DivisionCurrents';
 import { DivisionLogo } from './DivisionLogo';
@@ -65,7 +72,7 @@ export function DivisionFooter() {
           </div>
 
           <div>
-            <h2 className={headingClass}>Social engineering</h2>
+            <h2 className={headingClass}>{DIVISION_SHORT_NAME}</h2>
             <ul className="flex flex-col gap-3">
               <li>
                 <Link to={DIVISION_BASE_PATH} className={linkClass}>

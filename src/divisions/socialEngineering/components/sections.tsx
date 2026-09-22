@@ -41,6 +41,7 @@ export function DivisionHero({
   breadcrumbs,
   actions,
   footnote,
+  kickerInHeading = false,
 }: {
   kicker: string;
   headline: string;
@@ -48,16 +49,28 @@ export function DivisionHero({
   breadcrumbs?: DivisionPageSeo['breadcrumbs'];
   actions?: ReactNode;
   footnote?: ReactNode;
+  /** Render the kicker as the first line of the H1 (keeps a brand-line headline topical). */
+  kickerInHeading?: boolean;
 }) {
+  const headingClass =
+    'nwse-display mt-4 max-w-4xl text-4xl leading-[1.05] text-[var(--nw-cloud-white)] sm:text-5xl lg:text-6xl';
   return (
     <section className="nwse-dark relative overflow-hidden" style={{ background: 'var(--nw-deep-current)' }}>
       <DivisionCurrents className="pointer-events-none absolute inset-0 h-full w-full" />
       <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-12 sm:px-6 sm:pb-20 sm:pt-16 lg:px-8 lg:pb-24">
         {breadcrumbs ? <Breadcrumbs trail={breadcrumbs} /> : null}
-        <p className="nwse-kicker nwse-kicker-on-dark">{kicker}</p>
-        <h1 className="nwse-display mt-4 max-w-4xl text-4xl leading-[1.05] text-[var(--nw-cloud-white)] sm:text-5xl lg:text-6xl">
-          {headline}
-        </h1>
+        {kickerInHeading ? (
+          <h1>
+            <span className="nwse-kicker nwse-kicker-on-dark block">{kicker}</span>
+            <span className="sr-only">: </span>
+            <span className={`block ${headingClass}`}>{headline}</span>
+          </h1>
+        ) : (
+          <>
+            <p className="nwse-kicker nwse-kicker-on-dark">{kicker}</p>
+            <h1 className={headingClass}>{headline}</h1>
+          </>
+        )}
         <p className="mt-6 max-w-2xl text-base leading-relaxed text-[var(--nw-mist-gray)] sm:text-lg">{summary}</p>
         {actions ? <div className="mt-8 flex flex-wrap gap-3">{actions}</div> : null}
         {footnote ? <div className="mt-10">{footnote}</div> : null}

@@ -6,6 +6,7 @@ import SocialEngineeringContactPage from './pages/SocialEngineeringContactPage';
 import SocialEngineeringHubPage from './pages/SocialEngineeringHubPage';
 import SocialEngineeringServicePage from './pages/SocialEngineeringServicePage';
 import { DIVISION_JSONLD_ELEMENT_ID } from './prerender';
+import { DivisionHeader } from './components/DivisionHeader';
 import { DIVISION_ASSETS, DIVISION_NAME, SITE_URL, divisionServicePath } from './site';
 
 vi.mock('../../lib/useContent', () => ({ useContent: vi.fn(() => ({})) }));
@@ -43,8 +44,11 @@ describe('SocialEngineeringHubPage', () => {
     renderAt(<SocialEngineeringHubPage />);
 
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(hubContent.headline);
+    // The H1 carries the topic (kicker) as well as the brand line.
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(`${hubContent.kicker}: ${hubContent.headline}`);
     expect(document.title).toBe(hubContent.metaTitle);
+    const breadcrumb = screen.getByRole('navigation', { name: 'Breadcrumb' });
+    expect(within(breadcrumb).getByRole('link', { name: 'New Wave IT' })).toHaveAttribute('href', '/');
     expect(canonical()).toBe(`${SITE_URL}/social-engineering`);
     expect(document.head.querySelector('meta[property="og:site_name"]')).toHaveAttribute('content', DIVISION_NAME);
     expect(jsonLdBlocks()).toHaveLength(1);
@@ -81,6 +85,20 @@ describe('SocialEngineeringHubPage', () => {
     expect(document.head.querySelector('link[rel="manifest"]')).toHaveAttribute('href', '/site.webmanifest');
   });
 
+  it('hides the parent LocalBusiness graph while mounted and restores it after', () => {
+    const parent = document.createElement('script');
+    parent.type = 'application/ld+json';
+    parent.textContent = '{"@type":"LocalBusiness"}';
+    document.head.appendChild(parent);
+
+    const { unmount } = renderAt(<SocialEngineeringHubPage />);
+    const blocks = () => [...document.head.querySelectorAll('script[type="application/ld+json"]')];
+    expect(blocks().map((block) => block.id)).toEqual([DIVISION_JSONLD_ELEMENT_ID]);
+
+    unmount();
+    expect(blocks()).toEqual([parent]);
+  });
+
   it('reuses a prerendered JSON-LD block instead of duplicating it', () => {
     const prerendered = document.createElement('script');
     prerendered.type = 'application/ld+json';
@@ -103,7 +121,7 @@ describe('SocialEngineeringServicePage', () => {
     expect(canonical()).toBe(`${SITE_URL}${divisionServicePath(service.slug)}`);
 
     const breadcrumb = screen.getByRole('navigation', { name: 'Breadcrumb' });
-    expect(within(breadcrumb).getByRole('link', { name: 'Social Engineering' })).toHaveAttribute('href', '/social-engineering');
+    expect(within(breadcrumb).getByRole('link', { name: 'NW Social Engineering' })).toHaveAttribute('href', '/social-engineering');
     expect(within(breadcrumb).getByText(service.navLabel)).toHaveAttribute('aria-current', 'page');
 
     service.faqs.forEach((faq) => expect(screen.getByText(faq.question)).toBeInTheDocument());
@@ -148,5 +166,50 @@ describe('SocialEngineeringContactPage', () => {
       inquiry: 'social-engineering',
       token: '1.test',
     });
+  });
+});
+
+describe('DivisionHeader menus', () => {
+  const openMenu = () => screen.queryByRole('link', { name: 'Phishing simulation' });
+
+  it('toggles Services on click/tap and ignores emulated (non-mouse) hover', () => {
+    renderAt(<DivisionHeader />);
+    const services = screen.getByRole('button', { name: /Services/ });
+    const container = services.parentElement!;
+
+    fireEvent.pointerEnter(container, { pointerType: 'touch' });
+    expect(openMenu()).toBeNull();
+
+    fireEvent.click(services);
+    expect(services).toHaveAttribute('aria-expanded', 'true');
+    expect(openMenu()).toBeInTheDocument();
+  });
+
+  it('closes on Escape and returns focus to the Services button', () => {
+    renderAt(<DivisionHeader />);
+    const services = screen.getByRole('button', { name: /Services/ });
+    fireEvent.click(services);
+    expect(openMenu()).toBeInTheDocument();
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(openMenu()).toBeNull();
+    expect(services).toHaveFocus();
+  });
+
+  it('closes when focus leaves the dropdown', () => {
+    renderAt(<DivisionHeader />);
+    const services = screen.getByRole('button', { name: /Services/ });
+    fireEvent.click(services);
+    fireEvent.blur(services, { relatedTarget: screen.getByRole('link', { name: 'Scope an assessment' }) });
+    expect(openMenu()).toBeNull();
+  });
+
+  it('closes the mobile menu on Escape', () => {
+    renderAt(<DivisionHeader />);
+    fireEvent.click(screen.getByRole('button', { name: 'Open menu' }));
+    expect(document.getElementById('nwse-mobile-menu')).toBeInTheDocument();
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(document.getElementById('nwse-mobile-menu')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Open menu' })).toHaveFocus();
   });
 });

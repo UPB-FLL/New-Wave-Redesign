@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type FocusEvent, type PointerEvent } from 'react';
 import { ArrowUpRight, ChevronDown, Menu, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { divisionServices } from '../content';
@@ -15,6 +15,8 @@ export function DivisionHeader() {
   const [servicesOpen, setServicesOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const closeTimer = useRef<number | undefined>();
+  const servicesButton = useRef<HTMLButtonElement>(null);
+  const menuButton = useRef<HTMLButtonElement>(null);
   const { pathname } = useLocation();
 
   useEffect(() => {
@@ -31,12 +33,37 @@ export function DivisionHeader() {
     setServicesOpen(false);
   }, [pathname]);
 
-  const openServices = () => {
+  // Escape dismisses whichever menu is open and returns focus to its button (WCAG 1.4.13).
+  useEffect(() => {
+    if (!menuOpen && !servicesOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      if (servicesOpen) servicesButton.current?.focus();
+      else menuButton.current?.focus();
+      setServicesOpen(false);
+      setMenuOpen(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [menuOpen, servicesOpen]);
+
+  // Hover opens the dropdown for mouse pointers only. Touch devices emulate
+  // mouseenter before the click, which would open and then instantly re-close it.
+  const openServices = (event: PointerEvent) => {
+    if (event.pointerType !== 'mouse') return;
     window.clearTimeout(closeTimer.current);
     setServicesOpen(true);
   };
-  const closeServicesSoon = () => {
+  const closeServicesSoon = (event: PointerEvent) => {
+    if (event.pointerType !== 'mouse') return;
     closeTimer.current = window.setTimeout(() => setServicesOpen(false), 180);
+  };
+  const closeServicesOnFocusOut = (event: FocusEvent<HTMLDivElement>) => {
+    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setServicesOpen(false);
+  };
+  const closeMenus = () => {
+    setServicesOpen(false);
+    setMenuOpen(false);
   };
 
   return (
@@ -67,17 +94,23 @@ export function DivisionHeader() {
         }}
       >
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-5 px-4 sm:px-6 lg:px-8">
-          <Link to={DIVISION_BASE_PATH} className="flex shrink-0 items-center py-2" aria-label="New Wave: Social Engineering home">
+          <Link onClick={closeMenus} to={DIVISION_BASE_PATH} className="flex shrink-0 items-center py-2" aria-label="New Wave: Social Engineering home">
             <DivisionLogo lockup="primary" ground="light" width={184} decorative />
           </Link>
 
           <div className="hidden items-center gap-6 lg:flex">
-            <Link to={DIVISION_BASE_PATH} className={navLinkClass}>
+            <Link to={DIVISION_BASE_PATH} onClick={closeMenus} className={navLinkClass}>
               Overview
             </Link>
 
-            <div className="relative" onMouseEnter={openServices} onMouseLeave={closeServicesSoon}>
+            <div
+              className="relative"
+              onPointerEnter={openServices}
+              onPointerLeave={closeServicesSoon}
+              onBlur={closeServicesOnFocusOut}
+            >
               <button
+                ref={servicesButton}
                 type="button"
                 className={`${navLinkClass} flex items-center gap-1`}
                 onClick={() => setServicesOpen((open) => !open)}
@@ -98,6 +131,7 @@ export function DivisionHeader() {
                       <li key={service.slug}>
                         <Link
                           to={divisionServicePath(service.slug)}
+                          onClick={closeMenus}
                           className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-[var(--nw-cloud-white)]"
                         >
                           <span className="nwse-icon h-8 w-8 shrink-0">
@@ -112,13 +146,14 @@ export function DivisionHeader() {
               ) : null}
             </div>
 
-            <Link to={DIVISION_CONTACT_PATH} className="nwse-btn nwse-btn-amber-deep min-h-10 px-4 py-2 text-sm">
+            <Link onClick={closeMenus} to={DIVISION_CONTACT_PATH} className="nwse-btn nwse-btn-amber-deep min-h-10 px-4 py-2 text-sm">
               Scope an assessment
             </Link>
           </div>
 
           <button
             type="button"
+            ref={menuButton}
             className="rounded-md p-2 text-[var(--nw-current-navy)] transition-colors hover:bg-[var(--nw-mist-gray)] lg:hidden"
             onClick={() => setMenuOpen((open) => !open)}
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
@@ -130,22 +165,26 @@ export function DivisionHeader() {
         </div>
 
         {menuOpen ? (
-          <div id="nwse-mobile-menu" className="border-t lg:hidden" style={{ borderColor: 'var(--nw-mist-gray)' }}>
+          <div
+            id="nwse-mobile-menu"
+            className="max-h-[calc(100dvh-var(--nwse-header-height))] overflow-y-auto border-t lg:hidden"
+            style={{ borderColor: 'var(--nw-mist-gray)' }}
+          >
             <div className="flex flex-col gap-3 px-5 py-5">
-              <Link to={DIVISION_BASE_PATH} className={navLinkClass}>
+              <Link to={DIVISION_BASE_PATH} onClick={closeMenus} className={navLinkClass}>
                 Overview
               </Link>
               <p className="nwse-kicker mt-1">Services</p>
               <ul className="flex flex-col gap-2 border-l pl-3" style={{ borderColor: 'var(--nw-mist-gray)' }}>
                 {divisionServices.map((service) => (
                   <li key={service.slug}>
-                    <Link to={divisionServicePath(service.slug)} className={navLinkClass}>
+                    <Link onClick={closeMenus} to={divisionServicePath(service.slug)} className={navLinkClass}>
                       {service.navLabel}
                     </Link>
                   </li>
                 ))}
               </ul>
-              <Link to={DIVISION_CONTACT_PATH} className="nwse-btn nwse-btn-amber-deep mt-2 text-sm">
+              <Link onClick={closeMenus} to={DIVISION_CONTACT_PATH} className="nwse-btn nwse-btn-amber-deep mt-2 text-sm">
                 Scope an assessment
               </Link>
             </div>
@@ -156,5 +195,5 @@ export function DivisionHeader() {
   );
 }
 
-/** Space the fixed endorsement bar (h-9) + nav (h-20) occupies. */
-export const DIVISION_HEADER_OFFSET_CLASS = 'pt-[116px]';
+/** Space the fixed endorsement bar (36px) + nav (80px) + its 1px border occupy; matches --nwse-header-height. */
+export const DIVISION_HEADER_OFFSET_CLASS = 'pt-[var(--nwse-header-height)]';

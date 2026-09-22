@@ -48,6 +48,8 @@ export const DIVISION_ASSETS = {
   logoInlineOnDark: `${ASSET_BASE}/logos/nwse-logo-inline_fullcolor-dark.svg`,
   markOnLight: `${ASSET_BASE}/logos/nwse-mark_fullcolor-light.svg`,
   markOnDark: `${ASSET_BASE}/logos/nwse-mark_fullcolor-dark.svg`,
+  /** 16–32px only; the guide switches to the micro mark below 32px. */
+  microMarkOnLight: `${ASSET_BASE}/logos/nwse-mark-micro_fullcolor-light.svg`,
   /** Raster logo for schema.org Organization.logo (Google prefers raster). */
   logoPng: `${ASSET_BASE}/logos/nwse-logo-primary_fullcolor-light_1200w.png`,
   ogImage: `${ASSET_BASE}/og/og-image-1200x630.png`,

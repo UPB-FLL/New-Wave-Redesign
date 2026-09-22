@@ -7,11 +7,18 @@
 :root {
   --nwse-lure-amber: #F2A33A;
   --nwse-lure-amber-deep: #A65B0B;
+  /* Fixed endorsement bar (36px) + nav (80px) + nav border (1px). */
+  --nwse-header-height: 117px;
 }
 
 .nwse-root {
   background: var(--nw-cloud-white);
   color: var(--nw-current-navy);
+}
+
+/* In-page anchors (#services, #faq) land below the fixed header, not under it. */
+.nwse-root [id] {
+  scroll-margin-top: calc(var(--nwse-header-height) + 16px);
 }
 
 /* Plex Mono labels: caps with wide tracking (guidelines page 07). */
@@ -128,4 +135,35 @@
 
 .nwse-faq[open] .nwse-faq-chevron {
   transform: rotate(180deg);
+}
+
+/* The shared contact form (components/Contact.tsx) inside division pages: the
+   division's CTA colour and its amber accent in place of the parent's cyan
+   and green. */
+.nwse-root {
+  --contact-success-accent: var(--nwse-lure-amber-deep);
+}
+
+.nwse-root .btn-primary {
+  background: var(--nwse-lure-amber-deep);
+  color: var(--nw-pure-white);
+}
+
+.nwse-root .btn-primary:hover {
+  background: var(--nw-current-navy);
+  color: var(--nw-pure-white);
+}
+
+.nwse-root .nw-kicker {
+  color: var(--nwse-lure-amber-deep);
+  letter-spacing: 0.14em;
+}
+
+.nwse-root .text-brand-cyan {
+  color: var(--nwse-lure-amber-deep);
+}
+
+.nwse-root .nw-icon-success {
+  background: color-mix(in srgb, var(--nwse-lure-amber) 16%, transparent);
+  color: var(--nwse-lure-amber-deep);
 }

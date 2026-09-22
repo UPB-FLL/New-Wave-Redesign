@@ -62,3 +62,20 @@ export function useDivisionIcons() {
     };
   }, []);
 }
+
+/**
+ * The shell's static JSON-LD describes New Wave IT (LocalBusiness). The
+ * prerendered division HTML omits it; this keeps in-app navigation consistent
+ * by detaching it while a division page is mounted and restoring it after.
+ */
+export function useParentJsonLdHidden() {
+  useEffect(() => {
+    const parentBlocks = [
+      ...document.head.querySelectorAll<HTMLScriptElement>(
+        `script[type="application/ld+json"]:not(#${DIVISION_JSONLD_ELEMENT_ID}):not([data-page-jsonld])`,
+      ),
+    ];
+    parentBlocks.forEach((block) => block.remove());
+    return () => parentBlocks.forEach((block) => document.head.appendChild(block));
+  }, []);
+}

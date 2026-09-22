@@ -42,6 +42,10 @@ export interface DivisionServiceContent {
   /** Metric labels a program reports on. Labels only — never invented numbers. */
   metrics: string[];
   faqs: DivisionFaq[];
+  /** Overrides the "What we test" section heading (e.g. for training). */
+  scopeHeading?: string;
+  /** Overrides the closing call-to-action heading. */
+  ctaHeading?: string;
 }
 
 export interface DivisionHubContent {

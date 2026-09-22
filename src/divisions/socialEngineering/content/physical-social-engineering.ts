@@ -47,7 +47,7 @@ export const physicalSocialEngineering: DivisionServiceContent = {
     {
       title: 'Authorization and scoping',
       detail:
-        'Someone with authority over the premises signs a written authorization, and in a shared building we coordinate with property management and building security before any visit. Rules of engagement list addresses, entrances, in-bounds and off-limits areas, test windows, allowed pretexts, and emergency contacts who can be reached throughout. Testers carry the signed authorization letter at all times, and there is no forced entry, no damage, and no testing of anyone outside work.',
+        'Someone with authority over the premises signs a written authorization, and in a shared building, property management also authorizes testing of lobbies, garages, and other common areas in writing before any visit. Rules of engagement list addresses, entrances, in-bounds and off-limits areas, test windows, allowed pretexts, and emergency contacts who can be reached throughout. Testers carry the signed authorization letter at all times, and there is no forced entry, no damage, and no testing of anyone outside work.',
     },
     {
       title: 'Reconnaissance and pretext planning',
@@ -84,7 +84,7 @@ export const physicalSocialEngineering: DivisionServiceContent = {
     {
       question: 'Is a physical social engineering assessment legal, and what happens if a tester is stopped?',
       answer:
-        'We run a physical assessment only with written authorization from someone who has authority over the premises, and in a shared building we coordinate with property management and building security as well. Every tester carries the signed authorization letter and a list of emergency contacts. If staff, building security, or police stop a tester, the tester stops, identifies themselves, and presents the letter so an authorized contact can confirm the engagement.',
+        'We run a physical assessment only with written authorization from someone who has authority over the premises, and in a shared building, property management also authorizes any testing of common areas in writing. Every tester carries the signed authorization letter and a list of emergency contacts. If staff, building security, or police stop a tester, the tester stops, identifies themselves, and presents the letter so an authorized contact can confirm the engagement.',
     },
     {
       question: 'Will an on-site social engineering test disrupt our office?',

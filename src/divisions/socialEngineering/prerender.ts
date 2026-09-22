@@ -8,12 +8,14 @@
 // division URL so the raw HTML already carries the right title, description,
 // canonical, Open Graph tags, icons, and structured data.
 //
-// It fails loudly: if index.html changes shape and a tag can no longer be
-// found exactly once, the build throws instead of shipping IT metadata on a
-// division page.
+// Tags that decide which page this is (title, description, canonical,
+// og:title/description/url) must exist exactly once, or the build throws rather
+// than ship IT identity on a division URL. Everything else is upserted, so
+// routine edits to index.html (reordered attributes, an extra JSON-LD block, a
+// dropped keywords tag) never break the New Wave IT build.
 
-import { divisionJsonLdDocument } from './seo';
-import { DIVISION_ASSETS, DIVISION_NAME, DIVISION_ENDORSEMENT, absoluteUrl } from './site';
+import { allDivisionPages, divisionJsonLdDocument } from './seo';
+import { DIVISION_ASSETS, DIVISION_ENDORSEMENT, DIVISION_NAME, absoluteUrl } from './site';
 import type { DivisionPageSeo } from './types';
 
 /** Stable id so the runtime hook replaces, rather than duplicates, the prerendered block. */
@@ -33,79 +35,113 @@ const escapeHtmlText = (value: string) =>
 /** Keeps a JSON-LD payload from closing its own <script> element. */
 export const escapeJsonForScript = (json: string) => json.replace(/</g, '\\u003c');
 
-function replaceExactlyOnce(html: string, pattern: RegExp, replacement: string, label: string): string {
-  const flags = pattern.flags.includes('g') ? pattern.flags : `${pattern.flags}g`;
-  const matches = html.match(new RegExp(pattern.source, flags)) ?? [];
-  if (matches.length !== 1) {
+const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/** Lookahead requiring attribute `name` to equal `value`, in any position and either quote style. */
+const hasAttr = (name: string, value: string) =>
+  `(?=[^>]*\\s${name}\\s*=\\s*["']${escapeRegex(value)}["'])`;
+
+const metaTag = (attr: 'name' | 'property', key: string) => new RegExp(`<meta\\b${hasAttr(attr, key)}[^>]*>`, 'gi');
+const linkTag = (rel: string, ...extra: [string, string][]) =>
+  new RegExp(`<link\\b${hasAttr('rel', rel)}${extra.map(([n, v]) => hasAttr(n, v)).join('')}[^>]*>`, 'gi');
+
+interface HeadTag {
+  label: string;
+  pattern: RegExp;
+  tag: string;
+  /** Required tags identify the page; a missing one fails the build. */
+  required: boolean;
+}
+
+function upsertTag(html: string, { label, pattern, tag, required }: HeadTag): string {
+  const matches = html.match(pattern) ?? [];
+  if (matches.length > 1) {
     throw new Error(
-      `Division prerender: expected exactly one ${label} in index.html, found ${matches.length}. ` +
+      `Division prerender: found ${matches.length} ${label} tags in index.html; expected at most one. ` +
         'Update src/divisions/socialEngineering/prerender.ts to match the new shell.',
     );
   }
-  return html.replace(pattern, () => replacement);
+  if (matches.length === 1) return html.replace(pattern, () => tag);
+  if (required) {
+    throw new Error(
+      `Division prerender: expected exactly one ${label} in index.html, found 0. ` +
+        'Update src/divisions/socialEngineering/prerender.ts to match the new shell.',
+    );
+  }
+  return insertBeforeHeadClose(html, tag);
 }
 
-const metaByName = (name: string) => new RegExp(`<meta\\s+name="${name}"\\s+content="[^"]*"\\s*/?>`);
-const metaByProperty = (property: string) =>
-  new RegExp(`<meta\\s+property="${property}"\\s+content="[^"]*"\\s*/?>`);
+function insertBeforeHeadClose(html: string, markup: string): string {
+  if (!/<\/head>/i.test(html)) throw new Error('Division prerender: index.html has no </head>.');
+  return html.replace(/<\/head>/i, () => `  ${markup}\n  </head>`);
+}
 
-export function renderDivisionPageHtml(shell: string, page: DivisionPageSeo): string {
+const JSON_LD_BLOCK = new RegExp(
+  `(?:<!--[^>]*structured data[^>]*-->\\s*)?<script\\b${hasAttr('type', 'application/ld+json')}[^>]*>[\\s\\S]*?</script>\\s*`,
+  'gi',
+);
+
+export interface RenderOptions {
+  /** Extra <head> markup, e.g. modulepreload links for the page's lazy chunks. */
+  headExtras?: readonly string[];
+}
+
+export function renderDivisionPageHtml(shell: string, page: DivisionPageSeo, options: RenderOptions = {}): string {
   const url = absoluteUrl(page.path);
   const ogImage = absoluteUrl(DIVISION_ASSETS.ogImage);
   const attr = escapeHtmlAttribute;
 
-  const replacements: [RegExp, string, string][] = [
-    [/<title>[\s\S]*?<\/title>/, `<title>${escapeHtmlText(page.title)}</title>`, '<title>'],
-    [metaByName('description'), `<meta name="description" content="${attr(page.description)}" />`, 'meta description'],
-    [metaByName('keywords'), `<meta name="keywords" content="${attr(page.keywords)}" />`, 'meta keywords'],
-    [metaByProperty('og:site_name'), `<meta property="og:site_name" content="${attr(DIVISION_NAME)}" />`, 'og:site_name'],
-    [metaByProperty('og:title'), `<meta property="og:title" content="${attr(page.title)}" />`, 'og:title'],
-    [metaByProperty('og:description'), `<meta property="og:description" content="${attr(page.description)}" />`, 'og:description'],
-    [metaByProperty('og:url'), `<meta property="og:url" content="${attr(url)}" />`, 'og:url'],
-    [metaByProperty('og:image'), `<meta property="og:image" content="${attr(ogImage)}" />`, 'og:image'],
-    [metaByName('twitter:title'), `<meta name="twitter:title" content="${attr(page.title)}" />`, 'twitter:title'],
-    [metaByName('twitter:description'), `<meta name="twitter:description" content="${attr(page.description)}" />`, 'twitter:description'],
-    [metaByName('twitter:image'), `<meta name="twitter:image" content="${attr(ogImage)}" />`, 'twitter:image'],
-    [/<link\s+rel="canonical"\s+href="[^"]*"\s*\/?>/, `<link rel="canonical" href="${attr(url)}" />`, 'canonical link'],
-    [
-      /<link\s+rel="icon"\s+type="image\/svg\+xml"\s+href="[^"]*"\s*\/?>/,
-      `<link rel="icon" type="image/svg+xml" href="${DIVISION_ASSETS.faviconSvg}" />`,
-      'SVG favicon link',
-    ],
-    [
-      /<link\s+rel="icon"\s+href="[^"]*"\s+sizes="any"\s*\/?>/,
-      `<link rel="icon" href="${DIVISION_ASSETS.faviconIco}" sizes="any" />`,
-      'ICO favicon link',
-    ],
-    [
-      /<link\s+rel="apple-touch-icon"\s+href="[^"]*"\s*\/?>/,
-      `<link rel="apple-touch-icon" href="${DIVISION_ASSETS.appleTouchIcon}" />`,
-      'apple-touch-icon link',
-    ],
-    [/<link\s+rel="manifest"\s+href="[^"]*"\s*\/?>/, `<link rel="manifest" href="${DIVISION_ASSETS.manifest}" />`, 'manifest link'],
-    // The shell's LocalBusiness/Organization block describes the parent. Division
-    // pages carry their own graph, which links back to the parent by @id.
-    [
-      /(?:<!--[^>]*structured data[^>]*-->\s*)?<script\s+type="application\/ld\+json">[\s\S]*?<\/script>/,
-      `<!-- ${DIVISION_NAME} structured data (links to the parent by @id) -->\n    ` +
-        `<script type="application/ld+json" id="${DIVISION_JSONLD_ELEMENT_ID}">${escapeJsonForScript(divisionJsonLdDocument(page))}</script>`,
-      'JSON-LD script',
-    ],
+  const tags: HeadTag[] = [
+    { label: '<title>', pattern: /<title\b[^>]*>[\s\S]*?<\/title>/gi, tag: `<title>${escapeHtmlText(page.title)}</title>`, required: true },
+    { label: 'meta description', pattern: metaTag('name', 'description'), tag: `<meta name="description" content="${attr(page.description)}" />`, required: true },
+    { label: 'canonical link', pattern: linkTag('canonical'), tag: `<link rel="canonical" href="${attr(url)}" />`, required: true },
+    { label: 'og:title', pattern: metaTag('property', 'og:title'), tag: `<meta property="og:title" content="${attr(page.title)}" />`, required: true },
+    { label: 'og:description', pattern: metaTag('property', 'og:description'), tag: `<meta property="og:description" content="${attr(page.description)}" />`, required: true },
+    { label: 'og:url', pattern: metaTag('property', 'og:url'), tag: `<meta property="og:url" content="${attr(url)}" />`, required: true },
+    { label: 'meta keywords', pattern: metaTag('name', 'keywords'), tag: `<meta name="keywords" content="${attr(page.keywords)}" />`, required: false },
+    { label: 'og:site_name', pattern: metaTag('property', 'og:site_name'), tag: `<meta property="og:site_name" content="${attr(DIVISION_NAME)}" />`, required: false },
+    { label: 'og:image', pattern: metaTag('property', 'og:image'), tag: `<meta property="og:image" content="${attr(ogImage)}" />`, required: false },
+    { label: 'twitter:title', pattern: metaTag('name', 'twitter:title'), tag: `<meta name="twitter:title" content="${attr(page.title)}" />`, required: false },
+    { label: 'twitter:description', pattern: metaTag('name', 'twitter:description'), tag: `<meta name="twitter:description" content="${attr(page.description)}" />`, required: false },
+    { label: 'twitter:image', pattern: metaTag('name', 'twitter:image'), tag: `<meta name="twitter:image" content="${attr(ogImage)}" />`, required: false },
+    { label: 'SVG favicon link', pattern: linkTag('icon', ['type', 'image/svg+xml']), tag: `<link rel="icon" type="image/svg+xml" href="${DIVISION_ASSETS.faviconSvg}" />`, required: false },
+    { label: 'ICO favicon link', pattern: linkTag('icon', ['sizes', 'any']), tag: `<link rel="icon" href="${DIVISION_ASSETS.faviconIco}" sizes="any" />`, required: false },
+    { label: 'apple-touch-icon link', pattern: linkTag('apple-touch-icon'), tag: `<link rel="apple-touch-icon" href="${DIVISION_ASSETS.appleTouchIcon}" />`, required: false },
+    { label: 'manifest link', pattern: linkTag('manifest'), tag: `<link rel="manifest" href="${DIVISION_ASSETS.manifest}" />`, required: false },
   ];
 
   let html = shell;
-  for (const [pattern, replacement, label] of replacements) {
-    html = replaceExactlyOnce(html, pattern, replacement, label);
-  }
+  for (const tag of tags) html = upsertTag(html, tag);
 
-  // Readable fallback for crawlers that never execute the app bundle.
+  // Every shell JSON-LD block describes the parent; division pages carry their
+  // own graph instead, which links back to the parent by @id.
+  html = html.replace(JSON_LD_BLOCK, '');
+  html = insertBeforeHeadClose(
+    html,
+    `<!-- ${DIVISION_NAME} structured data (links to the parent by @id) -->\n    ` +
+      `<script type="application/ld+json" id="${DIVISION_JSONLD_ELEMENT_ID}">${escapeJsonForScript(divisionJsonLdDocument(page))}</script>`,
+  );
+  for (const extra of options.headExtras ?? []) html = insertBeforeHeadClose(html, extra);
+
+  // Readable fallback for crawlers that never execute the app bundle, with
+  // plain links to every other division page.
   const crumbs = page.breadcrumbs
     .map((crumb) => `<a href="${attr(crumb.path)}">${escapeHtmlText(crumb.name)}</a>`)
     .join(' / ');
+  const links = allDivisionPages()
+    .filter((other) => other.path !== page.path)
+    .map((other) => `<li><a href="${attr(other.path)}">${escapeHtmlText(other.breadcrumbs.slice(-1)[0]?.name ?? other.h1)}</a></li>`)
+    .join('');
   const fallback =
     `<noscript><main><p><a href="/">New Wave IT</a> / ${crumbs}</p>` +
     `<h1>${escapeHtmlText(page.h1)}</h1><p>${escapeHtmlText(page.description)}</p>` +
+    `<nav aria-label="${attr(DIVISION_NAME)}"><ul>${links}</ul></nav>` +
     `<p>${escapeHtmlText(`${DIVISION_NAME} — ${DIVISION_ENDORSEMENT}.`)}</p></main></noscript>`;
 
-  return replaceExactlyOnce(html, /<div id="root"><\/div>/, `<div id="root"></div>${fallback}`, 'root element');
+  return upsertTag(html, {
+    label: 'root element',
+    pattern: /<div id="root"><\/div>/g,
+    tag: `<div id="root"></div>${fallback}`,
+    required: true,
+  });
 }

@@ -178,7 +178,7 @@ export default function Navbar() {
                     <Link
                       to={DIVISION_BASE_PATH}
                       onClick={() => setServicesDropdownOpen(false)}
-                      className="flex items-center gap-3 border-t px-5 py-3 transition-colors hover:bg-[var(--nw-cloud-white)]"
+                      className="flex items-center gap-4 border-t px-5 py-3 transition-colors hover:bg-[var(--nw-cloud-white)]"
                       style={{ borderColor: 'var(--nw-mist-gray)' }}
                     >
                       <img src={DIVISION_ASSETS.markOnLight} width={32} height={33} alt="" aria-hidden="true" />
@@ -290,9 +290,9 @@ export default function Navbar() {
                   <Link
                     to={DIVISION_BASE_PATH}
                     onClick={closeMobileNavigation}
-                    className="flex items-center gap-2 text-sm font-semibold text-brand-navy"
+                    className="flex items-center gap-3 text-sm font-semibold text-brand-navy"
                   >
-                    <img src={DIVISION_ASSETS.markOnLight} width={24} height={25} alt="" aria-hidden="true" />
+                    <img src={DIVISION_ASSETS.microMarkOnLight} width={24} height={21} alt="" aria-hidden="true" />
                     New Wave: Social Engineering
                   </Link>
                 </div>

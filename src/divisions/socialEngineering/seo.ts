@@ -22,7 +22,8 @@ import type { DivisionFaq, DivisionPageSeo, DivisionServiceContent } from './typ
 
 type JsonLdNode = Record<string, unknown>;
 
-const HUB_CRUMB = { name: 'Social Engineering', path: DIVISION_BASE_PATH };
+// Breadcrumbs use the guide's running-copy name; the full name leads every page.
+const HUB_CRUMB = { name: DIVISION_SHORT_NAME, path: DIVISION_BASE_PATH };
 
 const AREA_SERVED: JsonLdNode[] = [
   { '@type': 'City', name: 'Fort Lauderdale' },
@@ -126,7 +127,8 @@ export function hubPageSeo(): DivisionPageSeo {
     title: hubContent.metaTitle,
     description: hubContent.metaDescription,
     keywords: hubContent.keywords,
-    h1: hubContent.headline,
+    // Matches the rendered H1: kicker + brand line (see DivisionHero kickerInHeading).
+    h1: `${hubContent.kicker}: ${hubContent.headline}`,
     breadcrumbs,
     jsonLd: [
       divisionOrganizationNode(),

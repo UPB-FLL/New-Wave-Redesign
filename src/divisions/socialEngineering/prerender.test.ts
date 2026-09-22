@@ -94,11 +94,48 @@ describe('renderDivisionPageHtml', () => {
     expect(graph[0].name).toBe('</script><script>alert(1)</script>');
   });
 
-  it('fails the build loudly when the shell no longer matches', () => {
+  it('fails the build loudly only when a page-identity tag is missing or ambiguous', () => {
     const withoutCanonical = shell.replace(/<link rel="canonical"[^>]*>/, '');
     expect(() => renderDivisionPageHtml(withoutCanonical, hubPageSeo())).toThrow(/canonical link/);
 
     const duplicated = shell.replace('</head>', '<meta name="description" content="x" /></head>');
     expect(() => renderDivisionPageHtml(duplicated, hubPageSeo())).toThrow(/meta description/);
+  });
+
+  it('tolerates routine edits to the parent shell', () => {
+    const edited = shell
+      // an extra parent JSON-LD block with attributes
+      .replace('</head>', '<script type="application/ld+json" data-extra="1">{"@type":"WebSite"}</script></head>')
+      // a dropped optional tag
+      .replace(/<meta name="keywords"[^>]*>/, '')
+      // reordered attributes and single quotes
+      .replace('<link rel="icon" href="/favicon.ico" sizes="any" />', "<link sizes='any' href='/favicon.ico' rel='icon'>")
+      .replace(/<meta name="description" content="([^"]*)" \/>/, '<meta content="$1" name="description">');
+
+    const page = hubPageSeo();
+    const head = parseHead(renderDivisionPageHtml(edited, page));
+    expect(head.description).toBe(page.description);
+    expect(head.doc.head.querySelector('meta[name="keywords"]')?.getAttribute('content')).toBe(page.keywords);
+    expect(head.doc.head.querySelector('link[rel="icon"][sizes="any"]')?.getAttribute('href')).toBe(DIVISION_ASSETS.faviconIco);
+    expect(head.doc.head.querySelectorAll('link[rel="icon"][sizes="any"]')).toHaveLength(1);
+    expect(head.jsonLd).toHaveLength(1);
+    expect(head.jsonLd[0].id).toBe(DIVISION_JSONLD_ELEMENT_ID);
+  });
+
+  it('links every other division page from the no-JS fallback', () => {
+    const pages = allDivisionPages();
+    const html = renderDivisionPageHtml(shell, hubPageSeo());
+    const noscript = html.slice(html.indexOf('<noscript>'), html.indexOf('</noscript>'));
+    pages
+      .filter((page) => page.path !== '/social-engineering')
+      .forEach((page) => expect(noscript).toContain(`<a href="${page.path}">`));
+  });
+
+  it('adds head extras such as preload links', () => {
+    const html = renderDivisionPageHtml(shell, hubPageSeo(), {
+      headExtras: ['<link rel="modulepreload" crossorigin href="/assets/Hub.js">'],
+    });
+    const head = html.slice(0, html.indexOf('</head>'));
+    expect(head).toContain('<link rel="modulepreload" crossorigin href="/assets/Hub.js">');
   });
 });
