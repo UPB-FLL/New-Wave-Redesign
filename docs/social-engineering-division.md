@@ -146,7 +146,10 @@ division is a New Wave IT division, not a separate company.
    `og/og-image-v2-1200x630.png` with the new brand line).
 6. Google Business Profile: add the division's services to the existing New
    Wave IT profile rather than creating a second listing at the same address.
-7. Social profiles: use `03_Social` from the brand kit; link to
+7. Social profiles: use the banners and avatars in the brand kit's `03_Social`,
+   but not its `og-image-1200x630.*`, which still describes security testing.
+   For share or link images use
+   `public/brand/social-engineering/og/og-image-v2-1200x630.png`. Link to
    `/social-engineering`.
 
 ## Follow-ups (not in this change)

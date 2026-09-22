@@ -63,9 +63,14 @@ describe('division visibility', () => {
   it(DIVISION_PUBLISHED ? 'publishes the division (no redirect away)' : 'temporarily redirects every division URL to the home page', () => {
     const redirects = (config.redirects ?? []).filter((rule) => rule.source.startsWith('/social-engineering'));
     if (DIVISION_PUBLISHED) {
-      // Only the retired first-launch service URLs redirect, permanently, to the hub.
+      // Only the retired first-launch service URLs redirect, permanently, to the hub. Vercel
+      // matches sources exactly, so each needs its trailing-slash form too (without it,
+      // /retired-slug/ falls through to the SPA shell: a blank 200 with the homepage canonical).
       expect(redirects).toEqual(
-        RETIRED_SERVICE_SLUGS.map((slug) => ({ source: divisionServicePath(slug), destination: DIVISION_BASE_PATH, permanent: true })),
+        RETIRED_SERVICE_SLUGS.flatMap((slug) => [
+          { source: divisionServicePath(slug), destination: DIVISION_BASE_PATH, permanent: true },
+          { source: `${divisionServicePath(slug)}/`, destination: DIVISION_BASE_PATH, permanent: true },
+        ]),
       );
     } else {
       expect(redirects).toEqual([

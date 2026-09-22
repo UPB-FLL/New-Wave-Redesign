@@ -134,7 +134,7 @@ export const hubContent: DivisionHubContent = {
     {
       question: 'Who owns our accounts, content, and website?',
       answer:
-        'Your business owns its domain, website, social accounts, Google Business Profile, and ad accounts, and our team works through access you control and can remove. If ownership is unclear today, such as a page created by a former employee or a domain registered to an old vendor, sorting it out is part of our digital oversight work. Ownership of the content and design work we create is set out in writing before work begins.',
+        'Your business owns its domain, hosting, social accounts, Google Business Profile, and ad accounts, and our team works through access you control and can remove. If ownership is unclear today, such as a page created by a former employee or a domain registered to an old vendor, sorting it out is part of our digital oversight work. Ownership of the website design, copy, and other creative work we create is set out in writing before work begins.',
     },
     {
       question: 'How do you measure and report results?',

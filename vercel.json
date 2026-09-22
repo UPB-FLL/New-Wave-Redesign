@@ -54,7 +54,17 @@
       "permanent": true
     },
     {
+      "source": "/social-engineering/phishing-simulation/",
+      "destination": "/social-engineering",
+      "permanent": true
+    },
+    {
       "source": "/social-engineering/vishing-pretext-testing",
+      "destination": "/social-engineering",
+      "permanent": true
+    },
+    {
+      "source": "/social-engineering/vishing-pretext-testing/",
       "destination": "/social-engineering",
       "permanent": true
     },
@@ -64,7 +74,17 @@
       "permanent": true
     },
     {
+      "source": "/social-engineering/physical-social-engineering/",
+      "destination": "/social-engineering",
+      "permanent": true
+    },
+    {
       "source": "/social-engineering/security-awareness-training",
+      "destination": "/social-engineering",
+      "permanent": true
+    },
+    {
+      "source": "/social-engineering/security-awareness-training/",
       "destination": "/social-engineering",
       "permanent": true
     }
