@@ -2,9 +2,15 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "functions": {
-    "api/seo/research-competitors.ts": { "maxDuration": 60 },
-    "api/seo/generate-page.ts": { "maxDuration": 60 },
-    "api/seo/refresh-images.ts": { "maxDuration": 60 }
+    "api/seo/research-competitors.ts": {
+      "maxDuration": 60
+    },
+    "api/seo/generate-page.ts": {
+      "maxDuration": 60
+    },
+    "api/seo/refresh-images.ts": {
+      "maxDuration": 60
+    }
   },
   "headers": [
     {
@@ -39,6 +45,18 @@
           "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://*.elfsight.com https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.elfsight.com https://vitals.vercel-insights.com https://stream.mux.com; media-src 'self' blob: https://stream.mux.com https://videos.pexels.com; frame-src https://*.elfsight.com; object-src 'none'; base-uri 'self'; form-action 'self'"
         }
       ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/social-engineering",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/social-engineering/:path*",
+      "destination": "/",
+      "permanent": false
     }
   ],
   "rewrites": [
@@ -161,30 +179,6 @@
     {
       "source": "/l/network-infrastructure-guide",
       "destination": "/l/network-infrastructure-guide/index.html"
-    },
-    {
-      "source": "/social-engineering",
-      "destination": "/social-engineering/index.html"
-    },
-    {
-      "source": "/social-engineering/phishing-simulation",
-      "destination": "/social-engineering/phishing-simulation/index.html"
-    },
-    {
-      "source": "/social-engineering/vishing-pretext-testing",
-      "destination": "/social-engineering/vishing-pretext-testing/index.html"
-    },
-    {
-      "source": "/social-engineering/physical-social-engineering",
-      "destination": "/social-engineering/physical-social-engineering/index.html"
-    },
-    {
-      "source": "/social-engineering/security-awareness-training",
-      "destination": "/social-engineering/security-awareness-training/index.html"
-    },
-    {
-      "source": "/social-engineering/contact",
-      "destination": "/social-engineering/contact/index.html"
     },
     {
       "source": "/(.*)",

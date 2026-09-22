@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { allDivisionPages } from '../../divisions/socialEngineering/seo';
-import { SITE_URL } from '../../divisions/socialEngineering/site';
+import { DIVISION_PUBLISHED, SITE_URL } from '../../divisions/socialEngineering/site';
 import { prerenderedItRoutes } from '../../lib/routeMeta';
 
 const root = path.resolve(__dirname, '../../..');
@@ -23,7 +23,8 @@ const PARENT_SITEMAP_PATHS = [
   '/cookie-policy',
 ];
 
-const divisionPaths = allDivisionPages().map((page) => page.path);
+// While the division is unpublished, none of its URLs may be listed or served.
+const divisionPaths = DIVISION_PUBLISHED ? allDivisionPages().map((page) => page.path) : [];
 const itPrerenderedPaths = prerenderedItRoutes().map((route) => route.path);
 const prerenderedPaths = [...itPrerenderedPaths, ...divisionPaths];
 
@@ -46,6 +47,23 @@ describe('sitemap.xml', () => {
       .map((loc) => loc.replace(SITE_URL, ''))
       .filter((p) => p !== '/')
       .forEach((p) => expect(prerenderedPaths, p).toContain(p));
+  });
+});
+
+describe('division visibility', () => {
+  const config = JSON.parse(read('vercel.json')) as { redirects?: { source: string; destination: string; permanent: boolean }[] };
+
+  it(DIVISION_PUBLISHED ? 'publishes the division (no redirect away)' : 'temporarily redirects every division URL to the home page', () => {
+    const redirects = (config.redirects ?? []).filter((rule) => rule.source.startsWith('/social-engineering'));
+    if (DIVISION_PUBLISHED) {
+      expect(redirects.filter((rule) => rule.destination === '/')).toHaveLength(0);
+    } else {
+      expect(redirects).toEqual([
+        { source: '/social-engineering', destination: '/', permanent: false },
+        { source: '/social-engineering/:path*', destination: '/', permanent: false },
+      ]);
+      expect(read('public/sitemap.xml')).not.toContain('/social-engineering');
+    }
   });
 });
 

@@ -86,6 +86,7 @@ import ElfsightChatbot from './components/ElfsightChatbot';
 import {
   DIVISION_BASE_PATH,
   DIVISION_CONTACT_PATH,
+  DIVISION_PUBLISHED,
   DIVISION_SERVICE_SLUGS,
   divisionServicePath,
   isDivisionPath,
@@ -176,12 +177,16 @@ export default function App() {
         <Route path="/service-category/cellular-das-and-public-safety" element={<CellularDASPublicSafetyServicePage />} />
         <Route path="/threat/:slug" element={<ThreatDetailPage />} />
         <Route path="/l/:slug" element={<ServiceGuidePage />} />
-        {/* New Wave: Social Engineering division */}
-        <Route path={DIVISION_BASE_PATH} element={<SocialEngineeringHubRoute />} />
-        {DIVISION_SERVICE_SLUGS.map((slug) => (
-          <Route key={slug} path={divisionServicePath(slug)} element={<SocialEngineeringServiceRoute slug={slug} />} />
-        ))}
-        <Route path={DIVISION_CONTACT_PATH} element={<SocialEngineeringContactRoute />} />
+        {/* New Wave: Social Engineering division (hidden while DIVISION_PUBLISHED is false) */}
+        {DIVISION_PUBLISHED ? (
+          <>
+            <Route path={DIVISION_BASE_PATH} element={<SocialEngineeringHubRoute />} />
+            {DIVISION_SERVICE_SLUGS.map((slug) => (
+              <Route key={slug} path={divisionServicePath(slug)} element={<SocialEngineeringServiceRoute slug={slug} />} />
+            ))}
+            <Route path={DIVISION_CONTACT_PATH} element={<SocialEngineeringContactRoute />} />
+          </>
+        ) : null}
         <Route
           path="/admin"
           element={

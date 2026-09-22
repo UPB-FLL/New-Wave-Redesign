@@ -7,7 +7,7 @@ import react from '@vitejs/plugin-react';
 import { preloadTagsFor, type BundleChunk, type DivisionPageModule } from './src/divisions/socialEngineering/preload';
 import { renderDivisionPageHtml } from './src/divisions/socialEngineering/prerender';
 import { allDivisionPages } from './src/divisions/socialEngineering/seo';
-import { DIVISION_BASE_PATH, DIVISION_CONTACT_PATH } from './src/divisions/socialEngineering/site';
+import { DIVISION_BASE_PATH, DIVISION_CONTACT_PATH, DIVISION_PUBLISHED } from './src/divisions/socialEngineering/site';
 import { renderRouteHtml } from './src/lib/prerenderHead';
 import { prerenderedItRoutes } from './src/lib/routeMeta';
 
@@ -42,7 +42,7 @@ function prerenderPages(): Plugin {
       for (const route of prerenderedItRoutes()) {
         write(route.path, renderRouteHtml(shell, route.path, route.meta));
       }
-      for (const page of allDivisionPages()) {
+      for (const page of DIVISION_PUBLISHED ? allDivisionPages() : []) {
         const headExtras = preloadTagsFor(bundle as unknown as Record<string, BundleChunk>, pageModuleFor(page.path));
         write(page.path, renderDivisionPageHtml(shell, page, { headExtras }));
       }

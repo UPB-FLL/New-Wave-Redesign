@@ -16,7 +16,7 @@ import {
   X,
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import { DIVISION_ASSETS, DIVISION_BASE_PATH } from '../divisions/socialEngineering/site';
+import { DIVISION_ASSETS, DIVISION_BASE_PATH, DIVISION_PUBLISHED } from '../divisions/socialEngineering/site';
 import Logo from './Logo';
 
 const serviceGroups = [
@@ -175,6 +175,7 @@ export default function Navbar() {
                         </div>
                       ))}
                     </div>
+{DIVISION_PUBLISHED ? (
                     <Link
                       to={DIVISION_BASE_PATH}
                       onClick={() => setServicesDropdownOpen(false)}
@@ -190,6 +191,7 @@ export default function Navbar() {
                       </span>
                       <ArrowRight size={15} className="shrink-0 text-brand-tide-blue" />
                     </Link>
+                    ) : null}
                     <Link
                       to="/services"
                       onClick={() => setServicesDropdownOpen(false)}
@@ -287,6 +289,7 @@ export default function Navbar() {
                     View all services
                     <ArrowRight size={15} />
                   </Link>
+{DIVISION_PUBLISHED ? (
                   <Link
                     to={DIVISION_BASE_PATH}
                     onClick={closeMobileNavigation}
@@ -295,6 +298,7 @@ export default function Navbar() {
                     <img src={DIVISION_ASSETS.microMarkOnLight} width={24} height={21} alt="" aria-hidden="true" />
                     New Wave: Social Engineering
                   </Link>
+                  ) : null}
                 </div>
               ) : null}
             </div>
