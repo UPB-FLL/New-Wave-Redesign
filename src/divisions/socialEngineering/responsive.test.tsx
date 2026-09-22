@@ -61,13 +61,24 @@ describe('fixed header height', () => {
   };
 
   // Tailwind's h-* scale (n × 4px), or an arbitrary px height such as h-[56px].
+  // Below lg only px heights count: the token is a px value, and a rem row
+  // would outgrow it when the reader enlarges text.
   const heightPx = (classes: string[], prefix: string) => {
     const escaped = prefix.replace(/[[\]()@:.]/g, '\\$&');
-    const match = classes.find((name) => new RegExp(`^${escaped}h-(\\d+|\\[\\d+px\\])$`).test(name));
+    const pattern = prefix === 'lg:' ? `^${escaped}h-(\\d+|\\[\\d+px\\])$` : `^${escaped}h-\\[\\d+px\\]$`;
+    const match = classes.find((name) => new RegExp(pattern).test(name));
     expect(match, `${prefix}h-*`).toBeDefined();
     const value = match!.slice(`${prefix}h-`.length);
     return value.startsWith('[') ? Number(value.slice(1, -3)) : Number(value) * 4;
   };
+
+  it('declares the landscape-phone height after the tablet one, so it wins on short screens', () => {
+    const order: string[] = [];
+    divisionCss.walkDecls('--nwse-header-height', (decl: Declaration) => {
+      order.push(mediaOf(decl.parent as Rule));
+    });
+    expect(order.indexOf(LANDSCAPE_PHONE)).toBeGreaterThan(order.indexOf('(min-width: 640px)'));
+  });
 
   it('sets --nwse-header-height for phones, tablets, desktop, and landscape phones', () => {
     expect(Object.fromEntries(headerHeights())).toEqual({
@@ -123,12 +134,17 @@ describe('fixed header height', () => {
       padding.push(`${mediaOf(decl.parent as Rule)}|${(decl.parent as Rule).selector}|${decl.value}`);
     });
     expect(padding).toEqual(['|:root:has(.nwse-root)|calc(var(--nwse-header-height) + 16px)']);
-    // Never also a scroll-margin on the targets: the two would add up.
+    // A scroll-margin on the targets only where :has() is unsupported (the
+    // rule above is dropped there): never both, or the two would add up.
     const margins: string[] = [];
     divisionCss.walkDecls(/^scroll-margin/, (decl: Declaration) => {
-      margins.push((decl.parent as Rule).selector);
+      const rule = decl.parent as Rule;
+      const parent = rule.parent?.type === 'atrule' ? (rule.parent as AtRule) : null;
+      margins.push(`${parent ? `@${parent.name} ${parent.params}` : ''}|${rule.selector}|${decl.prop}|${decl.value}`);
     });
-    expect(margins).toEqual([]);
+    expect(margins).toEqual([
+      '@supports not selector(:has(a))|.nwse-root [id]|scroll-margin-top|calc(var(--nwse-header-height) + 16px)',
+    ]);
   });
 
   it('turns off the site-wide smooth scrolling for readers who prefer reduced motion', () => {
@@ -182,6 +198,8 @@ describe('mobile menu', () => {
       const classes = classesOf(link);
       expect(classes.includes('min-h-11') || classes.includes('min-h-12'), link.textContent ?? '').toBe(true);
     });
+    const cta = within(menu).getByRole('link', { name: /Book a discovery call/ });
+    expect(classesOf(cta)).toContain('min-h-12');
   });
 
   it('makes the page behind the open menu inert, and restores it when the menu closes', () => {
@@ -198,6 +216,40 @@ describe('mobile menu', () => {
     expect(document.getElementById('nwse-mobile-menu')).toBeNull();
     expect(main).not.toHaveAttribute('inert');
     expect(footer).not.toHaveAttribute('inert');
+  });
+
+  it('stays open while focus moves from the toggle into the menu and between its links', () => {
+    renderAt(<DivisionHeader />);
+    const toggle = screen.getByRole('button', { name: 'Open menu' });
+    act(() => toggle.focus());
+    const menu = openMenu();
+    const [first, second] = within(menu).getAllByRole('link');
+    act(() => first.focus());
+    expect(document.getElementById('nwse-mobile-menu')).not.toBeNull();
+    act(() => second.focus());
+    expect(document.getElementById('nwse-mobile-menu')).not.toBeNull();
+    act(() => screen.getByRole('button', { name: 'Close menu' }).focus());
+    expect(document.getElementById('nwse-mobile-menu')).not.toBeNull();
+  });
+
+  it('holds the page still and makes the chat launcher inert while the menu is open', () => {
+    // The site-wide chat widget renders outside the division root.
+    const launcher = document.createElement('div');
+    launcher.className = 'elfsight-app-bd622b00-b41f-499d-af8c-f1531914f29a';
+    document.body.appendChild(launcher);
+    document.documentElement.style.overflow = 'clip';
+    try {
+      renderAt(<SocialEngineeringHubPage />);
+      openMenu();
+      expect(document.documentElement.style.overflow).toBe('hidden');
+      expect(launcher).toHaveAttribute('inert');
+      fireEvent.keyDown(document, { key: 'Escape' });
+      expect(document.documentElement.style.overflow).toBe('clip');
+      expect(launcher).not.toHaveAttribute('inert');
+    } finally {
+      launcher.remove();
+      document.documentElement.style.overflow = '';
+    }
   });
 
   it('closes when focus leaves the header, but not when it blurs to nothing', () => {
@@ -277,12 +329,11 @@ describe('service rows', () => {
 });
 
 describe('content hidden below a breakpoint', () => {
-  /** Elements in main hidden at the base (phone) width and shown again from sm or lg. */
+  /** Elements in main hidden at some width: `hidden` or any `…:hidden` variant (max-sm:, md:max-lg:, short screens). */
   const hiddenOnPhones = (container: HTMLElement) =>
-    [...container.querySelectorAll('main *')].filter((element) => {
-      const classes = classesOf(element);
-      return classes.includes('hidden') && classes.some((name) => /^(sm|md|lg):(block|flex|inline-flex|grid)$/.test(name));
-    });
+    [...container.querySelectorAll('main *')].filter((element) =>
+      classesOf(element).some((name) => name === 'hidden' || name.endsWith(':hidden')),
+    );
   /** Every image has empty alt text and every SVG is hidden from assistive tech. */
   const onlyDecorativeGraphics = (element: Element) =>
     [...element.querySelectorAll('img')].every((img) => img.getAttribute('alt') === '') &&
@@ -327,6 +378,14 @@ describe('content hidden below a breakpoint', () => {
     expect(footer.querySelector('[aria-label="New Wave: Social Engineering home"]')).not.toBeNull();
   });
 
+  it('hides nothing with display: none in division.css except scrollbar and disclosure-marker chrome', () => {
+    const hiders: string[] = [];
+    divisionCss.walkDecls('display', (decl: Declaration) => {
+      if (decl.value === 'none') hiders.push((decl.parent as Rule).selector);
+    });
+    expect(hiders.sort()).toEqual(['.nwse-faq summary::-webkit-details-marker', '.nwse-journey::-webkit-scrollbar']);
+  });
+
   it.each(divisionServices.map((service) => [service.slug]))('on %s, hides nothing below a breakpoint', (slug) => {
     const { container } = renderAt(<SocialEngineeringServicePage slug={slug} />);
     expect(hiddenOnPhones(container)).toEqual([]);
@@ -350,6 +409,18 @@ describe('journey strip', () => {
     expect(within(strip).getAllByRole('listitem').map((item) => item.textContent?.replace(/^\d+\s*/, ''))).toEqual(
       hubContent.journey,
     );
+  });
+
+  it('wraps in print, where paper cannot scroll, and drops the edge fade', () => {
+    renderAt(<SocialEngineeringHubPage />);
+    const strip = screen.getByRole('list', { name: 'Customer journey' });
+    expect(classesOf(strip)).toEqual(expect.arrayContaining(['print:flex-wrap', 'print:overflow-visible']));
+    const printMasks: string[] = [];
+    divisionCss.walkDecls(/mask-image$/, (decl: Declaration) => {
+      const rule = decl.parent as Rule;
+      if (mediaOf(rule) === 'print') printMasks.push(`${rule.selector}|${decl.prop}|${decl.value}`);
+    });
+    expect(printMasks).toEqual(['.nwse-journey|-webkit-mask-image|none', '.nwse-journey|mask-image|none']);
   });
 
   it('is a Tab stop while it overflows, so the keyboard can scroll it', () => {
@@ -402,6 +473,8 @@ describe('desktop guard: division.css', () => {
       if (!SMALL_SCREEN.test(rule.selector)) return;
       found += 1;
       const media = mediaOf(rule);
+      // Print rules never reach a screen.
+      if (media === 'print') return;
       const maxWidth = /^\(max-width: (\d+(?:\.\d+)?)px\)$/.exec(media);
       if (!maxWidth || Number(maxWidth[1]) >= 1024) offenders.push(`${media || '(top level)'} ${rule.selector}`);
     });

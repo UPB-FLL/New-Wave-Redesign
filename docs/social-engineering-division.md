@@ -123,13 +123,17 @@ layouts; every small-screen rule is either a `max-width` media query in
   97px on tablets (32px endorsement bar + 64px nav + border), and 117px on
   desktop. The page offset follows the token, and so does the root's
   `scroll-padding-top`, which keeps in-page anchors and keyboard focus (in
-  either direction) below the header. On phones the endorsement bar is hidden
-  and its content ("A New Wave IT division" and the link to New Wave IT) sits
-  at the foot of the menu, which opens as a full-height sheet; tablets keep the
-  bar and open the menu over a dimmed page. While the menu is open the page
-  behind it is `inert`, and focus leaving the header closes it. The phone nav
-  row, logo (160px), and menu toggle are sized in px, so enlarged text cannot
-  push the toggle off-screen.
+  either direction) below the header. Browsers without `:has()` get a
+  `scroll-margin-top` on `.nwse-root [id]` instead (an `@supports not
+  selector(:has(a))` block), never both. On phones the endorsement bar is
+  hidden and its content ("A New Wave IT division" and the link to New Wave
+  IT) sits at the foot of the menu, which opens as a full-height sheet; tablets
+  keep the bar and open the menu over a dimmed page. While the menu is open the
+  page behind it and the site-wide chat launcher are `inert`, the document does
+  not scroll, and focus leaving the header closes the menu. Below 1024px the
+  header rows, logo (160px), and menu toggle are sized in px, not rem, so the
+  header still matches the token when the reader enlarges text and the toggle
+  stays on screen.
 - **Landscape phones.** Tablet widths (640–1023px) at most 500px tall get the
   phone header (57px, the endorsement in the menu, the menu's services in two
   columns), a 36px H1, and the phone hero spacing: one media query,
@@ -154,7 +158,9 @@ layouts; every small-screen rule is either a `max-width` media query in
   - `nwse-familycard`: the hub's "Part of New Wave IT" card, flush on the
     gutter on phones (so is the contact form).
   - `nwse-journey`: the customer journey as one sideways-scrolling row below
-    1024px, a Tab stop only while it overflows.
+    1024px, a Tab stop only while it overflows. In print it wraps and drops
+    the edge fade (`print:` classes and an `@media print` rule), since paper
+    cannot scroll.
 - **Enlarged text.** Below 1024px `.nwse-root` sets `overflow-wrap:
   break-word`, and the list grids use `grid-cols-1` / `minmax(0, 1fr)` tracks,
   so at 200% text no page is wider than the screen (a wider page would carry
@@ -294,11 +300,13 @@ The tokens are `--nwse-type-<style>-{family,size,line-height,tracking,weight}`
 on `.nwse-root`, and the classes are `.nwse-type-<style>`. Every division
 heading, hero summary, body paragraph, label, and kicker uses them in place of
 the Tailwind font utilities in the "Replaces" column. Each class reproduces the
-computed style it replaced, so the swap caused no visual jump. Checked on the
-hub, a service page, and the contact page at 390 and 1440px: apart from the
-new icons, the only change is a footer blurb about 2px shorter, because its
+computed style it replaced from 640px up, so the swap caused no visual jump
+there. Checked on the hub, a service page, and the contact page at 1440px
+(and at 390px before the phone scale below existed): apart from the new
+icons, the only change is a footer blurb about 2px shorter, because its
 descriptor label now uses the label line height (18px) instead of inheriting
-the paragraph's 1.625 (19.5px).
+the paragraph's 1.625 (19.5px). Phones (below 640px) deliberately use their
+own tighter scale.
 
 - Colour stays separate. `.nwse-kicker` (Lure Amber Deep),
   `.nwse-kicker-on-dark` (Lure Amber), and `.nwse-label` (Tide Blue) in
@@ -426,12 +434,13 @@ The division draws with its own 35-icon set. New Wave IT pages keep Lucide.
 
 - `DivisionPoint.icon` and `DivisionRoadmapPhase.icon` are optional.
   `StepList` and `RoadmapGrid` show the tile only when an item has one, so the
-  service pages' process steps are unchanged.
+  service pages' process steps keep their numbered cards from 768px up; below
+  768px they are a timeline with amber nodes (`data-markers="node"`).
 - The journey strip has no icons. At chip size (16px) the ticket and the
   two-person icons turn muddy and the accent waves shrink to amber specks next
-  to the step numbers. The chips also get wider, so the strip wraps to three
-  rows on a 390px phone, and `journey-discover` is the only journey icon
-  without an accent. The `journey-*` icons remain in the set and the brand kit
+  to the step numbers. The chips would also get wider, which only lengthens
+  the strip (one sideways-scrolling row below 1024px), and `journey-discover`
+  is the only journey icon without an accent. The `journey-*` icons remain in the set and the brand kit
   for larger uses.
 - `components/Contact.tsx` takes an optional
   `icons?: Partial<Record<'phone' | 'mail' | 'mapPin' | 'send' | 'success', ReactNode>>`.

@@ -51,10 +51,28 @@
   scroll-padding-top: calc(var(--nwse-header-height) + 16px);
 }
 
+/* Browsers without :has() (Safari before 15.4, Firefox before 121) drop the
+   rule above, so their in-page anchors get the offset on the targets instead.
+   Never both: the two would add up. */
+@supports not selector(:has(a)) {
+  .nwse-root [id] {
+    scroll-margin-top: calc(var(--nwse-header-height) + 16px);
+  }
+}
+
 /* index.css scrolls smoothly site-wide; not for readers who ask for less motion. */
 @media (prefers-reduced-motion: reduce) {
   :root:has(.nwse-root) {
     scroll-behavior: auto;
+  }
+}
+
+/* Paper cannot scroll: a printed journey strip wraps (sections.tsx adds
+   print:flex-wrap) and drops the fade that hints at more to the right. */
+@media print {
+  .nwse-journey {
+    -webkit-mask-image: none;
+    mask-image: none;
   }
 }
 

@@ -23,6 +23,9 @@ const menuRowClass =
 /** The router may report a trailing slash (prerendered URLs end in one). */
 const samePath = (pathname: string, path: string) => pathname.replace(/\/+$/, '') === path;
 
+/** The site-wide chat launcher (src/components/ElfsightChatbot.tsx) and its portal, outside the division root. */
+const CHAT_LAUNCHER_SELECTOR = '[class*="elfsight-app-"], #__EAAPS_PORTAL';
+
 /** Division masthead: a parent endorsement bar over the division's own navigation. */
 export function DivisionHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -51,20 +54,29 @@ export function DivisionHeader() {
   // The open menu covers the page (a full-height sheet on phones, a panel over
   // the dimmed page on tablets), so everything behind it is inert: Tab and a
   // screen reader's swipe stay in the header instead of reaching content the
-  // menu hides. The menu exists only below lg, so it closes if the window
-  // widens to desktop, where its toggle is gone.
+  // menu hides. That includes the site-wide chat launcher (ElfsightChatbot),
+  // which sits outside the division root. The page itself does not scroll
+  // while the menu is open, so closing it returns the reader to where they
+  // were. The menu exists only below lg, so it closes if the window widens to
+  // desktop, where its toggle is gone.
   useEffect(() => {
     if (!menuOpen) return;
     const header = headerRef.current;
     const behind = header?.parentElement ? [...header.parentElement.children].filter((element) => element !== header) : [];
-    behind.forEach((element) => element.setAttribute('inert', ''));
+    const chat = [...document.querySelectorAll(CHAT_LAUNCHER_SELECTOR)].filter((element) => !header || !element.contains(header));
+    const inerted = [...behind, ...chat];
+    inerted.forEach((element) => element.setAttribute('inert', ''));
+    const root = document.documentElement;
+    const previousOverflow = root.style.overflow;
+    root.style.overflow = 'hidden';
     const desktop = typeof window.matchMedia === 'function' ? window.matchMedia('(min-width: 1024px)') : null;
     const closeOnDesktop = () => {
       if (desktop?.matches) setMenuOpen(false);
     };
     desktop?.addEventListener('change', closeOnDesktop);
     return () => {
-      behind.forEach((element) => element.removeAttribute('inert'));
+      inerted.forEach((element) => element.removeAttribute('inert'));
+      root.style.overflow = previousOverflow;
       desktop?.removeEventListener('change', closeOnDesktop);
     };
   }, [menuOpen]);
@@ -119,7 +131,7 @@ export function DivisionHeader() {
         style={{ background: 'var(--nw-deep-current)' }}
         data-role="endorsement-bar"
       >
-        <div className="mx-auto flex h-8 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:h-9 lg:px-8">
+        <div className="mx-auto flex h-[32px] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:h-9 lg:px-8">
           <p className="nwse-type-label truncate" style={{ color: 'var(--nw-mist-gray)' }}>
             {DIVISION_ENDORSEMENT}
           </p>
@@ -142,11 +154,11 @@ export function DivisionHeader() {
           boxShadow: scrolled ? '0 3px 14px rgba(9, 19, 29, 0.1)' : 'none',
         }}
       >
-        {/* The phone row (and the landscape-phone one) is sized in px: it holds only
-            the logo and the menu toggle, and it must match --nwse-header-height
-            when the reader enlarges text. */}
+        {/* Below lg the rows (this one and the endorsement bar's) are sized in px,
+            not rem: --nwse-header-height is a px value, and the header must
+            still match it when the reader enlarges text. */}
         <div
-          className="mx-auto flex h-[56px] max-w-7xl items-center justify-between gap-5 px-4 sm:h-16 sm:px-6 lg:h-20 lg:px-8 max-lg:[@media(max-height:500px)]:h-[56px]"
+          className="mx-auto flex h-[56px] max-w-7xl items-center justify-between gap-5 px-4 sm:h-[64px] sm:px-6 lg:h-20 lg:px-8 max-lg:[@media(max-height:500px)]:h-[56px]"
           data-role="nav-row"
         >
           <Link onClick={closeMenus} to={DIVISION_BASE_PATH} className="flex shrink-0 items-center py-2" aria-label="New Wave: Social Engineering home">

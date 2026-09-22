@@ -230,7 +230,7 @@ export function JourneyStrip({ stages }: { stages: readonly string[] }) {
   return (
     <ol
       ref={listRef}
-      className="nwse-journey -mx-4 mt-6 flex snap-x snap-proximity scroll-px-4 items-center gap-2 overflow-x-auto px-4 sm:-mx-6 sm:mt-8 sm:scroll-px-6 sm:px-6 lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0"
+      className="nwse-journey -mx-4 mt-6 flex snap-x snap-proximity scroll-px-4 items-center gap-2 overflow-x-auto px-4 sm:-mx-6 sm:mt-8 sm:scroll-px-6 sm:px-6 lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0 print:mx-0 print:flex-wrap print:overflow-visible print:px-0"
       aria-label="Customer journey"
       tabIndex={scrolls ? 0 : undefined}
     >

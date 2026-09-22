@@ -164,6 +164,10 @@ describe('type.css', () => {
       atRules.push(rule.name === 'media' ? `media ${rule.params}` : rule.name);
     });
     expect(new Set(atRules)).toEqual(new Set(['font-face', 'media (min-width: 640px)', `media ${LANDSCAPE_PHONE}`]));
+    // Same specificity, overlapping queries: the landscape tier wins on short
+    // screens only because it comes after the 640px block.
+    const media = atRules.filter((name) => name.startsWith('media '));
+    expect(media.indexOf(`media ${LANDSCAPE_PHONE}`)).toBeGreaterThan(media.indexOf('media (min-width: 640px)'));
   });
 
   it('points the parent font tokens at the NWSE families inside .nwse-root only', () => {
