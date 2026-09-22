@@ -86,6 +86,8 @@ import ElfsightChatbot from './components/ElfsightChatbot';
 import {
   DIVISION_BASE_PATH,
   DIVISION_CONTACT_PATH,
+  DIVISION_CONTACT_US_PATH,
+  DIVISION_CUSTOMERS_PATH,
   DIVISION_PUBLISHED,
   DIVISION_SERVICE_SLUGS,
   divisionServicePath,
@@ -93,6 +95,8 @@ import {
 } from './divisions/socialEngineering/site';
 import {
   SocialEngineeringContactRoute,
+  SocialEngineeringContactUsRoute,
+  SocialEngineeringCustomersRoute,
   SocialEngineeringHubRoute,
   SocialEngineeringServiceRoute,
 } from './divisions/socialEngineering/routes';
@@ -184,6 +188,8 @@ export default function App() {
             {DIVISION_SERVICE_SLUGS.map((slug) => (
               <Route key={slug} path={divisionServicePath(slug)} element={<SocialEngineeringServiceRoute slug={slug} />} />
             ))}
+            <Route path={DIVISION_CUSTOMERS_PATH} element={<SocialEngineeringCustomersRoute />} />
+            <Route path={DIVISION_CONTACT_US_PATH} element={<SocialEngineeringContactUsRoute />} />
             <Route path={DIVISION_CONTACT_PATH} element={<SocialEngineeringContactRoute />} />
           </>
         ) : null}

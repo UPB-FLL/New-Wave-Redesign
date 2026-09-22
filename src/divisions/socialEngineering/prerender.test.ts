@@ -9,8 +9,8 @@ import {
   escapeJsonForScript,
   renderDivisionPageHtml,
 } from './prerender';
-import { allDivisionPages, hubPageSeo } from './seo';
-import { DIVISION_ASSETS, DIVISION_NAME, SITE_URL } from './site';
+import { allDivisionPages, contactPageSeo, contactUsPageSeo, customersPageSeo, hubPageSeo } from './seo';
+import { DIVISION_ASSETS, DIVISION_CONTACT_US_PATH, DIVISION_CUSTOMERS_PATH, DIVISION_NAME, SITE_URL } from './site';
 import type { DivisionPageSeo } from './types';
 
 const shell = readFileSync(path.resolve(__dirname, '../../../index.html'), 'utf8');
@@ -87,6 +87,44 @@ describe('renderDivisionPageHtml', () => {
     // The app bundle and root element survive untouched.
     expect(html).toContain('<div id="root"></div>');
     expect(html).toContain('<script type="module" src="/src/main.tsx"></script>');
+  });
+
+  it.each([
+    ['customers', customersPageSeo(), DIVISION_CUSTOMERS_PATH, 'CollectionPage'],
+    ['contact-us', contactUsPageSeo(), DIVISION_CONTACT_US_PATH, 'ContactPage'],
+  ] as const)('gives the %s page its own head and structured data', (_name, page, pagePath, pageType) => {
+    const html = renderDivisionPageHtml(shell, page);
+    const head = parseHead(html);
+    const url = `${SITE_URL}${pagePath}`;
+    expect(page.path).toBe(pagePath);
+    expect(head.canonical).toBe(url);
+    expect(head.doc.head.querySelector('meta[name="twitter:description"]')?.getAttribute('content')).toBe(page.description);
+    expect(head.doc.head.querySelector('meta[property="og:description"]')?.getAttribute('content')).toBe(page.description);
+    expect(head.doc.head.querySelector('meta[name="keywords"]')?.getAttribute('content')).toBe(page.keywords);
+    // Unique among division pages (the discovery-call page is the nearest neighbour).
+    const others = allDivisionPages().filter((other) => other.path !== pagePath);
+    others.forEach((other) => {
+      expect(head.title).not.toBe(other.title);
+      expect(head.description).not.toBe(other.description);
+    });
+
+    const graph = JSON.parse(head.jsonLd[0].textContent ?? '')['@graph'];
+    expect(graph.map((node: { '@type': string }) => node['@type'])).toEqual(
+      pageType === 'CollectionPage'
+        ? ['Organization', 'CollectionPage', 'ItemList', 'BreadcrumbList']
+        : ['Organization', 'ContactPage', 'BreadcrumbList'],
+    );
+    const crumbs = graph.find((node: { '@type': string }) => node['@type'] === 'BreadcrumbList');
+    expect(crumbs.itemListElement.at(-1)).toMatchObject({ name: page.breadcrumbs[page.breadcrumbs.length - 1].name, item: url });
+    // The no-JS fallback carries the page's own H1.
+    expect(noJsFallback(html)).toContain(`<h1>${page.h1}</h1>`);
+  });
+
+  it('links Customers and both contact pages, by their crumbs, in every no-JS fallback', () => {
+    const noscript = noJsFallback(renderDivisionPageHtml(shell, hubPageSeo()));
+    expect(noscript).toContain(`<a href="${DIVISION_CONTACT_US_PATH}">Contact us</a>`);
+    expect(noscript).toContain(`<a href="${contactPageSeo().path}">Contact</a>`);
+    expect(noscript).toContain(`<a href="${DIVISION_CUSTOMERS_PATH}">Customers</a>`);
   });
 
   it('leaves the shell itself untouched (IT pages keep their head)', () => {

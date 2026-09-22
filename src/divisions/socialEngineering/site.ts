@@ -13,7 +13,11 @@ export const DIVISION_PUBLISHED = true;
 
 /** Every division URL lives under this path on the parent domain. */
 export const DIVISION_BASE_PATH = '/social-engineering';
+/** New projects: the discovery-call page every DIVISION_PRIMARY_CTA links to. */
 export const DIVISION_CONTACT_PATH = `${DIVISION_BASE_PATH}/contact`;
+/** Everything that isn't a new project (clients, questions, partnerships): separate from the discovery call. */
+export const DIVISION_CONTACT_US_PATH = `${DIVISION_BASE_PATH}/contact-us`;
+export const DIVISION_CUSTOMERS_PATH = `${DIVISION_BASE_PATH}/customers`;
 
 /**
  * Service URL segments, in display order. Kept here (not derived from the copy

@@ -4,6 +4,8 @@ import { divisionServices } from '../content';
 import {
   DIVISION_BASE_PATH,
   DIVISION_CONTACT_PATH,
+  DIVISION_CONTACT_US_PATH,
+  DIVISION_CUSTOMERS_PATH,
   DIVISION_ENDORSEMENT,
   DIVISION_PRIMARY_CTA,
   PARENT_NAME,
@@ -25,6 +27,12 @@ const samePath = (pathname: string, path: string) => pathname.replace(/\/+$/, ''
 
 /** The site-wide chat launcher (src/components/ElfsightChatbot.tsx) and its portal, outside the division root. */
 const CHAT_LAUNCHER_SELECTOR = '[class*="elfsight-app-"], #__EAAPS_PORTAL';
+
+/** Page links: after the Services menu on desktop, beside Overview in the phone and tablet sheet. */
+const pageLinks = [
+  { label: 'Customers', path: DIVISION_CUSTOMERS_PATH },
+  { label: 'Contact us', path: DIVISION_CONTACT_US_PATH },
+];
 
 /** Division masthead: a parent endorsement bar over the division's own navigation. */
 export function DivisionHeader() {
@@ -168,7 +176,12 @@ export function DivisionHeader() {
           </Link>
 
           <div className="hidden items-center gap-6 lg:flex">
-            <Link to={DIVISION_BASE_PATH} onClick={closeMenus} className={navLinkClass}>
+            <Link
+              to={DIVISION_BASE_PATH}
+              onClick={closeMenus}
+              className={navLinkClass}
+              aria-current={samePath(pathname, DIVISION_BASE_PATH) ? 'page' : undefined}
+            >
               Overview
             </Link>
 
@@ -215,6 +228,18 @@ export function DivisionHeader() {
               ) : null}
             </div>
 
+            {pageLinks.map(({ label, path }) => (
+              <Link
+                key={path}
+                to={path}
+                onClick={closeMenus}
+                className={navLinkClass}
+                aria-current={samePath(pathname, path) ? 'page' : undefined}
+              >
+                {label}
+              </Link>
+            ))}
+
             <Link onClick={closeMenus} to={DIVISION_CONTACT_PATH} className="nwse-btn nwse-btn-amber-deep min-h-10 px-4 py-2 text-sm">
               {DIVISION_PRIMARY_CTA}
             </Link>
@@ -242,14 +267,23 @@ export function DivisionHeader() {
             style={{ borderColor: 'var(--nw-mist-gray)' }}
           >
             <div className="flex flex-col px-4 pb-4 pt-2 sm:px-6">
-              <Link
-                to={DIVISION_BASE_PATH}
-                onClick={closeMenus}
-                className={menuRowClass}
-                aria-current={samePath(pathname, DIVISION_BASE_PATH) ? 'page' : undefined}
-              >
-                Overview
-              </Link>
+              {/* Overview, Customers, and Contact us share the top row, so the sheet is
+                  no taller than it was with Overview alone: the discovery-call button
+                  and the endorsement at the foot both fit a 320x568 phone. The row
+                  measures 278px of 288px there; under larger text it wraps. */}
+              <div className="flex flex-wrap gap-x-5" data-role="menu-pages">
+                {[{ label: 'Overview', path: DIVISION_BASE_PATH }, ...pageLinks].map(({ label, path }) => (
+                  <Link
+                    key={path}
+                    to={path}
+                    onClick={closeMenus}
+                    className={menuRowClass}
+                    aria-current={samePath(pathname, path) ? 'page' : undefined}
+                  >
+                    {label}
+                  </Link>
+                ))}
+              </div>
               <p className="nwse-type-kicker nwse-kicker mb-1 mt-3">Services</p>
               {/* Landscape phones: two columns (row by row, in reading order), so the
                   call to action fits the short screen without scrolling the menu. */}

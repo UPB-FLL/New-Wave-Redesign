@@ -248,6 +248,14 @@
       "destination": "/social-engineering/digital-oversight/index.html"
     },
     {
+      "source": "/social-engineering/customers",
+      "destination": "/social-engineering/customers/index.html"
+    },
+    {
+      "source": "/social-engineering/contact-us",
+      "destination": "/social-engineering/contact-us/index.html"
+    },
+    {
       "source": "/social-engineering/contact",
       "destination": "/social-engineering/contact/index.html"
     },

@@ -4,19 +4,12 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
-import { preloadTagsFor, type BundleChunk, type DivisionPageModule } from './src/divisions/socialEngineering/preload';
+import { divisionPageModule, preloadTagsFor, type BundleChunk } from './src/divisions/socialEngineering/preload';
 import { renderDivisionPageHtml } from './src/divisions/socialEngineering/prerender';
 import { allDivisionPages } from './src/divisions/socialEngineering/seo';
-import { DIVISION_BASE_PATH, DIVISION_CONTACT_PATH, DIVISION_PUBLISHED } from './src/divisions/socialEngineering/site';
+import { DIVISION_PUBLISHED } from './src/divisions/socialEngineering/site';
 import { renderRouteHtml } from './src/lib/prerenderHead';
 import { prerenderedItRoutes } from './src/lib/routeMeta';
-
-const pageModuleFor = (pagePath: string): DivisionPageModule =>
-  pagePath === DIVISION_BASE_PATH
-    ? 'SocialEngineeringHubPage'
-    : pagePath === DIVISION_CONTACT_PATH
-      ? 'SocialEngineeringContactPage'
-      : 'SocialEngineeringServicePage';
 
 /**
  * Writes dist/<route>/index.html for every static page: the built SPA shell
@@ -43,7 +36,7 @@ function prerenderPages(): Plugin {
         write(route.path, renderRouteHtml(shell, route.path, route.meta));
       }
       for (const page of DIVISION_PUBLISHED ? allDivisionPages() : []) {
-        const headExtras = preloadTagsFor(bundle as unknown as Record<string, BundleChunk>, pageModuleFor(page.path));
+        const headExtras = preloadTagsFor(bundle as unknown as Record<string, BundleChunk>, divisionPageModule(page.path));
         write(page.path, renderDivisionPageHtml(shell, page, { headExtras }));
       }
     },

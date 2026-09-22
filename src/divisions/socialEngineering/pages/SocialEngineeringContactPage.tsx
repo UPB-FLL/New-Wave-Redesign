@@ -1,21 +1,12 @@
 import Contact from '../../../components/Contact';
 import { DivisionLayout } from '../components/DivisionLayout';
+import { divisionContactIcons } from '../components/contactIcons';
 import { DivisionHero } from '../components/sections';
 import { contactContent } from '../content';
-import { NwseIcon } from '../icons/NwseIcon';
 import { contactPageSeo } from '../seo';
 import { useDivisionMeta } from '../useDivisionMeta';
 
 const seo = contactPageSeo();
-
-// The shared IT form, drawn with the division's icon set at the form's own sizes.
-const contactIcons = {
-  phone: <NwseIcon name="phone" size={18} />,
-  mail: <NwseIcon name="mail" size={18} />,
-  mapPin: <NwseIcon name="map-pin" size={18} />,
-  send: <NwseIcon name="send" size={18} />,
-  success: <NwseIcon name="check-circle" size={32} />,
-};
 
 export default function SocialEngineeringContactPage() {
   useDivisionMeta(seo);
@@ -30,7 +21,7 @@ export default function SocialEngineeringContactPage() {
       />
       <Contact
         inquiry="social-engineering"
-        icons={contactIcons}
+        icons={divisionContactIcons}
         intro={{
           label: 'New Wave: Social Engineering',
           headline: 'Tell us about the business',

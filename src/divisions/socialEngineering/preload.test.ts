@@ -1,5 +1,9 @@
+import { existsSync } from 'node:fs';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { preloadTagsFor, type BundleChunk } from './preload';
+import { divisionPageModule, preloadTagsFor, type BundleChunk } from './preload';
+import { allDivisionPages } from './seo';
+import { DIVISION_CONTACT_US_PATH, DIVISION_CUSTOMERS_PATH } from './site';
 
 const bundle: Record<string, BundleChunk> = {
   'assets/index-main.js': { type: 'chunk', fileName: 'assets/index-main.js', isEntry: true, facadeModuleId: '/app/src/main.tsx', imports: [] },
@@ -29,5 +33,20 @@ describe('preloadTagsFor', () => {
 
   it('returns nothing when the page is not a separate chunk', () => {
     expect(preloadTagsFor(bundle, 'SocialEngineeringContactPage')).toEqual([]);
+  });
+});
+
+describe('divisionPageModule', () => {
+  it('maps every division URL to a page module that exists', () => {
+    allDivisionPages().forEach((page) => {
+      const module = divisionPageModule(page.path);
+      expect(existsSync(path.resolve(__dirname, 'pages', `${module}.tsx`)), `${page.path} → ${module}`).toBe(true);
+    });
+    expect(divisionPageModule(DIVISION_CUSTOMERS_PATH)).toBe('SocialEngineeringCustomersPage');
+    expect(divisionPageModule(DIVISION_CONTACT_US_PATH)).toBe('SocialEngineeringContactUsPage');
+  });
+
+  it('fails the build for a URL with no page module, instead of preloading the wrong chunk', () => {
+    expect(() => divisionPageModule('/social-engineering/not-a-page')).toThrow(/No division page module/);
   });
 });

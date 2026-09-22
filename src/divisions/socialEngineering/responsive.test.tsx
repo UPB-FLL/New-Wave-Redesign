@@ -12,11 +12,22 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DivisionHeader } from './components/DivisionHeader';
-import { divisionServices, hubContent } from './content';
+import { divisionCustomers, divisionServices, hubContent } from './content';
 import SocialEngineeringContactPage from './pages/SocialEngineeringContactPage';
+import SocialEngineeringContactUsPage from './pages/SocialEngineeringContactUsPage';
+import SocialEngineeringCustomersPage from './pages/SocialEngineeringCustomersPage';
 import SocialEngineeringHubPage from './pages/SocialEngineeringHubPage';
 import SocialEngineeringServicePage from './pages/SocialEngineeringServicePage';
-import { DIVISION_DESCRIPTOR, DIVISION_ENDORSEMENT, PARENT_NAME, divisionServicePath } from './site';
+import {
+  DIVISION_CONTACT_PATH,
+  DIVISION_CONTACT_US_PATH,
+  DIVISION_CUSTOMERS_PATH,
+  DIVISION_DESCRIPTOR,
+  DIVISION_ENDORSEMENT,
+  DIVISION_PRIMARY_CTA,
+  PARENT_NAME,
+  divisionServicePath,
+} from './site';
 
 vi.mock('../../lib/useContent', () => ({ useContent: vi.fn(() => ({})) }));
 
@@ -193,7 +204,7 @@ describe('mobile menu', () => {
     expect(classesOf(toggle)).toContain('p-[10px]');
     const menu = openMenu();
     const links = within(menu).getAllByRole('link');
-    expect(links).toHaveLength(1 + divisionServices.length + 1 + 1); // overview, services, CTA, parent
+    expect(links).toHaveLength(1 + divisionServices.length + 2 + 1 + 1); // overview, services, customers + contact us, CTA, parent
     links.forEach((link) => {
       const classes = classesOf(link);
       expect(classes.includes('min-h-11') || classes.includes('min-h-12'), link.textContent ?? '').toBe(true);
@@ -277,6 +288,41 @@ describe('mobile menu', () => {
     expect(within(list).getAllByRole('link').map((link) => link.textContent)).toEqual(
       divisionServices.map((service) => service.navLabel),
     );
+  });
+
+  it('puts Customers and Contact us beside Overview in one wrapping top row, above the services', () => {
+    renderAt(<DivisionHeader />);
+    const menu = openMenu();
+    const links = within(menu).getAllByRole('link');
+    expect(links.map((link) => link.textContent?.trim())).toEqual([
+      'Overview',
+      'Customers',
+      'Contact us',
+      ...divisionServices.map((service) => service.navLabel),
+      DIVISION_PRIMARY_CTA,
+      `Managed IT & cybersecurity at ${PARENT_NAME}`,
+    ]);
+    // One row that adds no height to the sheet (no extra block, border, or
+    // margin), so the sheet still fits a 320x568 phone; it wraps under larger text.
+    const row = menu.querySelector('[data-role="menu-pages"]')!;
+    expect(within(row as HTMLElement).getAllByRole('link').map((link) => link.textContent)).toEqual(['Overview', 'Customers', 'Contact us']);
+    expect(classesOf(row)).toEqual(expect.arrayContaining(['flex', 'flex-wrap']));
+    expect(classesOf(row).filter((name) => /^(m[tby]?|p[tby]?|border)(-|$)/.test(name))).toEqual([]);
+    expect(within(menu).getByRole('link', { name: 'Customers' })).toHaveAttribute('href', DIVISION_CUSTOMERS_PATH);
+    expect(within(menu).getByRole('link', { name: 'Contact us' })).toHaveAttribute('href', DIVISION_CONTACT_US_PATH);
+    // The discovery call keeps its amber button.
+    expect(within(menu).getByRole('link', { name: DIVISION_PRIMARY_CTA })).toHaveAttribute('href', DIVISION_CONTACT_PATH);
+    expect(classesOf(within(menu).getByRole('link', { name: DIVISION_PRIMARY_CTA }))).toContain('nwse-btn-amber-deep');
+  });
+
+  it.each([
+    ['Customers', DIVISION_CUSTOMERS_PATH],
+    ['Contact us', DIVISION_CONTACT_US_PATH],
+  ])('marks %s as the current page', (label, path) => {
+    renderAt(<DivisionHeader />, `${path}/`);
+    const menu = openMenu();
+    expect(within(menu).getByRole('link', { name: label })).toHaveAttribute('aria-current', 'page');
+    expect(within(menu).getAllByRole('link').filter((link) => link.hasAttribute('aria-current'))).toHaveLength(1);
   });
 
   it('marks the current page', () => {
@@ -390,6 +436,14 @@ describe('content hidden below a breakpoint', () => {
     const { container } = renderAt(<SocialEngineeringServicePage slug={slug} />);
     expect(hiddenOnPhones(container)).toEqual([]);
   });
+
+  it.each([
+    ['customers', <SocialEngineeringCustomersPage />],
+    ['contact-us', <SocialEngineeringContactUsPage />],
+  ])('on %s, hides nothing below a breakpoint', (_name, page) => {
+    const { container } = renderAt(page);
+    expect(hiddenOnPhones(container)).toEqual([]);
+  });
 });
 
 describe('journey strip', () => {
@@ -458,6 +512,35 @@ describe('shared contact form hooks', () => {
     // Call and Email each hold one link, which division.css stretches over the row.
     expect(rows[0].querySelector('a')?.getAttribute('href')).toMatch(/^tel:/);
     expect(rows[1].querySelector('a')?.getAttribute('href')).toMatch(/^mailto:/);
+  });
+});
+
+describe('customer rows', () => {
+  it('groups the customers in one panel and gives each link a 44px target below lg', () => {
+    renderAt(<SocialEngineeringCustomersPage />);
+    const list = screen.getByRole('region', { name: 'Customer list' }).querySelector('ul')!;
+    expect(classesOf(list)).toEqual(expect.arrayContaining(['nwse-card', 'overflow-hidden', 'divide-y']));
+    const links = within(list).getAllByRole('link');
+    expect(links).toHaveLength(divisionCustomers.length);
+    links.forEach((link) => expect(classesOf(link)).toContain('max-lg:min-h-11'));
+  });
+});
+
+describe('contact us form hooks', () => {
+  it('uses the same data-contact-* hooks, with the Call row left out when there is no real number', () => {
+    renderAt(<SocialEngineeringContactUsPage />);
+    const section = document.getElementById('contact')!;
+    expect(section.querySelector('[data-contact-intro]')).toHaveTextContent('Send us a note');
+    const rows = section.querySelectorAll('[data-contact-methods] [data-contact-method]');
+    expect(rows).toHaveLength(2);
+    expect(rows[0].querySelector('a')?.getAttribute('href')).toMatch(/^mailto:/);
+    expect(rows[1]).toHaveTextContent('Visit us');
+  });
+
+  it('points new projects to the discovery call with a 44px target on phones', () => {
+    renderAt(<SocialEngineeringContactUsPage />);
+    const link = within(screen.getByRole('heading', { level: 1 }).closest('section')!).getByRole('link', { name: DIVISION_PRIMARY_CTA });
+    expect(classesOf(link)).toContain('max-sm:min-h-11');
   });
 });
 

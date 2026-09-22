@@ -49,7 +49,21 @@ export interface ContactIntro {
   messagePlaceholder: string;
   /** Replaces the phone card's note (the default promotes 24/7 IT emergencies). */
   phoneNote?: string;
+  /** Replaces the phone field's placeholder (the default is a sample number). */
+  phonePlaceholder?: string;
   successBody?: string;
+}
+
+/**
+ * Contact details a page supplies in place of the CMS 'contact' section's
+ * values and their fallbacks. Without a phone the Call row is left out, so a
+ * page never shows a placeholder number.
+ */
+export interface ContactDetails {
+  phone?: string;
+  email: string;
+  /** Shown as given; a line break starts a second line. */
+  address: string;
 }
 
 /** Icon slots a division page can fill with its own set; each defaults to the Lucide icon New Wave IT uses. */
@@ -60,6 +74,7 @@ export default function Contact({
   inquiry,
   intro,
   icons,
+  details,
 }: {
   headlineAs?: 'h1' | 'h2';
   /** Lead-routing tag the API allow-lists (e.g. 'social-engineering'). */
@@ -67,6 +82,7 @@ export default function Contact({
   intro?: ContactIntro;
   /** Replacement icons, sized by the caller (18px cards and button, 32px success). */
   icons?: Partial<Record<ContactIconSlot, ReactNode>>;
+  details?: ContactDetails;
 } = {}) {
   const content = useContent('contact');
   const [form, setForm] = useState<FormData>(initialForm);
@@ -135,18 +151,23 @@ export default function Contact({
     }
   };
 
-  const phone = content.phone || '(954) 555-0100';
-  const email = content.email || 'support@newwaveitfl.com';
-  const address = content.address || '710 NW 5th Ave, Suite 1072';
-  const addressCity = content.address_city || 'Fort Lauderdale, FL 33311';
+  const phone = details ? details.phone : content.phone || '(954) 555-0100';
+  const email = details ? details.email : content.email || 'support@newwaveitfl.com';
+  const address = details
+    ? details.address
+    : `${content.address || '710 NW 5th Ave, Suite 1072'}\n${content.address_city || 'Fort Lauderdale, FL 33311'}`;
   const contactMethods = [
-    {
-      icon: icons?.phone ?? <Phone size={18} />,
-      title: 'Call us',
-      sub: intro?.phoneNote ?? (content.phone_sub || 'Available 24/7 for emergencies'),
-      content: <a href={`tel:${phone.replace(/\D/g, '')}`} className="font-medium text-brand-tide-blue hover:underline">{phone}</a>,
-      accent: 'var(--nw-signal-cyan)',
-    },
+    ...(phone
+      ? [
+          {
+            icon: icons?.phone ?? <Phone size={18} />,
+            title: 'Call us',
+            sub: intro?.phoneNote ?? (content.phone_sub || 'Available 24/7 for emergencies'),
+            content: <a href={`tel:${phone.replace(/\D/g, '')}`} className="font-medium text-brand-tide-blue hover:underline">{phone}</a>,
+            accent: 'var(--nw-signal-cyan)',
+          },
+        ]
+      : []),
     {
       icon: icons?.mail ?? <Mail size={18} />,
       title: 'Email us',
@@ -157,7 +178,7 @@ export default function Contact({
     {
       icon: icons?.mapPin ?? <MapPin size={18} />,
       title: 'Visit us',
-      sub: `${address}\n${addressCity}`,
+      sub: address,
       content: content.address_sub ? <span className="text-sm text-[var(--nw-slate)]">{content.address_sub}</span> : null,
       accent: 'var(--nw-tide-blue)',
     },
@@ -240,7 +261,7 @@ export default function Contact({
                   </div>
                   <div>
                     <label htmlFor="contact-phone" className="mb-1.5 block text-sm font-medium text-brand-navy">Phone number</label>
-                    <input id="contact-phone" type="tel" name="phone" value={form.phone} onChange={handleChange} placeholder="(954) 555-0100" className="input-light" />
+                    <input id="contact-phone" type="tel" name="phone" value={form.phone} onChange={handleChange} placeholder={intro?.phonePlaceholder ?? '(954) 555-0100'} className="input-light" />
                   </div>
                   <div>
                     <label htmlFor="contact-company" className="mb-1.5 block text-sm font-medium text-brand-navy">Company name</label>

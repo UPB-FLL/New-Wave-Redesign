@@ -77,3 +77,38 @@ describe('Contact icons', () => {
     expect(container.querySelector('.nw-icon-success')).toContainElement(screen.getByTestId('icon-success'));
   });
 });
+
+// The optional `details` prop and `intro.phonePlaceholder` are additive too:
+// without them New Wave IT pages keep the CMS 'contact' values and fallbacks.
+describe('Contact details', () => {
+  const rows = (container: HTMLElement) =>
+    [...container.querySelectorAll('[data-contact-method]')].map((row) => row.querySelector('h3')?.textContent);
+
+  it('keeps the Call, Email, and Visit rows and the sample phone placeholder by default', () => {
+    const { container } = render(<Contact />);
+    expect(rows(container)).toEqual(['Call us', 'Email us', 'Visit us']);
+    expect(container.querySelector('a[href^="tel:"]')).toHaveTextContent('(954) 555-0100');
+    expect(screen.getByLabelText('Phone number')).toHaveAttribute('placeholder', '(954) 555-0100');
+    expect(screen.getByText(/710 NW 5th Ave, Suite 1072/)).toHaveTextContent('710 NW 5th Ave, Suite 1072 Fort Lauderdale, FL 33311');
+  });
+
+  it('shows the details a page passes, and leaves out the Call row without a phone', () => {
+    const intro = { label: 'L', headline: 'H', subheadline: 'S', messagePlaceholder: 'M', phonePlaceholder: 'Optional' };
+    const { container } = render(
+      <Contact intro={intro} details={{ email: 'hello@example.com', address: '1 Main St\nFort Lauderdale, FL 33301' }} />,
+    );
+    expect(rows(container)).toEqual(['Email us', 'Visit us']);
+    expect(container.querySelector('a[href^="tel:"]')).toBeNull();
+    expect(container.textContent).not.toContain('555-0100');
+    expect(container.querySelector('a[href="mailto:hello@example.com"]')).not.toBeNull();
+    // The address is shown as given: no second city line appended.
+    expect(container.textContent).not.toContain('33311');
+    expect(screen.getByLabelText('Phone number')).toHaveAttribute('placeholder', 'Optional');
+  });
+
+  it('shows a phone the page passes', () => {
+    const { container } = render(<Contact details={{ phone: '(954) 321-7788', email: 'a@b.co', address: 'x' }} />);
+    expect(rows(container)).toEqual(['Call us', 'Email us', 'Visit us']);
+    expect(container.querySelector('a[href="tel:9543217788"]')).toHaveTextContent('(954) 321-7788');
+  });
+});
