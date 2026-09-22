@@ -26,6 +26,9 @@ const LICENSE_HOLDERS: Record<string, RegExp> = {
   'ibm-plex-mono': /Copyright © \d{4} IBM Corp\. with Reserved Font Name "Plex"/,
 };
 
+/** Tablet widths on a short screen: landscape phones (see division.css). */
+const LANDSCAPE_PHONE = '(min-width: 640px) and (max-width: 1023.98px) and (max-height: 500px)';
+
 const unquote = (value: string) => value.trim().replace(/^['"]|['"]$/g, '');
 
 // Tailwind scans every .ts file under src/ for class names, and the quoted
@@ -155,12 +158,16 @@ describe('type.css', () => {
       // No :root and no global type selectors (html, body, *, headings).
       expect(selector).not.toMatch(/:root|(?:^|[\s>+~(,])(?:html|body|\*|h[1-6])(?![\w-])/);
     }
-    // Only @font-face and the sm breakpoint as at-rules.
+    // Only @font-face, the sm breakpoint, and the landscape-phone tier as at-rules.
     const atRules: string[] = [];
     root.walkAtRules((rule: AtRule) => {
       atRules.push(rule.name === 'media' ? `media ${rule.params}` : rule.name);
     });
-    expect(new Set(atRules)).toEqual(new Set(['font-face', 'media (min-width: 640px)']));
+    expect(new Set(atRules)).toEqual(new Set(['font-face', 'media (min-width: 640px)', `media ${LANDSCAPE_PHONE}`]));
+    // Same specificity, overlapping queries: the landscape tier wins on short
+    // screens only because it comes after the 640px block.
+    const media = atRules.filter((name) => name.startsWith('media '));
+    expect(media.indexOf(`media ${LANDSCAPE_PHONE}`)).toBeGreaterThan(media.indexOf('media (min-width: 640px)'));
   });
 
   it('points the parent font tokens at the NWSE families inside .nwse-root only', () => {
@@ -219,6 +226,64 @@ describe('type.css', () => {
     expect(classes.get('label')?.get('text-transform')).toBe('uppercase');
     expect(classes.get('kicker')?.get('text-transform')).toBe('uppercase');
     expect(classes.get('numeric')?.get('font-variant-numeric')).toBe('tabular-nums');
+  });
+
+  it('keeps the tablet and desktop scale from 640px, with a tighter phone scale below it', () => {
+    const base = new Map<string, string>();
+    const fromSm = new Map<string, string>();
+    const landscape = new Map<string, string>();
+    root.walkRules('.nwse-root', (rule: Rule) => {
+      const media = rule.parent?.type === 'atrule' ? (rule.parent as AtRule).params : '';
+      const target = media === '' ? base : media === LANDSCAPE_PHONE ? landscape : fromSm;
+      rule.walkDecls(/^--nwse-type-.*-(size|line-height)$/, (decl) => {
+        target.set(decl.prop.replace(/^--nwse-type-/, ''), decl.value);
+      });
+    });
+    const at640 = Object.fromEntries([...base.keys()].map((token) => [token, fromSm.get(token) ?? base.get(token)]));
+
+    // What tablets and desktop render: the scale the pages were designed with.
+    expect(at640).toEqual({
+      'display-1-size': 'clamp(2.25rem, 1.59rem + 2.7vw, 3.75rem)',
+      'display-1-line-height': '1',
+      'display-2-size': '2.25rem',
+      'display-2-line-height': '2.5rem',
+      'title-1-size': '1.25rem',
+      'title-1-line-height': '1.75rem',
+      'title-2-size': '1.125rem',
+      'title-2-line-height': '1.75rem',
+      'lead-size': '1.125rem',
+      'lead-line-height': '1.75rem',
+      'body-size': '1rem',
+      'body-line-height': '1.625',
+      'body-small-size': '0.875rem',
+      'body-small-line-height': '1.625',
+      'caption-size': '0.75rem',
+      'caption-line-height': '1rem',
+      'label-size': '0.75rem',
+      'label-line-height': '1.5',
+      'kicker-size': '0.75rem',
+      'kicker-line-height': '1.5',
+    });
+
+    // Phones: H1 32 / H2 24 / titles 18 and 17, with tighter leading.
+    expect(Object.fromEntries(base)).toMatchObject({
+      'display-1-size': '2rem',
+      'display-1-line-height': '1.06',
+      'display-2-size': '1.5rem',
+      'display-2-line-height': '1.2',
+      'title-1-size': '1.125rem',
+      'title-1-line-height': '1.5rem',
+      'title-2-size': '1.0625rem',
+      'title-2-line-height': '1.5rem',
+      'lead-size': '1rem',
+      'lead-line-height': '1.55',
+      'body-line-height': '1.6',
+      'body-small-line-height': '1.55',
+    });
+
+    // Landscape phones (tablet widths, short screens): only the hero H1 changes,
+    // to the low end of the tablet clamp.
+    expect(Object.fromEntries(landscape)).toEqual({ 'display-1-size': '2.25rem' });
   });
 
   it('keeps OpenType features at their defaults, with tabular figures only in the numeric helper', () => {

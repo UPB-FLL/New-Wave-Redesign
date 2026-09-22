@@ -164,14 +164,18 @@ export default function Contact({
   ];
 
   return (
+    // data-contact-* are styling hooks only (division pages restyle the form on
+    // phones through them, in divisions/socialEngineering/division.css); they
+    // change nothing on New Wave IT pages.
     <section
       id="contact"
+      data-contact-section=""
       className="relative py-12 sm:py-16"
       style={{ background: 'var(--nw-cloud-white)', borderTop: '1px solid var(--nw-mist-gray)', zIndex: 10 }}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <FadeIn>
-          <div className="mb-8 text-center sm:mb-10">
+          <div className="mb-8 text-center sm:mb-10" data-contact-intro="">
             <span className="nw-kicker">{intro?.label ?? (content.section_label || 'Get in touch')}</span>
             <HeadlineTag className="nw-display mx-auto mb-4 mt-2 max-w-4xl text-4xl leading-[1.05] text-brand-navy sm:text-5xl lg:text-6xl">
               {intro?.headline ??
@@ -190,9 +194,9 @@ export default function Contact({
 
         <div className="grid gap-5 sm:gap-8 lg:grid-cols-5">
           <FadeIn className="lg:col-span-2">
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3" data-contact-methods="">
               {contactMethods.map(({ icon, title, sub, content: methodContent, accent }) => (
-                <div key={title} className="rounded-lg p-5 nw-surface">
+                <div key={title} className="rounded-lg p-5 nw-surface" data-contact-method="">
                   <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-md" style={{ background: 'var(--nw-cloud-white)', color: accent }}>
                     {icon}
                   </div>

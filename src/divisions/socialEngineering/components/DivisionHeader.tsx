@@ -16,6 +16,16 @@ import { ServiceIcon } from './ServiceIcon';
 const navLinkClass =
   'text-sm font-medium text-[var(--nw-current-navy)] transition-colors hover:text-[var(--nwse-lure-amber-deep)]';
 
+// Mobile-menu rows: 44px targets, the current page in Lure Amber Deep.
+const menuRowClass =
+  '-mx-2 flex min-h-11 items-center gap-3 rounded-md px-2 text-base font-medium text-[var(--nw-current-navy)] transition-colors hover:bg-[var(--nw-pure-white)] active:bg-[var(--nw-pure-white)] aria-[current=page]:text-[var(--nwse-lure-amber-deep)]';
+
+/** The router may report a trailing slash (prerendered URLs end in one). */
+const samePath = (pathname: string, path: string) => pathname.replace(/\/+$/, '') === path;
+
+/** The site-wide chat launcher (src/components/ElfsightChatbot.tsx) and its portal, outside the division root. */
+const CHAT_LAUNCHER_SELECTOR = '[class*="elfsight-app-"], #__EAAPS_PORTAL';
+
 /** Division masthead: a parent endorsement bar over the division's own navigation. */
 export function DivisionHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -24,6 +34,7 @@ export function DivisionHeader() {
   const closeTimer = useRef<number | undefined>();
   const servicesButton = useRef<HTMLButtonElement>(null);
   const menuButton = useRef<HTMLButtonElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
   const { pathname } = useLocation();
 
   useEffect(() => {
@@ -39,6 +50,36 @@ export function DivisionHeader() {
     setMenuOpen(false);
     setServicesOpen(false);
   }, [pathname]);
+
+  // The open menu covers the page (a full-height sheet on phones, a panel over
+  // the dimmed page on tablets), so everything behind it is inert: Tab and a
+  // screen reader's swipe stay in the header instead of reaching content the
+  // menu hides. That includes the site-wide chat launcher (ElfsightChatbot),
+  // which sits outside the division root. The page itself does not scroll
+  // while the menu is open, so closing it returns the reader to where they
+  // were. The menu exists only below lg, so it closes if the window widens to
+  // desktop, where its toggle is gone.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const header = headerRef.current;
+    const behind = header?.parentElement ? [...header.parentElement.children].filter((element) => element !== header) : [];
+    const chat = [...document.querySelectorAll(CHAT_LAUNCHER_SELECTOR)].filter((element) => !header || !element.contains(header));
+    const inerted = [...behind, ...chat];
+    inerted.forEach((element) => element.setAttribute('inert', ''));
+    const root = document.documentElement;
+    const previousOverflow = root.style.overflow;
+    root.style.overflow = 'hidden';
+    const desktop = typeof window.matchMedia === 'function' ? window.matchMedia('(min-width: 1024px)') : null;
+    const closeOnDesktop = () => {
+      if (desktop?.matches) setMenuOpen(false);
+    };
+    desktop?.addEventListener('change', closeOnDesktop);
+    return () => {
+      inerted.forEach((element) => element.removeAttribute('inert'));
+      root.style.overflow = previousOverflow;
+      desktop?.removeEventListener('change', closeOnDesktop);
+    };
+  }, [menuOpen]);
 
   // Escape dismisses whichever menu is open and returns focus to its button (WCAG 1.4.13).
   useEffect(() => {
@@ -72,18 +113,31 @@ export function DivisionHeader() {
     setServicesOpen(false);
     setMenuOpen(false);
   };
+  // Focus moving out of the header closes the menu, so it never stays open over
+  // the element that has focus. A tap on the menu's blank area blurs to nothing
+  // (no relatedTarget) and leaves it open.
+  const closeMenuOnFocusOut = (event: FocusEvent<HTMLElement>) => {
+    const next = event.relatedTarget as Node | null;
+    if (menuOpen && next && !event.currentTarget.contains(next)) setMenuOpen(false);
+  };
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50">
-      {/* Endorsement bar: the parent leads, the division follows (guidelines page 10). */}
-      <div className="nwse-dark" style={{ background: 'var(--nw-deep-current)' }}>
-        <div className="mx-auto flex h-9 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+    <header ref={headerRef} className="fixed inset-x-0 top-0 z-50" onBlur={closeMenuOnFocusOut}>
+      {/* Endorsement bar: the parent leads, the division follows (guidelines page 10).
+          Tablets and desktop only; on phones, and on landscape phones (tablet
+          widths no more than 500px tall), the endorsement closes the menu instead. */}
+      <div
+        className="nwse-dark hidden sm:block max-lg:[@media(max-height:500px)]:hidden"
+        style={{ background: 'var(--nw-deep-current)' }}
+        data-role="endorsement-bar"
+      >
+        <div className="mx-auto flex h-[32px] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:h-9 lg:px-8">
           <p className="nwse-type-label truncate" style={{ color: 'var(--nw-mist-gray)' }}>
             {DIVISION_ENDORSEMENT}
           </p>
           <Link
             to="/"
-            className="flex shrink-0 items-center gap-1 text-xs font-medium text-[var(--nw-cloud-white)] transition-colors hover:text-[var(--nwse-lure-amber)]"
+            className="flex shrink-0 items-center gap-1 text-xs font-medium text-[var(--nw-cloud-white)] transition-colors hover:text-[var(--nwse-lure-amber)] max-lg:h-full"
           >
             <span className="hidden sm:inline">Managed IT &amp; cybersecurity at</span> {PARENT_NAME}
             <NwseIcon name="arrow-up-right" size={14} />
@@ -100,9 +154,17 @@ export function DivisionHeader() {
           boxShadow: scrolled ? '0 3px 14px rgba(9, 19, 29, 0.1)' : 'none',
         }}
       >
-        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-5 px-4 sm:px-6 lg:px-8">
+        {/* Below lg the rows (this one and the endorsement bar's) are sized in px,
+            not rem: --nwse-header-height is a px value, and the header must
+            still match it when the reader enlarges text. */}
+        <div
+          className="mx-auto flex h-[56px] max-w-7xl items-center justify-between gap-5 px-4 sm:h-[64px] sm:px-6 lg:h-20 lg:px-8 max-lg:[@media(max-height:500px)]:h-[56px]"
+          data-role="nav-row"
+        >
           <Link onClick={closeMenus} to={DIVISION_BASE_PATH} className="flex shrink-0 items-center py-2" aria-label="New Wave: Social Engineering home">
-            <DivisionLogo lockup="primary" ground="light" width={184} decorative />
+            {/* 160px (the brand minimum) on phones, 184px from sm; px, not rem, so
+                enlarged text can never push the menu toggle off-screen. */}
+            <DivisionLogo lockup="primary" ground="light" width={184} decorative className="max-sm:h-auto max-sm:w-[160px]" />
           </Link>
 
           <div className="hidden items-center gap-6 lg:flex">
@@ -161,7 +223,7 @@ export function DivisionHeader() {
           <button
             type="button"
             ref={menuButton}
-            className="rounded-md p-2 text-[var(--nw-current-navy)] transition-colors hover:bg-[var(--nw-mist-gray)] lg:hidden"
+            className="-mr-2.5 rounded-md p-[10px] text-[var(--nw-current-navy)] transition-colors lg:hidden [@media(hover:hover)]:hover:bg-[var(--nw-mist-gray)]"
             onClick={() => setMenuOpen((open) => !open)}
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={menuOpen}
@@ -172,35 +234,95 @@ export function DivisionHeader() {
         </div>
 
         {menuOpen ? (
+          // Phones: a full-height sheet with the endorsement at its foot.
+          // Tablets: a panel over the dimmed page (the backdrop below).
           <div
             id="nwse-mobile-menu"
-            className="max-h-[calc(100dvh-var(--nwse-header-height))] overflow-y-auto border-t lg:hidden"
+            className="flex max-h-[calc(100dvh-var(--nwse-header-height))] flex-col overflow-y-auto overscroll-contain border-t max-sm:min-h-[calc(100dvh-var(--nwse-header-height))] lg:hidden"
             style={{ borderColor: 'var(--nw-mist-gray)' }}
           >
-            <div className="flex flex-col gap-3 px-5 py-5">
-              <Link to={DIVISION_BASE_PATH} onClick={closeMenus} className={navLinkClass}>
+            <div className="flex flex-col px-4 pb-4 pt-2 sm:px-6">
+              <Link
+                to={DIVISION_BASE_PATH}
+                onClick={closeMenus}
+                className={menuRowClass}
+                aria-current={samePath(pathname, DIVISION_BASE_PATH) ? 'page' : undefined}
+              >
                 Overview
               </Link>
-              <p className="nwse-type-kicker nwse-kicker mt-1">Services</p>
-              <ul className="flex flex-col gap-2 border-l pl-3" style={{ borderColor: 'var(--nw-mist-gray)' }}>
-                {divisionServices.map((service) => (
-                  <li key={service.slug}>
-                    <Link onClick={closeMenus} to={divisionServicePath(service.slug)} className={navLinkClass}>
-                      {service.navLabel}
-                    </Link>
-                  </li>
-                ))}
+              <p className="nwse-type-kicker nwse-kicker mb-1 mt-3">Services</p>
+              {/* Landscape phones: two columns (row by row, in reading order), so the
+                  call to action fits the short screen without scrolling the menu. */}
+              <ul className="flex flex-col max-lg:[@media(max-height:500px)]:grid max-lg:[@media(max-height:500px)]:grid-cols-2 max-lg:[@media(max-height:500px)]:gap-x-6">
+                {divisionServices.map((service) => {
+                  const path = divisionServicePath(service.slug);
+                  return (
+                    <li key={service.slug}>
+                      <Link
+                        onClick={closeMenus}
+                        to={path}
+                        className={menuRowClass}
+                        aria-current={samePath(pathname, path) ? 'page' : undefined}
+                      >
+                        <span className="nwse-icon h-8 w-8 shrink-0">
+                          <ServiceIcon icon={service.icon} size={16} />
+                        </span>
+                        {service.navLabel}
+                      </Link>
+                    </li>
+                  );
+                })}
               </ul>
-              <Link onClick={closeMenus} to={DIVISION_CONTACT_PATH} className="nwse-btn nwse-btn-amber-deep mt-2 text-sm">
+              <Link onClick={closeMenus} to={DIVISION_CONTACT_PATH} className="nwse-btn nwse-btn-amber-deep mt-4 min-h-12 w-full">
                 {DIVISION_PRIMARY_CTA}
               </Link>
+            </div>
+            {/* Phones and landscape phones: the endorsement bar's content, which the
+                slim header leaves out. */}
+            <div
+              className="nwse-dark mt-auto sm:hidden max-lg:[@media(max-height:500px)]:block"
+              style={{ background: 'var(--nw-deep-current)' }}
+              data-role="menu-endorsement"
+            >
+              <div className="flex flex-col px-4 pb-2 pt-3 sm:px-6">
+                <p className="nwse-type-label" style={{ color: 'var(--nw-mist-gray)' }}>
+                  {DIVISION_ENDORSEMENT}
+                </p>
+                <Link
+                  to="/"
+                  onClick={closeMenus}
+                  className="flex min-h-11 items-center text-sm font-medium text-[var(--nw-cloud-white)] transition-colors hover:text-[var(--nwse-lure-amber)]"
+                >
+                  {/* One inline run; the parent's name and the arrow wrap as a unit. */}
+                  <span>
+                    Managed IT &amp; cybersecurity at{' '}
+                    <span className="whitespace-nowrap">
+                      {PARENT_NAME}
+                      <NwseIcon name="arrow-up-right" size={14} className="ml-1 inline-block align-[-2px]" />
+                    </span>
+                  </span>
+                </Link>
+              </div>
             </div>
           </div>
         ) : null}
       </nav>
+      {menuOpen ? (
+        // Tablets: dims the page under the menu panel; a tap outside closes it.
+        <div
+          aria-hidden="true"
+          className="fixed inset-x-0 bottom-0 top-[var(--nwse-header-height)] -z-10 hidden sm:block lg:hidden"
+          style={{ background: 'color-mix(in srgb, var(--nw-deep-current) 40%, transparent)' }}
+          onClick={closeMenus}
+        />
+      ) : null}
     </header>
   );
 }
 
-/** Space the fixed endorsement bar (36px) + nav (80px) + its 1px border occupy; matches --nwse-header-height. */
+/**
+ * Space the fixed header occupies: --nwse-header-height (division.css), which
+ * follows the rows above: nav 56px + border on phones; endorsement bar 32px +
+ * nav 64px + border on tablets; bar 36px + nav 80px + border on desktop.
+ */
 export const DIVISION_HEADER_OFFSET_CLASS = 'pt-[var(--nwse-header-height)]';

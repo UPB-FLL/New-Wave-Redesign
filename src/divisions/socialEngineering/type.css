@@ -39,13 +39,27 @@
    12/16), footer links (text-sm, 14/20), roadmap list items (text-sm,
    14/20), buttons (.nwse-btn).
 
-   display-1 is 36px on phones (as today) and fluid from 640px:
-   clamp(2.25rem, 1.59rem + 2.7vw, 3.75rem) reaches 60px from 1280px, the same
-   end point as today. In between it runs ≤ 7px from today's steps (42.7 vs 48
-   at 640px, 47.0 vs 48 at 800px, 53.1 vs 48 at 1023px, 53.1 vs 60 at
-   1024px). Every other style matches today's computed size, line height,
-   weight, and tracking exactly: checked by swapping the classes in the built
-   hub page at 390, 800, and 1440px.
+   The table describes the scale from 640px up. There, display-1 is fluid
+   instead of stepped: clamp(2.25rem, 1.59rem + 2.7vw, 3.75rem) is 42.7px at
+   640px and 60px from 1280px, within 7px of the replaced steps (42.7 vs 48 at
+   640px, 47.0 vs 48 at 800px, 53.1 vs 48 at 1023px, 53.1 vs 60 at 1024px).
+   Every other style matches the replaced utilities' computed size, line
+   height, weight, and tracking exactly (checked by swapping the classes in
+   the built hub page at 800 and 1440px).
+
+   PHONE SCALE (below 640px, the base tokens): a tighter scale of its own, so
+   a phone reads H1 32 / H2 24 / card titles 18 and 17 / body 16 / small 14 /
+   label 12 (a ~1.33 step from H1 to H2 to card titles, so a section head
+   never reads as a second headline). display-1 2rem/1.06, display-2
+   1.5rem/1.2, title-1
+   1.125rem/1.5rem, title-2 1.0625rem/1.5rem, lead 16px at 1.55, body 1.6,
+   body-small 1.55. Caption, label, and kicker are the same at every width.
+   The sm block below restores every other value from 640px, so tablets and
+   desktop are unchanged.
+
+   LANDSCAPE PHONES (640–1023px wide and at most 500px tall): display-1 is
+   2.25rem, the low end of the fluid clamp, so the hero fits a short screen.
+   division.css and DivisionHeader give the same tier the phone header.
 
    Features: family defaults only. No stylistic sets (Inter's cv11
    single-storey a is deliberately not enabled); tabular figures ('tnum') only
@@ -221,52 +235,52 @@
 
   /* display-1: hero H1 */
   --nwse-type-display-1-family: var(--nw-font-display);
-  --nwse-type-display-1-size: 2.25rem; /* text-4xl; fluid from 640px */
-  --nwse-type-display-1-line-height: 1.05;
+  --nwse-type-display-1-size: 2rem;
+  --nwse-type-display-1-line-height: 1.06;
   --nwse-type-display-1-tracking: -0.01em;
   --nwse-type-display-1-word-spacing: normal; /* 0.06em from 640px */
   --nwse-type-display-1-weight: 800;
 
   /* display-2: section H2 */
   --nwse-type-display-2-family: var(--nw-font-display);
-  --nwse-type-display-2-size: 1.875rem;
-  --nwse-type-display-2-line-height: 1.25;
+  --nwse-type-display-2-size: 1.5rem;
+  --nwse-type-display-2-line-height: 1.2;
   --nwse-type-display-2-tracking: -0.01em;
   --nwse-type-display-2-word-spacing: normal; /* 0.06em from 640px */
   --nwse-type-display-2-weight: 800;
 
   /* title-1: large card H3 */
   --nwse-type-title-1-family: var(--nw-font-body);
-  --nwse-type-title-1-size: 1.25rem;
-  --nwse-type-title-1-line-height: 1.75rem;
+  --nwse-type-title-1-size: 1.125rem;
+  --nwse-type-title-1-line-height: 1.5rem;
   --nwse-type-title-1-tracking: 0;
   --nwse-type-title-1-weight: 700;
 
   /* title-2: card and step H3 */
   --nwse-type-title-2-family: var(--nw-font-body);
-  --nwse-type-title-2-size: 1.125rem;
-  --nwse-type-title-2-line-height: 1.75rem;
+  --nwse-type-title-2-size: 1.0625rem;
+  --nwse-type-title-2-line-height: 1.5rem;
   --nwse-type-title-2-tracking: 0;
   --nwse-type-title-2-weight: 700;
 
   /* lead: hero summary */
   --nwse-type-lead-family: var(--nw-font-body);
   --nwse-type-lead-size: 1rem;
-  --nwse-type-lead-line-height: 1.625;
+  --nwse-type-lead-line-height: 1.55;
   --nwse-type-lead-tracking: 0;
   --nwse-type-lead-weight: 400;
 
   /* body */
   --nwse-type-body-family: var(--nw-font-body);
   --nwse-type-body-size: 1rem;
-  --nwse-type-body-line-height: 1.625;
+  --nwse-type-body-line-height: 1.6;
   --nwse-type-body-tracking: 0;
   --nwse-type-body-weight: 400;
 
   /* body-small: card detail, FAQ answers */
   --nwse-type-body-small-family: var(--nw-font-body);
   --nwse-type-body-small-size: 0.875rem;
-  --nwse-type-body-small-line-height: 1.625;
+  --nwse-type-body-small-line-height: 1.55;
   --nwse-type-body-small-tracking: 0;
   --nwse-type-body-small-weight: 400;
 
@@ -292,9 +306,11 @@
   --nwse-type-kicker-weight: 600;
 }
 
-/* Tailwind's sm breakpoint, where display-2 and lead step up today. Their
-   sm: font-size utilities also carry a line height, which overrides the
-   leading-* class, so today's pages render these line heights from 640px. */
+/* Tailwind's sm breakpoint. From here up (tablets and desktop) the scale is
+   the one the pages were designed with; the base tokens above are the phone
+   scale. display-2 and lead also step up here, as their original sm:
+   utilities did (those carried a line height, which overrode the leading-*
+   class). */
 @media (min-width: 640px) {
   .nwse-root {
     --nwse-type-display-1-size: clamp(2.25rem, 1.59rem + 2.7vw, 3.75rem);
@@ -303,8 +319,22 @@
     --nwse-type-display-1-line-height: 1; /* sm:text-5xl, lg:text-6xl */
     --nwse-type-display-2-size: 2.25rem;
     --nwse-type-display-2-line-height: 2.5rem; /* sm:text-4xl */
+    --nwse-type-title-1-size: 1.25rem;
+    --nwse-type-title-1-line-height: 1.75rem;
+    --nwse-type-title-2-size: 1.125rem;
+    --nwse-type-title-2-line-height: 1.75rem;
     --nwse-type-lead-size: 1.125rem;
     --nwse-type-lead-line-height: 1.75rem; /* sm:text-lg */
+    --nwse-type-body-line-height: 1.625;
+    --nwse-type-body-small-line-height: 1.625;
+  }
+}
+
+/* Landscape phones: tablet widths on a short screen (see LANDSCAPE PHONES
+   above). Never reaches 1024px and up. */
+@media (min-width: 640px) and (max-width: 1023.98px) and (max-height: 500px) {
+  .nwse-root {
+    --nwse-type-display-1-size: 2.25rem;
   }
 }
 
