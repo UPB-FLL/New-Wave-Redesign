@@ -7,6 +7,7 @@ import { contactContent, divisionServices, hubContent } from './content';
 import SocialEngineeringContactPage from './pages/SocialEngineeringContactPage';
 import SocialEngineeringHubPage from './pages/SocialEngineeringHubPage';
 import SocialEngineeringServicePage from './pages/SocialEngineeringServicePage';
+import { DIVISION_ICONS } from './icons/iconData';
 import { DIVISION_JSONLD_ELEMENT_ID } from './prerender';
 import { DivisionHeader } from './components/DivisionHeader';
 import { DIVISION_ASSETS, DIVISION_NAME, DIVISION_PRIMARY_CTA, SITE_URL, divisionServicePath } from './site';
@@ -162,6 +163,53 @@ describe('division positioning', () => {
 
   it('keeps the web app manifest on-message', () => {
     expect(readFileSync(path.resolve(__dirname, '../../../public/brand/social-engineering/site.webmanifest'), 'utf8')).not.toMatch(SECURITY_WORDING);
+  });
+});
+
+describe('division icons', () => {
+  const pages: [string, React.ReactElement][] = [
+    ['hub', <SocialEngineeringHubPage />],
+    ['integration', <SocialEngineeringServicePage slug="integration" />],
+    ['contact', <SocialEngineeringContactPage />],
+  ];
+
+  it.each(pages)('%s draws every icon from the division set, decoratively', (_name, page) => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ token: '1.test' }), { status: 200 })));
+    const { container } = renderAt(page);
+    expect(container.querySelectorAll('svg.lucide')).toHaveLength(0);
+    const icons = [...container.querySelectorAll('svg[data-icon]')];
+    expect(icons.length).toBeGreaterThan(5);
+    icons.forEach((svg) => {
+      expect(DIVISION_ICONS).toHaveProperty([svg.getAttribute('data-icon')!]);
+      expect(svg).toHaveAttribute('aria-hidden', 'true');
+    });
+  });
+
+  it('shows the method, roadmap, and metric icons on the hub', () => {
+    const { container } = renderAt(<SocialEngineeringHubPage />);
+    const drawn = new Set([...container.querySelectorAll('svg[data-icon]')].map((svg) => svg.getAttribute('data-icon')));
+    [...hubContent.method, ...hubContent.roadmap, ...hubContent.metrics].forEach(({ icon }) => {
+      expect(drawn.has(icon!), icon).toBe(true);
+    });
+    // Service cards use the service-* set.
+    divisionServices.forEach((service) => expect(drawn.has(`service-${service.icon}`), service.icon).toBe(true));
+  });
+
+  it('uses the division set in the shared contact form', () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ token: '1.test' }), { status: 200 })));
+    renderAt(<SocialEngineeringContactPage />);
+    const form = document.getElementById('contact')!;
+    ['phone', 'mail', 'map-pin', 'send'].forEach((name) => {
+      expect(form.querySelector(`svg[data-icon="${name}"]`), name).not.toBeNull();
+    });
+  });
+
+  it('labels the header menu toggle on the button, not the icon', () => {
+    renderAt(<DivisionHeader />);
+    const toggle = screen.getByRole('button', { name: 'Open menu' });
+    expect(toggle.querySelector('svg[data-icon="menu"]')).toHaveAttribute('aria-hidden', 'true');
+    fireEvent.click(toggle);
+    expect(screen.getByRole('button', { name: 'Close menu' }).querySelector('svg[data-icon="close"]')).not.toBeNull();
   });
 });
 

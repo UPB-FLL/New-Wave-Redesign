@@ -1,0 +1,410 @@
+/* New Wave: Social Engineering — self-hosted type system (division only).
+
+   The three brand families (Plus Jakarta Sans, Inter, IBM Plex Mono; all SIL
+   OFL 1.1, licences beside the files) are served from
+   /brand/social-engineering/fonts/ under division-only family names, so
+   nothing here can restyle a New Wave IT page: IT pages never load this file
+   (it ships in the division's lazy chunk), and every token below lives on
+   .nwse-root. The prerendered division pages preload the display and text
+   files (prerender.ts).
+
+   TAILWIND → TYPE CLASS: what each class replaced on the division pages
+   (sizes at the Tailwind defaults; sm = 640px, lg = 1024px). Each class sets
+   family, size, line-height, tracking, and weight; colour stays in
+   division.css (.nwse-kicker, .nwse-kicker-on-dark, .nwse-label) or on the
+   element. A Tailwind font utility on the same element loses to these
+   classes (this file loads after the IT stylesheet), so change a token
+   instead of stacking utilities.
+
+   | Where                                  | Replaced                                                               | Class                  |
+   |----------------------------------------|------------------------------------------------------------------------|------------------------|
+   | Hero H1 (DivisionHero)                 | nwse-display text-4xl leading-[1.05] sm:text-5xl lg:text-6xl (36/48/60; | nwse-type-display-1 (fluid 36→60, see below) |
+   |                                        |   lh 1.05 below sm, 1 from sm: text-5xl/6xl reset the leading)         |                        |
+   | Section H2 (SectionIntro, CtaBand,     | nwse-display text-3xl leading-tight sm:text-4xl (30/37.5 → 36/40:      | nwse-type-display-2    |
+   |   hub "What we measure")               |   sm:text-4xl resets the leading)                                      |                        |
+   | Card H3 (hub services, RoadmapGrid)    | text-xl font-bold (20/28)                                              | nwse-type-title-1      |
+   | Card H3 (PointGrid, StepList)          | text-lg font-bold (18/28)                                              | nwse-type-title-2      |
+   | Hero summary                           | text-base leading-relaxed sm:text-lg (16/26 → 18/28: sm:text-lg resets | nwse-type-lead         |
+   |                                        |   the leading)                                                         |                        |
+   | Body copy (intros, CtaBand body)       | text-base leading-relaxed (16/26)                                      | nwse-type-body         |
+   | Card detail, FAQ answer, CheckList     | text-sm leading-relaxed (14/22.75)                                     | nwse-type-body-small   |
+   | Breadcrumbs                            | text-xs (12/16)                                                        | nwse-type-caption      |
+   | Plex Mono label (steps, metrics, chips)| nwse-label (12, 500, 0.12em, caps)                                     | nwse-type-label + nwse-label for Tide Blue |
+   | Plex Mono kicker                       | nwse-kicker (12, 600, 0.14em, caps)                                    | nwse-type-kicker + nwse-kicker / nwse-kicker-on-dark for the amber |
+   | Figures that should align              | (none today)                                                           | nwse-type-numeric      |
+
+   Not mapped, kept as is: FAQ question (text-base font-semibold, 16/24),
+   related-service title (font-semibold, 16/24), nav links (text-sm
+   font-medium, 14/20), the endorsement-bar link (text-xs font-medium,
+   12/16), footer links (text-sm, 14/20), roadmap list items (text-sm,
+   14/20), buttons (.nwse-btn).
+
+   display-1 is 36px on phones (as today) and fluid from 640px:
+   clamp(2.25rem, 1.59rem + 2.7vw, 3.75rem) reaches 60px from 1280px, the same
+   end point as today. In between it runs ≤ 7px from today's steps (42.7 vs 48
+   at 640px, 47.0 vs 48 at 800px, 53.1 vs 48 at 1023px, 53.1 vs 60 at
+   1024px). Every other style matches today's computed size, line height,
+   weight, and tracking exactly: checked by swapping the classes in the built
+   hub page at 390, 800, and 1440px.
+
+   Features: family defaults only. No stylistic sets (Inter's cv11
+   single-storey a is deliberately not enabled); tabular figures ('tnum') only
+   in .nwse-type-numeric. */
+
+/* ---------------------------------------------------------------------------
+   Web fonts. Latin subset as served by Google Fonts (css2 API, 2026-09-22;
+   files byte-identical to fonts.gstatic.com: plusjakartasans v12, inter v20,
+   ibmplexmono v20). unicode-range is Google's latin block, verbatim.
+   --------------------------------------------------------------------------- */
+
+@font-face {
+  font-family: 'NWSE Display';
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url('/brand/social-engineering/fonts/plus-jakarta-sans-latin-var.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'NWSE Text';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/brand/social-engineering/fonts/inter-latin-var.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'NWSE Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/brand/social-engineering/fonts/ibm-plex-mono-latin-400.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'NWSE Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/brand/social-engineering/fonts/ibm-plex-mono-latin-500.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'NWSE Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/brand/social-engineering/fonts/ibm-plex-mono-latin-600.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ---------------------------------------------------------------------------
+   Metric-matched fallbacks, so the font-display: swap causes no layout shift.
+   The method is next/font's (@capsizecss/metrics), reproduced with fonttools
+   on the files above:
+
+     avg(f)       = Σ advanceWidth(c) × weight(c) over capsize's 81-character
+                    English "latin" frequency table (space .154, e .0922,
+                    t .0672, a .0668 …), rounded, in font units
+     size-adjust  = (avg(web) / upm(web)) / (avg(fallback) / upm(fallback))
+     ascent       = hhea.ascender        / (upm(web) × size-adjust)
+     descent      = |hhea.descender|     / (upm(web) × size-adjust)
+     line-gap     = hhea.lineGap         / (upm(web) × size-adjust)
+
+   All three web fonts set USE_TYPO_METRICS with hhea = OS/2 typo, so hhea
+   is what browsers render with. Fallback widths were measured on Liberation
+   Sans / Mono, which share Arial's and Courier New's advance widths, and
+   agree with capsize's published Arial (913, Bold 983) and Courier New
+   (1229) values.
+
+   face                      web avg/upm       fallback avg/upm         size-adj  ascent   descent  gap
+   Display 100–599           Jakarta@400 468/1000 Arial      913/2048   104.98%   98.88%   21.15%   0%
+   Display 600–900           Jakarta@800 489/1000 Arial Bold 983/2048   101.88%  101.89%   21.79%   0%
+   Text 100–599              Inter@400  978/2048  Arial      913/2048   107.12%   90.44%   22.52%   0%
+   Text 600–900              Inter@700 1008/2048  Arial Bold 983/2048   102.54%   94.47%   23.52%   0%
+   Mono (all weights)        Plex Mono  600/1000  Courier New 1229/2048  99.98%  102.52%   27.50%   0%
+   (hhea: Jakarta 1038/-222/0 of 1000, Inter 1984/-494/0 of 2048, Plex Mono
+   1025/-275/0 of 1000.) The Inter row is the same one next/font emits.
+
+   The bold faces exist because the headline weights (800 display, 700
+   titles) are what shift most: sizing them against Arial Bold keeps the
+   fallback H1 within a few pixels of the real one. Liberation and Arimo
+   (Arial twins) and Cousine (Courier New twin) cover Linux, where Arial is
+   usually absent. Browsers that ignore a descriptor (Safari: the three
+   overrides) simply get the unadjusted face.
+   --------------------------------------------------------------------------- */
+
+@font-face {
+  font-family: 'NWSE Display Fallback';
+  font-style: normal;
+  font-weight: 100 599;
+  src: local('Arial'), local('ArialMT'), local('Liberation Sans'), local('LiberationSans'), local('Arimo'), local('Arimo-Regular');
+  size-adjust: 104.98%;
+  ascent-override: 98.88%;
+  descent-override: 21.15%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'NWSE Display Fallback';
+  font-style: normal;
+  font-weight: 600 900;
+  src: local('Arial Bold'), local('Arial-BoldMT'), local('Liberation Sans Bold'), local('LiberationSans-Bold'), local('Arimo Bold'), local('Arimo-Bold');
+  size-adjust: 101.88%;
+  ascent-override: 101.89%;
+  descent-override: 21.79%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'NWSE Text Fallback';
+  font-style: normal;
+  font-weight: 100 599;
+  src: local('Arial'), local('ArialMT'), local('Liberation Sans'), local('LiberationSans'), local('Arimo'), local('Arimo-Regular');
+  size-adjust: 107.12%;
+  ascent-override: 90.44%;
+  descent-override: 22.52%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'NWSE Text Fallback';
+  font-style: normal;
+  font-weight: 600 900;
+  src: local('Arial Bold'), local('Arial-BoldMT'), local('Liberation Sans Bold'), local('LiberationSans-Bold'), local('Arimo Bold'), local('Arimo-Bold');
+  size-adjust: 102.54%;
+  ascent-override: 94.47%;
+  descent-override: 23.52%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'NWSE Mono Fallback';
+  font-style: normal;
+  font-weight: 100 599;
+  src: local('Courier New'), local('CourierNewPSMT'), local('Liberation Mono'), local('LiberationMono'), local('Cousine'), local('Cousine-Regular');
+  size-adjust: 99.98%;
+  ascent-override: 102.52%;
+  descent-override: 27.5%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'NWSE Mono Fallback';
+  font-style: normal;
+  font-weight: 600 900;
+  src: local('Courier New Bold'), local('CourierNewPS-BoldMT'), local('Liberation Mono Bold'), local('LiberationMono-Bold'), local('Cousine Bold'), local('Cousine-Bold');
+  size-adjust: 99.98%;
+  ascent-override: 102.52%;
+  descent-override: 27.5%;
+  line-gap-override: 0%;
+}
+
+/* ---------------------------------------------------------------------------
+   Family overrides and type scale, scoped to the division root. The parent's
+   --nw-font-* stacks (styles/brand.css) are redefined here only, so the type
+   classes below, Tailwind's font-display, and the shared Contact form all
+   pick up the self-hosted families.
+   html sets font-family from the parent's stack, and children inherit that
+   resolved value, so .nwse-root re-declares font-family to re-resolve it.
+   --------------------------------------------------------------------------- */
+
+.nwse-root {
+  --nw-font-display: 'NWSE Display', 'NWSE Display Fallback', system-ui, sans-serif;
+  --nw-font-body: 'NWSE Text', 'NWSE Text Fallback', system-ui, sans-serif;
+  --nw-font-technical: 'NWSE Mono', 'NWSE Mono Fallback', ui-monospace, monospace;
+  font-family: var(--nw-font-body);
+
+  /* display-1: hero H1 */
+  --nwse-type-display-1-family: var(--nw-font-display);
+  --nwse-type-display-1-size: 2.25rem; /* text-4xl; fluid from 640px */
+  --nwse-type-display-1-line-height: 1.05;
+  --nwse-type-display-1-tracking: -0.01em;
+  --nwse-type-display-1-word-spacing: normal; /* 0.06em from 640px */
+  --nwse-type-display-1-weight: 800;
+
+  /* display-2: section H2 */
+  --nwse-type-display-2-family: var(--nw-font-display);
+  --nwse-type-display-2-size: 1.875rem;
+  --nwse-type-display-2-line-height: 1.25;
+  --nwse-type-display-2-tracking: -0.01em;
+  --nwse-type-display-2-word-spacing: normal; /* 0.06em from 640px */
+  --nwse-type-display-2-weight: 800;
+
+  /* title-1: large card H3 */
+  --nwse-type-title-1-family: var(--nw-font-body);
+  --nwse-type-title-1-size: 1.25rem;
+  --nwse-type-title-1-line-height: 1.75rem;
+  --nwse-type-title-1-tracking: 0;
+  --nwse-type-title-1-weight: 700;
+
+  /* title-2: card and step H3 */
+  --nwse-type-title-2-family: var(--nw-font-body);
+  --nwse-type-title-2-size: 1.125rem;
+  --nwse-type-title-2-line-height: 1.75rem;
+  --nwse-type-title-2-tracking: 0;
+  --nwse-type-title-2-weight: 700;
+
+  /* lead: hero summary */
+  --nwse-type-lead-family: var(--nw-font-body);
+  --nwse-type-lead-size: 1rem;
+  --nwse-type-lead-line-height: 1.625;
+  --nwse-type-lead-tracking: 0;
+  --nwse-type-lead-weight: 400;
+
+  /* body */
+  --nwse-type-body-family: var(--nw-font-body);
+  --nwse-type-body-size: 1rem;
+  --nwse-type-body-line-height: 1.625;
+  --nwse-type-body-tracking: 0;
+  --nwse-type-body-weight: 400;
+
+  /* body-small: card detail, FAQ answers */
+  --nwse-type-body-small-family: var(--nw-font-body);
+  --nwse-type-body-small-size: 0.875rem;
+  --nwse-type-body-small-line-height: 1.625;
+  --nwse-type-body-small-tracking: 0;
+  --nwse-type-body-small-weight: 400;
+
+  /* caption: breadcrumbs, small print */
+  --nwse-type-caption-family: var(--nw-font-body);
+  --nwse-type-caption-size: 0.75rem;
+  --nwse-type-caption-line-height: 1rem;
+  --nwse-type-caption-tracking: 0;
+  --nwse-type-caption-weight: 400;
+
+  /* label: Plex Mono caps (today's .nwse-label) */
+  --nwse-type-label-family: var(--nw-font-technical);
+  --nwse-type-label-size: 0.75rem;
+  --nwse-type-label-line-height: 1.5;
+  --nwse-type-label-tracking: 0.12em;
+  --nwse-type-label-weight: 500;
+
+  /* kicker: Plex Mono caps, heavier and wider (today's .nwse-kicker) */
+  --nwse-type-kicker-family: var(--nw-font-technical);
+  --nwse-type-kicker-size: 0.75rem;
+  --nwse-type-kicker-line-height: 1.5;
+  --nwse-type-kicker-tracking: 0.14em;
+  --nwse-type-kicker-weight: 600;
+}
+
+/* Tailwind's sm breakpoint, where display-2 and lead step up today. Their
+   sm: font-size utilities also carry a line height, which overrides the
+   leading-* class, so today's pages render these line heights from 640px. */
+@media (min-width: 640px) {
+  .nwse-root {
+    --nwse-type-display-1-size: clamp(2.25rem, 1.59rem + 2.7vw, 3.75rem);
+    --nwse-type-display-1-word-spacing: 0.06em;
+    --nwse-type-display-2-word-spacing: 0.06em;
+    --nwse-type-display-1-line-height: 1; /* sm:text-5xl, lg:text-6xl */
+    --nwse-type-display-2-size: 2.25rem;
+    --nwse-type-display-2-line-height: 2.5rem; /* sm:text-4xl */
+    --nwse-type-lead-size: 1.125rem;
+    --nwse-type-lead-line-height: 1.75rem; /* sm:text-lg */
+  }
+}
+
+/* Plus Jakarta Sans ExtraBold sets a narrow word space (0.18em; Inter's is
+   0.22em), and the -0.01em tracking narrows it further, so display headings
+   read as run-together words ("Apractical path"). word-spacing restores a
+   ~0.23em gap without loosening the letters. Applied from 640px only: on
+   phones the extra width pushed some headings onto another line (e.g. an
+   orphaned "call" on the contact H1 at 393px). */
+
+/* :where() keeps each class at one-class specificity while still limiting
+   it to the division root. */
+:where(.nwse-root) .nwse-type-display-1 {
+  font-family: var(--nwse-type-display-1-family);
+  font-size: var(--nwse-type-display-1-size);
+  font-weight: var(--nwse-type-display-1-weight);
+  letter-spacing: var(--nwse-type-display-1-tracking);
+  line-height: var(--nwse-type-display-1-line-height);
+  word-spacing: var(--nwse-type-display-1-word-spacing);
+}
+
+:where(.nwse-root) .nwse-type-display-2 {
+  font-family: var(--nwse-type-display-2-family);
+  font-size: var(--nwse-type-display-2-size);
+  font-weight: var(--nwse-type-display-2-weight);
+  letter-spacing: var(--nwse-type-display-2-tracking);
+  line-height: var(--nwse-type-display-2-line-height);
+  word-spacing: var(--nwse-type-display-2-word-spacing);
+}
+
+:where(.nwse-root) .nwse-type-title-1 {
+  font-family: var(--nwse-type-title-1-family);
+  font-size: var(--nwse-type-title-1-size);
+  font-weight: var(--nwse-type-title-1-weight);
+  letter-spacing: var(--nwse-type-title-1-tracking);
+  line-height: var(--nwse-type-title-1-line-height);
+}
+
+:where(.nwse-root) .nwse-type-title-2 {
+  font-family: var(--nwse-type-title-2-family);
+  font-size: var(--nwse-type-title-2-size);
+  font-weight: var(--nwse-type-title-2-weight);
+  letter-spacing: var(--nwse-type-title-2-tracking);
+  line-height: var(--nwse-type-title-2-line-height);
+}
+
+:where(.nwse-root) .nwse-type-lead {
+  font-family: var(--nwse-type-lead-family);
+  font-size: var(--nwse-type-lead-size);
+  font-weight: var(--nwse-type-lead-weight);
+  letter-spacing: var(--nwse-type-lead-tracking);
+  line-height: var(--nwse-type-lead-line-height);
+}
+
+:where(.nwse-root) .nwse-type-body {
+  font-family: var(--nwse-type-body-family);
+  font-size: var(--nwse-type-body-size);
+  font-weight: var(--nwse-type-body-weight);
+  letter-spacing: var(--nwse-type-body-tracking);
+  line-height: var(--nwse-type-body-line-height);
+}
+
+:where(.nwse-root) .nwse-type-body-small {
+  font-family: var(--nwse-type-body-small-family);
+  font-size: var(--nwse-type-body-small-size);
+  font-weight: var(--nwse-type-body-small-weight);
+  letter-spacing: var(--nwse-type-body-small-tracking);
+  line-height: var(--nwse-type-body-small-line-height);
+}
+
+:where(.nwse-root) .nwse-type-caption {
+  font-family: var(--nwse-type-caption-family);
+  font-size: var(--nwse-type-caption-size);
+  font-weight: var(--nwse-type-caption-weight);
+  letter-spacing: var(--nwse-type-caption-tracking);
+  line-height: var(--nwse-type-caption-line-height);
+}
+
+:where(.nwse-root) .nwse-type-label {
+  font-family: var(--nwse-type-label-family);
+  font-size: var(--nwse-type-label-size);
+  font-weight: var(--nwse-type-label-weight);
+  letter-spacing: var(--nwse-type-label-tracking);
+  line-height: var(--nwse-type-label-line-height);
+  text-transform: uppercase;
+}
+
+/* Colour comes from .nwse-kicker (Lure Amber Deep) or .nwse-kicker-on-dark
+   (Lure Amber) in division.css. */
+:where(.nwse-root) .nwse-type-kicker {
+  font-family: var(--nwse-type-kicker-family);
+  font-size: var(--nwse-type-kicker-size);
+  font-weight: var(--nwse-type-kicker-weight);
+  letter-spacing: var(--nwse-type-kicker-tracking);
+  line-height: var(--nwse-type-kicker-line-height);
+  text-transform: uppercase;
+}
+
+/* Figures that should line up (tables, counters, prices). Composes with any
+   class above. */
+:where(.nwse-root) .nwse-type-numeric {
+  font-variant-numeric: tabular-nums;
+}

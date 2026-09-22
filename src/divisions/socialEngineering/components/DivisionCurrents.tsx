@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react';
+
 // Decorative long currents, after the guidelines' cover and brand-architecture
 // pages: two inherited currents in Signal Cyan / Tide Blue and the division's
 // third current in Lure Amber.
@@ -8,7 +10,15 @@ const CURRENTS = [
   { d: 'M 260 520 C 520 450 820 440 1060 520 S 1330 640 1480 520', color: '#F2A33A' },
 ] as const;
 
-export function DivisionCurrents({ className, opacity = 0.45 }: { className?: string; opacity?: number }) {
+export function DivisionCurrents({
+  className,
+  opacity = 0.45,
+  style,
+}: {
+  className?: string;
+  opacity?: number;
+  style?: CSSProperties;
+}) {
   return (
     <svg
       aria-hidden="true"
@@ -16,6 +26,7 @@ export function DivisionCurrents({ className, opacity = 0.45 }: { className?: st
       viewBox="0 0 1440 700"
       preserveAspectRatio="xMidYMid slice"
       className={className}
+      style={style}
     >
       {CURRENTS.map(({ d, color }) => (
         <path

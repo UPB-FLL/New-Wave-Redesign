@@ -1,4 +1,3 @@
-import { ArrowUpRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { DivisionLayout } from '../components/DivisionLayout';
 import { ServiceIcon } from '../components/ServiceIcon';
@@ -15,6 +14,7 @@ import {
   StepList,
 } from '../components/sections';
 import { divisionServices, findDivisionService } from '../content';
+import { NwseIcon } from '../icons/NwseIcon';
 import { servicePageSeo } from '../seo';
 import { DIVISION_BASE_PATH, divisionServicePath } from '../site';
 import type { DivisionServiceContent } from '../types';
@@ -94,11 +94,11 @@ function ServicePageBody({ service }: { service: DivisionServiceContent }) {
                 </span>
                 <span className="flex-1">
                   <span className="block font-semibold text-[var(--nw-current-navy)]">{item.navLabel}</span>
-                  <span className="mt-1 block text-sm leading-relaxed text-[var(--nw-slate)]">{item.cardSummary}</span>
+                  <span className="nwse-type-body-small mt-1 block text-[var(--nw-slate)]">{item.cardSummary}</span>
                 </span>
-                <ArrowUpRight
+                <NwseIcon
+                  name="arrow-up-right"
                   size={16}
-                  aria-hidden="true"
                   className="shrink-0 text-[var(--nw-slate)] transition-colors group-hover:text-[var(--nwse-lure-amber-deep)]"
                 />
               </Link>

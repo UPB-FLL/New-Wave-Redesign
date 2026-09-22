@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { CheckCircle, Mail, MapPin, Phone, Send } from 'lucide-react';
 import { useContent } from '../lib/useContent';
 import { FadeIn } from './ui/fade-in';
@@ -52,15 +52,21 @@ export interface ContactIntro {
   successBody?: string;
 }
 
+/** Icon slots a division page can fill with its own set; each defaults to the Lucide icon New Wave IT uses. */
+export type ContactIconSlot = 'phone' | 'mail' | 'mapPin' | 'send' | 'success';
+
 export default function Contact({
   headlineAs: HeadlineTag = 'h2',
   inquiry,
   intro,
+  icons,
 }: {
   headlineAs?: 'h1' | 'h2';
   /** Lead-routing tag the API allow-lists (e.g. 'social-engineering'). */
   inquiry?: 'social-engineering';
   intro?: ContactIntro;
+  /** Replacement icons, sized by the caller (18px cards and button, 32px success). */
+  icons?: Partial<Record<ContactIconSlot, ReactNode>>;
 } = {}) {
   const content = useContent('contact');
   const [form, setForm] = useState<FormData>(initialForm);
@@ -135,21 +141,21 @@ export default function Contact({
   const addressCity = content.address_city || 'Fort Lauderdale, FL 33311';
   const contactMethods = [
     {
-      icon: Phone,
+      icon: icons?.phone ?? <Phone size={18} />,
       title: 'Call us',
       sub: intro?.phoneNote ?? (content.phone_sub || 'Available 24/7 for emergencies'),
       content: <a href={`tel:${phone.replace(/\D/g, '')}`} className="font-medium text-brand-tide-blue hover:underline">{phone}</a>,
       accent: 'var(--nw-signal-cyan)',
     },
     {
-      icon: Mail,
+      icon: icons?.mail ?? <Mail size={18} />,
       title: 'Email us',
       sub: content.email_sub || 'We respond within one business day',
       content: <a href={`mailto:${email}`} className="font-medium text-brand-tide-blue hover:underline">{email}</a>,
       accent: 'var(--nw-tide-blue)',
     },
     {
-      icon: MapPin,
+      icon: icons?.mapPin ?? <MapPin size={18} />,
       title: 'Visit us',
       sub: `${address}\n${addressCity}`,
       content: content.address_sub ? <span className="text-sm text-[var(--nw-slate)]">{content.address_sub}</span> : null,
@@ -185,10 +191,10 @@ export default function Contact({
         <div className="grid gap-5 sm:gap-8 lg:grid-cols-5">
           <FadeIn className="lg:col-span-2">
             <div className="flex flex-col gap-3">
-              {contactMethods.map(({ icon: Icon, title, sub, content: methodContent, accent }) => (
+              {contactMethods.map(({ icon, title, sub, content: methodContent, accent }) => (
                 <div key={title} className="rounded-lg p-5 nw-surface">
                   <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-md" style={{ background: 'var(--nw-cloud-white)', color: accent }}>
-                    <Icon size={18} />
+                    {icon}
                   </div>
                   <h3 className="mb-1 font-semibold text-brand-navy">{title}</h3>
                   <p className="mb-1.5 whitespace-pre-line text-xs text-[var(--nw-slate)]">{sub}</p>
@@ -202,7 +208,7 @@ export default function Contact({
             {submitted ? (
               <div className="flex min-h-[400px] flex-col items-center justify-center rounded-lg p-8 text-center nw-surface" style={{ borderColor: 'var(--contact-success-accent, var(--nw-continuity-green))' }}>
                 <div className="nw-icon-success mb-5 h-16 w-16">
-                  <CheckCircle size={32} />
+                  {icons?.success ?? <CheckCircle size={32} />}
                 </div>
                 <h3 className="nw-display mb-3 text-2xl text-brand-navy">{content.success_title || 'Message received'}</h3>
                 <p className="max-w-sm text-[var(--nw-slate)]">
@@ -272,7 +278,7 @@ export default function Contact({
                     </span>
                   ) : (
                     <>
-                      <Send size={18} />
+                      {icons?.send ?? <Send size={18} />}
                       Send message
                     </>
                   )}

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import '../division.css';
+import '../type.css';
 import { useDivisionIcons, useParentJsonLdHidden } from '../useDivisionMeta';
 import { DIVISION_HEADER_OFFSET_CLASS, DivisionHeader } from './DivisionHeader';
 import { DivisionFooter } from './DivisionFooter';
