@@ -2,6 +2,14 @@
 
 export const SITE_URL = 'https://www.newwaveitfl.com';
 
+/**
+ * Master switch for the division's public presence: its routes, prerendered
+ * pages, and the New Wave IT navbar/footer entries. While false, vercel.json
+ * temporarily redirects /social-engineering/* to the home page and the
+ * sitemap omits the division. Turn it back on together with those two files.
+ */
+export const DIVISION_PUBLISHED = false;
+
 /** Every division URL lives under this path on the parent domain. */
 export const DIVISION_BASE_PATH = '/social-engineering';
 export const DIVISION_CONTACT_PATH = `${DIVISION_BASE_PATH}/contact`;

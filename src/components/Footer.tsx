@@ -1,5 +1,6 @@
 import { Facebook, Linkedin, Mail, MapPin, Phone, Twitter } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { DIVISION_PUBLISHED } from '../divisions/socialEngineering/site';
 import { useContent } from '../lib/useContent';
 import { CurrentField } from './brand/CurrentField';
 import Logo from './Logo';
@@ -11,8 +12,8 @@ const serviceLinks = [
   { label: 'Managed IT Services', href: '/service-category/managed-it-services' },
   { label: 'Cloud Solutions', href: '/service-category/cloud-solutions' },
   { label: 'Network Infrastructure', href: '/service-category/network-infrastructure' },
-  // Division: New Wave: Social Engineering.
-  { label: 'Social Engineering Testing', href: '/social-engineering' },
+  // Division: New Wave: Social Engineering (listed only while it's published).
+  ...(DIVISION_PUBLISHED ? [{ label: 'Social Engineering Testing', href: '/social-engineering' }] : []),
 ];
 
 const companyLinks = [
