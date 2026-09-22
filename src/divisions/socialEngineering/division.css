@@ -109,7 +109,9 @@
   align-items: center;
   background: color-mix(in srgb, var(--nwse-lure-amber) 16%, transparent);
   border-radius: var(--nw-radius-control);
-  color: var(--nwse-lure-amber-deep);
+  /* Navy base with the Lure Amber wave, as in the brand kit; an amber-deep base
+     left the amber wave at 1.86:1 against it on the tile. */
+  color: var(--nw-current-navy);
   display: inline-flex;
   justify-content: center;
 }

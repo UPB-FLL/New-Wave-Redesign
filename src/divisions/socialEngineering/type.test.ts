@@ -84,6 +84,19 @@ describe('division font files', () => {
   });
 });
 
+describe('division font caching', () => {
+  it('serves the self-hosted fonts with a one-year immutable cache', () => {
+    // Google Fonts cached these files for a year; without this rule Vercel's
+    // default (max-age=0, must-revalidate) makes returning visitors revalidate
+    // every font before first paint. Updates must use new file names (docs).
+    const config = JSON.parse(readFileSync(path.resolve(__dirname, '../../../vercel.json'), 'utf8')) as {
+      headers: { source: string; headers: { key: string; value: string }[] }[];
+    };
+    const rule = config.headers.find((entry) => entry.source === '/brand/social-engineering/fonts/(.*)');
+    expect(rule?.headers).toContainEqual({ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' });
+  });
+});
+
 describe('type.css', () => {
   it('points every url() at an existing file in public/', () => {
     expect(urls.length).toBeGreaterThan(0);

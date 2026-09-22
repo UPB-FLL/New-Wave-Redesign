@@ -217,7 +217,7 @@ export function CheckList({ items }: { items: readonly string[] }) {
       {items.map((item) => (
         <li key={item} className="nwse-type-body-small flex items-start gap-3 text-[var(--nw-current-navy)]">
           <span className="nwse-icon mt-0.5 h-5 w-5 shrink-0">
-            <NwseIcon name="check" size={13} />
+            <NwseIcon name="check" size={15} />
           </span>
           {item}
         </li>

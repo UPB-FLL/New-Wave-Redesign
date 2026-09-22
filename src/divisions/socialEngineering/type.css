@@ -39,9 +39,9 @@
    12/16), footer links (text-sm, 14/20), roadmap list items (text-sm,
    14/20), buttons (.nwse-btn).
 
-   display-1 is fluid instead of stepped: clamp(2.25rem, 1.59rem + 2.7vw,
-   3.75rem) is 36px up to a 390px viewport and 60px from 1280px, the same
-   end points as today. In between it runs ≤ 7px from today's steps (42.7 vs 48
+   display-1 is 36px on phones (as today) and fluid from 640px:
+   clamp(2.25rem, 1.59rem + 2.7vw, 3.75rem) reaches 60px from 1280px, the same
+   end point as today. In between it runs ≤ 7px from today's steps (42.7 vs 48
    at 640px, 47.0 vs 48 at 800px, 53.1 vs 48 at 1023px, 53.1 vs 60 at
    1024px). Every other style matches today's computed size, line height,
    weight, and tracking exactly: checked by swapping the classes in the built
@@ -221,10 +221,10 @@
 
   /* display-1: hero H1 */
   --nwse-type-display-1-family: var(--nw-font-display);
-  --nwse-type-display-1-size: clamp(2.25rem, 1.59rem + 2.7vw, 3.75rem);
+  --nwse-type-display-1-size: 2.25rem; /* text-4xl; fluid from 640px */
   --nwse-type-display-1-line-height: 1.05;
   --nwse-type-display-1-tracking: -0.01em;
-  --nwse-type-display-1-word-spacing: 0.06em;
+  --nwse-type-display-1-word-spacing: normal; /* 0.06em from 640px */
   --nwse-type-display-1-weight: 800;
 
   /* display-2: section H2 */
@@ -232,7 +232,7 @@
   --nwse-type-display-2-size: 1.875rem;
   --nwse-type-display-2-line-height: 1.25;
   --nwse-type-display-2-tracking: -0.01em;
-  --nwse-type-display-2-word-spacing: 0.06em;
+  --nwse-type-display-2-word-spacing: normal; /* 0.06em from 640px */
   --nwse-type-display-2-weight: 800;
 
   /* title-1: large card H3 */
@@ -297,6 +297,9 @@
    leading-* class, so today's pages render these line heights from 640px. */
 @media (min-width: 640px) {
   .nwse-root {
+    --nwse-type-display-1-size: clamp(2.25rem, 1.59rem + 2.7vw, 3.75rem);
+    --nwse-type-display-1-word-spacing: 0.06em;
+    --nwse-type-display-2-word-spacing: 0.06em;
     --nwse-type-display-1-line-height: 1; /* sm:text-5xl, lg:text-6xl */
     --nwse-type-display-2-size: 2.25rem;
     --nwse-type-display-2-line-height: 2.5rem; /* sm:text-4xl */
@@ -308,7 +311,9 @@
 /* Plus Jakarta Sans ExtraBold sets a narrow word space (0.18em; Inter's is
    0.22em), and the -0.01em tracking narrows it further, so display headings
    read as run-together words ("Apractical path"). word-spacing restores a
-   ~0.23em gap without loosening the letters. */
+   ~0.23em gap without loosening the letters. Applied from 640px only: on
+   phones the extra width pushed some headings onto another line (e.g. an
+   orphaned "call" on the contact H1 at 393px). */
 
 /* :where() keeps each class at one-class specificity while still limiting
    it to the division root. */

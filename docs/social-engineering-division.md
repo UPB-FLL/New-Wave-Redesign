@@ -257,7 +257,7 @@ the paragraph's 1.625 (19.5px).
 
 | Class | Family | Size / line height | Weight, tracking | Replaces |
 |---|---|---|---|---|
-| `nwse-type-display-1` | Display | `clamp(2.25rem, 1.59rem + 2.7vw, 3.75rem)`, 1.05 → 1 from 640px | 800, −0.01em | hero H1 `text-4xl leading-[1.05] sm:text-5xl lg:text-6xl` |
+| `nwse-type-display-1` | Display | 36px on phones; `clamp(2.25rem, 1.59rem + 2.7vw, 3.75rem)` from 640px; 1.05 → 1 from 640px | 800, −0.01em; word-spacing 0.06em from 640px | hero H1 `text-4xl leading-[1.05] sm:text-5xl lg:text-6xl` |
 | `nwse-type-display-2` | Display | 30/37.5px → 36/40px from 640px | 800, −0.01em | section H2 `text-3xl leading-tight sm:text-4xl` |
 | `nwse-type-title-1` | Text | 20/28px | 700 | `text-xl font-bold` card H3 |
 | `nwse-type-title-2` | Text | 18/28px | 700 | `text-lg font-bold` card and step H3 |
@@ -269,8 +269,12 @@ the paragraph's 1.625 (19.5px).
 | `nwse-type-kicker` | Mono, caps | 12/18px | 600, 0.14em | `.nwse-kicker` type properties; keep `.nwse-kicker` or `.nwse-kicker-on-dark` for the amber |
 | `nwse-type-numeric` | any | — | `tabular-nums` | figures that must align |
 
-- `display-1` is the only fluid style. It matches today's 36px on phones and
-  60px from 1280px; between those it is within about 7px of today's steps.
+- `display-1` is the only fluid style, and only from 640px. It matches today's
+  36px on phones and 60px from 1280px; between those it is within about 7px of
+  today's steps.
+- `display-1` and `display-2` add 0.06em of word spacing from 640px (Plus
+  Jakarta Sans ExtraBold's word space is narrow). Phones keep normal spacing so
+  headings wrap exactly as before.
 - The 640px line heights are what today's pages actually render. Tailwind's
   `sm:text-*` utilities carry their own line height, which overrides the
   `leading-*` class. To restore the intended leading (1.05, 1.25, 1.625),
@@ -284,7 +288,11 @@ the paragraph's 1.625 (19.5px).
 1. Request
    `https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200..800&family=Inter:wght@100..900&family=IBM+Plex+Mono:wght@400;500;600&display=swap`
    with a current Chrome User-Agent and download the `/* latin */` block's
-   files over the old ones, keeping the file names.
+   files under NEW file names that carry the Google Fonts version (for example
+   `inter-v21-latin-var.woff2`), and update the `url()`s in `type.css`,
+   `DIVISION_CRITICAL_FONTS` in `prerender.ts`, and the file list in
+   `type.test.ts`. `vercel.json` serves these files with a one-year immutable
+   cache, so reusing a name would leave returning visitors on the old file.
 2. Recompute the fallback values if the fonts' metrics changed. Use fonttools
    to average advance widths weighted by capsize's English "latin" frequency
    table (`@capsizecss/unpack`), then apply the formulas in the `type.css`
@@ -328,11 +336,13 @@ The division draws with its own 35-icon set. New Wave IT pages keep Lucide.
   meaning that no nearby text states. It then renders `role="img"`,
   `aria-labelledby`, and a `<title>`. Icon-only buttons put their name on the
   button (`aria-label`), as the header menu toggle does.
-- Sizes in use, all the same as the Lucide icons they replaced:
-  - 13: check bullets.
+- Sizes in use (the 1.75 stroke is lighter than Lucide's 2, so the two
+  smallest uses went up a step to stay crisp on 1x screens):
   - 14: inline link arrows, the endorsement-bar arrow, journey chevrons.
-  - 16: the Services dropdown and its chevron, footer contact rows, the CTA
-    arrow, related-card arrows.
+  - 15: check bullets.
+  - 16: the Services dropdown chevron, footer contact rows, the CTA arrow,
+    related-card arrows.
+  - 20: Services dropdown icons (in their 32px tile).
   - 18: the FAQ chevron, hub service-card arrows, related-service icons, the
     contact form.
   - 20: hub service tiles.

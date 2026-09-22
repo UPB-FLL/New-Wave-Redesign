@@ -142,7 +142,7 @@ export function DivisionHeader() {
                           className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-[var(--nw-cloud-white)]"
                         >
                           <span className="nwse-icon h-8 w-8 shrink-0">
-                            <ServiceIcon icon={service.icon} size={16} />
+                            <ServiceIcon icon={service.icon} size={20} />
                           </span>
                           <span className="text-sm font-medium text-[var(--nw-current-navy)]">{service.navLabel}</span>
                         </Link>
