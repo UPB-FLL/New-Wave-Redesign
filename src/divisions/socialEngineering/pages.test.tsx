@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -154,6 +156,12 @@ describe('division positioning', () => {
     expect(document.body.textContent ?? '').not.toMatch(SECURITY_WORDING);
     expect(document.title).not.toMatch(SECURITY_WORDING);
     expect(document.head.querySelector('meta[name="description"]')?.getAttribute('content') ?? '').not.toMatch(SECURITY_WORDING);
+    // Keywords, Open Graph/Twitter tags, and JSON-LD are what crawlers read first.
+    expect(document.head.innerHTML).not.toMatch(SECURITY_WORDING);
+  });
+
+  it('keeps the web app manifest on-message', () => {
+    expect(readFileSync(path.resolve(__dirname, '../../../public/brand/social-engineering/site.webmanifest'), 'utf8')).not.toMatch(SECURITY_WORDING);
   });
 });
 

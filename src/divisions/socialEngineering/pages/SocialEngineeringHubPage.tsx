@@ -109,7 +109,7 @@ export default function SocialEngineeringHubPage() {
         <SectionIntro
           kicker="How we work"
           title="Discover, prioritize, build"
-          description="Every engagement follows the same three steps, whichever services it includes."
+          description="Every engagement starts with discovery and prioritization before anything is built."
           id="nwse-method"
         />
         <StepList steps={content.method} />
