@@ -13,14 +13,14 @@ export const integration: DivisionServiceContent = {
   kicker: 'Integration',
   headline: 'Booking and marketing integration that connects what already works',
   summary:
-    'New Wave: Social Engineering connects the tools South Florida businesses already use, including the website, booking and scheduling system, forms, CRM, email and SMS lists, listings, and analytics, into one path from discovery to booking. The goal isn’t necessarily to replace the systems already working, it’s to connect them through a clearer customer experience. Because we’re part of New Wave IT, we pay close attention to the less visible parts: accounts set up properly, data that moves cleanly, and tracking that works.',
+    'New Wave: Social Engineering connects the tools South Florida businesses already use, including the website, booking and scheduling system, forms, CRM, email and SMS lists, listings, and analytics, into one path from discovery to booking. The goal isn’t necessarily to replace the systems already working, it’s to connect them through a clearer customer experience. Being part of New Wave IT helps here, since connecting systems cleanly and testing them before anyone relies on them is everyday IT work.',
   cardSummary:
     'Connect your website, booking tools, forms, CRM, and analytics into one path from discovery to booking, without replacing what already works.',
   scope: [
     {
-      title: 'Website and booking connection',
+      title: 'One booking path from every channel',
       detail:
-        'We connect your website to the booking, registration, or scheduling tools you already use, so every “Book now” leads straight to the right place. Visitors shouldn’t have to start over or call to finish.',
+        'Whether someone finds you through a post, an ad, a search, or a listing, the “Book” button leads to the booking, registration, or scheduling tool you already use. No one has to start over or call to finish.',
     },
     {
       title: 'Forms to CRM, email, and SMS lists',
@@ -38,16 +38,16 @@ export const integration: DivisionServiceContent = {
         'We set up analytics and conversion tracking across the whole path, from the post, ad, or listing to the finished booking, and test that each step records correctly. You can see which sources lead to bookings and where people drop off.',
     },
     {
-      title: 'Consistent details across listings',
+      title: 'Phone and email inquiries',
       detail:
-        'Your business name, address, phone, hours, and booking links match across the website, Google Business Profile, social profiles, and directory listings. Customers and search engines see the same information everywhere.',
+        'Calls and emails are part of the path too. The phone numbers and email addresses on your website, listings, and ads reach the right person, and those inquiries are counted alongside forms and online bookings.',
     },
   ],
   process: [
     {
       title: 'Discover',
       detail:
-        'Before we recommend anything, we learn the business and map the tools you use today: the website, booking and registration portals, forms, CRM, email and SMS, listings, and social accounts. We follow the path a customer takes from first search to confirmed booking and note where it breaks or goes quiet.',
+        'We map the tools you use today: the website, booking and registration portals, forms, CRM, email and SMS, listings, and social accounts. Then we follow the path a customer takes from first search to confirmed booking and note where it breaks or goes quiet.',
     },
     {
       title: 'Prioritize',
@@ -76,7 +76,7 @@ export const integration: DivisionServiceContent = {
   metrics: [
     'Bookings traced to their source',
     'Inquiry response time',
-    'Inquiry-to-booking conversion',
+    'Inquiries reaching the right person',
     'Drop-off points between tools',
     'Contacts captured without manual entry',
   ],
@@ -89,17 +89,17 @@ export const integration: DivisionServiceContent = {
     {
       question: 'How does an integration project start, and how long does it take?',
       answer:
-        'It starts with a discovery call. We map the tools you use today, follow the path a customer takes from first search to confirmed booking, and agree on which connections to fix first. Timing depends on how many tools are involved and what access and data already exist, so you get a realistic plan after discovery rather than a guess up front.',
+        'It starts with a discovery call about the tools you use and where inquiries get lost today. From there we trace a real booking from first search to confirmation and agree on which connections to fix first. How long the work takes depends on how many tools are involved and what access already exists, which becomes clear during that review.',
     },
     {
       question: 'How do you measure whether the integration is working?',
       answer:
-        'Every connection is tested before launch with test inquiries and bookings, and we check the data afterward to confirm contacts, bookings, and conversions are recorded correctly. From there, we measure against bookings and inquiries traced to their source, how quickly new inquiries get a response, and where people drop off. If you add digital oversight, these go into a monthly report.',
+        'Every connection is tested before launch with test inquiries and bookings, and we check the data afterward to confirm contacts, bookings, and conversions are recorded correctly. From there, we measure against bookings and inquiries traced to their source, how quickly new inquiries get a response, and where people drop off. While we work together, these go into a monthly report.',
     },
     {
       question: 'Who owns the accounts, and can you work with our current IT provider or agency?',
       answer:
-        'Your business owns its accounts, data, and tools, and we work through access you control rather than logins in our name. We can work alongside your current web host, IT provider, agency, or in-house team, and because we’re part of New Wave IT, we’re used to coordinating on the technical details. You also get plain-language documentation of how everything connects, so nothing depends on one person’s memory.',
+        'Your business owns its accounts, data, and tools, and we work through access you control rather than logins in our name. We can work alongside your current web host, IT provider, agency, or in-house team, and coordinating with other technical teams is routine for us. You also get plain-language documentation of how everything connects, so nothing depends on one person’s memory.',
     },
   ],
 };

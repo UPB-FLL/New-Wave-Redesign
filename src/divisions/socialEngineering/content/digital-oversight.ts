@@ -11,9 +11,9 @@ export const digitalOversight: DivisionServiceContent = {
   serviceType: 'Digital presence management',
   icon: 'oversight',
   kicker: 'Digital oversight',
-  headline: 'Digital presence management in Fort Lauderdale that closes the gaps',
+  headline: 'Digital presence management in Fort Lauderdale, one accountable team',
   summary:
-    'New Wave: Social Engineering oversees the whole digital presence for Fort Lauderdale and South Florida businesses: the website, social accounts, Google Business Profile and listings, reviews, and analytics, with one team accountable for all of it. We start with a simple question: who owns the brand, website, and social today, and where are the gaps? Your business owns every account and asset, and each month you get a report and an updated roadmap for what comes next.',
+    'New Wave: Social Engineering oversees the whole digital presence for Fort Lauderdale and South Florida businesses: the website, social accounts, Google Business Profile and listings, reviews, and analytics, with one team accountable for all of it. We start with a simple question: who owns the brand, website, and social today, and where are the gaps? Every account stays in your business’s name, and each month you get a report and an updated roadmap for what comes next.',
   cardSummary:
     'One accountable team for your website, social accounts, Google Business Profile, listings, reviews, and analytics, with a report every month.',
   scope: [
@@ -25,7 +25,7 @@ export const digitalOversight: DivisionServiceContent = {
     {
       title: 'Ownership and access in the business’s name',
       detail:
-        'Your business owns its accounts and assets. If a profile was set up by a former employee, an old vendor, or on a personal email, we help bring it back under the business’s control, and our team works through access you grant and can remove. Because NW Social Engineering is part of New Wave IT, accounts get set up the way any other business system should be.',
+        'Your business owns its accounts. If a profile was set up by a former employee, an old vendor, or on a personal email, we help bring it back under the business’s control, and our team works through access you grant and can remove. NW Social Engineering is part of New Wave IT, so account ownership and access get the same discipline as any other business system.',
     },
     {
       title: 'Google Business Profile, listings, and reviews',
@@ -47,7 +47,7 @@ export const digitalOversight: DivisionServiceContent = {
     {
       title: 'Discover',
       detail:
-        'Before we recommend anything, we learn the business and ask who owns the brand, website, and social today, and where the gaps are. We then review every public touchpoint and the accounts behind it, and map how customers find, book, and return.',
+        'We find out who holds the keys to each public touchpoint, from the domain to the least-used social profile, then map how customers find, book, and return. Any account no one can vouch for goes to the top of the gap list.',
     },
     {
       title: 'Prioritize the gaps',
@@ -89,12 +89,12 @@ export const digitalOversight: DivisionServiceContent = {
     {
       question: 'How do we get started, and how long does it take to get organized?',
       answer:
-        'It starts with a discovery call, where we ask who owns the brand, website, and social today, and where the gaps are. We then inventory your accounts and touchpoints, and the first round of work focuses on ownership, access, and listing accuracy. How long that takes depends on how many accounts exist and how easy they are to recover, so you get a realistic plan after discovery rather than a guess up front.',
+        'It starts with a discovery call, where we ask who owns the brand, website, and social today, and where the gaps are. We then inventory your accounts and touchpoints, and the first round of work focuses on ownership, access, and listing accuracy. How long that takes depends on how many accounts exist and how easy they are to recover, and you’ll have a plan for it before the work starts.',
     },
     {
       question: 'Who owns our accounts, and can you work alongside our current agency or web host?',
       answer:
-        'Your business owns its domain, website, social accounts, Google Business Profile, and ad accounts, and our team works through access you control and can remove. If an account is tied to a former employee, an old vendor, or a personal email, bringing it back under the business’s name is part of the work. If you already have an agency, web host, or in-house team, we can work alongside them and keep watch over the whole picture so nothing falls between them.',
+        'Every account stays in the business’s name, and our access can be removed whenever you choose. If an account was opened by someone who has since left, recovering it is part of the work. If you already have an agency, web host, or in-house team, we can work alongside them and keep watch over the whole picture so nothing falls between them.',
     },
     {
       question: 'How do you measure and report on our digital presence?',

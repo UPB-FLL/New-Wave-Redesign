@@ -3,17 +3,17 @@ import type { DivisionServiceContent } from '../types';
 export const brandDevelopment: DivisionServiceContent = {
   slug: 'brand-development',
   navLabel: 'Brand development',
-  metaTitle: 'Branding agency in Fort Lauderdale | New Wave: Social Engineering',
+  metaTitle: 'Brand development, Fort Lauderdale | New Wave: Social Engineering',
   metaDescription:
-    'Brand development by a Fort Lauderdale branding agency: positioning, logo, color, voice, and guidelines so you look the same everywhere. Book a discovery call.',
+    'Brand development in Fort Lauderdale: positioning, logo, color, voice, and guidelines so your business looks the same everywhere. Book a discovery call.',
   keywords:
-    'branding agency fort lauderdale, brand development fort lauderdale, branding agency south florida, brand identity design fort lauderdale, logo and brand identity broward county, branding agency miami, branding agency palm beach, brand guidelines south florida',
+    'brand development fort lauderdale, branding fort lauderdale, brand identity design fort lauderdale, branding company south florida, logo and brand identity broward county, branding miami-dade, branding palm beach county, brand guidelines south florida',
   serviceType: 'Brand development',
   icon: 'brand',
   kicker: 'Brand development',
   headline: 'Brand development in Fort Lauderdale, so you look the same everywhere',
   summary:
-    'New Wave: Social Engineering handles brand development for Fort Lauderdale and South Florida businesses that want to look and sound the same everywhere they show up. We work out your positioning and messaging, build the identity and voice, and turn it all into brand guidelines and templates for social, print, and signage. Then we help roll it out across your website, listings, social accounts, and everything customers see in person.',
+    'New Wave: Social Engineering handles brand development for Fort Lauderdale and South Florida businesses that want to look and sound the same everywhere they show up. We work out your positioning and messaging, build the identity and voice, and turn it all into brand guidelines and templates for social, print, and signage. Then we apply the brand to your website, listings, and social profiles so customers recognize you wherever they find you.',
   cardSummary:
     'Positioning, identity, voice, and brand guidelines, so the business looks the same on the website, listings, social, and in person.',
   scope: [
@@ -38,16 +38,16 @@ export const brandDevelopment: DivisionServiceContent = {
         'Rules for photography, graphics, and layout, and how the pieces fit together, collected in one guide. Staff, printers, and outside vendors all work from the same reference.',
     },
     {
-      title: 'Templates and rollout everywhere you show up',
+      title: 'Templates and rollout',
       detail:
-        'Ready-to-use templates for social posts, print, and signage, then a rollout across your website, Google Business Profile and other listings, social profiles, and on-site materials. Customers see one brand wherever they find you.',
+        'Ready-to-use templates for social posts, print, and signage, then a rollout across your website, Google Business Profile and other listings, and social profiles. Print and signage files are prepared so your printer can work from them directly.',
     },
   ],
   process: [
     {
       title: 'Discover',
       detail:
-        'Before we recommend anything, we learn the business: where you want to be in 12 months, who you serve, and how people find you today. We gather every place the brand shows up now, from the website and listings to social accounts, printed pieces, and signage, and note where they don’t match.',
+        'We gather every place the brand shows up today, from the website and listings to social accounts, printed pieces, and signage, and note where they don’t match. We also ask who the business serves, what sets it apart, and where the current brand files live.',
     },
     {
       title: 'Prioritize',
@@ -83,22 +83,22 @@ export const brandDevelopment: DivisionServiceContent = {
     {
       question: 'What’s included in your brand development work?',
       answer:
-        'Positioning and messaging, a logo system, color and typography, a written brand voice, and brand guidelines that pull it all together. We also build templates for social posts, print, and signage and help roll the brand out across your website, listings, and social profiles. If your current logo or colors have recognition worth keeping, we can refine them instead of starting over.',
+        'Positioning and messaging, a logo system, color and typography, a written brand voice, and brand guidelines that pull it all together. We also build templates for social posts, print, and signage and roll the brand out across your website, listings, and social profiles. If your current logo or colors have recognition worth keeping, we can refine them instead of starting over.',
     },
     {
       question: 'How does a brand development project start, and how long does it take?',
       answer:
-        'It starts with a discovery call. We learn where you want the business to be in 12 months, who you serve, and where the brand shows up today, then agree on what to keep, refine, or rebuild. Timing depends on the scope and how many touchpoints need updating, so you’ll get a realistic schedule after discovery rather than a guess up front.',
+        'It starts with a discovery call about who you serve, what sets you apart, and where the brand shows up today. Together we decide what to keep, refine, or rebuild. The schedule follows from that decision and from how many touchpoints need updating, so we set it once discovery is done.',
     },
     {
       question: 'How do you measure whether the branding is working?',
       answer:
-        'First, we check that every touchpoint, from the website and Google Business Profile to social profiles and signage, actually uses the new brand. After rollout, we track signals such as branded searches, direct website visits, and inquiries and bookings, and report on them in plain terms. A brand is one input among many, so we tell you what the data shows rather than claim credit for every change.',
+        'First, we check that every touchpoint, from the website and Google Business Profile to social profiles and signage, actually uses the new brand. After rollout, we track signals such as branded searches, direct website visits, and inquiries and bookings, and cover them in a monthly report while we work together. A brand is one input among many, so we tell you what the data shows rather than claim credit for every change.',
     },
     {
       question: 'Who owns the logo, brand files, and guidelines?',
       answer:
-        'Your business does. When the work is done, you receive the final logo files, color and type specifications, templates, and brand guidelines in organized folders your team controls. Because we’re part of New Wave IT, we set up storage and access properly so the files don’t live in one person’s inbox. If you work with an in-house team, a printer, or another agency, they work from the same files and guidelines.',
+        'You receive the final logo files, color and type specifications, templates, and guidelines in organized folders your business controls, not in one person’s inbox. Ownership of the brand work is set out in writing before the project begins. If you work with an in-house team, a printer, or another agency, they work from the same files and guidelines.',
     },
   ],
 };

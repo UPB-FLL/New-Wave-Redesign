@@ -3,26 +3,26 @@ import type { DivisionHubContent } from '../types';
 export const hubContent: DivisionHubContent = {
   metaTitle: 'Marketing agency in Fort Lauderdale | New Wave: Social Engineering',
   metaDescription:
-    'Social media, branding, web design, and marketing agency in Fort Lauderdale, serving South Florida businesses as a New Wave IT division. Book a discovery call.',
+    'Marketing agency in Fort Lauderdale for social media, branding, websites, and ads across South Florida, from a division of New Wave IT. Book a discovery call.',
   keywords:
-    'marketing agency fort lauderdale, social media and web design agency south florida, branding and marketing south florida, digital marketing agency broward county, marketing agency palm beach county, marketing agency miami-dade, social media branding and web design fort lauderdale',
-  kicker: 'Social media, brand, web & marketing in South Florida',
+    'marketing agency fort lauderdale, social media and web design agency south florida, branding and marketing agency south florida, digital marketing agency broward county, marketing agency palm beach county, marketing agency miami-dade, social media branding and web design fort lauderdale',
+  kicker: 'Social, brand, web & marketing agency, Fort Lauderdale',
   headline: 'Growth decisions made on data, not guesswork.',
   summary:
-    'New Wave: Social Engineering is a social media, branding, web design, and marketing agency in Fort Lauderdale, and a division of New Wave IT. We handle social media, brand development, website design, and marketing, connect the tools you already use into one path to booking, and oversee your whole digital presence as one accountable team.',
+    'New Wave: Social Engineering is a Fort Lauderdale marketing agency and a division of New Wave IT. We run social media, develop brands, design websites, and plan marketing for South Florida businesses, then connect the tools you already use into one path to booking and oversee the whole digital presence as one accountable team.',
   intro: {
     heading: 'The business is built. The front door online isn’t.',
     paragraphs: [
       'You’ve built something real: a place people visit, a service people rely on, a product people come back for. Online, though, that business is often spread across a website, a few listings, social accounts, a booking tool, and an inbox, each set up at a different time by a different person.',
-      'Customers feel the gaps. They find you on Instagram, land on a page that doesn’t match, call to ask something the website should have answered, and sometimes give up before they book. Every post, ad, and listing should land somewhere that can take a booking.',
-      'The goal isn’t necessarily to replace the systems already working. It’s to connect them through a clearer customer experience: one path from discovery to booking, with one team accountable for all of it.',
+      'Customers feel the gaps. They find you on Instagram, land on a page that doesn’t match, call to ask something the website should have answered, and sometimes give up before they book. Each of those gaps is a lost booking that never shows up in a report.',
+      'Most of what a business needs online already exists. What’s missing is one clear path from discovery to booking, and one team accountable for keeping it that way.',
     ],
   },
   method: [
     {
       title: 'Discover',
       detail:
-        'Before we recommend anything, we get to understand the business, its goals, and the digital environment it runs on today.',
+        'We learn the business, its goals, and the digital environment it runs on today: the accounts, the tools, and the paths customers take to reach you.',
     },
     {
       title: 'Prioritize',
@@ -119,27 +119,27 @@ export const hubContent: DivisionHubContent = {
     {
       question: 'What does New Wave: Social Engineering do?',
       answer:
-        'New Wave: Social Engineering is the social media, branding, web design, and marketing division of New Wave IT, based in Fort Lauderdale. We cover six areas: social media, brand development, website design, marketing, integration of the tools you already use, and oversight of your whole digital presence. The goal is one clear path from the moment someone finds you to the moment they book.',
+        'New Wave: Social Engineering is the social media, brand, web, and marketing division of New Wave IT, based in Fort Lauderdale. The work covers six areas: social media, brand development, website design, marketing, integration of the tools you already use, and oversight of your whole digital presence. Each one serves the same goal, a clear path from the moment someone finds you to the moment they book.',
     },
     {
       question: 'How do we get started?',
       answer:
-        'Every engagement starts with a discovery call. Before we recommend anything, we want to understand the business: where you want to be in 12 months, how people find and book with you today, and who owns what. From there we review your public touchpoints, prioritize the highest-value opportunities, and build a roadmap.',
+        'Every engagement starts with a discovery call. We ask how people find and book with you today, what you want the next year to look like, and who owns what. From there we review your public touchpoints, prioritize the highest-value opportunities, and build a roadmap.',
     },
     {
       question: 'Do we need to be a New Wave IT client?',
       answer:
-        'No. We work with New Wave IT clients and with businesses that use another IT provider or none at all. We can also work alongside an existing agency, web host, or in-house marketing team, taking on the parts that make sense. If you are a New Wave IT client, we coordinate directly with the team that already supports your technology.',
+        'No. Businesses that use another IT provider, or none at all, work with us the same way, and we can take on only the parts that make sense next to your current agency, web host, or in-house team. If you are a New Wave IT client, we coordinate directly with the team that already supports your technology.',
     },
     {
       question: 'Who owns our accounts, content, and website?',
       answer:
-        'Your business should own its domain, website, social accounts, Google Business Profile, and ad accounts, and we set things up that way, with our team working through access you control. If ownership is unclear today, such as a page created by a former employee or a domain registered to an old vendor, sorting it out is part of our digital oversight work. Ownership of the content we create is agreed in writing before work begins.',
+        'Your business owns its domain, website, social accounts, Google Business Profile, and ad accounts, and our team works through access you control and can remove. If ownership is unclear today, such as a page created by a former employee or a domain registered to an old vendor, sorting it out is part of our digital oversight work. Ownership of the content and design work we create is set out in writing before work begins.',
     },
     {
       question: 'How do you measure and report results?',
       answer:
-        'We measure against bookings and inquiries, not vanity metrics. Tracking is set up and checked early so each channel can be tied to the actions that matter, such as bookings, calls, form inquiries, and cost per lead. You get a monthly report that shows what moved, what didn’t, and what we plan to do next.',
+        'We measure against bookings and inquiries, not vanity metrics. Tracking is set up and checked early so each channel can be tied to the actions that matter, such as bookings, calls, form inquiries, and cost per lead. While we work together, you get a monthly report that shows what moved, what didn’t, and what we plan to do next.',
     },
   ],
   cta: {

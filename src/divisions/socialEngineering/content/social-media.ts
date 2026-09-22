@@ -5,7 +5,7 @@ export const socialMedia: DivisionServiceContent = {
   navLabel: 'Social media',
   metaTitle: 'Social media management, South FL | New Wave: Social Engineering',
   metaDescription:
-    'Social media management in Fort Lauderdale and South Florida: strategy, content, posting, and replies, measured by bookings. Start with a discovery call.',
+    'Social media management in Fort Lauderdale and South Florida: strategy, content, posting, and replies, tied to inquiries and bookings. Book a discovery call.',
   keywords:
     'social media management fort lauderdale, social media marketing south florida, social media manager fort lauderdale, social media management broward county, social media marketing miami, social media management palm beach, social media content creation south florida, instagram and tiktok management fort lauderdale',
   serviceType: 'Social media management',
@@ -13,7 +13,7 @@ export const socialMedia: DivisionServiceContent = {
   kicker: 'Social media',
   headline: 'Social media management in Fort Lauderdale, measured in bookings',
   summary:
-    'New Wave: Social Engineering handles social media management for Fort Lauderdale and South Florida businesses on Instagram, Facebook, TikTok, and YouTube. We set the strategy, turn what you already do into content, post on a steady calendar, and answer the comments and messages that come in. Then we report on what actually drives inquiries and bookings.',
+    'New Wave: Social Engineering handles social media management on Instagram, Facebook, TikTok, and YouTube for businesses in Fort Lauderdale and across South Florida. We set the strategy, turn what you already do into content, post on a steady calendar, and answer the comments and messages that come in. Then we show you which posts and platforms actually led to inquiries and bookings.',
   cardSummary:
     'Strategy, content, posting, and community management on Instagram, Facebook, TikTok, and YouTube, reported against inquiries and bookings.',
   scope: [
@@ -47,7 +47,7 @@ export const socialMedia: DivisionServiceContent = {
     {
       title: 'Discover',
       detail:
-        'Before we recommend anything, we learn the business: where you want to be in 12 months, who you want to reach, and how people find, book, and return today. We also review your current accounts, existing content, and who answers messages now.',
+        'We start with your goals and your audience: who you want to reach and how they find, book, and return today. We also look at the accounts you have, the photos and video already on hand, and who answers messages now.',
     },
     {
       title: 'Prioritize',
@@ -84,12 +84,12 @@ export const socialMedia: DivisionServiceContent = {
     {
       question: 'What’s included in your social media management?',
       answer:
-        'Strategy, content planning, posting, and community management on the platforms that fit your business, usually some mix of Instagram, Facebook, TikTok, and YouTube. That covers the calendar, short-form video and posts, replies to comments and messages, and a monthly report. Paid social media marketing runs through our Marketing service, and the two are planned together when you use both.',
+        'Strategy, content planning, posting, and community management on the platforms that fit your business, usually some mix of Instagram, Facebook, TikTok, and YouTube. That covers the calendar, short-form video and posts, replies to comments and messages, and a monthly report. Paid social campaigns run through our marketing service, and the two are planned together when you use both.',
     },
     {
       question: 'How does a social media engagement start?',
       answer:
-        'With a discovery call. We want to understand where you want to be in 12 months, how people find and book with you today, and what accounts and content already exist. From there we prioritize the platforms and content lanes with the most room to grow and build the first calendar. Timing depends on how much content already exists and how much account cleanup is needed, and you’ll get a realistic plan after discovery.',
+        'With a discovery call. We talk through your goals, your audience, and the accounts and content that already exist, then choose where to focus and build the first calendar around it. How soon posting begins depends on how much content is ready and how much account cleanup is needed, which we’ll know once discovery is done.',
     },
     {
       question: 'How do you measure and report on social media results?',
@@ -99,7 +99,7 @@ export const socialMedia: DivisionServiceContent = {
     {
       question: 'Who owns our social accounts and the content?',
       answer:
-        'Your business owns its accounts. Because we’re part of New Wave IT, we set up access properly, with permissions on accounts you control instead of shared passwords, and we keep the content we make organized so you can use it anywhere. If you have an in-house team or another agency, they keep their access and can work from the same calendar.',
+        'Your business owns its accounts, and we work through permissions you grant and can remove rather than shared logins. The photos, video, and posts we make are kept organized in one place, and who owns that content is agreed in writing up front. If you have an in-house team or another agency, they keep their access and can work from the same calendar.',
     },
   ],
 };
