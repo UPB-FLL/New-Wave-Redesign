@@ -52,6 +52,12 @@ export interface DivisionServiceContent {
   scopeHeading?: string;
   /** Overrides the closing call-to-action heading. */
   ctaHeading?: string;
+  /**
+   * The hero scene's column from lg (DivisionHero `sceneSize`; default
+   * 'large'). 'compact' for a headline that would run four lines beside the
+   * full-size scene.
+   */
+  heroSceneSize?: 'large' | 'compact';
 }
 
 export interface DivisionRoadmapPhase {

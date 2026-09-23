@@ -405,6 +405,12 @@ describe('content hidden below a breakpoint', () => {
   const onlyDecorativeGraphics = (element: Element) =>
     [...element.querySelectorAll('img')].every((img) => img.getAttribute('alt') === '') &&
     [...element.querySelectorAll('svg')].every((svg) => svg.closest('[aria-hidden="true"]') !== null);
+  /** A line-art scene's wrapper (sections.tsx PageScene): hidden from assistive tech, nothing focusable, no text. */
+  const isDecorativeScene = (element: Element) =>
+    element.hasAttribute('data-page-scene') &&
+    element.getAttribute('aria-hidden') === 'true' &&
+    element.querySelector('a, button, input, select, textarea, [tabindex]') === null &&
+    !element.textContent?.trim();
 
   it('on the hub, hides only decorative art and repeats of content shown elsewhere', () => {
     const { container } = renderAt(<SocialEngineeringHubPage />);
@@ -413,11 +419,17 @@ describe('content hidden below a breakpoint', () => {
     const footer = container.querySelector('footer')!;
     const hidden = hiddenOnPhones(container);
 
-    const footnote = hidden.filter((element) => element.closest('section') === main.firstElementChild);
+    const scenes = hidden.filter((element) => element.hasAttribute('data-page-scene'));
+    const footnote = hidden.filter((element) => element.closest('section') === main.firstElementChild && !scenes.includes(element));
     const learnMore = hidden.filter((element) => element.textContent?.startsWith('Learn more'));
     const art = hidden.filter((element) => element.querySelector('img') && !element.textContent?.trim());
     const lockup = hidden.filter((element) => element.querySelector('[data-role="family-lockup"]'));
-    expect(footnote.length + learnMore.length + art.length + lockup.length).toBe(hidden.length);
+    expect(scenes.length + footnote.length + learnMore.length + art.length + lockup.length).toBe(hidden.length);
+
+    // The line-art scenes: the hero's (off on landscape phones) and the "What
+    // we gather" band's (desktop only). Decorative, with the copy beside them.
+    expect(scenes.map((element) => element.getAttribute('data-page-scene'))).toEqual(['hub', 'hubSection']);
+    scenes.forEach((element) => expect(isDecorativeScene(element)).toBe(true));
 
     // Hero footnote: the descriptor and the service names, all listed again just below.
     expect(footnote).toHaveLength(1);
@@ -445,17 +457,45 @@ describe('content hidden below a breakpoint', () => {
     expect(footer.querySelector('[aria-label="New Wave: Social Engineering home"]')).not.toBeNull();
   });
 
-  it('hides nothing with display: none in division.css except scrollbar and disclosure-marker chrome', () => {
+  it('hides nothing with display: none in division.css except scrollbar and disclosure-marker chrome, and scenes in forced colours and print', () => {
     const hiders: string[] = [];
     divisionCss.walkDecls('display', (decl: Declaration) => {
-      if (decl.value === 'none') hiders.push((decl.parent as Rule).selector);
+      if (decl.value !== 'none') return;
+      const media = decl.parent?.parent?.type === 'atrule' ? `@media ${(decl.parent.parent as AtRule).params} ` : '';
+      hiders.push(`${media}${(decl.parent as Rule).selector}`);
     });
-    expect(hiders.sort()).toEqual(['.nwse-faq summary::-webkit-details-marker', '.nwse-journey::-webkit-scrollbar']);
+    expect(hiders.sort()).toEqual([
+      '.nwse-faq summary::-webkit-details-marker',
+      '@media (forced-colors: active), print .nwse-root [data-page-scene]',
+      '@media (max-width: 1023.98px) .nwse-journey::-webkit-scrollbar',
+    ]);
   });
 
-  it.each(divisionServices.map((service) => [service.slug]))('on %s, hides nothing below a breakpoint', (slug) => {
+  it('leaves the decorative line-art scenes out in forced colours and in print, where their grounds drop away', () => {
+    // A dark-tone scene paints Cloud White strokes over the hero's ground and
+    // a knock-out background; forced colours (light themes) and print without
+    // backgrounds keep the strokes but drop the grounds, leaving fragments.
+    const rules: { media: string; selector: string; display: string }[] = [];
+    divisionCss.walkAtRules('media', (atRule: AtRule) => {
+      atRule.walkDecls('display', (decl: Declaration) => {
+        rules.push({ media: atRule.params, selector: (decl.parent as Rule).selector, display: decl.value });
+      });
+    });
+    const sceneRule = rules.find((rule) => rule.selector.includes('[data-page-scene]'));
+    expect(sceneRule).toEqual({ media: '(forced-colors: active), print', selector: '.nwse-root [data-page-scene]', display: 'none' });
+    // Every scene sits in a [data-page-scene] wrapper under .nwse-root, so the rule reaches them all.
+    const { container } = renderAt(<SocialEngineeringHubPage />);
+    const scenes = [...container.querySelectorAll('[data-page-scene]')];
+    expect(scenes.map((element) => element.getAttribute('data-page-scene'))).toEqual(['hub', 'hubSection']);
+    scenes.forEach((element) => expect(element.closest('.nwse-root')).not.toBeNull());
+  });
+
+  it.each(divisionServices.map((service) => [service.slug]))('on %s, hides nothing below a breakpoint but its decorative scene', (slug) => {
     const { container } = renderAt(<SocialEngineeringServicePage slug={slug} />);
-    expect(hiddenOnPhones(container)).toEqual([]);
+    const hidden = hiddenOnPhones(container);
+    // The hero scene sits out small phones (the summary is long there) and landscape phones.
+    expect(hidden.map((element) => element.getAttribute('data-page-scene'))).toEqual([slug]);
+    expect(isDecorativeScene(hidden[0])).toBe(true);
   });
 
   it.each([

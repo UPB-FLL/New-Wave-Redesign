@@ -76,6 +76,19 @@
   }
 }
 
+/* The line-art scenes (motion/, placed by sections.tsx's PageScene) are
+   decorative and drawn for the division's own grounds: Cloud White lines on
+   the dark hero, over a knock-out disc painted as a background. Forced colours
+   (a light theme) and print without background graphics drop the grounds and
+   the disc but keep the strokes, so only fragments would show. Leave the
+   scenes out there; the copy beside them carries the message. Two classes'
+   worth of specificity, so a slot's `lg:block`-style utility never wins. */
+@media (forced-colors: active), print {
+  .nwse-root [data-page-scene] {
+    display: none;
+  }
+}
+
 /* Colour roles for the Plex Mono labels. Their type (family, size, weight,
    tracking, caps) comes from .nwse-type-kicker and .nwse-type-label in
    type.css, so pair them: "nwse-type-kicker nwse-kicker",

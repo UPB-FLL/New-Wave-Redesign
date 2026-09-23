@@ -32,6 +32,7 @@ export default function SocialEngineeringHubPage() {
     <DivisionLayout>
       <DivisionHero
         breadcrumbs={seo.breadcrumbs}
+        scene="hub"
         kickerInHeading
         kicker={content.kicker}
         headline={content.headline}
@@ -128,7 +129,8 @@ export default function SocialEngineeringHubPage() {
           id="nwse-data"
         />
         <JourneyStrip stages={content.journey} />
-        <PointGrid points={content.dataWeGather} />
+        {/* The journey scene fills the grid's empty sixth cell from lg. */}
+        <PointGrid points={content.dataWeGather} scene="hubSection" />
       </Band>
 
       <Band tone="white" labelledBy="nwse-roadmap">

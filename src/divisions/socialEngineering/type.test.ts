@@ -245,6 +245,8 @@ describe('type.css', () => {
     expect(at640).toEqual({
       'display-1-size': 'clamp(2.25rem, 1.59rem + 2.7vw, 3.75rem)',
       'display-1-line-height': '1',
+      // Heroes with a scene beside the text (from lg): 85% of display-1.
+      'display-1-beside-size': 'calc(var(--nwse-type-display-1-size) * 0.85)',
       'display-2-size': '2.25rem',
       'display-2-line-height': '2.5rem',
       'title-1-size': '1.25rem',

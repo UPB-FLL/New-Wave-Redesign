@@ -57,6 +57,13 @@
    The sm block below restores every other value from 640px, so tablets and
    desktop are unchanged.
 
+   HEROES WITH A SCENE (from 64em: 1024px at the default text size, wider
+   when the reader enlarges text): the H1 shares the row with a line-art
+   scene, so DivisionHero points --nwse-type-display-1-size at
+   --nwse-type-display-1-beside-size there: 85% of the fluid display-1 (45px
+   at 1024px, 51px from 1280px). Below that the scene sits beside or under the
+   actions and the H1 is the regular display-1.
+
    LANDSCAPE PHONES (640–1023px wide and at most 500px tall): display-1 is
    2.25rem, the low end of the fluid clamp, so the hero fits a short screen.
    division.css and DivisionHeader give the same tier the phone header.
@@ -240,6 +247,10 @@
   --nwse-type-display-1-tracking: -0.01em;
   --nwse-type-display-1-word-spacing: normal; /* 0.06em from 640px */
   --nwse-type-display-1-weight: 800;
+  /* display-1 in a hero with a scene beside it (DivisionHero points
+     display-1-size here from 64em): 85% of display-1, so 45px at 1024px and
+     51px from 1280px, where most service headlines run three lines, not four. */
+  --nwse-type-display-1-beside-size: calc(var(--nwse-type-display-1-size) * 0.85);
 
   /* display-2: section H2 */
   --nwse-type-display-2-family: var(--nw-font-display);
