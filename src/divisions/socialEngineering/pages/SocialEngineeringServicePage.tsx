@@ -15,6 +15,7 @@ import {
 } from '../components/sections';
 import { divisionServices, findDivisionService } from '../content';
 import { NwseIcon } from '../icons/NwseIcon';
+import { isScenePageKey } from '../motion/scenes';
 import { servicePageSeo } from '../seo';
 import { DIVISION_BASE_PATH, divisionServicePath } from '../site';
 import type { DivisionServiceContent } from '../types';
@@ -37,6 +38,10 @@ function ServicePageBody({ service }: { service: DivisionServiceContent }) {
     <DivisionLayout>
       <DivisionHero
         breadcrumbs={seo.breadcrumbs}
+        // Every service slug has a scene (a test holds the registry to DIVISION_SERVICE_SLUGS).
+        scene={isScenePageKey(service.slug) ? service.slug : undefined}
+        sceneOnPhones="wide"
+        sceneSize={service.heroSceneSize ?? 'large'}
         kicker={service.kicker}
         headline={service.headline}
         summary={service.summary}

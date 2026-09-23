@@ -1,6 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  // The division's line-art scenes (motion/) author no Tailwind classes (their
+  // className comes from components/sections.tsx), so words in their code and
+  // comments, such as `ring`, must not generate CSS every page ships.
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}', '!./src/divisions/socialEngineering/motion/**'],
   theme: {
     extend: {
       colors: {

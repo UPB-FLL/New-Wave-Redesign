@@ -263,15 +263,16 @@ layouts; every small-screen rule is either a `max-width` media query in
 - **Hidden below a breakpoint** (decorative or repeated, never unique copy):
   the hub hero's service chips and descriptor (repeated by the services list
   and the footer), "Learn more" on service cards (the whole row is the link),
-  the intro brand mark, and the family lockup on phones (the footer carries
-  it).
+  the intro brand mark, the family lockup on phones (the footer carries
+  it), and the line-art scenes where "Motion" below leaves them out.
 - **Contact form.** `components/Contact.tsx` carries `data-contact-*`
   attributes only; `division.css` uses them below 1024px for a left-aligned
   intro, grouped contact methods whose Call and Email rows are whole-row links,
   and 16px inputs (no iOS zoom on focus). New Wave IT pages are unchanged.
-- **Hero animation (future).** On phones it belongs after the actions, at most
-  `min(200px, 56vw)` tall on the hub; omit it or cap it at about 120px on
-  service pages, whose summaries already run 9–13 lines at 320–390px.
+- **Hero scenes.** On phones the page's line-art scene follows the actions
+  (so the primary button never moves), 288 × 192px; service pages leave it
+  out below 375px, where their summaries run 11–13 lines, and the contact
+  page shows it from 1024px only. See "Motion".
 
 ## Editing
 
@@ -281,8 +282,9 @@ layouts; every small-screen rule is either a `max-width` media query in
   division page.
 - To add a service: add a content file, add it to `divisionServices` in
   `content/index.ts`, add its slug to `DIVISION_SERVICE_SLUGS` in `site.ts`, add
-  a rewrite in `vercel.json` and a `<url>` in `public/sitemap.xml`. The tests
-  fail until all five agree.
+  a rewrite in `vercel.json` and a `<url>` in `public/sitemap.xml`, and give it
+  a hero scene in `PAGE_SCENES` (`motion/scenes/index.ts`; see "Adding a
+  scene" under "Motion"). The tests fail until all six agree.
 - To add a non-service page (as Customers and Contact us were): a path constant
   in `site.ts`; a content module exported from `content/index.ts`; a
   `…PageSeo()` in `seo.ts`, added to `allDivisionPages()` (which feeds the
@@ -447,7 +449,7 @@ own tighter scale.
 
 | Class | Family | Size / line height | Weight, tracking | Replaces |
 |---|---|---|---|---|
-| `nwse-type-display-1` | Display | phones 32px at 1.06; from 640px `clamp(2.25rem, 1.59rem + 2.7vw, 3.75rem)` at 1 (landscape phones 36px) | 800, −0.01em; word-spacing 0.06em from 640px | hero H1 `text-4xl leading-[1.05] sm:text-5xl lg:text-6xl` |
+| `nwse-type-display-1` | Display | phones 32px at 1.06; from 640px `clamp(2.25rem, 1.59rem + 2.7vw, 3.75rem)` at 1 (landscape phones 36px); beside a hero scene from 1024px, `--nwse-type-display-1-beside-size` (85%: 45px at 1024px, 51px from 1280px) | 800, −0.01em; word-spacing 0.06em from 640px | hero H1 `text-4xl leading-[1.05] sm:text-5xl lg:text-6xl` |
 | `nwse-type-display-2` | Display | phones 24/28.8px; 36/40px from 640px | 800, −0.01em; word-spacing 0.06em from 640px | section H2 `text-3xl leading-tight sm:text-4xl` |
 | `nwse-type-title-1` | Text | phones 18/24px; 20/28px from 640px | 700 | `text-xl font-bold` card H3 |
 | `nwse-type-title-2` | Text | phones 17/24px; 18/28px from 640px | 700 | `text-lg font-bold` card and step H3 |
@@ -608,3 +610,148 @@ The division draws with its own 35-icon set. New Wave IT pages keep Lucide.
 
    `NwseIcon.test.tsx` covers rendering and accessibility, and
    `pages.test.tsx` checks the rendered pages.
+
+## Motion
+
+Each page's client goal, told once as a small line-art story: the icon set
+grown into an illustration that draws itself when it scrolls into view (3–5
+seconds), then holds its final frame. The copy beside it carries the message;
+the scene only shows it, so every scene is decorative. SVG and framer-motion
+only, no new dependencies.
+
+### Files
+
+All under `src/divisions/socialEngineering/motion/`:
+
+| File | What it holds |
+|---|---|
+| `SceneFrame.tsx` | The frame every scene draws in, and **the scene contract** (its header comment). Read it before writing a scene. |
+| `useScenePlayback.ts`, `sceneState.ts` | Playback: `idle` until 35% of the frame is in view, `playing` for the scene's budget, then `done` for good; `static` under reduced motion, `forceStatic`, or without IntersectionObserver. |
+| `primitives.tsx` | `Draw` (draw-on, and `to` morphs), `Appear`, `Travel`, `Check`, `Wave`, `Icon` (an `iconData.ts` icon at scene scale). |
+| `palette.ts`, `geometry.ts` | The `dark`/`light` palettes behind `sceneColor()`, and the logo-wave paths and helpers. |
+| `scenes/*Scene.tsx` | One scene per file, each with its test. `BookedCalendar.tsx`, `bookedCalendarEntry.ts`, and `shapes.ts` are parts shared by several scenes. |
+| `scenes/index.ts` | `PAGE_SCENES`: the page → scene registry, every entry `React.lazy`. |
+| `scenes/SceneSlot.tsx` | Renders a registry entry without layout shift, and leaves the empty box if the scene fails to load (below). |
+
+Placement lives in `components/sections.tsx`: `DivisionHero` takes `scene`,
+`sceneOnPhones`, and `sceneSize`, `PointGrid` takes `scene`, and both wrap the
+slot in `PageScene` (`aria-hidden="true"`, `data-page-scene="<key>"`).
+
+### The contract, in short
+
+- A 480 × 320 viewBox (3:2; the frame's box follows it, so the page reserves
+  the space before any script runs), stroke 3, round caps, a 16-unit margin.
+- Colours only through `sceneColor()` (`line`, `line2`, `accent`, `cyan`,
+  `tide`, `ground`), so a scene works on the dark hero and on light bands.
+  Lure Amber is the one thing the story lands on.
+- No text, numbers, logos, prices, or client facts. No security or phishing
+  metaphors (locks, shields, hooks, masks, fishing).
+- Plays once, when 35% of it is in view, inside its budget (4.5s by default,
+  5s at most); never loops or replays. The last animated frame is the static
+  frame.
+- Motion is opacity, transform, draw-on (`pathLength`, dashes), same-structure
+  path morphs, and `cx`/`cy`/`r`. No SMIL, filters, timers of its own, or
+  infinite animations.
+- The svg is `aria-hidden`, `focusable="false"`, `role="presentation"`.
+
+### Where the scenes are
+
+| Page | Scene (`PAGE_SCENES` key) | Desktop (1024px and up) | Tablets (768–1023px) | Phones |
+|---|---|---|---|---|
+| Hub hero | `hub`: HubGrowthScene | beside the text and actions, centred on them: 320 × 213 at 1024–1279px, 480 × 320 from 1280px | 256 × 171, right of the actions, at the end of a 44rem row (x = 472–728px), so it stays with the text | 288 × 192 after the actions, centred (adds 208px) |
+| Service heroes | the slug, e.g. `social-media` | as the hub; digital oversight uses `heroSceneSize: 'compact'` (256 × 171, then 352 × 235 from 1280px), because its headline runs four lines and splits "Fort / Lauderdale" beside the full-size scene | as the hub | as the hub from 375px; none below 375px, where the summaries run 11–13 lines |
+| Book a discovery call (`/contact`) hero | `contact`: ContactDiscoveryScene | `sceneSize="compact"`: 256 × 171 at 1024–1279px, then 352 × 235 from 1280px (the text is short; a full-size scene would only add height) | none: the hero has no actions to sit beside, so the scene would stand alone and push the form down | none, so the form follows the summary |
+| Hub, "What we gather" band | `hubSection`: HubJourneyScene (light tone, Cloud White knock-outs) | fills the empty sixth cell of the five-card grid (the list is a subgrid of one wrapper grid), so it adds no height | none | none |
+| Customers, Contact us | none | | | |
+
+- **Landscape phones** (640–1023px wide, at most 500px tall) show no scene: at
+  3:2 it would take more than half the screen.
+- **Hero layout with a scene.** The DOM order is text, actions, scene, so the
+  primary button keeps its place on every phone. From 1024px the hero is a
+  grid: text and actions in the first column, the scene in the second, and
+  the hub's service chips across both. `sceneSize` sets the scene's column:
+  `large` (the default) is 20rem, then 30rem from 1280px, where the text
+  column is the summary's own 42rem; `compact` is 16rem, then 22rem. The H1
+  steps down to `--nwse-type-display-1-beside-size` there (85% of
+  `display-1`), so every service headline runs three lines.
+- **Currents.** The hero's background currents stay at 0.18 opacity. Behind
+  each hero scene a soft disc of the hero's own ground
+  (`radial-gradient(closest-side, var(--nw-deep-current) 72%, transparent)`)
+  fades them out behind the drawing instead of crossing its Lure Amber line;
+  it is transparent at the box's edges, so no current is cut off hard. The
+  hub band has no currents, so its scene has no disc.
+- **Between phones and tablets** (640–767px) the scene sits under the
+  actions at 288 × 192, left-aligned with them (not on the contact page).
+- **Heights.** At 320–430px a page grows by the scene's 208px (the hub; service
+  pages from 375px) or not at all (contact); at 768px by about 120px (contact
+  not at all). From 1024px the heroes stay within 60px of their old height
+  (+58 to −27px; contact −8px at 1024px, +33px from 1280px). The primary
+  button never moves on phones, since the scene comes after it, and from
+  1024px it stays on the first screen: at 1024 × 768 the lowest, integration's,
+  ends at 720px.
+
+### Loading
+
+- Each registry entry is its own chunk (about 0.6–1.3 KB gzipped); the engine
+  (`primitives`, about 4.2 KB) and the shared parts are shared chunks. A page
+  downloads only its own scenes.
+- `SceneSlot` shows an empty `aria-hidden` 3:2 box (`data-scene-slot`) and
+  requests the scene's chunk only once the slot is within half a screen of the
+  viewport. A slot that is `display: none` at the current width never
+  intersects, so it never loads: phones and tablets never download the hub
+  band's scene or the contact page's.
+- A scene that fails to load (a flaky network, or a tab still on an old
+  deploy) leaves its empty box (`data-scene-slot="failed"`): `SceneSlot` has
+  its own error boundary, so the failure never reaches the route's "This page
+  didn't load" boundary. main.tsx's once-per-10-seconds stale-chunk reload
+  still applies to scene chunks, as to every lazy chunk.
+- New Wave IT pages load none of this. No IT module reaches `motion/` through
+  static imports at any depth, only the page sections and the pages import
+  the registry or `SceneSlot` (never `site.ts`, `routes.tsx`, or `preload.ts`,
+  which IT loads), and `scenes.test.tsx` checks all three. The scene chunks
+  are dynamic imports, so the prerendered heads are unchanged.
+- Scenes write no class names (their `className` comes from
+  `components/sections.tsx`), so `tailwind.config.js` leaves `motion/` out of
+  its content scan: words in scene code, such as `ring`, generate no CSS.
+
+### Reduced motion
+
+Under `prefers-reduced-motion: reduce` every scene renders its static final
+frame straight away, with no motion at all; so do `forceStatic` and browsers
+without IntersectionObserver. The final frame is the story's resting state, so
+nothing is lost.
+
+### Adding a scene
+
+1. Read the contract in `SceneFrame.tsx`. Write `motion/scenes/<Name>Scene.tsx`
+   with a named and a default export, forwarding `tone`, `className`, and
+   `forceStatic` to `<SceneFrame>`, and a test beside it like the others.
+2. Register it in `PAGE_SCENES` (`scenes/index.ts`) under the page's key, as a
+   `lazy(() => import('./<Name>Scene'))`; update the keys in
+   `scenes/index.test.tsx`.
+3. Place it: `scene="<key>"` on the page's `DivisionHero` (with
+   `sceneOnPhones` and, for a short hero or a long headline,
+   `sceneSize="compact"`; a service sets `heroSceneSize` in its content
+   file), or a slot in a section. Then update the tests that pin placement:
+   add the page to `PAGES_WITH_SCENES` in `scenes.test.tsx` (and to the
+   compact-column case if it is compact), remove it from the "has no scene"
+   cases there if it had none, and update its expected hidden scenes in
+   `responsive.test.tsx` (hub `['hub', 'hubSection']`, each service
+   `[slug]`, Customers and Contact us "hides nothing").
+4. Check it at 320, 390, 768, 844 × 390, 1024, and 1440px, with reduced motion
+   on, and confirm the IT pages request no new chunk.
+
+### Tests
+
+- `motion/motion.test.tsx` (engine) and `motion/scenes/*.test.tsx` (each
+  scene, and the registry and slot in `index.test.tsx`).
+- `scenes.test.tsx`: which page shows which scene, where, at which widths, and
+  in which column size; every scene decorative; the knock-out behind hero
+  scenes; the slot's 3:2 box, and nothing loaded until it nears the viewport;
+  reduced motion renders each scene's static final frame; no IT module reaches
+  `motion/`, directly or through division modules; scenes write no class
+  names.
+- `sceneFailure.test.tsx`: a scene whose chunk fails leaves its empty 3:2 box,
+  and the contact page keeps its H1 and form (no "This page didn't load").
+- `responsive.test.tsx`: anything hidden below a breakpoint, scenes included,
+  is decorative. `type.test.ts` pins `--nwse-type-display-1-beside-size`.

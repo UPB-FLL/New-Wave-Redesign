@@ -79,6 +79,18 @@ No New Wave IT URL, title, canonical, or structured data changed. Full notes:
   `src/divisions`, and a test enforces it. The shared `Contact` takes an
   optional `icons` prop that defaults to Lucide. See the "Icons" section of
   the division doc.
+- **Motion (division only)**: `motion/` holds the line-art scenes (SVG +
+  framer-motion; the contract is `motion/SceneFrame.tsx`'s header comment).
+  `motion/scenes/index.ts` (`PAGE_SCENES`) lazy-loads one scene per page;
+  `SceneSlot` reserves the 3:2 box and loads a scene only near the viewport.
+  Placed by `DivisionHero` (`scene`, `sceneOnPhones`, `sceneSize`) on the hub,
+  the six service pages, and `/contact`, and by `PointGrid` in the hub's "What
+  we gather" band. Scenes play once, hold the final frame, and render it
+  statically under reduced motion; they are `aria-hidden`. A scene that fails
+  to load leaves its empty box (`SceneSlot`'s own error boundary). No IT
+  module reaches `motion/`, even through division modules, and Tailwind skips
+  the folder (`scenes.test.tsx`). See the "Motion" section of the division
+  doc.
 - **IT touch points**: a Navbar Services-menu entry and mobile link, a Footer
   link ("Social Media & Marketing"), and sitemap entries. `App.tsx` hides the IT
   `WaveBackground` and `FloatingNav` on division paths.
@@ -95,7 +107,8 @@ No New Wave IT URL, title, canonical, or structured data changed. Full notes:
   the Call row rather than show the placeholder `(954) 555-0100`
   (`contactDetails.ts`). See "Customers and Contact us" in the division doc.
 - **Adding a service**: update the content file, `divisionServices`,
-  `DIVISION_SERVICE_SLUGS`, the `vercel.json` rewrite, and the sitemap. The
+  `DIVISION_SERVICE_SLUGS`, the `vercel.json` rewrite, the sitemap, and a
+  hero scene registered in `PAGE_SCENES` (`motion/scenes/index.ts`). The
   tests fail until all of them agree.
 - **Adding a page**: a path in `site.ts`, content in `content/`, a
   `…PageSeo()` in `allDivisionPages()` (`seo.ts`), the page in `pages/`, its

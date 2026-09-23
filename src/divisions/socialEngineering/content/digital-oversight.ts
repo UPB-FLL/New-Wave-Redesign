@@ -12,6 +12,9 @@ export const digitalOversight: DivisionServiceContent = {
   icon: 'oversight',
   kicker: 'Digital oversight',
   headline: 'Digital presence management in Fort Lauderdale, one accountable team',
+  // Beside the full-size scene this headline runs four lines and splits
+  // "Fort / Lauderdale"; the compact column keeps it to three.
+  heroSceneSize: 'compact',
   summary:
     'New Wave: Social Engineering oversees the whole digital presence of a business, from the website and social accounts to Google Business Profile, listings, reviews, and analytics, with one Fort Lauderdale team accountable for all of it. We start with a simple question: who owns the brand, website, and social today, and where are the gaps? Every account stays in your business’s name, and each month you get a report and an updated roadmap for what comes next.',
   cardSummary:

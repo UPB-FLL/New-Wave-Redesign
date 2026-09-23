@@ -15,6 +15,12 @@ export default function SocialEngineeringContactPage() {
     <DivisionLayout>
       <DivisionHero
         breadcrumbs={seo.breadcrumbs}
+        // Desktop only: below lg the hero has no actions for the scene to sit
+        // beside, so the form follows the summary. Beside the short text, the
+        // compact scene adds almost no height.
+        scene="contact"
+        sceneOnPhones="hide"
+        sceneSize="compact"
         kicker={contactContent.kicker}
         headline={contactContent.headline}
         summary={contactContent.summary}

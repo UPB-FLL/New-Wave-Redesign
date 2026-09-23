@@ -1,7 +1,9 @@
-import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { NwseIcon } from '../icons/NwseIcon';
 import type { DivisionIconName } from '../icons/iconData';
+import type { ScenePageKey } from '../motion/scenes';
+import { SceneSlot } from '../motion/scenes/SceneSlot';
 import { DIVISION_CONTACT_PATH, DIVISION_PRIMARY_CTA } from '../site';
 import type { DivisionFaq, DivisionPageSeo, DivisionPoint, DivisionRoadmapPhase } from '../types';
 import { DivisionCurrents } from './DivisionCurrents';
@@ -44,6 +46,98 @@ const HERO_CURRENTS_FADE = {
   WebkitMaskImage: 'linear-gradient(to right, rgba(0, 0, 0, 0.35), #000 70%)',
 } as const;
 
+/**
+ * Where a hero scene shows below lg (from lg it always sits beside the text):
+ * - `show`: every phone and tablet width.
+ * - `wide`: from 375px. Service summaries run 11 to 13 lines on 320–374px
+ *   phones, so the scene would only lengthen an already long hero there.
+ * - `hide`: desktop only, from 1024px (the contact page). Its hero has no
+ *   actions, so below lg the scene would sit alone under the summary and only
+ *   push the form, the page's action, further down.
+ * Landscape phones (below lg, at most 500px tall) never show it: at 3:2 it
+ * would take more than half the screen.
+ */
+export type HeroSceneOnPhones = 'show' | 'wide' | 'hide';
+
+const HERO_SCENE_ON_PHONES: Record<HeroSceneOnPhones, string> = {
+  show: '',
+  wide: 'max-[374.98px]:hidden',
+  hide: 'max-lg:hidden',
+};
+
+/**
+ * A page's line-art scene (motion/scenes), decorative: hidden from assistive
+ * tech, never focusable. SceneSlot reserves the scene's 3:2 box before its
+ * chunk loads, so nothing shifts.
+ */
+function PageScene({
+  page,
+  tone,
+  className,
+  style,
+}: {
+  page: ScenePageKey;
+  tone: 'dark' | 'light';
+  className?: string;
+  style?: CSSProperties;
+}) {
+  return (
+    <div aria-hidden="true" data-page-scene={page} className={className} style={style}>
+      <SceneSlot page={page} tone={tone} />
+    </div>
+  );
+}
+
+/**
+ * The hero's ground as a soft disc behind the scene: the hero's currents
+ * (their opacity unchanged) fade out behind the drawing, so no faint amber
+ * current crosses the scene's Lure Amber line where the story lands. It fades
+ * to transparent at the box's edges, so nothing is cut off hard.
+ */
+const HERO_SCENE_KNOCKOUT: CSSProperties = {
+  background: 'radial-gradient(closest-side, var(--nw-deep-current) 72%, transparent)',
+};
+
+/**
+ * The hero's scene. Phones: after the actions, 18rem wide and centred under the
+ * full-width buttons. sm: the same, left-aligned. md: 16rem, to the right of
+ * the actions, at the end of a 44rem row (the summary's measure, plus a
+ * little), so it stays with the text rather than the container's edge. From
+ * lg: the hero grid's second column, beside the text and actions, centred on
+ * them.
+ */
+function HeroScene({ page, onPhones }: { page: ScenePageKey; onPhones: HeroSceneOnPhones }) {
+  return (
+    <PageScene
+      page={page}
+      tone="dark"
+      style={HERO_SCENE_KNOCKOUT}
+      className={`mx-auto mt-4 w-full max-w-[18rem] sm:mx-0 sm:mt-10 md:ml-auto md:mt-8 md:w-[16rem] md:shrink-0 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-0 lg:w-full lg:max-w-none lg:self-center max-lg:[@media(max-height:500px)]:hidden ${HERO_SCENE_ON_PHONES[onPhones]}`}
+    />
+  );
+}
+
+/**
+ * The scene's column: `large` is 20rem at lg (so a 1024px text column keeps
+ * its measure), then 30rem from xl, where the scene draws 1:1 with its
+ * 480-unit viewBox and the text column is the summary's own 42rem. `compact`
+ * is 16rem at lg and 22rem from xl: for a hero whose text is too short to
+ * stand beside the full-size scene (contact), or whose headline would run four
+ * lines beside it (digital oversight).
+ */
+export type HeroSceneSize = 'large' | 'compact';
+
+/**
+ * The hero grid when a scene is present. From lg: text | scene. The H1 steps
+ * down to display-1-beside (type.css) from lg, where it shares the row.
+ */
+const HERO_SCENE_GRID =
+  'lg:grid lg:gap-x-10 xl:gap-x-16 lg:[--nwse-type-display-1-size:var(--nwse-type-display-1-beside-size)]';
+const HERO_SCENE_COLUMNS: Record<HeroSceneSize, string> = {
+  large: 'lg:grid-cols-[minmax(0,1fr)_minmax(0,20rem)] xl:grid-cols-[minmax(0,1fr)_minmax(0,30rem)]',
+  compact: 'lg:grid-cols-[minmax(0,1fr)_minmax(0,16rem)] xl:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]',
+};
+
 export function DivisionHero({
   kicker,
   headline,
@@ -52,6 +146,9 @@ export function DivisionHero({
   actions,
   footnote,
   kickerInHeading = false,
+  scene,
+  sceneOnPhones = 'show',
+  sceneSize = 'large',
 }: {
   kicker: string;
   headline: string;
@@ -61,9 +158,43 @@ export function DivisionHero({
   footnote?: ReactNode;
   /** Render the kicker as the first line of the H1 (keeps a brand-line headline topical). */
   kickerInHeading?: boolean;
+  /** The page's line-art scene (motion/scenes): beside the text from lg, after the actions below it. */
+  scene?: ScenePageKey;
+  /** Which phone widths show the scene (see HeroSceneOnPhones). */
+  sceneOnPhones?: HeroSceneOnPhones;
+  /** The scene's column from lg (see HeroSceneSize). */
+  sceneSize?: HeroSceneSize;
 }) {
   // Balanced below lg, so a tablet hero never ends on a one-word line.
   const headingClass = 'nwse-type-display-1 mt-3 max-w-4xl text-[var(--nw-cloud-white)] max-lg:text-balance sm:mt-4';
+  const heading = kickerInHeading ? (
+    <h1>
+      <span className="nwse-type-kicker nwse-kicker-on-dark block max-sm:text-balance">{kicker}</span>
+      <span className="sr-only">: </span>
+      <span className={`block ${headingClass}`}>{headline}</span>
+    </h1>
+  ) : (
+    <>
+      <p className="nwse-type-kicker nwse-kicker-on-dark max-sm:text-balance">{kicker}</p>
+      <h1 className={headingClass}>{headline}</h1>
+    </>
+  );
+  const summaryText = (
+    <p className="nwse-type-lead mt-4 max-w-2xl text-[var(--nw-mist-gray)] sm:mt-6 max-lg:[@media(max-height:500px)]:mt-4">{summary}</p>
+  );
+  // Phones stack the actions full width (.nwse-actions in division.css).
+  const actionRow = (besideScene: boolean) =>
+    actions ? (
+      <div
+        className={`nwse-actions mt-6 grid gap-3 sm:mt-8 sm:flex sm:flex-wrap max-lg:[@media(max-height:500px)]:mt-6${besideScene ? ' lg:col-start-1 lg:row-start-2' : ''}`}
+      >
+        {actions}
+      </div>
+    ) : null;
+  // The footnote only restates what the page lists next, so it is desktop-only.
+  // Beside a scene it spans both columns, under the text and the scene.
+  const note = (spanBoth: boolean) =>
+    footnote ? <div className={spanBoth ? 'mt-10 hidden lg:col-span-2 lg:block' : 'mt-10 hidden lg:block'}>{footnote}</div> : null;
   return (
     <section className="nwse-dark relative overflow-hidden" style={{ background: 'var(--nw-deep-current)' }}>
       <DivisionCurrents className="pointer-events-none absolute inset-0 h-full w-full" opacity={HERO_CURRENTS_OPACITY} style={HERO_CURRENTS_FADE} />
@@ -71,26 +202,28 @@ export function DivisionHero({
           (here, in Breadcrumbs, and around the summary and actions). */}
       <div className="relative mx-auto max-w-7xl px-4 pb-8 pt-6 sm:px-6 sm:pb-12 sm:pt-10 lg:px-8 lg:pb-24 lg:pt-16 max-lg:[@media(max-height:500px)]:pb-8 max-lg:[@media(max-height:500px)]:pt-6">
         {breadcrumbs ? <Breadcrumbs trail={breadcrumbs} /> : null}
-        {kickerInHeading ? (
-          <h1>
-            <span className="nwse-type-kicker nwse-kicker-on-dark block max-sm:text-balance">{kicker}</span>
-            <span className="sr-only">: </span>
-            <span className={`block ${headingClass}`}>{headline}</span>
-          </h1>
+        {scene ? (
+          // DOM order text, actions, scene. Phones: one column. md: the scene
+          // beside the actions. From lg: text and actions | scene.
+          <div className={`${HERO_SCENE_GRID} ${HERO_SCENE_COLUMNS[sceneSize]}`}>
+            <div className="lg:col-start-1 lg:row-start-1">
+              {heading}
+              {summaryText}
+            </div>
+            <div className="md:flex md:max-w-[44rem] md:items-start md:gap-8 lg:contents">
+              {actionRow(true)}
+              <HeroScene page={scene} onPhones={sceneOnPhones} />
+            </div>
+            {note(true)}
+          </div>
         ) : (
           <>
-            <p className="nwse-type-kicker nwse-kicker-on-dark max-sm:text-balance">{kicker}</p>
-            <h1 className={headingClass}>{headline}</h1>
+            {heading}
+            {summaryText}
+            {actionRow(false)}
+            {note(false)}
           </>
         )}
-        <p className="nwse-type-lead mt-4 max-w-2xl text-[var(--nw-mist-gray)] sm:mt-6 max-lg:[@media(max-height:500px)]:mt-4">{summary}</p>
-        {/* Phones stack the actions full width (.nwse-actions in division.css). */}
-        {actions ? (
-          <div className="nwse-actions mt-6 grid gap-3 sm:mt-8 sm:flex sm:flex-wrap max-lg:[@media(max-height:500px)]:mt-6">{actions}</div>
-        ) : null}
-        {/* The footnote only restates what the page lists next, so it is desktop-only.
-            A hero animation, when one is added, follows the actions on phones. */}
-        {footnote ? <div className="mt-10 hidden lg:block">{footnote}</div> : null}
       </div>
     </section>
   );
@@ -129,17 +262,44 @@ export function SectionIntro({
   );
 }
 
-export function PointGrid({ points, columns = 3 }: { points: readonly DivisionPoint[]; columns?: 2 | 3 }) {
+/**
+ * Cards for a list of points. `scene` (a light-tone line-art scene) fills the
+ * empty last cell of a five-card, three-column grid from lg: the list's tracks
+ * are a subgrid of one wrapper grid, so the scene sits exactly in that cell and
+ * adds no height. Below lg there is no empty cell, so the decorative scene is
+ * not shown (and its chunk never loads; see SceneSlot).
+ */
+export function PointGrid({
+  points,
+  columns = 3,
+  scene,
+}: {
+  points: readonly DivisionPoint[];
+  columns?: 2 | 3;
+  scene?: ScenePageKey;
+}) {
+  const withScene = scene !== undefined && columns === 3 && points.length === 5;
+  const items = points.map((point) => (
+    <li key={point.title} className="nwse-card py-5 md:p-5 lg:p-6">
+      <span className="block h-[3px] w-6 rounded-full md:h-1 md:w-10" style={{ background: 'var(--nwse-lure-amber)' }} aria-hidden="true" />
+      <h3 className="nwse-type-title-2 mt-3 text-[var(--nw-current-navy)] md:mt-4 lg:mt-5">{point.title}</h3>
+      <p className="nwse-type-body-small mt-2 text-[var(--nw-slate)]">{point.detail}</p>
+    </li>
+  ));
+  if (!withScene) {
+    return (
+      <ul className={`nwse-hairlines mt-6 grid grid-cols-1 gap-0 sm:mt-8 md:gap-4 md:grid-cols-2 lg:mt-10 ${columns === 3 ? 'lg:grid-cols-3' : ''} ${ODD_ORPHAN_LI}`}>
+        {items}
+      </ul>
+    );
+  }
   return (
-    <ul className={`nwse-hairlines mt-6 grid grid-cols-1 gap-0 sm:mt-8 md:gap-4 md:grid-cols-2 lg:mt-10 ${columns === 3 ? 'lg:grid-cols-3' : ''} ${ODD_ORPHAN_LI}`}>
-      {points.map((point) => (
-        <li key={point.title} className="nwse-card py-5 md:p-5 lg:p-6">
-          <span className="block h-[3px] w-6 rounded-full md:h-1 md:w-10" style={{ background: 'var(--nwse-lure-amber)' }} aria-hidden="true" />
-          <h3 className="nwse-type-title-2 mt-3 text-[var(--nw-current-navy)] md:mt-4 lg:mt-5">{point.title}</h3>
-          <p className="nwse-type-body-small mt-2 text-[var(--nw-slate)]">{point.detail}</p>
-        </li>
-      ))}
-    </ul>
+    <div className="mt-6 sm:mt-8 lg:mt-10 lg:grid lg:grid-cols-3 lg:gap-4">
+      <ul className={`nwse-hairlines grid grid-cols-1 gap-0 md:gap-4 md:grid-cols-2 lg:col-span-3 lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:grid-cols-subgrid lg:grid-rows-subgrid ${ODD_ORPHAN_LI}`}>
+        {items}
+      </ul>
+      <PageScene page={scene} tone="light" className="hidden lg:col-start-3 lg:row-start-2 lg:block lg:self-center" />
+    </div>
   );
 }
 
