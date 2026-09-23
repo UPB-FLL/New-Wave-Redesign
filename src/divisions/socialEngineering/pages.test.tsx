@@ -492,7 +492,7 @@ describe('header and footer links', () => {
   it('lists Overview, Services, Customers, and Contact us before the discovery-call button on desktop', () => {
     renderAt(<DivisionHeader />);
     const nav = screen.getByRole('navigation', { name: DIVISION_NAME });
-    const row = nav.querySelector('[data-role="nav-row"] > .lg\\:flex')!;
+    const row = nav.querySelector('[data-role="nav-row"] > [data-role="desktop-links"]')!;
     expect([...row.querySelectorAll(':scope > a, :scope > div > button')].map((item) => item.textContent?.trim())).toEqual([
       'Overview',
       'Services',
@@ -511,7 +511,7 @@ describe('header and footer links', () => {
         <DivisionHeader />
       </MemoryRouter>,
     );
-    const row = document.querySelector('[data-role="nav-row"] > .lg\\:flex') as HTMLElement;
+    const row = document.querySelector('[data-role="nav-row"] > [data-role="desktop-links"]') as HTMLElement;
     expect(within(row).getByRole('link', { name: 'Customers' })).toHaveAttribute('aria-current', 'page');
     expect(within(row).getByRole('link', { name: 'Overview' })).not.toHaveAttribute('aria-current');
   });

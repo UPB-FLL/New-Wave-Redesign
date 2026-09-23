@@ -25,6 +25,14 @@ const menuRowClass =
 /** The router may report a trailing slash (prerendered URLs end in one). */
 const samePath = (pathname: string, path: string) => pathname.replace(/\/+$/, '') === path;
 
+/**
+ * The desktop link row replaces the menu from 64em: 1024px at the default text
+ * size (the same point as lg), later when the reader enlarges text, so the row
+ * (and its Book a discovery call button) never runs past the fixed header's edge.
+ * Keep in step with the [@media(min-width:64em)]: classes below.
+ */
+const DESKTOP_NAV_QUERY = '(min-width: 64em)';
+
 /** The site-wide chat launcher (src/components/ElfsightChatbot.tsx) and its portal, outside the division root. */
 const CHAT_LAUNCHER_SELECTOR = '[class*="elfsight-app-"], #__EAAPS_PORTAL';
 
@@ -65,8 +73,8 @@ export function DivisionHeader() {
   // menu hides. That includes the site-wide chat launcher (ElfsightChatbot),
   // which sits outside the division root. The page itself does not scroll
   // while the menu is open, so closing it returns the reader to where they
-  // were. The menu exists only below lg, so it closes if the window widens to
-  // desktop, where its toggle is gone.
+  // were. The menu exists only below DESKTOP_NAV_QUERY, so it closes if the
+  // window widens to desktop, where its toggle is gone.
   useEffect(() => {
     if (!menuOpen) return;
     const header = headerRef.current;
@@ -77,7 +85,7 @@ export function DivisionHeader() {
     const root = document.documentElement;
     const previousOverflow = root.style.overflow;
     root.style.overflow = 'hidden';
-    const desktop = typeof window.matchMedia === 'function' ? window.matchMedia('(min-width: 1024px)') : null;
+    const desktop = typeof window.matchMedia === 'function' ? window.matchMedia(DESKTOP_NAV_QUERY) : null;
     const closeOnDesktop = () => {
       if (desktop?.matches) setMenuOpen(false);
     };
@@ -175,7 +183,7 @@ export function DivisionHeader() {
             <DivisionLogo lockup="primary" ground="light" width={184} decorative className="max-sm:h-auto max-sm:w-[160px]" />
           </Link>
 
-          <div className="hidden items-center gap-6 lg:flex">
+          <div className="hidden items-center gap-6 [@media(min-width:64em)]:flex" data-role="desktop-links">
             <Link
               to={DIVISION_BASE_PATH}
               onClick={closeMenus}
@@ -248,7 +256,7 @@ export function DivisionHeader() {
           <button
             type="button"
             ref={menuButton}
-            className="-mr-2.5 rounded-md p-[10px] text-[var(--nw-current-navy)] transition-colors lg:hidden [@media(hover:hover)]:hover:bg-[var(--nw-mist-gray)]"
+            className="-mr-2.5 rounded-md p-[10px] text-[var(--nw-current-navy)] transition-colors [@media(min-width:64em)]:hidden [@media(hover:hover)]:hover:bg-[var(--nw-mist-gray)]"
             onClick={() => setMenuOpen((open) => !open)}
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={menuOpen}
@@ -263,7 +271,7 @@ export function DivisionHeader() {
           // Tablets: a panel over the dimmed page (the backdrop below).
           <div
             id="nwse-mobile-menu"
-            className="flex max-h-[calc(100dvh-var(--nwse-header-height))] flex-col overflow-y-auto overscroll-contain border-t max-sm:min-h-[calc(100dvh-var(--nwse-header-height))] lg:hidden"
+            className="flex max-h-[calc(100dvh-var(--nwse-header-height))] flex-col overflow-y-auto overscroll-contain border-t max-sm:min-h-[calc(100dvh-var(--nwse-header-height))] [@media(min-width:64em)]:hidden"
             style={{ borderColor: 'var(--nw-mist-gray)' }}
           >
             <div className="flex flex-col px-4 pb-4 pt-2 sm:px-6">
@@ -345,7 +353,7 @@ export function DivisionHeader() {
         // Tablets: dims the page under the menu panel; a tap outside closes it.
         <div
           aria-hidden="true"
-          className="fixed inset-x-0 bottom-0 top-[var(--nwse-header-height)] -z-10 hidden sm:block lg:hidden"
+          className="fixed inset-x-0 bottom-0 top-[var(--nwse-header-height)] -z-10 hidden sm:block [@media(min-width:64em)]:hidden"
           style={{ background: 'color-mix(in srgb, var(--nw-deep-current) 40%, transparent)' }}
           onClick={closeMenus}
         />

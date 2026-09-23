@@ -15,7 +15,11 @@ export const FOOTER_ADDRESS_FALLBACK = '710 NW 5th Ave, Suite 1072, Fort Lauderd
 export const PLACEHOLDER_PHONE = '(954) 555-0100';
 
 /** 555-0100 through 555-0199, with or without an area code and country code. */
-const FICTIONAL_NUMBER = /^1?\d{3}55501\d{2}$/;
+const FICTIONAL_NUMBER = /^(?:1?\d{3})?55501\d{2}$/;
+/** A trailing extension ("ext. 2", "x12", "#3"), which is not part of the number. */
+const EXTENSION = /\s*(?:ext\.?|extension|x|#)\s*\d+\s*$/i;
+
+const isFictional = (phone: string) => FICTIONAL_NUMBER.test(phone.replace(EXTENSION, '').replace(/\D/g, ''));
 
 /** "Street, Suite, City, ST ZIP" → street and suite, then city on a second line. */
 function twoLines(address: string): string {
@@ -31,7 +35,7 @@ function twoLines(address: string): string {
 export function divisionContactDetails(footer: ContentMap): ContactDetails {
   const phone = footer.phone?.trim();
   return {
-    phone: phone && !FICTIONAL_NUMBER.test(phone.replace(/\D/g, '')) ? phone : undefined,
+    phone: phone && !isFictional(phone) ? phone : undefined,
     email: footer.email || FOOTER_EMAIL_FALLBACK,
     address: twoLines(footer.address || FOOTER_ADDRESS_FALLBACK),
   };

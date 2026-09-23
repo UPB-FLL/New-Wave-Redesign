@@ -20,11 +20,25 @@ describe('divisionContactDetails (the Contact us page’s phone, email, and addr
   });
 
   it('treats the placeholder and other reserved 555-01xx numbers as no number', () => {
-    [PLACEHOLDER_PHONE, '954-555-0100', '+1 (305) 555-0142', '  '].forEach((phone) => {
+    [
+      PLACEHOLDER_PHONE,
+      '954-555-0100',
+      '+1 (305) 555-0142',
+      // Without an area code, and with an extension.
+      '555-0100',
+      '555-0142',
+      '(954) 555-0100 ext. 2',
+      '+1 954 555 0100 x12',
+      '954.555.0199 #3',
+      '  ',
+    ].forEach((phone) => {
       expect(divisionContactDetails({ phone }).phone, phone).toBeUndefined();
     });
-    // A real 555 number outside the reserved range is kept.
-    expect(divisionContactDetails({ phone: '(954) 555-2368' }).phone).toBe('(954) 555-2368');
+    // Real numbers are kept, including a 555 number outside the reserved range
+    // and a real number with an extension.
+    ['(954) 555-2368', '(954) 321-7788 ext. 5', '321-7788'].forEach((phone) => {
+      expect(divisionContactDetails({ phone }).phone, phone).toBe(phone);
+    });
   });
 
   it('keeps a one-line or two-part address as given', () => {

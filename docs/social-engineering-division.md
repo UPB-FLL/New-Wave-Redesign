@@ -217,9 +217,14 @@ layouts; every small-screen rule is either a `max-width` media query in
   it wraps under larger text), then the six services, then the amber
   discovery-call button. Sharing Overview's row keeps the sheet as tall as it
   was before Customers and Contact us were added, so on a 320x568 phone the
-  button and the endorsement at the foot both fit on the first screen. On
-  desktop the nav fits from 1024px (at least 200px between the logo and the
-  first link).
+  button and the endorsement at the foot both fit on the first screen. The
+  desktop link row replaces the menu at `(min-width: 64em)`: 1024px at the
+  default text size (the `lg` point, with at least 200px between the logo and
+  the first link), and later when the reader enlarges text, so the row and its
+  "Book a discovery call" button never run past the fixed header's edge.
+  `DESKTOP_NAV_QUERY` in `DivisionHeader.tsx` and its `[@media(min-width:64em)]:`
+  classes hold that point (`min-[64em]:` is not generated here, because the
+  Tailwind screens are in px).
 - **Landscape phones.** Tablet widths (640–1023px) at most 500px tall get the
   phone header (57px, the endorsement in the menu, the menu's services in two
   columns), a 36px H1, and the phone hero spacing: one media query,

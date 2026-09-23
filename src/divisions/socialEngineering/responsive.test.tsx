@@ -325,6 +325,27 @@ describe('mobile menu', () => {
     expect(within(menu).getAllByRole('link').filter((link) => link.hasAttribute('aria-current'))).toHaveLength(1);
   });
 
+  it('switches between the menu and the desktop links at 64em, so enlarged text keeps the menu', () => {
+    // 64em is 1024px at the default text size (the lg point) and wider when
+    // the reader enlarges text, where the desktop row would otherwise push its
+    // Book a discovery call button past the fixed header's right edge.
+    const DESKTOP = '[@media(min-width:64em)]:';
+    renderAt(<DivisionHeader />);
+    const toggle = screen.getByRole('button', { name: 'Open menu' });
+    expect(classesOf(toggle)).toContain(`${DESKTOP}hidden`);
+    const nav = screen.getByRole('navigation', { name: 'New Wave: Social Engineering' });
+    const desktopRow = nav.querySelector('[data-role="desktop-links"]');
+    expect(classesOf(desktopRow)).toEqual(expect.arrayContaining(['hidden', `${DESKTOP}flex`]));
+    expect(within(desktopRow as HTMLElement).getByRole('link', { name: 'Customers' })).toBeInTheDocument();
+    expect(within(desktopRow as HTMLElement).getByRole('link', { name: /Book a discovery call/ })).toBeInTheDocument();
+    const menu = openMenu();
+    expect(classesOf(menu)).toContain(`${DESKTOP}hidden`);
+    // Nothing in the header switches the nav mode at the px lg point any more.
+    [toggle, menu, desktopRow as Element].forEach((element) => {
+      expect(classesOf(element).filter((name) => /^lg:(flex|hidden)$/.test(name))).toEqual([]);
+    });
+  });
+
   it('marks the current page', () => {
     const service = divisionServices[1];
     renderAt(<DivisionHeader />, `${divisionServicePath(service.slug)}/`);
