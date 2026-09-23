@@ -259,7 +259,8 @@ layouts; every small-screen rule is either a `max-width` media query in
 - **Enlarged text.** Below 1024px `.nwse-root` sets `overflow-wrap:
   break-word`, and the list grids use `grid-cols-1` / `minmax(0, 1fr)` tracks,
   so at 200% text no page is wider than the screen (a wider page would carry
-  the fixed header's toggle off-screen).
+  the fixed header's toggle off-screen). The hero's scene layout switches at
+  em widths, like the header (see "Enlarged text" under Motion).
 - **Hidden below a breakpoint** (decorative or repeated, never unique copy):
   the hub hero's service chips and descriptor (repeated by the services list
   and the footer), "Learn more" on service cards (the whole row is the link),
@@ -271,8 +272,9 @@ layouts; every small-screen rule is either a `max-width` media query in
   and 16px inputs (no iOS zoom on focus). New Wave IT pages are unchanged.
 - **Hero scenes.** On phones the page's line-art scene follows the actions
   (so the primary button never moves), 288 × 192px; service pages leave it
-  out below 375px, where their summaries run 11–13 lines, and the contact
-  page shows it from 1024px only. See "Motion".
+  out below 375px, where their summaries run 11–13 lines, the contact page
+  shows it from 1024px only, and landscape phones (below 1024px wide, at most
+  500px tall) never show it. See "Motion".
 
 ## Editing
 
@@ -656,6 +658,10 @@ slot in `PageScene` (`aria-hidden="true"`, `data-page-scene="<key>"`).
 
 ### Where the scenes are
 
+Widths are at the default text size; the scene layout switches at 48em, 64em,
+and 80em (768, 1024, and 1280px there), so under enlarged text each column
+starts proportionally wider (see "Enlarged text" below).
+
 | Page | Scene (`PAGE_SCENES` key) | Desktop (1024px and up) | Tablets (768–1023px) | Phones |
 |---|---|---|---|---|
 | Hub hero | `hub`: HubGrowthScene | beside the text and actions, centred on them: 320 × 213 at 1024–1279px, 480 × 320 from 1280px | 256 × 171, right of the actions, at the end of a 44rem row (x = 472–728px), so it stays with the text | 288 × 192 after the actions, centred (adds 208px) |
@@ -664,8 +670,12 @@ slot in `PageScene` (`aria-hidden="true"`, `data-page-scene="<key>"`).
 | Hub, "What we gather" band | `hubSection`: HubJourneyScene (light tone, Cloud White knock-outs) | fills the empty sixth cell of the five-card grid (the list is a subgrid of one wrapper grid), so it adds no height | none | none |
 | Customers, Contact us | none | | | |
 
-- **Landscape phones** (640–1023px wide, at most 500px tall) show no scene: at
-  3:2 it would take more than half the screen.
+- **Landscape phones** (below 1024px wide and at most 500px tall, so a 568 ×
+  320 phone as well as an 844 × 390 one) show no scene, whatever the Phones
+  and Tablets columns say: at 3:2 it would take more than half the screen.
+  (This is wider than the 640–1023px landscape tier of the header and hero
+  spacing: below 640px those already use the phone values, but the scene
+  would still show.)
 - **Hero layout with a scene.** The DOM order is text, actions, scene, so the
   primary button keeps its place on every phone. From 1024px the hero is a
   grid: text and actions in the first column, the scene in the second, and
@@ -674,6 +684,31 @@ slot in `PageScene` (`aria-hidden="true"`, `data-page-scene="<key>"`).
   column is the summary's own 42rem; `compact` is 16rem, then 22rem. The H1
   steps down to `--nwse-type-display-1-beside-size` there (85% of
   `display-1`), so every service headline runs three lines.
+- **Enlarged text.** The scene's row and column are sized in rem, so the
+  layout switches at em widths, as the header's menu does (`64em`): the tablet
+  row at `[@media(min-width:48em)]:`, the grid at `[@media(min-width:64em)]:`,
+  the full-size column at `[@media(min-width:80em)]:`, and the contact
+  scene's "only beside the text" at `[@media_not_all_and_(min-width:64em)]:`.
+  At the default text size these are exactly the project's md, lg, and xl
+  screens, so nothing changes there. Under 200% text they are 1536, 2048, and
+  2560px: below 1536px the scene stacks under the actions, from 1536px it
+  sits right of them at the end of the 44rem row, and from 2048px the grid
+  puts it beside the text (under 150% text the same happens at 1152, 1536,
+  and 1920px). So the default layout's proportions hold: at 64em the text
+  column is 37.5rem beside the 20rem scene at 200% text as at the default
+  size. With px switches the rem column took the row instead: at 200% text a
+  1280px hero kept a 64px text column, and a 768px tablet row clipped the
+  scene at the screen's edge. `scenes.test.tsx` holds every class that places
+  the scene to these switches (arbitrary `min-[…]:` and `max-[…]:` widths
+  count too, so a px switch cannot come back that way), and compiles them
+  with the project's Tailwind config to check that they fall on its md, lg,
+  and xl screens and cascade in that order. (Tailwind sorts arbitrary
+  variants by their text, not their width; 48em, 64em, and 80em happen to
+  sort by width.)
+- **Forced colours and print.** The scenes are left out
+  (`@media (forced-colors: active), print` in `division.css`): their Cloud
+  White strokes and knock-out disc need the hero's dark ground, which both
+  drop, so only fragments would show.
 - **Currents.** The hero's background currents stay at 0.18 opacity. Behind
   each hero scene a soft disc of the hero's own ground
   (`radial-gradient(closest-side, var(--nw-deep-current) 72%, transparent)`)
@@ -703,8 +738,29 @@ slot in `PageScene` (`aria-hidden="true"`, `data-page-scene="<key>"`).
 - A scene that fails to load (a flaky network, or a tab still on an old
   deploy) leaves its empty box (`data-scene-slot="failed"`): `SceneSlot` has
   its own error boundary, so the failure never reaches the route's "This page
-  didn't load" boundary. main.tsx's once-per-10-seconds stale-chunk reload
-  still applies to scene chunks, as to every lazy chunk.
+  didn't load" boundary. Nor does it reload the page: the registry loads each
+  scene through `loadDecorativeChunk` (`src/lib/chunkReload.ts`), and
+  main.tsx's once-per-10-seconds stale-chunk reload leaves those failures
+  alone, so a half-filled contact form, or the reader's place on the hub,
+  survives. It tells them apart by the error object Vite passes to both the
+  `vite:preloadError` event and the importer, not by the message (Safari's
+  names no URL). Every other chunk still reloads once, including one that
+  fails while a scene is loading.
+- A failed scene stays an empty box until the next full page load. The
+  browser keeps a chunk that failed to load for the document's lifetime (a
+  later import of it fails at once, with no request), so when the failed
+  chunk is one the scenes share (`primitives`, which every scene imports, or
+  `shapes` or `BookedCalendar`), later scenes in the same visit stay empty
+  too. That is accepted: the scenes are decorative, and forcing a reload to
+  bring them back would cost more (a full page load on the next click, which
+  also restarts third-party widgets such as the chat).
+- Each page gets a fresh slot (`SceneSlot` is keyed by `page`). Every service
+  route renders the same element type, so on a move from one service page to
+  another React keeps the tree; without the key the next page's scene would
+  suspend inside the previous one's visible Suspense and hold the whole
+  navigation until its chunk arrived, and React would keep a failed scene's
+  empty box on every later service page (the browser's side of a failure is
+  the reload above).
 - New Wave IT pages load none of this. No IT module reaches `motion/` through
   static imports at any depth, only the page sections and the pages import
   the registry or `SceneSlot` (never `site.ts`, `routes.tsx`, or `preload.ts`,
@@ -719,7 +775,11 @@ slot in `PageScene` (`aria-hidden="true"`, `data-page-scene="<key>"`).
 Under `prefers-reduced-motion: reduce` every scene renders its static final
 frame straight away, with no motion at all; so do `forceStatic` and browsers
 without IntersectionObserver. The final frame is the story's resting state, so
-nothing is lost.
+nothing is lost. The preference is read live (`usePrefersReducedMotion` in
+`useScenePlayback.ts`, over `matchMedia` and its `change` event, not
+framer-motion's `useReducedMotion`, which reads it once per mount): turning
+it on while a scene waits below the fold or plays shows the final frame at
+once, and turning it off again keeps that frame (a scene never replays).
 
 ### Adding a scene
 
@@ -727,7 +787,8 @@ nothing is lost.
    with a named and a default export, forwarding `tone`, `className`, and
    `forceStatic` to `<SceneFrame>`, and a test beside it like the others.
 2. Register it in `PAGE_SCENES` (`scenes/index.ts`) under the page's key, as a
-   `lazy(() => import('./<Name>Scene'))`; update the keys in
+   `scene(() => import('./<Name>Scene'))` (which loads it through
+   `loadDecorativeChunk`); update the keys in
    `scenes/index.test.tsx`.
 3. Place it: `scene="<key>"` on the page's `DivisionHero` (with
    `sceneOnPhones` and, for a short hero or a long headline,
@@ -746,12 +807,26 @@ nothing is lost.
 - `motion/motion.test.tsx` (engine) and `motion/scenes/*.test.tsx` (each
   scene, and the registry and slot in `index.test.tsx`).
 - `scenes.test.tsx`: which page shows which scene, where, at which widths, and
-  in which column size; every scene decorative; the knock-out behind hero
-  scenes; the slot's 3:2 box, and nothing loaded until it nears the viewport;
-  reduced motion renders each scene's static final frame; no IT module reaches
-  `motion/`, directly or through division modules; scenes write no class
+  in which column size; every class that places a hero scene switches at
+  48/64/80em (arbitrary px widths included), and those compile, with the
+  project's Tailwind config, to its md, lg, and xl screens in that cascade
+  order; the doc's "Enlarged text" bullet gives the switch widths as the
+  markup applies them; every scene decorative; the knock-out behind hero
+  scenes; the slot's 3:2 box, and nothing loaded until it nears the
+  viewport; reduced motion renders each scene's static final frame; no IT
+  module reaches `motion/`, directly or through division modules; the
+  registry and `SceneSlot` reach no other `motion/` module statically (an
+  AST walk that sees re-exports and side-effect imports), and every registry
+  entry is `scene(() => import('./<Name>Scene'))`; scenes write no class
   names.
 - `sceneFailure.test.tsx`: a scene whose chunk fails leaves its empty 3:2 box,
-  and the contact page keeps its H1 and form (no "This page didn't load").
+  and the contact page keeps its H1, its form, and what was typed in it (no
+  "This page didn't load", and no reload through main.tsx's listener).
+- `sceneNavigation.test.tsx`: moving from one service page to another shows
+  the next page at once while its scene loads, and a scene that failed on one
+  page does not carry over to the next in React's state.
+- `src/lib/chunkReload.test.ts` and `src/main.test.tsx`: a decorative chunk's
+  failure never reloads, whatever the browser's message; every other chunk
+  still reloads once, also while a scene is loading.
 - `responsive.test.tsx`: anything hidden below a breakpoint, scenes included,
   is decorative. `type.test.ts` pins `--nwse-type-display-1-beside-size`.

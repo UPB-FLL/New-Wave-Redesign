@@ -46,23 +46,38 @@ const HERO_CURRENTS_FADE = {
   WebkitMaskImage: 'linear-gradient(to right, rgba(0, 0, 0, 0.35), #000 70%)',
 } as const;
 
+// The hero's scene layout switches at em widths, as the header's menu does
+// (DESKTOP_NAV_QUERY in DivisionHeader): 48em, 64em, and 80em are md, lg, and
+// xl (768, 1024, and 1280px) at the default text size, and proportionally
+// wider when the reader enlarges text. The scene row and column are sized in
+// rem, so switching at px widths would let them grow into the text under 200%
+// text (a 64px text column at 1280px) while the breakpoint stayed put.
+// Switching at em widths keeps the default layout's proportions when text is
+// enlarged (WCAG 1.4.4). Tailwind's screens are px and `min-[64em]:` is not
+// generated with px screens, so the classes spell out the media query,
+// `[@media(min-width:64em)]:`. Tailwind sorts these after the px screens, in
+// the order of their text, not their width: 48em, 64em, and 80em happen to
+// sort by width (scenes.test.tsx checks the order). Tailwind needs each class
+// written out in full, so no prefixes are composed here.
+
 /**
- * Where a hero scene shows below lg (from lg it always sits beside the text):
+ * Where a hero scene shows below the grid, 64em (from there it always sits
+ * beside the text):
  * - `show`: every phone and tablet width.
  * - `wide`: from 375px. Service summaries run 11 to 13 lines on 320–374px
  *   phones, so the scene would only lengthen an already long hero there.
- * - `hide`: desktop only, from 1024px (the contact page). Its hero has no
- *   actions, so below lg the scene would sit alone under the summary and only
- *   push the form, the page's action, further down.
- * Landscape phones (below lg, at most 500px tall) never show it: at 3:2 it
- * would take more than half the screen.
+ * - `hide`: only beside the text, from 64em (the contact page). Its hero has
+ *   no actions, so below the grid the scene would sit alone under the summary
+ *   and only push the form, the page's action, further down.
+ * Landscape phones (below 1024px wide and at most 500px tall) never show it:
+ * at 3:2 it would take more than half the screen.
  */
 export type HeroSceneOnPhones = 'show' | 'wide' | 'hide';
 
 const HERO_SCENE_ON_PHONES: Record<HeroSceneOnPhones, string> = {
   show: '',
   wide: 'max-[374.98px]:hidden',
-  hide: 'max-lg:hidden',
+  hide: '[@media_not_all_and_(min-width:64em)]:hidden',
 };
 
 /**
@@ -100,11 +115,11 @@ const HERO_SCENE_KNOCKOUT: CSSProperties = {
 
 /**
  * The hero's scene. Phones: after the actions, 18rem wide and centred under the
- * full-width buttons. sm: the same, left-aligned. md: 16rem, to the right of
- * the actions, at the end of a 44rem row (the summary's measure, plus a
- * little), so it stays with the text rather than the container's edge. From
- * lg: the hero grid's second column, beside the text and actions, centred on
- * them.
+ * full-width buttons. sm: the same, left-aligned. From 48em (md at the default
+ * text size): 16rem, to the right of the actions, at the end of a 44rem row
+ * (the summary's measure, plus a little), so it stays with the text rather
+ * than the container's edge. From 64em (lg): the hero grid's second column,
+ * beside the text and actions, centred on them.
  */
 function HeroScene({ page, onPhones }: { page: ScenePageKey; onPhones: HeroSceneOnPhones }) {
   return (
@@ -112,30 +127,30 @@ function HeroScene({ page, onPhones }: { page: ScenePageKey; onPhones: HeroScene
       page={page}
       tone="dark"
       style={HERO_SCENE_KNOCKOUT}
-      className={`mx-auto mt-4 w-full max-w-[18rem] sm:mx-0 sm:mt-10 md:ml-auto md:mt-8 md:w-[16rem] md:shrink-0 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-0 lg:w-full lg:max-w-none lg:self-center max-lg:[@media(max-height:500px)]:hidden ${HERO_SCENE_ON_PHONES[onPhones]}`}
+      className={`mx-auto mt-4 w-full max-w-[18rem] sm:mx-0 sm:mt-10 [@media(min-width:48em)]:ml-auto [@media(min-width:48em)]:mt-8 [@media(min-width:48em)]:w-[16rem] [@media(min-width:48em)]:shrink-0 [@media(min-width:64em)]:col-start-2 [@media(min-width:64em)]:row-span-2 [@media(min-width:64em)]:row-start-1 [@media(min-width:64em)]:mt-0 [@media(min-width:64em)]:w-full [@media(min-width:64em)]:max-w-none [@media(min-width:64em)]:self-center max-lg:[@media(max-height:500px)]:hidden ${HERO_SCENE_ON_PHONES[onPhones]}`}
     />
   );
 }
 
 /**
- * The scene's column: `large` is 20rem at lg (so a 1024px text column keeps
- * its measure), then 30rem from xl, where the scene draws 1:1 with its
+ * The scene's column: `large` is 20rem from 64em (so a 1024px text column
+ * keeps its measure), then 30rem from 80em, where the scene draws 1:1 with its
  * 480-unit viewBox and the text column is the summary's own 42rem. `compact`
- * is 16rem at lg and 22rem from xl: for a hero whose text is too short to
- * stand beside the full-size scene (contact), or whose headline would run four
- * lines beside it (digital oversight).
+ * is 16rem from 64em and 22rem from 80em: for a hero whose text is too short
+ * to stand beside the full-size scene (contact), or whose headline would run
+ * four lines beside it (digital oversight).
  */
 export type HeroSceneSize = 'large' | 'compact';
 
 /**
- * The hero grid when a scene is present. From lg: text | scene. The H1 steps
- * down to display-1-beside (type.css) from lg, where it shares the row.
+ * The hero grid when a scene is present. From 64em: text | scene. The H1
+ * steps down to display-1-beside (type.css) there, where it shares the row.
  */
 const HERO_SCENE_GRID =
-  'lg:grid lg:gap-x-10 xl:gap-x-16 lg:[--nwse-type-display-1-size:var(--nwse-type-display-1-beside-size)]';
+  '[@media(min-width:64em)]:grid [@media(min-width:64em)]:gap-x-10 [@media(min-width:80em)]:gap-x-16 [@media(min-width:64em)]:[--nwse-type-display-1-size:var(--nwse-type-display-1-beside-size)]';
 const HERO_SCENE_COLUMNS: Record<HeroSceneSize, string> = {
-  large: 'lg:grid-cols-[minmax(0,1fr)_minmax(0,20rem)] xl:grid-cols-[minmax(0,1fr)_minmax(0,30rem)]',
-  compact: 'lg:grid-cols-[minmax(0,1fr)_minmax(0,16rem)] xl:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]',
+  large: '[@media(min-width:64em)]:grid-cols-[minmax(0,1fr)_minmax(0,20rem)] [@media(min-width:80em)]:grid-cols-[minmax(0,1fr)_minmax(0,30rem)]',
+  compact: '[@media(min-width:64em)]:grid-cols-[minmax(0,1fr)_minmax(0,16rem)] [@media(min-width:80em)]:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]',
 };
 
 export function DivisionHero({
@@ -158,11 +173,11 @@ export function DivisionHero({
   footnote?: ReactNode;
   /** Render the kicker as the first line of the H1 (keeps a brand-line headline topical). */
   kickerInHeading?: boolean;
-  /** The page's line-art scene (motion/scenes): beside the text from lg, after the actions below it. */
+  /** The page's line-art scene (motion/scenes): beside the text from 64em, after the actions below it. */
   scene?: ScenePageKey;
   /** Which phone widths show the scene (see HeroSceneOnPhones). */
   sceneOnPhones?: HeroSceneOnPhones;
-  /** The scene's column from lg (see HeroSceneSize). */
+  /** The scene's column from 64em (see HeroSceneSize). */
   sceneSize?: HeroSceneSize;
 }) {
   // Balanced below lg, so a tablet hero never ends on a one-word line.
@@ -186,7 +201,7 @@ export function DivisionHero({
   const actionRow = (besideScene: boolean) =>
     actions ? (
       <div
-        className={`nwse-actions mt-6 grid gap-3 sm:mt-8 sm:flex sm:flex-wrap max-lg:[@media(max-height:500px)]:mt-6${besideScene ? ' lg:col-start-1 lg:row-start-2' : ''}`}
+        className={`nwse-actions mt-6 grid gap-3 sm:mt-8 sm:flex sm:flex-wrap max-lg:[@media(max-height:500px)]:mt-6${besideScene ? ' [@media(min-width:64em)]:col-start-1 [@media(min-width:64em)]:row-start-2' : ''}`}
       >
         {actions}
       </div>
@@ -194,7 +209,9 @@ export function DivisionHero({
   // The footnote only restates what the page lists next, so it is desktop-only.
   // Beside a scene it spans both columns, under the text and the scene.
   const note = (spanBoth: boolean) =>
-    footnote ? <div className={spanBoth ? 'mt-10 hidden lg:col-span-2 lg:block' : 'mt-10 hidden lg:block'}>{footnote}</div> : null;
+    footnote ? (
+      <div className={spanBoth ? 'mt-10 hidden lg:block [@media(min-width:64em)]:col-span-2' : 'mt-10 hidden lg:block'}>{footnote}</div>
+    ) : null;
   return (
     <section className="nwse-dark relative overflow-hidden" style={{ background: 'var(--nw-deep-current)' }}>
       <DivisionCurrents className="pointer-events-none absolute inset-0 h-full w-full" opacity={HERO_CURRENTS_OPACITY} style={HERO_CURRENTS_FADE} />
@@ -203,14 +220,14 @@ export function DivisionHero({
       <div className="relative mx-auto max-w-7xl px-4 pb-8 pt-6 sm:px-6 sm:pb-12 sm:pt-10 lg:px-8 lg:pb-24 lg:pt-16 max-lg:[@media(max-height:500px)]:pb-8 max-lg:[@media(max-height:500px)]:pt-6">
         {breadcrumbs ? <Breadcrumbs trail={breadcrumbs} /> : null}
         {scene ? (
-          // DOM order text, actions, scene. Phones: one column. md: the scene
-          // beside the actions. From lg: text and actions | scene.
+          // DOM order text, actions, scene. Phones: one column. From 48em: the
+          // scene beside the actions. From 64em: text and actions | scene.
           <div className={`${HERO_SCENE_GRID} ${HERO_SCENE_COLUMNS[sceneSize]}`}>
-            <div className="lg:col-start-1 lg:row-start-1">
+            <div className="[@media(min-width:64em)]:col-start-1 [@media(min-width:64em)]:row-start-1">
               {heading}
               {summaryText}
             </div>
-            <div className="md:flex md:max-w-[44rem] md:items-start md:gap-8 lg:contents">
+            <div className="[@media(min-width:48em)]:flex [@media(min-width:48em)]:max-w-[44rem] [@media(min-width:48em)]:items-start [@media(min-width:48em)]:gap-8 [@media(min-width:64em)]:contents">
               {actionRow(true)}
               <HeroScene page={scene} onPhones={sceneOnPhones} />
             </div>

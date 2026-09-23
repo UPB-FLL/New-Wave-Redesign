@@ -5,13 +5,9 @@ import { LOGO_WAVE_D, aspectRatioFor, checkPath, pathEndpoints, pathSignature, r
 import { DIVISION_ICONS, DIVISION_ICON_NAMES } from '../icons/iconData';
 import { Appear, Check, Draw, Icon, Travel, Wave } from './primitives';
 import { useScenePlayback, type ScenePlaybackOptions } from './useScenePlayback';
+import { stubReducedMotion } from '../../../test/reducedMotion';
 
-const { reducedMotion } = vi.hoisted(() => ({ reducedMotion: vi.fn(() => false) }));
-
-vi.mock('framer-motion', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('framer-motion')>();
-  return { ...actual, useReducedMotion: reducedMotion };
-});
+let reducedMotion: ReturnType<typeof stubReducedMotion>;
 
 /** A controllable IntersectionObserver for the tests that need one. */
 class FakeIntersectionObserver {
@@ -82,7 +78,7 @@ const probeState = (el: HTMLElement) => ({
 });
 
 beforeEach(() => {
-  reducedMotion.mockReturnValue(false);
+  reducedMotion = stubReducedMotion(false);
 });
 
 afterEach(() => {
@@ -93,14 +89,17 @@ afterEach(() => {
 
 describe('useScenePlayback', () => {
   it('is static in jsdom, which has no IntersectionObserver', () => {
+    vi.unstubAllGlobals();
     expect(typeof window.IntersectionObserver).toBe('undefined');
+    // jsdom has no matchMedia either: reduced motion reads as off.
+    expect(typeof window.matchMedia).toBe('undefined');
     const { getByTestId } = render(<Probe />);
     expect(probeState(getByTestId('probe'))).toEqual({ phase: 'static', playing: 'false', done: 'true', reduced: 'false' });
   });
 
   it('shows the final frame immediately under prefers-reduced-motion, without observing', () => {
     stubIntersectionObserver();
-    reducedMotion.mockReturnValue(true);
+    reducedMotion.set(true);
     const { getByTestId } = render(<Probe />);
     expect(probeState(getByTestId('probe'))).toEqual({ phase: 'static', playing: 'false', done: 'true', reduced: 'true' });
     expect(FakeIntersectionObserver.instances).toHaveLength(0);
@@ -149,6 +148,49 @@ describe('useScenePlayback', () => {
     observer.fire(1);
     expect(FakeIntersectionObserver.instances).toHaveLength(1);
     expect(probeState(probe).phase).toBe('done');
+  });
+
+  it('reads reduced motion live: switched on while a scene waits, it shows the final frame and never plays', () => {
+    stubIntersectionObserver();
+    const { getByTestId } = render(<Probe />);
+    const probe = getByTestId('probe');
+    const observer = latestObserver();
+    expect(probeState(probe).phase).toBe('idle');
+
+    act(() => reducedMotion.set(true));
+    expect(probeState(probe)).toEqual({ phase: 'static', playing: 'false', done: 'true', reduced: 'true' });
+    expect(observer.disconnected).toBe(true);
+
+    // Scrolled into view afterwards: still the static final frame.
+    observer.fire(1);
+    expect(probeState(probe).phase).toBe('static');
+    expect(FakeIntersectionObserver.instances).toHaveLength(1);
+  });
+
+  it('switched on mid-play, it jumps to the final frame; switched off again, it holds that frame and never replays', () => {
+    stubIntersectionObserver();
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    const { getByTestId } = render(<Probe duration={2} />);
+    const probe = getByTestId('probe');
+    latestObserver().fire(1);
+    expect(probeState(probe).phase).toBe('playing');
+
+    act(() => reducedMotion.set(true));
+    expect(probeState(probe)).toMatchObject({ phase: 'static', playing: 'false', done: 'true' });
+
+    act(() => reducedMotion.set(false));
+    expect(probeState(probe)).toMatchObject({ phase: 'done', playing: 'false', done: 'true', reduced: 'false' });
+    act(() => vi.advanceTimersByTime(5000));
+    expect(probeState(probe).phase).toBe('done');
+    expect(FakeIntersectionObserver.instances).toHaveLength(1);
+  });
+
+  it('stops listening for the preference when the scene unmounts', () => {
+    stubIntersectionObserver();
+    const { unmount } = render(<Probe />);
+    expect(reducedMotion.listenerCount()).toBe(1);
+    unmount();
+    expect(reducedMotion.listenerCount()).toBe(0);
   });
 });
 

@@ -86,11 +86,16 @@ No New Wave IT URL, title, canonical, or structured data changed. Full notes:
   Placed by `DivisionHero` (`scene`, `sceneOnPhones`, `sceneSize`) on the hub,
   the six service pages, and `/contact`, and by `PointGrid` in the hub's "What
   we gather" band. Scenes play once, hold the final frame, and render it
-  statically under reduced motion; they are `aria-hidden`. A scene that fails
-  to load leaves its empty box (`SceneSlot`'s own error boundary). No IT
-  module reaches `motion/`, even through division modules, and Tailwind skips
-  the folder (`scenes.test.tsx`). See the "Motion" section of the division
-  doc.
+  statically under reduced motion (read live); they are `aria-hidden`, and
+  left out in forced colours and print. A scene that fails to load leaves
+  its empty box (`SceneSlot`'s own error boundary, fresh for every page) and
+  never triggers main.tsx's stale-chunk reload: the registry loads scenes
+  through `loadDecorativeChunk` (`src/lib/chunkReload.ts`). The hero's scene
+  layout switches at em widths (48/64/80em), like the header, so enlarged
+  text keeps the text column. No IT module reaches `motion/`, even through
+  division modules; the registry and `SceneSlot` reach no other `motion/`
+  module statically; and Tailwind skips the folder (`scenes.test.tsx`). See
+  the "Motion" section of the division doc.
 - **IT touch points**: a Navbar Services-menu entry and mobile link, a Footer
   link ("Social Media & Marketing"), and sitemap entries. `App.tsx` hides the IT
   `WaveBackground` and `FloatingNav` on division paths.

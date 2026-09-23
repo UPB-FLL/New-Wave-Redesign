@@ -457,12 +457,37 @@ describe('content hidden below a breakpoint', () => {
     expect(footer.querySelector('[aria-label="New Wave: Social Engineering home"]')).not.toBeNull();
   });
 
-  it('hides nothing with display: none in division.css except scrollbar and disclosure-marker chrome', () => {
+  it('hides nothing with display: none in division.css except scrollbar and disclosure-marker chrome, and scenes in forced colours and print', () => {
     const hiders: string[] = [];
     divisionCss.walkDecls('display', (decl: Declaration) => {
-      if (decl.value === 'none') hiders.push((decl.parent as Rule).selector);
+      if (decl.value !== 'none') return;
+      const media = decl.parent?.parent?.type === 'atrule' ? `@media ${(decl.parent.parent as AtRule).params} ` : '';
+      hiders.push(`${media}${(decl.parent as Rule).selector}`);
     });
-    expect(hiders.sort()).toEqual(['.nwse-faq summary::-webkit-details-marker', '.nwse-journey::-webkit-scrollbar']);
+    expect(hiders.sort()).toEqual([
+      '.nwse-faq summary::-webkit-details-marker',
+      '@media (forced-colors: active), print .nwse-root [data-page-scene]',
+      '@media (max-width: 1023.98px) .nwse-journey::-webkit-scrollbar',
+    ]);
+  });
+
+  it('leaves the decorative line-art scenes out in forced colours and in print, where their grounds drop away', () => {
+    // A dark-tone scene paints Cloud White strokes over the hero's ground and
+    // a knock-out background; forced colours (light themes) and print without
+    // backgrounds keep the strokes but drop the grounds, leaving fragments.
+    const rules: { media: string; selector: string; display: string }[] = [];
+    divisionCss.walkAtRules('media', (atRule: AtRule) => {
+      atRule.walkDecls('display', (decl: Declaration) => {
+        rules.push({ media: atRule.params, selector: (decl.parent as Rule).selector, display: decl.value });
+      });
+    });
+    const sceneRule = rules.find((rule) => rule.selector.includes('[data-page-scene]'));
+    expect(sceneRule).toEqual({ media: '(forced-colors: active), print', selector: '.nwse-root [data-page-scene]', display: 'none' });
+    // Every scene sits in a [data-page-scene] wrapper under .nwse-root, so the rule reaches them all.
+    const { container } = renderAt(<SocialEngineeringHubPage />);
+    const scenes = [...container.querySelectorAll('[data-page-scene]')];
+    expect(scenes.map((element) => element.getAttribute('data-page-scene'))).toEqual(['hub', 'hubSection']);
+    scenes.forEach((element) => expect(element.closest('.nwse-root')).not.toBeNull());
   });
 
   it.each(divisionServices.map((service) => [service.slug]))('on %s, hides nothing below a breakpoint but its decorative scene', (slug) => {

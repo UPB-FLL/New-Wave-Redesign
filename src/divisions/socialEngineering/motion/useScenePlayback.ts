@@ -1,5 +1,4 @@
-import { useContext, useEffect, useRef, useState, type RefObject } from 'react';
-import { useReducedMotion } from 'framer-motion';
+import { useContext, useEffect, useRef, useState, useSyncExternalStore, type RefObject } from 'react';
 import {
   SCENE_DEFAULT_DURATION,
   SCENE_VIEW_AMOUNT,
@@ -28,6 +27,36 @@ export interface ScenePlayback<T extends Element> {
 const canObserve = () =>
   typeof window !== 'undefined' && typeof window.IntersectionObserver === 'function';
 
+const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
+
+const reducedMotionQuery = (): MediaQueryList | null =>
+  typeof window !== 'undefined' && typeof window.matchMedia === 'function' ? window.matchMedia(REDUCED_MOTION_QUERY) : null;
+
+function subscribeToReducedMotion(onChange: () => void): () => void {
+  const query = reducedMotionQuery();
+  if (!query) return () => {};
+  if (typeof query.addEventListener === 'function') {
+    query.addEventListener('change', onChange);
+    return () => query.removeEventListener('change', onChange);
+  }
+  // Safari before 14 has only the older listener API.
+  query.addListener(onChange);
+  return () => query.removeListener(onChange);
+}
+
+/**
+ * prefers-reduced-motion, read live: a change re-renders every mounted scene.
+ * (framer-motion's useReducedMotion reads it once per mount, so a scene that
+ * mounted before the reader turned reduced motion on would still play.)
+ */
+export function usePrefersReducedMotion(): boolean {
+  return useSyncExternalStore(
+    subscribeToReducedMotion,
+    () => reducedMotionQuery()?.matches === true,
+    () => false,
+  );
+}
+
 // Enough thresholds that a frame taller than the viewport still gets callbacks
 // while it scrolls through (see the viewport-coverage fallback below).
 const thresholdsFor = (amount: number) =>
@@ -38,7 +67,9 @@ const thresholdsFor = (amount: number) =>
  * is in view, then `playing` for `duration` seconds, then `done` for good. It
  * never replays (a remount is a new scene). Under prefers-reduced-motion, with
  * `forceStatic` (prop or <SceneOverrides>), or where IntersectionObserver is
- * missing (SSR, jsdom), it reports `static`: done and never playing.
+ * missing (SSR, jsdom), it reports `static`: done and never playing. The
+ * preference is read live, so switching reduced motion on stops a scene that
+ * is waiting or playing at its final frame.
  */
 export function useScenePlayback<T extends Element = HTMLDivElement>({
   duration = SCENE_DEFAULT_DURATION,
@@ -47,7 +78,7 @@ export function useScenePlayback<T extends Element = HTMLDivElement>({
 }: ScenePlaybackOptions = {}): ScenePlayback<T> {
   const ref = useRef<T>(null);
   const overrides = useContext(SceneOverrideContext);
-  const reduced = useReducedMotion() === true;
+  const reduced = usePrefersReducedMotion();
   const isStatic = reduced || forceStatic || overrides.forceStatic === true || !canObserve();
   const [started, setStarted] = useState(false);
   const [finished, setFinished] = useState(false);

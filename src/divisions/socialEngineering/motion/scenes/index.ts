@@ -10,28 +10,36 @@
 // Render a lazy scene inside <Suspense>, with a fallback that holds the same
 // 3:2 box so nothing shifts while the chunk loads. <SceneSlot page="…"> does
 // exactly that.
+//
+// Every import goes through loadDecorativeChunk: a scene is decorative, so a
+// chunk that fails to load leaves the slot's empty box and never triggers
+// main.tsx's stale-chunk reload (which would wipe a half-filled form).
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
+import { loadDecorativeChunk } from '../../../../lib/chunkReload';
 import type { SceneProps } from '../sceneState';
+
+/** A registry entry: its chunk loads on first render, as a decorative chunk. */
+const scene = (load: () => Promise<{ default: ComponentType<SceneProps> }>) => lazy(() => loadDecorativeChunk(load));
 
 export const PAGE_SCENES = {
   /** Hub hero: the brand wave straightens from guesswork into a rising trend of bookings. */
-  hub: lazy(() => import('./HubGrowthScene')),
+  hub: scene(() => import('./HubGrowthScene')),
   /** A post that worked leads a customer from the feed to a booked calendar. */
-  'social-media': lazy(() => import('./SocialPostToBookingScene')),
+  'social-media': scene(() => import('./SocialPostToBookingScene')),
   /** Scattered touchpoints snap onto one line, all wearing the same amber mark. */
-  'brand-development': lazy(() => import('./BrandAlignScene')),
+  'brand-development': scene(() => import('./BrandAlignScene')),
   /** A post, an ad and a listing each land on a lane that ends at a next step; one books. */
-  'website-design': lazy(() => import('./WebPathsScene')),
+  'website-design': scene(() => import('./WebPathsScene')),
   /** The campaign's wave carries a customer to a page that books; an email brings them back. */
-  marketing: lazy(() => import('./MarketingReachScene')),
+  marketing: scene(() => import('./MarketingReachScene')),
   /** Tools stay put; their currents merge into one amber path to a booked calendar. */
-  integration: lazy(() => import('./IntegrationOnePathScene')),
+  integration: scene(() => import('./IntegrationOnePathScene')),
   /** One dial watches every touchpoint; the gap is closed before the customer gets there. */
-  'digital-oversight': lazy(() => import('./OversightOneTeamScene')),
+  'digital-oversight': scene(() => import('./OversightOneTeamScene')),
   /** Contact hero: a clear path grows out of the discovery lens to the business's goal flag. */
-  contact: lazy(() => import('./ContactDiscoveryScene')),
+  contact: scene(() => import('./ContactDiscoveryScene')),
   /** Hub "What we gather" band: book, return, refer, as one flywheel (light tone by default). */
-  hubSection: lazy(() => import('./HubJourneyScene')),
+  hubSection: scene(() => import('./HubJourneyScene')),
 } satisfies Record<string, LazyExoticComponent<ComponentType<SceneProps>>>;
 
 export type ScenePageKey = keyof typeof PAGE_SCENES;

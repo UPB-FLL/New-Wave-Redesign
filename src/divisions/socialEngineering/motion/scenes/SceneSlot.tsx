@@ -12,7 +12,20 @@
 // A scene that fails to load (a flaky network, or a tab still on an old
 // deploy) leaves its empty box, never an error: the scene is decorative, so it
 // must never reach the route's error boundary and take the page (and the
-// contact form) down with it.
+// contact form) down with it. Nor does it reload the page: the registry loads
+// every scene through loadDecorativeChunk (src/lib/chunkReload.ts), which
+// keeps its failure out of main.tsx's stale-chunk reload. The browser keeps a
+// failed chunk for the document's lifetime, though, so a failed chunk that the
+// scenes share (the drawing primitives) also leaves later scenes in the same
+// visit empty until the next full page load. That is accepted: the scenes are
+// decorative.
+//
+// Each page gets a fresh slot (keyed by `page`). A client-side move between
+// two service pages keeps the same component tree (one route element type),
+// so without the key the next page's scene would suspend inside the previous
+// page's already visible Suspense, and React would hold the whole navigation
+// (a transition) until that chunk arrived; a failed scene would also stay
+// failed, in React's state, on every later service page.
 import { Component, Suspense, useEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import type { SceneProps } from '../sceneState';
 import { PAGE_SCENES, type ScenePageKey } from './index';
@@ -50,9 +63,9 @@ function useNearViewport<T extends Element>(): [boolean, RefObject<T>] {
 
 /**
  * Catches a scene that fails to load or render and shows `fallback` (the
- * slot's empty box) in its place. That covers a rejected chunk import and the
- * undefined module Vite hands back once main.tsx's stale-chunk reload has
- * already fired for this session.
+ * slot's empty box) in its place: a rejected chunk import (Vite rethrows a
+ * scene's failure, because chunkReload.ts leaves decorative chunks alone), a
+ * module without a component, or an error while drawing.
  */
 class SceneBoundary extends Component<{ fallback: ReactNode; children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
@@ -66,7 +79,12 @@ class SceneBoundary extends Component<{ fallback: ReactNode; children: ReactNode
   }
 }
 
-export function SceneSlot({ page, className, ...props }: SceneSlotProps) {
+/** A page's scene slot: a fresh instance (waiting box, boundary, Suspense) for every page. */
+export function SceneSlot(props: SceneSlotProps) {
+  return <PageSceneSlot key={props.page} {...props} />;
+}
+
+function PageSceneSlot({ page, className, ...props }: SceneSlotProps) {
   const Scene = PAGE_SCENES[page];
   const [near, ref] = useNearViewport<HTMLDivElement>();
   const box = (state: 'waiting' | 'loading' | 'failed') => (
