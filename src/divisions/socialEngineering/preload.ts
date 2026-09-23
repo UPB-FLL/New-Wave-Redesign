@@ -12,10 +12,39 @@ export interface BundleChunk {
   viteMetadata?: { importedCss?: Set<string> };
 }
 
+import {
+  DIVISION_BASE_PATH,
+  DIVISION_CONTACT_PATH,
+  DIVISION_CONTACT_US_PATH,
+  DIVISION_CUSTOMERS_PATH,
+  DIVISION_SERVICE_SLUGS,
+  divisionServicePath,
+} from './site';
+
 export type DivisionPageModule =
   | 'SocialEngineeringHubPage'
   | 'SocialEngineeringServicePage'
+  | 'SocialEngineeringCustomersPage'
+  | 'SocialEngineeringContactUsPage'
   | 'SocialEngineeringContactPage';
+
+const PAGE_MODULES = new Map<string, DivisionPageModule>([
+  [DIVISION_BASE_PATH, 'SocialEngineeringHubPage'],
+  ...DIVISION_SERVICE_SLUGS.map((slug): [string, DivisionPageModule] => [divisionServicePath(slug), 'SocialEngineeringServicePage']),
+  [DIVISION_CUSTOMERS_PATH, 'SocialEngineeringCustomersPage'],
+  [DIVISION_CONTACT_US_PATH, 'SocialEngineeringContactUsPage'],
+  [DIVISION_CONTACT_PATH, 'SocialEngineeringContactPage'],
+]);
+
+/**
+ * The page module (pages/<name>.tsx) that renders a division URL. Throws for
+ * an unmapped URL, so a new page cannot ship preloading the wrong chunk.
+ */
+export function divisionPageModule(pagePath: string): DivisionPageModule {
+  const module = PAGE_MODULES.get(pagePath);
+  if (!module) throw new Error(`No division page module is mapped to ${pagePath} (src/divisions/socialEngineering/preload.ts).`);
+  return module;
+}
 
 /**
  * modulepreload / stylesheet tags for a page module's chunk and its static

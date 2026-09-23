@@ -1,11 +1,14 @@
 import { Link } from 'react-router-dom';
 import { NewWaveLogo } from '../../../components/brand/NewWaveLogo';
 import { useContent } from '../../../lib/useContent';
+import { FOOTER_ADDRESS_FALLBACK, FOOTER_EMAIL_FALLBACK, PLACEHOLDER_PHONE } from '../contactDetails';
 import { divisionServices } from '../content';
 import { NwseIcon } from '../icons/NwseIcon';
 import {
   DIVISION_BASE_PATH,
   DIVISION_CONTACT_PATH,
+  DIVISION_CONTACT_US_PATH,
+  DIVISION_CUSTOMERS_PATH,
   DIVISION_DESCRIPTOR,
   DIVISION_LOGO_MIN_WIDTH,
   DIVISION_NAME,
@@ -47,9 +50,9 @@ const FOOTER_PARENT_PAD_BOTTOM_PX = 20;
 export function DivisionFooter() {
   // Same CMS source and fallbacks as the parent footer: one company, one inbox.
   const content = useContent('footer');
-  const phone = content.phone || '(954) 555-0100';
-  const email = content.email || 'support@newwaveitfl.com';
-  const address = content.address || '710 NW 5th Ave, Suite 1072, Fort Lauderdale, FL 33311';
+  const phone = content.phone || PLACEHOLDER_PHONE;
+  const email = content.email || FOOTER_EMAIL_FALLBACK;
+  const address = content.address || FOOTER_ADDRESS_FALLBACK;
 
   return (
     <footer className="nwse-dark relative overflow-hidden" style={{ background: 'var(--nw-deep-current)' }}>
@@ -78,6 +81,16 @@ export function DivisionFooter() {
               <li>
                 <Link to={DIVISION_BASE_PATH} className={linkClass}>
                   Division overview
+                </Link>
+              </li>
+              <li>
+                <Link to={DIVISION_CUSTOMERS_PATH} className={linkClass}>
+                  Customers
+                </Link>
+              </li>
+              <li>
+                <Link to={DIVISION_CONTACT_US_PATH} className={linkClass}>
+                  Contact us
                 </Link>
               </li>
               <li>

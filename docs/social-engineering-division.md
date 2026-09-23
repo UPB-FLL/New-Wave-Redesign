@@ -26,7 +26,9 @@ testing and are superseded by this document (see "History").
 | Marketing | `/social-engineering/marketing` |
 | Integration | `/social-engineering/integration` |
 | Digital oversight | `/social-engineering/digital-oversight` |
-| Contact (book a discovery call) | `/social-engineering/contact` |
+| Customers | `/social-engineering/customers` |
+| Contact us (clients, questions, partnerships) | `/social-engineering/contact-us` |
+| Book a discovery call (new projects) | `/social-engineering/contact` |
 
 Retired first-launch URLs, each a permanent (308) redirect to the hub:
 `/social-engineering/phishing-simulation`, `/vishing-pretext-testing`,
@@ -109,8 +111,85 @@ division is a New Wave IT division, not a separate company.
   below or to the right, sized so both "NEW WAVE" wordmarks share a cap height.
 - Naming: "New Wave: Social Engineering" on first reference; "NW Social
   Engineering" after; never "NWSE" — enforced by `seo.test.ts`.
-- Leads from `/social-engineering/contact` arrive with the subject prefixed
-  `[New Wave: Social Engineering]` and a "Division" line in the notification.
+- Leads from `/social-engineering/contact` and `/social-engineering/contact-us`
+  arrive with the subject prefixed `[New Wave: Social Engineering]` and a
+  "Division" line in the notification. Both send the same `inquiry` tag, so only
+  the message text shows which page a lead came from.
+
+## Customers and Contact us
+
+Two non-service pages, linked from the header (desktop nav and the phone
+sheet: Overview · Services · Customers · Contact us · **Book a discovery
+call**) and from the footer's "NW Social Engineering" column.
+
+### Customers (`/social-engineering/customers`)
+
+- **Content**: `content/customers.ts` holds `divisionCustomers` (in the owner's
+  order: Wildly Primal, New Wave IT, Uncommon Path Brewing, Lucky Shot Golf)
+  and `customersContent` (page copy). Each entry says what the business *is*,
+  from its own site: category, location, description, and a link whose text is
+  the bare domain.
+- **The rule**: no claims about work the division did for a customer: no
+  services delivered, results, metrics, ratings, reviews, quotes, or "we
+  built / launched / grew" statements, and no logos or screenshots. The
+  visuals are the division's own type and icons (`map-pin`, `arrow-up-right`,
+  `arrow-right`). No superlatives, and no medical or healing claims.
+  `customers.test.ts` pins the four names, links, and order and fails on
+  work-claim, rating, superlative, or health-claim wording.
+- **Search**: the customers' names and category terms stay out of the page's
+  title, description, and keywords, so the page never competes with their own
+  sites. JSON-LD: a `CollectionPage` whose `mainEntity` is an `ItemList` of the
+  customers as `Organization` nodes with `name` and `url` only (no review,
+  rating, logo, or `sameAs`), plus the division `Organization` and
+  `BreadcrumbList`. New Wave IT's item is the parent node itself (the
+  `#organization` `@id` that `index.html` declares and the division's
+  `parentOrganization` names), not a second organization of the same name.
+- **Links**: other businesses' sites open in a new tab (`target="_blank"`,
+  `rel="noopener"`, and a visually hidden " (opens in a new tab)"). New Wave IT
+  is the parent company, so its row is an in-app link to `/`.
+- **Layout**: one grouped panel of rows (the division's row-list pattern) at
+  every width. Phones stack each row (category, name, location, description,
+  link); from `md` the rows share columns through CSS subgrid (name block,
+  then description with the link beneath); from `xl` the link gets its own
+  right-hand column. Links are 44px tall below `lg`. The list's H2 ("Customer
+  list") is visually hidden and each name is an H3, above its category label
+  in the DOM.
+- **To add or change a customer**: edit `divisionCustomers`, update the pinned
+  list in `customers.test.ts`, and get the owner's confirmation that the
+  business is happy to be named.
+
+### Contact us (`/social-engineering/contact-us`)
+
+- **Purpose**: current clients, general questions, partnerships, and anything
+  that isn't a new project. The discovery-call page (`/contact`) is for new
+  projects and keeps its URL, title, description, H1, and form. The two pages
+  have different titles, descriptions, keywords (they share only "new wave
+  it"), kickers, H1s, and form copy; `pages.test.tsx` holds them apart. The
+  discovery page's breadcrumb still reads "Contact": apart from the new header
+  and footer links, that page is unchanged. Renaming its crumb (for example to
+  "Discovery call") is a one-line change in `contactPageSeo()` for the owner to
+  decide.
+- **New projects**: the hero ends with "Starting a new project? Book a
+  discovery call" (a link to `/contact`, 44px tall on phones), in `actions`
+  rather than `footnote`, which is hidden below 1024px.
+- **Form**: the shared `Contact` with `inquiry="social-engineering"`, the
+  division icons (`components/contactIcons.tsx`, shared with `/contact`), and
+  `content/contact-us.ts`'s `form` copy as its `intro`.
+- **Contact details**: `useDivisionContactDetails()` (`contactDetails.ts`)
+  reads the CMS `footer` section, the same source as the division footer, and
+  passes phone, email, and address to `Contact`'s optional `details` prop.
+  Email and address fall back exactly as the footer does (the footer uses the
+  same exported constants). The phone never falls back: without a real number
+  (an empty value, or anything in the reserved 555-0100 to 555-0199 range) the
+  Call row is left out, so the page never shows the placeholder
+  `(954) 555-0100`. The form's phone field shows "Optional" instead of the
+  sample number (`intro.phonePlaceholder`). The footer itself still falls back
+  to the placeholder; enter the real number in the CMS.
+- **Shared form changes** (`src/components/Contact.tsx`, additive): `details`
+  (phone, email, and a pre-formatted address; without it the form reads the
+  CMS `contact` section and its fallbacks as before) and
+  `intro.phonePlaceholder` (default: the sample number). New Wave IT pages and
+  `/contact` pass neither, so they render as before; `Contact.test.tsx` pins it.
 
 ## Phones and tablets
 
@@ -134,12 +213,28 @@ layouts; every small-screen rule is either a `max-width` media query in
   header rows, logo (160px), and menu toggle are sized in px, not rem, so the
   header still matches the token when the reader enlarges text and the toggle
   stays on screen.
+  The sheet opens with one row of page links (Overview, Customers, Contact us;
+  it wraps under larger text), then the six services, then the amber
+  discovery-call button. Sharing Overview's row keeps the sheet as tall as it
+  was before Customers and Contact us were added, so on a 320x568 phone the
+  button and the endorsement at the foot both fit on the first screen. The
+  desktop link row replaces the menu at `(min-width: 64em)`: 1024px at the
+  default text size (the `lg` point, with at least 200px between the logo and
+  the first link), and later when the reader enlarges text, so the row and its
+  "Book a discovery call" button never run past the fixed header's edge.
+  `DESKTOP_NAV_QUERY` in `DivisionHeader.tsx` and its `[@media(min-width:64em)]:`
+  classes hold that point (`min-[64em]:` is not generated here, because the
+  Tailwind screens are in px).
 - **Landscape phones.** Tablet widths (640–1023px) at most 500px tall get the
   phone header (57px, the endorsement in the menu, the menu's services in two
   columns), a 36px H1, and the phone hero spacing: one media query,
   `(min-width: 640px) and (max-width: 1023.98px) and (max-height: 500px)`, in
   `division.css` and `type.css`, and `max-lg:[@media(max-height:500px)]:`
   classes in the markup.
+- **Contact methods.** Below 1024px the contact links (the email address)
+  may break anywhere (`overflow-wrap: anywhere`), so under 200% text, WCAG
+  text spacing, or 200% page zoom the address wraps inside its row instead of
+  pushing the page, and the menu button, sideways.
 - **Component classes** (styled in `division.css`, because it loads after the
   Tailwind utilities and its `.nwse-card`/`.nwse-btn`/`.nwse-icon` rules win
   over same-specificity utilities):
@@ -188,6 +283,16 @@ layouts; every small-screen rule is either a `max-width` media query in
   `content/index.ts`, add its slug to `DIVISION_SERVICE_SLUGS` in `site.ts`, add
   a rewrite in `vercel.json` and a `<url>` in `public/sitemap.xml`. The tests
   fail until all five agree.
+- To add a non-service page (as Customers and Contact us were): a path constant
+  in `site.ts`; a content module exported from `content/index.ts`; a
+  `…PageSeo()` in `seo.ts`, added to `allDivisionPages()` (which feeds the
+  prerender, the no-JS links, and the sitemap and rewrite tests); the page
+  component in `pages/`; its module in `divisionPageModule()` (`preload.ts`,
+  which the build uses for chunk preloads and which throws for an unmapped
+  URL); a lazy route in `routes.tsx` and a `<Route>` inside the
+  `DIVISION_PUBLISHED` block in `App.tsx`; an exact rewrite in `vercel.json`
+  and a `<url>` in `public/sitemap.xml`; and, if it belongs in the navigation,
+  `pageLinks` in `DivisionHeader.tsx` and the footer's division column.
 - To retire a service URL: remove it as above, add its slug to
   `RETIRED_SERVICE_SLUGS`, and add a permanent redirect to the hub in
   `vercel.json` (the integration test expects exactly those redirects).
@@ -196,6 +301,22 @@ layouts; every small-screen rule is either a `max-width` media query in
   and remove its sitemap URLs (see #74).
 
 ## Launch checklist (owner)
+
+Before the Customers and Contact us pages go live:
+
+- **Wildly Primal**: its site blocks automated fetches, so its entry comes from
+  search results, its Facebook page, and its BBB listing, and may predate the
+  site's rebuild. Confirm "Health coaching · Jacksonville Beach, FL · Online
+  coaching focused on digestion, gut health, blood sugar balance, and
+  metabolism."
+- **Lucky Shot Golf link**: the page links `https://www.playluckyshot.com/`,
+  as the owner chose. The same site also answers on
+  `https://www.playluckyshotgolf.com/`, which its canonical tag names; switch
+  the link there if that domain is preferred.
+- **Permission**: confirm each business is happy to be named as a customer.
+- **Phone**: enter the real number in the CMS `footer` section. Until then,
+  Contact us leaves out its Call row and the footer shows the placeholder.
+
 
 1. **Review the copy.** It describes how engagements run (discovery before
    recommendations, a three-phase roadmap, reporting against bookings and
@@ -430,7 +551,8 @@ The division draws with its own 35-icon set. New Wave IT pages keep Lucide.
 | Hub roadmap (`RoadmapGrid`) | `phase-*`, via `hubContent.roadmap[].icon`; same tile |
 | Hub "What we measure" | `metric-*`, via `hubContent.metrics[].icon`; 24px, Cloud White with the amber accent, inline with the label |
 | Header, footer, FAQ, CTAs, check lists | `arrow-right`, `arrow-up-right`, `chevron-down`, `chevron-right`, `menu`, `close`, `check`, `phone`, `mail`, `map-pin` |
-| Contact page (shared IT form) | `phone`, `mail`, `map-pin`, `send`, `check-circle`, through `Contact`'s `icons` prop |
+| Contact and Contact us pages (shared IT form) | `phone`, `mail`, `map-pin`, `send`, `check-circle`, through `Contact`'s `icons` prop (`components/contactIcons.tsx`) |
+| Customers page | `map-pin` (location, 16px, Tide Blue), `arrow-up-right` (external links, 16px), `arrow-right` (the in-app New Wave IT link) |
 
 - `DivisionPoint.icon` and `DivisionRoadmapPhase.icon` are optional.
   `StepList` and `RoadmapGrid` show the tile only when an item has one, so the

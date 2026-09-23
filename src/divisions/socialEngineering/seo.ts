@@ -2,11 +2,13 @@
 // shared by the runtime meta hook and the build-time prerenderer so the two can
 // never disagree about a page's title, canonical, or structured data.
 
-import { contactContent, divisionServices, hubContent } from './content';
+import { contactContent, contactUsContent, customersContent, divisionCustomers, divisionServices, hubContent } from './content';
 import {
   DIVISION_ASSETS,
   DIVISION_BASE_PATH,
   DIVISION_CONTACT_PATH,
+  DIVISION_CONTACT_US_PATH,
+  DIVISION_CUSTOMERS_PATH,
   DIVISION_NAME,
   DIVISION_ORGANIZATION_ID,
   DIVISION_SHORT_NAME,
@@ -19,7 +21,7 @@ import {
   divisionServicePath,
 } from './site';
 import type { PageMetaOptions } from '../../lib/pageMeta';
-import type { DivisionFaq, DivisionPageSeo, DivisionServiceContent } from './types';
+import type { DivisionCustomer, DivisionFaq, DivisionPageSeo, DivisionServiceContent } from './types';
 
 type JsonLdNode = Record<string, unknown>;
 
@@ -33,6 +35,11 @@ const AREA_SERVED: JsonLdNode[] = [
   { '@type': 'AdministrativeArea', name: 'South Florida' },
 ];
 
+/** New Wave IT, by the @id index.html declares: every division reference to the parent company. */
+function parentOrganizationRef(): JsonLdNode {
+  return { '@type': 'Organization', '@id': PARENT_ORGANIZATION_ID, name: PARENT_NAME, url: SITE_URL };
+}
+
 export function divisionOrganizationNode(): JsonLdNode {
   return {
     '@type': 'Organization',
@@ -45,12 +52,7 @@ export function divisionOrganizationNode(): JsonLdNode {
     slogan: DIVISION_TAGLINE,
     description:
       'The social media, brand development, website design, and marketing division of New Wave IT, serving Fort Lauderdale and South Florida.',
-    parentOrganization: {
-      '@type': 'Organization',
-      '@id': PARENT_ORGANIZATION_ID,
-      name: PARENT_NAME,
-      url: SITE_URL,
-    },
+    parentOrganization: parentOrganizationRef(),
     areaServed: AREA_SERVED,
     knowsAbout: [
       'Social media management',
@@ -160,6 +162,75 @@ export function servicePageSeo(service: DivisionServiceContent): DivisionPageSeo
   };
 }
 
+/**
+ * The customers as a plain list of organizations: name and URL only. No
+ * review, rating, logo, or sameAs, and nothing that describes work done.
+ * New Wave IT (linked in-app as '/') is the parent company, so its item is
+ * the parent node itself, by the @id index.html declares, not a second
+ * organization of the same name.
+ */
+function customerListNode(path: string, customers: readonly DivisionCustomer[]): JsonLdNode {
+  return {
+    '@type': 'ItemList',
+    '@id': `${absoluteUrl(path)}#customers`,
+    numberOfItems: customers.length,
+    itemListElement: customers.map((customer, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      item:
+        customer.href === '/'
+          ? parentOrganizationRef()
+          : {
+              '@type': 'Organization',
+              name: customer.name,
+              url: customer.href.startsWith('/') ? absoluteUrl(customer.href) : customer.href,
+            },
+    })),
+  };
+}
+
+export function customersPageSeo(): DivisionPageSeo {
+  const path = DIVISION_CUSTOMERS_PATH;
+  const breadcrumbs = [HUB_CRUMB, { name: customersContent.navLabel, path }];
+  const page = webPageNode(path, customersContent.metaTitle, customersContent.metaDescription, 'CollectionPage');
+  return {
+    path,
+    title: customersContent.metaTitle,
+    description: customersContent.metaDescription,
+    keywords: customersContent.keywords,
+    h1: customersContent.headline,
+    breadcrumbs,
+    jsonLd: [
+      divisionOrganizationNode(),
+      { ...page, mainEntity: { '@id': `${absoluteUrl(path)}#customers` } },
+      customerListNode(path, divisionCustomers),
+      breadcrumbNode(path, breadcrumbs),
+    ],
+  };
+}
+
+export function contactUsPageSeo(): DivisionPageSeo {
+  const path = DIVISION_CONTACT_US_PATH;
+  const breadcrumbs = [HUB_CRUMB, { name: contactUsContent.navLabel, path }];
+  return {
+    path,
+    title: contactUsContent.metaTitle,
+    description: contactUsContent.metaDescription,
+    keywords: contactUsContent.keywords,
+    h1: contactUsContent.headline,
+    breadcrumbs,
+    jsonLd: [
+      divisionOrganizationNode(),
+      webPageNode(path, contactUsContent.metaTitle, contactUsContent.metaDescription, 'ContactPage'),
+      breadcrumbNode(path, breadcrumbs),
+    ],
+  };
+}
+
+/**
+ * The discovery-call page, unchanged by the Contact us page beside it: its
+ * crumb stays "Contact". Renaming it (e.g. "Discovery call") is the owner's call.
+ */
 export function contactPageSeo(): DivisionPageSeo {
   const path = DIVISION_CONTACT_PATH;
   const breadcrumbs = [HUB_CRUMB, { name: 'Contact', path }];
@@ -178,9 +249,9 @@ export function contactPageSeo(): DivisionPageSeo {
   };
 }
 
-/** Every indexable division URL, in sitemap order. */
+/** Every indexable division URL, in sitemap order (the header's order: overview, services, customers, contact us, discovery call). */
 export function allDivisionPages(): DivisionPageSeo[] {
-  return [hubPageSeo(), ...divisionServices.map(servicePageSeo), contactPageSeo()];
+  return [hubPageSeo(), ...divisionServices.map(servicePageSeo), customersPageSeo(), contactUsPageSeo(), contactPageSeo()];
 }
 
 /** Serialises a page's nodes into one JSON-LD document. */

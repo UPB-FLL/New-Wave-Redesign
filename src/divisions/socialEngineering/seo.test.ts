@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { contactContent, divisionServices, hubContent } from './content';
+import { contactContent, contactUsContent, customersContent, divisionCustomers, divisionServices, hubContent } from './content';
 import { allDivisionPages, divisionJsonLdDocument } from './seo';
 import {
   DIVISION_BASE_PATH,
@@ -20,7 +20,7 @@ function copyStrings(value: unknown): string[] {
   if (value && typeof value === 'object') return Object.values(value).flatMap(copyStrings);
   return [];
 }
-const allCopy = copyStrings([hubContent, divisionServices, contactContent]);
+const allCopy = copyStrings([hubContent, divisionServices, contactContent, customersContent, divisionCustomers, contactUsContent]);
 
 describe('division routes', () => {
   it('registers exactly the services that have content, in display order', () => {
@@ -111,7 +111,7 @@ describe('division copy follows the brand guidelines', () => {
   });
 
   it('introduces the division by its full name on first reference in each summary', () => {
-    [hubContent.summary, ...divisionServices.map((service) => service.summary)].forEach((summary) => {
+    [hubContent.summary, ...divisionServices.map((service) => service.summary), customersContent.summary, contactUsContent.summary].forEach((summary) => {
       const full = summary.indexOf(DIVISION_NAME);
       const short = summary.indexOf('NW Social Engineering');
       if (short !== -1) expect(full, summary).toBeGreaterThan(-1);
@@ -119,12 +119,22 @@ describe('division copy follows the brand guidelines', () => {
     });
   });
 
+  it('names the division in full in the Customers and Contact us summaries, their first reference', () => {
+    [customersContent.summary, contactUsContent.summary].forEach((summary) => expect(summary).toContain(DIVISION_NAME));
+  });
+
   it('makes no percentage claims (metric labels only, no invented results)', () => {
     allCopy.forEach((text) => expect(text, text).not.toMatch(/%/));
   });
 
   it('uses sentence case for headlines', () => {
-    [hubContent.headline, ...divisionServices.map((service) => service.headline)].forEach((headline) => {
+    [
+      hubContent.headline,
+      ...divisionServices.map((service) => service.headline),
+      customersContent.headline,
+      contactUsContent.headline,
+      contactUsContent.form.headline,
+    ].forEach((headline) => {
       const words = headline.split(/\s+/).slice(1);
       const properNouns = /^(New|Wave|IT|Social|Engineering|Fort|Lauderdale|South|Florida|HIPAA|PCI|DSS|SOC|MFA|QR|SMS|USB)\b/;
       words.forEach((word) => {

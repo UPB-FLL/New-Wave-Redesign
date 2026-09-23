@@ -82,12 +82,27 @@ No New Wave IT URL, title, canonical, or structured data changed. Full notes:
 - **IT touch points**: a Navbar Services-menu entry and mobile link, a Footer
   link ("Social Media & Marketing"), and sitemap entries. `App.tsx` hides the IT
   `WaveBackground` and `FloatingNav` on division paths.
-- **Leads**: `Contact` accepts optional `inquiry`, `intro`, and `icons` props. The API
-  allow-lists `inquiry: 'social-engineering'` and prefixes the notification
-  subject.
+- **Leads**: `Contact` accepts optional `inquiry`, `intro`, `icons`, and
+  `details` props. The API allow-lists `inquiry: 'social-engineering'` and
+  prefixes the notification subject.
+- **Customers and Contact us** (`/social-engineering/customers`,
+  `/social-engineering/contact-us`): linked from the header, phone sheet, and
+  footer next to the amber "Book a discovery call" (`/contact`, which is
+  unchanged apart from those links). Customers says what
+  each business is, never what was done for it: no services, results,
+  ratings, quotes, logos, or screenshots (`customers.test.ts`). Contact us
+  takes phone, email, and address from the footer's CMS values and leaves out
+  the Call row rather than show the placeholder `(954) 555-0100`
+  (`contactDetails.ts`). See "Customers and Contact us" in the division doc.
 - **Adding a service**: update the content file, `divisionServices`,
   `DIVISION_SERVICE_SLUGS`, the `vercel.json` rewrite, and the sitemap. The
   tests fail until all of them agree.
+- **Adding a page**: a path in `site.ts`, content in `content/`, a
+  `…PageSeo()` in `allDivisionPages()` (`seo.ts`), the page in `pages/`, its
+  module in `divisionPageModule()` (`preload.ts`), a lazy route in
+  `routes.tsx` and a `<Route>` in `App.tsx`'s `DIVISION_PUBLISHED` block, a
+  `vercel.json` rewrite, a sitemap `<url>`, and header/footer links if needed.
+  Follow Customers or Contact us; the tests fail until they agree.
 - **Tests**: `src/divisions/socialEngineering/*.test.ts(x)` and
   `src/test/seo/division-integration.test.ts`, which pins every pre-existing
   sitemap URL and the IT homepage head.

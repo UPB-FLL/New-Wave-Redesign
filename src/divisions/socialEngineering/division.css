@@ -479,6 +479,13 @@
     inset: 0;
     position: absolute;
   }
+
+  /* The email address has no break points; without this it sets the column's
+     minimum width and pushes the page sideways under 200% text, WCAG text
+     spacing, or 200% page zoom. It wraps only when it cannot fit. */
+  .nwse-root [data-contact-method] a {
+    overflow-wrap: anywhere;
+  }
 }
 
 @media (max-width: 639.98px) {

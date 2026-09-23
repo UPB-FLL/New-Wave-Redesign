@@ -88,6 +88,23 @@ export interface DivisionHubContent {
   cta: { heading: string; body: string };
 }
 
+/**
+ * One business on the Customers page. It says what the business is, in its
+ * own terms (category, location, and description from its own site), and
+ * never what the division did for it: no services, results, ratings, or quotes.
+ */
+export interface DivisionCustomer {
+  name: string;
+  /** Plex Mono label: the kind of business. */
+  category: string;
+  location: string;
+  description: string;
+  /** Visible link text: the bare domain, never "see the work". */
+  linkLabel: string;
+  /** An absolute https:// URL opens in a new tab; a same-site path (New Wave IT: '/') stays in the app. */
+  href: string;
+}
+
 /** Everything the prerenderer and the runtime meta hook need for one URL. */
 export interface DivisionPageSeo {
   /** Absolute path, no trailing slash, e.g. '/social-engineering/social-media'. */

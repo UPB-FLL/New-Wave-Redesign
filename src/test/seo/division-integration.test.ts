@@ -7,6 +7,9 @@ import { describe, expect, it } from 'vitest';
 import { allDivisionPages } from '../../divisions/socialEngineering/seo';
 import {
   DIVISION_BASE_PATH,
+  DIVISION_CONTACT_PATH,
+  DIVISION_CONTACT_US_PATH,
+  DIVISION_CUSTOMERS_PATH,
   DIVISION_PUBLISHED,
   DIVISION_SERVICE_SLUGS,
   RETIRED_SERVICE_SLUGS,
@@ -135,5 +138,34 @@ describe('index.html (the parent shell every New Wave IT URL is served)', () => 
     expect(shell).toContain('<meta property="og:site_name" content="New Wave IT" />');
     expect(shell).toContain('"@type": ["LocalBusiness", "ProfessionalService"]');
     expect(shell).toContain('<link rel="icon" type="image/svg+xml" href="/favicon.svg" />');
+  });
+});
+
+describe('division pages beyond the services', () => {
+  // Listed by hand, so a page dropped from allDivisionPages() cannot quietly
+  // take its sitemap entry, rewrite, and route with it.
+  const pages = [DIVISION_CUSTOMERS_PATH, DIVISION_CONTACT_US_PATH, DIVISION_CONTACT_PATH];
+  const sitemap = read('public/sitemap.xml');
+  const rewrites = (JSON.parse(read('vercel.json')) as { rewrites: { source: string; destination: string }[] }).rewrites;
+  const app = read('src/App.tsx');
+  const routes = read('src/divisions/socialEngineering/routes.tsx');
+
+  it.each(pages)('wires %s into the sitemap, vercel.json, and the router', (pagePath) => {
+    if (!DIVISION_PUBLISHED) return;
+    expect(divisionPaths).toContain(pagePath);
+    expect(sitemap).toContain(`<loc>${SITE_URL}${pagePath}</loc>`);
+    expect(rewrites).toContainEqual({ source: pagePath, destination: `${pagePath}/index.html` });
+  });
+
+  it('registers each page’s route behind DIVISION_PUBLISHED and loads it lazily', () => {
+    const divisionRoutes = app.slice(app.indexOf('{DIVISION_PUBLISHED ? ('), app.indexOf(') : null}'));
+    [
+      ['DIVISION_CUSTOMERS_PATH', 'SocialEngineeringCustomersRoute', 'SocialEngineeringCustomersPage'],
+      ['DIVISION_CONTACT_US_PATH', 'SocialEngineeringContactUsRoute', 'SocialEngineeringContactUsPage'],
+      ['DIVISION_CONTACT_PATH', 'SocialEngineeringContactRoute', 'SocialEngineeringContactPage'],
+    ].forEach(([constant, route, page]) => {
+      expect(divisionRoutes).toContain(`<Route path={${constant}} element={<${route} />} />`);
+      expect(routes).toContain(`import('./pages/${page}')`);
+    });
   });
 });
