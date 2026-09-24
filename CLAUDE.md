@@ -27,9 +27,14 @@
   `noindex` once the section has been read (`useContentWithStatus`),
   including when it has no entries. `slugsFromContentList` moved to
   `src/lib/cmsDetails.ts`; `api/_lib/sitemap.ts` re-exports it.
-- **Known issue, not fixed**: `api/blog/[id].ts` is unreachable in
-  production for the same shadowing reason. GET returns the SPA shell and
-  PUT/DELETE return 405, so the admin blog screen can't edit or delete.
+- **Single-post API**: `api/blog/[id].ts` never ran in production for the
+  same shadowing reason (GET returned the SPA shell, PUT/DELETE 405). It is
+  now `api/blog/post.ts`, reached by a `/api/blog/:id` → `?id=:id` rewrite
+  placed after `/api/(.*)`, so `list` and `generate-post` still resolve to
+  their own files. A test forbids `[param]` files under `api/`. The admin
+  blog screens never used this route: `BlogEditor` and `BlogPostManager`
+  write through Supabase with the signed-in session (RLS allows
+  `authenticated`).
 - **Tests**: `src/test/api/blog-page.test.ts`,
   `src/components/cybersecurity/detailLinks.test.tsx`, plus additions to
   `usePageMeta.test.tsx`, `NotFoundPage.test.tsx`, and
@@ -492,9 +497,9 @@ Admin auth is `x-admin-key` matching `ADMIN_API_KEY` or a signed-in
 admin's Supabase session (`Authorization: Bearer`); see `requireAdmin`.
 - `POST /api/blog/generate-post` - AI generation (admin auth; the weekly cron)
 - `GET /api/blog/list` - List posts (`page`, `limit` ≤ 50, `category`, `search`)
-- `GET /api/blog/[id]` - Fetch single post
-- `PUT /api/blog/[id]` - Update post's editable fields (admin auth)
-- `DELETE /api/blog/[id]` - Delete post (admin auth)
+- `GET /api/blog/:id` - Fetch single post
+- `PUT /api/blog/:id` - Update post's editable fields (admin auth)
+- `DELETE /api/blog/:id` - Delete post (admin auth)
 
 ### Admin Components
 - `src/admin/blog/BlogPostManager.tsx` - List view with actions

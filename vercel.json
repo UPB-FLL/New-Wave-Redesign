@@ -110,6 +110,10 @@
       "destination": "/api/$1"
     },
     {
+      "source": "/api/blog/:id",
+      "destination": "/api/blog/post?id=:id"
+    },
+    {
       "source": "/sitemap-content.xml",
       "destination": "/api/sitemap-content"
     },
