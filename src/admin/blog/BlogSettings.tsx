@@ -57,7 +57,7 @@ export default function BlogSettings({ onSave }: BlogSettingsProps) {
       alert(`Test post generated: "${data.title}"`);
     } catch (err) {
       console.error('Test generation failed:', err);
-      alert(`Test generation failed: ${err instanceof Error ? err.message : 'Unknown error'}. Make sure VITE_OPENAI_API_KEY is configured.`);
+      alert(`Test generation failed: ${err instanceof Error ? err.message : 'Unknown error'}. Check that OPENAI_API_KEY and SUPABASE_SERVICE_ROLE_KEY are set in Vercel.`);
     } finally {
       setTestGenerating(false);
     }

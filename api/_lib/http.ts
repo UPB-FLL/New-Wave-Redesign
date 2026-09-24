@@ -6,6 +6,28 @@
  * this module is importable but never routable.
  */
 
+/** The parts of Vercel's Node request the typed routes read. */
+export interface ApiRequest {
+  method?: string;
+  headers?: Record<string, string | string[] | undefined>;
+  query?: Record<string, string | string[] | undefined>;
+  body?: unknown;
+}
+
+/** The parts of Vercel's Node response the typed routes write. */
+export interface ApiResponse {
+  setHeader(name: string, value: string): void;
+  status(code: number): ApiResponse;
+  json(body: unknown): ApiResponse;
+  send(body: string): ApiResponse;
+}
+
+/** First value of a query parameter, or undefined. */
+export function queryParam(req: ApiRequest, name: string): string | undefined {
+  const value = req.query?.[name];
+  return Array.isArray(value) ? value[0] : value;
+}
+
 export function escapeHtml(unsafe: unknown): string {
   return String(unsafe ?? '')
     .replace(/&/g, '&amp;')

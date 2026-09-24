@@ -1,17 +1,15 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { createBlogPost, getCategoryForWeek, generateSlug, validateSlug } from '../../src/lib/blog';
-import type { BlogCategory } from '../../types/blog';
+import { requireAdmin } from '../_lib/adminKey.js';
+import { createPost } from '../_lib/blogStore.js';
+import { methodGuard, readJsonBody, type ApiRequest, type ApiResponse } from '../_lib/http.js';
+import { isSupabaseConfigured } from '../_lib/supabaseAdmin.js';
+import { generateSlug, getCategoryForWeek, validateSlug } from '../../src/lib/blogUtils.js';
+import type { BlogCategory } from '../../types/blog.js';
 
-function requireAdminKey(req: NextApiRequest, res: NextApiResponse): boolean {
-  const expected = process.env.ADMIN_API_KEY;
-  if (!expected) return true;
-  const provided = req.headers['x-admin-key'];
-  if (provided !== expected) {
-    res.status(401).json({ error: 'Unauthorized' });
-    return false;
-  }
-  return true;
-}
+/*
+ * POST /api/blog/generate-post (x-admin-key): writes one post with OpenAI and
+ * saves it. The weekly pg_cron job calls it (see the 20260924120000 migration).
+ * GET (same key) reports which of its keys are configured.
+ */
 
 function safeJsonParse<T>(raw: string): T {
   try {
@@ -101,22 +99,19 @@ interface GeneratedBlogPost {
   meta_description: string;
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: ApiRequest, res: ApiResponse) {
+  if (!methodGuard(req, res, ['GET', 'POST'])) return;
+  if (!(await requireAdmin(req, res))) return;
+
   if (req.method === 'GET') {
-    if (!requireAdminKey(req, res)) return;
     return res.status(200).json({
       ok: true,
       hasKey: Boolean(process.env.OPENAI_API_KEY),
       hasPexels: Boolean(process.env.PEXELS_API_KEY),
+      hasSupabaseWrite: isSupabaseConfigured(),
       name: 'generate-post',
     });
   }
-
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  if (!requireAdminKey(req, res)) return;
 
   try {
     const apiKey = process.env.OPENAI_API_KEY;
@@ -125,8 +120,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         error: 'OPENAI_API_KEY is not configured.',
       });
     }
+    // Checked before spending OpenAI tokens on a post that could not be saved.
+    if (!isSupabaseConfigured()) {
+      return res.status(503).json({ error: 'SUPABASE_SERVICE_ROLE_KEY is not configured.' });
+    }
 
-    const { category, trendFocus = 0.4 } = req.body as GenerateRequestBody;
+    const { category } = readJsonBody(req) as GenerateRequestBody;
     const selectedCategory = (category || getCategoryForWeek()) as BlogCategory;
 
     // Step 1: Use GPT-4o-mini to identify trending topics
@@ -244,7 +243,7 @@ Return ONLY valid JSON matching this exact format:
     }
 
     // Create the blog post
-    const post = await createBlogPost({
+    const post = await createPost({
       title: generated.title,
       slug,
       excerpt: generated.excerpt,
@@ -269,11 +268,10 @@ Return ONLY valid JSON matching this exact format:
       meta_description: post.meta_description,
       published_at: post.published_at,
     });
-  } catch (err: any) {
+  } catch (err) {
     console.error('blog/generate-post error:', err);
     return res.status(500).json({
-      error: err?.message || 'Blog post generation failed',
-      stack: process.env.NODE_ENV !== 'production' ? err?.stack : undefined,
+      error: err instanceof Error ? err.message : 'Blog post generation failed',
     });
   }
 }

@@ -2,6 +2,49 @@
 
 ## Recent Changes
 
+### Blog API routes fixed; weekly generation unblocked (2026-09-24)
+
+- **Why nothing worked**: `api/blog/*` imported `src/lib/blog` without a
+  `.js` extension (`ERR_MODULE_NOT_FOUND` under the repo's
+  `"type": "module"`). Behind that was the browser Supabase client
+  (`import.meta.env` is undefined in a function), and behind that anon-key
+  writes that RLS rejects. The weekly cron had never reached the route:
+  `pg_net` was not enabled, so every run failed with `schema "net" does not
+  exist`, and it posted to the apex domain with an unset
+  `app.admin_api_key`. The only post is the migration's sample.
+- **Server code**: `api/_lib/blogStore.ts` (reads through the anon client in
+  `api/_lib/supabasePublic.ts`, writes through the service role),
+  `api/_lib/adminKey.ts`, and the typed `ApiRequest`/`ApiResponse` in
+  `api/_lib/http.ts`. The pure helpers moved to `src/lib/blogUtils.ts`
+  (`blog.ts` re-exports them). API code never imports `src/lib/blog`,
+  `supabase`, `content`, or `blogGeneration`.
+- **Admin auth** (`requireAdmin` in `api/_lib/adminKey.ts`, used by the blog
+  writes, generate-post, and all three `api/seo/*` routes): either
+  `x-admin-key` equal to `ADMIN_API_KEY` (the cron), or
+  `Authorization: Bearer <Supabase access token>` of a signed-in user (the
+  admin screens, via `adminAuthHeaders()` in `src/lib/adminAuth.ts`).
+  Anything else is refused, and 503 when nothing is configured; these routes
+  used to let everyone through when `ADMIN_API_KEY` was unset. PUT accepts
+  only editable fields.
+- **No secrets in the bundle**: the SEO screens used to send
+  `VITE_ADMIN_API_KEY`, and the blog button called OpenAI from the browser
+  with `VITE_OPENAI_API_KEY`/`VITE_PEXELS_API_KEY`. Vite inlines any
+  `VITE_` value, so setting one published it. `src/lib/blogGeneration.ts`
+  now calls the server route. `admin-auth.test.ts` allows only
+  `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, and
+  `VITE_SUPEROPS_PORTAL_URL` in `src/`.
+- **`/sitemap-content.xml`** reads with the anon client too; it answered 503
+  in production with the service-role client.
+- **Cron**: migration `20260924120000` enables `pg_net` and posts to
+  `https://www.newwaveitfl.com/api/blog/generate-post` with the key from
+  Vault (`blog_admin_api_key`). Apply it by hand, as production's migration
+  history shows the others were. Vercel needs `ADMIN_API_KEY`,
+  `OPENAI_API_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`. `generate-post` has
+  `maxDuration: 60`.
+- **Tests**: `src/test/api/blog-routes.test.ts` (it also requires a `.js`
+  extension on every relative runtime import under `api/`),
+  `src/test/api/admin-auth.test.ts`, and `src/lib/blogGeneration.test.ts`.
+
 ### SEO pass: indexing fixes, breadcrumbs, content sitemap (2026-09-24)
 
 Covers New Wave IT and NW Social Engineering.
@@ -36,8 +79,10 @@ Covers New Wave IT and NW Social Engineering.
   suffix, and descriptions at most 160 (tested). Guides drop their subtitle
   from the title. The four service categories that lacked `Service` JSON-LD
   now have it.
-- **Bundle**: admin routes are `React.lazy` chunks (main chunk 869 → 743 kB,
-  gzip 248 → 222 kB); `AdminLayout` suspends around its `<Outlet />`.
+- **Bundle**: admin routes are `React.lazy` chunks (main chunk 994 → 868 kB,
+  gzip 282 → 256 kB, with the Supabase env vars set as in production; a
+  build without them drops supabase-js and reads ~125 kB smaller);
+  `AdminLayout` suspends around its `<Outlet />`.
 - **Tests**: `src/pages/BlogPostPage.test.tsx`, `src/pages/NotFoundPage.test.tsx`,
   `src/test/api/sitemap-content.test.ts`, `src/lib/usePageMeta.test.tsx`, plus
   breadcrumb, length, and homepage-parity checks in `it-prerender.test.ts`.
@@ -379,10 +424,12 @@ User Input → Editor Component → ContentManager.updateField()
 - Indexes on published_at, category, slug
 
 ### API Endpoints
-- `POST /api/blog/generate-post` - AI generation (admin auth)
-- `GET /api/blog/list` - List/fetch posts with pagination
+Admin auth is `x-admin-key` matching `ADMIN_API_KEY` or a signed-in
+admin's Supabase session (`Authorization: Bearer`); see `requireAdmin`.
+- `POST /api/blog/generate-post` - AI generation (admin auth; the weekly cron)
+- `GET /api/blog/list` - List posts (`page`, `limit` ≤ 50, `category`, `search`)
 - `GET /api/blog/[id]` - Fetch single post
-- `PUT /api/blog/[id]` - Update post (admin auth)
+- `PUT /api/blog/[id]` - Update post's editable fields (admin auth)
 - `DELETE /api/blog/[id]` - Delete post (admin auth)
 
 ### Admin Components

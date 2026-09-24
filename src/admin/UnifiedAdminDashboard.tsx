@@ -93,7 +93,7 @@ export default function UnifiedAdminDashboard() {
                 await loadBlogPosts();
               } catch (err) {
                 console.error('Blog generation failed:', err);
-                alert(`Blog generation failed: ${err instanceof Error ? err.message : 'Unknown error'}. Make sure VITE_OPENAI_API_KEY is configured.`);
+                alert(`Blog generation failed: ${err instanceof Error ? err.message : 'Unknown error'}. Check that OPENAI_API_KEY and SUPABASE_SERVICE_ROLE_KEY are set in Vercel.`);
               }
             }}
             onRefresh={async () => {

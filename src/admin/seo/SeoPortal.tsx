@@ -1,3 +1,4 @@
+import { adminAuthHeaders } from '../../lib/adminAuth';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -59,7 +60,7 @@ export default function SeoPortal() {
     try {
       const res = await fetch('/api/seo/research-competitors', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-key': import.meta.env.VITE_ADMIN_API_KEY || '' },
+        headers: { 'Content-Type': 'application/json', ...(await adminAuthHeaders()) },
         body: JSON.stringify({ location, keyword, limit: 8 }),
       });
       if (!res.ok) {
@@ -86,7 +87,7 @@ export default function SeoPortal() {
     try {
       const res = await fetch('/api/seo/generate-page', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-key': import.meta.env.VITE_ADMIN_API_KEY || '' },
+        headers: { 'Content-Type': 'application/json', ...(await adminAuthHeaders()) },
         body: JSON.stringify({
           location,
           keyword: `${keyword} vs ${competitor.name}`,
@@ -126,7 +127,7 @@ export default function SeoPortal() {
     try {
       const res = await fetch('/api/seo/generate-page', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-key': import.meta.env.VITE_ADMIN_API_KEY || '' },
+        headers: { 'Content-Type': 'application/json', ...(await adminAuthHeaders()) },
         body: JSON.stringify({
           location,
           keyword,
