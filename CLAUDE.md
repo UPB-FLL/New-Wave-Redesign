@@ -66,8 +66,10 @@ Covers New Wave IT and NW Social Engineering.
   suffix, and descriptions at most 160 (tested). Guides drop their subtitle
   from the title. The four service categories that lacked `Service` JSON-LD
   now have it.
-- **Bundle**: admin routes are `React.lazy` chunks (main chunk 869 → 743 kB,
-  gzip 248 → 222 kB); `AdminLayout` suspends around its `<Outlet />`.
+- **Bundle**: admin routes are `React.lazy` chunks (main chunk 994 → 868 kB,
+  gzip 282 → 256 kB, with the Supabase env vars set as in production; a
+  build without them drops supabase-js and reads ~125 kB smaller);
+  `AdminLayout` suspends around its `<Outlet />`.
 - **Tests**: `src/pages/BlogPostPage.test.tsx`, `src/pages/NotFoundPage.test.tsx`,
   `src/test/api/sitemap-content.test.ts`, `src/lib/usePageMeta.test.tsx`, plus
   breadcrumb, length, and homepage-parity checks in `it-prerender.test.ts`.
