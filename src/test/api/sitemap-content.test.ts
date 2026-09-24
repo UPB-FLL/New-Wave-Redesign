@@ -9,9 +9,19 @@ const db = vi.hoisted(() => ({
   lteArgs: [] as unknown[],
 }));
 
+// Public data, so the route reads with the anon client (the service-role version answered 503 in production).
 vi.mock('../../../api/_lib/supabaseAdmin', () => ({
-  isSupabaseConfigured: () => db.configured,
-  getSupabaseAdmin: () => ({
+  isSupabaseConfigured: () => {
+    throw new Error('sitemap-content must not need the service role');
+  },
+  getSupabaseAdmin: () => {
+    throw new Error('sitemap-content must not need the service role');
+  },
+}));
+vi.mock('../../../api/_lib/supabasePublic', () => ({
+  isSupabasePublicConfigured: () => db.configured,
+  missingSupabasePublicEnv: () => (db.configured ? [] : ['VITE_SUPABASE_ANON_KEY']),
+  getSupabasePublic: () => ({
     from: (table: string) => {
       if (table === 'blog_posts') {
         const query = {

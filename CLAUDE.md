@@ -2,6 +2,36 @@
 
 ## Recent Changes
 
+### Blog API routes fixed; weekly generation unblocked (2026-09-24)
+
+- **Why nothing worked**: `api/blog/*` imported `src/lib/blog` without a
+  `.js` extension (`ERR_MODULE_NOT_FOUND` under the repo's
+  `"type": "module"`). Behind that was the browser Supabase client
+  (`import.meta.env` is undefined in a function), and behind that anon-key
+  writes that RLS rejects. The weekly cron had never reached the route:
+  `pg_net` was not enabled, so every run failed with `schema "net" does not
+  exist`, and it posted to the apex domain with an unset
+  `app.admin_api_key`. The only post is the migration's sample.
+- **Server code**: `api/_lib/blogStore.ts` (reads through the anon client in
+  `api/_lib/supabasePublic.ts`, writes through the service role),
+  `api/_lib/adminKey.ts`, and the typed `ApiRequest`/`ApiResponse` in
+  `api/_lib/http.ts`. The pure helpers moved to `src/lib/blogUtils.ts`
+  (`blog.ts` re-exports them). API code never imports `src/lib/blog`,
+  `supabase`, `content`, or `blogGeneration`.
+- **Admin key fails closed**: with `ADMIN_API_KEY` unset, PUT/DELETE and
+  generate-post answer 503 (they used to let anyone through). The key is
+  compared in constant time. PUT accepts only editable fields.
+- **`/sitemap-content.xml`** reads with the anon client too; it answered 503
+  in production with the service-role client.
+- **Cron**: migration `20260924120000` enables `pg_net` and posts to
+  `https://www.newwaveitfl.com/api/blog/generate-post` with the key from
+  Vault (`blog_admin_api_key`). Apply it by hand, as production's migration
+  history shows the others were. Vercel needs `ADMIN_API_KEY`,
+  `OPENAI_API_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`. `generate-post` has
+  `maxDuration: 60`.
+- **Tests**: `src/test/api/blog-routes.test.ts`, which also requires a `.js`
+  extension on every relative runtime import under `api/`.
+
 ### SEO pass: indexing fixes, breadcrumbs, content sitemap (2026-09-24)
 
 Covers New Wave IT and NW Social Engineering.
@@ -379,10 +409,12 @@ User Input → Editor Component → ContentManager.updateField()
 - Indexes on published_at, category, slug
 
 ### API Endpoints
-- `POST /api/blog/generate-post` - AI generation (admin auth)
-- `GET /api/blog/list` - List/fetch posts with pagination
+Admin auth is the `x-admin-key` header matching `ADMIN_API_KEY` (routes
+refuse writes when it is unset).
+- `POST /api/blog/generate-post` - AI generation (admin auth; the weekly cron)
+- `GET /api/blog/list` - List posts (`page`, `limit` ≤ 50, `category`, `search`)
 - `GET /api/blog/[id]` - Fetch single post
-- `PUT /api/blog/[id]` - Update post (admin auth)
+- `PUT /api/blog/[id]` - Update post's editable fields (admin auth)
 - `DELETE /api/blog/[id]` - Delete post (admin auth)
 
 ### Admin Components

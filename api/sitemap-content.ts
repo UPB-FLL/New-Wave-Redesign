@@ -1,11 +1,13 @@
-import { methodGuard } from './_lib/http.js';
+import { methodGuard, type ApiRequest, type ApiResponse } from './_lib/http.js';
 import { buildSitemapXml, detailPath, slugsFromContentList, type SitemapEntry } from './_lib/sitemap.js';
-import { getSupabaseAdmin, isSupabaseConfigured } from './_lib/supabaseAdmin.js';
+import { getSupabasePublic, isSupabasePublicConfigured, missingSupabasePublicEnv } from './_lib/supabasePublic.js';
 
 /**
  * GET /sitemap-content.xml (vercel.json rewrites it here): every blog post and
  * every CMS-driven /service/:slug and /threat/:slug page. These URLs live in
- * the database, so the static public/sitemap.xml cannot list them.
+ * the database, so the static public/sitemap.xml cannot list them. Both
+ * tables are publicly readable, so the anon key is enough (with the
+ * service-role client this route answered 503 in production).
  *
  * Failures answer 5xx rather than an empty sitemap: crawlers retry a 5xx
  * later, while an empty sitemap would read as "these pages are gone".
@@ -16,24 +18,17 @@ const DETAIL_LISTS = [
   { section: 'threats-detail', key: 'threats_list', prefix: '/threat' },
 ] as const;
 
-interface SitemapResponse {
-  setHeader(name: string, value: string): void;
-  status(code: number): SitemapResponse;
-  json(body: unknown): SitemapResponse;
-  send(body: string): SitemapResponse;
-}
-
-export default async function handler(req: { method?: string }, res: SitemapResponse) {
+export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (!methodGuard(req, res, ['GET', 'HEAD'])) return;
 
-  if (!isSupabaseConfigured()) {
-    console.error('sitemap-content: Supabase is not configured');
+  if (!isSupabasePublicConfigured()) {
+    console.error(`sitemap-content: Supabase is not configured (missing ${missingSupabasePublicEnv().join(', ')})`);
     res.setHeader('Cache-Control', 'no-store');
     return res.status(503).json({ error: 'Sitemap unavailable' });
   }
 
   try {
-    const supabase = getSupabaseAdmin();
+    const supabase = getSupabasePublic();
     const [posts, content] = await Promise.all([
       supabase
         .from('blog_posts')

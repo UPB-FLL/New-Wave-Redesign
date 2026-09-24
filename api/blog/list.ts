@@ -1,39 +1,26 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { fetchBlogPosts } from '../../src/lib/blog';
+import { listPosts } from '../_lib/blogStore.js';
+import { methodGuard, queryParam, type ApiRequest, type ApiResponse } from '../_lib/http.js';
+import { isSupabasePublicConfigured, missingSupabasePublicEnv } from '../_lib/supabasePublic.js';
 
-interface ListQuery {
-  page?: string;
-  limit?: string;
-  category?: string;
-  search?: string;
-}
+/** GET /api/blog/list?page=&limit=&category=&search= — newest first, at most 50 per page. */
+export default async function handler(req: ApiRequest, res: ApiResponse) {
+  if (!methodGuard(req, res, ['GET'])) return;
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
+  if (!isSupabasePublicConfigured()) {
+    console.error(`blog/list: Supabase is not configured (missing ${missingSupabasePublicEnv().join(', ')})`);
+    return res.status(503).json({ error: 'Blog is unavailable' });
   }
 
   try {
-    const { page, limit, category, search } = req.query as ListQuery;
-
-    const result = await fetchBlogPosts({
-      page: page ? parseInt(page, 10) : 1,
-      limit: limit ? parseInt(limit, 10) : 10,
-      category,
-      search,
+    const result = await listPosts({
+      page: queryParam(req, 'page'),
+      limit: queryParam(req, 'limit'),
+      category: queryParam(req, 'category'),
+      search: queryParam(req, 'search'),
     });
-
-    return res.status(200).json({
-      posts: result.posts,
-      total: result.total,
-      page: page ? parseInt(page, 10) : 1,
-      limit: limit ? parseInt(limit, 10) : 10,
-    });
-  } catch (err: any) {
+    return res.status(200).json(result);
+  } catch (err) {
     console.error('blog/list error:', err);
-    return res.status(500).json({
-      error: err?.message || 'Failed to fetch blog posts',
-      stack: process.env.NODE_ENV !== 'production' ? err?.stack : undefined,
-    });
+    return res.status(500).json({ error: 'Failed to fetch blog posts' });
   }
 }
