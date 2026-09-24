@@ -6,10 +6,10 @@ import { ServiceIcon } from '../components/ServiceIcon';
 import {
   Band,
   CtaBand,
+  DarkCurrents,
   DivisionHero,
   FaqList,
   JourneyStrip,
-  MetricLabels,
   PointGrid,
   PrimaryCta,
   RoadmapGrid,
@@ -19,7 +19,7 @@ import {
 import { divisionServices, hubContent } from '../content';
 import { NwseIcon } from '../icons/NwseIcon';
 import { hubPageSeo } from '../seo';
-import { DIVISION_DESCRIPTOR, PARENT_NAME, divisionServicePath } from '../site';
+import { PARENT_NAME, divisionServicePath } from '../site';
 import { useDivisionMeta } from '../useDivisionMeta';
 
 const seo = hubPageSeo();
@@ -44,14 +44,6 @@ export default function SocialEngineeringHubPage() {
               Explore services
             </a>
           </>
-        }
-        footnote={
-          <div className="flex flex-col gap-3">
-            <p className="nwse-type-label" style={{ color: 'var(--nw-mist-gray)' }}>
-              {DIVISION_DESCRIPTOR}
-            </p>
-            <MetricLabels labels={divisionServices.map((service) => service.navLabel)} onDark />
-          </div>
         }
       />
 
@@ -140,10 +132,11 @@ export default function SocialEngineeringHubPage() {
 
       <section
         aria-labelledby="nwse-metrics"
-        className="nwse-dark py-10 sm:py-14 lg:py-20"
+        className="nwse-dark relative overflow-hidden py-10 sm:py-14 lg:py-20"
         style={{ background: 'var(--nw-deep-current)' }}
       >
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <DarkCurrents />
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <p className="nwse-type-kicker nwse-kicker-on-dark">What we measure</p>
           <h2 id="nwse-metrics" className="nwse-type-display-2 mt-2 max-w-3xl text-[var(--nw-cloud-white)] sm:mt-3">
             Measured against bookings and inquiries
