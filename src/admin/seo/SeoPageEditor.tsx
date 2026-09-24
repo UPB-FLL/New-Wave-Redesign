@@ -1,3 +1,4 @@
+import { adminAuthHeaders } from '../../lib/adminAuth';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
@@ -58,7 +59,7 @@ export default function SeoPageEditor() {
     try {
       const res = await fetch('/api/seo/refresh-images', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-key': import.meta.env.VITE_ADMIN_API_KEY || '' },
+        headers: { 'Content-Type': 'application/json', ...(await adminAuthHeaders()) },
         body: JSON.stringify({
           keyword: page.target_keyword || page.h1 || page.title,
           location: page.target_location,

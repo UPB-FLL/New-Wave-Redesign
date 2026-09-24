@@ -1,3 +1,5 @@
+import { requireAdmin } from '../_lib/adminKey.js';
+
 interface Competitor {
   name: string;
   website?: string;
@@ -131,20 +133,9 @@ function parseBody(body: any): RequestBody {
   return body as RequestBody;
 }
 
-function requireAdminKey(req: any, res: any): boolean {
-  const expected = process.env.ADMIN_API_KEY;
-  if (!expected) return true;
-  const provided = req.headers['x-admin-key'];
-  if (provided !== expected) {
-    res.status(401).json({ error: 'Unauthorized' });
-    return false;
-  }
-  return true;
-}
-
 export default async function handler(req: any, res: any) {
   if (req.method === 'GET') {
-    if (!requireAdminKey(req, res)) return;
+    if (!(await requireAdmin(req, res))) return;
     return res.status(200).json({
       ok: true,
       hasKey: Boolean(process.env.OPENAI_API_KEY),
@@ -155,7 +146,7 @@ export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-  if (!requireAdminKey(req, res)) return;
+  if (!(await requireAdmin(req, res))) return;
 
   try {
     const apiKey = process.env.OPENAI_API_KEY;

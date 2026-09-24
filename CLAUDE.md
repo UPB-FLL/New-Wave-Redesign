@@ -18,9 +18,21 @@
   `api/_lib/http.ts`. The pure helpers moved to `src/lib/blogUtils.ts`
   (`blog.ts` re-exports them). API code never imports `src/lib/blog`,
   `supabase`, `content`, or `blogGeneration`.
-- **Admin key fails closed**: with `ADMIN_API_KEY` unset, PUT/DELETE and
-  generate-post answer 503 (they used to let anyone through). The key is
-  compared in constant time. PUT accepts only editable fields.
+- **Admin auth** (`requireAdmin` in `api/_lib/adminKey.ts`, used by the blog
+  writes, generate-post, and all three `api/seo/*` routes): either
+  `x-admin-key` equal to `ADMIN_API_KEY` (the cron), or
+  `Authorization: Bearer <Supabase access token>` of a signed-in user (the
+  admin screens, via `adminAuthHeaders()` in `src/lib/adminAuth.ts`).
+  Anything else is refused, and 503 when nothing is configured; these routes
+  used to let everyone through when `ADMIN_API_KEY` was unset. PUT accepts
+  only editable fields.
+- **No secrets in the bundle**: the SEO screens used to send
+  `VITE_ADMIN_API_KEY`, and the blog button called OpenAI from the browser
+  with `VITE_OPENAI_API_KEY`/`VITE_PEXELS_API_KEY`. Vite inlines any
+  `VITE_` value, so setting one published it. `src/lib/blogGeneration.ts`
+  now calls the server route. `admin-auth.test.ts` allows only
+  `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, and
+  `VITE_SUPEROPS_PORTAL_URL` in `src/`.
 - **`/sitemap-content.xml`** reads with the anon client too; it answered 503
   in production with the service-role client.
 - **Cron**: migration `20260924120000` enables `pg_net` and posts to
@@ -29,8 +41,9 @@
   history shows the others were. Vercel needs `ADMIN_API_KEY`,
   `OPENAI_API_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`. `generate-post` has
   `maxDuration: 60`.
-- **Tests**: `src/test/api/blog-routes.test.ts`, which also requires a `.js`
-  extension on every relative runtime import under `api/`.
+- **Tests**: `src/test/api/blog-routes.test.ts` (it also requires a `.js`
+  extension on every relative runtime import under `api/`),
+  `src/test/api/admin-auth.test.ts`, and `src/lib/blogGeneration.test.ts`.
 
 ### SEO pass: indexing fixes, breadcrumbs, content sitemap (2026-09-24)
 
@@ -411,8 +424,8 @@ User Input → Editor Component → ContentManager.updateField()
 - Indexes on published_at, category, slug
 
 ### API Endpoints
-Admin auth is the `x-admin-key` header matching `ADMIN_API_KEY` (routes
-refuse writes when it is unset).
+Admin auth is `x-admin-key` matching `ADMIN_API_KEY` or a signed-in
+admin's Supabase session (`Authorization: Bearer`); see `requireAdmin`.
 - `POST /api/blog/generate-post` - AI generation (admin auth; the weekly cron)
 - `GET /api/blog/list` - List posts (`page`, `limit` ≤ 50, `category`, `search`)
 - `GET /api/blog/[id]` - Fetch single post

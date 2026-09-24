@@ -30,6 +30,7 @@ function fakeClient() {
         state.calls.push(['from', [table]]);
         return builder;
       },
+      auth: { getUser: vi.fn(async () => ({ data: { user: null }, error: { message: 'invalid JWT' } })) },
     },
   };
 }
@@ -249,6 +250,18 @@ describe('/api/blog/generate-post', () => {
     await generateHandler({ method: 'GET', headers: {} }, status);
     expect(status.statusCode).toBe(401);
     expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('lets a signed-in admin run it from the admin screen, and refuses an invalid session', async () => {
+    vi.stubEnv('OPENAI_API_KEY', 'sk-test');
+    const rejected = makeRes();
+    await generateHandler({ method: 'GET', headers: { authorization: 'Bearer bad' } }, rejected);
+    expect(rejected.statusCode).toBe(401);
+
+    db.public.client.auth.getUser.mockResolvedValueOnce({ data: { user: { id: 'admin' } }, error: null } as never);
+    const allowed = makeRes();
+    await generateHandler({ method: 'GET', headers: { authorization: 'Bearer good' } }, allowed);
+    expect(allowed.statusCode).toBe(200);
   });
 
   it('does not spend OpenAI tokens when the post could not be saved', async () => {

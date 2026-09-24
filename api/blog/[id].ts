@@ -1,4 +1,4 @@
-import { requireAdminKey } from '../_lib/adminKey.js';
+import { requireAdmin } from '../_lib/adminKey.js';
 import { deletePost, getPostById, pickUpdatableFields, updatePost } from '../_lib/blogStore.js';
 import { methodGuard, queryParam, readJsonBody, type ApiRequest, type ApiResponse } from '../_lib/http.js';
 import { isSupabaseConfigured } from '../_lib/supabaseAdmin.js';
@@ -30,7 +30,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   }
 
   // Write operations require the admin key, and the service role to get past RLS.
-  if (!requireAdminKey(req, res)) return;
+  if (!(await requireAdmin(req, res))) return;
   if (!isSupabaseConfigured()) {
     console.error('blog/[id]: SUPABASE_SERVICE_ROLE_KEY is not configured');
     return res.status(503).json({ error: 'Blog writes are unavailable' });

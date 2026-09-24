@@ -1,4 +1,4 @@
-import { requireAdminKey } from '../_lib/adminKey.js';
+import { requireAdmin } from '../_lib/adminKey.js';
 import { createPost } from '../_lib/blogStore.js';
 import { methodGuard, readJsonBody, type ApiRequest, type ApiResponse } from '../_lib/http.js';
 import { isSupabaseConfigured } from '../_lib/supabaseAdmin.js';
@@ -101,7 +101,7 @@ interface GeneratedBlogPost {
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (!methodGuard(req, res, ['GET', 'POST'])) return;
-  if (!requireAdminKey(req, res)) return;
+  if (!(await requireAdmin(req, res))) return;
 
   if (req.method === 'GET') {
     return res.status(200).json({
