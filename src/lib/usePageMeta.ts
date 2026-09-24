@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { BREADCRUMBS_ELEMENT_ID, headEntries, resolvePageMeta, type PageMetaOptions } from './pageMeta';
+import { BREADCRUMBS_ELEMENT_ID, headEntries, PAGE_JSONLD_ELEMENT_ID, resolvePageMeta, type PageMetaOptions } from './pageMeta';
 import { breadcrumbListNode } from './structuredData';
 
 export type { PageMetaOptions } from './pageMeta';
@@ -42,7 +42,11 @@ function upsertCanonical(href: string): Restorer {
   };
 }
 
+/** The server-written copy of a page's JSON-LD (see PAGE_JSONLD_ELEMENT_ID), if still in the head. */
+const removeServerJsonLd = () => document.getElementById(PAGE_JSONLD_ELEMENT_ID)?.remove();
+
 function injectJsonLd(data: object | object[]): Restorer {
+  removeServerJsonLd();
   const script = document.createElement('script');
   script.type = 'application/ld+json';
   script.textContent = JSON.stringify(Array.isArray(data) ? data : [data]);
@@ -102,6 +106,9 @@ export function usePageMeta({
     return () => {
       document.title = prevTitle;
       restorers.forEach((r) => r());
+      // A post page that never loaded its data client-side must not leave its
+      // server-written graph behind for the next page.
+      removeServerJsonLd();
     };
   }, [title, description, includeSiteName, canonical, ogImage, keywords, jsonLd, ogType, noindex, siteName, breadcrumbJson]);
 }

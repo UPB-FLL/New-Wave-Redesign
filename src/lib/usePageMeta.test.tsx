@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { BREADCRUMBS_ELEMENT_ID, type PageMetaOptions } from './pageMeta';
+import { BREADCRUMBS_ELEMENT_ID, PAGE_JSONLD_ELEMENT_ID, type PageMetaOptions } from './pageMeta';
 import { IT_PAGE_META } from './routeMeta';
 import { usePageMeta } from './usePageMeta';
 
@@ -33,5 +33,29 @@ describe('usePageMeta breadcrumbs', () => {
 
     rerender(<Page title="Page without a trail" />);
     expect(blocks()).toHaveLength(0);
+  });
+});
+
+describe('usePageMeta JSON-LD', () => {
+  const graphs = () => [...document.head.querySelectorAll('script[type="application/ld+json"]')].map((s) => JSON.parse(s.textContent ?? 'null'));
+  const serverBlock = `<script type="application/ld+json" id="${PAGE_JSONLD_ELEMENT_ID}">[{"@type":"BlogPosting","headline":"From the server"}]</script>`;
+
+  it('replaces the server-written block (api/blog-page.ts) instead of listing the graph twice', () => {
+    document.head.innerHTML = serverBlock;
+    const { unmount } = render(<Page title="A post" jsonLd={[{ '@type': 'BlogPosting', headline: 'From the page' }]} />);
+
+    expect(graphs()).toEqual([[{ '@type': 'BlogPosting', headline: 'From the page' }]]);
+    unmount();
+    expect(graphs()).toEqual([]);
+  });
+
+  it('drops the server block when the page leaves without writing its own (the post never loaded client-side)', () => {
+    document.head.innerHTML = serverBlock;
+    const { unmount } = render(<Page title="IT Support Blog" />);
+
+    // Still describing the post while it loads.
+    expect(document.getElementById(PAGE_JSONLD_ELEMENT_ID)).not.toBeNull();
+    unmount();
+    expect(document.getElementById(PAGE_JSONLD_ELEMENT_ID)).toBeNull();
   });
 });

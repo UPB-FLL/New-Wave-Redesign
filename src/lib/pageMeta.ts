@@ -50,6 +50,13 @@ export interface PageMetaOptions {
 /** Stable id of the breadcrumb JSON-LD block, so the runtime replaces the prerendered one instead of duplicating it. */
 export const BREADCRUMBS_ELEMENT_ID = 'page-breadcrumbs';
 
+/**
+ * Id of a page's JSON-LD block when the server wrote it into the raw HTML
+ * (api/blog-page.ts). usePageMeta removes it when it writes its own copy, so
+ * the graph is never listed twice.
+ */
+export const PAGE_JSONLD_ELEMENT_ID = 'page-jsonld';
+
 export interface ResolvedPageMeta {
   /** Full document title, including the site-name suffix when it applies. */
   title: string;

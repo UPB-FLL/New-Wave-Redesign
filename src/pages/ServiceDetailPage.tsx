@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { PublicPageHero } from '../components/brand/PublicPageHero';
 import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
-import { useContent } from '../lib/useContent';
+import { useContentWithStatus } from '../lib/useContent';
 import { usePageMeta } from '../lib/usePageMeta';
 
 interface ServiceDetail {
@@ -17,7 +17,7 @@ interface ServiceDetail {
 
 export default function ServiceDetailPage() {
   const { slug } = useParams<{ slug: string }>();
-  const content = useContent('services-detail');
+  const { content, loaded } = useContentWithStatus('services-detail');
   let service: ServiceDetail | null = null;
 
   try {
@@ -29,9 +29,10 @@ export default function ServiceDetailPage() {
     // Route behavior stays intact when CMS content cannot be parsed.
   }
 
-  // Content arrives from the CMS after mount; only once it has (the map is no
-  // longer empty) does a missing slug mean a dead URL, which stays out of the index.
-  const contentLoaded = Object.keys(content).length > 0;
+  // Content arrives from the CMS after mount; only once the section has been
+  // read (or a cached copy is showing) does a missing slug mean a dead URL,
+  // which stays out of the index. That includes a section with no entries.
+  const contentLoaded = loaded || Object.keys(content).length > 0;
 
   usePageMeta({
     noindex: !service && contentLoaded,

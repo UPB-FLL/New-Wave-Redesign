@@ -120,9 +120,11 @@ describe('vercel.json rewrites', () => {
     });
   });
 
-  it('rewrites exactly the prerendered URLs — never the homepage or data-driven routes', () => {
-    // The content sitemap is the one rewrite that is not a page (api/sitemap-content.ts).
-    const extra = rewrites.filter((rule) => !['/api/(.*)', '/(.*)', '/sitemap-content.xml'].includes(rule.source));
+  it('rewrites exactly the prerendered URLs, plus the routes functions serve — never the homepage', () => {
+    // Two rewrites go to functions rather than files: the content sitemap
+    // (api/sitemap-content.ts) and blog posts, whose head comes from the
+    // database (api/blog-page.ts, pinned in src/test/api/blog-page.test.ts).
+    const extra = rewrites.filter((rule) => !['/api/(.*)', '/(.*)', '/sitemap-content.xml', '/blog/:slug'].includes(rule.source));
     expect(extra.map((rule) => rule.source).sort()).toEqual([...prerenderedPaths].sort());
     expect(extra.map((rule) => rule.source)).not.toContain('/');
   });

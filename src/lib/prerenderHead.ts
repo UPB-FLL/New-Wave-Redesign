@@ -14,8 +14,8 @@
 // edits to index.html (reordered attributes, an extra tag, a dropped keywords
 // tag) never break the build.
 
-import { BREADCRUMBS_ELEMENT_ID, headEntries, resolvePageMeta, type PageMetaOptions, type ResolvedPageMeta } from './pageMeta';
-import { breadcrumbListNode } from './structuredData';
+import { BREADCRUMBS_ELEMENT_ID, headEntries, resolvePageMeta, type PageMetaOptions, type ResolvedPageMeta } from './pageMeta.js';
+import { breadcrumbListNode } from './structuredData.js';
 
 export function escapeHtmlAttribute(value: string): string {
   return value

@@ -1,8 +1,8 @@
 // Head metadata and schema.org nodes for a blog post (/blog/:slug). Pure data.
 
 import type { BlogPost } from '../../types/blog';
-import { DEFAULT_OG_IMAGE, SITE_NAME, SITE_URL, type PageMetaOptions } from './pageMeta';
-import { breadcrumbListNode, ORGANIZATION_ID, WEBSITE_ID } from './structuredData';
+import { DEFAULT_OG_IMAGE, SITE_NAME, SITE_URL, type PageMetaOptions } from './pageMeta.js';
+import { breadcrumbListNode, ORGANIZATION_ID, WEBSITE_ID } from './structuredData.js';
 
 export const blogPostUrl = (slug: string) => `${SITE_URL}/blog/${slug}`;
 

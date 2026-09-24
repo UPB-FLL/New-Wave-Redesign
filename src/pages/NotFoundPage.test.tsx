@@ -2,11 +2,14 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import App from '../App';
-import { useContent } from '../lib/useContent';
+import { useContent, useContentWithStatus } from '../lib/useContent';
 import ServiceDetailPage from './ServiceDetailPage';
 import ThreatDetailPage from './ThreatDetailPage';
 
-vi.mock('../lib/useContent', () => ({ useContent: vi.fn(() => ({})) }));
+vi.mock('../lib/useContent', () => ({
+  useContent: vi.fn(() => ({})),
+  useContentWithStatus: vi.fn(() => ({ content: {}, loaded: false })),
+}));
 vi.mock('@vercel/analytics/react', () => ({ Analytics: () => null }));
 vi.mock('../components/ElfsightChatbot', () => ({ default: () => null }));
 
@@ -19,6 +22,7 @@ beforeAll(() => {
 afterAll(() => vi.unstubAllGlobals());
 afterEach(() => {
   vi.mocked(useContent).mockImplementation(() => ({}));
+  vi.mocked(useContentWithStatus).mockImplementation(() => ({ content: {}, loaded: false }));
   window.history.replaceState({}, '', '/');
 });
 
@@ -60,18 +64,28 @@ describe('CMS-driven detail pages', () => {
     ['service', '/service/:slug', <ServiceDetailPage />, 'services-detail', 'services_list'],
     ['threat', '/threat/:slug', <ThreatDetailPage />, 'threats-detail', 'threats_list'],
   ] as const)('a %s slug stays indexable while content loads and goes noindex once it is known to be missing', async (_kind, pattern, element, section, key) => {
-    vi.mocked(useContent).mockImplementation(() => ({}));
-    const { unmount } = renderRoute(pattern, pattern.replace(':slug', 'ransomware'), element);
-    await waitFor(() => expect(robots()).toBe('index, follow'));
-    unmount();
+    const serve = (loaded: boolean, list?: object[]) =>
+      vi.mocked(useContentWithStatus).mockImplementation((s: string) => ({ content: s === section && list ? { [key]: JSON.stringify(list) } : {}, loaded }));
+    const at = pattern.replace(':slug', 'ransomware');
 
-    vi.mocked(useContent).mockImplementation((s: string) => (s === section ? { [key]: JSON.stringify([{ name: 'Other', slug: 'other', description: 'x', features: [], benefits: [] }]) } : {}));
-    const missing = renderRoute(pattern, pattern.replace(':slug', 'ransomware'), element);
+    serve(false);
+    const loading = renderRoute(pattern, at, element);
+    await waitFor(() => expect(robots()).toBe('index, follow'));
+    loading.unmount();
+
+    // Production today: the section loaded and has no entries at all.
+    serve(true);
+    const empty = renderRoute(pattern, at, element);
+    await waitFor(() => expect(robots()).toBe('noindex, nofollow'));
+    empty.unmount();
+
+    serve(true, [{ name: 'Other', slug: 'other', description: 'x', features: [], benefits: [] }]);
+    const missing = renderRoute(pattern, at, element);
     await waitFor(() => expect(robots()).toBe('noindex, nofollow'));
     missing.unmount();
 
-    vi.mocked(useContent).mockImplementation((s: string) => (s === section ? { [key]: JSON.stringify([{ name: 'Ransomware', slug: 'ransomware', description: 'Encrypts files.', details: 'x', severity: 'HIGH', impact: 'x', mitigation_strategies: [], features: [], benefits: [], pricing_note: '' }]) } : {}));
-    renderRoute(pattern, pattern.replace(':slug', 'ransomware'), element);
+    serve(true, [{ name: 'Ransomware', slug: 'ransomware', description: 'Encrypts files.', details: 'x', severity: 'HIGH', impact: 'x', mitigation_strategies: [], features: [], benefits: [], pricing_note: '' }]);
+    renderRoute(pattern, at, element);
     await waitFor(() => expect(robots()).toBe('index, follow'));
   });
 });
