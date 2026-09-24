@@ -119,13 +119,13 @@ ${avoid}
 Requirements:
 - primary_keyword: the 2-4 word search phrase the article targets.
 - title (shown as the page H1): 45-60 characters; contains the primary keyword and "Fort Lauderdale" or "South Florida".
-- meta_title: at most ${META_TITLE_MAX} characters; contains the primary keyword (the site appends " | New Wave IT").
+- meta_title: at most ${META_TITLE_MAX} characters; contains the primary keyword and "Fort Lauderdale" or "South Florida". Do not include the brand name (the site appends " | New Wave IT").
 - meta_description: 140-155 characters; contains the primary keyword, a location, and a concrete benefit.
 - slug: lowercase words joined by hyphens, at most 60 characters, containing the primary keyword.
 - excerpt: 1-2 sentences, at most 160 characters.
 - intro: two short paragraphs, 120-180 words in total; use the exact primary keyword in the first two sentences.
-- sections: 5-6 sections. Each has a specific, descriptive heading (never "Introduction", "Overview", "Conclusion", or "Call to Action") and a body of 220-300 words. At least one heading contains the primary keyword. Use short paragraphs of 2-4 sentences; at least two bodies include a bulleted or numbered list. Bodies may use "### " sub-headings but never "#" or "##".
-- faqs: 4 questions a buyer would search for, each answered directly in 40-80 words.
+- sections: exactly 6 sections. Each has a specific, descriptive heading (never "Introduction", "Overview", "Conclusion", or "Call to Action") and a body of 250-320 words: explain the why, give concrete steps or examples, and say what to ask a provider. At least one heading contains the primary keyword. Use short paragraphs of 2-4 sentences; at least two bodies include a bulleted or numbered list. Bodies may use "### " sub-headings but never "#" or "##".
+- faqs (required): exactly 4 questions a buyer would search for, each answered directly in 50-80 words.
 - conclusion: a descriptive heading and a 100-150 word body that sums up and invites the reader to talk to New Wave IT.
 - The intro, sections, FAQs, and conclusion together must total ${WORDS.target[0]}-${WORDS.target[1]} words.
 - Internal links: where they fit naturally, link to at most three of these pages with Markdown links and descriptive anchor text. Link to no other URL and add no external links.
@@ -145,8 +145,8 @@ ${issues.map((issue) => `- ${issue.message} (parts: ${issue.targets.join(', ') |
 
 Rewrite only the parts named above ("section:N" is sections[N], zero-based; "meta" means title, meta_title, and meta_description). Keep every other rule from the original brief: no statistics, percentages, dollar figures, or cited studies; no links except the site pages already used; no "#" or "##" inside bodies.
 
-Return JSON containing only the parts you changed, in this shape:
-{"title":"","meta_title":"","meta_description":"","intro":"","sections":[{"index":0,"heading":"","body":""}],"faqs":[{"question":"","answer":""}],"conclusion":{"heading":"","body":""}}
+Return JSON with only the fields you changed. Leave out every field you did not change: never return empty strings or placeholder items. A changed section is {"index": N, "heading": "...", "body": "<the full rewritten body>"}. If you change the FAQs, return all four. Allowed fields: title, meta_title, meta_description, intro, sections, faqs, conclusion ({"heading","body"}).
+Example: {"sections":[{"index":2,"heading":"How to test a restore without downtime","body":"..."}],"meta_title":"Disaster Recovery Planning in Fort Lauderdale"}
 
 Current draft:
 ${JSON.stringify(draft)}`;
@@ -193,19 +193,20 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       parseJson<BlogDraft>(await callOpenAI([system, { role: 'user', content: draftPrompt(category, existing) }], apiKey, Math.min(80_000, remaining()))),
     );
     let report = reviewDraft(draft, category);
-    let repaired = false;
+    let repairs = 0;
 
-    // One targeted repair when something misses the bar and there is time for it.
-    if (report.issues.length && remaining() > 30_000) {
+    // Up to two targeted repairs while something misses the bar and there is time for them.
+    while (report.issues.length && repairs < 2 && remaining() > 40_000) {
+      repairs += 1;
       try {
         const patch = parseJson<DraftPatch>(
-          await callOpenAI([system, { role: 'user', content: repairPrompt(draft, report.issues) }], apiKey, Math.min(60_000, remaining() - 5_000)),
+          await callOpenAI([system, { role: 'user', content: repairPrompt(draft, report.issues) }], apiKey, Math.min(50_000, remaining() - 5_000)),
         );
         draft = applyPatch(draft, patch);
         report = reviewDraft(draft, category);
-        repaired = true;
       } catch (err) {
         console.warn('blog/generate-post repair failed:', err);
+        break;
       }
     }
 
@@ -242,7 +243,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       category: post.category,
       published_at: post.published_at,
       words: countWords(content),
-      repaired,
+      repaired: repairs > 0,
+      repairs,
       // Soft issues that remain (e.g. a meta title a few characters long); nothing blocking.
       notes: report.issues.map((issue) => issue.code),
     });

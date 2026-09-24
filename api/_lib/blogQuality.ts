@@ -100,14 +100,17 @@ export function internalLinkLine(category: string): string {
 /** The post body in Markdown: intro, H2 sections, FAQ, conclusion, and the internal links every post carries. */
 export function assembleContent(draft: BlogDraft, category: string): string {
   const parts = [clean(draft.intro)];
-  for (const section of draft.sections) parts.push(`## ${section.heading.trim()}\n\n${clean(section.body)}`);
+  for (const section of draft.sections) {
+    parts.push(section.heading.trim() ? `## ${section.heading.trim()}\n\n${clean(section.body)}` : clean(section.body));
+  }
   if (draft.faqs.length) {
     parts.push(
       '## Frequently asked questions\n\n' +
         draft.faqs.map((faq) => `### ${faq.question.trim()}\n\n${clean(faq.answer)}`).join('\n\n'),
     );
   }
-  parts.push(`## ${draft.conclusion.heading.trim()}\n\n${clean(draft.conclusion.body)}`);
+  const conclusionHeading = draft.conclusion.heading.trim() || capitalize(fallbackConclusionHeading(draft.primary_keyword));
+  parts.push(`## ${conclusionHeading}\n\n${clean(draft.conclusion.body)}`);
   parts.push(internalLinkLine(category));
   return parts.join('\n\n') + '\n';
 }
@@ -140,9 +143,19 @@ const truncateAtWord = (text: string, max: number) => {
   return cut.slice(0, cut.lastIndexOf(' ')).replace(/[\s,;:–—-]+$/, '');
 };
 
+/** The site appends " | New Wave IT" itself; a model-written suffix would repeat or crowd out the keyword. */
+const BRAND_SUFFIX = /\s*[|:–—-]\s*New Wave IT\s*$/i;
+const LOCATION = /fort lauderdale|south florida|broward|miami|palm beach|florida/i;
+
+const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+
+/** Heading for a conclusion the model left untitled; an empty "## " must never reach the page. */
+export const fallbackConclusionHeading = (keyword: string) =>
+  keyword?.trim() ? `Get help with ${keyword.trim().toLowerCase()} in South Florida` : 'Talk to a South Florida IT team';
+
 /** Deterministic fixes that need no second model call. */
 export function normalizeDraft(draft: BlogDraft): BlogDraft {
-  const metaTitle = draft.meta_title?.trim() || draft.title.trim();
+  const metaTitle = (draft.meta_title?.trim() || draft.title.trim()).replace(BRAND_SUFFIX, '').trim() || draft.title.trim();
   return {
     ...draft,
     title: draft.title.trim(),
@@ -152,7 +165,10 @@ export function normalizeDraft(draft: BlogDraft): BlogDraft {
     tags: (draft.tags ?? []).map((tag) => tag.trim().toLowerCase()).filter(Boolean).slice(0, 6),
     sections: (draft.sections ?? []).filter((section) => section?.heading?.trim() && section?.body?.trim()),
     faqs: (draft.faqs ?? []).filter((faq) => faq?.question?.trim() && faq?.answer?.trim()),
-    conclusion: draft.conclusion ?? { heading: 'Next steps', body: '' },
+    conclusion: {
+      heading: draft.conclusion?.heading?.trim() || capitalize(fallbackConclusionHeading(draft.primary_keyword)),
+      body: draft.conclusion?.body ?? '',
+    },
   };
 }
 
@@ -187,12 +203,16 @@ export function reviewDraft(draft: BlogDraft, category: string): QualityReport {
   if (draft.sections.length < 4) add('sections', `Only ${draft.sections.length} body sections; write 5-6.`, [], true);
 
   if (words < WORDS.soft) {
-    const shortest = draft.sections
-      .map((section, index) => ({ index, words: countWords(section.body) }))
-      .sort((a, b) => a.words - b.words)
-      .slice(0, 3)
-      .map(({ index }) => `section:${index}` as IssueTarget);
-    add('length', `The article is ${words} words; it needs ${WORDS.target[0]}-${WORDS.target[1]}. Expand these sections to 250-300 words each with concrete, practical detail.`, shortest, words < WORDS.hard);
+    const counted = draft.sections.map((section, index) => ({ index, words: countWords(section.body) }));
+    const thin = counted.filter((section) => section.words < 250);
+    const expand = (thin.length ? thin : [...counted].sort((a, b) => a.words - b.words).slice(0, 2));
+    add(
+      'length',
+      `The article is ${words} words; it needs ${WORDS.target[0]}-${WORDS.target[1]}. Rewrite each of these sections to 260-320 words with concrete, practical detail (examples, steps, what to ask a provider): ` +
+        expand.map((section) => `section:${section.index} (now ${section.words} words)`).join(', ') + '.',
+      expand.map(({ index }) => `section:${index}` as IssueTarget),
+      words < WORDS.hard,
+    );
   }
 
   const statisticTargets: IssueTarget[] = [];
@@ -217,6 +237,8 @@ export function reviewDraft(draft: BlogDraft, category: string): QualityReport {
 
   if (draft.title.length < 40 || draft.title.length > 65) add('title-length', `The title is ${draft.title.length} characters; write 45-60.`, ['meta']);
   if (draft.meta_title.length > META_TITLE_MAX) add('meta-title-length', `The meta title is ${draft.meta_title.length} characters; keep it at ${META_TITLE_MAX} or fewer.`, ['meta']);
+  if (!LOCATION.test(draft.meta_title)) add('meta-title-location', `Add "Fort Lauderdale" or "South Florida" to the meta title, keeping it at ${META_TITLE_MAX} characters or fewer.`, ['meta']);
+  if (countWords(draft.conclusion.body) < 60) add('conclusion', 'Write a 100-150 word conclusion that sums up and invites the reader to talk to New Wave IT.', ['conclusion']);
   if (draft.meta_description.length < META_DESCRIPTION.min) {
     add('meta-description-length', `The meta description is ${draft.meta_description.length} characters; write 140-155.`, ['meta']);
   }
@@ -245,7 +267,14 @@ export interface DraftPatch {
   conclusion?: Partial<DraftSection>;
 }
 
+/**
+ * Merges a repair reply. Empty strings and placeholder items are "no change"
+ * (a model echoing the reply shape must not wipe what it didn't rewrite), and
+ * FAQs are replaced only by a set at least as complete as the one they replace.
+ */
 export function applyPatch(draft: BlogDraft, patch: DraftPatch): BlogDraft {
+  const text = (value?: string) => (value?.trim() ? value : undefined);
+  const faqs = (patch.faqs ?? []).filter((faq) => faq?.question?.trim() && faq?.answer?.trim());
   const sections = draft.sections.map((section) => ({ ...section }));
   for (const change of patch.sections ?? []) {
     if (!Number.isInteger(change.index) || !sections[change.index]) continue;
@@ -259,8 +288,11 @@ export function applyPatch(draft: BlogDraft, patch: DraftPatch): BlogDraft {
     meta_description: patch.meta_description?.trim() || draft.meta_description,
     intro: patch.intro?.trim() || draft.intro,
     sections,
-    faqs: patch.faqs?.length ? patch.faqs : draft.faqs,
-    conclusion: { ...draft.conclusion, ...(patch.conclusion ?? {}) } as DraftSection,
+    faqs: faqs.length >= Math.min(3, Math.max(draft.faqs.length, 1)) ? faqs : draft.faqs,
+    conclusion: {
+      heading: text(patch.conclusion?.heading) ?? draft.conclusion.heading,
+      body: text(patch.conclusion?.body) ?? draft.conclusion.body,
+    },
   });
 }
 

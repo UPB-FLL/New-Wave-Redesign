@@ -300,7 +300,7 @@ describe('/api/blog/generate-post', () => {
       title: 'Managed Backup for Fort Lauderdale Small Businesses',
       slug: 'managed-backup-fort-lauderdale',
       category: 'Backup & Disaster Recovery',
-      meta_title: 'Managed Backup for Small Businesses',
+      meta_title: 'Managed Backup in Fort Lauderdale',
       featured_image: expect.stringContaining('picsum.photos'),
     });
     expect(insert?.content).toMatch(/^## Frequently asked questions$/m);
@@ -320,7 +320,7 @@ describe('/api/blog/generate-post', () => {
     expect(fetchSpy).toHaveBeenCalledTimes(2);
     const repairPrompt = JSON.parse(String((fetchSpy.mock.calls[1][1] as RequestInit).body)).messages[1].content as string;
     expect(repairPrompt).toContain('section:2');
-    expect(res.body).toMatchObject({ repaired: true });
+    expect(res.body).toMatchObject({ repaired: true, repairs: 1 });
     expect(insert?.content).not.toContain('70%');
   });
 

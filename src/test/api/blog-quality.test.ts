@@ -96,6 +96,26 @@ describe('reviewDraft', () => {
     expect(statistics?.targets).toEqual(['intro', 'section:1', 'section:2']);
   });
 
+  it('names every thin section, with its word count, when the post is short', () => {
+    const draft = goodDraft({
+      sections: goodDraft().sections.map((section, index) => (index < 3 ? { ...section, body: prose(20) } : section)),
+      conclusion: { heading: 'Protect the work your team does every day', body: prose(60) },
+    });
+    const report = reviewDraft(draft, 'Backup & Disaster Recovery');
+    // Short but above the blocking floor: a repair, not a refusal.
+    expect(report.words).toBeGreaterThan(1100);
+    expect(report.words).toBeLessThan(1300);
+    const length = report.issues.find((issue) => issue.code === 'length');
+    expect(length?.targets).toEqual(['section:0', 'section:1', 'section:2']);
+    expect(length?.message).toMatch(/section:0 \(now \d+ words\)/);
+    expect(length?.blocking).toBe(false);
+  });
+
+  it('flags a meta title without a location', () => {
+    const codes = reviewDraft(goodDraft({ meta_title: 'Managed Backup Guide' }), 'IT Support').issues.map((issue) => issue.code);
+    expect(codes).toContain('meta-title-location');
+  });
+
   it('asks for a keyword in the opening, a heading, the title, and the meta description', () => {
     const draft = goodDraft({ primary_keyword: 'backup testing service' });
     expect(reviewDraft(draft, 'IT Support').issues.map((issue) => issue.code)).toEqual(
@@ -105,6 +125,32 @@ describe('reviewDraft', () => {
 });
 
 describe('applyPatch', () => {
+  it('treats empty strings and placeholder items as "no change" (they wiped the FAQs and conclusion heading in production)', () => {
+    const draft = goodDraft();
+    // The reply shape the first repair prompt showed, echoed back with one real change.
+    const patch = {
+      title: '',
+      meta_title: '',
+      meta_description: '',
+      intro: '',
+      sections: [{ index: 2, heading: '', body: 'Longer body.' }],
+      faqs: [{ question: '', answer: '' }],
+      conclusion: { heading: '', body: '' },
+    };
+    const patched = applyPatch(draft, patch);
+    expect(patched.faqs).toHaveLength(4);
+    expect(patched.conclusion).toEqual(draft.conclusion);
+    expect(patched.sections[2]).toEqual({ heading: draft.sections[2].heading, body: 'Longer body.' });
+    expect(assembleContent(patched, 'Backup & Disaster Recovery')).not.toMatch(/^##\s*$/m);
+  });
+
+  it('replaces FAQs only with a set at least as complete', () => {
+    const draft = goodDraft();
+    expect(applyPatch(draft, { faqs: [{ question: 'One?', answer: 'Yes.' }] }).faqs).toHaveLength(4);
+    const none = goodDraft({ faqs: [] });
+    expect(applyPatch(none, { faqs: [{ question: 'One?', answer: 'Yes.' }, { question: 'Two?', answer: 'No.' }] }).faqs).toHaveLength(2);
+  });
+
   it('rewrites only the parts named in the repair and keeps the rest', () => {
     const draft = goodDraft();
     const patched = applyPatch(draft, { sections: [{ index: 1, body: 'New body.' }, { index: 99, body: 'ignored' }], meta_title: 'Shorter title' });
@@ -116,6 +162,14 @@ describe('applyPatch', () => {
 });
 
 describe('normalizeDraft and shortenSlug', () => {
+  it('strips a model-written brand suffix from the meta title and never leaves the conclusion untitled', () => {
+    const draft = goodDraft({ meta_title: 'Disaster Recovery Plan | New Wave IT', conclusion: { heading: '  ', body: 'Talk to us.' } });
+    expect(draft.meta_title).toBe('Disaster Recovery Plan');
+    expect(draft.conclusion.heading).toBe('Get help with managed backup in South Florida');
+    expect(assembleContent(draft, 'Backup & Disaster Recovery')).toMatch(/^## Get help with managed backup in South Florida$/m);
+  });
+
+
   it('caps meta lengths at a word boundary and slugs at 60 characters', () => {
     const draft = goodDraft({ meta_description: `${'word '.repeat(50)}end` });
     expect(draft.meta_description.length).toBeLessThanOrEqual(160);
