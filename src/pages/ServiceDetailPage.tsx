@@ -29,7 +29,12 @@ export default function ServiceDetailPage() {
     // Route behavior stays intact when CMS content cannot be parsed.
   }
 
+  // Content arrives from the CMS after mount; only once it has (the map is no
+  // longer empty) does a missing slug mean a dead URL, which stays out of the index.
+  const contentLoaded = Object.keys(content).length > 0;
+
   usePageMeta({
+    noindex: !service && contentLoaded,
     title: service ? `${service.name} in Fort Lauderdale` : 'IT Services',
     description: service?.description ? `${service.description} Serving Fort Lauderdale and South Florida businesses 24/7.` : undefined,
     canonical: `https://www.newwaveitfl.com/service/${slug ?? ''}`,

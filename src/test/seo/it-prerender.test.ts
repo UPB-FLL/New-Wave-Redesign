@@ -4,9 +4,9 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { resolvePageMeta, SITE_URL } from '../../lib/pageMeta';
+import { BREADCRUMBS_ELEMENT_ID, headEntries, resolvePageMeta, SITE_URL } from '../../lib/pageMeta';
 import { renderRouteHtml } from '../../lib/prerenderHead';
-import { IT_PAGE_META, prerenderedItRoutes } from '../../lib/routeMeta';
+import { HOME_PAGE_META, IT_PAGE_META, prerenderedItRoutes } from '../../lib/routeMeta';
 import { SERVICE_GUIDE_SUMMARIES } from '../../lib/serviceGuides';
 
 const shell = readFileSync(path.resolve(__dirname, '../../../index.html'), 'utf8');
@@ -26,6 +26,7 @@ function head(html: string) {
     twitterTitles: content('meta[name="twitter:title"]'),
     siteNames: content('meta[property="og:site_name"]'),
     jsonLd: all('script[type="application/ld+json"]').map((el) => el.textContent ?? ''),
+    breadcrumbs: all(`script#${BREADCRUMBS_ELEMENT_ID}`).map((el) => JSON.parse(el.textContent ?? '{}')),
     icon: doc.head.querySelector('link[rel="icon"][type="image/svg+xml"]')?.getAttribute('href'),
   };
 }
@@ -55,12 +56,49 @@ describe('prerendered New Wave IT routes', () => {
     expect(h.ogDescriptions).toEqual([expected.description]);
     expect(h.siteNames).toEqual(['New Wave IT']);
 
-    // Still a New Wave IT page: parent entity data and icons are untouched.
-    expect(h.jsonLd).toHaveLength(1);
+    // Still a New Wave IT page: parent entity data and icons are untouched,
+    // plus the page's own breadcrumb trail from Home.
+    expect(h.jsonLd).toHaveLength(2);
     expect(h.jsonLd[0]).toContain('"LocalBusiness"');
+    expect(h.breadcrumbs).toHaveLength(1);
+    const trail = h.breadcrumbs[0].itemListElement as { name: string; item: string; position: number }[];
+    expect(trail[0]).toMatchObject({ position: 1, name: 'New Wave IT', item: `${SITE_URL}/` });
+    expect(trail.slice(1).map((c) => c.name)).toEqual(route.meta.breadcrumbs?.map((c) => c.name));
+    expect(trail[trail.length - 1].item).toBe(url);
     expect(h.icon).toBe('/favicon.svg');
     // And none of the homepage's identity survives.
     expect(h.titles[0]).not.toBe('New Wave IT — 24/7 Managed IT, Cybersecurity & Cloud in Fort Lauderdale');
+  });
+
+  it('gives every page a title and description that fit in search results', () => {
+    routes.forEach((route) => {
+      const meta = resolvePageMeta(route.meta, route.path);
+      // Title before the " | New Wave IT" suffix: what must survive truncation.
+      expect(route.meta.title.length, route.path).toBeLessThanOrEqual(60);
+      expect(meta.description.length, route.path).toBeLessThanOrEqual(160);
+    });
+  });
+
+  it('serves the homepage a shell whose head already equals what the homepage sets at runtime', () => {
+    const doc = new DOMParser().parseFromString(shell, 'text/html');
+    const meta = resolvePageMeta(HOME_PAGE_META, '/');
+    expect(doc.title).toBe(meta.title);
+    headEntries(meta).forEach((entry) => {
+      if (entry.kind === 'canonical') {
+        expect(doc.head.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(entry.href);
+      } else {
+        expect(doc.head.querySelector(`meta[${entry.attr}="${entry.key}"]`)?.getAttribute('content'), entry.key).toBe(entry.value);
+      }
+    });
+  });
+
+  it('declares the WebSite, Organization, and LocalBusiness nodes every page links to', () => {
+    const doc = new DOMParser().parseFromString(shell, 'text/html');
+    const graph = JSON.parse(doc.head.querySelector('script[type="application/ld+json"]')?.textContent ?? '[]') as Record<string, unknown>[];
+    const ids = graph.map((node) => node['@id']);
+    expect(ids).toEqual([`${SITE_URL}/#business`, `${SITE_URL}/#organization`, `${SITE_URL}/#website`]);
+    expect(graph[0].parentOrganization).toEqual({ '@id': `${SITE_URL}/#organization` });
+    expect(graph[2].publisher).toEqual({ '@id': `${SITE_URL}/#organization` });
   });
 
   it('never writes over the shell itself (the homepage)', () => {

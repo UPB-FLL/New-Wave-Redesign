@@ -121,7 +121,8 @@ describe('vercel.json rewrites', () => {
   });
 
   it('rewrites exactly the prerendered URLs — never the homepage or data-driven routes', () => {
-    const extra = rewrites.filter((rule) => rule.source !== '/api/(.*)' && rule.source !== '/(.*)');
+    // The content sitemap is the one rewrite that is not a page (api/sitemap-content.ts).
+    const extra = rewrites.filter((rule) => !['/api/(.*)', '/(.*)', '/sitemap-content.xml'].includes(rule.source));
     expect(extra.map((rule) => rule.source).sort()).toEqual([...prerenderedPaths].sort());
     expect(extra.map((rule) => rule.source)).not.toContain('/');
   });

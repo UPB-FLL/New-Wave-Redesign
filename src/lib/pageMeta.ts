@@ -14,6 +14,13 @@ export const DEFAULT_OG_IMAGE = 'https://www.newwaveitfl.com/brand/og/open-graph
 export const DEFAULT_KEYWORDS =
   'managed IT services Fort Lauderdale, MSP South Florida, cybersecurity Fort Lauderdale, cloud migration South Florida, IT support Fort Lauderdale, network infrastructure, HIPAA compliance IT, 24/7 IT support';
 
+/** One step of a page's breadcrumb trail (Home is implied). */
+export interface Crumb {
+  name: string;
+  /** Site-relative path, e.g. '/services'. */
+  path: string;
+}
+
 export interface PageMetaOptions {
   title: string;
   description?: string;
@@ -33,7 +40,15 @@ export interface PageMetaOptions {
   noindex?: boolean;
   /** Brand for the title suffix and og:site_name. Defaults to "New Wave IT"; divisions pass their own. */
   siteName?: string;
+  /**
+   * Trail below Home, written as a BreadcrumbList JSON-LD block (id
+   * BREADCRUMBS_ELEMENT_ID) both by the prerender and at runtime.
+   */
+  breadcrumbs?: readonly Crumb[];
 }
+
+/** Stable id of the breadcrumb JSON-LD block, so the runtime replaces the prerendered one instead of duplicating it. */
+export const BREADCRUMBS_ELEMENT_ID = 'page-breadcrumbs';
 
 export interface ResolvedPageMeta {
   /** Full document title, including the site-name suffix when it applies. */

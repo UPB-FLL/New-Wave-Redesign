@@ -39,7 +39,12 @@ export default function ThreatDetailPage() {
     // Keep the existing not-found behavior when CMS content is malformed.
   }
 
+  // Content arrives from the CMS after mount; only once it has (the map is no
+  // longer empty) does a missing slug mean a dead URL, which stays out of the index.
+  const contentLoaded = Object.keys(content).length > 0;
+
   usePageMeta({
+    noindex: !threat && contentLoaded,
     title: threat ? `${threat.name} - Threat Protection & Mitigation` : 'Cyber Threat Protection',
     description: threat?.description ? `${threat.description} Learn how New Wave IT protects South Florida businesses against ${threat.name.toLowerCase()}.` : undefined,
     canonical: `https://www.newwaveitfl.com/threat/${slug ?? ''}`,

@@ -38,8 +38,19 @@ const service: ServiceCategoryPageData = {
   ctaDescription: 'Talk to New Wave IT about a DAS or public safety communication program built around your facility and the people who rely on it.',
 };
 
+const SERVICE_JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  provider: { '@id': 'https://www.newwaveitfl.com/#business' },
+  name: 'Cellular DAS & Public Safety Communications',
+  description: 'Distributed antenna system design and installation, FirstNet integration, and in-building coverage for public safety agencies, emergency responders, and large venues.',
+  areaServed: { '@type': 'City', name: 'Fort Lauderdale' },
+  serviceType: 'Cellular DAS & Public Safety Communications',
+  url: 'https://www.newwaveitfl.com/service-category/cellular-das-and-public-safety',
+};
+
 export default function CellularDASPublicSafetyServicePage() {
-  usePageMeta(IT_PAGE_META['/service-category/cellular-das-and-public-safety']);
+  usePageMeta({ ...IT_PAGE_META['/service-category/cellular-das-and-public-safety'], jsonLd: SERVICE_JSON_LD });
 
   return <ServiceCategoryPage data={service} />;
 }

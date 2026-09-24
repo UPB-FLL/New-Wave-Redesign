@@ -1,9 +1,10 @@
 import { useParams, Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, CalendarDays, Clock, Share2, Tag } from 'lucide-react';
 import Footer from '../components/Footer';
 import { usePageMeta } from '../lib/usePageMeta';
 import { fetchBlogPostBySlug, fetchBlogPosts, estimateReadTime } from '../lib/blog';
+import { blogPostPageMeta } from '../lib/blogSeo';
 import type { BlogPost } from '../../types/blog';
 import ReactMarkdown from 'react-markdown';
 
@@ -13,11 +14,14 @@ export default function BlogPostPage() {
   const [related, setRelated] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // True only when the database has no post for this slug (not on a network error).
+  const [missing, setMissing] = useState(false);
 
   useEffect(() => {
     async function loadPost() {
       if (!slug) {
         setError('Blog post not found');
+        setMissing(true);
         setLoading(false);
         return;
       }
@@ -26,6 +30,7 @@ export default function BlogPostPage() {
         const postData = await fetchBlogPostBySlug(slug);
         if (!postData) {
           setError('Blog post not found');
+          setMissing(true);
           setLoading(false);
           return;
         }
@@ -47,6 +52,14 @@ export default function BlogPostPage() {
     }
     loadPost();
   }, [slug]);
+
+  // Every render path calls usePageMeta exactly once, before any early return
+  // (calling it only after the post loaded crashed the page with a hook-order error).
+  const meta = useMemo(
+    () => blogPostPageMeta(slug ?? '', post ? { status: 'ready', post } : missing ? { status: 'missing' } : { status: 'loading' }),
+    [slug, post, missing],
+  );
+  usePageMeta(meta);
 
   const handleShare = async () => {
     if (navigator.share && post) {
@@ -106,15 +119,6 @@ export default function BlogPostPage() {
     month: 'long',
     day: 'numeric',
     year: 'numeric',
-  });
-
-  // SEO metadata
-  usePageMeta({
-    title: post.meta_title || post.title,
-    description: post.meta_description || post.excerpt || undefined,
-    canonical: `https://www.newwaveitfl.com/blog/${post.slug}`,
-    ogImage: post.featured_image || undefined,
-    ogType: 'article',
   });
 
   return (

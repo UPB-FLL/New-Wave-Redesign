@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import {
@@ -99,7 +99,10 @@ export default function AdminLayout() {
         </header>
 
         <main className="flex-1 p-6 lg:p-8 overflow-y-auto">
-          <Outlet />
+          {/* Editors are lazy chunks (App.tsx); the sidebar stays put while one loads. */}
+          <Suspense fallback={<div aria-busy="true" />}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
     </div>

@@ -14,7 +14,8 @@
 // edits to index.html (reordered attributes, an extra tag, a dropped keywords
 // tag) never break the build.
 
-import { headEntries, resolvePageMeta, type PageMetaOptions, type ResolvedPageMeta } from './pageMeta';
+import { BREADCRUMBS_ELEMENT_ID, headEntries, resolvePageMeta, type PageMetaOptions, type ResolvedPageMeta } from './pageMeta';
+import { breadcrumbListNode } from './structuredData';
 
 export function escapeHtmlAttribute(value: string): string {
   return value
@@ -114,7 +115,13 @@ export function applyPageHead(shell: string, meta: ResolvedPageMeta): string {
   return html;
 }
 
-/** The prerendered HTML for one static page: the shell with that page's head. */
+/**
+ * The prerendered HTML for one static page: the shell with that page's head,
+ * plus its BreadcrumbList (the same block usePageMeta writes at runtime).
+ */
 export function renderRouteHtml(shell: string, path: string, meta: PageMetaOptions): string {
-  return applyPageHead(shell, resolvePageMeta(meta, path));
+  const html = applyPageHead(shell, resolvePageMeta(meta, path));
+  if (!meta.breadcrumbs?.length) return html;
+  const json = escapeJsonForScript(JSON.stringify(breadcrumbListNode(meta.breadcrumbs)));
+  return insertBeforeHeadClose(html, `<script type="application/ld+json" id="${BREADCRUMBS_ELEMENT_ID}">${json}</script>`);
 }

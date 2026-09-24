@@ -51,8 +51,13 @@ export const serviceGuidePath = (slug: string) => `/l/${slug}`;
 /** Page metadata for a guide, identical at runtime and when prerendered. */
 export function serviceGuideMeta(slug: string, guide: ServiceGuideSummary): Omit<PageMetaOptions, 'jsonLd'> {
   return {
-    title: `${guide.title} — ${guide.subtitle}`,
+    // The subtitle stays on the page; in the title it pushed every guide past what search results show.
+    title: guide.title,
     description: guide.overview.slice(0, 155).replace(/\s+\S*$/, '') + '…',
     canonical: `https://www.newwaveitfl.com${serviceGuidePath(slug)}`,
+    breadcrumbs: [
+      { name: 'Services', path: '/services' },
+      { name: guide.title, path: serviceGuidePath(slug) },
+    ],
   };
 }

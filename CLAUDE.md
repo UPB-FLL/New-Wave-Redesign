@@ -2,6 +2,46 @@
 
 ## Recent Changes
 
+### SEO pass: indexing fixes, breadcrumbs, content sitemap (2026-09-24)
+
+Covers New Wave IT and NW Social Engineering.
+
+- **Blog posts rendered blank**: `BlogPostPage` called `usePageMeta` after
+  its early returns, so every post crashed ("Rendered more hooks") once it
+  loaded. Its meta now comes from `src/lib/blogSeo.ts` (`blogPostPageMeta`),
+  with `BlogPosting` + `BreadcrumbList` JSON-LD. A missing slug is `noindex`;
+  a network error is not, so a transient failure can't deindex a post.
+- **Soft 404s**: a `path="*"` route renders `NotFoundPage` (`noindex`) for
+  any unmatched URL, including unknown `/social-engineering/*` paths. The
+  response is still HTTP 200 (the SPA catch-all). `/service/:slug` and
+  `/threat/:slug` go `noindex` only once CMS content has loaded and the slug
+  is absent. Unknown `/l/*` guides are `noindex`.
+- **Content sitemap**: `/sitemap-content.xml` is rewritten to
+  `api/sitemap-content.ts`, which lists blog posts (published ones only) and
+  the CMS service/threat pages from Supabase (service role). It returns 5xx,
+  never an empty sitemap, on failure. `robots.txt` lists both sitemaps;
+  `public/sitemap.xml` still lists every static page.
+- **Breadcrumbs**: each `IT_PAGE_META` entry has a `crumb` label, which
+  becomes `breadcrumbs` (service categories and `/l/*` guides sit under
+  Services). `renderRouteHtml` writes a `BreadcrumbList` block
+  (`#page-breadcrumbs`) into the raw HTML, and `usePageMeta` takes it over at
+  runtime and removes it on unmount. Pages that spread their registry entry
+  get this automatically.
+- **Shell graph**: `index.html` now declares the `#website` node that the
+  division pages already referenced. `#business` links to `#organization`
+  (`parentOrganization`). `HOME_PAGE_META` (`routeMeta.ts`) is the homepage
+  head, and a test requires the shell's tags to equal it, so hydration no
+  longer changes the homepage description or OG tags.
+- **Titles/descriptions**: IT titles are at most 60 characters before the
+  suffix, and descriptions at most 160 (tested). Guides drop their subtitle
+  from the title. The four service categories that lacked `Service` JSON-LD
+  now have it.
+- **Bundle**: admin routes are `React.lazy` chunks (main chunk 869 → 743 kB,
+  gzip 248 → 222 kB); `AdminLayout` suspends around its `<Outlet />`.
+- **Tests**: `src/pages/BlogPostPage.test.tsx`, `src/pages/NotFoundPage.test.tsx`,
+  `src/test/api/sitemap-content.test.ts`, `src/lib/usePageMeta.test.tsx`, plus
+  breadcrumb, length, and homepage-parity checks in `it-prerender.test.ts`.
+
 ### Prerendered page heads for every static route (2026-09-22)
 
 Every static New Wave IT page now serves raw HTML with its own `<title>`,
@@ -25,9 +65,9 @@ of them declared the homepage canonical until JavaScript ran.
   own get `DEFAULT_KEYWORDS` (the shell's value, pinned by a test).
 - **Not prerendered**: `/` (the untouched shell) and the data-driven routes
   `/service/:slug`, `/threat/:slug`, and `/blog/:slug`.
-- **Adding a static page**: add it to `IT_PAGE_META`, use it in the page, add
-  a `vercel.json` rewrite and a sitemap `<url>`. The tests fail until all of
-  them agree.
+- **Adding a static page**: add it to `IT_PAGE_META` (with a `crumb`
+  label), use it in the page, add a `vercel.json` rewrite and a sitemap
+  `<url>`. The tests fail until all of them agree.
 - **Tests**:
   - `src/test/seo/it-prerender.test.ts` checks the raw head of each route.
   - `src/test/seo/it-route-parity.test.tsx` renders each page at its real

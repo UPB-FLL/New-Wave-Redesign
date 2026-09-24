@@ -41,8 +41,19 @@ const service: ServiceCategoryPageData = {
   ctaDescription: 'Talk with New Wave IT about technology that supports a refined guest or resident experience and dependable property operations.',
 };
 
+const SERVICE_JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  provider: { '@id': 'https://www.newwaveitfl.com/#business' },
+  name: 'Luxury Property IT Services',
+  description: 'Smart home automation, premium guest connectivity, and white-glove technical support for luxury residences, resorts, and high-end hospitality in South Florida.',
+  areaServed: { '@type': 'City', name: 'Fort Lauderdale' },
+  serviceType: 'Luxury Property IT',
+  url: 'https://www.newwaveitfl.com/service-category/luxury',
+};
+
 export default function LuxuryServicePage() {
-  usePageMeta(IT_PAGE_META['/service-category/luxury']);
+  usePageMeta({ ...IT_PAGE_META['/service-category/luxury'], jsonLd: SERVICE_JSON_LD });
 
   return <ServiceCategoryPage data={service} />;
 }
