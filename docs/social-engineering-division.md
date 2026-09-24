@@ -115,6 +115,27 @@ division is a New Wave IT division, not a separate company.
   arrive with the subject prefixed `[New Wave: Social Engineering]` and a
   "Division" line in the notification. Both send the same `inquiry` tag, so only
   the message text shows which page a lead came from.
+- Section grounds: every light band (`Band`, class `nwse-band`) and the shared
+  contact form's section carry the division's currents faintly: the three
+  `DivisionCurrents` paths (Signal Cyan, Tide Blue, Lure Amber) as a background
+  image, `components/bandCurrents.svg`, painted by a `::before` in
+  `division.css`. Stroke opacity is 14%, 8%, and 15% on Pure White; Cloud White
+  bands and the contact section show them mirrored at 62% of that, so
+  neighbouring bands differ. The lines stay 3px wide at any band height
+  (`vector-effect="non-scaling-stroke"`).
+  - **The cap is contrast.** Every text colour set on these grounds (Current
+    Navy, Slate, Lure Amber Deep, and the form's error red) keeps at least 4.5:1
+    wherever a current passes behind it. `grounds.test.tsx` computes this from
+    the SVG and the CSS, so raising an opacity fails the test.
+  - **Step timeline.** Its Tide Blue labels have no contrast to spare (4.57:1
+    on Cloud White), so its band keeps a plain ground below 768px, where the
+    labels sit on it.
+  - **Forced colours and print.** Forced colours drop the currents
+    (`content: none`). Print leaves them out unless the reader prints
+    backgrounds.
+  - **Dark sections.** The hero and the hub's metrics band share the hero's
+    currents (`DarkCurrents` in `sections.tsx`); the closing CTA band keeps its
+    own, stronger ones.
 
 ## Customers and Contact us
 
@@ -170,8 +191,8 @@ call**) and from the footer's "NW Social Engineering" column.
   "Discovery call") is a one-line change in `contactPageSeo()` for the owner to
   decide.
 - **New projects**: the hero ends with "Starting a new project? Book a
-  discovery call" (a link to `/contact`, 44px tall on phones), in `actions`
-  rather than `footnote`, which is hidden below 1024px.
+  discovery call" (a link to `/contact`, 44px tall on phones), in `actions`,
+  so it shows at every width.
 - **Form**: the shared `Contact` with `inquiry="social-engineering"`, the
   division icons (`components/contactIcons.tsx`, shared with `/contact`), and
   `content/contact-us.ts`'s `form` copy as its `intro`.
@@ -246,7 +267,8 @@ layouts; every small-screen rule is either a `max-width` media query in
   - `nwse-hairlines`: "What we gather" / "What's included" as hairline rows
     below 768px.
   - `nwse-timeline`: steps as a timeline below 768px, with the icon tile or an
-    amber node (`data-markers`) on the rail.
+    amber node (`data-markers`) on the rail. Its band has a plain ground there
+    (see "Section grounds" under "Brand implementation").
   - `nwse-roadmap`: compact phase cards below 768px, their items flowing in
     rows at natural width; on tablets the three cards share row tracks
     (subgrid), so their dividers line up when a title wraps.
@@ -262,14 +284,14 @@ layouts; every small-screen rule is either a `max-width` media query in
   the fixed header's toggle off-screen). The hero's scene layout switches at
   em widths, like the header (see "Enlarged text" under Motion).
 - **Hidden below a breakpoint** (decorative or repeated, never unique copy):
-  the hub hero's service chips and descriptor (repeated by the services list
-  and the footer), "Learn more" on service cards (the whole row is the link),
-  the intro brand mark, the family lockup on phones (the footer carries
-  it), and the line-art scenes where "Motion" below leaves them out.
+  "Learn more" on service cards (the whole row is the link), the intro brand
+  mark, the family lockup on phones (the footer carries it), and the line-art
+  scenes where "Motion" below leaves them out.
 - **Contact form.** `components/Contact.tsx` carries `data-contact-*`
   attributes only; `division.css` uses them below 1024px for a left-aligned
   intro, grouped contact methods whose Call and Email rows are whole-row links,
-  and 16px inputs (no iOS zoom on focus). New Wave IT pages are unchanged.
+  and 16px inputs (no iOS zoom on focus), and at every width for the section's
+  currents (see "Section grounds"). New Wave IT pages are unchanged.
 - **Hero scenes.** On phones the page's line-art scene follows the actions
   (so the primary button never moves), 288 × 192px; service pages leave it
   out below 375px, where their summaries run 11–13 lines, the contact page

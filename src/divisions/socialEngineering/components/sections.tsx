@@ -46,6 +46,17 @@ const HERO_CURRENTS_FADE = {
   WebkitMaskImage: 'linear-gradient(to right, rgba(0, 0, 0, 0.35), #000 70%)',
 } as const;
 
+/**
+ * The hero's currents, for a dark section's ground (the hero and the hub's
+ * metrics band). The section needs `relative`, and its content `relative` to
+ * sit above them.
+ */
+export function DarkCurrents() {
+  return (
+    <DivisionCurrents className="pointer-events-none absolute inset-0 h-full w-full" opacity={HERO_CURRENTS_OPACITY} style={HERO_CURRENTS_FADE} />
+  );
+}
+
 // The hero's scene layout switches at em widths, as the header's menu does
 // (DESKTOP_NAV_QUERY in DivisionHeader): 48em, 64em, and 80em are md, lg, and
 // xl (768, 1024, and 1280px) at the default text size, and proportionally
@@ -159,7 +170,6 @@ export function DivisionHero({
   summary,
   breadcrumbs,
   actions,
-  footnote,
   kickerInHeading = false,
   scene,
   sceneOnPhones = 'show',
@@ -170,7 +180,6 @@ export function DivisionHero({
   summary: string;
   breadcrumbs?: DivisionPageSeo['breadcrumbs'];
   actions?: ReactNode;
-  footnote?: ReactNode;
   /** Render the kicker as the first line of the H1 (keeps a brand-line headline topical). */
   kickerInHeading?: boolean;
   /** The page's line-art scene (motion/scenes): beside the text from 64em, after the actions below it. */
@@ -206,15 +215,9 @@ export function DivisionHero({
         {actions}
       </div>
     ) : null;
-  // The footnote only restates what the page lists next, so it is desktop-only.
-  // Beside a scene it spans both columns, under the text and the scene.
-  const note = (spanBoth: boolean) =>
-    footnote ? (
-      <div className={spanBoth ? 'mt-10 hidden lg:block [@media(min-width:64em)]:col-span-2' : 'mt-10 hidden lg:block'}>{footnote}</div>
-    ) : null;
   return (
     <section className="nwse-dark relative overflow-hidden" style={{ background: 'var(--nw-deep-current)' }}>
-      <DivisionCurrents className="pointer-events-none absolute inset-0 h-full w-full" opacity={HERO_CURRENTS_OPACITY} style={HERO_CURRENTS_FADE} />
+      <DarkCurrents />
       {/* Landscape phones (below lg, at most 500px tall) keep the phone spacing
           (here, in Breadcrumbs, and around the summary and actions). */}
       <div className="relative mx-auto max-w-7xl px-4 pb-8 pt-6 sm:px-6 sm:pb-12 sm:pt-10 lg:px-8 lg:pb-24 lg:pt-16 max-lg:[@media(max-height:500px)]:pb-8 max-lg:[@media(max-height:500px)]:pt-6">
@@ -231,14 +234,12 @@ export function DivisionHero({
               {actionRow(true)}
               <HeroScene page={scene} onPhones={sceneOnPhones} />
             </div>
-            {note(true)}
           </div>
         ) : (
           <>
             {heading}
             {summaryText}
             {actionRow(false)}
-            {note(false)}
           </>
         )}
       </div>
@@ -469,28 +470,17 @@ export function CheckList({ items }: { items: readonly string[] }) {
   );
 }
 
-// Metric labels: chips. On light grounds below lg, where they sit in one
-// narrow column, one grouped list (.nwse-labelrows) instead of ragged
-// button-like chips.
-const chipListClass = 'flex flex-wrap gap-2';
-const chipClass = 'nwse-type-label nwse-label rounded-md border px-3 py-1.5';
+// Metric labels: chips from lg. Below lg, where they sit in one narrow column,
+// one grouped list (.nwse-labelrows) instead of ragged button-like chips.
 const labelListClass = 'nwse-labelrows flex flex-col gap-0 lg:flex-row lg:flex-wrap lg:gap-2';
 const labelRowClass = 'nwse-type-label nwse-label rounded-md border px-4 py-2.5 lg:px-3 lg:py-1.5';
 
 /** Metric labels in Plex Mono caps — labels only; results belong in client reports. */
-export function MetricLabels({ labels, onDark = false }: { labels: readonly string[]; onDark?: boolean }) {
+export function MetricLabels({ labels }: { labels: readonly string[] }) {
   return (
-    <ul className={onDark ? chipListClass : labelListClass}>
+    <ul className={labelListClass}>
       {labels.map((label) => (
-        <li
-          key={label}
-          className={onDark ? chipClass : labelRowClass}
-          style={
-            onDark
-              ? { color: 'var(--nw-cloud-white)', borderColor: 'color-mix(in srgb, var(--nw-cloud-white) 25%, transparent)' }
-              : { borderColor: 'var(--nw-mist-gray)', background: 'var(--nw-pure-white)' }
-          }
-        >
+        <li key={label} className={labelRowClass} style={{ borderColor: 'var(--nw-mist-gray)', background: 'var(--nw-pure-white)' }}>
           {label}
         </li>
       ))}
@@ -529,6 +519,11 @@ export function CtaBand({ heading, body }: { heading: string; body: string }) {
   );
 }
 
+/**
+ * A light section: Cloud White (`light`) or Pure White (`white`), with the
+ * division's currents faintly behind it (.nwse-band in division.css; mirrored
+ * and fainter on Cloud White, keyed on `data-tone`).
+ */
 export function Band({
   children,
   tone = 'light',
@@ -544,7 +539,8 @@ export function Band({
     <section
       id={id}
       aria-labelledby={labelledBy}
-      className="py-10 sm:py-14 lg:py-20"
+      data-tone={tone}
+      className="nwse-band relative py-10 sm:py-14 lg:py-20"
       style={{ background: tone === 'white' ? 'var(--nw-pure-white)' : 'var(--nw-cloud-white)' }}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">{children}</div>

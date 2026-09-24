@@ -89,6 +89,44 @@
   }
 }
 
+/* Section grounds: the division's currents (DivisionCurrents' three paths, in
+   Signal Cyan, Tide Blue, and Lure Amber) drawn faintly behind every light
+   band (Band in sections.tsx) and the shared contact form's section, at every
+   width. Cloud White bands carry them mirrored and fainter, so neighbouring
+   bands differ. A background image, so print leaves them out unless the
+   reader prints backgrounds. Their strength is capped so every text colour
+   set on these grounds keeps at least 4.5:1 wherever a current passes behind
+   it (grounds.test.tsx computes it); the step timeline, whose labels have no
+   contrast to spare, drops them on phones (below). */
+.nwse-band,
+.nwse-root [data-contact-section] {
+  isolation: isolate;
+}
+
+.nwse-band::before,
+.nwse-root [data-contact-section]::before {
+  background: url('./components/bandCurrents.svg') center / cover no-repeat;
+  content: '';
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: -1;
+}
+
+.nwse-band[data-tone='light']::before,
+.nwse-root [data-contact-section]::before {
+  opacity: 0.62;
+  transform: scaleX(-1);
+}
+
+/* Forced colours replace the grounds, so the currents go with them. */
+@media (forced-colors: active) {
+  .nwse-band::before,
+  .nwse-root [data-contact-section]::before {
+    content: none;
+  }
+}
+
 /* Colour roles for the Plex Mono labels. Their type (family, size, weight,
    tracking, caps) comes from .nwse-type-kicker and .nwse-type-label in
    type.css, so pair them: "nwse-type-kicker nwse-kicker",
@@ -347,6 +385,13 @@
     bottom: 3px;
     left: 5.5px;
     top: 21px;
+  }
+
+  /* The timeline's Tide Blue labels sit on the band's own ground here (4.57:1
+     on Cloud White), so a current behind them would take them below 4.5:1.
+     Their band keeps a plain ground. */
+  .nwse-band:has(.nwse-timeline)::before {
+    content: none;
   }
 
   /* Roadmap phases: the icon tile beside the phase label and title. */

@@ -96,6 +96,13 @@ No New Wave IT URL, title, canonical, or structured data changed. Full notes:
   division modules; the registry and `SceneSlot` reach no other `motion/`
   module statically; and Tailwind skips the folder (`scenes.test.tsx`). See
   the "Motion" section of the division doc.
+- **Section grounds (division only)**: every light `Band` and the shared
+  contact section carry the division's currents faintly, as a background
+  image (`components/bandCurrents.svg`, painted by `.nwse-band::before` in
+  `division.css`). The cap on their strength is text contrast (4.5:1 wherever
+  a current passes behind text), which `grounds.test.tsx` computes. The step
+  timeline's band stays plain on phones, where its labels sit on the ground.
+  Dark sections use the hero's currents (`DarkCurrents`).
 - **IT touch points**: a Navbar Services-menu entry and mobile link, a Footer
   link ("Social Media & Marketing"), and sitemap entries. `App.tsx` hides the IT
   `WaveBackground` and `FloatingNav` on division paths.

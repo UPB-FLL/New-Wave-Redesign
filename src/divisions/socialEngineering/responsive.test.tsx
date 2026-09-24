@@ -420,26 +420,27 @@ describe('content hidden below a breakpoint', () => {
     const hidden = hiddenOnPhones(container);
 
     const scenes = hidden.filter((element) => element.hasAttribute('data-page-scene'));
-    const footnote = hidden.filter((element) => element.closest('section') === main.firstElementChild && !scenes.includes(element));
     const learnMore = hidden.filter((element) => element.textContent?.startsWith('Learn more'));
     const art = hidden.filter((element) => element.querySelector('img') && !element.textContent?.trim());
     const lockup = hidden.filter((element) => element.querySelector('[data-role="family-lockup"]'));
-    expect(scenes.length + footnote.length + learnMore.length + art.length + lockup.length).toBe(hidden.length);
+    expect(scenes.length + learnMore.length + art.length + lockup.length).toBe(hidden.length);
 
     // The line-art scenes: the hero's (off on landscape phones) and the "What
     // we gather" band's (desktop only). Decorative, with the copy beside them.
     expect(scenes.map((element) => element.getAttribute('data-page-scene'))).toEqual(['hub', 'hubSection']);
     scenes.forEach((element) => expect(isDecorativeScene(element)).toBe(true));
 
-    // Hero footnote: the descriptor and the service names, all listed again just below.
-    expect(footnote).toHaveLength(1);
-    expect(footnote[0]).toHaveTextContent(DIVISION_DESCRIPTOR);
+    // The hero does not repeat the descriptor or the service names: its kicker
+    // already names the four areas, the services list follows it, and the
+    // footer carries the descriptor.
+    const hero = main.firstElementChild as HTMLElement;
+    expect(hero).not.toHaveTextContent(DIVISION_DESCRIPTOR);
+    expect(hero.querySelector('ul')).toBeNull();
     expect(footer).toHaveTextContent(DIVISION_DESCRIPTOR);
     divisionServices.forEach((service) => {
-      expect(footnote[0]).toHaveTextContent(service.navLabel);
+      expect(within(hero).queryByText(service.navLabel)).toBeNull();
       expect(within(services as HTMLElement).getByRole('link', { name: new RegExp(`^${service.navLabel}`) })).toBeInTheDocument();
     });
-    expect(footnote[0].querySelector('a, button')).toBeNull();
 
     // "Learn more": the row's own link carries the title and summary.
     expect(learnMore).toHaveLength(divisionServices.length);
@@ -609,12 +610,20 @@ describe('desktop guard: division.css', () => {
   // Component classes and hooks added for phones and tablets. Every rule that
   // names one must sit in a max-width query, so none of them can reach ≥1024px.
   const SMALL_SCREEN = /\.nwse-(actions|rowlist|labelrows|hairlines|timeline|roadmap|journey|cardlabel|familycard)\b|\[data-contact-|\.input-light/;
+  // The section grounds (grounds.test.tsx) reach every width by design: the
+  // currents behind each light band and the contact form's section. Only
+  // those selectors, and only the properties that paint the currents.
+  const SECTION_GROUND_SELECTOR = /^(\.nwse-band(\[data-tone='light'\])?|\.nwse-root \[data-contact-section\])(::before)?$/;
+  const SECTION_GROUND_PROPS = new Set(['background', 'content', 'inset', 'isolation', 'opacity', 'pointer-events', 'position', 'transform', 'z-index']);
+  const isSectionGround = (rule: Rule) =>
+    rule.selectors.every((selector) => SECTION_GROUND_SELECTOR.test(selector.trim())) &&
+    (rule.nodes ?? []).every((node) => node.type !== 'decl' || SECTION_GROUND_PROPS.has(node.prop));
 
   it('keeps every small-screen component rule inside a max-width query below 1024px', () => {
     const offenders: string[] = [];
     let found = 0;
     divisionCss.walkRules((rule: Rule) => {
-      if (!SMALL_SCREEN.test(rule.selector)) return;
+      if (!SMALL_SCREEN.test(rule.selector) || isSectionGround(rule)) return;
       found += 1;
       const media = mediaOf(rule);
       // Print rules never reach a screen.

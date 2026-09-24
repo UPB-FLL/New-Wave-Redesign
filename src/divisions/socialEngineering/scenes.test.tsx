@@ -220,9 +220,7 @@ describe('scene placement', () => {
       // text column). Every class that places the scene, the grid, or the
       // row must switch at 48/64/80em instead, and an arbitrary px width
       // (`min-[768px]:`, `max-[1023.98px]:`) is a px switch too. The only px
-      // variants left are the phone tiers (sm, below 375px, landscape phones)
-      // and the footnote's lg:block, which the hero shows from 1024px with or
-      // without a scene.
+      // variants left are the phone tiers (sm, below 375px, landscape phones).
       const { container } = renderAt(page());
       const scene = container.querySelector(`main > section [data-page-scene="${heroKey}"]`)!;
       const row = scene.parentElement!;
@@ -232,11 +230,11 @@ describe('scene placement', () => {
       expect(responsive.length).toBeGreaterThan(10);
       const pxPhoneTiers = /^(sm:|max-\[374\.98px\]:|max-lg:\[@media\(max-height:500px\)\]:)/;
       const emSwitch = /^\[@media(\(min-width:(48|64|80)em\)|_not_all_and_\(min-width:64em\))\]:/;
-      const offenders = responsive.filter((name) => !pxPhoneTiers.test(name) && !emSwitch.test(name) && name !== 'lg:block');
+      const offenders = responsive.filter((name) => !pxPhoneTiers.test(name) && !emSwitch.test(name));
       expect(offenders).toEqual([]);
       // In particular, no px md/lg/xl class, and no arbitrary px width, places the scene or the grid.
       expect(
-        responsive.filter((name) => /^(md|lg|xl|max-md|max-lg|max-xl|min-\[|max-\[)/.test(name) && !pxPhoneTiers.test(name) && name !== 'lg:block'),
+        responsive.filter((name) => /^(md|lg|xl|max-md|max-lg|max-xl|min-\[|max-\[)/.test(name) && !pxPhoneTiers.test(name)),
       ).toEqual([]);
     },
   );

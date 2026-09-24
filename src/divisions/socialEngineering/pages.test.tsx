@@ -383,7 +383,7 @@ describe('SocialEngineeringContactUsPage', () => {
     expect(canonical()).toBe(`${SITE_URL}${DIVISION_CONTACT_US_PATH}`);
     expect(screen.getByText(contactUsContent.summary)).toHaveTextContent(DIVISION_NAME);
 
-    // Visible at every width: in the hero, not the desktop-only footnote.
+    // Visible at every width: in the hero's actions, which nothing hides.
     const hero = screen.getByRole('heading', { level: 1 }).closest('section')!;
     expect(hero).toHaveTextContent(contactUsContent.newProjectPrompt);
     const discovery = within(hero).getByRole('link', { name: DIVISION_PRIMARY_CTA });
