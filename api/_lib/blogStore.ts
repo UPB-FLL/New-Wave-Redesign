@@ -76,6 +76,13 @@ export async function getPostById(id: string): Promise<BlogPost | null> {
   return (data as BlogPost | null) ?? null;
 }
 
+/** The post at /blog/:slug, looked up exactly as BlogPostPage does (fetchBlogPostBySlug), so the server and the page agree on what exists. */
+export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
+  const { data, error } = await getSupabasePublic().from('blog_posts').select('*').eq('slug', slug).maybeSingle();
+  if (error) throw error;
+  return (data as BlogPost | null) ?? null;
+}
+
 export async function createPost(post: BlogPostCreate): Promise<BlogPost> {
   const { data, error } = await getSupabaseAdmin().from('blog_posts').insert(post).select().single();
   if (error) throw error;

@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -383,4 +383,31 @@ describe('API modules load as Node ESM on Vercel', () => {
       expect(source).not.toMatch(/from\s+'[^']*src\/lib\/(supabase|blog|content|blogGeneration)(\.js)?'/);
     },
   );
+
+  it('extends the rule to every module an API route reaches in src/ and types/', () => {
+    // Node loads those files too, so an extensionless import two hops away
+    // fails the same way. Re-exports count as imports.
+    const runtimeImport = /^(?:import|export)\s+(?!type\s)[^;]*?from\s+'(\.{1,2}\/[^']+)'/gm;
+    const seen = new Set<string>();
+    const queue = [...apiFiles];
+    const problems: string[] = [];
+    while (queue.length) {
+      const file = queue.pop() as string;
+      if (seen.has(file)) continue;
+      seen.add(file);
+      for (const [, specifier] of readFileSync(file, 'utf8').matchAll(runtimeImport)) {
+        const from = path.relative(root, file);
+        if (!specifier.endsWith('.js')) {
+          problems.push(`${from}: '${specifier}' has no .js extension`);
+          continue;
+        }
+        const target = path.resolve(path.dirname(file), specifier.replace(/\.js$/, '.ts'));
+        if (existsSync(target)) queue.push(target);
+        else problems.push(`${from}: '${specifier}' has no .ts source`);
+      }
+    }
+    expect(problems).toEqual([]);
+    // The walk does leave api/: the blog page reaches the shared head renderer.
+    expect([...seen].map((file) => path.relative(root, file))).toEqual(expect.arrayContaining([path.join('src', 'lib', 'prerenderHead.ts')]));
+  });
 });

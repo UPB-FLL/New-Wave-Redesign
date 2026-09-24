@@ -1,5 +1,6 @@
 import { AlertTriangle, Bug, CheckCircle, Lock, Mail, ShieldOff, Wifi, Zap, type LucideIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useDetailSlugs } from '../../lib/useDetailSlugs';
 import { SectionHeading } from '../brand/SectionHeading';
 
 type Threat = {
@@ -30,6 +31,9 @@ const severityClasses: Record<Threat['severity'], string> = {
 };
 
 export default function ThreatProtection() {
+  // /threat/:slug pages come from the CMS; a card links only to one that exists.
+  const detailSlugs = useDetailSlugs('threats-detail', 'threats_list');
+
   return (
     <section className="relative z-10 py-16 sm:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -42,8 +46,9 @@ export default function ThreatProtection() {
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {threats.map((threat) => {
             const Icon = threat.icon;
-            return (
-              <Link key={threat.name} to={`/threat/${threat.slug}`} className="group flex h-full flex-col rounded-lg border p-5 no-underline transition-colors hover:border-[var(--nw-tide-blue)] hover:bg-[var(--nw-pure-white)]" style={{ background: 'var(--nw-pure-white)', borderColor: 'var(--nw-mist-gray)' }}>
+            const cardStyle = { background: 'var(--nw-pure-white)', borderColor: 'var(--nw-mist-gray)' };
+            const body = (
+              <>
                 <div className="flex items-start justify-between gap-3">
                   <span className="nw-icon-signal h-9 w-9"><Icon size={17} aria-hidden="true" /></span>
                   <span className={`rounded border px-2 py-1 text-[10px] font-bold ${severityClasses[threat.severity]}`}>{threat.severity}</span>
@@ -54,7 +59,16 @@ export default function ThreatProtection() {
                   <p className="nw-display text-2xl text-[var(--nw-tide-blue)]">{threat.stat}</p>
                   <p className="nw-meta mt-1 text-xs text-[var(--nw-slate)]">{threat.statLabel}</p>
                 </div>
+              </>
+            );
+            return detailSlugs.has(threat.slug) ? (
+              <Link key={threat.name} to={`/threat/${threat.slug}`} className="group flex h-full flex-col rounded-lg border p-5 no-underline transition-colors hover:border-[var(--nw-tide-blue)] hover:bg-[var(--nw-pure-white)]" style={cardStyle}>
+                {body}
               </Link>
+            ) : (
+              <div key={threat.name} className="flex h-full flex-col rounded-lg border p-5" style={cardStyle}>
+                {body}
+              </div>
             );
           })}
         </div>

@@ -1,5 +1,6 @@
 import { ArrowUpRight, Eye, Gauge, Key, Lock, Shield, Users, type LucideIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useDetailSlugs } from '../../lib/useDetailSlugs';
 import { SectionHeading } from '../brand/SectionHeading';
 
 const services: { icon: LucideIcon; title: string; slug: string; description: string; features: string[] }[] = [
@@ -12,6 +13,9 @@ const services: { icon: LucideIcon; title: string; slug: string; description: st
 ];
 
 export default function CybersecurityServices() {
+  // /service/:slug pages come from the CMS; a card links only to one that exists.
+  const detailSlugs = useDetailSlugs('services-detail', 'services_list');
+
   return (
     <section id="services" className="relative z-10 bg-[var(--nw-pure-white)] py-16 sm:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -23,11 +27,13 @@ export default function CybersecurityServices() {
         <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {services.map((service) => {
             const Icon = service.icon;
-            return (
-              <Link key={service.title} to={`/service/${service.slug}`} className="group flex h-full flex-col rounded-lg border p-5 no-underline transition-colors hover:border-[var(--nw-tide-blue)] hover:bg-[var(--nw-cloud-white)]" style={{ background: 'var(--nw-pure-white)', borderColor: 'var(--nw-mist-gray)' }}>
+            const linked = detailSlugs.has(service.slug);
+            const cardStyle = { background: 'var(--nw-pure-white)', borderColor: 'var(--nw-mist-gray)' };
+            const body = (
+              <>
                 <div className="flex items-start justify-between">
                   <span className="nw-icon-signal h-10 w-10"><Icon size={19} aria-hidden="true" /></span>
-                  <ArrowUpRight size={18} className="text-[var(--nw-slate)] transition-colors group-hover:text-[var(--nw-tide-blue)]" aria-hidden="true" />
+                  {linked ? <ArrowUpRight size={18} className="text-[var(--nw-slate)] transition-colors group-hover:text-[var(--nw-tide-blue)]" aria-hidden="true" /> : null}
                 </div>
                 <h3 className="mt-5 text-lg font-bold text-[var(--nw-current-navy)]">{service.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-[var(--nw-slate)]">{service.description}</p>
@@ -36,7 +42,16 @@ export default function CybersecurityServices() {
                     <li key={feature} className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-[var(--nw-signal-cyan)]" aria-hidden="true" />{feature}</li>
                   ))}
                 </ul>
+              </>
+            );
+            return linked ? (
+              <Link key={service.title} to={`/service/${service.slug}`} className="group flex h-full flex-col rounded-lg border p-5 no-underline transition-colors hover:border-[var(--nw-tide-blue)] hover:bg-[var(--nw-cloud-white)]" style={cardStyle}>
+                {body}
               </Link>
+            ) : (
+              <div key={service.title} className="flex h-full flex-col rounded-lg border p-5" style={cardStyle}>
+                {body}
+              </div>
             );
           })}
         </div>

@@ -1,7 +1,7 @@
 // schema.org builders shared by New Wave IT pages. Pure data, no React or DOM:
 // vite.config.ts imports it (through prerenderHead.ts) at build time.
 
-import { SITE_NAME, SITE_URL, type Crumb } from './pageMeta';
+import { SITE_NAME, SITE_URL, type Crumb } from './pageMeta.js';
 
 export type { Crumb };
 

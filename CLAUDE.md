@@ -2,6 +2,39 @@
 
 ## Recent Changes
 
+### Blog post heads from the server; no links to empty detail pages (2026-09-24)
+
+- **Blog posts**: the raw HTML of every `/blog/:slug` declared the homepage
+  canonical, title, and OG tags until JavaScript changed them, which Google
+  advises against. `vercel.json` now rewrites `/blog/:slug` to
+  `api/blog-page.ts`, which serves `dist/index.html` (shipped with
+  `includeFiles`; Vercel compiles functions after `vite build`) with the
+  post's head from `blogPostPageMeta` via `applyPageHead`, plus its JSON-LD in
+  a `#page-jsonld` block (`PAGE_JSONLD_ELEMENT_ID`) that `usePageMeta`
+  replaces rather than duplicates. A missing post is a real 404 with
+  `noindex`; a database error is a 503 without `noindex`. It is a
+  fixed-name function because the SPA catch-all shadows dynamic `[param]`
+  routes.
+- **ESM**: the `src/` modules it reaches (`blogSeo`, `pageMeta`,
+  `structuredData`, `prerenderHead`, `cmsDetails`) use `.js` import
+  specifiers. `blog-routes.test.ts` now follows imports from `api/` into
+  `src/` and `types/`.
+- **`/cybersecurity`**: its service and threat cards linked to 14
+  `/service/*` and `/threat/*` pages, and production's CMS has no entries
+  for any of them. The pages rendered "not found" while staying indexable,
+  because an empty section looked like one still loading. Cards now link
+  only to slugs the CMS lists (`useDetailSlugs`), and the detail pages go
+  `noindex` once the section has been read (`useContentWithStatus`),
+  including when it has no entries. `slugsFromContentList` moved to
+  `src/lib/cmsDetails.ts`; `api/_lib/sitemap.ts` re-exports it.
+- **Known issue, not fixed**: `api/blog/[id].ts` is unreachable in
+  production for the same shadowing reason. GET returns the SPA shell and
+  PUT/DELETE return 405, so the admin blog screen can't edit or delete.
+- **Tests**: `src/test/api/blog-page.test.ts`,
+  `src/components/cybersecurity/detailLinks.test.tsx`, plus additions to
+  `usePageMeta.test.tsx`, `NotFoundPage.test.tsx`, and
+  `division-integration.test.ts`.
+
 ### Blog posts held to an SEO and accuracy bar (2026-09-24)
 
 The first automated post had three invented statistics (including a made-up
@@ -139,7 +172,8 @@ of them declared the homepage canonical until JavaScript ran.
 - **Keywords**: every page writes `meta[name="keywords"]`; pages without their
   own get `DEFAULT_KEYWORDS` (the shell's value, pinned by a test).
 - **Not prerendered**: `/` (the untouched shell) and the data-driven routes
-  `/service/:slug`, `/threat/:slug`, and `/blog/:slug`.
+  `/service/:slug`, `/threat/:slug`, and `/blog/:slug` (whose head
+  `api/blog-page.ts` now writes at request time).
 - **Adding a static page**: add it to `IT_PAGE_META` (with a `crumb`
   label), use it in the page, add a `vercel.json` rewrite and a sitemap
   `<url>`. The tests fail until all of them agree.

@@ -1,17 +1,28 @@
 import { useEffect, useState } from 'react';
-import { fetchSectionContent, readContentCache, writeContentCache, setupContentListener, setupContentPolling, ContentMap } from './content';
+import { fetchSectionContentResult, readContentCache, writeContentCache, setupContentListener, setupContentPolling, ContentMap } from './content';
 
 const CACHE_PREFIX = 'nw_content_v2:';
 
 export function useContent(section: string): ContentMap {
+  return useContentWithStatus(section).content;
+}
+
+/**
+ * useContent plus `loaded`: true once the section has been read from the CMS,
+ * even when it has no rows. Pages that go noindex for a missing entry need
+ * it, because an empty map is also what they see before the read finishes.
+ */
+export function useContentWithStatus(section: string): { content: ContentMap; loaded: boolean } {
   const [content, setContent] = useState<ContentMap>(() => readContentCache(section) ?? {});
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    fetchSectionContent(section).then((data) => {
+    fetchSectionContentResult(section).then(({ ok, content: data }) => {
       if (cancelled) return;
       setContent(data);
       writeContentCache(section, data);
+      if (ok) setLoaded(true);
     });
 
     const onStorage = (e: StorageEvent) => {
@@ -44,5 +55,5 @@ export function useContent(section: string): ContentMap {
     };
   }, [section]);
 
-  return content;
+  return { content, loaded };
 }

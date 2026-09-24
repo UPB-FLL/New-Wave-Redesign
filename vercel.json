@@ -2,6 +2,9 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "functions": {
+    "api/blog-page.ts": {
+      "includeFiles": "dist/index.html"
+    },
     "api/seo/research-competitors.ts": {
       "maxDuration": 60
     },
@@ -149,6 +152,10 @@
     {
       "source": "/blog",
       "destination": "/blog/index.html"
+    },
+    {
+      "source": "/blog/:slug",
+      "destination": "/api/blog-page?slug=:slug"
     },
     {
       "source": "/service-category/cybersecurity",

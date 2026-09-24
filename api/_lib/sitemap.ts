@@ -5,6 +5,8 @@
  * page; robots.txt points crawlers at both.
  */
 
+export { slugsFromContentList } from '../../src/lib/cmsDetails.js';
+
 export const SITE_URL = 'https://www.newwaveitfl.com';
 
 export interface SitemapEntry {
@@ -51,18 +53,4 @@ export function buildSitemapXml(entries: readonly SitemapEntry[]): string {
     (urls.length ? `${urls.join('\n')}\n` : '') +
     '</urlset>\n'
   );
-}
-
-/** Slugs from a site_content JSON list (services_list / threats_list); malformed JSON yields none. */
-export function slugsFromContentList(raw: unknown): string[] {
-  if (typeof raw !== 'string') return [];
-  try {
-    const items: unknown = JSON.parse(raw);
-    if (!Array.isArray(items)) return [];
-    return items.map((item) => (item && typeof item === 'object' ? (item as { slug?: unknown }).slug : undefined)).filter(
-      (slug): slug is string => typeof slug === 'string' && slug.trim() !== '',
-    );
-  } catch {
-    return [];
-  }
 }

@@ -31,13 +31,21 @@ export function writeContentCache(section: string, value: ContentMap): void {
 }
 
 export async function fetchSectionContent(section: string): Promise<ContentMap> {
+  return (await fetchSectionContentResult(section)).content;
+}
+
+/**
+ * The section's content, and whether the read succeeded: an empty map alone
+ * can't tell a section with no rows from a failed request.
+ */
+export async function fetchSectionContentResult(section: string): Promise<{ ok: boolean; content: ContentMap }> {
   const { data, error } = await supabase
     .from('site_content')
     .select('key, value')
     .eq('section', section);
 
-  if (error || !data) return {};
-  return Object.fromEntries(data.map((row) => [row.key, row.value]));
+  if (error || !data) return { ok: false, content: {} };
+  return { ok: true, content: Object.fromEntries(data.map((row) => [row.key, row.value])) };
 }
 
 let channel: BroadcastChannel | null = null;
