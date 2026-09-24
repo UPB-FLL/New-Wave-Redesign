@@ -437,7 +437,7 @@ export default function ServiceGuidePage() {
   usePageMeta({
     ...(guide && slug
       ? serviceGuideMeta(slug, guide)
-      : { title: 'Service Guides', canonical: `https://www.newwaveitfl.com/l/${slug ?? ''}` }),
+      : { title: 'Service Guides', canonical: `https://www.newwaveitfl.com/l/${slug ?? ''}`, noindex: true }),
     jsonLd: guide
       ? [
           {

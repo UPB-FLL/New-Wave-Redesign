@@ -104,6 +104,10 @@
       "destination": "/api/$1"
     },
     {
+      "source": "/sitemap-content.xml",
+      "destination": "/api/sitemap-content"
+    },
+    {
       "source": "/services",
       "destination": "/services/index.html"
     },

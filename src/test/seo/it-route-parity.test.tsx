@@ -64,5 +64,7 @@ describe('prerendered heads match what each page sets at runtime', () => {
     const { jsonLd: _runtimeOnly, ...runtime } = captured[captured.length - 1];
     void _runtimeOnly;
     expect(resolvePageMeta(runtime, routePath)).toEqual(resolvePageMeta(route.meta, routePath));
+    // The breadcrumb trail written at runtime is the one the prerender wrote.
+    expect(runtime.breadcrumbs, `${file} breadcrumbs`).toEqual(route.meta.breadcrumbs);
   });
 });

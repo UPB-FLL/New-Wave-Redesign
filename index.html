@@ -30,19 +30,19 @@
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="New Wave IT" />
-    <meta property="og:title" content="New Wave IT — Managed IT, Cybersecurity & Cloud" />
-    <meta property="og:description" content="Fort Lauderdale's trusted managed IT services partner. 24/7 support, cybersecurity, cloud migration, and network infrastructure." />
+    <meta property="og:title" content="New Wave IT — 24/7 Managed IT, Cybersecurity &amp; Cloud in Fort Lauderdale" />
+    <meta property="og:description" content="Fort Lauderdale's trusted managed IT services partner. 24/7 support, cybersecurity, cloud migration, and network infrastructure for South Florida businesses." />
     <meta property="og:url" content="https://www.newwaveitfl.com/" />
     <meta property="og:image" content="https://www.newwaveitfl.com/brand/og/open-graph-1200x630.png" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="New Wave IT — Managed IT, Cybersecurity & Cloud" />
-    <meta name="twitter:description" content="Fort Lauderdale's trusted managed IT services partner. 24/7 support, cybersecurity, cloud migration." />
+    <meta name="twitter:title" content="New Wave IT — 24/7 Managed IT, Cybersecurity &amp; Cloud in Fort Lauderdale" />
+    <meta name="twitter:description" content="Fort Lauderdale's trusted managed IT services partner. 24/7 support, cybersecurity, cloud migration, and network infrastructure for South Florida businesses." />
     <meta name="twitter:image" content="https://www.newwaveitfl.com/brand/og/open-graph-1200x630.png" />
 
     <link rel="canonical" href="https://www.newwaveitfl.com/" />
 
-    <!-- LocalBusiness + Organization structured data -->
+    <!-- LocalBusiness + Organization + WebSite structured data -->
     <script type="application/ld+json">
     [
       {
@@ -76,7 +76,7 @@
           { "@type": "City", "name": "Boca Raton" },
           { "@type": "City", "name": "Pompano Beach" },
           { "@type": "City", "name": "Hollywood" },
-          { "@type": "State", "name": "South Florida" }
+          { "@type": "AdministrativeArea", "name": "South Florida" }
         ],
         "openingHoursSpecification": [
           {
@@ -103,7 +103,8 @@
         "sameAs": [
           "https://www.linkedin.com/company/new-wave-it",
           "https://www.facebook.com/newwaveitfl"
-        ]
+        ],
+        "parentOrganization": { "@id": "https://www.newwaveitfl.com/#organization" }
       },
       {
         "@context": "https://schema.org",
@@ -114,8 +115,18 @@
         "logo": "https://www.newwaveitfl.com/brand/logos/new-wave-it-horizontal-on-light.svg",
         "foundingDate": "2009",
         "description": "New Wave IT is a Fort Lauderdale-based managed service provider (MSP) specializing in cybersecurity, cloud migration, 24/7 IT support, and network infrastructure for South Florida businesses.",
-        "numberOfEmployees": { "@type": "QuantitativeValue", "value": "10-50" },
+        "numberOfEmployees": { "@type": "QuantitativeValue", "minValue": 10, "maxValue": 50 },
         "knowsAbout": ["Managed IT Services", "Cybersecurity", "Cloud Computing", "Network Infrastructure", "HIPAA Compliance", "Microsoft 365", "IT Support"]
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "@id": "https://www.newwaveitfl.com/#website",
+        "url": "https://www.newwaveitfl.com",
+        "name": "New Wave IT",
+        "description": "Fort Lauderdale's trusted managed IT services partner.",
+        "inLanguage": "en-US",
+        "publisher": { "@id": "https://www.newwaveitfl.com/#organization" }
       }
     ]
     </script>

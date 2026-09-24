@@ -64,6 +64,7 @@ describe('TermsAndConditionsPage', () => {
       title: 'Terms and Conditions — New Wave IT',
       description: 'Terms governing the New Wave IT website and IT services provided by New Wave IT LLC.',
       canonical: 'https://www.newwaveitfl.com/terms-and-conditions',
+      breadcrumbs: [{ name: 'Terms and Conditions', path: '/terms-and-conditions' }],
     });
   });
 });
@@ -95,6 +96,7 @@ describe('PrivacyPolicyPage', () => {
       title: 'Privacy Policy — New Wave IT',
       description: 'How New Wave IT LLC collects, uses, discloses, and protects personal information.',
       canonical: 'https://www.newwaveitfl.com/privacy-policy',
+      breadcrumbs: [{ name: 'Privacy Policy', path: '/privacy-policy' }],
     });
   });
 });
@@ -118,6 +120,7 @@ describe('CookiePolicyPage', () => {
       title: 'Cookie Policy — New Wave IT',
       description: 'How New Wave IT uses cookies, storage, analytics, and embedded technologies on its website.',
       canonical: 'https://www.newwaveitfl.com/cookie-policy',
+      breadcrumbs: [{ name: 'Cookie Policy', path: '/cookie-policy' }],
     });
   });
 });

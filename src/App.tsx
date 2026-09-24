@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -35,18 +35,6 @@ import Services from './components/Services';
 import WhyUs from './components/WhyUs';
 import Testimonials from './components/Testimonials';
 import Footer from './components/Footer';
-import AdminGuard from './admin/AdminGuard';
-import AdminLayout from './admin/AdminLayout';
-import AdminDashboard from './admin/AdminDashboard';
-import UnifiedAdminDashboard from './admin/UnifiedAdminDashboard';
-import HeroEditor from './admin/editors/HeroEditor';
-import TrustBarEditor from './admin/editors/TrustBarEditor';
-import ServicesEditor from './admin/editors/ServicesEditor';
-import WhyUsEditor from './admin/editors/WhyUsEditor';
-import AboutEditor from './admin/editors/AboutEditor';
-import ContactEditor from './admin/editors/ContactEditor';
-import FooterEditor from './admin/editors/FooterEditor';
-import PricingUnitsEditor from './admin/editors/PricingUnitsEditor';
 import ContactPage from './pages/ContactPage';
 import TermsAndConditionsPage from './pages/TermsAndConditionsPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
@@ -56,12 +44,8 @@ import WhyUsPage from './pages/WhyUsPage';
 import AboutPage from './pages/AboutPage';
 import ServicesPage from './pages/ServicesPage';
 import PricingPage from './pages/PricingPage';
-import PricingEditor from './admin/editors/PricingEditor';
 import SupportPage from './pages/SupportPage';
 import StatusPage from './pages/StatusPage';
-import StatusEditor from './admin/editors/StatusEditor';
-import SeoPortal from './admin/seo/SeoPortal';
-import SeoPageEditor from './admin/seo/SeoPageEditor';
 import ServiceDetailPage from './pages/ServiceDetailPage';
 import ThreatDetailPage from './pages/ThreatDetailPage';
 import CybersecurityServicePage from './pages/CybersecurityServicePage';
@@ -78,10 +62,9 @@ import ServiceGuidePage from './pages/ServiceGuidePage';
 import CodeNestPage from './pages/CodeNestPage';
 import BlogPage from './pages/BlogPage';
 import BlogPostPage from './pages/BlogPostPage';
-import ServicesDetailEditor from './admin/editors/ServicesDetailEditor';
-import ThreatsDetailEditor from './admin/editors/ThreatsDetailEditor';
-import ServicesCategoryEditor from './admin/editors/ServicesCategoryEditor';
+import NotFoundPage from './pages/NotFoundPage';
 import { usePageMeta } from './lib/usePageMeta';
+import { HOME_PAGE_META } from './lib/routeMeta';
 import ElfsightChatbot from './components/ElfsightChatbot';
 import {
   DIVISION_BASE_PATH,
@@ -101,36 +84,46 @@ import {
   SocialEngineeringServiceRoute,
 } from './divisions/socialEngineering/routes';
 
+// The admin dashboard loads on demand: public visitors (and crawlers measuring
+// page speed) never download the editors.
+const AdminGuard = lazy(() => import('./admin/AdminGuard'));
+const AdminLayout = lazy(() => import('./admin/AdminLayout'));
+const AdminDashboard = lazy(() => import('./admin/AdminDashboard'));
+const UnifiedAdminDashboard = lazy(() => import('./admin/UnifiedAdminDashboard'));
+const HeroEditor = lazy(() => import('./admin/editors/HeroEditor'));
+const TrustBarEditor = lazy(() => import('./admin/editors/TrustBarEditor'));
+const ServicesEditor = lazy(() => import('./admin/editors/ServicesEditor'));
+const WhyUsEditor = lazy(() => import('./admin/editors/WhyUsEditor'));
+const AboutEditor = lazy(() => import('./admin/editors/AboutEditor'));
+const ContactEditor = lazy(() => import('./admin/editors/ContactEditor'));
+const FooterEditor = lazy(() => import('./admin/editors/FooterEditor'));
+const PricingUnitsEditor = lazy(() => import('./admin/editors/PricingUnitsEditor'));
+const PricingEditor = lazy(() => import('./admin/editors/PricingEditor'));
+const StatusEditor = lazy(() => import('./admin/editors/StatusEditor'));
+const SeoPortal = lazy(() => import('./admin/seo/SeoPortal'));
+const SeoPageEditor = lazy(() => import('./admin/seo/SeoPageEditor'));
+const ServicesDetailEditor = lazy(() => import('./admin/editors/ServicesDetailEditor'));
+const ThreatsDetailEditor = lazy(() => import('./admin/editors/ThreatsDetailEditor'));
+const ServicesCategoryEditor = lazy(() => import('./admin/editors/ServicesCategoryEditor'));
+
+function AdminFallback() {
+  return <div className="min-h-screen" aria-busy="true" />;
+}
+
+// The WebSite, Organization, and LocalBusiness nodes live in index.html; this adds only the page node.
+const HOME_JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  '@id': 'https://www.newwaveitfl.com/#webpage',
+  'url': 'https://www.newwaveitfl.com/',
+  'name': HOME_PAGE_META.title,
+  'isPartOf': { '@id': 'https://www.newwaveitfl.com/#website' },
+  'about': { '@id': 'https://www.newwaveitfl.com/#business' },
+  'description': HOME_PAGE_META.description,
+};
+
 function HomePage() {
-  usePageMeta({
-    title: 'New Wave IT — 24/7 Managed IT, Cybersecurity & Cloud in Fort Lauderdale',
-    description:
-      "Fort Lauderdale's #1 managed IT services company. 24/7 support, cybersecurity, Microsoft 365, cloud migration, and network infrastructure for South Florida businesses. No long-term contracts.",
-    includeSiteName: false,
-    keywords: 'managed IT services Fort Lauderdale, MSP Fort Lauderdale, cybersecurity South Florida, IT support Fort Lauderdale, cloud services South Florida, IT company Fort Lauderdale, New Wave IT',
-    canonical: 'https://www.newwaveitfl.com/',
-    jsonLd: [
-      {
-        '@context': 'https://schema.org',
-        '@type': 'WebSite',
-        '@id': 'https://www.newwaveitfl.com/#website',
-        'url': 'https://www.newwaveitfl.com',
-        'name': 'New Wave IT',
-        'description': "Fort Lauderdale's trusted managed IT services partner.",
-        'publisher': { '@id': 'https://www.newwaveitfl.com/#organization' },
-      },
-      {
-        '@context': 'https://schema.org',
-        '@type': 'WebPage',
-        '@id': 'https://www.newwaveitfl.com/#webpage',
-        'url': 'https://www.newwaveitfl.com',
-        'name': 'New Wave IT — 24/7 Managed IT, Cybersecurity & Cloud in Fort Lauderdale',
-        'isPartOf': { '@id': 'https://www.newwaveitfl.com/#website' },
-        'about': { '@id': 'https://www.newwaveitfl.com/#business' },
-        'description': "Fort Lauderdale's trusted managed IT services company.",
-      },
-    ],
-  });
+  usePageMeta({ ...HOME_PAGE_META, jsonLd: HOME_JSON_LD });
   return (
     <div className="min-h-screen relative bg-[var(--nw-cloud-white)]">
       <Navbar />
@@ -196,9 +189,11 @@ export default function App() {
         <Route
           path="/admin"
           element={
-            <AdminGuard>
-              <AdminLayout />
-            </AdminGuard>
+            <Suspense fallback={<AdminFallback />}>
+              <AdminGuard>
+                <AdminLayout />
+              </AdminGuard>
+            </Suspense>
           }
         >
           <Route index element={<AdminDashboard />} />
@@ -220,6 +215,8 @@ export default function App() {
           <Route path="seo" element={<SeoPortal />} />
           <Route path="seo/:id" element={<SeoPageEditor />} />
         </Route>
+        {/* Anything unmatched, including unknown /social-engineering/* paths: a noindex page, not a blank one. */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
       </BrowserRouter>
       <ElfsightChatbot />

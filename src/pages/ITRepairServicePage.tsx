@@ -39,8 +39,19 @@ const service: ServiceCategoryPageData = {
   ctaDescription: 'Request a hardware review and get a practical repair or upgrade recommendation from New Wave IT.',
 };
 
+const SERVICE_JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  provider: { '@id': 'https://www.newwaveitfl.com/#business' },
+  name: 'IT Hardware Repair & Upgrades',
+  description: 'Laptop, desktop, and server repair with data protection, plus hardware upgrades that extend equipment life and improve performance for South Florida businesses.',
+  areaServed: { '@type': 'City', name: 'Fort Lauderdale' },
+  serviceType: 'IT Repair & Upgrades',
+  url: 'https://www.newwaveitfl.com/service-category/it-repair-upgrades',
+};
+
 export default function ITRepairServicePage() {
-  usePageMeta(IT_PAGE_META['/service-category/it-repair-upgrades']);
+  usePageMeta({ ...IT_PAGE_META['/service-category/it-repair-upgrades'], jsonLd: SERVICE_JSON_LD });
 
   return <ServiceCategoryPage data={service} />;
 }

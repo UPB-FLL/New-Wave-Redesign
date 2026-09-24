@@ -41,8 +41,19 @@ const service: ServiceCategoryPageData = {
   ctaDescription: 'Talk with New Wave IT about a private, dependable technology program built for your office and its long-term needs.',
 };
 
+const SERVICE_JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  provider: { '@id': 'https://www.newwaveitfl.com/#business' },
+  name: 'Family Office IT Services',
+  description: 'Privacy-first, compliant IT infrastructure and wealth management technology for family offices and multi-generational family enterprises in South Florida.',
+  areaServed: { '@type': 'City', name: 'Fort Lauderdale' },
+  serviceType: 'Family Office IT',
+  url: 'https://www.newwaveitfl.com/service-category/family-offices',
+};
+
 export default function FamilyOfficesServicePage() {
-  usePageMeta(IT_PAGE_META['/service-category/family-offices']);
+  usePageMeta({ ...IT_PAGE_META['/service-category/family-offices'], jsonLd: SERVICE_JSON_LD });
 
   return <ServiceCategoryPage data={service} />;
 }
