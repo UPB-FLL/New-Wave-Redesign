@@ -13,6 +13,30 @@ function authorNode(author: string) {
     : { '@type': 'Person', name: author };
 }
 
+const plainText = (markdown: string) => markdown.replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/[*_`>#]/g, '').replace(/\s+/g, ' ').trim();
+
+/** Words as a reader sees them (link targets and Markdown markers excluded). */
+export function wordCount(markdown: string): number {
+  return plainText(markdown).split(' ').filter((word) => /[A-Za-z0-9]/.test(word)).length;
+}
+
+/**
+ * The question/answer pairs under a post's "Frequently asked questions" H2
+ * (the section api/blog/generate-post.ts writes: "### Question" then the answer).
+ */
+export function faqsFromMarkdown(markdown: string): { question: string; answer: string }[] {
+  const section = markdown.match(/^##\s+Frequently asked questions\s*$([\s\S]*?)(?=^##\s|(?![\s\S]))/im)?.[1];
+  if (!section) return [];
+  return section
+    .split(/^###\s+/m)
+    .slice(1)
+    .map((block) => {
+      const [question, ...answer] = block.split('\n');
+      return { question: plainText(question), answer: plainText(answer.join('\n')) };
+    })
+    .filter((faq) => faq.question && faq.answer);
+}
+
 export function blogPostJsonLd(post: BlogPost): object[] {
   const url = blogPostUrl(post.slug);
   const description = post.meta_description || post.excerpt || undefined;
@@ -34,11 +58,29 @@ export function blogPostJsonLd(post: BlogPost): object[] {
       inLanguage: 'en-US',
       ...(post.category ? { articleSection: post.category } : {}),
       ...(post.tags?.length ? { keywords: post.tags.join(', ') } : {}),
+      wordCount: wordCount(post.content ?? ''),
     },
     breadcrumbListNode([
       { name: 'Blog', path: '/blog' },
       { name: post.title, path: `/blog/${post.slug}` },
     ]),
+    ...faqNode(url, faqsFromMarkdown(post.content ?? '')),
+  ];
+}
+
+function faqNode(url: string, faqs: { question: string; answer: string }[]): object[] {
+  if (!faqs.length) return [];
+  return [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      '@id': `${url}#faq`,
+      mainEntity: faqs.map((faq) => ({
+        '@type': 'Question',
+        name: faq.question,
+        acceptedAnswer: { '@type': 'Answer', text: faq.answer },
+      })),
+    },
   ];
 }
 

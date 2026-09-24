@@ -55,6 +55,7 @@ vi.mock('../../../api/_lib/supabaseAdmin', () => ({
 import listHandler from '../../../api/blog/list';
 import idHandler from '../../../api/blog/[id]';
 import generateHandler from '../../../api/blog/generate-post';
+import { goodDraft } from './blogDraftFixture';
 
 function makeRes() {
   return {
@@ -217,17 +218,6 @@ describe('/api/blog/:id', () => {
 });
 
 describe('/api/blog/generate-post', () => {
-  const generated = {
-    title: 'Managed IT in Fort Lauderdale: 2026 Guide',
-    slug: 'managed-it-fort-lauderdale-2026',
-    excerpt: 'What to expect.',
-    content: '## Intro\n\nBody.',
-    featured_image_query: 'server room',
-    category: 'Managed IT Services',
-    tags: ['msp'],
-    meta_title: 'Managed IT in Fort Lauderdale',
-    meta_description: 'A guide.',
-  };
   const openAiReply = (content: object) =>
     new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify(content) } }] }), { status: 200 });
 
@@ -275,32 +265,92 @@ describe('/api/blog/generate-post', () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
-  it('writes a post with OpenAI and saves it through the service role', async () => {
+  const draftCall = () => JSON.parse(String((fetchCalls()[0]?.[1] as RequestInit | undefined)?.body ?? '{}'));
+  let fetchCalls: () => unknown[][] = () => [];
+  const run = async (replies: object[], body: unknown = { category: 'Backup & Disaster Recovery' }) => {
     vi.stubEnv('OPENAI_API_KEY', 'sk-test');
     vi.stubEnv('PEXELS_API_KEY', '');
-    const fetchSpy = vi
-      .fn()
-      .mockResolvedValueOnce(openAiReply({ topics: [{ name: 'Co-managed IT', relevance: 'Now', keyPoints: ['a', 'b'] }] }))
-      .mockResolvedValueOnce(openAiReply(generated));
+    const fetchSpy = vi.fn();
+    replies.forEach((reply) => fetchSpy.mockResolvedValueOnce(openAiReply(reply)));
     vi.stubGlobal('fetch', fetchSpy);
-    db.admin.state.result = { data: { id: POST_ID, ...generated, published_at: '2026-09-27T02:00:00Z' }, error: null };
-
+    fetchCalls = () => fetchSpy.mock.calls;
+    db.admin.state.result = { data: { id: POST_ID, title: 't', slug: 's', category: 'c', published_at: '2026-09-27T02:00:00Z' }, error: null };
     const res = makeRes();
     // pg_net sends a JSON string body; the route must parse it.
-    await generateHandler({ method: 'POST', headers: { 'x-admin-key': KEY }, body: '{}' }, res);
+    await generateHandler({ method: 'POST', headers: { 'x-admin-key': KEY }, body: typeof body === 'string' ? body : JSON.stringify(body) }, res);
+    return { res, fetchSpy, insert: call(db.admin, 'insert')?.[0] as Record<string, string> | undefined };
+  };
+  const statistic = 'According to a 2026 study, approximately 70% of South Florida businesses lost data last year.';
+
+  it('publishes a draft that meets the bar in one call, with FAQ and internal links', async () => {
+    db.public.state.result = { data: [{ title: 'Welcome to the New Wave IT Blog' }], error: null };
+    const { res, fetchSpy, insert } = await run([goodDraft()]);
 
     expect(res.statusCode).toBe(200);
-    expect(res.body).toMatchObject({ id: POST_ID, slug: generated.slug });
-    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
     expect(String(fetchSpy.mock.calls[0][0])).toBe('https://api.openai.com/v1/chat/completions');
-    expect(call(db.admin, 'from')).toEqual(['blog_posts']);
-    expect(call(db.admin, 'insert')?.[0]).toMatchObject({
-      title: generated.title,
-      slug: generated.slug,
-      category: generated.category,
+    const prompt = draftCall().messages[1].content as string;
+    expect(prompt).toContain('Category: Backup & Disaster Recovery');
+    expect(prompt).toContain('- Welcome to the New Wave IT Blog');
+    expect(prompt).toContain('do not include statistics');
+    expect(res.body).toMatchObject({ id: POST_ID, repaired: false, notes: [] });
+    expect((res.body as { words: number }).words).toBeGreaterThanOrEqual(1400);
+
+    expect(insert).toMatchObject({
+      title: 'Managed Backup for Fort Lauderdale Small Businesses',
+      slug: 'managed-backup-fort-lauderdale',
+      category: 'Backup & Disaster Recovery',
+      meta_title: 'Managed Backup for Small Businesses',
       featured_image: expect.stringContaining('picsum.photos'),
     });
-    expect(db.public.state.calls).toEqual([]);
+    expect(insert?.content).toMatch(/^## Frequently asked questions$/m);
+    expect(insert?.content).not.toMatch(/^#\s/m);
+    expect(insert?.content).toContain('(/service-category/managed-it-services)');
+    expect(insert?.content).toContain('(/l/managed-it-guide)');
+    expect(insert?.content).toContain('(/contact)');
+  });
+
+  it('repairs only the failing section when the draft invents a statistic', async () => {
+    db.public.state.result = { data: [], error: null };
+    const draft = goodDraft();
+    draft.sections[2].body = `${statistic} ${draft.sections[2].body}`;
+    const { res, fetchSpy, insert } = await run([draft, { sections: [{ index: 2, body: goodDraft().sections[2].body }] }]);
+
+    expect(res.statusCode).toBe(200);
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    const repairPrompt = JSON.parse(String((fetchSpy.mock.calls[1][1] as RequestInit).body)).messages[1].content as string;
+    expect(repairPrompt).toContain('section:2');
+    expect(res.body).toMatchObject({ repaired: true });
+    expect(insert?.content).not.toContain('70%');
+  });
+
+  it('publishes nothing when the repair still leaves an invented figure or too few words', async () => {
+    db.public.state.result = { data: [], error: null };
+    const draft = goodDraft();
+    draft.sections[0].body = `${statistic} ${draft.sections[0].body}`;
+    const stats = await run([draft, { sections: [{ index: 0, body: statistic }] }]);
+    expect(stats.res.statusCode).toBe(422);
+    expect(stats.insert).toBeUndefined();
+    expect(JSON.stringify(stats.res.body)).toContain('statistics');
+
+    db.admin = fakeClient();
+    const short = goodDraft({ sections: goodDraft().sections.map((section) => ({ ...section, body: 'Too short.' })) });
+    const shortRun = await run([short, {}]);
+    expect(shortRun.res.statusCode).toBe(422);
+    expect(shortRun.insert).toBeUndefined();
+  });
+
+  it('never reuses a slug (blog_posts.slug is unique)', async () => {
+    db.public.state.result = { data: [{ slug: 'managed-backup-fort-lauderdale', title: 'Older post' }], error: null };
+    const { res, insert } = await run([goodDraft()]);
+    expect(res.statusCode).toBe(200);
+    expect(insert?.slug).toBe('managed-backup-fort-lauderdale-2');
+  });
+
+  it('ignores an unknown category and uses the week\'s', async () => {
+    db.public.state.result = { data: [], error: null };
+    const { insert } = await run([goodDraft()], { category: 'Crypto tips' });
+    expect(insert?.category).not.toBe('Crypto tips');
   });
 
   it('reports its configuration to an authorised GET', async () => {

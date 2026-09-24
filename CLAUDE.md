@@ -2,6 +2,36 @@
 
 ## Recent Changes
 
+### Blog posts held to an SEO and accuracy bar (2026-09-24)
+
+The first automated post had three invented statistics (including a made-up
+"Tech Research Group" study), 705 words, no internal links, and generic
+"Introduction/Conclusion" headings.
+
+- **Structured draft**: `api/blog/generate-post.ts` asks for JSON:
+  keyword, title (45–60 characters), meta title (≤ 50), meta description
+  (140–155), slug, intro, 5–6 sections of 220–300 words, 4 FAQs, and a
+  conclusion. The prompt lists recent titles to avoid and forbids
+  statistics, cited studies, and external links. There is now one call;
+  the separate "trends" call is gone.
+- **Quality gate** (`api/_lib/blogQuality.ts`): `reviewDraft` checks
+  length (target 1,400–1,800 words, soft minimum 1,300, blocking under
+  1,100), invented figures (`findStatistics`), keyword placement (title,
+  first 100 words, a heading, meta description), meta lengths, generic
+  headings, and the FAQ count. One repair call rewrites only the failing
+  parts (`applyPatch`). A draft that is still blocked is not published
+  (422).
+- **Links**: `assembleContent` builds the Markdown (no H1: the page's H1
+  is the title). It keeps only links to `LINKABLE_PAGES` and ends every
+  post with links to the category's service page, its guide, and
+  `/contact` (`CATEGORY_LINKS`). A test checks that each path is a real
+  route.
+- **Other**: `availableSlug` avoids slug collisions. `generate-post` has
+  `maxDuration: 120` (`MAX_DURATION_SECONDS`, kept in step by a test).
+  `BLOG_OPENAI_MODEL` overrides `gpt-4o-mini`. The post page adds
+  `wordCount` and an `FAQPage` node (`faqsFromMarkdown` in
+  `src/lib/blogSeo.ts`).
+
 ### Blog API routes fixed; weekly generation unblocked (2026-09-24)
 
 - **Why nothing worked**: `api/blog/*` imported `src/lib/blog` without a
@@ -442,7 +472,8 @@ admin's Supabase session (`Authorization: Bearer`); see `requireAdmin`.
 - `/blog/:slug` - Individual post with SEO metadata
 
 ### AI Generation
-- GPT-4o-mini for content generation
+- GPT-4o-mini (override with `BLOG_OPENAI_MODEL`); drafts pass `reviewDraft`
+  (`api/_lib/blogQuality.ts`) before anything is published
 - Pexels API for featured images
 - Weekly automation via Supabase pg_cron
 

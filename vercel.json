@@ -12,7 +12,7 @@
       "maxDuration": 60
     },
     "api/blog/generate-post.ts": {
-      "maxDuration": 60
+      "maxDuration": 120
     }
   },
   "headers": [
