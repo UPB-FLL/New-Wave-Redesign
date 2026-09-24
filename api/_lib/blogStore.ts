@@ -97,3 +97,25 @@ export async function deletePost(id: string): Promise<boolean> {
   if (error) throw error;
   return (data ?? []).length > 0;
 }
+
+/** Titles of the most recent posts, so generation can steer away from topics already covered. */
+export async function recentTitles(limit = 30): Promise<string[]> {
+  const { data, error } = await getSupabasePublic()
+    .from('blog_posts')
+    .select('title')
+    .order('published_at', { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return (data ?? []).map((row: { title: string }) => row.title);
+}
+
+/** `slug`, or `slug-2`, `slug-3`, … when taken (blog_posts.slug is unique). */
+export async function availableSlug(slug: string): Promise<string> {
+  const { data, error } = await getSupabasePublic().from('blog_posts').select('slug').like('slug', `${slug}%`);
+  if (error) throw error;
+  const taken = new Set((data ?? []).map((row: { slug: string }) => row.slug));
+  if (!taken.has(slug)) return slug;
+  let n = 2;
+  while (taken.has(`${slug}-${n}`)) n += 1;
+  return `${slug}-${n}`;
+}
