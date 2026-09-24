@@ -5,8 +5,12 @@ import { isSupabaseConfigured } from '../_lib/supabaseAdmin.js';
 import { isSupabasePublicConfigured, missingSupabasePublicEnv } from '../_lib/supabasePublic.js';
 
 /**
- * GET /api/blog/:id (public), PUT and DELETE /api/blog/:id (x-admin-key).
- * Unknown or malformed ids answer 404.
+ * GET /api/blog/:id (public), PUT and DELETE /api/blog/:id (admin auth, see
+ * requireAdmin). Unknown or malformed ids answer 404.
+ *
+ * vercel.json rewrites /api/blog/:id here as ?id=. This was api/blog/[id].ts,
+ * which production never reached: the SPA catch-all shadows dynamic [param]
+ * routes, so GET returned the HTML shell and PUT/DELETE answered 405.
  */
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (!methodGuard(req, res, ['GET', 'PUT', 'DELETE'])) return;
@@ -16,7 +20,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
 
   if (req.method === 'GET') {
     if (!isSupabasePublicConfigured()) {
-      console.error(`blog/[id]: Supabase is not configured (missing ${missingSupabasePublicEnv().join(', ')})`);
+      console.error(`blog/:id: Supabase is not configured (missing ${missingSupabasePublicEnv().join(', ')})`);
       return res.status(503).json({ error: 'Blog is unavailable' });
     }
     try {
@@ -24,7 +28,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       if (!post) return res.status(404).json({ error: 'Blog post not found' });
       return res.status(200).json(post);
     } catch (err) {
-      console.error('blog/[id] GET error:', err);
+      console.error('blog/:id GET error:', err);
       return res.status(500).json({ error: 'Failed to fetch blog post' });
     }
   }
@@ -32,7 +36,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   // Write operations require the admin key, and the service role to get past RLS.
   if (!(await requireAdmin(req, res))) return;
   if (!isSupabaseConfigured()) {
-    console.error('blog/[id]: SUPABASE_SERVICE_ROLE_KEY is not configured');
+    console.error('blog/:id: SUPABASE_SERVICE_ROLE_KEY is not configured');
     return res.status(503).json({ error: 'Blog writes are unavailable' });
   }
 
@@ -44,7 +48,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       if (!updated) return res.status(404).json({ error: 'Blog post not found' });
       return res.status(200).json(updated);
     } catch (err) {
-      console.error('blog/[id] PUT error:', err);
+      console.error('blog/:id PUT error:', err);
       return res.status(500).json({ error: 'Failed to update blog post' });
     }
   }
@@ -54,7 +58,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     if (!deleted) return res.status(404).json({ error: 'Blog post not found' });
     return res.status(200).json({ success: true });
   } catch (err) {
-    console.error('blog/[id] DELETE error:', err);
+    console.error('blog/:id DELETE error:', err);
     return res.status(500).json({ error: 'Failed to delete blog post' });
   }
 }

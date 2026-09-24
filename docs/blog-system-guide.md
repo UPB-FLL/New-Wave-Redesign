@@ -120,16 +120,16 @@ Navigate to `/admin` → Blog → Settings:
 ### GET /api/blog/list
 Fetch paginated blog posts with optional filtering.
 
-### GET /api/blog/[id]
+### GET /api/blog/:id
 Fetch individual blog post by ID.
 
 ### POST /api/blog/generate-post
 Generate new blog post using AI (requires admin auth).
 
-### PUT /api/blog/[id]
+### PUT /api/blog/:id
 Update existing blog post (requires admin auth).
 
-### DELETE /api/blog/[id]
+### DELETE /api/blog/:id
 Delete a blog post (requires admin auth).
 
 ## Database Schema

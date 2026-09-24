@@ -53,7 +53,7 @@ vi.mock('../../../api/_lib/supabaseAdmin', () => ({
 }));
 
 import listHandler from '../../../api/blog/list';
-import idHandler from '../../../api/blog/[id]';
+import idHandler from '../../../api/blog/post';
 import generateHandler from '../../../api/blog/generate-post';
 import { goodDraft } from './blogDraftFixture';
 
@@ -359,6 +359,25 @@ describe('/api/blog/generate-post', () => {
     await generateHandler({ method: 'GET', headers: { 'x-admin-key': KEY } }, res);
     expect(res.statusCode).toBe(200);
     expect(res.body).toMatchObject({ ok: true, hasKey: true, hasSupabaseWrite: true });
+  });
+});
+
+describe('vercel.json reaches the single-post route', () => {
+  const root = path.resolve(__dirname, '../../..');
+  const rewrites = (JSON.parse(readFileSync(path.join(root, 'vercel.json'), 'utf8')) as { rewrites: { source: string; destination: string }[] }).rewrites;
+  const at = (source: string) => rewrites.findIndex((rule) => rule.source === source);
+
+  it('rewrites /api/blog/:id to api/blog/post.ts, after the files under /api/ and before the SPA catch-all', () => {
+    expect(rewrites[at('/api/blog/:id')]?.destination).toBe('/api/blog/post?id=:id');
+    // /api/blog/list and /api/blog/generate-post match /api/(.*) first and resolve to their own files.
+    expect(at('/api/blog/:id')).toBeGreaterThan(at('/api/(.*)'));
+    expect(at('/api/blog/:id')).toBeLessThan(at('/(.*)'));
+  });
+
+  it('has no dynamic [param] functions, which the SPA catch-all shadows (api/blog/[id].ts never ran in production)', () => {
+    const walk = (dir: string): string[] =>
+      readdirSync(dir).flatMap((name) => (statSync(path.join(dir, name)).isDirectory() ? walk(path.join(dir, name)) : [path.join(dir, name)]));
+    expect(walk(path.join(root, 'api')).filter((file) => file.includes('['))).toEqual([]);
   });
 });
 
