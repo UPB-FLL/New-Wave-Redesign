@@ -9,7 +9,7 @@ export function goodDraft(overrides: Partial<BlogDraft> = {}): BlogDraft {
   return normalizeDraft({
     primary_keyword: 'managed backup',
     title: 'Managed Backup for Fort Lauderdale Small Businesses',
-    meta_title: 'Managed Backup for Small Businesses',
+    meta_title: 'Managed Backup in Fort Lauderdale',
     meta_description:
       'Managed backup for Fort Lauderdale businesses: automated, tested restores that keep your team working when a laptop, server, or cloud app fails you.',
     slug: 'managed-backup-fort-lauderdale',
