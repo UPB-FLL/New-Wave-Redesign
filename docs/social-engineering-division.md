@@ -699,7 +699,8 @@ starts proportionally wider (see "Enlarged text" below).
 | Service heroes | the slug, e.g. `social-media` | as the hub; digital oversight uses `heroSceneSize: 'compact'` (256 × 171, then 352 × 235 from 1280px), because its headline runs four lines and splits "Fort / Lauderdale" beside the full-size scene | as the hub | as the hub from 375px; none below 375px, where the summaries run 11–13 lines |
 | Book a discovery call (`/contact`) hero | `contact`: ContactDiscoveryScene | `sceneSize="compact"`: 256 × 171 at 1024–1279px, then 352 × 235 from 1280px (the text is short; a full-size scene would only add height) | none: the hero has no actions to sit beside, so the scene would stand alone and push the form down | none, so the form follows the summary |
 | Hub, "What we gather" band | `hubSection`: HubJourneyScene (light tone, Cloud White knock-outs) | fills the empty sixth cell of the five-card grid (the list is a subgrid of one wrapper grid), so it adds no height | none | none |
-| Customers, Contact us | none | | | |
+| Contact us hero | `contactUs`: ContactUsReplyScene | `sceneSize="compact"`, as the discovery call's (the text is as short) | as the hub: 256 × 171, right of the new-project link | 288 × 192 after the new-project link, from 375px; none below 375px, so the form starts on the first screen |
+| Customers | none | | | |
 
 - **Landscape phones** (below 1024px wide and at most 500px tall, so a 568 ×
   320 phone as well as an 844 × 390 one) show no scene, whatever the Phones
@@ -709,8 +710,8 @@ starts proportionally wider (see "Enlarged text" below).
   would still show.)
 - **Hero layout with a scene.** The DOM order is text, actions, scene, so the
   primary button keeps its place on every phone. From 1024px the hero is a
-  grid: text and actions in the first column, the scene in the second, and
-  the hub's service chips across both. `sceneSize` sets the scene's column:
+  grid: text and actions in the first column, the scene in the second.
+  `sceneSize` sets the scene's column:
   `large` (the default) is 20rem, then 30rem from 1280px, where the text
   column is the summary's own 42rem; `compact` is 16rem, then 22rem. The H1
   steps down to `--nwse-type-display-1-beside-size` there (85% of
@@ -748,13 +749,15 @@ starts proportionally wider (see "Enlarged text" below).
   hub band has no currents, so its scene has no disc.
 - **Between phones and tablets** (640–767px) the scene sits under the
   actions at 288 × 192, left-aligned with them (not on the contact page).
-- **Heights.** At 320–430px a page grows by the scene's 208px (the hub; service
-  pages from 375px) or not at all (contact); at 768px by about 120px (contact
-  not at all). From 1024px the heroes stay within 60px of their old height
-  (+58 to −27px; contact −8px at 1024px, +33px from 1280px). The primary
-  button never moves on phones, since the scene comes after it, and from
-  1024px it stays on the first screen: at 1024 × 768 the lowest, integration's,
-  ends at 720px.
+- **Heights.** At 320–430px a page grows by the scene's 208px (the hub;
+  service pages and Contact us from 375px) or not at all (contact); at 768px
+  by about 120px (Contact us 145px; contact not at all). From 1024px the
+  heroes stay within 60px of their old height (+58 to −27px; contact −8px at
+  1024px, +33px from 1280px; Contact us −8px at 1024px, +3px from 1280px).
+  The primary button never moves on phones, since the scene comes after it,
+  and from 1024px it stays on the first screen: at 1024 × 768 the lowest,
+  integration's, ends at 720px. Contact us's form starts on the first screen
+  at every size from 320 × 568 to 1440 × 900 (at 626px on 375 × 667).
 
 ### Loading
 
@@ -829,7 +832,7 @@ once, and turning it off again keeps that frame (a scene never replays).
    compact-column case if it is compact), remove it from the "has no scene"
    cases there if it had none, and update its expected hidden scenes in
    `responsive.test.tsx` (hub `['hub', 'hubSection']`, each service
-   `[slug]`, Customers and Contact us "hides nothing").
+   `[slug]`, Contact us `['contactUs']`, Customers "hides nothing").
 4. Check it at 320, 390, 768, 844 × 390, 1024, and 1440px, with reduced motion
    on, and confirm the IT pages request no new chunk.
 

@@ -2,8 +2,8 @@
 //
 // Every entry is React.lazy, so a page downloads only its own scene (the
 // engine and the shared calendar part come along as small shared chunks; the
-// IT pages load none of it). Keys are the pages' own names: 'hub' and
-// 'contact', the six service slugs (DIVISION_SERVICE_SLUGS, so the service
+// IT pages load none of it). Keys are the pages' own names: 'hub', 'contact',
+// and 'contactUs', the six service slugs (DIVISION_SERVICE_SLUGS, so the service
 // page can look its scene up by `slug`), and 'hubSection' for the optional
 // scene in the hub's "What we gather" band (light tone, Cloud White ground).
 //
@@ -38,6 +38,8 @@ export const PAGE_SCENES = {
   'digital-oversight': scene(() => import('./OversightOneTeamScene')),
   /** Contact hero: a clear path grows out of the discovery lens to the business's goal flag. */
   contact: scene(() => import('./ContactDiscoveryScene')),
+  /** Contact us hero: a note crosses on the brand wave; the team's reply lands in amber. */
+  contactUs: scene(() => import('./ContactUsReplyScene')),
   /** Hub "What we gather" band: book, return, refer, as one flywheel (light tone by default). */
   hubSection: scene(() => import('./HubJourneyScene')),
 } satisfies Record<string, LazyExoticComponent<ComponentType<SceneProps>>>;

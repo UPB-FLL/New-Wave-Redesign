@@ -102,6 +102,7 @@ const PAGES_WITH_SCENES: [string, () => React.ReactElement, ScenePageKey[]][] = 
     [service.slug as ScenePageKey],
   ]),
   ['contact', () => <SocialEngineeringContactPage />, ['contact']],
+  ['contact-us', () => <SocialEngineeringContactUsPage />, ['contactUs']],
 ];
 
 describe('scene placement', () => {
@@ -142,7 +143,7 @@ describe('scene placement', () => {
     expect(classesOf(scene)).toEqual(expect.arrayContaining([`${GRID}col-start-2`, `${GRID}row-span-2`, `${GRID}self-center`, LANDSCAPE_HIDDEN]));
   });
 
-  it('shows the hub hero scene on every phone, a service scene from 375px, and the contact scene only beside the text', () => {
+  it('shows the hub hero scene on every phone, a service or contact us scene from 375px, and the contact scene only beside the text', () => {
     const hub = renderAt(<SocialEngineeringHubPage />);
     const hubHero = classesOf(hub.container.querySelector('[data-page-scene="hub"]'));
     expect(hubHero).not.toContain(SMALL_PHONE_HIDDEN);
@@ -157,6 +158,14 @@ describe('scene placement', () => {
       expect(classes).not.toContain(BELOW_GRID_HIDDEN);
       page.unmount();
     }
+
+    // Contact us follows its new-project link on phones from 375px; below
+    // that it stays out, so the form starts on the first screen.
+    const contactUs = renderAt(<SocialEngineeringContactUsPage />);
+    const contactUsClasses = classesOf(contactUs.container.querySelector('[data-page-scene="contactUs"]'));
+    expect(contactUsClasses).toContain(SMALL_PHONE_HIDDEN);
+    expect(contactUsClasses).not.toContain(BELOW_GRID_HIDDEN);
+    contactUs.unmount();
 
     // The contact hero has no actions to sit beside, so its scene shows only
     // where the grid puts it beside the text (from 64em).
@@ -239,7 +248,7 @@ describe('scene placement', () => {
     },
   );
 
-  it('gives the contact hero and digital oversight’s long headline the compact scene column, the rest the large one', () => {
+  it('gives the contact and contact us heroes and digital oversight’s long headline the compact scene column, the rest the large one', () => {
     const gridOf = (container: HTMLElement, key: string) => container.querySelector(`[data-page-scene="${key}"]`)!.parentElement!.parentElement!;
     const cases: [string, () => React.ReactElement, keyof typeof SCENE_COLUMNS][] = [
       ['hub', () => <SocialEngineeringHubPage />, 'large'],
@@ -249,6 +258,7 @@ describe('scene placement', () => {
         service.slug === 'digital-oversight' ? 'compact' : 'large',
       ]),
       ['contact', () => <SocialEngineeringContactPage />, 'compact'],
+      ['contactUs', () => <SocialEngineeringContactUsPage />, 'compact'],
     ];
     for (const [key, page, size] of cases) {
       const { container, unmount } = renderAt(page());
@@ -286,11 +296,8 @@ describe('scene placement', () => {
     expect(scenesIn(container)).toHaveLength(2);
   });
 
-  it.each([
-    ['customers', () => <SocialEngineeringCustomersPage />],
-    ['contact-us', () => <SocialEngineeringContactUsPage />],
-  ])('%s has no scene, and its hero keeps the full-size H1', (_name, page) => {
-    const { container } = renderAt(page());
+  it('customers has no scene, and its hero keeps the full-size H1', () => {
+    const { container } = renderAt(<SocialEngineeringCustomersPage />);
     expect(container.querySelector('[data-page-scene], [data-scene-slot], [data-scene]')).toBeNull();
     expect(container.innerHTML).not.toContain('display-1-beside');
   });

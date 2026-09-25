@@ -4,8 +4,8 @@
  *
  * A scene is a small decorative illustration, drawn in the division's icon
  * style, that tells one short story about the client goal of the page it sits
- * on (hub, the six service pages, contact). The copy beside it carries the
- * message; the scene only shows it.
+ * on (hub, the six service pages, contact, contact us). The copy beside it
+ * carries the message; the scene only shows it.
  *
  * Files and props
  * - One scene per file: `motion/scenes/<Name>Scene.tsx`, exporting

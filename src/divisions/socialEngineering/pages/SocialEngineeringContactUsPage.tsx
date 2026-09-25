@@ -27,6 +27,13 @@ export default function SocialEngineeringContactUsPage() {
     <DivisionLayout>
       <DivisionHero
         breadcrumbs={seo.breadcrumbs}
+        // Beside the short text, the compact column adds almost no height. On
+        // phones it follows the new-project link, as the hub's and the service
+        // pages' scenes follow their actions; below 375px it stays out, so the
+        // form, the page's action, starts on the first screen.
+        scene="contactUs"
+        sceneSize="compact"
+        sceneOnPhones="wide"
         kicker={content.kicker}
         headline={content.headline}
         summary={content.summary}
