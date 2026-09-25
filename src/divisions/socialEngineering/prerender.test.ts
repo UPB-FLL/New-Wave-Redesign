@@ -111,7 +111,7 @@ describe('renderDivisionPageHtml', () => {
     const graph = JSON.parse(head.jsonLd[0].textContent ?? '')['@graph'];
     expect(graph.map((node: { '@type': string }) => node['@type'])).toEqual(
       pageType === 'CollectionPage'
-        ? ['Organization', 'CollectionPage', 'ItemList', 'BreadcrumbList']
+        ? ['Organization', 'CollectionPage', 'ItemList', 'ItemList', 'BreadcrumbList'] // customers, then apps
         : ['Organization', 'ContactPage', 'BreadcrumbList'],
     );
     const crumbs = graph.find((node: { '@type': string }) => node['@type'] === 'BreadcrumbList');

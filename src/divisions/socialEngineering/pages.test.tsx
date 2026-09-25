@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useContent } from '../../lib/useContent';
 import { FOOTER_EMAIL_FALLBACK, PLACEHOLDER_PHONE } from './contactDetails';
-import { contactContent, contactUsContent, customersContent, divisionCustomers, divisionServices, hubContent } from './content';
+import { appsContent, contactContent, contactUsContent, customersContent, divisionApps, divisionCustomers, divisionServices, hubContent } from './content';
 import SocialEngineeringContactPage from './pages/SocialEngineeringContactPage';
 import SocialEngineeringContactUsPage from './pages/SocialEngineeringContactUsPage';
 import SocialEngineeringCustomersPage from './pages/SocialEngineeringCustomersPage';
@@ -328,7 +328,7 @@ describe('SocialEngineeringCustomersPage', () => {
     expect(screen.getByText(customersContent.summary)).toHaveTextContent(DIVISION_NAME);
   });
 
-  it('lists the four customers in order, each with what it is, where, and its site', () => {
+  it('lists the customers in order, each with what it is, where, and its site', () => {
     renderAt(<SocialEngineeringCustomersPage />);
     const list = customerList();
     expect(within(list).getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent)).toEqual(
@@ -368,6 +368,24 @@ describe('SocialEngineeringCustomersPage', () => {
     expect(main.querySelectorAll('img, picture, video, iframe')).toHaveLength(0);
     const cta = screen.getByRole('heading', { level: 2, name: customersContent.cta.heading }).closest('section')!;
     expect(within(cta).getByRole('link', { name: DIVISION_PRIMARY_CTA })).toHaveAttribute('href', DIVISION_CONTACT_PATH);
+  });
+  it('follows the customers with "Apps we’ve developed": each app, where it runs, and its site in a new tab', () => {
+    renderAt(<SocialEngineeringCustomersPage />);
+    const section = screen.getByRole('region', { name: appsContent.heading });
+    expect(within(section).getByRole('heading', { level: 2 })).toHaveTextContent(appsContent.heading);
+    const rows = within(section).getAllByRole('listitem');
+    expect(rows).toHaveLength(divisionApps.length);
+    rows.forEach((row, index) => {
+      const app = divisionApps[index];
+      expect(within(row).getByRole('heading', { level: 3 })).toHaveTextContent(app.name);
+      [app.category, app.platforms, app.description].forEach((text) => expect(row).toHaveTextContent(text));
+      const link = within(row).getByRole('link', { name: `${app.linkLabel}${customersContent.externalLinkNote}` });
+      expect(link).toHaveAttribute('href', app.href);
+      expect(link).toHaveAttribute('target', '_blank');
+      expect(link.getAttribute('rel')?.split(/\s+/)).toContain('noopener');
+    });
+    const customers = screen.getByRole('region', { name: customersContent.listHeading });
+    expect(customers.compareDocumentPosition(section) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 });
 

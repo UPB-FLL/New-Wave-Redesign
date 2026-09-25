@@ -1,7 +1,7 @@
 import type { DivisionServiceContent } from '../types';
 import { brandDevelopment } from './brand-development';
 import { contactUsContent } from './contact-us';
-import { customersContent, divisionCustomers } from './customers';
+import { appsContent, customersContent, divisionApps, divisionCustomers } from './customers';
 import { digitalOversight } from './digital-oversight';
 import { hubContent } from './hub';
 import { integration } from './integration';
@@ -9,7 +9,7 @@ import { marketing } from './marketing';
 import { socialMedia } from './social-media';
 import { websiteDesign } from './website-design';
 
-export { contactUsContent, customersContent, divisionCustomers, hubContent };
+export { appsContent, contactUsContent, customersContent, divisionApps, divisionCustomers, hubContent };
 
 /** Display order for navigation, the hub's service grid, and the sitemap. */
 export const divisionServices: readonly DivisionServiceContent[] = [
