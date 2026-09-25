@@ -111,6 +111,20 @@ export interface DivisionCustomer {
   href: string;
 }
 
+/** An app in the Customers page's "Apps we've developed" section. */
+export interface DivisionApp {
+  name: string;
+  /** Plex Mono label: the kind of software. */
+  category: string;
+  /** Where it runs, as the app's own site lists it. */
+  platforms: string;
+  description: string;
+  /** Visible link text: the bare domain. */
+  linkLabel: string;
+  /** The app's own site (absolute https://; opens in a new tab). */
+  href: string;
+}
+
 /** Everything the prerenderer and the runtime meta hook need for one URL. */
 export interface DivisionPageSeo {
   /** Absolute path, no trailing slash, e.g. '/social-engineering/social-media'. */

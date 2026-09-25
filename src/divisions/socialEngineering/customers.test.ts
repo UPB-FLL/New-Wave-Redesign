@@ -1,9 +1,11 @@
-// The Customers page lists four businesses and says what each one IS. It must
+// The Customers page lists five businesses and says what each one IS. It must
 // never claim work the division did for them (services, results, ratings,
-// quotes), and it must not compete with their own sites in search.
+// quotes), and it must not compete with their own sites in search. Its "Apps
+// we've developed" section, which the owner asked for, is the one place that
+// says what the division made: each app, and nothing about results or ratings.
 
 import { describe, expect, it } from 'vitest';
-import { customersContent, divisionCustomers } from './content';
+import { appsContent, customersContent, divisionApps, divisionCustomers } from './content';
 import { customersPageSeo, divisionJsonLdDocument } from './seo';
 import { DIVISION_ORGANIZATION_ID, PARENT_NAME, PARENT_ORGANIZATION_ID, SITE_URL } from './site';
 
@@ -11,7 +13,7 @@ const strings = (value: unknown): string[] =>
   typeof value === 'string' ? [value] : value && typeof value === 'object' ? Object.values(value).flatMap(strings) : [];
 
 describe('customer list', () => {
-  it('lists exactly the four customers, in the owner’s order, with their links', () => {
+  it('lists exactly the five customers, in the owner’s order, with their links', () => {
     expect(divisionCustomers.map(({ name, href, linkLabel }) => ({ name, href, linkLabel }))).toEqual([
       { name: 'Wildly Primal', href: 'https://www.wildlyprimal.com/', linkLabel: 'wildlyprimal.com' },
       // The parent company: an internal link to its home page.
@@ -19,6 +21,8 @@ describe('customer list', () => {
       { name: 'Uncommon Path Brewing', href: 'https://www.uncommonpathbrewing.com/', linkLabel: 'uncommonpathbrewing.com' },
       // The verified site's canonical domain (the owner typed luckyshotgolf.com, which was never verified).
       { name: 'Lucky Shot Golf', href: 'https://www.playluckyshot.com/', linkLabel: 'playluckyshot.com' },
+      // Its site's canonical host is www.
+      { name: 'Watchtower', href: 'https://www.watchtowerapp.app/', linkLabel: 'watchtowerapp.app' },
     ]);
   });
 
@@ -60,6 +64,49 @@ describe('customer list', () => {
   });
 });
 
+describe('apps we have developed', () => {
+  it('lists exactly Watchtower, with its own site as the link', () => {
+    expect(divisionApps.map(({ name, href, linkLabel }) => ({ name, href, linkLabel }))).toEqual([
+      { name: 'Watchtower', href: 'https://www.watchtowerapp.app/', linkLabel: 'watchtowerapp.app' },
+    ]);
+    divisionApps.forEach((app) => {
+      expect(new URL(app.href).hostname.replace(/^www\./, '')).toBe(app.linkLabel);
+      Object.entries(app).forEach(([key, value]) => expect(value.trim(), `${app.name}.${key}`).not.toBe(''));
+    });
+  });
+
+  // Saying the division developed an app is the section's point; claiming
+  // what the app achieved (or superlatives) is not.
+  const RESULT_CLAIMS =
+    /%|\bstars?\b|review|rating|testimonial|case stud|success stor|results?\b|clients? include|trusted|award|\b(best|leading|premium|top|#1)\b/i;
+
+  it('says what each app is and that we developed it, never what it achieved', () => {
+    [...strings(divisionApps), ...strings(appsContent)].forEach((text) => expect(text, text).not.toMatch(RESULT_CLAIMS));
+  });
+
+  it('describes a customer app the same way in both lists', () => {
+    divisionApps.forEach((app) => {
+      const customer = divisionCustomers.find((entry) => entry.href === app.href);
+      if (customer) expect(customer.description).toBe(app.description);
+    });
+  });
+
+  it('lists the apps in the graph by name and site, authored by the division, after the customer list', () => {
+    const page = customersPageSeo();
+    const graph = JSON.parse(divisionJsonLdDocument(page))['@graph'];
+    const url = `${SITE_URL}${page.path}`;
+    const lists = graph.filter((node: { '@type': string }) => node['@type'] === 'ItemList');
+    expect(lists.map((list: { '@id': string }) => list['@id'])).toEqual([`${url}#customers`, `${url}#apps`]);
+    expect(lists[1].itemListElement).toEqual(
+      divisionApps.map((app, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        item: { '@type': 'SoftwareApplication', name: app.name, url: app.href, author: { '@id': DIVISION_ORGANIZATION_ID } },
+      })),
+    );
+  });
+});
+
 describe('customers page search record', () => {
   const page = customersPageSeo();
 
@@ -68,7 +115,7 @@ describe('customers page search record', () => {
     divisionCustomers.forEach((customer) => {
       if (customer.name !== 'New Wave IT') expect(record).not.toContain(customer.name.toLowerCase());
     });
-    ['brewery', 'pizza', 'golf', 'simulator', 'coaching', 'health', 'managed it', 'web design clients'].forEach((term) => {
+    ['brewery', 'pizza', 'golf', 'simulator', 'coaching', 'health', 'managed it', 'web design clients', 'remote access', 'software', 'apps'].forEach((term) => {
       expect(record).not.toContain(term);
     });
   });

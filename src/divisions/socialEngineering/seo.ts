@@ -2,7 +2,7 @@
 // shared by the runtime meta hook and the build-time prerenderer so the two can
 // never disagree about a page's title, canonical, or structured data.
 
-import { contactContent, contactUsContent, customersContent, divisionCustomers, divisionServices, hubContent } from './content';
+import { contactContent, contactUsContent, customersContent, divisionApps, divisionCustomers, divisionServices, hubContent } from './content';
 import {
   DIVISION_ASSETS,
   DIVISION_BASE_PATH,
@@ -21,7 +21,7 @@ import {
   divisionServicePath,
 } from './site';
 import type { PageMetaOptions } from '../../lib/pageMeta';
-import type { DivisionCustomer, DivisionFaq, DivisionPageSeo, DivisionServiceContent } from './types';
+import type { DivisionApp, DivisionCustomer, DivisionFaq, DivisionPageSeo, DivisionServiceContent } from './types';
 
 type JsonLdNode = Record<string, unknown>;
 
@@ -189,6 +189,29 @@ function customerListNode(path: string, customers: readonly DivisionCustomer[]):
   };
 }
 
+/**
+ * The "Apps we've developed" section: each app by name and site, with the
+ * division as its author (what the section says). No operatingSystem: the
+ * page's graph must never contain "Rating", even inside a property name.
+ */
+function appListNode(path: string, apps: readonly DivisionApp[]): JsonLdNode {
+  return {
+    '@type': 'ItemList',
+    '@id': `${absoluteUrl(path)}#apps`,
+    numberOfItems: apps.length,
+    itemListElement: apps.map((app, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      item: {
+        '@type': 'SoftwareApplication',
+        name: app.name,
+        url: app.href,
+        author: { '@id': DIVISION_ORGANIZATION_ID },
+      },
+    })),
+  };
+}
+
 export function customersPageSeo(): DivisionPageSeo {
   const path = DIVISION_CUSTOMERS_PATH;
   const breadcrumbs = [HUB_CRUMB, { name: customersContent.navLabel, path }];
@@ -204,6 +227,7 @@ export function customersPageSeo(): DivisionPageSeo {
       divisionOrganizationNode(),
       { ...page, mainEntity: { '@id': `${absoluteUrl(path)}#customers` } },
       customerListNode(path, divisionCustomers),
+      appListNode(path, divisionApps),
       breadcrumbNode(path, breadcrumbs),
     ],
   };

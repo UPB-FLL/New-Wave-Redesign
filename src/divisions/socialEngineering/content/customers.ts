@@ -1,4 +1,4 @@
-import type { DivisionCustomer } from '../types';
+import type { DivisionApp, DivisionCustomer } from '../types';
 
 // The Customers page (/social-engineering/customers). Pure data.
 //
@@ -6,8 +6,14 @@ import type { DivisionCustomer } from '../types';
 // about work the division did for it: no services delivered, results,
 // metrics, ratings, reviews, quotes, or "we built / launched / grew"
 // statements, and no logos or screenshots. customers.test.ts enforces this.
+// The one exception is the "Apps we've developed" section (divisionApps),
+// which the owner asked for: it says the division developed each app, and
+// still makes no claims about results, ratings, or metrics.
 // Keep the customers' names and category terms out of the page's title,
 // description, and keywords, so the page never competes with their own sites.
+
+const WATCHTOWER_DESCRIPTION =
+  'Remote access software for MSP support teams, with endpoint search, remote desktop, file transfer, terminal, diagnostics, and session records.';
 
 /** In the owner's order. */
 export const divisionCustomers: readonly DivisionCustomer[] = [
@@ -52,7 +58,36 @@ export const divisionCustomers: readonly DivisionCustomer[] = [
     linkLabel: 'playluckyshot.com',
     href: 'https://www.playluckyshot.com/',
   },
+  {
+    // From its own site (title, meta description, and SoftwareApplication
+    // data), minus its "premium". The site names no location, so this says
+    // "Online" until the owner confirms one. Also listed in divisionApps.
+    name: 'Watchtower',
+    category: 'Remote access software',
+    location: 'Online',
+    description: WATCHTOWER_DESCRIPTION,
+    linkLabel: 'watchtowerapp.app',
+    href: 'https://www.watchtowerapp.app/',
+  },
 ];
+
+/** "Apps we've developed", in the owner's order. Facts from each app's own site. */
+export const divisionApps: readonly DivisionApp[] = [
+  {
+    name: 'Watchtower',
+    category: 'Remote access software',
+    platforms: 'Web, iOS, Android, Windows, macOS, and Linux',
+    description: WATCHTOWER_DESCRIPTION,
+    linkLabel: 'watchtowerapp.app',
+    href: 'https://www.watchtowerapp.app/',
+  },
+];
+
+export const appsContent = {
+  kicker: 'Apps',
+  heading: 'Apps we’ve developed',
+  intro: 'Software our team has developed, with a link to each app.',
+} as const;
 
 export const customersContent = {
   metaTitle: 'Our customers | New Wave: Social Engineering',

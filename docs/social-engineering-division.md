@@ -146,23 +146,32 @@ call**) and from the footer's "NW Social Engineering" column.
 ### Customers (`/social-engineering/customers`)
 
 - **Content**: `content/customers.ts` holds `divisionCustomers` (in the owner's
-  order: Wildly Primal, New Wave IT, Uncommon Path Brewing, Lucky Shot Golf)
-  and `customersContent` (page copy). Each entry says what the business *is*,
-  from its own site: category, location, description, and a link whose text is
-  the bare domain.
+  order: Wildly Primal, New Wave IT, Uncommon Path Brewing, Lucky Shot Golf,
+  Watchtower) and `customersContent` (page copy). Each entry says what the
+  business *is*, from its own site: category, location, description, and a
+  link whose text is the bare domain. Watchtower's site names no location, so
+  its row says "Online" until the owner confirms one.
+- **Apps we've developed**: a second band below the list (`divisionApps`,
+  `appsContent`), with the same row layout: the kind of software, the
+  platforms it runs on, what it does, and a link to its site. Watchtower is
+  both a customer and an app, with the same description in both places.
 - **The rule**: no claims about work the division did for a customer: no
   services delivered, results, metrics, ratings, reviews, quotes, or "we
   built / launched / grew" statements, and no logos or screenshots. The
   visuals are the division's own type and icons (`map-pin`, `arrow-up-right`,
   `arrow-right`). No superlatives, and no medical or healing claims.
-  `customers.test.ts` pins the four names, links, and order and fails on
-  work-claim, rating, superlative, or health-claim wording.
+  `customers.test.ts` pins the five names, links, and order and fails on
+  work-claim, rating, superlative, or health-claim wording. The apps band is
+  the one exception the owner asked for: it says the division developed each
+  app, and its own test still fails on results, ratings, or superlatives.
 - **Search**: the customers' names and category terms stay out of the page's
   title, description, and keywords, so the page never competes with their own
   sites. JSON-LD: a `CollectionPage` whose `mainEntity` is an `ItemList` of the
   customers as `Organization` nodes with `name` and `url` only (no review,
-  rating, logo, or `sameAs`), plus the division `Organization` and
-  `BreadcrumbList`. New Wave IT's item is the parent node itself (the
+  rating, logo, or `sameAs`), then an `ItemList` (`#apps`) of
+  `SoftwareApplication` nodes (name, url, and the division as `author`), plus
+  the division `Organization` and `BreadcrumbList`. The graph never contains
+  "Rating", which is why the apps carry no `operatingSystem`. New Wave IT's item is the parent node itself (the
   `#organization` `@id` that `index.html` declares and the division's
   `parentOrganization` names), not a second organization of the same name.
 - **Links**: other businesses' sites open in a new tab (`target="_blank"`,

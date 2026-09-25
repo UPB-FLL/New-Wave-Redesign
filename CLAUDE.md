@@ -2,6 +2,17 @@
 
 ## Recent Changes
 
+### Customers: Watchtower and an "Apps we've developed" section (2026-09-25)
+
+- Watchtower (`watchtowerapp.app`, remote access software for MSP support
+  teams) is the fifth customer on `/social-engineering/customers`, described
+  from its own site. It names no location, so the row says "Online" until the
+  owner confirms one.
+- A new band below the list, "Apps we've developed" (`divisionApps`,
+  `appsContent` in `content/customers.ts`), lists Watchtower with its
+  platforms and link. Its JSON-LD is an `ItemList` of `SoftwareApplication`
+  nodes authored by the division.
+
 ### Blog post heads from the server; no links to empty detail pages (2026-09-24)
 
 - **Blog posts**: the raw HTML of every `/blog/:slug` declared the homepage
@@ -268,7 +279,10 @@ No New Wave IT URL, title, canonical, or structured data changed. Full notes:
   footer next to the amber "Book a discovery call" (`/contact`, which is
   unchanged apart from those links). Customers says what
   each business is, never what was done for it: no services, results,
-  ratings, quotes, logos, or screenshots (`customers.test.ts`). Contact us
+  ratings, quotes, logos, or screenshots (`customers.test.ts`). The one
+  exception, at the owner's request, is its "Apps we've developed" band
+  (`divisionApps`), which says the division developed each app and still
+  claims no results or ratings. Contact us
   takes phone, email, and address from the footer's CMS values and leaves out
   the Call row rather than show the placeholder `(954) 555-0100`
   (`contactDetails.ts`). See "Customers and Contact us" in the division doc.
