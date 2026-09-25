@@ -6,8 +6,8 @@
 
 - Watchtower (`watchtowerapp.app`, remote access software for MSP support
   teams) is the fifth customer on `/social-engineering/customers`, described
-  from its own site. It names no location, so the row says "Online" until the
-  owner confirms one.
+  from its own site. Its location, Boca Raton, FL, comes from the owner (the
+  site names none).
 - A new band below the list, "Apps we've developed" (`divisionApps`,
   `appsContent` in `content/customers.ts`), lists Watchtower with its
   platforms and link. Its JSON-LD is an `ItemList` of `SoftwareApplication`

@@ -149,8 +149,8 @@ call**) and from the footer's "NW Social Engineering" column.
   order: Wildly Primal, New Wave IT, Uncommon Path Brewing, Lucky Shot Golf,
   Watchtower) and `customersContent` (page copy). Each entry says what the
   business *is*, from its own site: category, location, description, and a
-  link whose text is the bare domain. Watchtower's site names no location, so
-  its row says "Online" until the owner confirms one.
+  link whose text is the bare domain. Watchtower's site names no location;
+  Boca Raton, FL comes from the owner.
 - **Apps we've developed**: a second band below the list (`divisionApps`,
   `appsContent`), with the same row layout: the kind of software, the
   platforms it runs on, what it does, and a link to its site. Watchtower is
