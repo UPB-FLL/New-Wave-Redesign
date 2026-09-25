@@ -60,11 +60,11 @@ export const divisionCustomers: readonly DivisionCustomer[] = [
   },
   {
     // From its own site (title, meta description, and SoftwareApplication
-    // data), minus its "premium". The site names no location, so this says
-    // "Online" until the owner confirms one. Also listed in divisionApps.
+    // data), minus its "premium". The site names no location; the owner gave
+    // Boca Raton. Also listed in divisionApps.
     name: 'Watchtower',
     category: 'Remote access software',
-    location: 'Online',
+    location: 'Boca Raton, FL',
     description: WATCHTOWER_DESCRIPTION,
     linkLabel: 'watchtowerapp.app',
     href: 'https://www.watchtowerapp.app/',
