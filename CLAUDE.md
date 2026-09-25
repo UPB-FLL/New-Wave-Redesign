@@ -249,18 +249,18 @@ No New Wave IT URL, title, canonical, or structured data changed. Full notes:
   `motion/scenes/index.ts` (`PAGE_SCENES`) lazy-loads one scene per page;
   `SceneSlot` reserves the 3:2 box and loads a scene only near the viewport.
   Placed by `DivisionHero` (`scene`, `sceneOnPhones`, `sceneSize`) on the hub,
-  the six service pages, and `/contact`, and by `PointGrid` in the hub's "What
-  we gather" band. Scenes play once, hold the final frame, and render it
-  statically under reduced motion (read live); they are `aria-hidden`, and
-  left out in forced colours and print. A scene that fails to load leaves
-  its empty box (`SceneSlot`'s own error boundary, fresh for every page) and
-  never triggers main.tsx's stale-chunk reload: the registry loads scenes
-  through `loadDecorativeChunk` (`src/lib/chunkReload.ts`). The hero's scene
-  layout switches at em widths (48/64/80em), like the header, so enlarged
-  text keeps the text column. No IT module reaches `motion/`, even through
-  division modules; the registry and `SceneSlot` reach no other `motion/`
-  module statically; and Tailwind skips the folder (`scenes.test.tsx`). See
-  the "Motion" section of the division doc.
+  the six service pages, `/contact`, and Contact us, and by `PointGrid` in the
+  hub's "What we gather" band. Scenes play once, hold the final frame, and
+  render it statically under reduced motion (read live); they are
+  `aria-hidden`, and left out in forced colours and print. A scene that fails
+  to load leaves its empty box (`SceneSlot`'s own error boundary, fresh for
+  every page) and never triggers main.tsx's stale-chunk reload: the registry
+  loads scenes through `loadDecorativeChunk` (`src/lib/chunkReload.ts`). The
+  hero's scene layout switches at em widths (48/64/80em), like the header, so
+  enlarged text keeps the text column. No IT module reaches `motion/`, even
+  through division modules; the registry and `SceneSlot` reach no other
+  `motion/` module statically; and Tailwind skips the folder
+  (`scenes.test.tsx`). See the "Motion" section of the division doc.
 - **Section grounds (division only)**: every light `Band` and the shared
   contact section carry the division's currents faintly, as a background
   image (`components/bandCurrents.svg`, painted by `.nwse-band::before` in

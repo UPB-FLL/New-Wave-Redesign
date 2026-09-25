@@ -8,8 +8,8 @@ import { SceneSlot } from './SceneSlot';
 const staticFrame = (container: HTMLElement) => container.querySelector('[data-scene-state="static"] svg[aria-hidden="true"]');
 
 describe('page scene registry', () => {
-  it('has one scene per division page: the hub, each service slug, contact, and the hub section', () => {
-    expect([...SCENE_PAGE_KEYS].sort()).toEqual(['contact', 'hub', 'hubSection', ...DIVISION_SERVICE_SLUGS].sort());
+  it('has one scene per division page: the hub, each service slug, contact, contact us, and the hub section', () => {
+    expect([...SCENE_PAGE_KEYS].sort()).toEqual(['contact', 'contactUs', 'hub', 'hubSection', ...DIVISION_SERVICE_SLUGS].sort());
     for (const slug of DIVISION_SERVICE_SLUGS) expect(isScenePageKey(slug)).toBe(true);
     expect(isScenePageKey('phishing-simulation')).toBe(false);
     expect(isScenePageKey('toString')).toBe(false);

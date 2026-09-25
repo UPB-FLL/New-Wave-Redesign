@@ -499,12 +499,17 @@ describe('content hidden below a breakpoint', () => {
     expect(isDecorativeScene(hidden[0])).toBe(true);
   });
 
-  it.each([
-    ['customers', <SocialEngineeringCustomersPage />],
-    ['contact-us', <SocialEngineeringContactUsPage />],
-  ])('on %s, hides nothing below a breakpoint', (_name, page) => {
-    const { container } = renderAt(page);
+  it('on customers, hides nothing below a breakpoint', () => {
+    const { container } = renderAt(<SocialEngineeringCustomersPage />);
     expect(hiddenOnPhones(container)).toEqual([]);
+  });
+
+  it('on contact-us, hides nothing below a breakpoint but its decorative scene', () => {
+    const { container } = renderAt(<SocialEngineeringContactUsPage />);
+    const hidden = hiddenOnPhones(container);
+    // The hero scene sits out phones below 375px (the form starts on the first screen) and landscape phones.
+    expect(hidden.map((element) => element.getAttribute('data-page-scene'))).toEqual(['contactUs']);
+    expect(isDecorativeScene(hidden[0])).toBe(true);
   });
 });
 
