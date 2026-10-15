@@ -27,10 +27,13 @@ export const HOME_PAGE_META: StaticPageMeta = {
 };
 
 export const SERVICES_CRUMB: Crumb = { name: 'Services', path: '/services' };
+export const LEGAL_CRUMB: Crumb = { name: 'Legal', path: '/legal' };
 
-/** A static page's trail below Home: service categories sit under Services. */
+/** A static page's trail below Home: service categories sit under Services, legal documents under Legal. */
 export function itBreadcrumbs(path: string, name: string): Crumb[] {
-  return path.startsWith('/service-category/') ? [SERVICES_CRUMB, { name, path }] : [{ name, path }];
+  if (path.startsWith('/service-category/')) return [SERVICES_CRUMB, { name, path }];
+  if (path.startsWith('/legal/')) return [LEGAL_CRUMB, { name, path }];
+  return [{ name, path }];
 }
 
 function withBreadcrumbs<T extends Record<string, StaticPageEntry>>(pages: T): { [K in keyof T]: StaticPageMeta } {
@@ -196,6 +199,72 @@ export const IT_PAGE_META = withBreadcrumbs({
     description: 'How New Wave IT uses cookies, storage, analytics, and embedded technologies on its website.',
     canonical: 'https://www.newwaveitfl.com/cookie-policy',
     crumb: 'Cookie Policy',
+  },
+  '/legal': {
+    title: 'Legal — Terms, Agreements & Policies',
+    description: 'The current Master Services Agreement, service attachments, schedules, and website policies that govern New Wave IT LLC services.',
+    canonical: 'https://www.newwaveitfl.com/legal',
+    crumb: 'Legal',
+  },
+  '/legal/master-services-agreement': {
+    title: 'Master Services Agreement — New Wave IT',
+    description: 'The base agreement for New Wave IT services: Orders, fees, confidentiality, data, warranties, liability, term, and termination.',
+    canonical: 'https://www.newwaveitfl.com/legal/master-services-agreement',
+    crumb: 'Master Services Agreement',
+  },
+  '/legal/managed-it-services-attachment': {
+    title: 'Service Attachment: Managed IT Services',
+    description: 'Scope, inclusions, exclusions, onboarding, and responsibilities for New Wave IT managed IT and 24/7 live support plans.',
+    canonical: 'https://www.newwaveitfl.com/legal/managed-it-services-attachment',
+    crumb: 'Managed IT Services Attachment',
+  },
+  '/legal/cybersecurity-services-attachment': {
+    title: 'Service Attachment: Cybersecurity Services',
+    description: 'Terms for New Wave IT managed security, detection and response, awareness training, compliance assistance, and authorized security testing.',
+    canonical: 'https://www.newwaveitfl.com/legal/cybersecurity-services-attachment',
+    crumb: 'Cybersecurity Services Attachment',
+  },
+  '/legal/cloud-services-attachment': {
+    title: 'Service Attachment: Cloud Services',
+    description: 'Terms for New Wave IT cloud migration, tenant administration, cloud backup, and the subscriptions it provisions for customers.',
+    canonical: 'https://www.newwaveitfl.com/legal/cloud-services-attachment',
+    crumb: 'Cloud Services Attachment',
+  },
+  '/legal/project-services-attachment': {
+    title: 'Service Attachment: Projects, Networks & Repairs',
+    description: 'Terms for New Wave IT statements of work: cabling, networks, cellular DAS and public-safety systems, installations, and equipment repair.',
+    canonical: 'https://www.newwaveitfl.com/legal/project-services-attachment',
+    crumb: 'Projects, Network Infrastructure, and Repairs Attachment',
+  },
+  '/legal/marketing-services-attachment': {
+    title: 'Service Attachment: Marketing & Digital Services',
+    description: 'Terms for New Wave: Social Engineering engagements: social media, brand, website design, marketing, integration, and digital oversight.',
+    canonical: 'https://www.newwaveitfl.com/legal/marketing-services-attachment',
+    crumb: 'Marketing and Digital Services Attachment',
+  },
+  '/legal/schedule-of-services': {
+    title: 'Schedule of Services — New Wave IT',
+    description: 'Definitions of each New Wave IT service line and the standard terms, hours, units, and baseline an Order refers to.',
+    canonical: 'https://www.newwaveitfl.com/legal/schedule-of-services',
+    crumb: 'Schedule of Services',
+  },
+  '/legal/data-processing-agreement': {
+    title: 'Data Processing Agreement — New Wave IT',
+    description: 'How New Wave IT processes personal data on behalf of customers: instructions, security, subprocessors, incidents, audits, and deletion.',
+    canonical: 'https://www.newwaveitfl.com/legal/data-processing-agreement',
+    crumb: 'Data Processing Agreement',
+  },
+  '/legal/service-level-objectives': {
+    title: 'Service Level Objectives — New Wave IT',
+    description: 'New Wave IT priority definitions, response and resolution targets, coverage hours, patching and maintenance windows, and exclusions.',
+    canonical: 'https://www.newwaveitfl.com/legal/service-level-objectives',
+    crumb: 'Service Level Objectives',
+  },
+  '/legal/schedule-of-third-party-services': {
+    title: 'Schedule of Third-Party Services — New Wave IT',
+    description: 'The third-party platforms New Wave IT uses to deliver its services and the subscriptions it provisions for customers, and whose terms apply.',
+    canonical: 'https://www.newwaveitfl.com/legal/schedule-of-third-party-services',
+    crumb: 'Schedule of Third-Party Services',
   },
 } satisfies Record<string, StaticPageEntry>);
 
