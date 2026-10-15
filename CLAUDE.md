@@ -2,6 +2,16 @@
 
 ## Recent Changes
 
+### Homepage testimonials removed until reviews can be linked (2026-10-15)
+
+- The homepage "Customer Stories" band (`src/components/Testimonials.tsx`)
+  showed three hard-coded five-star quotes attributed to named people and
+  companies, with no link to a review source. The component is deleted and
+  `HomePage` in `App.tsx` no longer renders it. Bring reviews back only when
+  each one links to where it was posted (Google, Clutch, etc.).
+- The admin sidebar's "Testimonials" entry still points at an unimplemented
+  editor, as before; nothing on the live site reads it.
+
 ### Customers: Watchtower and an "Apps we've developed" section (2026-09-25)
 
 - Watchtower (`watchtowerapp.app`, remote access software for MSP support
