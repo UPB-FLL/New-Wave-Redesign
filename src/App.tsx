@@ -38,6 +38,17 @@ import ContactPage from './pages/ContactPage';
 import TermsAndConditionsPage from './pages/TermsAndConditionsPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import CookiePolicyPage from './pages/CookiePolicyPage';
+import LegalHubPage from './pages/LegalHubPage';
+import LegalMasterServicesAgreementPage from './pages/LegalMasterServicesAgreementPage';
+import LegalManagedItServicesAttachmentPage from './pages/LegalManagedItServicesAttachmentPage';
+import LegalCybersecurityServicesAttachmentPage from './pages/LegalCybersecurityServicesAttachmentPage';
+import LegalCloudServicesAttachmentPage from './pages/LegalCloudServicesAttachmentPage';
+import LegalProjectServicesAttachmentPage from './pages/LegalProjectServicesAttachmentPage';
+import LegalMarketingServicesAttachmentPage from './pages/LegalMarketingServicesAttachmentPage';
+import LegalScheduleOfServicesPage from './pages/LegalScheduleOfServicesPage';
+import LegalDataProcessingAgreementPage from './pages/LegalDataProcessingAgreementPage';
+import LegalServiceLevelObjectivesPage from './pages/LegalServiceLevelObjectivesPage';
+import LegalScheduleOfThirdPartyServicesPage from './pages/LegalScheduleOfThirdPartyServicesPage';
 import CybersecurityPage from './pages/CybersecurityPage';
 import WhyUsPage from './pages/WhyUsPage';
 import AboutPage from './pages/AboutPage';
@@ -149,6 +160,17 @@ export default function App() {
         <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
         <Route path="/cookie-policy" element={<CookiePolicyPage />} />
+        <Route path="/legal" element={<LegalHubPage />} />
+        <Route path="/legal/master-services-agreement" element={<LegalMasterServicesAgreementPage />} />
+        <Route path="/legal/managed-it-services-attachment" element={<LegalManagedItServicesAttachmentPage />} />
+        <Route path="/legal/cybersecurity-services-attachment" element={<LegalCybersecurityServicesAttachmentPage />} />
+        <Route path="/legal/cloud-services-attachment" element={<LegalCloudServicesAttachmentPage />} />
+        <Route path="/legal/project-services-attachment" element={<LegalProjectServicesAttachmentPage />} />
+        <Route path="/legal/marketing-services-attachment" element={<LegalMarketingServicesAttachmentPage />} />
+        <Route path="/legal/schedule-of-services" element={<LegalScheduleOfServicesPage />} />
+        <Route path="/legal/data-processing-agreement" element={<LegalDataProcessingAgreementPage />} />
+        <Route path="/legal/service-level-objectives" element={<LegalServiceLevelObjectivesPage />} />
+        <Route path="/legal/schedule-of-third-party-services" element={<LegalScheduleOfThirdPartyServicesPage />} />
         <Route path="/cybersecurity" element={<CybersecurityPage />} />
         <Route path="/why-us" element={<WhyUsPage />} />
         <Route path="/about" element={<AboutPage />} />

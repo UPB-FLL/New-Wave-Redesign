@@ -16,7 +16,10 @@ import {
   SITE_URL,
   divisionServicePath,
 } from '../../divisions/socialEngineering/site';
+import { LEGAL_HUB_PATH, SERVICE_DOCUMENTS } from '../../lib/legalDocuments';
 import { prerenderedItRoutes } from '../../lib/routeMeta';
+
+const LEGAL_SECTION_PATHS = [LEGAL_HUB_PATH, ...SERVICE_DOCUMENTS.map((document) => document.path)];
 
 const root = path.resolve(__dirname, '../../..');
 const read = (file: string) => readFileSync(path.join(root, file), 'utf8');
@@ -31,6 +34,8 @@ const PARENT_SITEMAP_PATHS = [
   '/l/cybersecurity-guide', '/l/it-support-guide', '/l/it-repair-guide', '/l/managed-it-guide',
   '/l/cloud-solutions-guide', '/l/network-infrastructure-guide', '/privacy-policy', '/terms-and-conditions',
   '/cookie-policy',
+  // The legal section (2026-10-15): the hub and the service agreement documents.
+  ...LEGAL_SECTION_PATHS,
 ];
 
 // While the division is unpublished, none of its URLs may be listed or served.

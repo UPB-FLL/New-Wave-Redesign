@@ -214,6 +214,50 @@
       "destination": "/cookie-policy/index.html"
     },
     {
+      "source": "/legal",
+      "destination": "/legal/index.html"
+    },
+    {
+      "source": "/legal/master-services-agreement",
+      "destination": "/legal/master-services-agreement/index.html"
+    },
+    {
+      "source": "/legal/managed-it-services-attachment",
+      "destination": "/legal/managed-it-services-attachment/index.html"
+    },
+    {
+      "source": "/legal/cybersecurity-services-attachment",
+      "destination": "/legal/cybersecurity-services-attachment/index.html"
+    },
+    {
+      "source": "/legal/cloud-services-attachment",
+      "destination": "/legal/cloud-services-attachment/index.html"
+    },
+    {
+      "source": "/legal/project-services-attachment",
+      "destination": "/legal/project-services-attachment/index.html"
+    },
+    {
+      "source": "/legal/marketing-services-attachment",
+      "destination": "/legal/marketing-services-attachment/index.html"
+    },
+    {
+      "source": "/legal/schedule-of-services",
+      "destination": "/legal/schedule-of-services/index.html"
+    },
+    {
+      "source": "/legal/data-processing-agreement",
+      "destination": "/legal/data-processing-agreement/index.html"
+    },
+    {
+      "source": "/legal/service-level-objectives",
+      "destination": "/legal/service-level-objectives/index.html"
+    },
+    {
+      "source": "/legal/schedule-of-third-party-services",
+      "destination": "/legal/schedule-of-third-party-services/index.html"
+    },
+    {
       "source": "/l/cybersecurity-guide",
       "destination": "/l/cybersecurity-guide/index.html"
     },

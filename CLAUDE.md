@@ -2,6 +2,26 @@
 
 ## Recent Changes
 
+### Legal section: service agreement documents (2026-10-15)
+
+`/legal` is a hub (`LegalHubPage.tsx`) listing New Wave IT's service agreement
+set and the three website policies, modeled on the structure MSPs publish: a
+Master Services Agreement, a Service Attachment per service line (Managed IT,
+Cybersecurity, Cloud, Projects/Networks/Repairs, and the Social Engineering
+division's Marketing and Digital Services), a Schedule of Services, a Data
+Processing Agreement, Service Level Objectives, and a Schedule of Third-Party
+Services, each a first-party page under `/legal/*` (`src/pages/Legal*.tsx`).
+`src/lib/legalDocuments.ts` is the registry; `LegalSectionPages.test.tsx`
+checks each document's page, `IT_PAGE_META` entry (with the Legal breadcrumb),
+route, rewrite, and sitemap URL. The documents are attorney-review drafts: the
+Order carries the commercial terms, and every default they state (month to
+month, Net 15, 12-month fee cap, P1 30-minute response, and so on) is listed
+with the attorney review points in `docs/legal-service-agreements-2026-10-15.md`.
+Keep them consistent with the website's claims (no long-term contracts, under
+an hour average response, no sale of data). The footer's legal links begin
+with "Legal", and the Terms point to the hub. Sitemap entries for the legal
+pages carry `lastmod`.
+
 ### Dead CSP entries removed (2026-10-15)
 
 `vercel.json` no longer allows `https://stream.mux.com` in `connect-src` or

@@ -127,6 +127,7 @@ export default function Footer() {
           <p className="text-sm text-[var(--nw-mist-gray)]">&copy; {new Date().getFullYear()} New Wave IT. All rights reserved.</p>
           <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 pb-16 sm:pb-0">
             {[
+              { label: 'Legal', to: '/legal' },
               { label: 'Privacy Policy', to: '/privacy-policy' },
               { label: 'Terms and Conditions', to: '/terms-and-conditions' },
               { label: 'Cookie Policy', to: '/cookie-policy' },

@@ -59,7 +59,9 @@ export default function TermsAndConditionsPage() {
         <h2 id="paid-services-and-service-agreements" className={HEADING_CLASS}>Paid Services and Service Agreements</h2>
         <p>
           Paid services may be governed by a master services agreement (MSA), statement of work
-          (SOW), proposal, order form, invoice, or another written service document. If a signed
+          (SOW), proposal, order form, invoice, or another written service document. Our current
+          service agreement documents are published on the{' '}
+          <Link className={LINK_CLASS} to="/legal">Legal</Link> page. If a signed
           service agreement conflicts with these Terms, the signed service agreement will control
           to the extent of the conflict. These Terms fill gaps only where a controlling service
           document does not address the subject.

@@ -155,6 +155,7 @@ export function DivisionFooter() {
           </p>
           <div className="flex flex-wrap gap-x-4 gap-y-2">
             {[
+              { label: 'Legal', to: '/legal' },
               { label: 'Privacy Policy', to: '/privacy-policy' },
               { label: 'Terms and Conditions', to: '/terms-and-conditions' },
               { label: 'Cookie Policy', to: '/cookie-policy' },
