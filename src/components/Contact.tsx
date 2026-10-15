@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { CheckCircle, Mail, MapPin, Phone, Send } from 'lucide-react';
 import { useContent } from '../lib/useContent';
 import { FadeIn } from './ui/fade-in';
+import FormPrivacyNotice from './legal/FormPrivacyNotice';
 
 interface FormData {
   name: string;
@@ -308,6 +309,7 @@ export default function Contact({
                     </>
                   )}
                 </button>
+                <FormPrivacyNotice action="Sending this message" />
               </form>
             )}
           </FadeIn>

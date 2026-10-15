@@ -12,7 +12,7 @@ export default function PrivacyPolicyPage() {
   usePageMeta(IT_PAGE_META['/privacy-policy']);
 
   return (
-    <LegalPageLayout title="Privacy Policy" effectiveDate="August 11, 2026">
+    <LegalPageLayout title="Privacy Policy" effectiveDate="October 15, 2026">
       <section className={SECTION_CLASS} aria-labelledby="scope">
         <h2 id="scope" className={HEADING_CLASS}>Scope</h2>
         <p>
@@ -46,7 +46,9 @@ export default function PrivacyPolicyPage() {
           <li>
             <strong>Device and usage data,</strong> such as IP address, device and browser type, referrer,
             pages viewed, interaction events, performance information, and approximate location derived
-            from an IP address.
+            from an IP address. When you submit a website form, we also use your IP address and the
+            country our hosting provider derives from it to screen the submission for spam and to limit
+            submissions to the United States.
           </li>
           <li>
             <strong>Authorized vendor records,</strong> including service and ticket information from{' '}
@@ -64,11 +66,18 @@ export default function PrivacyPolicyPage() {
           <li>authenticate users and manage accounts, permissions, and sessions;</li>
           <li>send operational, service, security, billing, and permitted marketing communications;</li>
           <li>secure, monitor, troubleshoot, and debug our website, systems, and services;</li>
+          <li>screen website submissions for spam and automated abuse, and limit them to the United States;</li>
           <li>analyze performance and usage and improve our website, offerings, and support;</li>
           <li>meet legal, tax, accounting, contractual, and recordkeeping obligations;</li>
           <li>enforce agreements and protect rights, property, safety, and service integrity; and</li>
           <li>detect, investigate, and prevent fraud, abuse, unauthorized access, and other misuse.</li>
         </ul>
+        <p>
+          You can opt out of marketing email at any time by using the unsubscribe link in the message
+          or by emailing <a className={LINK_CLASS} href="mailto:support@newwaveitfl.com">support@newwaveitfl.com</a>.
+          We may still send operational messages about requests, accounts, security, invoices, and
+          services you have asked for.
+        </p>
       </section>
 
       <section className={SECTION_CLASS} aria-labelledby="how-we-disclose-information">
@@ -78,6 +87,13 @@ export default function PrivacyPolicyPage() {
           <li>
             service providers that support our operations, including Supabase, Resend, SuperOps,
             Twilio, Elfsight, and Vercel, subject to their services, terms, and data practices;
+          </li>
+          <li>
+            providers whose content your browser loads directly when you visit the website, which
+            receive your IP address and browser details with each request: Pexels and its
+            content-delivery provider Cloudflare (the homepage video and images), Google (Google Fonts),
+            and the chat widget provider named above. Our{' '}
+            <Link className={LINK_CLASS} to="/cookie-policy">Cookie Policy</Link> lists each one;
           </li>
           <li>vendors and systems a customer authorizes or directs us to use;</li>
           <li>lawyers, accountants, insurers, auditors, and other professional advisers;</li>
@@ -95,9 +111,11 @@ export default function PrivacyPolicyPage() {
       <section className={SECTION_CLASS} aria-labelledby="sale-sharing-and-targeted-advertising">
         <h2 id="sale-sharing-and-targeted-advertising" className={HEADING_CLASS}>Sale, Sharing, and Targeted Advertising</h2>
         <p>
-          New Wave IT LLC does not currently sell personal information for money or use personal
-          information for cross-context behavioral advertising. Embedded and analytics providers may
-          nevertheless receive technical usage data when their tools operate on the website. Where an
+          New Wave IT LLC does not sell personal information for money or other consideration, does not
+          sell sensitive personal data, and does not use or share personal information for targeted or
+          cross-context behavioral advertising. Embedded and analytics providers may nevertheless receive
+          technical usage data when their tools operate on the website, and we do not authorize any
+          third party to use the website to track you across other websites over time. Where an
           applicable privacy law gives you a right to opt out of a covered sale, sharing, or targeted
           advertising activity, email <a className={LINK_CLASS} href="mailto:support@newwaveitfl.com">support@newwaveitfl.com</a>
           {' '}to submit the request.
@@ -108,9 +126,13 @@ export default function PrivacyPolicyPage() {
         <h2 id="cookies-and-similar-technologies" className={HEADING_CLASS}>Cookies and Similar Technologies</h2>
         <p>
           We use cookies and related technologies as described in our{' '}
-          <Link className={LINK_CLASS} to="/cookie-policy">Cookie Policy</Link>. Vercel Analytics and{' '}
-          <span>Elf<span>sight</span></span> are active on the website for usage and performance insights
-          and embedded chat functionality, respectively. Google Analytics is planned but remains disabled.
+          <Link className={LINK_CLASS} to="/cookie-policy">Cookie Policy</Link>, which lists every
+          technology we found on the live website and what each one does. In summary: the website sets
+          no cookies of its own and uses browser storage only to cache page content and hold a support
+          session you start; Vercel Analytics measures page views without cookies or a persistent
+          identifier; the <span>Elf<span>sight</span></span> chat widget, when it loads, may use its own
+          cookies; and the homepage video is loaded from Pexels, whose content-delivery provider sets
+          two bot-protection cookies. Google Analytics is planned but remains disabled.
         </p>
       </section>
 
@@ -169,11 +191,12 @@ export default function PrivacyPolicyPage() {
       </section>
 
       <section className={SECTION_CLASS} aria-labelledby="global-privacy-control">
-        <h2 id="global-privacy-control" className={HEADING_CLASS}>Global Privacy Control</h2>
+        <h2 id="global-privacy-control" className={HEADING_CLASS}>Do Not Track and Global Privacy Control</h2>
         <p>
           Our current practices described in this Policy do not involve the sale or sharing of personal
           information for cross-context behavioral advertising, so a Global Privacy Control signal does not
-          presently change how this website behaves. If those practices change, New Wave IT LLC will implement
+          presently change how this website behaves. For the same reason, the website does not respond to
+          browser Do Not Track signals: there is no cross-site tracking on it for such a signal to limit. If those practices change, New Wave IT LLC will implement
           controls required by applicable law and update this Policy before that change. You may continue to
           submit applicable privacy-rights requests through the process described above or by emailing{' '}
           <a className={LINK_CLASS} href="mailto:support@newwaveitfl.com">support@newwaveitfl.com</a>.

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { AlertCircle, CheckCircle, Mail, Send } from 'lucide-react';
+import FormPrivacyNotice from '../legal/FormPrivacyNotice';
 import { ApiError, sendSupportEmail } from '../../lib/supportApi';
 
 const supportInbox = 'support@newwaveitfl.com';
@@ -112,6 +113,7 @@ export default function SupportEmailCard() {
             </>
           )}
         </button>
+        <FormPrivacyNotice action="Sending this request" />
       </form>
     </div>
   );

@@ -23,6 +23,7 @@ import {
   savePortalSession,
   verifyLoginCode,
 } from '../../lib/supportApi';
+import FormPrivacyNotice from '../legal/FormPrivacyNotice';
 
 const superOpsPortalUrl = import.meta.env.VITE_SUPEROPS_PORTAL_URL || 'https://super-ops.newwaveitfl.com';
 
@@ -164,6 +165,7 @@ export default function CustomerPortalCard() {
             <button type="submit" disabled={busy || !email} className="btn-primary w-full disabled:cursor-not-allowed disabled:opacity-60">
               {busy ? 'Sending code...' : 'Email me a sign-in code'}
             </button>
+            <FormPrivacyNotice action="Requesting a sign-in code" />
           </form>
         ) : null}
 

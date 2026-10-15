@@ -85,11 +85,16 @@ describe('PrivacyPolicyPage', () => {
     expect(screen.getByText(/SuperOps/i)).toBeInTheDocument();
     expect(screen.getByText(/unless a law requires continued retention or deletion cannot be completed immediately because of backup or system constraints/i)).toBeInTheDocument();
     expect(screen.queryByText(/securely retain information when those purposes no longer require it/i)).not.toBeInTheDocument();
-    const gpcSection = screen.getByRole('heading', { name: 'Global Privacy Control' }).closest('section');
+    expect(screen.getByText(/does not sell sensitive personal data/i)).toBeInTheDocument();
+    expect(screen.getByText(/Pexels and its content-delivery provider Cloudflare/i)).toBeInTheDocument();
+    expect(screen.getByText(/screen website submissions for spam and automated abuse/i)).toBeInTheDocument();
+    expect(screen.getByText(/opt out of marketing email at any time/i)).toBeInTheDocument();
+    const gpcSection = screen.getByRole('heading', { name: 'Do Not Track and Global Privacy Control' }).closest('section');
     expect(gpcSection).not.toHaveTextContent(/we honor/i);
+    expect(gpcSection).toHaveTextContent(/does not respond to browser Do Not Track signals/i);
     expect(gpcSection).toHaveTextContent(/current practices described in this Policy do not involve the sale or sharing of personal information for cross-context behavioral advertising, so a Global Privacy Control signal does not presently change how this website behaves/i);
     expect(gpcSection).toHaveTextContent(/support@newwaveitfl\.com/i);
-    expect(screen.getByText('Effective date: August 11, 2026')).toBeInTheDocument();
+    expect(screen.getByText('Effective date: October 15, 2026')).toBeInTheDocument();
     expect(screen.getByText(/710 NW 5th Ave, Suite 1072/)).toBeInTheDocument();
     expect(screen.getByText(/Fort Lauderdale, FL 33311/)).toBeInTheDocument();
     expect(vi.mocked(usePageMeta)).toHaveBeenCalledWith({
@@ -102,7 +107,7 @@ describe('PrivacyPolicyPage', () => {
 });
 
 describe('CookiePolicyPage', () => {
-  it('states the U.S. scope, inactive analytics, and legal contact', () => {
+  it('states the U.S. scope, inactive analytics, the scanned inventory, and legal contact', () => {
     render(
       <MemoryRouter>
         <CookiePolicyPage />
@@ -113,7 +118,19 @@ describe('CookiePolicyPage', () => {
     expect(screen.getByText(/Google Analytics is not currently active/i)).toBeInTheDocument();
     expect(screen.getByText(/website and services are offered only in the United States/i)).toBeInTheDocument();
     expect(screen.getByText(/support@newwaveitfl\.com/i)).toBeInTheDocument();
-    expect(screen.getByText('Effective date: August 11, 2026')).toBeInTheDocument();
+    expect(screen.getByText('Effective date: October 15, 2026')).toBeInTheDocument();
+    // The inventory lists what the production scan found: every first-party storage key,
+    // the cookieless analytics, the chat widget, Pexels' Cloudflare cookies, and Google Fonts.
+    expect(screen.getByText(/last scanned the live website on October 15, 2026/i)).toBeInTheDocument();
+    ['nw_content_v2:*', 'nwit.support.portal, nwit.support.chat', 'nw-chunk-reload-at', 'Vercel Web Analytics', 'Elfsight chat widget', '__cf_bm, _cfuvid', 'Google Fonts'].forEach(
+      (technology) => expect(screen.getByRole('rowheader', { name: technology })).toBeInTheDocument(),
+    );
+    expect(screen.getByText(/Visitors are identified by a hash of the request, which Vercel discards after 24 hours/i)).toBeInTheDocument();
+    expect(screen.getByText(/When the widget loads, Elfsight may use its own cookies/i)).toBeInTheDocument();
+    expect(screen.getByText(/we do not show a cookie consent banner/i)).toBeInTheDocument();
+    expect(screen.getByText(/Do Not Track/)).toBeInTheDocument();
+    // Never describe a technology as active that the site does not load.
+    expect(screen.queryByText(/Elfsight.*is active/i)).not.toBeInTheDocument();
     expect(screen.getByText(/710 NW 5th Ave, Suite 1072/)).toBeInTheDocument();
     expect(screen.getByText(/Fort Lauderdale, FL 33311/)).toBeInTheDocument();
     expect(vi.mocked(usePageMeta)).toHaveBeenCalledWith({

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertCircle, MessageCircle, Send, Smartphone, X } from 'lucide-react';
+import FormPrivacyNotice from '../legal/FormPrivacyNotice';
 import {
   ApiError,
   ChatMessage,
@@ -190,6 +191,7 @@ export default function SupportChatCard() {
           <button type="submit" disabled={starting} className="btn-primary w-full disabled:cursor-not-allowed disabled:opacity-60">
             {starting ? 'Texting a technician...' : 'Start chat'}
           </button>
+          <FormPrivacyNotice action="Starting a chat" detail="Your first message is texted to an on-call technician's phone." />
         </form>
       ) : (
         <div className="flex flex-col">
