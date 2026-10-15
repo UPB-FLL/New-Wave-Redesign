@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { CheckCircle, Send, X } from 'lucide-react';
+import FormPrivacyNotice from './legal/FormPrivacyNotice';
 
 interface QuoteModalProps {
   isOpen: boolean;
@@ -149,6 +150,7 @@ export default function QuoteModal({ isOpen, onClose, tier }: QuoteModalProps) {
                   </>
                 )}
               </button>
+              <FormPrivacyNotice action="Requesting a quote" />
             </form>
           )}
         </div>

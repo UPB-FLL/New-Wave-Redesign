@@ -2,6 +2,34 @@
 
 ## Recent Changes
 
+### Cookie and privacy policies matched to the live site (2026-10-15)
+
+A legal review of the Cookie Policy, Privacy Policy, and Terms against what
+`www.newwaveitfl.com` actually loads (headless-browser scan plus source).
+Findings and the law applied: `docs/legal-compliance-review-2026-10-15.md`.
+
+- **Cookie Policy** (`CookiePolicyPage.tsx`) now carries an inventory keyed
+  to the scan date (`COOKIE_INVENTORY_REVIEWED`): the site sets no cookies of
+  its own; local/session storage keys; Vercel Web Analytics (cookieless,
+  24-hour hash); the Elfsight widget "when it loads"; Pexels' Cloudflare
+  cookies `__cf_bm`/`_cfuvid` from the homepage video; Google Fonts. It says
+  why there is no consent banner and how Do Not Track and Global Privacy
+  Control are treated. Re-scan and update the tables whenever a script,
+  embed, or media source changes.
+- **Privacy Policy** adds the IP-country form gate and spam screening, the
+  content providers the browser contacts, "does not sell sensitive personal
+  data", a CAN-SPAM opt-out line, and a "Do Not Track and Global Privacy
+  Control" section. Both policies are effective October 15, 2026; the Terms
+  are unchanged.
+- **Notice at collection**: `src/components/legal/FormPrivacyNotice.tsx`
+  sits under the submit button of the contact, quote, support email, support
+  chat, and portal sign-in forms (router links inside a router, anchors
+  outside). `FormPrivacyNotice.test.tsx` checks each form carries it.
+- **Never describe as active what the site does not load**: the Elfsight
+  script (`elfsightcdn.com`) is refused by the CSP's `script-src`
+  (`*.elfsight.com`), so the widget has never run in production. Fixing or
+  removing it is a product decision listed under follow-ups in the review.
+
 ### Homepage testimonials removed until reviews can be linked (2026-10-15)
 
 - The homepage "Customer Stories" band (`src/components/Testimonials.tsx`)
