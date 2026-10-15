@@ -80,7 +80,7 @@ describe('PrivacyPolicyPage', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Privacy Policy' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /Information We Collect/i })).toBeInTheDocument();
     expect(screen.getByText(/Vercel Analytics/i)).toBeInTheDocument();
-    expect(screen.getByText(/Elfsight/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Elfsight/i)).not.toBeInTheDocument();
     expect(screen.getByText(/Twilio/i)).toBeInTheDocument();
     expect(screen.getByText(/SuperOps/i)).toBeInTheDocument();
     expect(screen.getByText(/unless a law requires continued retention or deletion cannot be completed immediately because of backup or system constraints/i)).toBeInTheDocument();
@@ -120,13 +120,15 @@ describe('CookiePolicyPage', () => {
     expect(screen.getByText(/support@newwaveitfl\.com/i)).toBeInTheDocument();
     expect(screen.getByText('Effective date: October 15, 2026')).toBeInTheDocument();
     // The inventory lists what the production scan found: every first-party storage key,
-    // the cookieless analytics, the chat widget, Pexels' Cloudflare cookies, and Google Fonts.
+    // the cookieless analytics, Pexels' Cloudflare cookies, and Google Fonts. The Elfsight chat
+    // widget was removed from the site on October 15, 2026 and must not reappear in the inventory.
     expect(screen.getByText(/last scanned the live website on October 15, 2026/i)).toBeInTheDocument();
-    ['nw_content_v2:*', 'nwit.support.portal, nwit.support.chat', 'nw-chunk-reload-at', 'Vercel Web Analytics', 'Elfsight chat widget', '__cf_bm, _cfuvid', 'Google Fonts'].forEach(
+    ['nw_content_v2:*', 'nwit.support.portal, nwit.support.chat', 'nw-chunk-reload-at', 'Vercel Web Analytics', '__cf_bm, _cfuvid', 'Google Fonts'].forEach(
       (technology) => expect(screen.getByRole('rowheader', { name: technology })).toBeInTheDocument(),
     );
     expect(screen.getByText(/Visitors are identified by a hash of the request, which Vercel discards after 24 hours/i)).toBeInTheDocument();
-    expect(screen.getByText(/When the widget loads, Elfsight may use its own cookies/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Elfsight/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/We do not use a chat widget/i)).toBeInTheDocument();
     expect(screen.getByText(/we do not show a cookie consent banner/i)).toBeInTheDocument();
     expect(screen.getByText(/Do Not Track/)).toBeInTheDocument();
     // Never describe a technology as active that the site does not load.

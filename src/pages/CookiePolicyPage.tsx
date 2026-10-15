@@ -67,13 +67,6 @@ const THIRD_PARTY_SERVICES: InventoryRow[] = [
     duration: 'No cookie or stored identifier.',
   },
   {
-    technology: 'Elfsight chat widget',
-    provider: 'Elfsight',
-    kind: 'Third-party script',
-    purpose: 'Provides the chat window in the corner of the page. When the widget loads, Elfsight may use its own cookies or storage to keep the conversation open and may receive technical data and whatever you type into it.',
-    duration: 'Set by Elfsight under its own policy.',
-  },
-  {
     technology: '__cf_bm, _cfuvid',
     provider: 'Pexels (delivered through Cloudflare)',
     kind: 'Third-party cookies',
@@ -147,7 +140,7 @@ export default function CookiePolicyPage() {
           <li>The New Wave IT website sets <strong>no cookies of its own</strong>.</li>
           <li>It uses your browser's local and session storage for functional purposes only: caching page content and holding a support session you start.</li>
           <li>Our analytics service does not use cookies and does not track you across other websites.</li>
-          <li>Some content is loaded from third parties (the homepage video, the chat widget, and fonts). Two cookies set by Pexels' content-delivery provider are the only cookies our scan found.</li>
+          <li>Some content is loaded from third parties (the homepage video and fonts). We do not use a chat widget. Two cookies set by Pexels' content-delivery provider are the only cookies our scan found.</li>
           <li>We do not use advertising, retargeting, or cross-site tracking cookies, and we do not sell or share personal information, so we do not show a cookie consent banner. We will add visitor controls before activating any technology that calls for them.</li>
         </ul>
       </section>
@@ -210,7 +203,7 @@ export default function CookiePolicyPage() {
         <p>
           Most browsers let you block or delete cookies and clear local or session storage, and let you
           block third-party cookies on their own. Blocking or deleting these technologies may interrupt a
-          support session, remove cached content, stop the chat widget or homepage video from loading, or
+          support session, remove cached content, stop the homepage video from loading, or
           cause other website features not to function as intended. Consult your browser's settings and
           documentation for available controls.
         </p>

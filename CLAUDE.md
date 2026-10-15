@@ -25,10 +25,15 @@ Findings and the law applied: `docs/legal-compliance-review-2026-10-15.md`.
   sits under the submit button of the contact, quote, support email, support
   chat, and portal sign-in forms (router links inside a router, anchors
   outside). `FormPrivacyNotice.test.tsx` checks each form carries it.
-- **Never describe as active what the site does not load**: the Elfsight
-  script (`elfsightcdn.com`) is refused by the CSP's `script-src`
-  (`*.elfsight.com`), so the widget has never run in production. Fixing or
-  removing it is a product decision listed under follow-ups in the review.
+- **Elfsight chatbot removed** (same day, owner's decision): the script
+  (`elfsightcdn.com`) had been refused by the CSP's `script-src`
+  (`*.elfsight.com`), so the widget never ran in production.
+  `ElfsightChatbot.tsx` and its test are deleted, `App.tsx` no longer mounts
+  it, the CSP drops every Elfsight host and sets `frame-src 'none'` (the site
+  embeds no iframes), `DivisionHeader` no longer looks for a chat launcher to
+  make inert, and both policies say the site uses no chat widget
+  (`LegalPages.test.tsx` forbids the name from reappearing). Never describe
+  as active what the site does not load.
 
 ### Homepage testimonials removed until reviews can be linked (2026-10-15)
 
