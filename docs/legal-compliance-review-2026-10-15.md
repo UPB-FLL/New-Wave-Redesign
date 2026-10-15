@@ -96,9 +96,8 @@ judgment calls worth an attorney's hour:
    Policy table after either change.
    *Resolved the same day: the owner chose removal. The component, its CSP
    entries, and both policies' references are gone.*
-2. `stream.mux.com` is allowed in `connect-src`/`media-src` but
-   `useHlsVideo.ts` is unused; the entries are dead.
-3. `Permissions-Policy` grants `geolocation=(self)` although nothing calls
-   `navigator.geolocation`; it could be `geolocation=()`.
+2. Resolved the same day: the `stream.mux.com` `connect-src`/`media-src`
+   entries, the unused `useHlsVideo.ts`, and the `hls.js` dependency are removed.
+3. Resolved the same day: `Permissions-Policy` now sets `geolocation=()`.
 4. Before Google Analytics or any ad pixel goes live, follow the activation
    gate in `docs/superpowers/specs/2026-08-11-legal-policies-design.md`.
