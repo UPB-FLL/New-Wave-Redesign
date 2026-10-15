@@ -2,6 +2,15 @@
 
 ## Recent Changes
 
+### Dead CSP entries removed (2026-10-15)
+
+`vercel.json` no longer allows `https://stream.mux.com` in `connect-src` or
+`media-src`: nothing used it. The unused `src/lib/useHlsVideo.ts` hook and
+the `hls.js` dependency it imported are gone with it. `Permissions-Policy`
+now sets `geolocation=()`, since nothing calls `navigator.geolocation`. The
+only remote hosts the CSP still names are Vercel Analytics, Google Fonts,
+Supabase, and Pexels (the homepage video), matching the Cookie Policy.
+
 ### Cookie and privacy policies matched to the live site (2026-10-15)
 
 A legal review of the Cookie Policy, Privacy Policy, and Terms against what
