@@ -94,6 +94,8 @@ judgment calls worth an attorney's hour:
    component. Decide deliberately: enabling it starts a third-party script
    that sets cookies and receives chat content. Re-scan and update the Cookie
    Policy table after either change.
+   *Resolved the same day: the owner chose removal. The component, its CSP
+   entries, and both policies' references are gone.*
 2. `stream.mux.com` is allowed in `connect-src`/`media-src` but
    `useHlsVideo.ts` is unused; the entries are dead.
 3. `Permissions-Policy` grants `geolocation=(self)` although nothing calls

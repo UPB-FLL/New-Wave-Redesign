@@ -11,7 +11,6 @@ vi.mock('../lib/useContent', () => ({
   useContentWithStatus: vi.fn(() => ({ content: {}, loaded: false })),
 }));
 vi.mock('@vercel/analytics/react', () => ({ Analytics: () => null }));
-vi.mock('../components/ElfsightChatbot', () => ({ default: () => null }));
 
 beforeAll(() => {
   vi.stubGlobal('IntersectionObserver', class { observe() {} unobserve() {} disconnect() {} });

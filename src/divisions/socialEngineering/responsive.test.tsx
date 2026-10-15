@@ -243,22 +243,15 @@ describe('mobile menu', () => {
     expect(document.getElementById('nwse-mobile-menu')).not.toBeNull();
   });
 
-  it('holds the page still and makes the chat launcher inert while the menu is open', () => {
-    // The site-wide chat widget renders outside the division root.
-    const launcher = document.createElement('div');
-    launcher.className = 'elfsight-app-bd622b00-b41f-499d-af8c-f1531914f29a';
-    document.body.appendChild(launcher);
+  it('holds the page still while the menu is open and restores the overflow it found', () => {
     document.documentElement.style.overflow = 'clip';
     try {
       renderAt(<SocialEngineeringHubPage />);
       openMenu();
       expect(document.documentElement.style.overflow).toBe('hidden');
-      expect(launcher).toHaveAttribute('inert');
       fireEvent.keyDown(document, { key: 'Escape' });
       expect(document.documentElement.style.overflow).toBe('clip');
-      expect(launcher).not.toHaveAttribute('inert');
     } finally {
-      launcher.remove();
       document.documentElement.style.overflow = '';
     }
   });

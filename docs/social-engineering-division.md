@@ -382,7 +382,6 @@ Before the Customers and Contact us pages go live:
   in `CLAUDE.md`).
 - The homepage shell's raw meta description (`index.html`) differs from the
   one `HomePage` sets at runtime. The title and canonical match.
-- The Elfsight chat widget is global and appears on division pages too.
 - The brand guide PDF's positioning page, tagline, and the kit's
   `03_Social/og-image-1200x630.*` still describe security testing. The site
   uses a regenerated OG image; the guide itself needs updating by its owner.

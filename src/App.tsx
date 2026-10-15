@@ -64,7 +64,6 @@ import BlogPostPage from './pages/BlogPostPage';
 import NotFoundPage from './pages/NotFoundPage';
 import { usePageMeta } from './lib/usePageMeta';
 import { HOME_PAGE_META } from './lib/routeMeta';
-import ElfsightChatbot from './components/ElfsightChatbot';
 import {
   DIVISION_BASE_PATH,
   DIVISION_CONTACT_PATH,
@@ -217,7 +216,6 @@ export default function App() {
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
       </BrowserRouter>
-      <ElfsightChatbot />
     </>
   );
 }
