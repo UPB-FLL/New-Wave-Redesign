@@ -33,7 +33,6 @@ import TrustBar from './components/TrustBar';
 import Stats from './components/Stats';
 import Services from './components/Services';
 import WhyUs from './components/WhyUs';
-import Testimonials from './components/Testimonials';
 import Footer from './components/Footer';
 import ContactPage from './pages/ContactPage';
 import TermsAndConditionsPage from './pages/TermsAndConditionsPage';
@@ -132,7 +131,6 @@ function HomePage() {
       <Stats />
       <Services />
       <WhyUs />
-      <Testimonials />
       <Footer />
     </div>
   );
