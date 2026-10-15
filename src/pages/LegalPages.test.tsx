@@ -80,7 +80,7 @@ describe('PrivacyPolicyPage', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Privacy Policy' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /Information We Collect/i })).toBeInTheDocument();
     expect(screen.getByText(/Vercel Analytics/i)).toBeInTheDocument();
-    expect(screen.getByText(/Elfsight/i)).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent(/Elfsight/i);
     expect(screen.getByText(/Twilio/i)).toBeInTheDocument();
     expect(screen.getByText(/SuperOps/i)).toBeInTheDocument();
     expect(screen.getByText(/unless a law requires continued retention or deletion cannot be completed immediately because of backup or system constraints/i)).toBeInTheDocument();
@@ -122,15 +122,14 @@ describe('CookiePolicyPage', () => {
     // The inventory lists what the production scan found: every first-party storage key,
     // the cookieless analytics, the chat widget, Pexels' Cloudflare cookies, and Google Fonts.
     expect(screen.getByText(/last scanned the live website on October 15, 2026/i)).toBeInTheDocument();
-    ['nw_content_v2:*', 'nwit.support.portal, nwit.support.chat', 'nw-chunk-reload-at', 'Vercel Web Analytics', 'Elfsight chat widget', '__cf_bm, _cfuvid', 'Google Fonts'].forEach(
+    ['nw_content_v2:*', 'nwit.support.portal, nwit.support.chat', 'nw-chunk-reload-at', 'Vercel Web Analytics', '__cf_bm, _cfuvid', 'Google Fonts'].forEach(
       (technology) => expect(screen.getByRole('rowheader', { name: technology })).toBeInTheDocument(),
     );
     expect(screen.getByText(/Visitors are identified by a hash of the request, which Vercel discards after 24 hours/i)).toBeInTheDocument();
-    expect(screen.getByText(/When the widget loads, Elfsight may use its own cookies/i)).toBeInTheDocument();
     expect(screen.getByText(/we do not show a cookie consent banner/i)).toBeInTheDocument();
     expect(screen.getByText(/Do Not Track/)).toBeInTheDocument();
-    // Never describe a technology as active that the site does not load.
-    expect(screen.queryByText(/Elfsight.*is active/i)).not.toBeInTheDocument();
+    // The chat widget is gone from the site, so it is gone from the policy too.
+    expect(document.body).not.toHaveTextContent(/Elfsight|chat widget/i);
     expect(screen.getByText(/710 NW 5th Ave, Suite 1072/)).toBeInTheDocument();
     expect(screen.getByText(/Fort Lauderdale, FL 33311/)).toBeInTheDocument();
     expect(vi.mocked(usePageMeta)).toHaveBeenCalledWith({

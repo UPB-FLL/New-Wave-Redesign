@@ -86,13 +86,13 @@ export default function PrivacyPolicyPage() {
         <ul className={LIST_CLASS}>
           <li>
             service providers that support our operations, including Supabase, Resend, SuperOps,
-            Twilio, Elfsight, and Vercel, subject to their services, terms, and data practices;
+            Twilio, and Vercel, subject to their services, terms, and data practices;
           </li>
           <li>
             providers whose content your browser loads directly when you visit the website, which
             receive your IP address and browser details with each request: Pexels and its
-            content-delivery provider Cloudflare (the homepage video and images), Google (Google Fonts),
-            and the chat widget provider named above. Our{' '}
+            content-delivery provider Cloudflare (the homepage video and images) and Google (Google
+            Fonts). Our{' '}
             <Link className={LINK_CLASS} to="/cookie-policy">Cookie Policy</Link> lists each one;
           </li>
           <li>vendors and systems a customer authorizes or directs us to use;</li>
@@ -130,9 +130,8 @@ export default function PrivacyPolicyPage() {
           technology we found on the live website and what each one does. In summary: the website sets
           no cookies of its own and uses browser storage only to cache page content and hold a support
           session you start; Vercel Analytics measures page views without cookies or a persistent
-          identifier; the <span>Elf<span>sight</span></span> chat widget, when it loads, may use its own
-          cookies; and the homepage video is loaded from Pexels, whose content-delivery provider sets
-          two bot-protection cookies. Google Analytics is planned but remains disabled.
+          identifier; and the homepage video is loaded from Pexels, whose content-delivery provider
+          sets two bot-protection cookies. Google Analytics is planned but remains disabled.
         </p>
       </section>
 

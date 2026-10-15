@@ -2,6 +2,18 @@
 
 ## Recent Changes
 
+### Elfsight chatbot removed (2026-10-15)
+
+The third-party chat widget never ran in production (its script host was not
+in the CSP) and the owner chose to remove it rather than unblock it.
+`ElfsightChatbot.tsx` and its test are gone, `App.tsx` no longer renders it,
+`vercel.json` drops the `*.elfsight.com` allowances (`frame-src` now falls
+back to `default-src 'self'`), and `DivisionHeader` no longer looks for a
+chat launcher to make inert. The Cookie Policy table and the Privacy Policy
+no longer mention a chat widget, and `LegalPages.test.tsx` fails if "Elfsight" or
+"chat widget" reappears in either. The support chat on `/support` is
+first-party and unaffected.
+
 ### Cookie and privacy policies matched to the live site (2026-10-15)
 
 A legal review of the Cookie Policy, Privacy Policy, and Terms against what

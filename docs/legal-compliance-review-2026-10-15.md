@@ -87,7 +87,7 @@ judgment calls worth an attorney's hour:
 
 ## Follow-ups (not done here; outside a legal review)
 
-1. **Elfsight is blocked by the site's own CSP.** `vercel.json` allows
+1. **Resolved the same day: the chatbot was removed** (component, CSP allowances, and policy mentions) rather than unblocked. Original note: **Elfsight is blocked by the site's own CSP.** `vercel.json` allows
    `script-src https://*.elfsight.com` but `ElfsightChatbot.tsx` loads
    `https://elfsightcdn.com/platform.js`. Either add `https://elfsightcdn.com`
    to `script-src` (and whatever hosts the widget then fetches) or remove the

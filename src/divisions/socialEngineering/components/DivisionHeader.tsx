@@ -33,9 +33,6 @@ const samePath = (pathname: string, path: string) => pathname.replace(/\/+$/, ''
  */
 const DESKTOP_NAV_QUERY = '(min-width: 64em)';
 
-/** The site-wide chat launcher (src/components/ElfsightChatbot.tsx) and its portal, outside the division root. */
-const CHAT_LAUNCHER_SELECTOR = '[class*="elfsight-app-"], #__EAAPS_PORTAL';
-
 /** Page links: after the Services menu on desktop, beside Overview in the phone and tablet sheet. */
 const pageLinks = [
   { label: 'Customers', path: DIVISION_CUSTOMERS_PATH },
@@ -70,8 +67,7 @@ export function DivisionHeader() {
   // The open menu covers the page (a full-height sheet on phones, a panel over
   // the dimmed page on tablets), so everything behind it is inert: Tab and a
   // screen reader's swipe stay in the header instead of reaching content the
-  // menu hides. That includes the site-wide chat launcher (ElfsightChatbot),
-  // which sits outside the division root. The page itself does not scroll
+  // menu hides. The page itself does not scroll
   // while the menu is open, so closing it returns the reader to where they
   // were. The menu exists only below DESKTOP_NAV_QUERY, so it closes if the
   // window widens to desktop, where its toggle is gone.
@@ -79,8 +75,7 @@ export function DivisionHeader() {
     if (!menuOpen) return;
     const header = headerRef.current;
     const behind = header?.parentElement ? [...header.parentElement.children].filter((element) => element !== header) : [];
-    const chat = [...document.querySelectorAll(CHAT_LAUNCHER_SELECTOR)].filter((element) => !header || !element.contains(header));
-    const inerted = [...behind, ...chat];
+    const inerted = behind;
     inerted.forEach((element) => element.setAttribute('inert', ''));
     const root = document.documentElement;
     const previousOverflow = root.style.overflow;
