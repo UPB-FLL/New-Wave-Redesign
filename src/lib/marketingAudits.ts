@@ -1,10 +1,12 @@
 import { supabase } from './supabase';
+import { adminAuthHeaders } from './adminAuth';
 
 /**
  * Marketing audit requests (NW Social Engineering). An admin queues a business,
- * by website and/or Instagram, with optional competitors; the hourly
- * marketing-audit routine runs the .claude/skills/marketing-audit skill and
- * writes public Google Drive links back to the row.
+ * by website and/or Instagram, with optional competitors, then starts the
+ * marketing-audit routine from the same screen (POST /api/audits/run). Each run
+ * executes the .claude/skills/marketing-audit skill on one queued row and
+ * writes public Google Drive links back to it.
  */
 
 export type AuditStatus = 'queued' | 'running' | 'done' | 'failed';
@@ -159,4 +161,15 @@ export async function addCompetitor(audit: MarketingAudit, draft: CompetitorDraf
 export async function deleteAudit(id: string): Promise<void> {
   const { error } = await supabase.from('marketing_audits').delete().eq('id', id);
   if (error) throw new Error(error.message);
+}
+
+/** Starts one routine run per queued audit (the server caps it); returns how many started. */
+export async function startQueuedAudits(): Promise<number> {
+  const response = await fetch('/api/audits/run', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(await adminAuthHeaders()) },
+  });
+  const body = (await response.json().catch(() => ({}))) as { started?: number; error?: string };
+  if (!response.ok) throw new Error(body.error || 'Could not start the audits.');
+  return body.started ?? 0;
 }

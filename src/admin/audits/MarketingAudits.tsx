@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  Plus, Trash2, RefreshCw, Loader2, ExternalLink, FolderOpen, Instagram, Globe, X, Clock, CheckCircle2, XCircle,
+  Plus, Trash2, RefreshCw, Loader2, ExternalLink, FolderOpen, Instagram, Globe, X, Clock, CheckCircle2, XCircle, Play,
 } from 'lucide-react';
 import {
   addCompetitor,
@@ -9,6 +9,7 @@ import {
   listAudits,
   queueAudit,
   requeueAudit,
+  startQueuedAudits,
   type AuditDraft,
   type CompetitorDraft,
   type MarketingAudit,
@@ -40,6 +41,8 @@ export default function MarketingAudits() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [adding, setAdding] = useState<{ id: string; competitor: CompetitorDraft } | null>(null);
+  const [starting, setStarting] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const refresh = async () => {
     try {
@@ -54,6 +57,33 @@ export default function MarketingAudits() {
   useEffect(() => {
     void refresh();
   }, []);
+
+  const queued = audits.filter((a) => a.status === 'queued').length;
+  const active = audits.some((a) => a.status === 'queued' || a.status === 'running');
+
+  // While audits are waiting or running, re-read the queue so status and Drive links appear on their own.
+  useEffect(() => {
+    if (!active) return;
+    const timer = window.setInterval(() => void refresh(), 30_000);
+    return () => window.clearInterval(timer);
+  }, [active]);
+
+  const startRuns = async () => {
+    setError(null);
+    setNotice(null);
+    setStarting(true);
+    try {
+      const started = await startQueuedAudits();
+      setNotice(
+        `Started ${started} audit run${started === 1 ? '' : 's'}. Each one takes a while; the Drive links appear here when it finishes.`
+      );
+      await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not start the audits.');
+    } finally {
+      setStarting(false);
+    }
+  };
 
   const setField = (key: keyof Omit<AuditDraft, 'competitors'>, value: string) => setDraft((d) => ({ ...d, [key]: value }));
   const setCompetitor = (i: number, key: 'name' | 'website' | 'instagram', value: string) =>
@@ -86,14 +116,33 @@ export default function MarketingAudits() {
 
   return (
     <div className="p-6 lg:p-8 max-w-6xl space-y-8">
-      <header className="space-y-2">
-        <h1 className="text-2xl font-bold text-white">Marketing audits</h1>
-        <p className="text-sm text-white/60 max-w-3xl">
-          Add a business by its website or Instagram, with any competitors you want compared; adding a competitor
-          later runs the audit again. The audit routine checks this queue every hour, builds the summary, slide deck and full audit, and saves them to Google
-          Drive under <span className="text-white/80">Customers</span>, shared with anyone who has the link.
-        </p>
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div className="space-y-2">
+          <h1 className="text-2xl font-bold text-white">Marketing audits</h1>
+          <p className="text-sm text-white/60 max-w-3xl">
+            Add a business by its website or Instagram, with any competitors you want compared; adding a competitor
+            later queues the audit again. Queued audits run when you press <span className="text-white/80">Run queued audits now</span>:
+            each run builds the summary, slide deck and full audit and saves them to Google Drive under{' '}
+            <span className="text-white/80">Customers</span>, shared with anyone who has the link.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => void startRuns()}
+          disabled={starting || queued === 0}
+          className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50"
+          style={{ background: '#39CCCC', color: '#0f1923' }}
+        >
+          {starting ? <Loader2 size={16} className="animate-spin" /> : <Play size={16} />} Run queued audits now
+          {queued > 0 && <span className="rounded-full px-2 text-xs" style={{ background: 'rgba(15,25,35,0.2)' }}>{queued}</span>}
+        </button>
       </header>
+
+      {notice && (
+        <div role="status" className="rounded-lg px-4 py-3 text-sm" style={{ background: 'rgba(57,204,204,0.12)', color: '#9EE7E7' }}>
+          {notice}
+        </div>
+      )}
 
       {error && (
         <div role="alert" className="rounded-lg px-4 py-3 text-sm" style={{ background: 'rgba(255,122,122,0.12)', color: '#FFB3B3' }}>
@@ -218,7 +267,7 @@ export default function MarketingAudits() {
                         />
                       ))}
                       <button type="submit" className="rounded-lg px-3 py-2 text-sm font-semibold" style={{ background: '#39CCCC', color: '#0f1923' }}>
-                        Add and run again
+                        Add and queue again
                       </button>
                       <button type="button" aria-label="Cancel" className="p-2 rounded-lg text-white/40 hover:text-white" onClick={() => setAdding(null)}>
                         <X size={16} />
@@ -243,7 +292,7 @@ export default function MarketingAudits() {
                           <Plus size={14} /> Add competitor
                         </button>
                         <button type="button" onClick={() => act(() => requeueAudit(a.id))} className="inline-flex items-center gap-1.5 text-white/60 hover:text-white">
-                          <RefreshCw size={14} /> Run again
+                          <RefreshCw size={14} /> Queue again
                         </button>
                       </>
                     )}

@@ -4,8 +4,8 @@
 
 ### Marketing audit queue and skill (2026-10-20)
 
-NW Social Engineering prospect audits, queued from the admin site and run by
-a Claude routine.
+NW Social Engineering prospect audits, queued from the admin site and run on
+demand by a Claude Code routine.
 
 - **Queue**: `/admin/audits` (`src/admin/audits/MarketingAudits.tsx`,
   `src/lib/marketingAudits.ts`) adds a business by website and/or Instagram
@@ -13,11 +13,20 @@ a Claude routine.
   re-queues it with the new competitor (`requeue_marketing_audit`, which
   raises while the audit is running). The screen shows only Google Drive
   links.
+- **Run on demand**: "Run queued audits now" posts to `api/audits/run.ts`
+  (`requireAdmin`), which fires the routine's API trigger once per queued
+  row, at most `MAX_RUNS_PER_CLICK` (3). Each run claims a row with
+  `FOR UPDATE SKIP LOCKED`, so parallel runs never share one, and a spare
+  run stops quietly. The routine has no schedule. Vercel needs
+  `AUDIT_ROUTINE_ID` (`trig_…`) and `AUDIT_ROUTINE_TOKEN` (shown once when
+  the API trigger is created on claude.ai); without them the route answers
+  503. The page re-reads the queue every 30 seconds while anything is
+  queued or running. "Queue again" and "Add and queue again" only re-queue.
 - **Table**: migration `20261020120000` creates `marketing_audits`.
   Admins (authenticated) can read, insert queued rows without links, and
   delete; only the service role updates rows. Every report-link column has
-  a CHECK requiring `https://drive.google.com/`. Apply it by hand, like the
-  others.
+  a CHECK requiring `https://drive.google.com/`. Applied to production on
+  2026-10-20 (recorded there as version `20261020165444`).
 - **Skill**: `.claude/skills/marketing-audit/` (SKILL.md, references, and
   scripts). It claims the oldest queued row, researches from public data,
   models ROI (fee-neutral: only ad spend is new money), and builds three
