@@ -12,12 +12,16 @@ Every audit produces three PDFs in the business's own brand (colors, fonts and l
 **Links are Google Drive links only.** No claude.ai, no website or source URLs as links (name sources in
 text instead). `check_links.py` must pass on all three before anything is reported done.
 
-## Build order (links depend on uploads)
+## Build order (links come from reserved Drive ids)
 
-1. Build and measure the full audit; print it; upload it → audit PDF link.
-2. Build the deck with that link on the closing slide; check it; print it; upload it → deck PDF link.
-3. Build the summary with the deck link, audit link and folder link; print it; upload it.
-4. `check_links.py` on the three local PDFs, which are the bytes that were uploaded.
+Reserve the three file ids and find or create the business folder first (`drive-publishing.md`, steps
+2–3); every link below is then known before anything is built.
+
+1. Build and measure the full audit; print it.
+2. Build the deck with the audit link on the closing slide; check it; print it.
+3. Build the summary with the deck link, audit link and folder link; print it.
+4. `check_links.py` on the three local PDFs. Then print them again in the workbench and upload those
+   (`drive-publishing.md`, steps 4–5); their page counts and links must equal the local ones.
 
 ## Full audit: ten boards (`build_audit.py` spec)
 

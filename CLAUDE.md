@@ -25,6 +25,12 @@ a Claude routine.
   josh@newwaveitfl.com's Drive under `Customers/<Business>/`, shared
   anyone-with-the-link as viewer, and writes the links back.
   `check_links.py` fails any report with a non-Drive link.
+  - **Drive upload**: Drive file ids are reserved first (`generateIds`), so
+    every link is final before anything is built. Files reach Composio's
+    sandbox only as tool-call text, so `pack_for_workbench.py` sends the
+    built sources in checksummed base64 pieces. `workbench_render.py`
+    prints them there with `render_pdf.cjs`'s settings, and they upload
+    under the reserved ids (`references/drive-publishing.md`).
   - The Node scripts are `.cjs` with their own `package.json`
     (playwright-core only; `npm ci --prefix` the scripts folder). They use
     the container's Chromium.

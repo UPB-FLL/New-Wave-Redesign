@@ -51,8 +51,9 @@ Write `$W/roi_inputs.json` with a source for every input, then
 ## 4. Build the reports — references/report-specs.md
 
 Pattern: `examples/sample/` (run its README to see the whole chain). Write the audit spec, deck script and
-summary JSON under `$W`, then build, check and print in the order the spec gives, uploading as you go
-(step 5), because each later file links to the earlier ones. Every checker must pass: `measure_audit.cjs`
+summary JSON under `$W`, then build, check and print in the order the spec gives. Reserve the Drive file
+ids first (step 5, references/drive-publishing.md steps 1–3), because each later file links to the
+earlier ones. Every checker must pass: `measure_audit.cjs`
 and `check_slides.cjs` exit 0, `render_pdf.cjs summary` prints one page, and
 `python3 -I $A/scripts/check_links.py <the three PDFs>` exits 0. Look at the screenshots before printing.
 
