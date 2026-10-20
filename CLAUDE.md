@@ -2,6 +2,35 @@
 
 ## Recent Changes
 
+### Marketing audit queue and skill (2026-10-20)
+
+NW Social Engineering prospect audits, queued from the admin site and run by
+a Claude routine.
+
+- **Queue**: `/admin/audits` (`src/admin/audits/MarketingAudits.tsx`,
+  `src/lib/marketingAudits.ts`) adds a business by website and/or Instagram
+  with optional competitors. "Add competitor" on an existing request
+  re-queues it with the new competitor (`requeue_marketing_audit`, which
+  raises while the audit is running). The screen shows only Google Drive
+  links.
+- **Table**: migration `20261020120000` creates `marketing_audits`.
+  Admins (authenticated) can read, insert queued rows without links, and
+  delete; only the service role updates rows. Every report-link column has
+  a CHECK requiring `https://drive.google.com/`. Apply it by hand, like the
+  others.
+- **Skill**: `.claude/skills/marketing-audit/` (SKILL.md, references, and
+  scripts). It claims the oldest queued row, researches from public data,
+  models ROI (fee-neutral: only ad spend is new money), and builds three
+  client-branded PDFs: summary, slides, and full audit. It uploads them to
+  josh@newwaveitfl.com's Drive under `Customers/<Business>/`, shared
+  anyone-with-the-link as viewer, and writes the links back.
+  `check_links.py` fails any report with a non-Drive link.
+  - The Node scripts are `.cjs` with their own `package.json`
+    (playwright-core only; `npm ci --prefix` the scripts folder). They use
+    the container's Chromium.
+  - `examples/sample/` is a made-up business that runs the whole chain.
+  - Real prospect research never goes in the repo.
+
 ### Dead CSP entries removed (2026-10-15)
 
 `vercel.json` no longer allows `https://stream.mux.com` in `connect-src` or
