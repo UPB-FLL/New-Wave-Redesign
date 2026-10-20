@@ -20,8 +20,15 @@ into the repository, and never commit it.
 npm ci --prefix .claude/skills/marketing-audit/scripts   # playwright-core only; uses /opt/pw-browsers/chromium
 ```
 
-Tools: Supabase MCP (project `edtwdybotkatgsglqrpw`, "NEW WAVE"), Composio (`googledrive` as
-josh@newwaveitfl.com, `scrapecreators`), Ahrefs, Ad Superpowers (Keyword Planner), WebSearch.
+Tools: everything outside this machine goes through **Composio** (the only connector the routine has),
+called with `COMPOSIO_MULTI_EXECUTE_TOOL` or, for scripted steps, `COMPOSIO_REMOTE_WORKBENCH`:
+- `supabase`: SQL on project `edtwdybotkatgsglqrpw` ("NEW WAVE") with `SUPABASE_BETA_RUN_SQL_QUERY`
+  (`read_only: false` for the claim and write-back statements below);
+- `googledrive` as josh@newwaveitfl.com (references/drive-publishing.md);
+- `scrapecreators` (Instagram), `ahrefs` (`AHREFS_*`), `googleads` (`GOOGLEADS_GENERATE_KEYWORD_IDEAS`).
+Load a tool's schema with `COMPOSIO_SEARCH_TOOLS` / `COMPOSIO_GET_TOOL_SCHEMAS` before its first call.
+WebSearch is built in. If a Composio toolkit reports no active connection, fail the audit with
+"Composio is not connected to <toolkit>".
 Check the Drive account first (references/drive-publishing.md, step 1): if it fails, don't claim a row.
 
 ## 1. Claim one row
