@@ -153,8 +153,8 @@ describe('division copy follows the brand guidelines', () => {
       auditContent.growth.heading,
     ].forEach((headline) => {
       const words = headline.split(/\s+/).slice(1);
-      // Groundswell (the audit engine) and its Currents are product names.
-      const properNouns = /^(Groundswell|Currents|New|Wave|IT|Social|Engineering|Fort|Lauderdale|South|Florida|HIPAA|PCI|DSS|SOC|MFA|QR|SMS|USB)\b/;
+      // Croissance (the audit), Groundswell (its engine), and its Currents are product names.
+      const properNouns = /^(Croissance|Groundswell|Currents|New|Wave|IT|Social|Engineering|Fort|Lauderdale|South|Florida|HIPAA|PCI|DSS|SOC|MFA|QR|SMS|USB)\b/;
       words.forEach((word) => {
         if (/^[A-Z]/.test(word) && !properNouns.test(word)) {
           throw new Error(`"${headline}" is not sentence case at "${word}"`);

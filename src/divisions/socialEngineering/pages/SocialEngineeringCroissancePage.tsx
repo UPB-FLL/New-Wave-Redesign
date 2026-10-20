@@ -2,10 +2,10 @@ import { DivisionLayout } from '../components/DivisionLayout';
 import { Band, CheckList, CtaBand, DivisionHero, FaqList, PrimaryCta, SectionIntro, StepList } from '../components/sections';
 import { auditConnectors, auditContent, auditReports, auditSample } from '../content';
 import { NwseIcon } from '../icons/NwseIcon';
-import { marketingAuditPageSeo } from '../seo';
+import { croissancePageSeo } from '../seo';
 import { useDivisionMeta } from '../useDivisionMeta';
 
-const seo = marketingAuditPageSeo();
+const seo = croissancePageSeo();
 
 /** The Currents: one card per kind of public data, with where it comes from and what it brings back. */
 function ConnectorGrid() {
@@ -96,7 +96,7 @@ function SampleBoard() {
   );
 }
 
-export default function SocialEngineeringMarketingAuditPage() {
+export default function SocialEngineeringCroissancePage() {
   useDivisionMeta(seo);
   const content = auditContent;
 

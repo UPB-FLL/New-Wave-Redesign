@@ -9,7 +9,7 @@ import {
   DIVISION_CONTACT_PATH,
   DIVISION_CONTACT_US_PATH,
   DIVISION_CUSTOMERS_PATH,
-  DIVISION_MARKETING_AUDIT_PATH,
+  DIVISION_CROISSANCE_PATH,
   DIVISION_NAME,
   DIVISION_ORGANIZATION_ID,
   DIVISION_SHORT_NAME,
@@ -235,8 +235,8 @@ export function customersPageSeo(): DivisionPageSeo {
 }
 
 /** How the audit engine works: a WebPage with its FAQs. The sample business is made up, so it gets no node. */
-export function marketingAuditPageSeo(): DivisionPageSeo {
-  const path = DIVISION_MARKETING_AUDIT_PATH;
+export function croissancePageSeo(): DivisionPageSeo {
+  const path = DIVISION_CROISSANCE_PATH;
   const breadcrumbs = [HUB_CRUMB, { name: auditContent.navLabel, path }];
   return {
     path,
@@ -294,9 +294,9 @@ export function contactPageSeo(): DivisionPageSeo {
   };
 }
 
-/** Every indexable division URL, in sitemap order (the header's order: overview, services, then marketing audit, customers, contact us, discovery call). */
+/** Every indexable division URL, in sitemap order (the header's order: overview, services, then Croissance, customers, contact us, discovery call). */
 export function allDivisionPages(): DivisionPageSeo[] {
-  return [hubPageSeo(), ...divisionServices.map(servicePageSeo), marketingAuditPageSeo(), customersPageSeo(), contactUsPageSeo(), contactPageSeo()];
+  return [hubPageSeo(), ...divisionServices.map(servicePageSeo), croissancePageSeo(), customersPageSeo(), contactUsPageSeo(), contactPageSeo()];
 }
 
 /** Serialises a page's nodes into one JSON-LD document. */

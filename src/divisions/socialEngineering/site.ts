@@ -18,8 +18,8 @@ export const DIVISION_CONTACT_PATH = `${DIVISION_BASE_PATH}/contact`;
 /** Everything that isn't a new project (clients, questions, partnerships): separate from the discovery call. */
 export const DIVISION_CONTACT_US_PATH = `${DIVISION_BASE_PATH}/contact-us`;
 export const DIVISION_CUSTOMERS_PATH = `${DIVISION_BASE_PATH}/customers`;
-/** How the audit engine (Groundswell) works, with sample data. */
-export const DIVISION_MARKETING_AUDIT_PATH = `${DIVISION_BASE_PATH}/marketing-audit`;
+/** Croissance, the division's growth audit (run by the Groundswell engine), with sample data. */
+export const DIVISION_CROISSANCE_PATH = `${DIVISION_BASE_PATH}/croissance`;
 
 /**
  * Service URL segments, in display order. Kept here (not derived from the copy

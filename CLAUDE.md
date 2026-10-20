@@ -2,20 +2,22 @@
 
 ## Recent Changes
 
-### Marketing audit page: the Groundswell engine (2026-10-20)
+### Croissance page: the audit, its Groundswell engine (2026-10-20)
 
-`/social-engineering/marketing-audit` explains the audit to prospects under
-public names: the **Groundswell** engine and its six **Currents** (Search,
+`/social-engineering/croissance` explains the audit to prospects under
+public names: **Croissance** (the audit; French for growth), the
+**Groundswell** engine and its six **Currents** (Search,
 Maps, Social, Site, Ads, Delivery), one per kind of public data. Sections:
 the Currents and the audit's ground rules, the five steps (queue, research,
 model, build, deliver), the three reports, example data, how the audit grows
 with the client's business and team, FAQs. Copy:
-`content/marketing-audit.ts`; keep it in step with
+`content/croissance.ts`; keep it in step with
 `.claude/skills/marketing-audit`. The example data is the skill's made-up
 sample business (Harbor Auto Care) with `roi_model.py`'s figures, rounded to
 $10; it is labelled made up (a test checks), and must never be a real client.
 Linked from the division footer, not the header. Wired through every point of
-the division's "Adding a page" checklist.
+the division's "Adding a page" checklist. The admin queue, skill, and table
+keep the internal "marketing audit" name.
 
 ### Marketing audit queue and skill (2026-10-20)
 

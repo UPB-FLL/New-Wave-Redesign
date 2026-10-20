@@ -1,12 +1,13 @@
 import type { DivisionFaq, DivisionPoint } from '../types';
 import type { DivisionIconName } from '../icons/iconData';
 
-// The Marketing audit page (/social-engineering/marketing-audit). Pure data.
+// The Croissance page (/social-engineering/croissance). Pure data.
 //
-// Describes the audit the division runs for prospects and clients (the
-// marketing-audit skill in .claude/skills/marketing-audit and the queue at
-// /admin/audits) under its public names: the Groundswell engine and its
-// Currents, one per kind of public data. Keep the process here in step with
+// Croissance (French for "growth") is the public name of the audit the
+// division runs for prospects and clients: the marketing-audit skill
+// (.claude/skills/marketing-audit) and the queue at /admin/audits, which keep
+// their internal "marketing audit" names. It runs on the Groundswell engine
+// and its Currents, one per kind of public data. Keep the process here in step with
 // the skill: public data only, every number sourced and dated, three reports
 // in the client's brand, delivered as Google Drive links.
 //
@@ -16,6 +17,7 @@ import type { DivisionIconName } from '../icons/iconData';
 // appears; never replace it with a real client's numbers. No percentages
 // (seo.test.ts), so rates are left out and only counts and dollars shown.
 
+export const AUDIT_PRODUCT_NAME = 'Croissance';
 export const AUDIT_ENGINE_NAME = 'Groundswell';
 export const AUDIT_CONNECTORS_NAME = 'Currents';
 
@@ -146,15 +148,15 @@ export const auditSample = {
 } as const;
 
 export const auditContent = {
-  metaTitle: 'Marketing audit engine | New Wave: Social Engineering',
+  metaTitle: 'Croissance growth audit | New Wave: Social Engineering',
   metaDescription:
-    'How New Wave: Social Engineering audits a business’s Google, social, website, ads, and competitors from public data, then delivers three reports in your brand.',
+    'Croissance from New Wave: Social Engineering audits your Google, social, website, ads, and rivals from public data, then delivers three reports in your brand.',
   keywords:
-    'marketing audit, local marketing audit fort lauderdale, competitor analysis south florida, google ads roi estimate, social media audit, new wave it',
-  navLabel: 'Marketing audit',
-  kicker: `The ${AUDIT_ENGINE_NAME} audit engine`,
-  headline: 'A marketing audit anyone on your team can read',
-  summary: `New Wave: Social Engineering audits your marketing before we recommend anything. Our ${AUDIT_ENGINE_NAME} engine gathers your public data and your rivals’, models a realistic return, and hands you three reports in your own brand.`,
+    'croissance, growth audit, marketing audit, local marketing audit fort lauderdale, competitor analysis south florida, google ads roi estimate, social media audit, new wave it',
+  navLabel: AUDIT_PRODUCT_NAME,
+  kicker: `${AUDIT_PRODUCT_NAME} · powered by ${AUDIT_ENGINE_NAME}`,
+  headline: 'A growth audit anyone on your team can read',
+  summary: `${AUDIT_PRODUCT_NAME}, French for growth, is how New Wave: Social Engineering audits your marketing before we recommend anything. Its ${AUDIT_ENGINE_NAME} engine gathers your public data and your rivals’, models a realistic return, and hands you three reports in your own brand.`,
   engine: {
     kicker: 'The engine',
     heading: `${AUDIT_ENGINE_NAME} and its ${AUDIT_CONNECTORS_NAME}`,

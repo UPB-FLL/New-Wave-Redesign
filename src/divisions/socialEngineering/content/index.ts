@@ -5,7 +5,7 @@ import { appsContent, customersContent, divisionApps, divisionCustomers } from '
 import { digitalOversight } from './digital-oversight';
 import { hubContent } from './hub';
 import { integration } from './integration';
-import { auditConnectors, auditContent, auditReports, auditSample } from './marketing-audit';
+import { auditConnectors, auditContent, auditReports, auditSample } from './croissance';
 import { marketing } from './marketing';
 import { socialMedia } from './social-media';
 import { websiteDesign } from './website-design';

@@ -10,7 +10,7 @@ import SocialEngineeringContactPage from './pages/SocialEngineeringContactPage';
 import SocialEngineeringContactUsPage from './pages/SocialEngineeringContactUsPage';
 import SocialEngineeringCustomersPage from './pages/SocialEngineeringCustomersPage';
 import SocialEngineeringHubPage from './pages/SocialEngineeringHubPage';
-import SocialEngineeringMarketingAuditPage from './pages/SocialEngineeringMarketingAuditPage';
+import SocialEngineeringCroissancePage from './pages/SocialEngineeringCroissancePage';
 import SocialEngineeringServicePage from './pages/SocialEngineeringServicePage';
 import { DIVISION_ICONS } from './icons/iconData';
 import { DIVISION_JSONLD_ELEMENT_ID } from './prerender';
@@ -21,7 +21,7 @@ import {
   DIVISION_CONTACT_PATH,
   DIVISION_CONTACT_US_PATH,
   DIVISION_CUSTOMERS_PATH,
-  DIVISION_MARKETING_AUDIT_PATH,
+  DIVISION_CROISSANCE_PATH,
   DIVISION_NAME,
   DIVISION_PRIMARY_CTA,
   SITE_URL,
@@ -168,7 +168,7 @@ describe('division positioning', () => {
   const pages: [string, React.ReactElement][] = [
     ['hub', <SocialEngineeringHubPage />],
     ...divisionServices.map((service): [string, React.ReactElement] => [service.slug, <SocialEngineeringServicePage slug={service.slug} />]),
-    ['marketing-audit', <SocialEngineeringMarketingAuditPage />],
+    ['croissance', <SocialEngineeringCroissancePage />],
     ['customers', <SocialEngineeringCustomersPage />],
     ['contact-us', <SocialEngineeringContactUsPage />],
     ['contact', <SocialEngineeringContactPage />],
@@ -193,7 +193,7 @@ describe('division icons', () => {
   const pages: [string, React.ReactElement][] = [
     ['hub', <SocialEngineeringHubPage />],
     ['integration', <SocialEngineeringServicePage slug="integration" />],
-    ['marketing-audit', <SocialEngineeringMarketingAuditPage />],
+    ['croissance', <SocialEngineeringCroissancePage />],
     ['customers', <SocialEngineeringCustomersPage />],
     ['contact-us', <SocialEngineeringContactUsPage />],
     ['contact', <SocialEngineeringContactPage />],
@@ -316,13 +316,13 @@ describe('DivisionHeader menus', () => {
   });
 });
 
-describe('SocialEngineeringMarketingAuditPage', () => {
+describe('SocialEngineeringCroissancePage', () => {
   it('renders its own head, one H1, its breadcrumb, and its FAQs', () => {
-    renderAt(<SocialEngineeringMarketingAuditPage />);
+    renderAt(<SocialEngineeringCroissancePage />);
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(auditContent.headline);
     expect(document.title).toBe(auditContent.metaTitle);
-    expect(canonical()).toBe(`${SITE_URL}${DIVISION_MARKETING_AUDIT_PATH}`);
+    expect(canonical()).toBe(`${SITE_URL}${DIVISION_CROISSANCE_PATH}`);
     expect(jsonLdBlocks()).toHaveLength(1);
     const breadcrumb = screen.getByRole('navigation', { name: 'Breadcrumb' });
     expect(within(breadcrumb).getByText(auditContent.navLabel)).toHaveAttribute('aria-current', 'page');
@@ -331,7 +331,7 @@ describe('SocialEngineeringMarketingAuditPage', () => {
   });
 
   it('names the engine, every connector, and all three reports', () => {
-    renderAt(<SocialEngineeringMarketingAuditPage />);
+    renderAt(<SocialEngineeringCroissancePage />);
     const engine = screen.getByRole('region', { name: auditContent.engine.heading });
     expect(within(engine).getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent)).toEqual(auditConnectors.map((c) => c.name));
     const reports = screen.getByRole('region', { name: auditContent.reports.heading });
@@ -339,7 +339,7 @@ describe('SocialEngineeringMarketingAuditPage', () => {
   });
 
   it('labels the example data as a made-up business wherever it appears', () => {
-    renderAt(<SocialEngineeringMarketingAuditPage />);
+    renderAt(<SocialEngineeringCroissancePage />);
     const sample = screen.getByRole('region', { name: auditContent.sample.heading });
     expect(sample).toHaveTextContent(/made-up business/i);
     expect(sample).toHaveTextContent(/not a client/i);
@@ -570,12 +570,12 @@ describe('header and footer links', () => {
     expect(within(row).getByRole('link', { name: 'Overview' })).not.toHaveAttribute('aria-current');
   });
 
-  it('adds Marketing audit, Customers, and Contact us to the footer’s division column', () => {
+  it('adds Croissance, Customers, and Contact us to the footer’s division column', () => {
     renderAt(<DivisionFooter />);
     const column = screen.getByRole('heading', { level: 2, name: 'NW Social Engineering' }).parentElement!;
     expect(within(column).getAllByRole('link').map((link) => [link.textContent, link.getAttribute('href')])).toEqual([
       ['Division overview', '/social-engineering'],
-      ['Marketing audit', DIVISION_MARKETING_AUDIT_PATH],
+      ['Croissance', DIVISION_CROISSANCE_PATH],
       ['Customers', DIVISION_CUSTOMERS_PATH],
       ['Contact us', DIVISION_CONTACT_US_PATH],
       [DIVISION_PRIMARY_CTA, DIVISION_CONTACT_PATH],
