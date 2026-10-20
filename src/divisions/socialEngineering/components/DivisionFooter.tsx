@@ -11,6 +11,7 @@ import {
   DIVISION_CUSTOMERS_PATH,
   DIVISION_DESCRIPTOR,
   DIVISION_LOGO_MIN_WIDTH,
+  DIVISION_MARKETING_AUDIT_PATH,
   DIVISION_NAME,
   DIVISION_PRIMARY_CTA,
   DIVISION_SHORT_NAME,
@@ -81,6 +82,11 @@ export function DivisionFooter() {
               <li>
                 <Link to={DIVISION_BASE_PATH} className={linkClass}>
                   Division overview
+                </Link>
+              </li>
+              <li>
+                <Link to={DIVISION_MARKETING_AUDIT_PATH} className={linkClass}>
+                  Marketing audit
                 </Link>
               </li>
               <li>

@@ -5,10 +5,12 @@ import { appsContent, customersContent, divisionApps, divisionCustomers } from '
 import { digitalOversight } from './digital-oversight';
 import { hubContent } from './hub';
 import { integration } from './integration';
+import { auditConnectors, auditContent, auditReports, auditSample } from './marketing-audit';
 import { marketing } from './marketing';
 import { socialMedia } from './social-media';
 import { websiteDesign } from './website-design';
 
+export { auditConnectors, auditContent, auditReports, auditSample };
 export { appsContent, contactUsContent, customersContent, divisionApps, divisionCustomers, hubContent };
 
 /** Display order for navigation, the hub's service grid, and the sitemap. */

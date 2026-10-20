@@ -2,13 +2,14 @@
 // shared by the runtime meta hook and the build-time prerenderer so the two can
 // never disagree about a page's title, canonical, or structured data.
 
-import { contactContent, contactUsContent, customersContent, divisionApps, divisionCustomers, divisionServices, hubContent } from './content';
+import { auditContent, contactContent, contactUsContent, customersContent, divisionApps, divisionCustomers, divisionServices, hubContent } from './content';
 import {
   DIVISION_ASSETS,
   DIVISION_BASE_PATH,
   DIVISION_CONTACT_PATH,
   DIVISION_CONTACT_US_PATH,
   DIVISION_CUSTOMERS_PATH,
+  DIVISION_MARKETING_AUDIT_PATH,
   DIVISION_NAME,
   DIVISION_ORGANIZATION_ID,
   DIVISION_SHORT_NAME,
@@ -233,6 +234,26 @@ export function customersPageSeo(): DivisionPageSeo {
   };
 }
 
+/** How the audit engine works: a WebPage with its FAQs. The sample business is made up, so it gets no node. */
+export function marketingAuditPageSeo(): DivisionPageSeo {
+  const path = DIVISION_MARKETING_AUDIT_PATH;
+  const breadcrumbs = [HUB_CRUMB, { name: auditContent.navLabel, path }];
+  return {
+    path,
+    title: auditContent.metaTitle,
+    description: auditContent.metaDescription,
+    keywords: auditContent.keywords,
+    h1: auditContent.headline,
+    breadcrumbs,
+    jsonLd: [
+      divisionOrganizationNode(),
+      webPageNode(path, auditContent.metaTitle, auditContent.metaDescription),
+      breadcrumbNode(path, breadcrumbs),
+      faqNode(path, auditContent.faqs),
+    ],
+  };
+}
+
 export function contactUsPageSeo(): DivisionPageSeo {
   const path = DIVISION_CONTACT_US_PATH;
   const breadcrumbs = [HUB_CRUMB, { name: contactUsContent.navLabel, path }];
@@ -273,9 +294,9 @@ export function contactPageSeo(): DivisionPageSeo {
   };
 }
 
-/** Every indexable division URL, in sitemap order (the header's order: overview, services, customers, contact us, discovery call). */
+/** Every indexable division URL, in sitemap order (the header's order: overview, services, then marketing audit, customers, contact us, discovery call). */
 export function allDivisionPages(): DivisionPageSeo[] {
-  return [hubPageSeo(), ...divisionServices.map(servicePageSeo), customersPageSeo(), contactUsPageSeo(), contactPageSeo()];
+  return [hubPageSeo(), ...divisionServices.map(servicePageSeo), marketingAuditPageSeo(), customersPageSeo(), contactUsPageSeo(), contactPageSeo()];
 }
 
 /** Serialises a page's nodes into one JSON-LD document. */

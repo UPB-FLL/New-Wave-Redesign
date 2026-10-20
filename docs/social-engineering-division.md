@@ -26,6 +26,7 @@ testing and are superseded by this document (see "History").
 | Marketing | `/social-engineering/marketing` |
 | Integration | `/social-engineering/integration` |
 | Digital oversight | `/social-engineering/digital-oversight` |
+| Marketing audit (the Groundswell engine) | `/social-engineering/marketing-audit` |
 | Customers | `/social-engineering/customers` |
 | Contact us (clients, questions, partnerships) | `/social-engineering/contact-us` |
 | Book a discovery call (new projects) | `/social-engineering/contact` |
@@ -136,6 +137,22 @@ division is a New Wave IT division, not a separate company.
   - **Dark sections.** The hero and the hub's metrics band share the hero's
     currents (`DarkCurrents` in `sections.tsx`); the closing CTA band keeps its
     own, stronger ones.
+
+## Marketing audit (`/social-engineering/marketing-audit`)
+
+How the division's audit works, for prospects. **Groundswell** is the
+engine's public name and **Currents** its connectors: Search (Keyword Planner
+and organic search data), Maps (Google Maps and the Business Profile), Social
+(public Instagram), Site (the website, PageSpeed Insights, the Wayback
+Machine), Ads (Google Ads Transparency Center and site tags), and Delivery
+(the Google Drive folder). The page names no vendors and nothing internal
+(no table, project, or tool names). Copy is in `content/marketing-audit.ts`
+and must match `.claude/skills/marketing-audit` (public data only, sources
+and dates on every number, three reports in the client's brand, Drive links).
+The example board uses the skill's made-up sample business and
+`roi_model.py`'s output for it; no percentages (rates are left out). Linked
+from the footer's division column; the header is unchanged (adding it to the
+phone sheet's top row would change the sheet's height budget).
 
 ## Customers and Contact us
 

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { contactContent, contactUsContent, customersContent, divisionCustomers, divisionServices, hubContent } from './content';
+import { auditConnectors, auditContent, auditReports, auditSample, contactContent, contactUsContent, customersContent, divisionCustomers, divisionServices, hubContent } from './content';
 import { allDivisionPages, divisionJsonLdDocument } from './seo';
 import {
   DIVISION_BASE_PATH,
@@ -20,7 +20,18 @@ function copyStrings(value: unknown): string[] {
   if (value && typeof value === 'object') return Object.values(value).flatMap(copyStrings);
   return [];
 }
-const allCopy = copyStrings([hubContent, divisionServices, contactContent, customersContent, divisionCustomers, contactUsContent]);
+const allCopy = copyStrings([
+  hubContent,
+  divisionServices,
+  contactContent,
+  customersContent,
+  divisionCustomers,
+  contactUsContent,
+  auditContent,
+  auditConnectors,
+  auditReports,
+  auditSample,
+]);
 
 describe('division routes', () => {
   it('registers exactly the services that have content, in display order', () => {
@@ -111,7 +122,7 @@ describe('division copy follows the brand guidelines', () => {
   });
 
   it('introduces the division by its full name on first reference in each summary', () => {
-    [hubContent.summary, ...divisionServices.map((service) => service.summary), customersContent.summary, contactUsContent.summary].forEach((summary) => {
+    [hubContent.summary, ...divisionServices.map((service) => service.summary), customersContent.summary, contactUsContent.summary, auditContent.summary].forEach((summary) => {
       const full = summary.indexOf(DIVISION_NAME);
       const short = summary.indexOf('NW Social Engineering');
       if (short !== -1) expect(full, summary).toBeGreaterThan(-1);
@@ -120,7 +131,7 @@ describe('division copy follows the brand guidelines', () => {
   });
 
   it('names the division in full in the Customers and Contact us summaries, their first reference', () => {
-    [customersContent.summary, contactUsContent.summary].forEach((summary) => expect(summary).toContain(DIVISION_NAME));
+    [customersContent.summary, contactUsContent.summary, auditContent.summary].forEach((summary) => expect(summary).toContain(DIVISION_NAME));
   });
 
   it('makes no percentage claims (metric labels only, no invented results)', () => {
@@ -134,9 +145,16 @@ describe('division copy follows the brand guidelines', () => {
       customersContent.headline,
       contactUsContent.headline,
       contactUsContent.form.headline,
+      auditContent.headline,
+      auditContent.engine.heading,
+      auditContent.process.heading,
+      auditContent.reports.heading,
+      auditContent.sample.heading,
+      auditContent.growth.heading,
     ].forEach((headline) => {
       const words = headline.split(/\s+/).slice(1);
-      const properNouns = /^(New|Wave|IT|Social|Engineering|Fort|Lauderdale|South|Florida|HIPAA|PCI|DSS|SOC|MFA|QR|SMS|USB)\b/;
+      // Groundswell (the audit engine) and its Currents are product names.
+      const properNouns = /^(Groundswell|Currents|New|Wave|IT|Social|Engineering|Fort|Lauderdale|South|Florida|HIPAA|PCI|DSS|SOC|MFA|QR|SMS|USB)\b/;
       words.forEach((word) => {
         if (/^[A-Z]/.test(word) && !properNouns.test(word)) {
           throw new Error(`"${headline}" is not sentence case at "${word}"`);

@@ -266,6 +266,10 @@
       "destination": "/social-engineering/digital-oversight/index.html"
     },
     {
+      "source": "/social-engineering/marketing-audit",
+      "destination": "/social-engineering/marketing-audit/index.html"
+    },
+    {
       "source": "/social-engineering/customers",
       "destination": "/social-engineering/customers/index.html"
     },
