@@ -100,6 +100,7 @@ const PricingEditor = lazy(() => import('./admin/editors/PricingEditor'));
 const StatusEditor = lazy(() => import('./admin/editors/StatusEditor'));
 const SeoPortal = lazy(() => import('./admin/seo/SeoPortal'));
 const SeoPageEditor = lazy(() => import('./admin/seo/SeoPageEditor'));
+const MarketingAudits = lazy(() => import('./admin/audits/MarketingAudits'));
 const ServicesDetailEditor = lazy(() => import('./admin/editors/ServicesDetailEditor'));
 const ThreatsDetailEditor = lazy(() => import('./admin/editors/ThreatsDetailEditor'));
 const ServicesCategoryEditor = lazy(() => import('./admin/editors/ServicesCategoryEditor'));
@@ -211,6 +212,7 @@ export default function App() {
           <Route path="threats-detail" element={<ThreatsDetailEditor />} />
           <Route path="seo" element={<SeoPortal />} />
           <Route path="seo/:id" element={<SeoPageEditor />} />
+          <Route path="audits" element={<MarketingAudits />} />
         </Route>
         {/* Anything unmatched, including unknown /social-engineering/* paths: a noindex page, not a blank one. */}
         <Route path="*" element={<NotFoundPage />} />

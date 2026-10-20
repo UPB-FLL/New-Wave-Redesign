@@ -2,7 +2,7 @@ import { Suspense, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import {
-  LayoutDashboard, Star, Layers, HelpCircle, Info, Mail, AlignLeft, LogOut, Menu, X, Waves, Search, ShieldCheck, Activity, FileText,
+  LayoutDashboard, Star, Layers, HelpCircle, Info, Mail, AlignLeft, LogOut, Menu, X, Waves, Search, ShieldCheck, Activity, FileText, ClipboardList,
 } from 'lucide-react';
 import { usePageMeta } from '../lib/usePageMeta';
 
@@ -20,6 +20,7 @@ const navItems = [
   { label: 'Footer', path: '/admin/footer', icon: AlignLeft },
   { label: 'Blog', path: '/admin/unified', icon: FileText },
   { label: 'SEO Portal', path: '/admin/seo', icon: Search },
+  { label: 'Marketing Audits', path: '/admin/audits', icon: ClipboardList },
 ];
 
 export default function AdminLayout() {

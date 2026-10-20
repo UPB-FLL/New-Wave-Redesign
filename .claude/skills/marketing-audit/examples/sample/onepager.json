@@ -1,0 +1,21 @@
+{
+  "company": "Harbor Auto Care",
+  "place": "Fort Lauderdale, FL",
+  "logo": "brand/logo.svg",
+  "logo_h": 56,
+  "prepared": "October 20, 2026",
+  "as_of": "October 2026",
+  "headline": "Sample: a well-reviewed shop that search ads could fill.",
+  "kpis": [["4.7★", "Google rating (sample)"], ["#3", "in Maps near the shop (sample)"], ["0", "Google ads on record (sample)"], ["1,200", "Instagram followers (sample)"]],
+  "findings": [
+    ["glance", "Every number on this page is invented; it shows the layout only."],
+    ["plan", "Each finding links to the slide deck PDF in Google Drive."],
+    ["roi", "The return comes from roi_model.py run on roi_inputs.json."]
+  ],
+  "actions": ["Weeks 1–2: measurement.", "Weeks 3–6: launch.", "Weeks 7–12: expand."],
+  "links": {
+    "deck_pdf": "https://drive.google.com/file/d/EXAMPLE_DECK/view?usp=sharing",
+    "audit_pdf": "https://drive.google.com/file/d/EXAMPLE_AUDIT/view?usp=sharing",
+    "folder": "https://drive.google.com/drive/folders/EXAMPLE_FOLDER?usp=sharing"
+  }
+}

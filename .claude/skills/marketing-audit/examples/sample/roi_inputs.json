@@ -1,0 +1,14 @@
+{
+  "company": "Harbor Auto Care (sample)",
+  "lever": "Google Search Ads: call-first campaign on the core repair keywords near the shop",
+  "demand_monthly": 1800,
+  "demand_source": "Invented for the sample. A real audit cites Keyword Planner volumes for the campaign area.",
+  "ramp": [0.5, 0.75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  "ramp_note": "Half the steady-state lead rate in month 1, three-quarters in month 2, at full spend.",
+  "scenarios": {
+    "conservative": {"impression_share": 0.5, "ctr": 0.045, "cpc": 7.5, "cvr": 0.12, "close": 0.3, "ticket": 420, "gross_margin": 0.5, "incrementality": 0.82},
+    "base": {"impression_share": 0.65, "ctr": 0.055, "cpc": 6.5, "cvr": 0.15, "close": 0.4, "ticket": 520, "gross_margin": 0.55, "incrementality": 0.9, "repeat_per_year": 1, "repeat_ticket": 180},
+    "upside": {"impression_share": 0.75, "ctr": 0.065, "cpc": 5.5, "cvr": 0.18, "close": 0.45, "ticket": 640, "gross_margin": 0.6, "incrementality": 0.96, "repeat_per_year": 2, "repeat_ticket": 200}
+  },
+  "sources": {"all": "Invented sample values; see references/roi-method.md for how a real audit sources each one."}
+}
