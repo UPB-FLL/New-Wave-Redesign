@@ -15,7 +15,7 @@ with the client's business and team, FAQs. Copy:
 `.claude/skills/marketing-audit`. The example data is the skill's made-up
 sample business (Harbor Auto Care) with `roi_model.py`'s figures, rounded to
 $10; it is labelled made up (a test checks), and must never be a real client.
-Linked from the division footer, not the header. Wired through every point of
+Linked from the division header (desktop row and phone sheet) and footer. Wired through every point of
 the division's "Adding a page" checklist. The admin queue, skill, and table
 keep the internal "marketing audit" name.
 

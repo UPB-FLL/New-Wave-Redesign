@@ -543,17 +543,19 @@ describe('the two contact pages', () => {
 });
 
 describe('header and footer links', () => {
-  it('lists Overview, Services, Customers, and Contact us before the discovery-call button on desktop', () => {
+  it('lists Overview, Services, Croissance, Customers, and Contact us before the discovery-call button on desktop', () => {
     renderAt(<DivisionHeader />);
     const nav = screen.getByRole('navigation', { name: DIVISION_NAME });
     const row = nav.querySelector('[data-role="nav-row"] > [data-role="desktop-links"]')!;
     expect([...row.querySelectorAll(':scope > a, :scope > div > button')].map((item) => item.textContent?.trim())).toEqual([
       'Overview',
       'Services',
+      'Croissance',
       'Customers',
       'Contact us',
       DIVISION_PRIMARY_CTA,
     ]);
+    expect(within(row as HTMLElement).getByRole('link', { name: 'Croissance' })).toHaveAttribute('href', DIVISION_CROISSANCE_PATH);
     expect(within(row as HTMLElement).getByRole('link', { name: 'Customers' })).toHaveAttribute('href', DIVISION_CUSTOMERS_PATH);
     expect(within(row as HTMLElement).getByRole('link', { name: 'Contact us' })).toHaveAttribute('href', DIVISION_CONTACT_US_PATH);
     expect(within(row as HTMLElement).getByRole('link', { name: DIVISION_PRIMARY_CTA })).toHaveClass('nwse-btn-amber-deep');
