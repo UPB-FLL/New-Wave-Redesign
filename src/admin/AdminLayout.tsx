@@ -8,8 +8,8 @@ import {
 } from 'lucide-react';
 import { GROUNDSWELL_ADMIN_PATH } from '../groundswell/site';
 import { usePageMeta } from '../lib/usePageMeta';
-import { ADMIN_NAV, pageForPath, searchAdminNav, type AdminNavEntry, type AdminNavPage } from './adminNav';
-import { contentManager, type ContentManagerState } from './ContentManager';
+import { ADMIN_NAV, pageForPath, searchAdminFields, searchAdminNav, type AdminNavEntry, type AdminNavPage } from './adminNav';
+import { contentManager, StaleSectionError, type ContentManagerState } from './ContentManager';
 import PublishBar from './components/PublishBar';
 
 /**
@@ -29,6 +29,7 @@ const ENTRY_ICONS: Record<string, LucideIcon> = {
 };
 
 const OPEN_PAGES_KEY = 'nw_admin_open_pages';
+const SECTION_TITLES: Record<string, string> = Object.fromEntries(ADMIN_NAV.flatMap((g) => g.pages ?? []).flatMap((p) => p.entries).filter((e) => e.section).map((e) => [e.section as string, e.label]));
 
 function readOpenPages(): Set<string> {
   try {
@@ -123,14 +124,38 @@ export default function AdminLayout() {
   };
 
   const results = useMemo(() => (query.trim() ? searchAdminNav(query) : null), [query]);
+  const fieldHits = useMemo(() => (query.trim() ? searchAdminFields(query) : []), [query]);
   const closeSidebar = () => setSidebarOpen(false);
+
+  // Unsaved edits survive a reload (sessionStorage), but not leaving the site: ask first.
+  const pendingCount = contentManager.getPendingChangesCount();
+  useEffect(() => {
+    if (pendingCount === 0) return;
+    const warn = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ''; };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [pendingCount]);
+
+  /** Save; if another tab or person saved the section meanwhile, ask before overwriting. */
+  const publish = async () => {
+    try {
+      await contentManager.publishChanges();
+    } catch (err) {
+      if (err instanceof StaleSectionError) {
+        const names = err.sections.map((s) => SECTION_TITLES[s] ?? s).join(', ');
+        if (window.confirm(`${names} changed elsewhere since you opened it (another tab, or someone else). Save anyway and overwrite those changes?`)) {
+          await contentManager.publishChanges({ force: true }).catch(() => { /* the bar shows the error */ });
+        }
+      }
+      /* any other error: the bar shows it */
+    }
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate('/admin');
   };
 
-  const pendingCount = contentManager.getPendingChangesCount();
   const showPublishBar = pendingCount > 0 || content.publishStatus !== 'idle';
 
   return (
@@ -169,7 +194,7 @@ export default function AdminLayout() {
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto" aria-label="Admin">
           {results ? (
             <div role="group" aria-label="Search results">
-              {results.length === 0 && (
+              {results.length === 0 && fieldHits.length === 0 && (
                 <p className="px-3 py-2 text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>Nothing matches "{query.trim()}".</p>
               )}
               {results.map((entry) => {
@@ -183,6 +208,19 @@ export default function AdminLayout() {
                   </NavLink>
                 );
               })}
+              {fieldHits.length > 0 && (
+                <div role="group" aria-label="Fields">
+                  <div className={groupLabelClass} style={groupLabelStyle}>Fields</div>
+                  {fieldHits.slice(0, 12).map((hit) => (
+                    <NavLink key={hit.href} to={hit.href} className={linkClass} onClick={() => { setQuery(''); closeSidebar(); }}>
+                      <span className="flex flex-col">
+                        <span>{hit.label}</span>
+                        <span className="text-[11px] font-normal" style={{ color: 'rgba(255,255,255,0.35)' }}>{hit.entry.label} › {hit.block}</span>
+                      </span>
+                    </NavLink>
+                  ))}
+                </div>
+              )}
             </div>
           ) : (
             <>
@@ -251,7 +289,7 @@ export default function AdminLayout() {
       {showPublishBar && (
         <PublishBar
           state={content}
-          onPublish={() => contentManager.publishChanges().catch(() => { /* the bar shows the error */ })}
+          onPublish={publish}
           onDiscard={() => contentManager.discardChanges()}
           className="lg:left-64"
         />

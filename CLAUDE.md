@@ -75,6 +75,49 @@ polish follow). Code: `src/groundswell/`.
   password, the shell, the redirects) and the moved admin tests; updated
   pins in `it-prerender` (32 routes), `division-integration`,
   `FormPrivacyNotice`, and the partner API test.
+
+### Admin panel rework, phase 2: one editor for every section (2026-10-21)
+
+Phase 2 of the plan Josh approved on 2026-10-21 (phase 1, the sidebar, is
+below). Every `site_content` editor is now one screen; the stored shapes
+are unchanged (`sections.test.ts` pins them), and the public site reads
+nothing new.
+
+- **Descriptors** (`src/admin/sections/descriptors.ts`, types in
+  `types.ts`): one `SectionDescriptor` per section (hero, trustbar,
+  services, whyus, about, contact, footer, pricing, status,
+  services-categories, services-detail, threats-detail): its public URL and
+  its blocks, each a list of fields. Scalar kinds: text, textarea, number,
+  color, select, checkbox, strings (JSON array of strings). `list` fields
+  hold items with their own fields, a `titleKey` for the row, `newItem`, and
+  `defaults` (the site's built-in items). The footer gained its three social
+  URL fields, which `Footer.tsx` already read.
+- **`SectionPage`** (`src/admin/SectionPage.tsx`) renders a descriptor:
+  `BlockCard`s (collapsed with a preview and a field count, one open at a
+  time unless pinned, an amber dot while unsaved), `FieldInput` (the one
+  field set), and `ListRows` (rows with move, duplicate, delete, drag; a
+  side-panel `ItemPanel` to edit one; "Start from the site's defaults" when
+  empty). A stored list that cannot be parsed is shown raw and left alone
+  (`parseList` in `sections/listValue.ts`). `?field=<key>` opens the block
+  and focuses the input; the sidebar search's "Fields" group
+  (`searchAdminFields` in `adminNav.ts`) links there.
+- **`ContentManager`**: `loadSection` records each section's newest
+  `updated_at`; `publishChanges` refuses with `StaleSectionError` when a
+  pending section's rows changed since (the layout confirms, then
+  `{ force: true }`), then writes the public cache and the
+  BroadcastChannel for each change, so the live site no longer waits for
+  the 30 s poll. Pending edits are kept in sessionStorage (`nw_admin_draft`)
+  and restored on load; the layout warns before unloading with unsaved
+  edits. State updates replace objects rather than mutate them.
+- **Removed**: the twelve editors in `src/admin/editors/` except
+  `PricingUnitsEditor`, plus `SectionEditor`, `FormSection`, and
+  `CardListEditor`. The routes in `App.tsx` point at `SectionPage`.
+- **Tests**: `sections.test.ts` (every key the public site reads has a
+  field; stored shapes; nav reachability; `parseList`; field search),
+  `ContentManager.test.ts` (draft, stale save, cache and channel),
+  `SectionPage.test.tsx`. Docs: `docs/admin-guide.md` ("Editing content",
+  "Adding an editor"); `docs/editor-migration-guide.md` is closed out.
+
 ### Admin panel rework, phase 1: one sidebar, organised by site page (2026-10-21)
 
 From the plan Josh approved on 2026-10-21 (Claude Doc "New Wave admin panel
@@ -941,23 +984,16 @@ Content is stored in Supabase `site_content` table:
 
 ## Admin Editors
 
-### Migrated Editors (Use ContentManager)
-- HeroEditor - `/src/admin/editors/HeroEditor.tsx`
-- ServicesEditor - `/src/admin/editors/ServicesEditor.tsx`
+### Section editors (one component)
+Every `site_content` section is edited by `src/admin/SectionPage.tsx`, drawn
+from its descriptor in `src/admin/sections/descriptors.ts` (see "Admin panel
+rework, phase 2" above). Pieces: `components/BlockCard.tsx`,
+`components/FieldInput.tsx`, `components/ListRows.tsx`.
 
-### Legacy Editors (To be migrated)
-Located in `src/admin/editors/`:
-- TrustBarEditor
-- WhyUsEditor
-- AboutEditor
-- ContactEditor
-- FooterEditor
-- PricingEditor
-- PricingUnitsEditor
-- StatusEditor
-- ServicesCategoryEditor
-- ServicesDetailEditor
-- ThreatsDetailEditor
+### Other editors
+- PricingUnitsEditor - `/src/admin/editors/PricingUnitsEditor.tsx` (the
+  `pricing_units` table)
+- Blog - `src/admin/blog/`
 
 ### SEO Editors
 - SeoPortal - `/src/admin/seo/SeoPortal.tsx`
@@ -1004,11 +1040,14 @@ Located in `src/admin/editors/`:
 
 ### Adding New Section Editors
 
-1. Create editor in `src/admin/editors/`
-2. Follow ContentManager pattern (see HeroEditor example)
-3. Add a `<Route>` under `/admin` in `src/App.tsx`
-4. Add the entry to `src/admin/adminNav.ts` under its site page
-5. Test publish/discard functionality (`adminNav.test.ts` checks the rest)
+1. Add the section's descriptor to `src/admin/sections/descriptors.ts`
+   (its blocks and fields; the stored shape must match what the public
+   component reads)
+2. Add `<Route path="…" element={<SectionPage section="…" />} />` under
+   `/admin` in `src/App.tsx`
+3. Add the entry to `src/admin/adminNav.ts` under its site page
+4. `adminNav.test.ts` and `sections/sections.test.ts` check the rest; see
+   "Adding an editor" in `docs/admin-guide.md`
 
 ### Running the Project
 
@@ -1031,11 +1070,9 @@ npm run build
 
 ## Next Steps
 
-1. Migrate remaining editors to ContentManager
-2. Implement live preview pane (iframe-based)
-3. Add version history support
-4. Implement concurrent edit detection
-5. Add keyboard shortcuts for common actions
+1. Implement live preview pane (iframe-based): phase 3 of the admin rework
+2. Add version history support
+3. Add keyboard shortcuts for common actions
 
 ## Architecture Notes
 

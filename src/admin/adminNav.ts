@@ -7,7 +7,11 @@
  * `section` names the `site_content` section an editor writes (or `pricing_units`,
  * the quote builder's own table). `keywords` are the words someone might type
  * to find that editor: the fields it holds and the places they show.
+ * `searchAdminFields` goes one level deeper, into each section descriptor's
+ * fields, and links to the editor with `?field=<key>` so it opens on them.
  */
+
+import { SECTIONS } from './sections/descriptors';
 
 export interface AdminNavEntry {
   label: string;
@@ -150,4 +154,34 @@ export function searchAdminNav(query: string): AdminNavEntry[] {
     const haystack = normalise([entry.label, ...entry.keywords, ...(groupLabel.get(entry) ?? [])].join(' '));
     return words.every((w) => haystack.includes(w));
   });
+}
+
+export interface AdminFieldHit {
+  entry: AdminNavEntry;
+  /** The field's `site_content` key. */
+  key: string;
+  label: string;
+  block: string;
+  /** The editor's path with the field parameter, so it opens on the field. */
+  href: string;
+}
+
+/** Fields (from the section descriptors) whose label or key contains every word typed. */
+export function searchAdminFields(query: string): AdminFieldHit[] {
+  const words = normalise(query).split(' ').filter(Boolean);
+  if (words.length === 0) return [];
+  const hits: AdminFieldHit[] = [];
+  for (const entry of allNavEntries()) {
+    const descriptor = entry.section ? SECTIONS[entry.section] : undefined;
+    if (!descriptor) continue;
+    for (const block of descriptor.blocks) {
+      for (const field of block.fields) {
+        const haystack = normalise([field.label, field.key.replace(/_/g, ' ')].join(' '));
+        if (words.every((w) => haystack.includes(w))) {
+          hits.push({ entry, key: field.key, label: field.label, block: block.title, href: `${entry.path}?field=${encodeURIComponent(field.key)}` });
+        }
+      }
+    }
+  }
+  return hits;
 }
