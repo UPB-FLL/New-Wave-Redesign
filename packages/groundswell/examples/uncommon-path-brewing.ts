@@ -1,4 +1,6 @@
-import type { AngleInput } from '../src/adplan.js';
+import type { AdPlan, AngleInput } from '../src/adplan.js';
+import type { Baseline, ChangeInput } from '../src/changes.js';
+import type { GroundswellConfig } from '../src/config.js';
 import type { AdTemplate } from '../src/templates.js';
 
 /**
@@ -192,3 +194,121 @@ export const UPB_TEMPLATES: AdTemplate[] = [
     call_to_action: 'View now',
   },
 ];
+
+// ---------------------------------------------------------------------------
+// Every change the audit recommends, for the change ranking (src/changes.ts).
+
+
+/** Today, from public data: ads are on record, but their spend is not public. */
+export const UPB_BASELINE: Baseline = {
+  monthly_ad_spend: null,
+  ad_spend_basis: 'Eight Google ads are on record (Google Ads Transparency Center, October 2026), but their spend is not public.',
+};
+
+/** The event value from the events angle, shared by the changes that win events. */
+const EVENT_VALUE = UPB_ANGLES.find((a) => a.id === 'events')!.value;
+
+/** Every change, from the audit's findings (October 21, 2026), with the plan's ad rows. */
+export function upbChanges(plan: AdPlan, config: GroundswellConfig): ChangeInput[] {
+  const effort = (kind: string) => {
+    const e = config.effort[kind];
+    return { hours: e.hours, monthly_hours: e.monthly_hours, basis: e.basis };
+  };
+  const ads: ChangeInput[] = plan.rows
+    .filter((r) => r.recommendation !== 'skip')
+    .map((r) => ({
+      id: `ads-${r.angle_id}-${r.platform}`,
+      area: 'ads' as const,
+      title: `${r.angle}: ${r.platform_label} ads`,
+      // Why the angle is winnable, then the demand behind it (or, for social, how the test is sized).
+      evidence: `${UPB_ANGLES.find((a) => a.id === r.angle_id)!.why} ${r.sources[0]}`,
+      cost: effort(r.buying === 'search' ? 'search_campaign' : 'social_campaign'),
+      impact: { kind: 'ads' as const, row: r },
+    }));
+  const searchCvr = config.platforms.google_search.by_industry?.['Restaurants & Food']?.cvr ?? [0.08, 0.08, 0.08];
+  const visitToLead = [0, 1, 2].map((i) => searchCvr[i] * config.search.cvr_factor[i]) as unknown as readonly [number, number, number];
+  return [
+    ...ads,
+    {
+      id: 'seo-events-page',
+      area: 'seo',
+      title: 'Rank the private-events page for event-space searches',
+      evidence:
+        'About 620 searches a month for event spaces and party venues in Broward County (Keyword Planner, October 21, 2026); the page’s rank for them was not confirmed.',
+      cost: effort('service_page_seo'),
+      impact: {
+        kind: 'ranking',
+        curve: 'organic',
+        monthly_searches: 620,
+        from_position: null,
+        to_position: [10, 6, 4],
+        visit_to_lead: visitToLead,
+        basis:
+          'Organic clicks from Advanced Web Ranking’s 2026 curve; visitors inquire at the restaurant search-ad conversion rate (LocaliQ 2026), discounted as for a new account, since no organic figure is published.',
+      },
+      value: EVENT_VALUE,
+    },
+    {
+      id: 'merge-brewery-pages',
+      area: 'seo',
+      title: 'Merge the pages competing for “brewery fort lauderdale”',
+      evidence: 'Three of its pages rank third, sixth and eighth for the same search (Ahrefs, October 20, 2026).',
+      cost: effort('merge_pages'),
+      impact: {
+        kind: 'not_modeled',
+        reason: 'No drink prices are published, so a brewery visit has no value to model; the gain is clicks, from third toward first place.',
+      },
+    },
+    {
+      id: 'entry-layers',
+      area: 'website',
+      title: 'One step for age and cookies; no promotion before the page',
+      evidence: 'A phone visitor clears a 21+ gate, a cookie banner and a promotion before the page (audit, October 21, 2026).',
+      cost: effort('entry_layers'),
+      impact: {
+        kind: 'not_modeled',
+        reason:
+          'No published study measures the lift. Google’s guidance says entry pop-ups can hurt search performance; age gates and cookie notices are exempt, the promotion is not.',
+      },
+    },
+    {
+      id: 'best-of-lists',
+      area: 'listings',
+      title: 'Pitch Visit Lauderdale and Miami New Times',
+      evidence: 'Both best-of lists name five rival breweries and not this one (audit, October 21, 2026).',
+      cost: effort('best_of_pitch'),
+      impact: {
+        kind: 'not_modeled',
+        reason: 'No measured effect is published; Whitespark’s 2026 survey of local search experts ranks best-of lists the top factor for showing up in AI search answers.',
+      },
+    },
+    {
+      id: 'profile-posts',
+      area: 'google',
+      title: 'A Google Business Profile post every week',
+      evidence: 'One profile post in two months (Google, October 21, 2026).',
+      cost: effort('profile_posts'),
+      impact: { kind: 'not_modeled', reason: 'A 2021 test (Sterling Sky) found no ranking effect, and no measured effect on calls or visits is published.' },
+    },
+    {
+      id: 'review-requests',
+      area: 'reviews',
+      title: 'Ask for reviews after visits and events',
+      evidence: 'Google rating 4.8 from about 283 reviews (October 21, 2026).',
+      cost: effort('review_requests'),
+      impact: {
+        kind: 'not_modeled',
+        reason:
+          'Already above the 4-star line 68 in 100 consumers hold to (BrightLocal 2026); 74 in 100 look for reviews from the last three months, but no lift is published for a business at this rating.',
+      },
+    },
+    {
+      id: 'untappd-fixes',
+      area: 'listings',
+      title: 'Fix the Untappd link and listing',
+      evidence: 'The site’s Untappd link returns a 404, and the listing still files the brewery under its old name (audit, October 21, 2026).',
+      cost: effort('listing_fixes'),
+      impact: { kind: 'not_modeled', reason: 'A correction, not a growth change: no published effect.' },
+    },
+  ];
+}

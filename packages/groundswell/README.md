@@ -144,18 +144,45 @@ tests cheap happy-hour and brewery searches without modeling a return (no
 drink prices are published), shows pizza ads losing money at a $22 pie, and
 rules out TikTok and Reddit, whose alcohol rules require a sales team.
 
+## Every change, ranked (`src/changes.ts`)
+
+Ads are one kind of change. Every change an audit recommends gets a cost
+(team hours at `team.hourly_cost`, from the `effort` estimates in the setup
+file, plus any spend) and an impact model:
+
+- **ads**: an ad-plan row, with its spend added to the team's time;
+- **ranking**: clicks gained moving from one position to another on a
+  published click-through curve (`impact.organic_ctr`, Advanced Web Ranking
+  2026; `impact.local_pack_ctr`, First Page Sage 2026), building up over
+  `impact.seo_ramp`;
+- **conversion**: a published relative lift in the visit-to-lead rate;
+- **not modeled**: no credible published effect (entry pop-ups, profile
+  posts, best-of lists, reviews for an already well-rated business). Still
+  ranked, after the modeled changes, cheapest first, with the reason.
+
+`rankChanges` sorts by benefit per dollar of cost in the medium case.
+`compareWithToday` sets the business as it is today (its ad spend, or
+"not public") against the plan: every modeled change that pays back in the
+medium case, with its added spend, team hours, new customers and 12-month
+net from low to high.
+
+For the brewery, counting team time changes the answer: Meta event ads and
+ranking the events page pay back; a Google events campaign of about $80 a
+month does not cover its setup and weekly management.
+
 ## Roadmap
 
 Groundswell is being built as an agent and a process that can be resold as
 a service (SaaS), with tools linked in as each client needs them. In order:
 
 1. **Setup file, ad plan, templates, first use case** (this folder, now).
-2. **Every change ranked by return.** Not only ads: SEO, website, Google
-   Business Profile, reviews and listings changes each get a cost, a sourced
-   impact model (or "not modeled") and a low / medium / high return, in one
-   list with the highest return first. Each audit shows **the return as the
-   business is set up today against the return with the team's plan**, and
-   writes its top changes to a use-case library for later audits.
+2. **Every change ranked by return** (`src/changes.ts`, now). Not only ads:
+   SEO, website, Google Business Profile, reviews and listings changes each
+   get a cost, a sourced impact model (or "not modeled") and a low / medium /
+   high return, in one list with the highest return first, and **the return
+   as the business is set up today against the return with the team's
+   plan**. Still to come with the live engine: each audit writes its top
+   changes to a use-case library for later audits.
 3. **The ad plan in the live engine** (`api/_lib/groundswell`): an `adplan`
    step, and a board and slide in the reports.
 4. **Review, re-interpret, re-run** before an audit counts as accurate.
@@ -175,6 +202,7 @@ a service (SaaS), with tools linked in as each client needs them. In order:
 | Piece | State |
 |---|---|
 | Setup file, ad plan, templates | Here, tested (`test/`). |
+| Every change ranked by return; today against the plan | Here, tested; shown on Croissance for the brewery. |
 | Ad plan in the live audits and reports | Next. |
 | Review → re-interpret → re-run | Planned. |
 | Planner agent and industry platforms | Planned: an agent picks the industry profile from the business's data, within the setup file's allowlist. |

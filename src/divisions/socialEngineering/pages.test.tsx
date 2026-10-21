@@ -469,6 +469,22 @@ describe('Croissance ad plan', () => {
   });
 });
 
+describe('Croissance change ranking', () => {
+  it('ranks every change with its area, hours and return, and compares today with the plan', () => {
+    renderAt(<SocialEngineeringCroissancePage />);
+    const band = screen.getByRole('region', { name: auditContent.changes.heading });
+    const rows = within(band).getAllByRole('row').slice(1);
+    expect(rows.length).toBeGreaterThanOrEqual(10);
+    expect(within(rows[0]).getByRole('rowheader')).toHaveTextContent('Private events: Meta (Facebook and Instagram) ads');
+    // Unmodeled changes say why instead of showing a number.
+    expect(band).toHaveTextContent(/No published study measures the lift/);
+    expect(within(band).getByRole('heading', { name: auditContent.changes.todayHeading })).toBeInTheDocument();
+    expect(within(band).getByRole('heading', { name: auditContent.changes.planHeading })).toBeInTheDocument();
+    expect(band).toHaveTextContent('Not public');
+    expect(band.textContent).not.toMatch(/%/);
+  });
+});
+
 describe('SocialEngineeringCustomersPage', () => {
   const customerList = () => screen.getByRole('region', { name: customersContent.listHeading });
 

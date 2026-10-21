@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { GROUNDSWELL_CONFIG } from '../groundswell.config';
-import { UPB_ANGLES, UPB_INDUSTRY, UPB_TEMPLATES } from '../examples/uncommon-path-brewing';
+import { UPB_ANGLES, UPB_BASELINE, UPB_INDUSTRY, UPB_TEMPLATES, upbChanges } from '../examples/uncommon-path-brewing';
 import { buildAdPlan } from '../src/adplan';
+import { compareWithToday, rankChanges } from '../src/changes';
 import { templateProblems } from '../src/templates';
 
 // The documented use case, run through the real setup file. If a benchmark or
@@ -52,5 +53,35 @@ describe('use case: Uncommon Path Brewing', () => {
 
   it('every template is ready to use', () => {
     for (const t of UPB_TEMPLATES) expect(templateProblems(t, GROUNDSWELL_CONFIG), `${t.platform} ${t.angle_id}`).toEqual([]);
+  });
+});
+
+describe('use case: Uncommon Path Brewing, every change ranked', () => {
+  const ranked = rankChanges(upbChanges(plan, GROUNDSWELL_CONFIG), GROUNDSWELL_CONFIG);
+  const cmp = compareWithToday(ranked, UPB_BASELINE);
+
+  it('ranks Meta events ads first, then the events page, and shows the small Google campaign losing money on team time', () => {
+    expect(ranked.slice(0, 3).map((c) => c.id)).toEqual(['ads-events-meta', 'seo-events-page', 'ads-events-google_search']);
+    const google = ranked.find((c) => c.id === 'ads-events-google_search')!;
+    // About $76 a month of spend cannot carry 6 setup hours and 3 a month at $75.
+    expect(google.hours).toBe(6 + 3 * 12);
+    expect(google.scenarios!.medium.net_year).toBeLessThan(0);
+  });
+
+  it('ranks every unmodeled change after the modeled ones, with its reason', () => {
+    const unmodeled = ranked.filter((c) => !c.modeled);
+    expect(ranked.slice(3).every((c) => !c.modeled)).toBe(true);
+    for (const c of unmodeled) {
+      if (c.impact.kind === 'not_modeled') expect(c.impact.reason.length).toBeGreaterThan(20);
+    }
+  });
+
+  it('compares today (spend not public) with the plan: the changes that pay back in the medium case', () => {
+    expect(cmp.today.monthly_ad_spend).toBeNull();
+    expect(cmp.included).toEqual(['ads-events-meta', 'seo-events-page']);
+    expect(cmp.with_plan.added_monthly_spend.medium).toBe(150);
+    expect(cmp.with_plan.team_hours).toBe(28 + 8);
+    expect(cmp.with_plan.net_year.medium).toBeGreaterThan(0);
+    expect(cmp.with_plan.net_year.low).toBeLessThan(0);
   });
 });

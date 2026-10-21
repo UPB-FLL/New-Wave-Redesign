@@ -65,10 +65,17 @@ its own app.
   Keyword Planner demand and bids and published prices; its plan is pinned by
   `test/upb-usecase.test.ts` and shown on Croissance ("Win the searches you
   can own"), computed at build time, never typed into copy.
-- `tsconfig.app.json` type-checks `packages/`. Next (README roadmap): every
-  change ranked by return with today vs the team's plan, the `adplan` step in
-  the live engine, verification, the planner agent and connectors,
-  white-label branding for partners and their sub-clients.
+- **Change ranking** (`src/changes.ts`): every recommended change (ads, SEO,
+  website, Google profile, reviews, listings) costed in team hours (setup
+  file `team.hourly_cost` $75, set by the owner; `effort` estimates) plus
+  spend, modeled on published curves (AWR 2026 organic CTR, First Page Sage
+  2026 local pack) or "not modeled" with its reason, ranked by benefit per
+  dollar, and `compareWithToday` (today vs the plan). Croissance shows the
+  brewery's ranking ("What pays back first").
+- `tsconfig.app.json` type-checks `packages/`. Next (README roadmap): the
+  `adplan` and change ranking in the live engine and reports, verification,
+  the planner agent and connectors, white-label branding for partners and
+  their sub-clients.
 
 ### Groundswell section, internal rename, and the Croissance partner portal (2026-10-21)
 

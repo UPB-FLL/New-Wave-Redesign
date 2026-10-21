@@ -235,6 +235,27 @@ export const auditContent = {
     footnote:
       'Medium case, a month at full speed; the 12-month net includes a two-month ramp. Keyword demand and bids: Google Ads Keyword Planner, Broward County, read October 21, 2026. Platform costs: LocaliQ 2026 benchmarks, named per row in the full audit.',
   },
+  changes: {
+    kicker: 'Every change, ranked',
+    heading: 'What pays back first',
+    intro:
+      'Ads are one kind of change. Every change the audit finds (search pages, the website, the Google profile, reviews, listings) is costed in team hours and spend, modeled on published figures where they exist, and ranked by what it returns. A change with no published figure is still listed, with its reason, after the ones that are modeled.',
+    columns: { rank: '#', change: 'Change', area: 'Area', hours: 'Team hours, first year', net: '12-month net, low to high', back: 'Back per $1, medium case' },
+    areas: { ads: 'Ads', seo: 'Search', website: 'Website', google: 'Google profile', reviews: 'Reviews', listings: 'Listings', social: 'Social', email: 'Email' },
+    notModeled: 'Not modeled',
+    todayHeading: 'Today',
+    planHeading: 'With the plan',
+    labels: {
+      adSpend: 'Ad spend a month',
+      addedSpend: 'Added ad spend a month',
+      hours: 'Team hours, first year',
+      customers: 'New customers a month, medium case',
+      net: '12-month net, low to high',
+      medium: 'medium case',
+    },
+    footnote:
+      'The plan takes every modeled change that pays back in the medium case. Team time is costed at New Wave’s hourly cost; the management fee replaces what the business already pays, so it is not in these numbers.',
+  },
   growth: {
     kicker: 'Built to grow',
     heading: 'An audit that grows with you',
