@@ -25,9 +25,9 @@ nothing in it may be quoted as a fact about any real business.
 In this repository, `src/test/api/groundswell-benchmark-fixtures.test.ts` runs
 the engine's own rules on these files against `expected.json` and lists, with
 reasons, where they give a different answer. The session's own checker,
-`docs/benchmark-session-scripts/verify_fixtures.cjs`, is on the
-`fixtures/groundswell-benchmark` branch; it recomputes the `social_depth`
-figures and exits non-zero on any mismatch with `expected.json`:
+`docs/benchmark-session-scripts/verify_fixtures.cjs`, recomputes the
+`social_depth` figures from these files and exits non-zero on any mismatch
+with `expected.json`:
 
 ```
 node docs/benchmark-session-scripts/verify_fixtures.cjs src/test/api/fixtures/groundswell-benchmark
