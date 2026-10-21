@@ -90,10 +90,13 @@ interface EngagementItem {
 
 **Rules**:
 - `type`: `media_type 8` carousel, `1` image, `2` with `product_type 'clips'` reel, else video.
-- **Hidden likes**: ScrapeCreators returns a placeholder (seen as `3`) when the account hides like counts. Treat `like_count <= 5 && comment_count >= 8` as hidden, and also any `like_count === 3` when the account's visible median is above 100. Hidden items are excluded from like and engagement-rate medians and counted in `likes_hidden_n`.
+- **Hidden likes**: ScrapeCreators returns a placeholder (seen as `3`) when the account hides like counts. Two passes, both required:
+  1. an item with `like_count <= 5 && comment_count >= 8` is hidden (a placeholder with real comments);
+  2. compute the median `like_count` of the remaining items with `like_count > 5`; when it is above 100, every remaining item with `like_count === 3` is hidden too.
+  The first pass alone is wrong: on the fixture competitor it leaves four placeholder items (3 likes, 2 to 6 comments, thousands of plays) counted as 3 real likes, which drags the likes median from 347 to 282 and the engagement rate with it. Hidden items are excluded from like and engagement-rate medians and counted in `likes_hidden_n`.
 - **Dedupe**: the reels page repeats items that are also in the posts page. Key on `date + first 60 characters of caption`; keep the copy that has `plays`.
 - **Pinned posts**: the feed lists pinned items first and out of order. An item whose date is more than 30 days older than the item after it is pinned; flag it and exclude it from cadence.
-- **CTA detection**: `/\bcomment\s+["“]?([A-Z]{3,}(?:\s[A-Z]{3,})?)/i` on the caption; store the keyword.
+- **CTA detection**: `/\b[Cc]omment\s+["“]?([A-Z]{3,}(?:\s[A-Z]{3,})?)/` on the caption; store the keyword. The verb may be capitalised, the keyword must be: with the `i` flag the capture swallows the next word (`Comment HEAL and I'll send` yields `HEAL and`), and a caption such as "comment below" is not a CTA.
 
 **Per-account summary** (`EngagementProfile`):
 
@@ -409,7 +412,7 @@ render the business first, then competitors, and return partial results with
 Fixtures from the 2026-10-21 session (48 Instagram items, two price lists,
 two ad-library results) go under `src/test/api/fixtures/groundswell-benchmark/`.
 
-- `social_depth`: dedupe keeps the copy with plays; pinned detection; hidden-likes rule; CTA keyword; cadence over 14 days; medians match the session's figures (business ER 0.04%, competitor 0.45%; comments medians 2 and 23; competitor CTA posts 61 comments mean versus 20).
+- `social_depth`: dedupe keeps the copy with plays; pinned detection; both passes of the hidden-likes rule (14 hidden on the fixture competitor, not 10); CTA keyword case-sensitive (`HEAL`, never `HEAL and`; `comment below` is not a CTA); cadence over 14 days; medians match the session's figures (business ER 0.04%, competitor 0.45%; likes medians 28.5 and 347; comments medians 2 and 23; competitor CTA posts 61.4 comments mean versus 19.5). The anonymised fixtures and `expected.json` for these are on the `fixtures/groundswell-benchmark` branch (PR #113), with `docs/benchmark-session-scripts/verify_fixtures.cjs` as the reference implementation of the rules.
 - `ads_library`: a page with `adStatus` "isn't currently running ads" yields `not_running`; a company-name search is never used; Transparency Center "0 ads" yields `none`; a consent page yields `unknown`.
 - `pricing`: the extractor finds `$2,800–$3,500`, `$350`, `$1,500 then $250 per month`, `$79/$180/$300 per month`, `$28`, `$497 or 2 × $249`, `$199`; `prices_published` is false for a site whose offer pages carry no dollar amount; refund and insurance flags.
 - `authority`: press allowlist matches cnn.com and vogue.com and rejects blogspot.com; owned-channel detection from bio links.
