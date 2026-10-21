@@ -9,14 +9,14 @@ type TrustItem = { icon: string; label: string; sub: string };
 
 const defaultItem: TrustItem = { icon: 'Shield', label: '', sub: '' };
 
-const defaultHeading = 'Trusted by 500+ businesses across South Florida';
+const defaultHeading = 'Trusted by businesses across South Florida';
 
 const defaultItems: TrustItem[] = [
-  { icon: 'Shield', label: 'SOC 2 Type II', sub: 'Audited & Certified' },
-  { icon: 'Award', label: 'Microsoft Gold', sub: 'Cloud Solutions Partner' },
-  { icon: 'Users', label: 'Cisco Premier', sub: 'Network Solutions' },
-  { icon: 'Star', label: 'CompTIA', sub: 'Authorized Partner' },
-  { icon: 'TrendingUp', label: 'HIPAA Compliant', sub: 'Healthcare Ready' },
+  { icon: 'Shield', label: 'Huntress Partner', sub: 'Managed threat detection' },
+  { icon: 'Award', label: 'Microsoft Partner', sub: 'Microsoft 365 and Azure' },
+  { icon: 'Users', label: 'Cisco Partner', sub: 'Network solutions' },
+  { icon: 'Star', label: 'Flat-Rate Pricing', sub: 'Published per-device rates' },
+  { icon: 'Briefcase', label: 'Local Team', sub: 'Fort Lauderdale based' },
 ];
 
 const iconOptions = [
@@ -71,7 +71,7 @@ export default function TrustBarEditor() {
           label="Heading Text"
           value={content.heading ?? ''}
           onChange={(v) => set('heading', v)}
-          hint="e.g. Trusted by 500+ businesses across South Florida"
+          hint="e.g. Trusted by businesses across South Florida"
         />
       </FormSection>
 
@@ -85,7 +85,7 @@ export default function TrustBarEditor() {
           items={items as Record<string, string>[]}
           fields={[
             { key: 'icon', label: 'Icon', type: 'select', options: iconOptions },
-            { key: 'label', label: 'Label (e.g. SOC 2 Type II)' },
+            { key: 'label', label: 'Label (e.g. Huntress Partner)' },
             { key: 'sub', label: 'Subtitle (e.g. Audited & Certified)' },
           ]}
           onChange={(next) => setItems(next as TrustItem[])}

@@ -15,10 +15,13 @@
     "brand:test": "python -m pytest tests/brandkit -q"
   },
   "dependencies": {
+    "@sparticuz/chromium": "153.0.0",
     "@supabase/supabase-js": "^2.57.4",
     "@vercel/analytics": "^2.0.1",
+    "@vercel/functions": "3.10.2",
     "framer-motion": "^11.18.2",
     "lucide-react": "^0.344.0",
+    "puppeteer-core": "25.11.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-markdown": "^10.1.0",

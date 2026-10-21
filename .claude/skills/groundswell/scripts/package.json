@@ -1,0 +1,9 @@
+{
+  "name": "groundswell-scripts",
+  "private": true,
+  "description": "Headless Chromium driver for the groundswell skill's PDF scripts (uses the container's Chromium).",
+  "type": "commonjs",
+  "dependencies": {
+    "playwright-core": "1.56.1"
+  }
+}

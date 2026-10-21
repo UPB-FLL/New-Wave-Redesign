@@ -27,6 +27,7 @@ testing and are superseded by this document (see "History").
 | Integration | `/social-engineering/integration` |
 | Digital oversight | `/social-engineering/digital-oversight` |
 | Croissance (the audit, run by the Groundswell engine) | `/social-engineering/croissance` |
+| Croissance partner portal (sign-in) | `/social-engineering/croissance/partners` |
 | Customers | `/social-engineering/customers` |
 | Contact us (clients, questions, partnerships) | `/social-engineering/contact-us` |
 | Book a discovery call (new projects) | `/social-engineering/contact` |
@@ -149,7 +150,7 @@ and organic search data), Maps (Google Maps and the Business Profile), Social
 Machine), Ads (Google Ads Transparency Center and site tags), and Delivery
 (the Google Drive folder). The page names no vendors and nothing internal
 (no table, project, or tool names). Copy is in `content/croissance.ts`
-and must match `.claude/skills/marketing-audit` (public data only, sources
+and must match `.claude/skills/groundswell` (public data only, sources
 and dates on every number, three reports in the client's brand, Drive links).
 The example board is Uncommon Path Brewing's real audit (October 21, 2026),
 shown with the owner's permission (an exception, like the Customers apps band,
@@ -160,6 +161,18 @@ from the header (after Services on desktop; beside Overview in the phone
 sheet) and the footer's division column. On a 320x568 phone the sheet's top
 row now wraps to two lines: the discovery-call button still fits the first
 screen, and the endorsement at the foot needs a short scroll.
+
+### Partner portal (`/social-engineering/croissance/partners`)
+
+The sign-in page for partners (outside agencies and resellers), prerendered
+and in the sitemap, with a "Partner portal" link in the footer's division
+column. Accounts are by invitation from the admin portal's Groundswell
+section; "Ask about partnering" goes to Contact us. Signed in, partners use
+`/dashboard` (queue businesses, see their own audits and Drive links) and
+invite or reset links land on `/set-password`; both are noindex, not
+prerendered, and not in the sitemap. Copy: `content/partners.ts`. It never
+promises turnaround times or results. Partner sign-in is separate from admin
+sign-in (CLAUDE.md, "Groundswell section").
 
 ## Customers and Contact us
 

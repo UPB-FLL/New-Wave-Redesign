@@ -16,6 +16,14 @@
     },
     "api/blog/generate-post.ts": {
       "maxDuration": 120
+    },
+    "api/groundswell/run.ts": {
+      "maxDuration": 300,
+      "includeFiles": "{node_modules/@sparticuz/chromium/bin/**,public/brand/social-engineering/fonts/inter-latin-var.woff2}"
+    },
+    "api/groundswell/worker.ts": {
+      "maxDuration": 300,
+      "includeFiles": "{node_modules/@sparticuz/chromium/bin/**,public/brand/social-engineering/fonts/inter-latin-var.woff2}"
     }
   },
   "headers": [
@@ -48,7 +56,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://vitals.vercel-insights.com; media-src 'self' blob: https://videos.pexels.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://vitals.vercel-insights.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://www.google.com https://googleads.g.doubleclick.net; media-src 'self' blob: https://videos.pexels.com; frame-src https://td.doubleclick.net https://www.googletagmanager.com; object-src 'none'; base-uri 'self'; form-action 'self'"
         }
       ]
     },
@@ -114,6 +122,14 @@
       "destination": "/api/blog/post?id=:id"
     },
     {
+      "source": "/api/audits/run",
+      "destination": "/api/groundswell/run"
+    },
+    {
+      "source": "/api/audits/worker",
+      "destination": "/api/groundswell/worker"
+    },
+    {
       "source": "/sitemap-content.xml",
       "destination": "/api/sitemap-content"
     },
@@ -132,6 +148,14 @@
     {
       "source": "/why-us",
       "destination": "/why-us/index.html"
+    },
+    {
+      "source": "/it-support-fort-lauderdale",
+      "destination": "/it-support-fort-lauderdale/index.html"
+    },
+    {
+      "source": "/managed-it-services-fort-lauderdale",
+      "destination": "/managed-it-services-fort-lauderdale/index.html"
     },
     {
       "source": "/about",
@@ -268,6 +292,10 @@
     {
       "source": "/social-engineering/croissance",
       "destination": "/social-engineering/croissance/index.html"
+    },
+    {
+      "source": "/social-engineering/croissance/partners",
+      "destination": "/social-engineering/croissance/partners/index.html"
     },
     {
       "source": "/social-engineering/customers",

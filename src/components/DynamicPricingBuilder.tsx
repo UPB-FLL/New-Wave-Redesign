@@ -1,6 +1,7 @@
 import { CheckCircle2, Minus, Plus, Send } from 'lucide-react';
 import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import { supabase } from '../lib/supabase';
+import { trackLead } from '../lib/analytics';
 
 interface PricingUnit {
   id: string;
@@ -97,6 +98,7 @@ export default function DynamicPricingBuilder() {
       });
 
       setSubmitted(true);
+      trackLead('pricing_form');
       window.setTimeout(() => {
         setFormData({ name: '', email: '', phone: '', company: '', message: '' });
         setSubmitted(false);

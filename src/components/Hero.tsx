@@ -11,8 +11,8 @@ type Stat = { value: string; label: string };
 
 const defaultStats: Stat[] = [
   { value: '24/7', label: 'Service and monitoring' },
-  { value: 'Certified', label: 'Technicians' },
-  { value: 'Dedicated', label: 'Project managers' },
+  { value: 'Local', label: 'Fort Lauderdale team' },
+  { value: 'Flat-rate', label: 'Per-device pricing' },
 ];
 
 function MotionDiv({

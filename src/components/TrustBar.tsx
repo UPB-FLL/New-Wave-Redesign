@@ -51,11 +51,11 @@ const iconMap: Record<string, typeof Shield> = {
 };
 
 const defaultTrustItems: TrustItem[] = [
-  { icon: 'Shield', label: 'SOC 2 Type II', sub: 'Audited and certified' },
-  { icon: 'Award', label: 'Microsoft Gold', sub: 'Cloud solutions partner' },
-  { icon: 'Users', label: 'Cisco Premier', sub: 'Network solutions' },
-  { icon: 'Star', label: 'CompTIA', sub: 'Authorized partner' },
-  { icon: 'TrendingUp', label: 'HIPAA Compliant', sub: 'Healthcare ready' },
+  { icon: 'Shield', label: 'Huntress Partner', sub: 'Managed threat detection' },
+  { icon: 'Award', label: 'Microsoft Partner', sub: 'Microsoft 365 and Azure' },
+  { icon: 'Users', label: 'Cisco Partner', sub: 'Network solutions' },
+  { icon: 'Star', label: 'Flat-Rate Pricing', sub: 'Published per-device rates' },
+  { icon: 'Briefcase', label: 'Local Team', sub: 'Fort Lauderdale based' },
   requiredTrustItem,
 ];
 

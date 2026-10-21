@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import LegalPageLayout from '../components/legal/LegalPageLayout';
+import { ADS_ACTIVE, ANALYTICS_ACTIVE, ANALYTICS_CONFIG } from '../lib/analytics';
 import { IT_PAGE_META } from '../lib/routeMeta';
 import { usePageMeta } from '../lib/usePageMeta';
 
@@ -89,6 +90,32 @@ const THIRD_PARTY_SERVICES: InventoryRow[] = [
   },
 ];
 
+/**
+ * Google's tags, listed only in a build that loads them (VITE_GA4_ID / VITE_GADS_ID).
+ * Names and lifetimes are from Google's documentation; re-scan the live site
+ * after the IDs are set and update COOKIE_INVENTORY_REVIEWED.
+ */
+const GOOGLE_TAG_ROWS: InventoryRow[] = [
+  ...(ANALYTICS_CONFIG.ga4Id
+    ? [{
+        technology: '_ga, _ga_*',
+        provider: 'Google Analytics 4',
+        kind: 'First-party cookies',
+        purpose: 'Distinguish visits and sessions so we can see which pages, searches, and ads bring visitors and which pages lead to a contact request.',
+        duration: 'Up to 2 years.',
+      }]
+    : []),
+  ...(ANALYTICS_CONFIG.adsId
+    ? [{
+        technology: '_gcl_au, _gcl_aw',
+        provider: 'Google Ads',
+        kind: 'First-party cookies',
+        purpose: 'Connect a visit from a Google ad to a later contact form, quote request, or call-link tap, so we can measure which ads produce leads.',
+        duration: 'Up to 90 days.',
+      }]
+    : []),
+];
+
 function InventoryTable({ caption, rows }: { caption: string; rows: InventoryRow[] }) {
   return (
     <div className="overflow-x-auto">
@@ -137,11 +164,22 @@ export default function CookiePolicyPage() {
       <section className={SECTION_CLASS} aria-labelledby="in-short">
         <h2 id="in-short" className={HEADING_CLASS}>In Short</h2>
         <ul className={LIST_CLASS}>
-          <li>The New Wave IT website sets <strong>no cookies of its own</strong>.</li>
-          <li>It uses your browser's local and session storage for functional purposes only: caching page content and holding a support session you start.</li>
-          <li>Our analytics service does not use cookies and does not track you across other websites.</li>
-          <li>Some content is loaded from third parties (the homepage video and fonts). We do not use a chat widget. Two cookies set by Pexels' content-delivery provider are the only cookies our scan found.</li>
-          <li>We do not use advertising, retargeting, or cross-site tracking cookies, and we do not sell or share personal information, so we do not show a cookie consent banner. We will add visitor controls before activating any technology that calls for them.</li>
+          {ANALYTICS_ACTIVE ? (
+            <>
+              <li>The website uses <strong>Google Analytics{ADS_ACTIVE ? ' and Google Ads conversion tracking' : ''}</strong>, which set the first-party cookies listed below.</li>
+              <li>These Google tags never load in a browser that sends a <strong>Global Privacy Control</strong> or <strong>Do Not Track</strong> signal.</li>
+              <li>Otherwise, the website uses your browser's local and session storage for functional purposes only: caching page content and holding a support session you start.</li>
+              <li>Some content is loaded from third parties (the homepage video and fonts). We do not use a chat widget.</li>
+            </>
+          ) : (
+            <>
+              <li>The New Wave IT website sets <strong>no cookies of its own</strong>.</li>
+              <li>It uses your browser's local and session storage for functional purposes only: caching page content and holding a support session you start.</li>
+              <li>Our analytics service does not use cookies and does not track you across other websites.</li>
+              <li>Some content is loaded from third parties (the homepage video and fonts). We do not use a chat widget. Two cookies set by Pexels' content-delivery provider are the only cookies our scan found.</li>
+              <li>We do not use advertising, retargeting, or cross-site tracking cookies, and we do not sell or share personal information, so we do not show a cookie consent banner. We will add visitor controls before activating any technology that calls for them.</li>
+            </>
+          )}
         </ul>
       </section>
 
@@ -167,23 +205,46 @@ export default function CookiePolicyPage() {
         <InventoryTable caption="Browser storage set by the New Wave IT website" rows={FIRST_PARTY_STORAGE} />
         <h3 className="text-lg font-semibold text-slate-900">Third-party services and their cookies</h3>
         <InventoryTable caption="Third-party services loaded by the New Wave IT website and the cookies they set" rows={THIRD_PARTY_SERVICES} />
+        {GOOGLE_TAG_ROWS.length > 0 && (
+          <>
+            <h3 className="text-lg font-semibold text-slate-900">Google measurement cookies</h3>
+            <InventoryTable caption="Google Analytics and Google Ads cookies" rows={GOOGLE_TAG_ROWS} />
+          </>
+        )}
         <p>
           These vendors handle the data they receive under their own policies and terms. We do not
           authorize any of them to track you across other websites on our behalf.
         </p>
       </section>
 
-      <section className={SECTION_CLASS} aria-labelledby="planned-google-analytics">
-        <h2 id="planned-google-analytics" className={HEADING_CLASS}>Planned Google Analytics</h2>
-        <p>Google Analytics is not currently active on this website.</p>
-        <p>
-          If Google Analytics 4 (GA4) is activated later, it may use <code className={CODE_CLASS}>_ga</code>
-          {' '}and related identifiers and collect session, device and browser, approximate-location,
-          page, referrer, and interaction data. Before any activation we will update this Policy with
-          the verified cookie names, purposes, and retention periods, and put in place the visitor
-          controls that applicable law requires.
-        </p>
-      </section>
+      {ANALYTICS_ACTIVE ? (
+        <section className={SECTION_CLASS} aria-labelledby="google-analytics-and-ads">
+          <h2 id="google-analytics-and-ads" className={HEADING_CLASS}>Google Analytics{ADS_ACTIVE ? ' and Google Ads' : ''}</h2>
+          <p>
+            We use Google Analytics 4 to understand how visitors find and use the website
+            {ADS_ACTIVE ? ', and Google Ads conversion tracking to learn which of our ads lead to a contact form, quote request, or call-link tap' : ''}.
+            Google receives your IP address, device and browser details, the pages you view, and those
+            events, and processes them under its own terms. Google may use Google Ads data to measure and
+            improve ad performance.
+          </p>
+          <p>
+            If your browser sends a Global Privacy Control or Do Not Track signal, the website does not
+            load these Google tags at all, so no Google measurement cookie is set and no event is sent.
+          </p>
+        </section>
+      ) : (
+        <section className={SECTION_CLASS} aria-labelledby="planned-google-analytics">
+          <h2 id="planned-google-analytics" className={HEADING_CLASS}>Planned Google Analytics</h2>
+          <p>Google Analytics is not currently active on this website.</p>
+          <p>
+            If Google Analytics 4 (GA4) is activated later, it may use <code className={CODE_CLASS}>_ga</code>
+            {' '}and related identifiers and collect session, device and browser, approximate-location,
+            page, referrer, and interaction data. Before any activation we will update this Policy with
+            the verified cookie names, purposes, and retention periods, and put in place the visitor
+            controls that applicable law requires.
+          </p>
+        </section>
+      )}
 
       <section className={SECTION_CLASS} aria-labelledby="why-we-use-these-technologies">
         <h2 id="why-we-use-these-technologies" className={HEADING_CLASS}>Why We Use These Technologies</h2>
@@ -211,12 +272,20 @@ export default function CookiePolicyPage() {
           If your browser's data-saver setting is on, the homepage does not load the background video, so
           no request is made to Pexels.
         </p>
-        <p>
-          Because the website does not track you across other sites or sell or share personal
-          information, a browser <strong>Do Not Track</strong> or <strong>Global Privacy Control</strong>{' '}
-          signal does not change how it behaves. If that changes, we will honor those signals as
-          applicable law requires and update this Policy first.
-        </p>
+        {ANALYTICS_ACTIVE ? (
+          <p>
+            We honor browser <strong>Do Not Track</strong> and <strong>Global Privacy Control</strong>{' '}
+            signals: when either is on, the Google Analytics{ADS_ACTIVE ? ' and Google Ads' : ''} tags are
+            not loaded.
+          </p>
+        ) : (
+          <p>
+            Because the website does not track you across other sites or sell or share personal
+            information, a browser <strong>Do Not Track</strong> or <strong>Global Privacy Control</strong>{' '}
+            signal does not change how it behaves. If that changes, we will honor those signals as
+            applicable law requires and update this Policy first.
+          </p>
+        )}
         <p>
           Where applicable law gives you an opt-out right, you may{' '}
           <a className={LINK_CLASS} href="mailto:support@newwaveitfl.com">email our support team</a>.

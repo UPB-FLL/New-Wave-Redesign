@@ -49,8 +49,8 @@ const cyberFeatures = [
 
 const cyberStats = [
   { value: '24/7', label: 'SOC monitoring' },
-  { value: '500+', label: 'businesses protected' },
-  { value: '99.9%', label: 'uptime maintained' },
+  { value: 'EDR', label: 'on every endpoint' },
+  { value: 'Huntress', label: 'partner' },
 ];
 
 function BeamConnection() {
@@ -229,7 +229,17 @@ function ServiceCardInner({
   );
 }
 
-export default function Services({ headlineAs: HeadlineTag = 'h2' }: { headlineAs?: 'h1' | 'h2' } = {}) {
+// Luxury and Cellular DAS stay live but sit outside the home page and menus, which
+// lead with managed IT; the /services page lists them as other specialties.
+const OTHER_SPECIALTIES = [
+  { title: 'Luxury', description: 'Smart home automation and guest technology for luxury properties.' },
+  { title: 'Cellular DAS & Public Safety', description: 'In-building cellular and public safety communications.' },
+];
+
+export default function Services({
+  headlineAs: HeadlineTag = 'h2',
+  showOtherSpecialties = false,
+}: { headlineAs?: 'h1' | 'h2'; showOtherSpecialties?: boolean } = {}) {
   const c = useContent('services');
   const reduced = useReducedMotion();
 
@@ -338,7 +348,7 @@ export default function Services({ headlineAs: HeadlineTag = 'h2' }: { headlineA
 
           <motion.div
             data-testid="industry-service-grid"
-            className="grid grid-cols-1 items-stretch gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-4"
+            className="mx-auto grid max-w-4xl grid-cols-1 items-stretch gap-3 sm:gap-4 md:grid-cols-2"
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: '-60px' }}
@@ -347,8 +357,6 @@ export default function Services({ headlineAs: HeadlineTag = 'h2' }: { headlineA
             {[
               { title: 'Family Offices', description: 'Secure wealth management technology for multi-generational family enterprises with privacy-first infrastructure.', accent: '#31C6CF' },
               { title: 'Healthcare', description: 'HIPAA-compliant systems with EHR integration and secure patient data management for medical practices.', accent: '#62BE68' },
-              { title: 'Luxury', description: 'Premium smart home automation and guest experience technology for luxury properties and resorts.', accent: '#31C6CF' },
-              { title: 'Cellular DAS & Public Safety', description: 'FirstNet-compliant communications infrastructure for emergency responders and critical facilities.', accent: '#62BE68' },
             ].map((service) => {
               const Icon = iconMap[service.title] || Shield;
               const slug = slugMap[service.title] || service.title.toLowerCase();
@@ -385,6 +393,25 @@ export default function Services({ headlineAs: HeadlineTag = 'h2' }: { headlineA
               );
             })}
           </motion.div>
+
+          {showOtherSpecialties && (
+            <div data-testid="other-specialties" className="mx-auto mt-10 max-w-4xl text-center">
+              <h3 className="text-sm font-semibold uppercase tracking-widest" style={{ color: 'var(--nw-current-navy)' }}>
+                Other specialties
+              </h3>
+              <ul className="mt-4 flex flex-col gap-3 sm:flex-row sm:justify-center sm:gap-8">
+                {OTHER_SPECIALTIES.map((specialty) => (
+                  <li key={specialty.title} className="text-sm" style={{ color: 'rgba(21,34,50,0.7)' }}>
+                    <Link to={`/service-category/${slugMap[specialty.title]}`} className="font-semibold underline" style={{ color: 'var(--nw-current-navy)' }}>
+                      {specialty.title}
+                    </Link>
+                    {': '}
+                    {specialty.description}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </div>
     </section>

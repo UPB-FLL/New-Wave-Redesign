@@ -7,10 +7,11 @@ import { hubContent } from './hub';
 import { integration } from './integration';
 import { auditConnectors, auditContent, auditReports, auditSample } from './croissance';
 import { marketing } from './marketing';
+import { partnersContent } from './partners';
 import { socialMedia } from './social-media';
 import { websiteDesign } from './website-design';
 
-export { auditConnectors, auditContent, auditReports, auditSample };
+export { auditConnectors, auditContent, auditReports, auditSample, partnersContent };
 export { appsContent, contactUsContent, customersContent, divisionApps, divisionCustomers, hubContent };
 
 /** Display order for navigation, the hub's service grid, and the sitemap. */

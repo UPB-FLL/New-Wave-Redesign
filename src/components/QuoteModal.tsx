@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { CheckCircle, Send, X } from 'lucide-react';
 import FormPrivacyNotice from './legal/FormPrivacyNotice';
+import { trackLead } from '../lib/analytics';
 
 interface QuoteModalProps {
   isOpen: boolean;
@@ -61,6 +62,7 @@ export default function QuoteModal({ isOpen, onClose, tier }: QuoteModalProps) {
       }
 
       setSubmitted(true);
+      trackLead('quote_form');
       window.setTimeout(() => {
         onClose();
         reset();

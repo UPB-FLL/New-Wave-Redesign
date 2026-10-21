@@ -84,10 +84,10 @@ describe('Contact details', () => {
   const rows = (container: HTMLElement) =>
     [...container.querySelectorAll('[data-contact-method]')].map((row) => row.querySelector('h3')?.textContent);
 
-  it('keeps the Call, Email, and Visit rows and the sample phone placeholder by default', () => {
+  it('keeps the Call, Email, and Visit rows, the business number, and the sample phone placeholder by default', () => {
     const { container } = render(<Contact />);
     expect(rows(container)).toEqual(['Call us', 'Email us', 'Visit us']);
-    expect(container.querySelector('a[href^="tel:"]')).toHaveTextContent('(954) 555-0100');
+    expect(container.querySelector('a[href^="tel:"]')).toHaveTextContent('(561) 564-1846');
     expect(screen.getByLabelText('Phone number')).toHaveAttribute('placeholder', '(954) 555-0100');
     expect(screen.getByText(/710 NW 5th Ave, Suite 1072/)).toHaveTextContent('710 NW 5th Ave, Suite 1072 Fort Lauderdale, FL 33311');
   });

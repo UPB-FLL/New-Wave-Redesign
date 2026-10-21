@@ -4,13 +4,11 @@ import {
   Briefcase,
   ChevronDown,
   Cloud,
-  Crown,
   Headphones,
   Menu,
   Monitor,
   Network,
   Shield,
-  Signal,
   Stethoscope,
   Wrench,
   X,
@@ -40,8 +38,6 @@ const serviceGroups = [
     items: [
       { label: 'Family Offices', href: '/service-category/family-offices', icon: Briefcase },
       { label: 'Healthcare', href: '/service-category/healthcare', icon: Stethoscope },
-      { label: 'Luxury', href: '/service-category/luxury', icon: Crown },
-      { label: 'Cellular DAS & Public Safety', href: '/service-category/cellular-das-and-public-safety', icon: Signal },
     ],
   },
 ];

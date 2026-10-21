@@ -7,6 +7,8 @@ const CroissancePage = lazy(() => import('./pages/SocialEngineeringCroissancePag
 const CustomersPage = lazy(() => import('./pages/SocialEngineeringCustomersPage'));
 const ContactUsPage = lazy(() => import('./pages/SocialEngineeringContactUsPage'));
 const ContactPage = lazy(() => import('./pages/SocialEngineeringContactPage'));
+const PartnersPage = lazy(() => import('./pages/SocialEngineeringPartnersPage'));
+const PartnerAppPage = lazy(() => import('./pages/SocialEngineeringPartnerAppPage'));
 
 /**
  * If a division chunk still fails to load (main.tsx already reloads once for
@@ -87,6 +89,23 @@ export function SocialEngineeringContactRoute() {
   return (
     <Deferred>
       <ContactPage />
+    </Deferred>
+  );
+}
+
+export function SocialEngineeringPartnersRoute() {
+  return (
+    <Deferred>
+      <PartnersPage />
+    </Deferred>
+  );
+}
+
+/** The partner portal's signed-in pages (noindex; not prerendered). */
+export function SocialEngineeringPartnerAppRoute({ view }: { view: 'dashboard' | 'set-password' }) {
+  return (
+    <Deferred>
+      <PartnerAppPage view={view} />
     </Deferred>
   );
 }
