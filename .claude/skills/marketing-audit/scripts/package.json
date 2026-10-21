@@ -1,9 +1,0 @@
-{
-  "name": "marketing-audit-scripts",
-  "private": true,
-  "description": "Headless Chromium driver for the marketing-audit skill's PDF scripts (uses the container's Chromium).",
-  "type": "commonjs",
-  "dependencies": {
-    "playwright-core": "1.56.1"
-  }
-}

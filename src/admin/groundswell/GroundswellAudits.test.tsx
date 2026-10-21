@@ -35,17 +35,17 @@ const steps = vi.hoisted(() => ({
   ],
 }));
 
-vi.mock('../../lib/marketingAudits', async (orig) => {
-  const actual = await orig<typeof import('../../lib/marketingAudits')>();
+vi.mock('../../lib/groundswell', async (orig) => {
+  const actual = await orig<typeof import('../../lib/groundswell')>();
   return { ...actual, listAudits: vi.fn(async () => audits), queueAudit: vi.fn(), requeueAudit: vi.fn(), deleteAudit: vi.fn(), addCompetitor: vi.fn(async () => {}), startQueuedAudits: vi.fn(async () => 1), listAuditSteps: vi.fn(async () => steps) };
 });
 
-import MarketingAudits from './MarketingAudits';
-import { addCompetitor, listAudits, startQueuedAudits } from '../../lib/marketingAudits';
+import GroundswellAudits from './GroundswellAudits';
+import { addCompetitor, listAudits, startQueuedAudits } from '../../lib/groundswell';
 
-describe('MarketingAudits admin screen', () => {
+describe('GroundswellAudits admin screen', () => {
   it('lists requests and shows only Google Drive links', async () => {
-    render(<MarketingAudits />);
+    render(<GroundswellAudits />);
     await waitFor(() => expect(screen.getByText('Windy City Auto')).toBeInTheDocument());
     expect(screen.getByText('1 competitor')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Drive folder/ })).toHaveAttribute('href', 'https://drive.google.com/drive/folders/abc');
@@ -55,7 +55,7 @@ describe('MarketingAudits admin screen', () => {
   });
 
   it('shows Groundswell progress for a running audit', async () => {
-    render(<MarketingAudits />);
+    render(<GroundswellAudits />);
     const progress = await screen.findByRole('list', { name: 'Audit progress' });
     expect(progress).toHaveTextContent('Website: done');
     expect(progress).toHaveTextContent('Google Maps: skipped');
@@ -65,7 +65,7 @@ describe('MarketingAudits admin screen', () => {
   });
 
   it('has a labelled form for the business and its competitors', async () => {
-    render(<MarketingAudits />);
+    render(<GroundswellAudits />);
     expect(screen.getByLabelText('Business name')).toBeRequired();
     expect(screen.getByLabelText('Website')).toBeInTheDocument();
     expect(screen.getByLabelText('Instagram')).toBeInTheDocument();
@@ -74,7 +74,7 @@ describe('MarketingAudits admin screen', () => {
   });
 
   it('adds a competitor to an existing request and queues it again', async () => {
-    render(<MarketingAudits />);
+    render(<GroundswellAudits />);
     fireEvent.click(await screen.findByRole('button', { name: 'Add a competitor to Windy City Auto' }));
     fireEvent.change(screen.getByLabelText('New competitor Instagram'), { target: { value: '@rival_shop' } });
     fireEvent.click(screen.getByRole('button', { name: 'Add and queue again' }));
@@ -82,7 +82,7 @@ describe('MarketingAudits admin screen', () => {
   });
 
   it('starts the queued audits on demand and says how many runs started', async () => {
-    render(<MarketingAudits />);
+    render(<GroundswellAudits />);
     const button = await screen.findByRole('button', { name: /Run queued audits now/ });
     await waitFor(() => expect(button).toBeEnabled());
     fireEvent.click(button);
@@ -92,7 +92,7 @@ describe('MarketingAudits admin screen', () => {
 
   it('disables the run button when nothing is queued', async () => {
     vi.mocked(listAudits).mockResolvedValueOnce([audits[0]] as never);
-    render(<MarketingAudits />);
+    render(<GroundswellAudits />);
     await waitFor(() => expect(screen.getByText('Windy City Auto')).toBeInTheDocument());
     expect(screen.getByRole('button', { name: /Run queued audits now/ })).toBeDisabled();
   });

@@ -22,6 +22,7 @@ import {
   DIVISION_CONTACT_US_PATH,
   DIVISION_CUSTOMERS_PATH,
   DIVISION_CROISSANCE_PATH,
+  DIVISION_PARTNERS_PATH,
   DIVISION_NAME,
   DIVISION_PRIMARY_CTA,
   SITE_URL,
@@ -572,12 +573,13 @@ describe('header and footer links', () => {
     expect(within(row).getByRole('link', { name: 'Overview' })).not.toHaveAttribute('aria-current');
   });
 
-  it('adds Croissance, Customers, and Contact us to the footer’s division column', () => {
+  it('adds Croissance, its partner portal, Customers, and Contact us to the footer’s division column', () => {
     renderAt(<DivisionFooter />);
     const column = screen.getByRole('heading', { level: 2, name: 'NW Social Engineering' }).parentElement!;
     expect(within(column).getAllByRole('link').map((link) => [link.textContent, link.getAttribute('href')])).toEqual([
       ['Division overview', '/social-engineering'],
       ['Croissance', DIVISION_CROISSANCE_PATH],
+      ['Partner portal', DIVISION_PARTNERS_PATH],
       ['Customers', DIVISION_CUSTOMERS_PATH],
       ['Contact us', DIVISION_CONTACT_US_PATH],
       [DIVISION_PRIMARY_CTA, DIVISION_CONTACT_PATH],

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { buildAuditInsert, buildCompetitor, isDriveLink, normalizeInstagram, normalizeWebsite, type AuditDraft } from './marketingAudits';
+import { buildAuditInsert, buildCompetitor, isDriveLink, normalizeInstagram, normalizeWebsite, type AuditDraft } from './groundswell';
 
 const draft = (over: Partial<AuditDraft> = {}): AuditDraft => ({
   business_name: 'Flow and Mills',

@@ -5,7 +5,7 @@ check the tooling, and as the pattern for a real audit's files. A real audit has
 and slides listed in `references/report-specs.md`; this one keeps only what the summary links to.
 
 ```bash
-A=.claude/skills/marketing-audit; X=$A/examples/sample; W=$(mktemp -d)
+A=.claude/skills/groundswell; X=$A/examples/sample; W=$(mktemp -d)
 python3 -I $A/scripts/roi_model.py $X/roi_inputs.json $W/roi.json
 python3 -I $X/audit_spec.py $W/roi.json $W/audit_spec.json
 python3 -I $A/scripts/build_audit.py $W/audit_spec.json $W/audit

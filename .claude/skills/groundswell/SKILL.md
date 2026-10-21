@@ -1,23 +1,24 @@
 ---
-name: marketing-audit
-description: Run a New Wave Social Engineering marketing audit for a business queued from the admin site (/admin/audits) — research its Google, Instagram, website, ads, competitors and keywords from public data, model a realistic ROI, build the client-branded summary, slide deck and full audit as PDFs, and publish them to Google Drive (Customers/<Business>, anyone-with-the-link) with links written back to the queue. Use when the audit routine fires (the "Run queued audits now" button on /admin/audits), when asked to "run the audit queue", or when asked to audit a business or a competitor's website or Instagram.
+name: groundswell
+description: Run a New Wave Social Engineering marketing audit for a business queued from the admin site (/admin/groundswell/audits) — research its Google, Instagram, website, ads, competitors and keywords from public data, model a realistic ROI, build the client-branded summary, slide deck and full audit as PDFs, and publish them to Google Drive (Customers/<Business>, anyone-with-the-link) with links written back to the queue. The site's Groundswell engine (api/_lib/groundswell) runs queued audits on its own; use this skill only to run one by hand in a Claude session, when asked to "run the audit queue" here, or when asked to audit a business or a competitor's website or Instagram.
 ---
 
-# Marketing audit
+# Groundswell audit (manual run)
 
 New Wave: Social Engineering (NWSE) audits a prospect's marketing from public data and hands them three
 PDFs in their own brand, "Prepared by New Wave: Social Engineering". Admins queue businesses at
-`/admin/audits`; rows land in the `marketing_audits` table (migration
-`20261020120000_create_marketing_audits.sql`). An admin starts runs with "Run queued audits now" there (`api/audits/run.ts` fires the routine's API
-trigger once per queued row, up to three); each run executes this skill on the oldest queued row.
+`/admin/groundswell/audits`; rows land in the `marketing_audits` table (migration
+`20261020120000_create_marketing_audits.sql`). Normally "Run queued audits now" there starts them on the
+site's Groundswell engine (`api/groundswell/run.ts`; see CLAUDE.md). This skill is the manual path: it
+claims the oldest queued row itself and does the same work in a Claude session.
 
-`$A` = `.claude/skills/marketing-audit`. `$W` = `<your scratchpad>/audits/<slug>`. Never write audit output
+`$A` = `.claude/skills/groundswell`. `$W` = `<your scratchpad>/audits/<slug>`. Never write audit output
 into the repository, and never commit it.
 
 ## 0. Setup (once per session)
 
 ```bash
-npm ci --prefix .claude/skills/marketing-audit/scripts   # playwright-core only; uses /opt/pw-browsers/chromium
+npm ci --prefix .claude/skills/groundswell/scripts   # playwright-core only; uses /opt/pw-browsers/chromium
 ```
 
 Tools: everything outside this machine goes through **Composio** (the only connector the routine has),

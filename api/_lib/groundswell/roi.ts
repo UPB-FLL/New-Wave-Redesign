@@ -1,6 +1,6 @@
 /**
  * Groundswell's ROI model: a TypeScript port of
- * .claude/skills/marketing-audit/scripts/roi_model.py (kept in parity by
+ * .claude/skills/groundswell/scripts/roi_model.py (kept in parity by
  * src/test/api/groundswell-roi.test.ts).
  *
  * Models paid search, the one recommended change with a measurable cost-to-return path:

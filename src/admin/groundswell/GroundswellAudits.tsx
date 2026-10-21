@@ -8,6 +8,7 @@ import {
   isDriveLink,
   listAudits,
   listAuditSteps,
+  listPartners,
   queueAudit,
   requeueAudit,
   startQueuedAudits,
@@ -15,8 +16,8 @@ import {
   type AuditDraft,
   type AuditStep,
   type CompetitorDraft,
-  type MarketingAudit,
-} from '../../lib/marketingAudits';
+  type GroundswellAudit,
+} from '../../lib/groundswell';
 
 const emptyDraft = (): AuditDraft => ({
   business_name: '',
@@ -63,8 +64,8 @@ function StepProgress({ steps }: { steps: AuditStep[] }) {
 const input =
   'w-full rounded-lg px-3 py-2 text-sm text-white placeholder-white/30 bg-white/5 border border-white/10 focus:outline-none focus:border-[#39CCCC]';
 
-export default function MarketingAudits() {
-  const [audits, setAudits] = useState<MarketingAudit[]>([]);
+export default function GroundswellAudits() {
+  const [audits, setAudits] = useState<GroundswellAudit[]>([]);
   const [loading, setLoading] = useState(true);
   const [draft, setDraft] = useState<AuditDraft>(emptyDraft);
   const [saving, setSaving] = useState(false);
@@ -73,6 +74,7 @@ export default function MarketingAudits() {
   const [starting, setStarting] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [steps, setSteps] = useState<Record<string, AuditStep[]>>({});
+  const [partnerNames, setPartnerNames] = useState<Map<string, string>>(new Map());
 
   const refresh = async () => {
     try {
@@ -90,6 +92,10 @@ export default function MarketingAudits() {
 
   useEffect(() => {
     void refresh();
+    // Who submitted partner audits; the queue still shows without it.
+    listPartners()
+      .then((partners) => setPartnerNames(new Map(partners.map((p) => [p.id, p.company]))))
+      .catch(() => {});
   }, []);
 
   const queued = audits.filter((a) => a.status === 'queued').length;
@@ -153,7 +159,7 @@ export default function MarketingAudits() {
     <div className="p-6 lg:p-8 max-w-6xl space-y-8">
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-white">Marketing audits</h1>
+          <h1 className="text-2xl font-bold text-white">Groundswell audits</h1>
           <p className="text-sm text-white/60 max-w-3xl">
             Add a business by its website or Instagram, with any competitors you want compared; adding a competitor
             later queues the audit again. Queued audits run on Groundswell when you press{' '}
@@ -273,6 +279,7 @@ export default function MarketingAudits() {
                         {a.website && <span className="inline-flex items-center gap-1"><Globe size={12} />{a.website}</span>}
                         {a.instagram && <span className="inline-flex items-center gap-1"><Instagram size={12} />@{a.instagram}</span>}
                         <span>{a.competitors.length} competitor{a.competitors.length === 1 ? '' : 's'}</span>
+                        {a.partner_id && <span>via {partnerNames.get(a.partner_id) ?? 'a partner'}</span>}
                       </div>
                     </div>
                     <span className="inline-flex items-center gap-1.5 text-xs font-semibold rounded-full px-2.5 py-1" style={{ color: s.color, background: 'rgba(255,255,255,0.05)' }}>

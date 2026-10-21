@@ -20,6 +20,11 @@ export const DIVISION_CONTACT_US_PATH = `${DIVISION_BASE_PATH}/contact-us`;
 export const DIVISION_CUSTOMERS_PATH = `${DIVISION_BASE_PATH}/customers`;
 /** Croissance, the division's growth audit (run by the Groundswell engine), with sample data. */
 export const DIVISION_CROISSANCE_PATH = `${DIVISION_BASE_PATH}/croissance`;
+/** The Croissance partner portal: sign-in (public, indexed) and its signed-in pages (noindex). */
+export const DIVISION_PARTNERS_PATH = `${DIVISION_CROISSANCE_PATH}/partners`;
+export const DIVISION_PARTNER_DASHBOARD_PATH = `${DIVISION_PARTNERS_PATH}/dashboard`;
+/** Invite and password-reset links land here (api/_lib/groundswell/partners.ts builds them). */
+export const DIVISION_PARTNER_SET_PASSWORD_PATH = `${DIVISION_PARTNERS_PATH}/set-password`;
 
 /**
  * Service URL segments, in display order. Kept here (not derived from the copy

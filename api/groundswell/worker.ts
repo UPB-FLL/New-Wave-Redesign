@@ -4,7 +4,7 @@ import { methodGuard, type ApiRequest, type ApiResponse } from '../_lib/http.js'
 import { isSupabaseConfigured } from '../_lib/supabaseAdmin.js';
 
 /**
- * POST /api/audits/worker — Groundswell's heartbeat. pg_cron calls it every
+ * POST /api/groundswell/worker — Groundswell's heartbeat. pg_cron calls it every
  * minute while an audit is running (x-admin-key, migration 20261021120000),
  * and the admin page may call it too. It answers at once and keeps working
  * after the response: each call runs runnable audit steps until its time is

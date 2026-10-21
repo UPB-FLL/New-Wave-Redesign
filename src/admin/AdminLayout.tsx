@@ -2,7 +2,7 @@ import { Suspense, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import {
-  LayoutDashboard, Star, Layers, HelpCircle, Info, Mail, AlignLeft, LogOut, Menu, X, Waves, Search, ShieldCheck, Activity, FileText, ClipboardList,
+  LayoutDashboard, Star, Layers, HelpCircle, Info, Mail, AlignLeft, LogOut, Menu, X, Waves, Search, ShieldCheck, Activity, FileText, ClipboardList, Gauge, Handshake,
 } from 'lucide-react';
 import { usePageMeta } from '../lib/usePageMeta';
 
@@ -20,7 +20,13 @@ const navItems = [
   { label: 'Footer', path: '/admin/footer', icon: AlignLeft },
   { label: 'Blog', path: '/admin/unified', icon: FileText },
   { label: 'SEO Portal', path: '/admin/seo', icon: Search },
-  { label: 'Marketing Audits', path: '/admin/audits', icon: ClipboardList },
+];
+
+/** Groundswell, the Croissance audit engine, has its own section of the portal. */
+const groundswellItems = [
+  { label: 'Overview', path: '/admin/groundswell', icon: Gauge, end: true },
+  { label: 'Audits', path: '/admin/groundswell/audits', icon: ClipboardList },
+  { label: 'Partners', path: '/admin/groundswell/partners', icon: Handshake },
 ];
 
 export default function AdminLayout() {
@@ -74,6 +80,24 @@ export default function AdminLayout() {
               {item.label}
             </NavLink>
           ))}
+          <div role="group" aria-labelledby="admin-nav-groundswell" className="pt-4">
+            <div id="admin-nav-groundswell" className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.35)' }}>
+              Groundswell
+            </div>
+            {groundswellItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                end={item.end}
+                className={linkClass}
+                style={({ isActive }) => isActive ? activeStyle : {}}
+                onClick={() => setSidebarOpen(false)}
+              >
+                <item.icon size={16} />
+                {item.label}
+              </NavLink>
+            ))}
+          </div>
         </nav>
 
         <div className="p-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Navigate, Routes, Route, useLocation } from 'react-router-dom';
 import { Suspense, lazy, useEffect } from 'react';
 
 function ScrollToTop() {
@@ -71,6 +71,9 @@ import {
   DIVISION_CONTACT_US_PATH,
   DIVISION_CUSTOMERS_PATH,
   DIVISION_CROISSANCE_PATH,
+  DIVISION_PARTNER_DASHBOARD_PATH,
+  DIVISION_PARTNER_SET_PASSWORD_PATH,
+  DIVISION_PARTNERS_PATH,
   DIVISION_PUBLISHED,
   DIVISION_SERVICE_SLUGS,
   divisionServicePath,
@@ -82,6 +85,8 @@ import {
   SocialEngineeringCustomersRoute,
   SocialEngineeringHubRoute,
   SocialEngineeringCroissanceRoute,
+  SocialEngineeringPartnerAppRoute,
+  SocialEngineeringPartnersRoute,
   SocialEngineeringServiceRoute,
 } from './divisions/socialEngineering/routes';
 
@@ -103,7 +108,9 @@ const PricingEditor = lazy(() => import('./admin/editors/PricingEditor'));
 const StatusEditor = lazy(() => import('./admin/editors/StatusEditor'));
 const SeoPortal = lazy(() => import('./admin/seo/SeoPortal'));
 const SeoPageEditor = lazy(() => import('./admin/seo/SeoPageEditor'));
-const MarketingAudits = lazy(() => import('./admin/audits/MarketingAudits'));
+const GroundswellAudits = lazy(() => import('./admin/groundswell/GroundswellAudits'));
+const GroundswellOverview = lazy(() => import('./admin/groundswell/GroundswellOverview'));
+const GroundswellPartners = lazy(() => import('./admin/groundswell/GroundswellPartners'));
 const ServicesDetailEditor = lazy(() => import('./admin/editors/ServicesDetailEditor'));
 const ThreatsDetailEditor = lazy(() => import('./admin/editors/ThreatsDetailEditor'));
 const ServicesCategoryEditor = lazy(() => import('./admin/editors/ServicesCategoryEditor'));
@@ -184,6 +191,9 @@ export default function App() {
               <Route key={slug} path={divisionServicePath(slug)} element={<SocialEngineeringServiceRoute slug={slug} />} />
             ))}
             <Route path={DIVISION_CROISSANCE_PATH} element={<SocialEngineeringCroissanceRoute />} />
+            <Route path={DIVISION_PARTNERS_PATH} element={<SocialEngineeringPartnersRoute />} />
+            <Route path={DIVISION_PARTNER_DASHBOARD_PATH} element={<SocialEngineeringPartnerAppRoute view="dashboard" />} />
+            <Route path={DIVISION_PARTNER_SET_PASSWORD_PATH} element={<SocialEngineeringPartnerAppRoute view="set-password" />} />
             <Route path={DIVISION_CUSTOMERS_PATH} element={<SocialEngineeringCustomersRoute />} />
             <Route path={DIVISION_CONTACT_US_PATH} element={<SocialEngineeringContactUsRoute />} />
             <Route path={DIVISION_CONTACT_PATH} element={<SocialEngineeringContactRoute />} />
@@ -217,7 +227,11 @@ export default function App() {
           <Route path="threats-detail" element={<ThreatsDetailEditor />} />
           <Route path="seo" element={<SeoPortal />} />
           <Route path="seo/:id" element={<SeoPageEditor />} />
-          <Route path="audits" element={<MarketingAudits />} />
+          <Route path="groundswell" element={<GroundswellOverview />} />
+          <Route path="groundswell/audits" element={<GroundswellAudits />} />
+          <Route path="groundswell/partners" element={<GroundswellPartners />} />
+          {/* The queue's old address, from before Groundswell had its own section. */}
+          <Route path="audits" element={<Navigate to="/admin/groundswell/audits" replace />} />
         </Route>
         {/* Anything unmatched, including unknown /social-engineering/* paths: a noindex page, not a blank one. */}
         <Route path="*" element={<NotFoundPage />} />

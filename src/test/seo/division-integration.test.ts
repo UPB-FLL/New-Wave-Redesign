@@ -11,6 +11,9 @@ import {
   DIVISION_CONTACT_US_PATH,
   DIVISION_CUSTOMERS_PATH,
   DIVISION_CROISSANCE_PATH,
+  DIVISION_PARTNERS_PATH,
+  DIVISION_PARTNER_DASHBOARD_PATH,
+  DIVISION_PARTNER_SET_PASSWORD_PATH,
   DIVISION_PUBLISHED,
   DIVISION_SERVICE_SLUGS,
   RETIRED_SERVICE_SLUGS,
@@ -124,11 +127,13 @@ describe('vercel.json rewrites', () => {
   });
 
   it('rewrites exactly the prerendered URLs, plus the routes functions serve — never the homepage', () => {
-    // Three rewrites go to functions rather than files: the content sitemap
+    // Five rewrites go to functions rather than files: the content sitemap
     // (api/sitemap-content.ts), blog posts, whose head comes from the database
-    // (api/blog-page.ts, pinned in src/test/api/blog-page.test.ts), and the
-    // single-post API (api/blog/post.ts, pinned in blog-routes.test.ts).
-    const extra = rewrites.filter((rule) => !['/api/(.*)', '/api/blog/:id', '/(.*)', '/sitemap-content.xml', '/blog/:slug'].includes(rule.source));
+    // (api/blog-page.ts, pinned in src/test/api/blog-page.test.ts), the
+    // single-post API (api/blog/post.ts, pinned in blog-routes.test.ts), and the
+    // audit routes' old addresses (api/groundswell/*, pinned in groundswell-routes.test.ts).
+    const functionRoutes = ['/api/(.*)', '/api/blog/:id', '/api/audits/run', '/api/audits/worker', '/(.*)', '/sitemap-content.xml', '/blog/:slug'];
+    const extra = rewrites.filter((rule) => !functionRoutes.includes(rule.source));
     expect(extra.map((rule) => rule.source).sort()).toEqual([...prerenderedPaths].sort());
     expect(extra.map((rule) => rule.source)).not.toContain('/');
   });
@@ -151,7 +156,7 @@ describe('index.html (the parent shell every New Wave IT URL is served)', () => 
 describe('division pages beyond the services', () => {
   // Listed by hand, so a page dropped from allDivisionPages() cannot quietly
   // take its sitemap entry, rewrite, and route with it.
-  const pages = [DIVISION_CROISSANCE_PATH, DIVISION_CUSTOMERS_PATH, DIVISION_CONTACT_US_PATH, DIVISION_CONTACT_PATH];
+  const pages = [DIVISION_CROISSANCE_PATH, DIVISION_PARTNERS_PATH, DIVISION_CUSTOMERS_PATH, DIVISION_CONTACT_US_PATH, DIVISION_CONTACT_PATH];
   const sitemap = read('public/sitemap.xml');
   const rewrites = (JSON.parse(read('vercel.json')) as { rewrites: { source: string; destination: string }[] }).rewrites;
   const app = read('src/App.tsx');
@@ -168,6 +173,7 @@ describe('division pages beyond the services', () => {
     const divisionRoutes = app.slice(app.indexOf('{DIVISION_PUBLISHED ? ('), app.indexOf(') : null}'));
     [
       ['DIVISION_CROISSANCE_PATH', 'SocialEngineeringCroissanceRoute', 'SocialEngineeringCroissancePage'],
+      ['DIVISION_PARTNERS_PATH', 'SocialEngineeringPartnersRoute', 'SocialEngineeringPartnersPage'],
       ['DIVISION_CUSTOMERS_PATH', 'SocialEngineeringCustomersRoute', 'SocialEngineeringCustomersPage'],
       ['DIVISION_CONTACT_US_PATH', 'SocialEngineeringContactUsRoute', 'SocialEngineeringContactUsPage'],
       ['DIVISION_CONTACT_PATH', 'SocialEngineeringContactRoute', 'SocialEngineeringContactPage'],
@@ -175,5 +181,13 @@ describe('division pages beyond the services', () => {
       expect(divisionRoutes).toContain(`<Route path={${constant}} element={<${route} />} />`);
       expect(routes).toContain(`import('./pages/${page}')`);
     });
+  });
+
+  it('keeps the partner portal’s signed-in pages out of the sitemap and the prerender', () => {
+    for (const pagePath of [DIVISION_PARTNER_DASHBOARD_PATH, DIVISION_PARTNER_SET_PASSWORD_PATH]) {
+      expect(divisionPaths).not.toContain(pagePath);
+      expect(sitemap).not.toContain(`<loc>${SITE_URL}${pagePath}</loc>`);
+      expect(rewrites.map((rule) => rule.source)).not.toContain(pagePath);
+    }
   });
 });

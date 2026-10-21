@@ -17,11 +17,11 @@
     "api/blog/generate-post.ts": {
       "maxDuration": 120
     },
-    "api/audits/run.ts": {
+    "api/groundswell/run.ts": {
       "maxDuration": 300,
       "includeFiles": "{node_modules/@sparticuz/chromium/bin/**,public/brand/social-engineering/fonts/inter-latin-var.woff2}"
     },
-    "api/audits/worker.ts": {
+    "api/groundswell/worker.ts": {
       "maxDuration": 300,
       "includeFiles": "{node_modules/@sparticuz/chromium/bin/**,public/brand/social-engineering/fonts/inter-latin-var.woff2}"
     }
@@ -120,6 +120,14 @@
     {
       "source": "/api/blog/:id",
       "destination": "/api/blog/post?id=:id"
+    },
+    {
+      "source": "/api/audits/run",
+      "destination": "/api/groundswell/run"
+    },
+    {
+      "source": "/api/audits/worker",
+      "destination": "/api/groundswell/worker"
     },
     {
       "source": "/sitemap-content.xml",
@@ -284,6 +292,10 @@
     {
       "source": "/social-engineering/croissance",
       "destination": "/social-engineering/croissance/index.html"
+    },
+    {
+      "source": "/social-engineering/croissance/partners",
+      "destination": "/social-engineering/croissance/partners/index.html"
     },
     {
       "source": "/social-engineering/customers",

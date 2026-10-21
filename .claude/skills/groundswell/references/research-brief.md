@@ -1,7 +1,7 @@
 # Research brief
 
-The research step of the marketing-audit skill. `$W` is the audit's work folder
-(`<scratchpad>/audits/<slug>`) and `$A` is `.claude/skills/marketing-audit`. Write everything under `$W`;
+The research step of the groundswell skill. `$W` is the audit's work folder
+(`<scratchpad>/audits/<slug>`) and `$A` is `.claude/skills/groundswell`. Write everything under `$W`;
 never write into the repository.
 
 ## Purpose
