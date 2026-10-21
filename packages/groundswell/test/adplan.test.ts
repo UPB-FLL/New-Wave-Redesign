@@ -147,11 +147,11 @@ describe('the ad plan', () => {
 
   it('adds a platform’s rule for a restricted category, or skips the row when the rule rules out self-serve', () => {
     const p = buildAdPlan([events], industry(['google_search', 'meta', 'reddit'], { restricted: ['alcohol'] }), config);
-    expect(p.rows.find((r) => r.platform === 'meta')!.reason).toContain('Target 21+ only.');
+    expect(p.rows.find((r) => r.platform === 'meta')!.conditions).toEqual(['Target 21+ only.']);
     expect(p.rows.find((r) => r.platform === 'reddit')).toMatchObject({ recommendation: 'skip', reason: 'Alcohol needs a sales rep.' });
     // An angle can carry the category itself.
     const q = buildAdPlan([{ ...events, category: 'alcohol' }], industry(['meta']), config);
-    expect(q.rows[0].reason).toContain('Target 21+ only.');
+    expect(q.rows[0].conditions).toEqual(['Target 21+ only.']);
   });
 
   it('lists a platform with no published benchmark instead of guessing its numbers', () => {

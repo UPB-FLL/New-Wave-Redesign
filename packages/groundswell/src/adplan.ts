@@ -101,6 +101,8 @@ export interface PlanRow {
   recommendation: Recommendation;
   /** One plain sentence: why this row is funded, tested or skipped. */
   reason: string;
+  /** Platform rules the row runs under (e.g. an age limit for alcohol), one sentence each. */
+  conditions: string[];
   /** Cost per lead above which the medium scenario stops paying back: the stop-loss line. */
   stop_loss_cost_per_lead: number | null;
   /** Where the row's numbers come from. */
@@ -288,12 +290,18 @@ export function buildAdPlan(angles: AngleInput[], industry: IndustryProfile, con
     const roi_tier: RoiTier = m.roi === null ? 'not modeled' : m.roi < 0 ? 'loses money' : m.roi >= tiers.roi_strong ? 'strong' : 'pays back';
     let recommendation: Recommendation;
     let reason: string;
-    if (roi_tier === 'strong' || (roi_tier === 'pays back' && (scenarios.low.roi ?? -1) >= 0)) {
+    const lowPays = (scenarios.low.roi ?? -1) >= 0;
+    if (roi_tier === 'strong' || (roi_tier === 'pays back' && lowPays)) {
       recommendation = 'fund';
-      reason = 'Pays back in the medium scenario, with a stop-loss for the low one.';
+      reason =
+        roi_tier === 'strong'
+          ? lowPays
+            ? 'Strong in the medium case, and pays back even in the low one.'
+            : 'Strong in the medium case; the low case loses money, so it runs with a stop-loss.'
+          : 'Pays back in every case.';
     } else if (roi_tier === 'pays back') {
       recommendation = 'test';
-      reason = 'Pays back in the medium scenario but not the low one: a small test with a stop-loss.';
+      reason = 'Pays back in the medium case but not the low one: a small test with a stop-loss.';
     } else if (roi_tier === 'not modeled') {
       recommendation = buying === 'search' && m.cpc < cfg.tiers.cpc[1] ? 'test' : 'skip';
       reason =
@@ -302,17 +310,18 @@ export function buildAdPlan(angles: AngleInput[], industry: IndustryProfile, con
           : 'No published price to model a return, and the clicks are not cheap enough to test blind.';
     } else {
       recommendation = 'skip';
-      reason = 'Loses money in the medium scenario.';
+      reason = 'Loses money in the medium case.';
     }
     // A platform rule for one of the business's categories either adds a condition or rules self-serve out.
+    const conditions: string[] = [];
     for (const category of categories) {
       const rule = cfg.platforms[platform].restricted_categories?.[category];
       if (!rule) continue;
       if (rule.blocks_self_serve) {
         recommendation = 'skip';
         reason = rule.rule;
-      } else if (recommendation !== 'skip') {
-        reason += ` ${rule.rule}`;
+      } else {
+        conditions.push(rule.rule);
       }
     }
     return {
@@ -328,6 +337,7 @@ export function buildAdPlan(angles: AngleInput[], industry: IndustryProfile, con
       roi_tier,
       recommendation,
       reason,
+      conditions,
       stop_loss_cost_per_lead: stopLoss(angle.value, buying === 'search' ? angle.incrementality : 1),
       sources,
     };
