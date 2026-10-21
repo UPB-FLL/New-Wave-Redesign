@@ -418,9 +418,8 @@ describe('content hidden below a breakpoint', () => {
 
     const scenes = hidden.filter((element) => element.hasAttribute('data-page-scene'));
     const learnMore = hidden.filter((element) => element.textContent?.startsWith('Learn more'));
-    const art = hidden.filter((element) => element.querySelector('img') && !element.textContent?.trim());
     const lockup = hidden.filter((element) => element.querySelector('[data-role="family-lockup"]'));
-    expect(scenes.length + learnMore.length + art.length + lockup.length).toBe(hidden.length);
+    expect(scenes.length + learnMore.length + lockup.length).toBe(hidden.length);
 
     // The line-art scenes: the hero's (off on landscape phones) and the "What
     // we gather" band's (desktop only). Decorative, with the copy beside them.
@@ -443,9 +442,12 @@ describe('content hidden below a breakpoint', () => {
     expect(learnMore).toHaveLength(divisionServices.length);
     learnMore.forEach((element) => expect(element.closest('a')).not.toBeNull());
 
-    // The intro's brand mark: decorative.
-    expect(art).toHaveLength(1);
-    expect(onlyDecorativeGraphics(art[0])).toBe(true);
+    // The intro's growth loop shows at every width (nothing hidden), is
+    // decorative, and the list beside it says the same in words.
+    const loop = main.querySelector('svg[data-role="growth-loop"]')!;
+    expect(loop.closest('[aria-hidden="true"]')).not.toBeNull();
+    expect(classesOf(loop.closest('figure')).some((name) => name === 'hidden' || name.endsWith(':hidden'))).toBe(false);
+    expect(loop.closest('figure')).toHaveTextContent('Sales');
 
     // The family lockup: decorative logos and labels; the section says the same in words.
     expect(lockup).toHaveLength(1);

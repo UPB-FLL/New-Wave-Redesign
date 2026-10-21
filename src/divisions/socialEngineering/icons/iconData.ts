@@ -12,7 +12,7 @@
 // paths are the brand wave, always last, stroked in Lure Amber by NwseIcon;
 // every icon still reads in one colour without them.
 
-export type DivisionIconGroup = 'services' | 'phases' | 'method' | 'journey' | 'metrics' | 'ui';
+export type DivisionIconGroup = 'services' | 'pillars' | 'phases' | 'method' | 'journey' | 'metrics' | 'ui';
 
 export interface DivisionIconPath {
   /** SVG path data on the 24 x 24 grid. */
@@ -91,6 +91,42 @@ const icons = {
       { d: 'M12 12.25l3.75-3.75' },
       { d: 'M12 12.25h.01' },
       { d: 'M7.25 19.75c1.49-1.63 3.26-1.63 4.75 0s3.26 1.63 4.75 0', accent: true },
+    ],
+  },
+  // The three pillars (hub "What we're built on", service pillar strips),
+  // added 2026-10-21 with the national repositioning. Drawn to the icon spec
+  // (24 grid, 1.75 stroke, paths only, ink inside 2–22, one accent wave last).
+  'pillar-data': {
+    label: 'Data',
+    group: 'pillars',
+    paths: [
+      { d: 'M4 20.5h16' },
+      { d: 'M7.5 16.5v4' },
+      { d: 'M12 12.5v8' },
+      { d: 'M16.5 8.5v12' },
+      { d: 'M4.5 6.5c1.57-1.57 3.43-1.57 5 0s3.43 1.57 5 0', accent: true },
+    ],
+  },
+  'pillar-integrations': {
+    label: 'Integrations',
+    group: 'pillars',
+    paths: [
+      { d: 'M3 12a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0' },
+      { d: 'M16 12a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0' },
+      { d: 'M9.5 5.5a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0' },
+      { d: 'M12 8v4' },
+      { d: 'M8 12h8' },
+      { d: 'M7.25 18.5c1.49-1.63 3.26-1.63 4.75 0s3.26 1.63 4.75 0', accent: true },
+    ],
+  },
+  'pillar-advertising': {
+    label: 'Smart advertising',
+    group: 'pillars',
+    paths: [
+      { d: 'M5 11a7 7 0 1 0 14 0a7 7 0 1 0 -14 0' },
+      { d: 'M9 11a3 3 0 1 0 6 0a3 3 0 1 0 -6 0' },
+      { d: 'M12 11h.01' },
+      { d: 'M7.75 20.5c1.33-1.46 2.92-1.46 4.25 0s2.92 1.46 4.25 0', accent: true },
     ],
   },
   'phase-foundation': {
@@ -357,5 +393,5 @@ export type DivisionIconName = keyof typeof icons;
 
 export const DIVISION_ICONS: Readonly<Record<DivisionIconName, DivisionIconDefinition>> = icons;
 
-/** Every icon name, in display order (services, phases, method, journey, metrics, ui). */
+/** Every icon name, in display order (services, pillars, phases, method, journey, metrics, ui). */
 export const DIVISION_ICON_NAMES = Object.keys(icons) as DivisionIconName[];

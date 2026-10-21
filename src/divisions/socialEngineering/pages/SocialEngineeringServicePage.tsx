@@ -7,13 +7,16 @@ import {
   CtaBand,
   DivisionHero,
   FaqList,
+  GlanceStrip,
   MetricLabels,
+  OutcomeList,
+  PillarStrip,
   PointGrid,
   PrimaryCta,
   SectionIntro,
   StepList,
 } from '../components/sections';
-import { divisionServices, findDivisionService } from '../content';
+import { divisionServices, findDivisionService, hubContent } from '../content';
 import { NwseIcon } from '../icons/NwseIcon';
 import { isScenePageKey } from '../motion/scenes';
 import { servicePageSeo } from '../seo';
@@ -29,6 +32,12 @@ export default function SocialEngineeringServicePage({ slug }: { slug: string })
   return <ServicePageBody service={service} />;
 }
 
+/**
+ * Every service page reads the same way: the hero, the facts at a glance,
+ * what changes for the business, what is included, how the work runs, what
+ * you receive and what we report on, where the service sits in the growth
+ * system, the questions, the related services, and the call to discovery.
+ */
 function ServicePageBody({ service }: { service: DivisionServiceContent }) {
   const seo = servicePageSeo(service);
   useDivisionMeta(seo);
@@ -55,13 +64,30 @@ function ServicePageBody({ service }: { service: DivisionServiceContent }) {
         }
       />
 
+      <Band tone="white" size="compact" labelledBy="nwse-glance">
+        <h2 id="nwse-glance" className="sr-only">
+          At a glance
+        </h2>
+        <GlanceStrip items={service.glance} labelledBy="nwse-glance" />
+      </Band>
+
+      <Band labelledBy="nwse-outcomes">
+        <SectionIntro kicker="Outcomes" title="What changes for the business" id="nwse-outcomes" />
+        <OutcomeList outcomes={service.outcomes} />
+      </Band>
+
       <Band tone="white" labelledBy="nwse-scope">
         <SectionIntro kicker="Scope" title={service.scopeHeading ?? 'What’s included'} id="nwse-scope" />
         <PointGrid points={service.scope} />
       </Band>
 
       <Band labelledBy="nwse-steps">
-        <SectionIntro kicker="How it works" title="How the work runs" id="nwse-steps" />
+        <SectionIntro
+          kicker="How it works"
+          title="How the work runs"
+          description="The same order as every engagement: audit, plan, build, then report every month."
+          id="nwse-steps"
+        />
         <StepList steps={service.process} />
       </Band>
 
@@ -80,12 +106,22 @@ function ServicePageBody({ service }: { service: DivisionServiceContent }) {
         </div>
       </Band>
 
-      <Band id="faq" labelledBy="nwse-faq">
+      <Band labelledBy="nwse-system">
+        <SectionIntro
+          kicker="Where it fits"
+          title="One of six services in one growth system"
+          description="Every service serves one of the three pillars first and plugs into the same tracking and the same monthly report."
+          id="nwse-system"
+        />
+        <PillarStrip pillars={hubContent.pillars} active={service.pillar} />
+      </Band>
+
+      <Band tone="white" id="faq" labelledBy="nwse-faq">
         <SectionIntro kicker="FAQ" title="Common questions" id="nwse-faq" />
         <FaqList faqs={service.faqs} />
       </Band>
 
-      <Band tone="white" labelledBy="nwse-related">
+      <Band labelledBy="nwse-related">
         <SectionIntro kicker="Related services" title="Works best alongside" id="nwse-related" />
         {/* Below lg each service is a row: icon, title, and arrow on one line, the
             summary beneath, the whole row the link (grouped into one list below
@@ -117,8 +153,8 @@ function ServicePageBody({ service }: { service: DivisionServiceContent }) {
       </Band>
 
       <CtaBand
-        heading={service.ctaHeading ?? 'Start with discovery'}
-        body="Before we recommend anything, we’d like to understand the business, where customers find you today, and where the gaps are."
+        heading={service.ctaHeading ?? 'Start with the audit'}
+        body="Before we recommend anything, we run Croissance on the business and its rivals, so the first conversation starts from data rather than a pitch."
       />
     </DivisionLayout>
   );

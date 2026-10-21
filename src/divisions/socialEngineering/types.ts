@@ -6,6 +6,12 @@ import type { DivisionIconName } from './icons/iconData';
 
 export type DivisionServiceIcon = 'social' | 'brand' | 'web' | 'marketing' | 'integration' | 'oversight';
 
+/**
+ * The three things the division is built on. Every service serves one of them
+ * first; the hub explains all three, and each service page shows where it fits.
+ */
+export type DivisionPillarKey = 'data' | 'integrations' | 'advertising';
+
 export interface DivisionFaq {
   question: string;
   answer: string;
@@ -16,6 +22,23 @@ export interface DivisionPoint {
   detail: string;
   /** Optional icon from the division set (icons/iconData.ts). */
   icon?: DivisionIconName;
+}
+
+/** One pillar on the hub: what it is, and the work that belongs to it. */
+export interface DivisionPillar {
+  key: DivisionPillarKey;
+  title: string;
+  icon: DivisionIconName;
+  /** One sentence: the promise. */
+  summary: string;
+  /** The work inside the pillar, as short labels. */
+  items: string[];
+}
+
+/** A label and value in a service page's "At a glance" strip ("Best for", "Measured by", …). */
+export interface DivisionGlance {
+  label: string;
+  value: string;
 }
 
 export interface DivisionServiceContent {
@@ -40,6 +63,12 @@ export interface DivisionServiceContent {
   summary: string;
   /** One or two sentences for the hub's service card. */
   cardSummary: string;
+  /** The pillar the service serves first (highlighted in the page's pillar strip). */
+  pillar: DivisionPillarKey;
+  /** The "At a glance" strip under the hero: four label/value pairs, no numbers. */
+  glance: DivisionGlance[];
+  /** What changes for the business: three plain statements, no invented figures. */
+  outcomes: string[];
   /** What the service includes ("What's included"). */
   scope: DivisionPoint[];
   /** How the engagement runs for this service. */
@@ -78,15 +107,22 @@ export interface DivisionHubContent {
   /** The brand line, rendered large as the rest of the H1. */
   headline: string;
   summary: string;
-  /** The opportunity: why a business's digital presence needs one owner. */
+  /** The opportunity: why a small business needs one connected growth system. */
   intro: { heading: string; paragraphs: string[] };
-  /** How we work: Discover → Prioritize → Build. */
+  /** The three pillars: data, integrations, smart advertising (in that order). */
+  pillars: DivisionPillar[];
+  /** How we work: Audit → Plan → Build and run. */
   method: DivisionPoint[];
   /** The data gathered in discovery. */
   dataWeGather: DivisionPoint[];
   /** Customer-journey stages the work is mapped against, in order (short labels). */
   journey: string[];
+  /** The first 90 days, in three phases. */
   roadmap: DivisionRoadmapPhase[];
+  /** The working rhythm after launch: weekly, monthly, quarterly. */
+  cadence: DivisionPoint[];
+  /** Who we work with: kinds of business, as short labels, and the line under them. */
+  industries: { heading: string; intro: string; items: string[]; note: string };
   /** What the work is measured against. Labels + one-line explanation; no numbers. */
   metrics: DivisionPoint[];
   relationship: { heading: string; paragraphs: string[] };

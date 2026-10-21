@@ -1,19 +1,74 @@
 # New Wave: Social Engineering — division
 
-New Wave IT's social media, brand development, website design, marketing,
-integration, and digital oversight division, served from www.newwaveitfl.com
-without changing any existing New Wave IT URL.
+New Wave IT's growth division: a national, remote-first team that helps small
+businesses grow sales through data, integrations, and smart advertising,
+served from www.newwaveitfl.com without changing any existing New Wave IT URL.
 
 - **Brand line**: "Growth decisions made on data, not guesswork."
-- **Descriptor**: Social · Brand · Web · Marketing
+- **Descriptor**: Data · Integrations · Smart advertising
 - **Primary call to action**: Book a discovery call
-- **Method**: Discover → Prioritize → Build. Discovery maps every touchpoint
-  against the customer journey, the roadmap runs in three phases, and the work
-  is measured against bookings and inquiries.
+- **Where**: across the United States. No division page names a home market
+  as its territory (`pages.test.tsx`, "positions the division nationally");
+  local search and Maps work is described market by market, wherever the
+  client is. The footer's postal address and the Customers page's locations
+  are facts, not positioning.
+- **Method**: Audit → Plan → Build and run. Croissance (the audit) and
+  discovery put the business on one map, the plan covers the first 90 days
+  in three phases (foundation, demand, scale), and after that the work runs
+  weekly (campaigns and budget), monthly (one report against revenue), and
+  quarterly (the plan reset). Everything is measured against sales, bookings,
+  and inquiries, and cost per sale.
 
 Brand source: *NWSE Brand Guidelines v1.0* (September 2026) for the logos,
 colors, and naming. The guide's positioning page and tagline describe security
 testing and are superseded by this document (see "History").
+
+## Positioning (2026-10-21)
+
+The division was first written as a Fort Lauderdale social media, brand, web,
+and marketing agency. It is now positioned as what the business is: a
+national growth division for small businesses, built on three pillars.
+
+- **Pillars** (`hubContent.pillars`, icons `pillar-data`,
+  `pillar-integrations`, `pillar-advertising`): **Data** (Croissance,
+  tracking, attribution, one monthly report against revenue),
+  **Integrations** (website, booking, checkout, CRM, email and SMS, lead
+  routing, revenue data fed back), **Smart advertising** (paid search, paid
+  social and retargeting, lifecycle email and SMS, budget moved weekly by
+  cost per sale). The hub explains them (`PillarCards`, `#pillars`) under the
+  growth loop (`components/GrowthLoop.tsx`: data → integrations → smart
+  advertising → sales → back to data, the return link in Lure Amber), and
+  every service page shows where it fits (`PillarStrip`, keyed on
+  `service.pillar`).
+- **Services**: the six URLs are unchanged. Three labels changed: Marketing
+  is "Smart advertising", Integration is "Integrations & data", Digital
+  oversight is "Analytics & oversight". Each service now carries `pillar`,
+  `glance` (four "At a glance" facts: best for, engagement, measured by,
+  works with; no numbers) and `outcomes` (three statements of what changes
+  for the business; no numbers), rendered under the hero (`GlanceStrip`, a
+  compact white band) and as the first section (`OutcomeList`).
+- **Hub** (`SocialEngineeringHubPage`), in order: hero (with a facts line:
+  nationwide, remote-first, reported against revenue; a `<p>`, never a list,
+  each fact carrying its own trailing dot so a wrapped line ends on one), the
+  opportunity with the growth loop, the three pillars, the six
+  services, discovery (the journey strip and the five data points, with the
+  journey scene), how we work (three steps with the method icons), the first
+  90 days (three phases and the weekly/monthly/quarterly `CadenceRow`), who
+  we work with (`ChipList` of business types, with the remote-first note),
+  what we measure (dark), part of New Wave IT, FAQ, and the call to the
+  audit. Dark sections stay at three (hero, metrics, closing CTA), as
+  `grounds.test.tsx` expects.
+- **Structured data**: `areaServed` is the United States (`Country`), the
+  Organization description names the three pillars, and `knowsAbout` lists
+  the growth work. Titles lead with small-business growth terms (growth
+  marketing, paid search and social, integrations and tracking, analytics and
+  oversight) and name no market.
+- **Hero ground**: Deep Current with a soft Lure Amber glow from the top
+  right corner (`HERO_GROUND` in `sections.tsx`), under the unchanged
+  currents.
+- **Tests**: `pages.test.tsx` ("division positioning" and "the growth
+  system"), `icons.test.ts` (the pillar icons to spec), and the pinned
+  expectations in `responsive.test.tsx` and `motion.test.tsx`.
 
 ## URLs
 
@@ -23,9 +78,9 @@ testing and are superseded by this document (see "History").
 | Social media | `/social-engineering/social-media` |
 | Brand development | `/social-engineering/brand-development` |
 | Website design | `/social-engineering/website-design` |
-| Marketing | `/social-engineering/marketing` |
-| Integration | `/social-engineering/integration` |
-| Digital oversight | `/social-engineering/digital-oversight` |
+| Smart advertising (the `marketing` slug) | `/social-engineering/marketing` |
+| Integrations & data (the `integration` slug) | `/social-engineering/integration` |
+| Analytics & oversight (the `digital-oversight` slug) | `/social-engineering/digital-oversight` |
 | Croissance (the audit, run by the Groundswell engine) | `/social-engineering/croissance` |
 | Croissance partner portal (sign-in) | `/social-engineering/croissance/partners` |
 | Customers | `/social-engineering/customers` |
@@ -51,9 +106,11 @@ Retired first-launch URLs, each a permanent (308) redirect to the hub:
 "Social engineering" is also a security term, and the security meaning
 dominates search results for it. The division keeps the name as its brand but
 never targets it as a keyword: titles, descriptions, and H1s lead with
-marketing terms (social media, branding, web design, marketing agency, Fort
-Lauderdale / South Florida). Expect branded searches to reach the division and
-generic "social engineering" searches not to.
+small-business growth terms (growth marketing, paid search and social
+advertising, marketing integrations and tracking, analytics and oversight,
+social media, brand development, website design) and name no home market.
+Expect branded searches to reach the division and generic "social
+engineering" searches not to.
 
 ## Why a subfolder
 
@@ -88,10 +145,11 @@ division is a New Wave IT division, not a separate company.
 - **Entity linking, not impersonation.** Division pages drop the parent's
   `LocalBusiness` block and declare their own `Organization` with
   `parentOrganization` → `https://www.newwaveitfl.com/#organization`.
-- **No keyword collisions.** Division pages target marketing clusters
-  (hub: marketing agency Fort Lauderdale; then social media, branding, web
-  design, marketing, integration, digital presence). None overlaps a New Wave
-  IT page's cluster.
+- **No keyword collisions.** Division pages target growth-marketing clusters
+  (hub: small business growth marketing; then social media, branding, web
+  design, paid advertising, marketing integrations, marketing analytics).
+  None overlaps a New Wave IT page's cluster, including its Fort Lauderdale
+  IT landing pages.
 - **Performance.** Division pages are lazy-loaded chunks; IT pages download
   ~1.8 kB (gzip) of extra router code and nothing else.
 - **Internal links.** The IT navbar Services menu and the IT footer ("Social
@@ -390,10 +448,11 @@ Before the Customers and Contact us pages go live:
   Contact us leaves out its Call row and the footer shows the placeholder.
 
 
-1. **Review the copy.** It describes how engagements run (discovery before
-   recommendations, a three-phase roadmap, reporting against bookings and
-   inquiries, reply within one business day). Change anything that isn't how
-   you operate.
+1. **Review the copy.** It describes how engagements run (the audit before
+   recommendations, a 90-day plan in three phases, weekly optimization and
+   one monthly report against revenue, quarterly plan resets, reply within
+   one business day) and the kinds of business the division works with.
+   Change anything that isn't how you operate.
 2. After deploy, confirm the prerendered heads are live:
    `curl -s https://www.newwaveitfl.com/social-engineering | grep -E '<title>|canonical'`
    should show the division title and `…/social-engineering` canonical.
@@ -566,7 +625,7 @@ own tighter scale.
 
 ## Icons
 
-The division draws with its own 35-icon set. New Wave IT pages keep Lucide.
+The division draws with its own 38-icon set. New Wave IT pages keep Lucide.
 
 ### Files
 
@@ -574,10 +633,13 @@ The division draws with its own 35-icon set. New Wave IT pages keep Lucide.
   React, so `types.ts` and the content modules can name icons. It exports
   `DIVISION_ICONS` (name → `{ label, group, paths: { d, accent? }[] }`),
   `type DivisionIconName`, and `DIVISION_ICON_NAMES` in display order. Groups
-  are `services`, `phases`, `method`, `journey`, `metrics`, and `ui`.
+  are `services`, `pillars`, `phases`, `method`, `journey`, `metrics`, and
+  `ui`.
 - `src/divisions/socialEngineering/icons/NwseIcon.tsx`: the component.
-- The same icons ship as SVG files in the brand kit. `iconData.ts` was
-  converted from those files, and the two must stay identical.
+- The kit's 35 icons ship as SVG files in the brand kit. `iconData.ts` was
+  converted from those files, and the two must stay identical. The three
+  `pillar-*` icons (2026-10-21) were drawn in `iconData.ts` to the spec
+  below; their SVG files still need adding to the kit by its owner.
 
 ### Using `NwseIcon`
 
@@ -618,6 +680,7 @@ The division draws with its own 35-icon set. New Wave IT pages keep Lucide.
 | Place | Icons |
 |---|---|
 | Service cards, dropdown, related services (`ServiceIcon`) | `service-*`, mapped from `DivisionServiceIcon` (`social` → `service-social` …) |
+| Hub pillars (`PillarCards`), service pillar strips (`PillarStrip`), the growth loop (`GrowthLoop`, with `metric-bookings` as the sales node) | `pillar-*`, via `hubContent.pillars[].icon`; 28px in a 56px tile, 22px in a 44px tile, 36px inside the loop's rings |
 | Hub "How we work" (`StepList`) | `method-*`, via `hubContent.method[].icon`; a 24px icon in a 48px `.nwse-icon` tile beside the step label |
 | Hub roadmap (`RoadmapGrid`) | `phase-*`, via `hubContent.roadmap[].icon`; same tile |
 | Hub "What we measure" | `metric-*`, via `hubContent.metrics[].icon`; 24px, Cloud White with the amber accent, inline with the label |
@@ -736,7 +799,7 @@ starts proportionally wider (see "Enlarged text" below).
 | Page | Scene (`PAGE_SCENES` key) | Desktop (1024px and up) | Tablets (768–1023px) | Phones |
 |---|---|---|---|---|
 | Hub hero | `hub`: HubGrowthScene | beside the text and actions, centred on them: 320 × 213 at 1024–1279px, 480 × 320 from 1280px | 256 × 171, right of the actions, at the end of a 44rem row (x = 472–728px), so it stays with the text | 288 × 192 after the actions, centred (adds 208px) |
-| Service heroes | the slug, e.g. `social-media` | as the hub; digital oversight uses `heroSceneSize: 'compact'` (256 × 171, then 352 × 235 from 1280px), because its headline runs four lines and splits "Fort / Lauderdale" beside the full-size scene | as the hub | as the hub from 375px; none below 375px, where the summaries run 11–13 lines |
+| Service heroes | the slug, e.g. `social-media` | as the hub; digital oversight (Analytics & oversight) uses `heroSceneSize: 'compact'` (256 × 171, then 352 × 235 from 1280px), because its headline runs four lines beside the full-size scene | as the hub | as the hub from 375px; none below 375px, where the summaries run 11–13 lines |
 | Book a discovery call (`/contact`) hero | `contact`: ContactDiscoveryScene | `sceneSize="compact"`: 256 × 171 at 1024–1279px, then 352 × 235 from 1280px (the text is short; a full-size scene would only add height) | none: the hero has no actions to sit beside, so the scene would stand alone and push the form down | none, so the form follows the summary |
 | Hub, "What we gather" band | `hubSection`: HubJourneyScene (light tone, Cloud White knock-outs) | fills the empty sixth cell of the five-card grid (the list is a subgrid of one wrapper grid), so it adds no height | none | none |
 | Contact us hero | `contactUs`: ContactUsReplyScene | `sceneSize="compact"`, as the discovery call's (the text is as short) | as the hub: 256 × 171, right of the new-project link | 288 × 192 after the new-project link, from 375px; none below 375px, so the form starts on the first screen |

@@ -9,8 +9,8 @@
 export const contactUsContent = {
   metaTitle: 'Contact us | New Wave: Social Engineering',
   metaDescription:
-    'Client requests, general questions, and partnership ideas for New Wave: Social Engineering, the Fort Lauderdale social media and marketing agency.',
-  keywords: 'contact us, client requests, general questions, marketing partnerships fort lauderdale, new wave it',
+    'Client requests, general questions, and partnership ideas for New Wave: Social Engineering, the growth division of New Wave IT for small businesses nationwide.',
+  keywords: 'contact us, client requests, general questions, marketing agency partnerships, new wave it',
   navLabel: 'Contact us',
   kicker: 'Clients, questions & partnerships',
   headline: 'Contact us',

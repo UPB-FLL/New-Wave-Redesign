@@ -78,10 +78,12 @@ function pathPoints(d: string): [number, number][] {
 }
 
 describe('DIVISION_ICONS', () => {
-  it('lists the 35 icons of the set in display order', () => {
-    expect(DIVISION_ICON_NAMES).toHaveLength(35);
+  it('lists the 38 icons of the set in display order', () => {
+    // The kit's 35, plus the three pillar icons added with the national
+    // repositioning (2026-10-21); the kit's SVG files are to follow.
+    expect(DIVISION_ICON_NAMES).toHaveLength(38);
     expect(DIVISION_ICON_NAMES).toEqual(Object.keys(DIVISION_ICONS));
-    const groups: DivisionIconGroup[] = ['services', 'phases', 'method', 'journey', 'metrics', 'ui'];
+    const groups: DivisionIconGroup[] = ['services', 'pillars', 'phases', 'method', 'journey', 'metrics', 'ui'];
     const order = DIVISION_ICON_NAMES.map((name) => groups.indexOf(DIVISION_ICONS[name].group));
     expect(order.every((group) => group >= 0)).toBe(true);
     expect(order).toEqual([...order].sort((a, b) => a - b));
@@ -154,6 +156,27 @@ describe('icon usage', () => {
     expectGroup(hubContent.method.map((step) => step.icon), 'method');
     expectGroup(hubContent.roadmap.map((phase) => phase.icon), 'phases');
     expectGroup(hubContent.metrics.map((metric) => metric.icon), 'metrics');
+    expectGroup(hubContent.pillars.map((pillar) => pillar.icon), 'pillars');
+  });
+
+  it('draws each pillar icon to the spec: ink inside 2–22, parallel bars at least 2 apart, the wave last', () => {
+    for (const name of ['pillar-data', 'pillar-integrations', 'pillar-advertising'] as const) {
+      const icon = DIVISION_ICONS[name];
+      expect(icon.group).toBe('pillars');
+      // The accent wave is the last path, and the only one.
+      expect(icon.paths.map((p) => Boolean(p.accent))).toEqual([...icon.paths.slice(0, -1).map(() => false), true]);
+      for (const { d } of icon.paths) {
+        for (const [px, py] of pathPoints(d)) {
+          expect(px, `${name} ${d}`).toBeGreaterThanOrEqual(2);
+          expect(px, `${name} ${d}`).toBeLessThanOrEqual(22);
+          expect(py, `${name} ${d}`).toBeGreaterThanOrEqual(2);
+          expect(py, `${name} ${d}`).toBeLessThanOrEqual(22);
+        }
+      }
+    }
+    // The data bars stand 4.5 apart on the baseline.
+    const bars = DIVISION_ICONS['pillar-data'].paths.filter((p) => /^M[\d.]+ [\d.]+v/.test(p.d)).map((p) => Number(p.d.match(/^M([\d.]+)/)![1]));
+    expect(bars).toEqual([7.5, 12, 16.5]);
   });
 
   it('only names icons that exist', () => {

@@ -2,6 +2,41 @@
 
 ## Recent Changes
 
+### Social Engineering repositioned as a national growth division (2026-10-21)
+
+Every `/social-engineering` page now describes what the business is: a
+national, remote-first growth division for small businesses, built on data,
+integrations, and smart advertising. No division page names a home market
+(`pages.test.tsx`, "positions the division nationally"); the footer's
+address and the Customers page's locations are facts and stay.
+Full notes: "Positioning (2026-10-21)" in `docs/social-engineering-division.md`.
+
+- **Copy**: `content/hub.ts` and the six service files were rewritten. The
+  six service URLs are unchanged; three labels changed (Marketing → "Smart
+  advertising", Integration → "Integrations & data", Digital oversight →
+  "Analytics & oversight"). The hub's method is Audit → Plan → Build and run,
+  its roadmap is the first 90 days (foundation, demand, scale) with a
+  weekly/monthly/quarterly cadence, and `DIVISION_DESCRIPTOR` is
+  "Data · Integrations · Smart advertising". `seo.ts` serves the United
+  States (`DIVISION_SERVICE_AREA`). The IT Navbar's division blurb and the IT
+  Footer link ("Growth Marketing & Advertising") follow.
+- **Content model** (`types.ts`): `DivisionPillar`, `DivisionGlance`;
+  services carry `pillar`, `glance` (four facts), and `outcomes` (three);
+  the hub carries `pillars`, `cadence`, and `industries`. No numbers in any
+  of them (tested).
+- **Layout** (`components/sections.tsx`): `PillarCards`, `GlanceStrip`,
+  `OutcomeList`, `PillarStrip`, `ChipList`, `CadenceRow`, `Band size="compact"`,
+  the hero's `facts` line and amber-glow ground. The hub's intro shows the
+  growth loop (`components/GrowthLoop.tsx` + `growthLoop.ts`, a static
+  decorative SVG) in place of the brand mark; service pages open with the
+  glance strip, then outcomes, scope, steps, deliverables, where it fits,
+  FAQ, related, CTA.
+- **Icons**: three `pillar-*` icons in a new `pillars` group (38 icons; the
+  kit's SVG files are still to be added by its owner).
+- **Tests**: new cases in `pages.test.tsx` and `icons.test.ts`; updated
+  pins in `responsive.test.tsx`, `motion.test.tsx`, and the discovery-call
+  description in `pages.test.tsx`.
+
 ### Groundswell section, internal rename, and the Croissance partner portal (2026-10-21)
 
 - **Rename**: everything internal is Groundswell. Admin:
@@ -525,8 +560,9 @@ No New Wave IT URL, title, canonical, or structured data changed. Full notes:
   timeline's band stays plain on phones, where its labels sit on the ground.
   Dark sections use the hero's currents (`DarkCurrents`).
 - **IT touch points**: a Navbar Services-menu entry and mobile link, a Footer
-  link ("Social Media & Marketing"), and sitemap entries. `App.tsx` hides the IT
-  `WaveBackground` and `FloatingNav` on division paths.
+  link ("Growth Marketing & Advertising" since 2026-10-21), and sitemap
+  entries. `App.tsx` hides the IT `WaveBackground` and `FloatingNav` on
+  division paths.
 - **Leads**: `Contact` accepts optional `inquiry`, `intro`, `icons`, and
   `details` props. The API allow-lists `inquiry: 'social-engineering'` and
   prefixes the notification subject.

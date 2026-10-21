@@ -99,7 +99,7 @@ function SubmitForm({ onQueued }: { onQueued: () => void }) {
           <label htmlFor="pa-city" className={label}>
             City
           </label>
-          <input id="pa-city" value={draft.city} placeholder="Fort Lauderdale, FL" onChange={(e) => set('city', e.target.value)} className={field} />
+          <input id="pa-city" value={draft.city} placeholder="City, State" onChange={(e) => set('city', e.target.value)} className={field} />
         </div>
         <div>
           <label htmlFor="pa-website" className={label}>
