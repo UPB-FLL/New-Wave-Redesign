@@ -30,7 +30,7 @@ export default function PublishBar({
     },
     saved: {
       icon: <CheckCircle size={16} className="text-teal-400" />,
-      text: 'All changes published',
+      text: 'Published',
       color: 'text-teal-400',
     },
     error: {
@@ -55,15 +55,13 @@ export default function PublishBar({
           </div>
 
           <div className="flex items-center gap-3">
-            {state.lastError && (
-              <button
-                onClick={onDiscard}
-                disabled={!canDiscard}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-white/70 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                Discard
-              </button>
-            )}
+            <button
+              onClick={onDiscard}
+              disabled={!canDiscard}
+              className="px-4 py-2 rounded-lg text-sm font-medium text-white/70 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Discard
+            </button>
             <button
               onClick={onPublish}
               disabled={!canPublish}
@@ -75,7 +73,7 @@ export default function PublishBar({
                   Saving...
                 </>
               ) : (
-                'Publish Changes'
+                'Save changes'
               )}
             </button>
           </div>

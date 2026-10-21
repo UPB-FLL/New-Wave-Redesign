@@ -33,7 +33,7 @@ export class ContentManager {
   }
 
   private async preloadSections() {
-    const commonSections = ['hero', 'navbar', 'services', 'whyus', 'about', 'contact', 'footer'];
+    const commonSections = ['hero', 'services', 'whyus', 'about', 'contact', 'footer'];
     await Promise.all(commonSections.map(s => this.loadSection(s)));
   }
 
