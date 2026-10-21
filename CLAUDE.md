@@ -2,6 +2,27 @@
 
 ## Recent Changes
 
+### Groundswell: `social_depth` current for the competitor benchmark (2026-10-21)
+
+First step of the benchmark workflow in `docs/groundswell-competitor-benchmark.md`.
+
+- **Module** `api/_lib/groundswell/currents/socialDepth.ts`: `engagementItems`
+  (one page of posts and one of reels, deduped on date + caption, the copy
+  with plays kept; pinned feed items flagged; per-item type, counts, CTA
+  keyword, emoji-free hook), `markHiddenLikes` (both passes of the
+  hidden-likes rule), `engagementProfile` (engagement-rate, likes and
+  comments medians, cadence over 14 days, reels per week over the page's
+  span, format mix, CTA vs non-CTA comment means, best item), and
+  `runSocialDepth` (2 ScrapeCreators credits per account that `social`
+  found; a Composio connection error stops the step, a scrape error is
+  recorded on the account).
+- **Not in `STEPS` yet**: it runs only for benchmark audits, which need the
+  `kind` column (spec §2 and §4). Wire it in with that migration.
+- **Tests** `src/test/api/groundswell-social-depth.test.ts`, pinned to the
+  anonymised fixtures in `src/test/api/fixtures/groundswell-benchmark/`
+  (`expected.json` now records the rules as implemented: 14-day cadence,
+  span-based reels per week, pinned by feed order).
+
 ### Social Engineering repositioned as a national growth division (2026-10-21)
 
 Every `/social-engineering` page now describes what the business is: a
