@@ -425,7 +425,10 @@ layouts; every small-screen rule is either a `max-width` media query in
     tile (its icon, or its number: `data-markers="icon"` or `"number"`) on
     the rail. Its band has a plain ground there (see "Section grounds" under
     "Brand implementation"). From 768px the same list is the stepper
-    (`nwse-stepper`), the tiles joined by a hairline rail.
+    (`nwse-stepper`): after each step's label a hairline (`nwse-rail`) runs
+    to the next step's tile, left out after the last step and after a step
+    that ends a row (the list's `data-columns-md/-lg/-xl`). The first
+    version drew the rail from the tile's edge, through the label.
   - `nwse-roadmap`: compact phase cards below 768px, their items flowing in
     rows at natural width; on tablets the three cards share row tracks
     (subgrid), so their dividers line up when a title wraps.

@@ -380,9 +380,23 @@ export function PointGrid({
  * A card's Plex Mono label ("Step 01", "Phase 01"), led by its marker tile: a
  * 24px icon in a 48px tile (one step up from the 20px service icons in their
  * 44px tiles), or, with `number`, the step's number in the same tile. The
- * tile takes a colour role (`color.tile`); the label stays Tide Blue.
+ * tile takes a colour role (`color.tile`); the label stays Tide Blue. With
+ * `rail`, a hairline follows the label (.nwse-rail in division.css: the
+ * stepper's rail to the next step, shown from md).
  */
-function CardLabel({ icon, number, color, children }: { icon?: DivisionIconName; number?: number; color?: SurfaceColor; children: ReactNode }) {
+function CardLabel({
+  icon,
+  number,
+  color,
+  rail = false,
+  children,
+}: {
+  icon?: DivisionIconName;
+  number?: number;
+  color?: SurfaceColor;
+  rail?: boolean;
+  children: ReactNode;
+}) {
   const label = <p className="nwse-type-label nwse-label">{children}</p>;
   if (!icon && number === undefined) return label;
   // Below lg: a 40px tile with a 20px icon. Below md division.css pins the
@@ -399,6 +413,7 @@ function CardLabel({ icon, number, color, children }: { icon?: DivisionIconName;
         )}
       </span>
       {label}
+      {rail ? <span className="nwse-rail" aria-hidden="true" /> : null}
     </div>
   );
 }
@@ -411,30 +426,42 @@ function CardLabel({ icon, number, color, children }: { icon?: DivisionIconName;
 const ODD_ORPHAN_LI = 'md:max-lg:[&>li:last-child:nth-child(odd)]:col-span-2';
 
 // Static class names so Tailwind can see them; a row never strands one card.
-const STEP_GRID: Record<number, string> = {
-  3: 'md:grid-cols-3',
-  4: 'md:grid-cols-2 lg:grid-cols-4',
-  5: `md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 ${ODD_ORPHAN_LI}`,
+// The column counts per width go on the list (data-columns-*), so
+// division.css can leave the rail out after a step that ends a row.
+interface StepGrid {
+  className: string;
+  columns: { md: number; lg: number; xl?: number };
+}
+const STEP_GRID: Record<number, StepGrid> = {
+  3: { className: 'md:grid-cols-3', columns: { md: 3, lg: 3 } },
+  4: { className: 'md:grid-cols-2 lg:grid-cols-4', columns: { md: 2, lg: 4 } },
+  5: { className: `md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 ${ODD_ORPHAN_LI}`, columns: { md: 2, lg: 3, xl: 5 } },
 };
-const STEP_GRID_FALLBACK = `md:grid-cols-2 lg:grid-cols-4 ${ODD_ORPHAN_LI}`;
+const STEP_GRID_FALLBACK: StepGrid = { className: `md:grid-cols-2 lg:grid-cols-4 ${ODD_ORPHAN_LI}`, columns: { md: 2, lg: 4 } };
 
 /**
  * The steps as a stepper from md: each marker tile (the step's icon, or its
- * number) sits on a hairline rail that runs to the next step (.nwse-stepper
- * in division.css), with no card chrome, so the row reads as one process
- * rather than three more boxes. Below md the same list is a timeline
+ * number) and its "Step 01" label, then a hairline rail from the label to the
+ * next step's tile (.nwse-rail in division.css), with no card chrome, so the
+ * row reads as one process rather than three more boxes. The last step has
+ * no rail, nor does a step that ends a row, which the list declares per width
+ * (data-columns-md/-lg/-xl). Below md the same list is a timeline
  * (.nwse-timeline). The tiles take the colour roles in rotation.
  */
 export function StepList({ steps }: { steps: readonly DivisionPoint[] }) {
   const markers = steps.every((step) => step.icon) ? 'icon' : 'number';
+  const grid = STEP_GRID[steps.length] ?? STEP_GRID_FALLBACK;
   return (
     <ol
-      className={`nwse-timeline nwse-stepper mt-6 grid grid-cols-1 gap-0 sm:mt-8 md:gap-4 lg:mt-10 ${STEP_GRID[steps.length] ?? STEP_GRID_FALLBACK}`}
+      className={`nwse-timeline nwse-stepper mt-6 grid grid-cols-1 gap-0 sm:mt-8 md:gap-4 lg:mt-10 ${grid.className}`}
       data-markers={markers}
+      data-columns-md={grid.columns.md}
+      data-columns-lg={grid.columns.lg}
+      data-columns-xl={grid.columns.xl}
     >
       {steps.map((step, index) => (
         <li key={step.title} className="relative md:pr-4">
-          <CardLabel icon={step.icon} number={step.icon ? undefined : index + 1} color={accentAt(index)}>
+          <CardLabel icon={step.icon} number={step.icon ? undefined : index + 1} color={accentAt(index)} rail={index < steps.length - 1}>
             Step {String(index + 1).padStart(2, '0')}
           </CardLabel>
           <h3 className="nwse-type-title-2 mt-1 text-[var(--nw-current-navy)] md:mt-4">{step.title}</h3>
