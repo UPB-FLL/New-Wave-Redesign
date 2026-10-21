@@ -26,6 +26,8 @@ export interface AuditConnector {
   source: string;
   /** What it brings back. */
   gathers: string;
+  /** What it brought back for the worked example (auditSample), where the audit's summary has a figure for it. */
+  example?: string;
 }
 
 export interface AuditReport {
@@ -49,12 +51,15 @@ export const auditConnectors: readonly AuditConnector[] = [
     icon: 'metric-search',
     source: 'Google Keyword Planner and organic search data',
     gathers: 'Monthly searches in your area, top-of-page bid ranges, the keywords and pages you rank for, and your domain strength.',
+    example:
+      'Keyword Planner put demand at 770 searches a month for 20 event-space terms, and about 746 of the brewery’s 850 organic visits a month come from people searching its name.',
   },
   {
     name: 'Maps Current',
     icon: 'map-pin',
     source: 'Google Maps and your Business Profile, as any customer sees them',
     gathers: 'Where you place for each search across your service area, ratings and reviews by platform, and listing gaps.',
+    example: 'A 4.8★ Google rating from about 283 reviews, and sixth place in Maps for “brewery near Fort Lauderdale”.',
   },
   {
     name: 'Social Current',
@@ -67,18 +72,21 @@ export const auditConnectors: readonly AuditConnector[] = [
     icon: 'service-web',
     source: 'Your website in a real browser, PageSpeed Insights, and the Wayback Machine',
     gathers: 'The first screen on a phone, speed, tracking tags, and when the site and its offers last changed.',
+    example: 'Three pop-ups before the page on a phone: a 21+ gate, a cookie banner, and a promo.',
   },
   {
     name: 'Ads Current',
     icon: 'metric-cost-per-lead',
     source: 'Google Ads Transparency Center and the tags on your site',
     gathers: 'Ads on record for you and each rival, and evidence of past campaigns, kept apart from “no evidence found”.',
+    example: 'Eight Google ads on record in the Transparency Center, with no spend made public.',
   },
   {
     name: 'Delivery Current',
     icon: 'send',
     source: 'A Google Drive folder named for your business',
     gathers: 'The three finished reports, each a view-only link you can forward to anyone on your team.',
+    example: 'Three view-only links in a Drive folder named for the brewery.',
   },
 ];
 
@@ -171,15 +179,37 @@ export const auditContent = {
   kicker: `${AUDIT_PRODUCT_NAME} · powered by ${AUDIT_ENGINE_NAME}`,
   headline: 'A growth audit anyone on your team can read',
   summary: `${AUDIT_PRODUCT_NAME}, French for growth, is how New Wave: Social Engineering audits your marketing before we recommend anything, for any business in the United States. Its ${AUDIT_ENGINE_NAME} engine gathers your public data and your rivals’, models a realistic return, and hands you three reports in your own brand.`,
+  /** Under the hero summary: the audit's ground rules in three short facts (no numbers; one line from lg). */
+  facts: ['Public data only', 'Every number sourced and dated', 'Reports in your brand'],
+  /** The hero's second button: straight to the worked example. */
+  secondaryCta: 'See a real audit',
+  /** The row of in-page links under the hero. */
+  jump: {
+    label: 'On this page',
+    items: [
+      { label: 'How it works', href: '#how-it-works' },
+      { label: `The ${AUDIT_CONNECTORS_NAME}`, href: '#currents' },
+      { label: 'A real audit', href: '#sample' },
+      { label: 'The reports', href: '#reports' },
+      { label: 'Questions', href: '#questions' },
+    ],
+  },
+  /** The Back and Next buttons that walk the stepper and the sample audit. */
+  guide: { next: 'Next', back: 'Back' },
   engine: {
     kicker: 'The engine',
     heading: `${AUDIT_ENGINE_NAME} and its ${AUDIT_CONNECTORS_NAME}`,
-    intro: `${AUDIT_ENGINE_NAME} is the engine that runs every audit. Each of its ${AUDIT_CONNECTORS_NAME} connects to one kind of public data, so every audit draws on the same sources, in the same way, with a source and date on every number.`,
+    intro: `${AUDIT_ENGINE_NAME} is the engine that runs every audit. Each of its ${AUDIT_CONNECTORS_NAME} connects to one kind of public data, so every audit draws on the same sources, in the same way, with a source and date on every number. Pick one to see where it looks and what it brings back.`,
+    explorerLabel: `The ${AUDIT_CONNECTORS_NAME}`,
+    sourceLabel: 'Where it looks',
+    gathersLabel: 'What it brings back',
+    exampleLabel: 'From the brewery’s audit',
   },
   process: {
-    kicker: 'The process',
-    heading: 'From a website to three reports',
-    intro: 'You give us a website, an Instagram handle, or both, and any competitors you watch. The rest runs on its own.',
+    kicker: 'How it works',
+    heading: 'From a website to three reports in five steps',
+    intro: 'You give us a website, an Instagram handle, or both, and any competitors you watch. The rest runs on its own. Step through it.',
+    stepsLabel: 'The five steps',
     steps: [
       {
         title: 'Queue',
@@ -216,7 +246,14 @@ export const auditContent = {
   sample: {
     kicker: 'A real example',
     heading: 'What the numbers look like',
-    intro: 'What one client’s audit found, and the return board it modeled. Every audit shows three scenarios, highlights the base case, and names its sources under the table.',
+    intro:
+      'One client’s audit, part by part: what it found, the return board it modeled, the ad plan, the ads written for it, and every change ranked by what it pays back. Every audit shows three scenarios, highlights the base case, and names its sources.',
+    viewerLabel: 'Parts of the sample audit',
+    tabs: { findings: 'Findings', board: 'Return board', adPlan: 'Ad plan', ads: 'Ready-to-run ads', changes: 'What pays back first' },
+    cta: {
+      heading: 'Want this for your business?',
+      body: 'Every audit is built the same way: from public data, in three scenarios, in your brand. Book a call and it runs before we recommend anything.',
+    },
   },
   adPlan: {
     kicker: 'The ad plan',
