@@ -1,0 +1,155 @@
+{
+  "account": "harborlightnutrition",
+  "pages": [
+    {
+      "url": "https://harborlightnutrition.example/concierge-nutrition/",
+      "chars": 4744,
+      "dollar_matches": [],
+      "flags": {
+        "non_refundable": false,
+        "cancellation": false,
+        "insurance": false,
+        "hsa_fsa": false,
+        "free_consult": false,
+        "payment_plan": false,
+        "lead_magnet": true,
+        "book_call": false
+      }
+    },
+    {
+      "url": "https://harborlightnutrition.example/nutrition-coaching/",
+      "chars": 13433,
+      "dollar_matches": [],
+      "flags": {
+        "non_refundable": false,
+        "cancellation": false,
+        "insurance": false,
+        "hsa_fsa": false,
+        "free_consult": true,
+        "payment_plan": false,
+        "lead_magnet": false,
+        "book_call": true
+      }
+    },
+    {
+      "url": "https://harborlightnutrition.example/mold-bundle/",
+      "chars": 5327,
+      "dollar_matches": [
+        {
+          "price": "$497",
+          "context": "dance YOU’RE NOT JUST GETTING RESULTS — YOU’RE GETTING A CLEAR PATH FORWARD AND SUPPORT TO EXECUTE IT. PAY IN FULL $ 497 Pay In Full Today Buy Now 2-PAYMENT PLAN $ 249 2 Payments Collected 4 weeks Apart Buy Now EARLY ACCESS PRICING COUPON W"
+        },
+        {
+          "price": "$249",
+          "context": "U’RE GETTING A CLEAR PATH FORWARD AND SUPPORT TO EXECUTE IT. PAY IN FULL $ 497 Pay In Full Today Buy Now 2-PAYMENT PLAN $ 249 2 Payments Collected 4 weeks Apart Buy Now EARLY ACCESS PRICING COUPON WILL BE APPLIED AT THE CHECKOUT. HOW DO I KNOW I"
+        }
+      ],
+      "flags": {
+        "non_refundable": false,
+        "cancellation": false,
+        "insurance": false,
+        "hsa_fsa": false,
+        "free_consult": false,
+        "payment_plan": true,
+        "lead_magnet": true,
+        "book_call": false
+      }
+    },
+    {
+      "url": "https://harborlightnutrition.example/course/histamine-solution/",
+      "chars": 2970,
+      "dollar_matches": [
+        {
+          "price": "$199.00",
+          "context": "ymatic, hormonal, and lifestyle — so you can identify what's driving your symptoms and take targeted, informed action. $199.00 Buy Now Last Updated: September 30, 2026 This Course Includes ✓ 6 in-depth video modules (11 videos total) ✓ 6 clinica"
+        }
+      ],
+      "flags": {
+        "non_refundable": false,
+        "cancellation": false,
+        "insurance": false,
+        "hsa_fsa": false,
+        "free_consult": false,
+        "payment_plan": false,
+        "lead_magnet": false,
+        "book_call": false
+      }
+    },
+    {
+      "url": "https://harborlightnutrition.example/courses/",
+      "chars": 4394,
+      "dollar_matches": [
+        {
+          "price": "$199.00",
+          "context": "ST CONTACT SEARCH FOR: Search Select View: COURSES HISTAMINE SOLUTION THE HISTAMINE SOLUTION Dana Reyes MS, RD, CDN 4 $199.00 Buy Now BUILD YOUR FIRST COURSE GETTING STARTED WITH MASTERIYO LMS Dana Reyes MS, RD, CDN Effortless Setup Dashboar"
+        }
+      ],
+      "flags": {
+        "non_refundable": false,
+        "cancellation": false,
+        "insurance": false,
+        "hsa_fsa": false,
+        "free_consult": false,
+        "payment_plan": false,
+        "lead_magnet": false,
+        "book_call": false
+      }
+    },
+    {
+      "url": "https://harborlightnutrition.example/client-policies/",
+      "chars": 4064,
+      "dollar_matches": [],
+      "flags": {
+        "non_refundable": true,
+        "cancellation": true,
+        "insurance": false,
+        "hsa_fsa": false,
+        "free_consult": false,
+        "payment_plan": false,
+        "lead_magnet": false,
+        "book_call": false
+      }
+    },
+    {
+      "url": "https://harborlightnutrition.example/mold-assessment/",
+      "chars": 4181,
+      "dollar_matches": [],
+      "flags": {
+        "non_refundable": false,
+        "cancellation": false,
+        "insurance": false,
+        "hsa_fsa": false,
+        "free_consult": false,
+        "payment_plan": false,
+        "lead_magnet": true,
+        "book_call": false
+      }
+    },
+    {
+      "url": "https://harborlightnutrition.example/",
+      "chars": 12769,
+      "dollar_matches": [],
+      "flags": {
+        "non_refundable": false,
+        "cancellation": false,
+        "insurance": false,
+        "hsa_fsa": false,
+        "free_consult": true,
+        "payment_plan": false,
+        "lead_magnet": true,
+        "book_call": true
+      }
+    }
+  ],
+  "flags": {
+    "non_refundable": true,
+    "cancellation": true,
+    "insurance": false,
+    "hsa_fsa": false,
+    "free_consult": true,
+    "payment_plan": true,
+    "lead_magnet": true,
+    "book_call": true
+  },
+  "prices_published": true
+}
