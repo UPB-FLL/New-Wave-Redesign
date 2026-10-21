@@ -560,12 +560,23 @@ describe('journey strip', () => {
 });
 
 describe('step timeline markers', () => {
-  it('uses the icon tiles on the hub and amber nodes on service pages', () => {
+  it('uses the icon tiles on the hub and numbered tiles on service pages, each on the rail', () => {
     const { container, unmount } = renderAt(<SocialEngineeringHubPage />);
-    expect(container.querySelector('.nwse-timeline')).toHaveAttribute('data-markers', 'icon');
+    const hubList = container.querySelector('.nwse-timeline')!;
+    expect(hubList).toHaveAttribute('data-markers', 'icon');
+    expect(hubList).toHaveClass('nwse-stepper');
     unmount();
     const service = renderAt(<SocialEngineeringServicePage slug={divisionServices[0].slug} />);
-    expect(service.container.querySelector('.nwse-timeline')).toHaveAttribute('data-markers', 'node');
+    const list = service.container.querySelector('.nwse-timeline')!;
+    expect(list).toHaveAttribute('data-markers', 'number');
+    // Every step has a marker tile, which the phone timeline pins to its rail.
+    const steps = [...list.querySelectorAll(':scope > li')];
+    expect(steps.length).toBeGreaterThan(2);
+    steps.forEach((step, index) => {
+      const tile = step.querySelector('.nwse-icon')!;
+      expect(tile).not.toBeNull();
+      expect(tile).toHaveTextContent(String(index + 1).padStart(2, '0'));
+    });
   });
 });
 

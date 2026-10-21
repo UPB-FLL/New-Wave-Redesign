@@ -2,40 +2,51 @@
 
 ## Overview
 
-The New Wave IT admin dashboard allows you to manage all website content from a unified interface.
+The New Wave IT admin at `/admin` manages the site's content, the blog, the
+SEO landing pages, and Groundswell. Sign in with a Supabase admin account.
 
-## Access
+## Navigation
 
-- **Legacy Admin:** `/admin` - Original multi-page interface
-- **Unified Dashboard:** `/admin/unified` - New single-page interface
+One sidebar, four groups:
 
-## Using the Unified Dashboard
+1. **Site pages**: one row per public page (Home, Services, Pricing, About and
+   Why us, Contact and footer, Status). Open a row to see the editors for that
+   page's blocks, in the order they appear on the page, and a "View on site"
+   link that opens the page in a new tab. The row holding the editor you are
+   on is always open; the others remember whether you left them open.
+2. **Blog**: Posts (the list, with each post's editor opening in place, and
+   the "Generate" button) and Settings.
+3. **SEO**: the landing-page portal.
+4. **Groundswell**: Overview, Audits, Partners.
 
-### Navigation
+The search box above the groups filters the sidebar as you type. It matches
+editor names, the page they belong to, and the fields they hold, so "phone"
+lists Hero, Contact, and Footer. Picking a result opens that editor and
+clears the search.
 
-The sidebar is organized into 6 sections:
+The front page (`/admin`, "Overview") shows one card per site page with its
+editors and when its content was last edited, and the Groundswell queue.
 
-1. **Homepage Content** - Hero, Trust Bar, Testimonials
-2. **Services Content** - Services, Categories, Details, Threats
-3. **Company Content** - Why Us, About, Pricing
-4. **Contact & Footer** - Contact info, Footer content
-5. **Blog** - Blog posts, AI generation settings
-6. **SEO & Settings** - SEO Portal, Status page
+The old addresses still work: `/admin/unified` goes to the blog and
+`/admin/legacy` to the front page.
 
-### Editing Content
+## Editing content
 
-1. Click a section in the sidebar to load its editor
-2. Make changes to any field
-3. Changes are saved locally (unsaved changes indicator appears)
-4. Click "Publish Changes" to save to the live site
+1. Open the editor from the sidebar or the front page.
+2. Change any field.
+3. Save. Editors on the shared content manager (Hero, Service cards) show a
+   bar at the bottom of the screen with the number of unsaved changes, a
+   "Save changes" button, and "Discard"; the other editors have a "Save
+   Changes" button at the top of the form. (Moving every editor onto the
+   shared bar is the next phase of the rework.)
 
-### Real-time Updates
+### Real-time updates
 
-- Changes to the live site appear within 30 seconds of publishing
+- Changes appear on the live site within 30 seconds of saving
 - For immediate updates, refresh the live site page
 - BroadcastChannel sync works across tabs in the same browser
 
-### Discarding Changes
+### Discarding changes
 
 Click "Discard" to revert unsaved changes and reload from the server.
 
@@ -43,42 +54,34 @@ Click "Discard" to revert unsaved changes and reload from the server.
 
 ### Changes not appearing on live site
 
-1. Verify the publish completed successfully (check for "All changes published" message)
+1. Verify the save completed (the bar says "Published", or the form says
+   "Changes saved successfully")
 2. Wait up to 30 seconds for automatic cache refresh
 3. Hard refresh the live site page (Ctrl+Shift+R or Cmd+Shift+R)
 4. Check browser console for errors
 
-### Error during publish
+### Error during save
 
 - Check your network connection
 - Verify you're logged in
 - Try discarding changes and re-editing
 - Contact support if issue persists
 
-## Content Structure
+## Content structure
 
-Content is stored in Supabase `site_content` table:
+Content is stored in the Supabase `site_content` table:
+
 - `section`: Content area (hero, services, etc.)
 - `key`: Field name within section
 - `value`: Text or JSON string
+- `updated_at`: when the row last changed (the front page reads it)
 
-## Current Editor Support
+## Adding an editor
 
-### Fully Integrated (Use ContentManager)
-- Hero Editor
-- Services Editor
-
-### Legacy Editors (Separate Pages)
-- Trust Bar
-- Service Categories
-- Service Details
-- Threat Details
-- Pricing
-- Pricing Units
-- Why Us
-- About
-- Contact
-- Footer
-- SEO Portal
-
-Legacy editors will be migrated to the unified interface over time.
+1. Create the editor in `src/admin/editors/`
+2. Add a `<Route>` under `/admin` in `src/App.tsx`
+3. Add an entry to `src/admin/adminNav.ts` under the site page it changes,
+   with the `site_content` section it writes and the words someone would
+   search for
+4. `src/admin/adminNav.test.ts` fails until the route, the entry, and every
+   section the public site reads agree

@@ -1,5 +1,5 @@
 import { DIVISION_ICONS, type DivisionIconName } from '../icons/iconData';
-import { GROWTH_LOOP_NODES } from './growthLoop';
+import { GROWTH_LOOP_NODES, type GrowthLoopNodeKey } from './growthLoop';
 
 // The growth loop: the hub's one diagram. Four nodes on a clockwise loop, in
 // the icon style grown up (stroke 3 on a 480 × 320 canvas, round caps, ground
@@ -73,12 +73,28 @@ function NodeIcon({ icon, at: [cx, cy], size }: { icon: DivisionIconName; at: Po
   );
 }
 
+/** Each node's ring in its colour role (pillarStyle.ts); the sales node keeps the line colour. */
+const NODE_RINGS: Record<GrowthLoopNodeKey, string> = {
+  data: 'var(--nw-signal-cyan)',
+  integrations: 'var(--nw-continuity-green)',
+  advertising: 'var(--nwse-lure-amber)',
+  sales: 'currentColor',
+};
+
+const LOOP_PALETTES = {
+  light: { line: 'var(--nw-current-navy)', link: 'var(--nw-slate)', ground: 'var(--nw-pure-white)' },
+  dark: { line: 'var(--nw-cloud-white)', link: 'color-mix(in srgb, var(--nw-cloud-white) 60%, transparent)', ground: 'var(--nw-current-navy)' },
+} as const;
+
 /**
- * The loop on a light ground: Current Navy lines, Pure White knock-outs behind
- * the nodes, and the amber return link. `className` sizes it (the box keeps
- * its 3:2 ratio).
+ * The loop: Current Navy lines with Pure White knock-outs on a light ground,
+ * Cloud White lines with Current Navy knock-outs on a dark one (`tone`; pass
+ * `ground` when the panel's colour differs), each node ringed in its colour
+ * role, and the amber return link. `className` sizes it (the box keeps its
+ * 3:2 ratio).
  */
-export function GrowthLoop({ className }: { className?: string }) {
+export function GrowthLoop({ className, tone = 'light', ground }: { className?: string; tone?: 'light' | 'dark'; ground?: string }) {
+  const palette = LOOP_PALETTES[tone];
   return (
     <svg
       viewBox="0 0 480 320"
@@ -87,16 +103,17 @@ export function GrowthLoop({ className }: { className?: string }) {
       role="presentation"
       className={className}
       data-role="growth-loop"
+      data-tone={tone}
       fill="none"
       stroke="currentColor"
       strokeWidth={STROKE}
       strokeLinecap="round"
       strokeLinejoin="round"
-      style={{ color: 'var(--nw-current-navy)', display: 'block', width: '100%', aspectRatio: '3 / 2' }}
+      style={{ color: palette.line, display: 'block', width: '100%', aspectRatio: '3 / 2' }}
     >
       {/* The loop, clockwise. */}
       {LINKS.map((item) => (
-        <g key={item.d} stroke="var(--nw-slate)">
+        <g key={item.d} stroke={palette.link}>
           <path d={item.d} />
           <path d={arrowhead(item.end, item.tangent)} />
         </g>
@@ -106,10 +123,10 @@ export function GrowthLoop({ className }: { className?: string }) {
         <path d={RETURN.d} />
         <path d={arrowhead(RETURN.end, RETURN.tangent)} />
       </g>
-      {/* The nodes, each knocking the loop out behind it. */}
+      {/* The nodes, each knocking the loop out behind it, ringed in its colour role. */}
       {GROWTH_LOOP_NODES.map(({ key, icon, at }) => (
         <g key={key} data-loop-node={key}>
-          <circle cx={at[0]} cy={at[1]} r={R} fill="var(--nw-pure-white)" stroke={key === 'sales' ? 'var(--nwse-lure-amber)' : 'currentColor'} />
+          <circle cx={at[0]} cy={at[1]} r={R} fill={ground ?? palette.ground} stroke={NODE_RINGS[key]} />
           <NodeIcon icon={icon} at={at} size={36} />
         </g>
       ))}

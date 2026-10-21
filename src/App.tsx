@@ -94,8 +94,9 @@ import {
 // page speed) never download the editors.
 const AdminGuard = lazy(() => import('./admin/AdminGuard'));
 const AdminLayout = lazy(() => import('./admin/AdminLayout'));
-const AdminDashboard = lazy(() => import('./admin/AdminDashboard'));
-const UnifiedAdminDashboard = lazy(() => import('./admin/UnifiedAdminDashboard'));
+const AdminHome = lazy(() => import('./admin/AdminHome'));
+const AdminBlogPage = lazy(() => import('./admin/blog/BlogPage'));
+const AdminBlogSettings = lazy(() => import('./admin/blog/BlogSettings'));
 const HeroEditor = lazy(() => import('./admin/editors/HeroEditor'));
 const TrustBarEditor = lazy(() => import('./admin/editors/TrustBarEditor'));
 const ServicesEditor = lazy(() => import('./admin/editors/ServicesEditor'));
@@ -209,9 +210,12 @@ export default function App() {
             </Suspense>
           }
         >
-          <Route index element={<AdminDashboard />} />
-          <Route path="unified" element={<UnifiedAdminDashboard />} />
-          <Route path="legacy" element={<AdminDashboard />} />
+          <Route index element={<AdminHome />} />
+          {/* The two old dashboards; bookmarks still land somewhere useful. */}
+          <Route path="unified" element={<Navigate to="/admin/blog" replace />} />
+          <Route path="legacy" element={<Navigate to="/admin" replace />} />
+          <Route path="blog" element={<AdminBlogPage />} />
+          <Route path="blog/settings" element={<AdminBlogSettings />} />
           <Route path="hero" element={<HeroEditor />} />
           <Route path="trustbar" element={<TrustBarEditor />} />
           <Route path="services" element={<ServicesEditor />} />

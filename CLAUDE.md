@@ -41,6 +41,36 @@ partner portal and by admins; logos are https links (no uploads).
   `partners.test.tsx` and `src/lib/groundswell.test.ts`;
   `fakeSupabase` can now simulate a column a migration has not added.
 
+### Admin panel rework, phase 1: one sidebar, organised by site page (2026-10-21)
+
+From the plan Josh approved on 2026-10-21 (Claude Doc "New Wave admin panel
+rework plan"). Phase 1 is navigation only; the page-first editors (collapsed
+block cards, list rows, every editor on `ContentManager`) and the "View on
+site" preview are phases 2 and 3.
+
+- **One admin, one sidebar** (`AdminLayout.tsx`, model in `adminNav.ts`):
+  Site pages (one collapsible row per public page, its block editors beneath
+  in page order, plus a "View on site" link), Blog, SEO, Groundswell
+  (unchanged; the partner portal thread owns it). A search box filters
+  entries by label, page, and `keywords` (field names); open rows are
+  remembered in localStorage (`nw_admin_open_pages`). The `PublishBar` now
+  lives in the layout, on every editor, shown only while something is
+  unsaved or a save is in flight, with Discard always available.
+- **Removed**: `UnifiedAdminDashboard`, `SidebarNavigation` (its groups,
+  the deleted Testimonials entry, and ten "not yet implemented" screens),
+  and the legacy `AdminDashboard`. `/admin/unified` redirects to
+  `/admin/blog`, `/admin/legacy` to `/admin`.
+- **New routes**: `/admin/blog` (`blog/BlogPage.tsx`: the post list, a
+  post's editor in place, Generate with an inline notice instead of
+  `alert`) and `/admin/blog/settings`. `/admin` is `AdminHome.tsx`: a card
+  per site page with its editors and the newest `site_content.updated_at`
+  (`adminHomeData.ts`), and the Groundswell queue count.
+- `ContentManager` no longer preloads `navbar` (nothing reads it).
+- **Tests**: `adminNav.test.ts` (every entry is an App.tsx route; every
+  section the public site reads has an editor; no placeholder screens),
+  `AdminLayout.test.tsx`, `AdminHome.test.tsx`. Adding an editor: see
+  "Adding an editor" in `docs/admin-guide.md`.
+
 ### Groundswell: ad copy for the rows the ad plan runs (2026-10-21)
 
 - **Package** (`packages/groundswell/src/adcopy.ts`): `copyTargets` (one ad
@@ -112,6 +142,21 @@ Full notes: "Positioning (2026-10-21)" in `docs/social-engineering-division.md`.
   decorative SVG) in place of the brand mark; service pages open with the
   glance strip, then outcomes, scope, steps, deliverables, where it fits,
   FAQ, related, CTA.
+- **Surfaces and colour roles** (same day, design pass): each pillar has a
+  colour (`components/pillarStyle.ts`: Signal Cyan data, Continuity Green
+  integrations, Lure Amber smart advertising; Tide Blue for the rest, and
+  `accentAt(index)` cycles them), and the pages use five surfaces beside the
+  hairline card: tinted panels (`nwse-tint nwse-tint-*`), soft tiles
+  (`nwse-soft`, on Cloud White bands), glass tiles (`nwse-glass`, on dark
+  bands), the stepper rail (`nwse-stepper`, steps without cards from 768px),
+  and capped cards. `Band` takes `tone="dark" | "navy"` and renders
+  `DarkCurrents` itself; the hub has four dark sections (hero, pillars,
+  metrics, CTA) and the service pages open on a navy glance strip. Icon
+  tiles take `nwse-icon-cyan|green|tide` and `nwse-icon-on-dark`. Text on a
+  tint is navy, slate, or amber-deep, never Tide Blue; labels on dark are
+  amber, cyan, or green. The `data-markers="node"` timeline rules are gone
+  (steps always have a marker tile). Full notes: "Surfaces and colour roles"
+  in `docs/social-engineering-division.md`.
 - **Icons**: three `pillar-*` icons in a new `pillars` group (38 icons; the
   kit's SVG files are still to be added by its owner).
 - **Tests**: new cases in `pages.test.tsx` and `icons.test.ts`; updated
@@ -849,11 +894,9 @@ Implemented a unified admin dashboard with centralized content management:
   - Polling fallback (30s) for production environments
   - Integrated into useContent hook for automatic sync
 
-- **Unified Dashboard** (`/admin/unified`)
-  - Sidebar navigation with 5 section groups
-  - Integrated PublishBar for save actions
+- **Unified Dashboard** (`/admin/unified`; removed 2026-10-21, see the admin
+  panel rework entry above)
   - Hero and Services editors migrated
-  - Graceful fallback for unimplemented sections
 
 ## Content Structure
 
@@ -929,9 +972,9 @@ Located in `src/admin/editors/`:
 
 1. Create editor in `src/admin/editors/`
 2. Follow ContentManager pattern (see HeroEditor example)
-3. Add section to SidebarNavigation section groups
-4. Add route case in UnifiedAdminDashboard
-5. Test publish/discard functionality
+3. Add a `<Route>` under `/admin` in `src/App.tsx`
+4. Add the entry to `src/admin/adminNav.ts` under its site page
+5. Test publish/discard functionality (`adminNav.test.ts` checks the rest)
 
 ### Running the Project
 

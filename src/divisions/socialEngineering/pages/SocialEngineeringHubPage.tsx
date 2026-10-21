@@ -3,16 +3,17 @@ import { DivisionLayout } from '../components/DivisionLayout';
 import { FamilyLockup } from '../components/FamilyLockup';
 import { GrowthLoop } from '../components/GrowthLoop';
 import { GROWTH_LOOP_NODES, type GrowthLoopNodeKey } from '../components/growthLoop';
+import { PILLAR_STYLE } from '../components/pillarStyle';
 import { ServiceIcon } from '../components/ServiceIcon';
 import {
   Band,
   CadenceRow,
   ChipList,
   CtaBand,
-  DarkCurrents,
   DivisionHero,
   FaqList,
   JourneyStrip,
+  MetricTiles,
   PillarCards,
   PointGrid,
   PrimaryCta,
@@ -39,6 +40,23 @@ const LOOP_STEPS: Record<GrowthLoopNodeKey, { title: string; detail: string }> =
   sales: { title: 'Sales', detail: 'Revenue flows back into the reporting and sets the next decision.' },
 };
 
+/** Each loop step's colour, for the numeral beside its name: the pillar roles, then amber for sales. */
+const LOOP_STEP_COLORS: Record<GrowthLoopNodeKey, string> = {
+  data: PILLAR_STYLE.data.onDark,
+  integrations: PILLAR_STYLE.integrations.onDark,
+  advertising: PILLAR_STYLE.advertising.onDark,
+  sales: 'var(--nwse-lure-amber)',
+};
+
+/**
+ * The hub. Its bands alternate grounds and box treatments so no two
+ * neighbours look alike: Deep Current hero; white with the loop in a navy
+ * panel; navy with glass pillar tiles; white with hairline service cards;
+ * Cloud White with soft tiles and the journey scene; white with the stepper;
+ * Cloud White with capped phase cards; Deep Current with glass metric tiles;
+ * white with chips; Cloud White with the family card; white with the FAQ
+ * list; the gradient call to action.
+ */
 export default function SocialEngineeringHubPage() {
   useDivisionMeta(seo);
   const content = hubContent;
@@ -73,19 +91,19 @@ export default function SocialEngineeringHubPage() {
               ))}
             </div>
           </div>
-          {/* The growth loop: the drawing is decorative; the list beside it says the same in words. */}
-          <figure className="nwse-card p-4 sm:p-6" data-role="growth-system">
-            <GrowthLoop />
-            <figcaption className="mt-4 border-t pt-4 sm:mt-5 sm:pt-5" style={{ borderColor: 'var(--nw-mist-gray)' }}>
-              <p className="nwse-type-label nwse-label">The growth loop</p>
+          {/* The growth loop in a navy panel: the drawing is decorative; the list beside it says the same in words. */}
+          <figure className="rounded-2xl p-5 sm:p-7" style={{ background: 'var(--nw-current-navy)' }} data-role="growth-system">
+            <GrowthLoop tone="dark" />
+            <figcaption className="mt-4 border-t pt-4 sm:mt-5 sm:pt-5" style={{ borderColor: 'color-mix(in srgb, var(--nw-cloud-white) 14%, transparent)' }}>
+              <p className="nwse-type-kicker nwse-kicker-on-dark">The growth loop</p>
               <ol className="mt-3 grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
                 {GROWTH_LOOP_NODES.map(({ key }, index) => (
                   <li key={key} className="flex gap-3">
-                    <span className="nwse-type-label nwse-type-numeric mt-0.5 shrink-0 text-[var(--nwse-lure-amber-deep)]" aria-hidden="true">
+                    <span className="nwse-type-label nwse-type-numeric mt-0.5 shrink-0" style={{ color: LOOP_STEP_COLORS[key] }} aria-hidden="true">
                       {String(index + 1).padStart(2, '0')}
                     </span>
-                    <span className="nwse-type-body-small text-[var(--nw-slate)]">
-                      <span className="font-semibold text-[var(--nw-current-navy)]">{LOOP_STEPS[key].title}. </span>
+                    <span className="nwse-type-body-small text-[var(--nw-mist-gray)]">
+                      <span className="font-semibold text-[var(--nw-cloud-white)]">{LOOP_STEPS[key].title}. </span>
                       {LOOP_STEPS[key].detail}
                     </span>
                   </li>
@@ -96,14 +114,15 @@ export default function SocialEngineeringHubPage() {
         </div>
       </Band>
 
-      <Band id="pillars" labelledBy="nwse-pillars">
+      <Band tone="navy" id="pillars" labelledBy="nwse-pillars">
         <SectionIntro
+          tone="dark"
           kicker="What we’re built on"
           title="Data, integrations, and smart advertising, working as one system"
           description="Each pillar is useful on its own. Together they are why the advertising budget can answer for sales: the data says where to spend, the integrations capture what it brings in, and the reporting shows it."
           id="nwse-pillars"
         />
-        <PillarCards pillars={content.pillars} />
+        <PillarCards pillars={content.pillars} tone="dark" />
       </Band>
 
       <Band tone="white" id="services" labelledBy="nwse-services">
@@ -117,7 +136,7 @@ export default function SocialEngineeringHubPage() {
             summary beneath) and the whole row is the link; below md the rows are
             grouped into one list. From lg, the cards as before. The minmax(0, …)
             tracks let a row shrink to the panel when text is enlarged, so the
-            panel's overflow never clips it. */}
+            panel's overflow never clips it. Each icon tile wears its pillar's colour. */}
         <ul className="nwse-rowlist mt-6 grid grid-cols-1 gap-0 sm:mt-8 md:gap-4 md:grid-cols-2 lg:mt-10 lg:grid-cols-3">
           {divisionServices.map((service) => (
             <li key={service.slug}>
@@ -126,7 +145,7 @@ export default function SocialEngineeringHubPage() {
                 className="nwse-card group grid h-full grid-cols-[2.25rem_minmax(0,1fr)_1.125rem] content-start items-center gap-x-3 gap-y-1.5 p-4 transition-colors hover:border-[var(--nwse-lure-amber)] sm:p-5 lg:flex lg:flex-col lg:items-stretch lg:gap-0 lg:p-6"
               >
                 <div className="contents lg:flex lg:items-start lg:justify-between">
-                  <span className="nwse-icon col-start-1 row-start-1 h-9 w-9 lg:h-11 lg:w-11">
+                  <span className={`nwse-icon ${PILLAR_STYLE[service.pillar].tile} col-start-1 row-start-1 h-9 w-9 lg:h-11 lg:w-11`}>
                     <ServiceIcon icon={service.icon} size={20} />
                   </span>
                   <NwseIcon
@@ -155,8 +174,8 @@ export default function SocialEngineeringHubPage() {
           id="nwse-data"
         />
         <JourneyStrip stages={content.journey} />
-        {/* The journey scene fills the grid's empty sixth cell from lg. */}
-        <PointGrid points={content.dataWeGather} scene="hubSection" />
+        {/* Soft tiles, coloured bars in rotation; the journey scene fills the grid's empty sixth cell from lg. */}
+        <PointGrid points={content.dataWeGather} scene="hubSection" variant="soft" accents="cycle" />
       </Band>
 
       <Band tone="white" id="process" labelledBy="nwse-method">
@@ -180,41 +199,22 @@ export default function SocialEngineeringHubPage() {
         <CadenceRow cadence={content.cadence} />
       </Band>
 
+      <Band tone="dark" labelledBy="nwse-metrics">
+        <SectionIntro
+          tone="dark"
+          kicker="What we measure"
+          title="Measured against sales, not activity"
+          description="The same five measures on every report, defined the same way every month, so the numbers can be compared and the budget can follow them."
+          id="nwse-metrics"
+        />
+        <MetricTiles metrics={content.metrics} />
+      </Band>
+
       <Band tone="white" labelledBy="nwse-industries">
         <SectionIntro kicker="Who we work with" title={content.industries.heading} description={content.industries.intro} id="nwse-industries" />
         <ChipList items={content.industries.items} label="Kinds of business we work with" />
         <p className="nwse-type-body-small mt-5 max-w-3xl text-[var(--nw-slate)] sm:mt-6">{content.industries.note}</p>
       </Band>
-
-      <section
-        aria-labelledby="nwse-metrics"
-        className="nwse-dark relative overflow-hidden py-10 sm:py-14 lg:py-20"
-        style={{ background: 'var(--nw-deep-current)' }}
-      >
-        <DarkCurrents />
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <p className="nwse-type-kicker nwse-kicker-on-dark">What we measure</p>
-          <h2 id="nwse-metrics" className="nwse-type-display-2 mt-2 max-w-3xl text-[var(--nw-cloud-white)] sm:mt-3">
-            Measured against sales, not activity
-          </h2>
-          <p className="nwse-type-body mt-3 max-w-2xl text-[var(--nw-mist-gray)] sm:mt-4">
-            The same five measures on every report, defined the same way every month, so the numbers can be compared and the budget can follow them.
-          </p>
-          <dl className="mt-6 grid grid-cols-1 gap-x-8 gap-y-0 sm:mt-8 md:gap-y-6 md:grid-cols-2 lg:mt-10 lg:grid-cols-3 md:max-lg:[&>div:last-child:nth-child(odd)]:col-span-2">
-            {content.metrics.map((metric) => (
-              <div key={metric.title} className="border-t py-4 md:pb-0 md:pt-5" style={{ borderColor: 'color-mix(in srgb, var(--nw-slate) 70%, transparent)' }}>
-                <dt className="flex items-center gap-3">
-                  {metric.icon ? <NwseIcon name={metric.icon} size={24} className="shrink-0 text-[var(--nw-cloud-white)] max-sm:h-5 max-sm:w-5" /> : null}
-                  <span className="nwse-type-label" style={{ color: 'var(--nwse-lure-amber)' }}>
-                    {metric.title}
-                  </span>
-                </dt>
-                <dd className="nwse-type-body-small mt-1.5 text-[var(--nw-mist-gray)] sm:mt-2">{metric.detail}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      </section>
 
       <Band labelledBy="nwse-family">
         {/* Phones: flush on the gutter like every other band (.nwse-familycard). */}

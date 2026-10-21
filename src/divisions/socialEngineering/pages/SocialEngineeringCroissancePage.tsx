@@ -1,4 +1,5 @@
 import { DivisionLayout } from '../components/DivisionLayout';
+import { accentAt } from '../components/pillarStyle';
 import { Band, CheckList, CtaBand, DivisionHero, FaqList, PrimaryCta, SectionIntro, StepList } from '../components/sections';
 import { auditConnectors, auditContent, auditReports, auditSample } from '../content';
 import { NwseIcon } from '../icons/NwseIcon';
@@ -11,38 +12,47 @@ import { compareWithToday, rankChanges, type RankedChange } from '../../../../pa
 
 const seo = croissancePageSeo();
 
-/** The Currents: one card per kind of public data, with where it comes from and what it brings back. */
+/** The Currents: one tinted panel per kind of public data (the colour roles in rotation), with where it comes from and what it brings back. */
 function ConnectorGrid() {
   return (
     <ul className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 md:grid-cols-2 md:gap-4 lg:mt-10 lg:grid-cols-3">
-      {auditConnectors.map((connector) => (
-        <li key={connector.name} className="nwse-card flex flex-col p-4 sm:p-5 lg:p-6">
-          <div className="flex items-center gap-3">
-            <span className="nwse-icon h-10 w-10 shrink-0">
-              <NwseIcon name={connector.icon} size={20} />
-            </span>
-            <h3 className="nwse-type-title-2 text-[var(--nw-current-navy)]">{connector.name}</h3>
-          </div>
-          <p className="nwse-type-label nwse-label mt-4">{connector.source}</p>
-          <p className="nwse-type-body-small mt-2 text-[var(--nw-slate)]">{connector.gathers}</p>
-        </li>
-      ))}
+      {auditConnectors.map((connector, index) => {
+        const color = accentAt(index);
+        return (
+          <li key={connector.name} className={`nwse-tint ${color.tint} flex flex-col p-4 sm:p-5 lg:p-6`}>
+            <div className="flex items-center gap-3">
+              <span className={`nwse-icon ${color.tile} h-10 w-10 shrink-0`}>
+                <NwseIcon name={connector.icon} size={20} />
+              </span>
+              <h3 className="nwse-type-title-2 text-[var(--nw-current-navy)]">{connector.name}</h3>
+            </div>
+            <p className="nwse-type-label mt-4 text-[var(--nw-current-navy)]">{connector.source}</p>
+            <p className="nwse-type-body-small mt-2 text-[var(--nw-slate)]">{connector.gathers}</p>
+          </li>
+        );
+      })}
     </ul>
   );
 }
 
+/** The three reports as capped cards: a coloured cap each (cyan, green, amber), the format in the cap's text colour. */
 function ReportGrid() {
   return (
     <ol className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 md:grid-cols-3 md:gap-4 lg:mt-10">
-      {auditReports.map((report) => (
-        <li key={report.name} className="nwse-card flex flex-col p-4 sm:p-5 lg:p-6">
-          <span className="block h-1 w-10 rounded-full" style={{ background: 'var(--nwse-lure-amber)' }} aria-hidden="true" />
-          <p className="nwse-type-label nwse-label mt-4">{report.audience}</p>
-          <h3 className="nwse-type-title-1 mt-1 text-[var(--nw-current-navy)]">{report.name}</h3>
-          <p className="nwse-type-body-small mt-1 font-semibold text-[var(--nwse-lure-amber-deep)]">{report.format}</p>
-          <p className="nwse-type-body-small mt-3 text-[var(--nw-slate)]">{report.detail}</p>
-        </li>
-      ))}
+      {auditReports.map((report, index) => {
+        const color = accentAt(index);
+        return (
+          <li key={report.name} className="nwse-card relative flex flex-col overflow-hidden p-4 sm:p-5 lg:p-6">
+            <span className="absolute inset-x-0 top-0 h-1.5" style={{ background: color.accent }} aria-hidden="true" />
+            <p className="nwse-type-label nwse-label mt-1">{report.audience}</p>
+            <h3 className="nwse-type-title-1 mt-1 text-[var(--nw-current-navy)]">{report.name}</h3>
+            <p className="nwse-type-body-small mt-1 font-semibold" style={{ color: color.deep }}>
+              {report.format}
+            </p>
+            <p className="nwse-type-body-small mt-3 text-[var(--nw-slate)]">{report.detail}</p>
+          </li>
+        );
+      })}
     </ol>
   );
 }
@@ -387,12 +397,15 @@ export default function SocialEngineeringCroissancePage() {
       <Band labelledBy="nwse-audit-growth">
         <SectionIntro kicker={content.growth.kicker} title={content.growth.heading} description={content.growth.intro} id="nwse-audit-growth" />
         <div className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 md:grid-cols-2 md:gap-4 lg:mt-10">
-          {content.growth.groups.map((group) => (
-            <div key={group.title} className="nwse-card p-4 sm:p-5 lg:p-6">
-              <h3 className="nwse-type-title-2 text-[var(--nw-current-navy)]">{group.title}</h3>
-              <CheckList items={group.items} />
-            </div>
-          ))}
+          {content.growth.groups.map((group, index) => {
+            const color = accentAt(index);
+            return (
+              <div key={group.title} className={`nwse-tint ${color.tint} p-4 sm:p-5 lg:p-6`}>
+                <h3 className="nwse-type-title-2 text-[var(--nw-current-navy)]">{group.title}</h3>
+                <CheckList items={group.items} color={color} />
+              </div>
+            );
+          })}
         </div>
       </Band>
 
