@@ -134,6 +134,8 @@ export interface ImpactRules {
   local_pack_ctr: Sourced & { by_position: readonly number[] };
   /** Months for an SEO change to reach full effect: the first months run at these fractions. */
   seo_ramp: number[];
+  /** Where one dedicated page can take searches the business does not rank for yet: [low, medium, high] case, 1 = first. */
+  seo_target: { positions: Triple; basis: string };
 }
 
 export interface GroundswellConfig {
@@ -212,6 +214,10 @@ export function validateConfig(c: GroundswellConfig): GroundswellConfig {
     if (xs.length < 3 || xs.some((x, i) => !(x >= 0 && x <= 1) || (i > 0 && x > xs[i - 1]))) {
       problems.push(`impact.${name}.by_position must be rates between 0 and 1 that fall with position`);
     }
+  }
+  const target = c.impact.seo_target.positions;
+  if (target.some((p) => !Number.isInteger(p) || p < 1 || p > c.impact.organic_ctr.by_position.length) || target[0] < target[1] || target[1] < target[2]) {
+    problems.push('impact.seo_target.positions must be whole positions on the organic curve, the low case lowest on the page');
   }
   if (!(c.verification.tolerance > 0 && c.verification.tolerance < 1)) problems.push('verification.tolerance must be between 0 and 1');
   if (!(c.verification.max_rounds >= 2)) problems.push('verification.max_rounds must be at least 2 (a first pass and a re-run)');

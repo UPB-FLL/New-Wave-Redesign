@@ -1,6 +1,10 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { escapeHtml as esc } from '../http.js';
+import { GROUNDSWELL_CONFIG } from '../../../packages/groundswell/groundswell.config.js';
+import type { PlanRow } from '../../../packages/groundswell/src/adplan.js';
+import type { ChangeArea, RankedChange } from '../../../packages/groundswell/src/changes.js';
+import type { AdplanOutput } from './adplan.js';
 import type { Brand } from './brand.js';
 import { AREAS, type AreaKey, type Facts, type runModel } from './model.js';
 import type { RoiScenarioResult } from './roi.js';
@@ -8,8 +12,13 @@ import type { RoiScenarioResult } from './roi.js';
 /**
  * HTML for Groundswell's three PDFs, in the client's colours and logo:
  * - the full audit (Letter pages, no links),
- * - the slides (eleven 1920×1080 slides; the last links the audit),
+ * - the slides (1920×1080; eleven, or twelve with the ad plan; the last links the audit),
  * - the one-page summary (links the slides, the audit and the Drive folder).
+ *
+ * With the ad-plan step's output, the return is the plan: every change ranked
+ * by return, today against the plan, and the ad plan's rows. Without it (the
+ * step was skipped, or the audit started before it existed), the return is the
+ * write-up step's single search-ad model, as before.
  * Every link must be a Google Drive link (`driveLink` throws otherwise).
  *
  * Elements marked data-trim may be removed, last first, until their
@@ -22,6 +31,8 @@ export interface ReportData {
   facts: Facts;
   model: ModelOutput;
   brand: Brand;
+  /** The ad-plan step's output; null when it did not run. */
+  adplan: AdplanOutput | null;
   /** Shown as "Prepared by New Wave: Social Engineering · <date>". */
   date: string;
 }
@@ -113,9 +124,10 @@ interface Kpi {
   label: string;
 }
 
-export function kpis(f: Facts, m: ModelOutput): Kpi[] {
+export function kpis(f: Facts, m: ModelOutput, p: AdplanOutput | null = null): Kpi[] {
   const place = f.maps?.business;
   const base = m.roi?.scenarios.base;
+  const planNet = p?.comparison.included.length ? p.comparison.with_plan.net_year.medium : null;
   return [
     {
       value: place?.rating !== null && place?.rating !== undefined ? `${place.rating} / 5` : NOT_CHECKED,
@@ -123,9 +135,12 @@ export function kpis(f: Facts, m: ModelOutput): Kpi[] {
     },
     { value: num(f.social?.business?.followers ?? null), label: 'Instagram followers' },
     { value: num(f.search?.business?.organic_keywords ?? null), label: 'Keywords the website ranks for' },
-    base
-      ? { value: money(base.year.net), label: 'Base case, 12-month net from search ads' }
-      : { value: num(m.roi?.demand_monthly ?? null), label: 'Monthly searches in the area' },
+    // With a plan, the old search-ad model never shows, even when nothing in the plan pays back.
+    planNet !== null
+      ? { value: money(planNet), label: '12-month net with the plan, medium case' }
+      : base && !p
+        ? { value: money(base.year.net), label: 'Base case, 12-month net from search ads' }
+        : { value: num(m.roi?.demand_monthly ?? null), label: 'Monthly searches in the area' },
   ];
 }
 
@@ -149,6 +164,106 @@ export function feeLine(m: ModelOutput) {
 function stopLoss(m: ModelOutput): string | null {
   const cpl = m.roi?.scenarios.base?.steady_month.cpl;
   return cpl ? `Stop-loss: if cost per lead is above ${money(cpl * 1.5)} after 60 days, pull back.` : null;
+}
+
+// ---------------------------------------------------------------------------
+// The plan (the ad-plan step's output)
+
+const AREA_LABELS: Record<ChangeArea, string> = {
+  ads: 'Ads',
+  seo: 'Search',
+  website: 'Website',
+  google: 'Google profile',
+  reviews: 'Reviews',
+  listings: 'Listings',
+  social: 'Social',
+  email: 'Email',
+};
+const CALLS: Record<PlanRow['recommendation'], string> = { fund: 'Fund', test: 'Test', skip: 'Skip' };
+const NOT_MODELED = 'Not modeled';
+
+/** What a change returns per dollar it costs, in the medium case: net ÷ cost + 1. */
+export const backPerDollar = (c: RankedChange) => {
+  const roi = c.scenarios?.medium.roi;
+  return roi === null || roi === undefined ? NOT_MODELED : `$${(roi + 1).toFixed(2)}`;
+};
+const netRange = (c: RankedChange) => (c.scenarios ? `${money(c.scenarios.low.net_year)} to ${money(c.scenarios.high.net_year)}` : NOT_MODELED);
+/** Why a change has no modeled return, when it has none. */
+const unmodeledReason = (c: RankedChange) =>
+  c.modeled ? null : c.impact.kind === 'not_modeled' ? c.impact.reason : c.impact.kind === 'ads' ? c.impact.row.reason : null;
+const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
+
+export const hasPlan = (p: AdplanOutput | null): p is AdplanOutput => Boolean(p && p.ranked.length);
+
+/** One sentence: what the plan adds and returns, or that nothing pays back. */
+export function planLine(p: AdplanOutput): string {
+  const c = p.comparison;
+  const w = c.with_plan;
+  if (!c.included.length) return 'No change pays back in the medium case on public data alone; the ranked changes show what each would cost.';
+  return `The plan: ${c.included.length} ${plural(c.included.length, 'change that pays', 'changes that pay')} back in the medium case, adding ${money(w.added_monthly_spend.medium)} a month in ad spend and ${num(w.team_hours)} team hours in the first year, for ${money(w.net_year.low)} to ${money(w.net_year.high)} net over 12 months after team time (${money(w.net_year.medium)} in the medium case).`;
+}
+
+const TEAM_TIME = 'Team time is costed at New Wave’s hourly cost for the work.';
+
+function todayTable(p: AdplanOutput) {
+  const c = p.comparison;
+  const w = c.with_plan;
+  const spendToday = c.today.monthly_ad_spend === null ? 'Not public' : money(c.today.monthly_ad_spend);
+  const spendPlan = w.monthly_ad_spend === null ? `${money(w.added_monthly_spend.medium)} added` : money(w.monthly_ad_spend);
+  return table(
+    ['', 'Today', 'With the plan'],
+    [
+      ['Ad spend a month', spendToday, spendPlan],
+      ['Added customers a month, medium case', '0', num(w.extra_customers_month.medium, 1)],
+      ['Team hours, first year', '0', num(w.team_hours)],
+      ['12-month net after team time, low to high', money(0), `${money(w.net_year.low)} to ${money(w.net_year.high)} (${money(w.net_year.medium)} medium)`],
+    ]
+  );
+}
+
+function rankedTable(p: AdplanOutput, limit: number) {
+  const rows = p.ranked.slice(0, limit).map((c) => {
+    const note = unmodeledReason(c) ?? c.evidence;
+    return `<tr><td>${c.rank}</td><td>${esc(c.title)}${note ? `<div class="note">${esc(note)}</div>` : ''}</td><td>${esc(AREA_LABELS[c.area] ?? c.area)}</td><td>${num(c.hours)}</td><td>${esc(netRange(c))}</td><td>${esc(backPerDollar(c))}</td></tr>`;
+  });
+  return `<table class="ranked"><thead><tr><th>#</th><th>Change</th><th>Area</th><th>Team hours, first year</th><th>12-month net after team time, low to high</th><th>Back per $1, medium case</th></tr></thead><tbody>${rows.join('')}</tbody></table>`;
+}
+
+function planRowsTable(p: AdplanOutput) {
+  const rows = p.plan.rows.map((r) => {
+    const m = r.scenarios.medium;
+    const net = r.roi_tier === 'not modeled' ? NOT_MODELED : `${money(r.scenarios.low.year_net)} to ${money(r.scenarios.high.year_net)}`;
+    return `<tr><td>${esc(r.angle)}<div class="note">${esc(r.reason)}</div></td><td>${esc(r.platform_label)}</td><td>$${m.cpc.toFixed(2)}</td><td>${num(m.clicks)}</td><td>${money(m.spend)}</td><td>${esc(net)}</td><td>${CALLS[r.recommendation]}</td></tr>`;
+  });
+  return `<table class="ranked"><thead><tr><th>Angle</th><th>Platform</th><th>Cost per click</th><th>Clicks a month</th><th>Ad spend a month</th><th>12-month net before team time, low to high</th><th>Call</th></tr></thead><tbody>${rows.join('')}</tbody></table>`;
+}
+
+const unique = (xs: string[]) => [...new Set(xs.filter(Boolean))];
+
+function returnSection(p: AdplanOutput, m: ModelOutput) {
+  return `<p>Every change the audit found is costed in team time and spend, modeled on published figures where they exist, and ranked by what it returns in the medium case. A change with no published figure is still listed, after the modeled ones, cheapest first.</p>
+${todayTable(p)}<p class="muted">${esc(p.baseline.ad_spend_basis)}</p>
+<h3>Every change, ranked</h3>${rankedTable(p, 15)}
+<p>${esc(feeLine(m))} ${esc(TEAM_TIME)}</p>
+<p class="muted">Ranges, not promises: after 90 days, your own tracked calls and jobs replace these estimates.</p>`;
+}
+
+function adPlanSection(p: AdplanOutput) {
+  const live = p.plan.rows.filter((r) => r.recommendation !== 'skip');
+  const stops = live
+    .filter((r) => r.stop_loss_cost_per_lead !== null && r.roi_tier !== 'not modeled')
+    .map((r) => `${r.angle} on ${r.platform_label}: pull back if a lead costs more than ${money(r.stop_loss_cost_per_lead)} after 60 days.`);
+  const rules = unique(p.plan.rows.flatMap((r) => r.conditions.map((c) => `${r.platform_label}: ${c}`)));
+  const unmodeled = unique(p.plan.unmodeled.map((u) => `${GROUNDSWELL_CONFIG.platforms[u.platform]?.label ?? u.platform}: ${u.reason}`));
+  const small = p.plan.too_small.map((t) => `${t.angle}: about ${num(t.demand)} searches a month, too few for a search campaign of its own.`);
+  const angles = p.angles.map((a) => `${a.name}: ${a.why}`);
+  return `<p>An angle is a reason to choose the business that people actually search for. Each one is modeled on every ad platform its industry allows (profile: ${esc(p.industry.label)}), in a low, medium and high case; cost per click, clicks and spend are the medium case. A row's net is ad profit less ad spend, before team time; the ranking counts the team's time as well.</p>
+<h3>Angles</h3>${listHtml(angles, false)}
+${planRowsTable(p)}
+${stops.length ? `<h3>Stop-loss</h3>${listHtml(stops, false)}` : ''}
+${rules.length ? `<h3>Platform rules</h3>${listHtml(rules, false)}` : ''}
+${unmodeled.length || small.length ? `<h3>Not modeled</h3>${listHtml([...unmodeled, ...small], false)}` : ''}
+<h3>Where the numbers come from</h3>${listHtml(unique(p.plan.rows.flatMap((r) => r.sources)), false)}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -281,6 +396,7 @@ function roiTable(m: ModelOutput) {
 
 export function buildAuditHtml(d: ReportData): string {
   const { facts: f, model: m, brand: b } = d;
+  const p = hasPlan(d.adplan) ? d.adplan : null;
   const footer = `${esc(f.business.name)} · Marketing audit · Prepared by ${PREPARED_BY} · ${esc(d.date)}`;
   const section = (kicker: string, title: string, body: string) =>
     `<section class="page"><div class="kicker">${esc(kicker)}</div><h2>${esc(title)}</h2>${body}<div class="foot">${footer}</div></section>`;
@@ -290,6 +406,20 @@ export function buildAuditHtml(d: ReportData): string {
   ).join('');
 
   const plan = m.writeup.plan;
+  const returnSections = p
+    ? section('9 · Return', 'What pays back first', returnSection(p, m)) + section('10 · Ad plan', 'The ad plan', adPlanSection(p))
+    : section(
+        '9 · Return',
+        'What search ads could return',
+        `<p>${esc(m.roi?.lever ?? '')}</p>${roiTable(m)}<p>${esc(feeLine(m))}</p>${stopLoss(m) ? `<p><strong>${esc(stopLoss(m)!)}</strong></p>` : ''}
+<h3>Where the numbers come from</h3>${listHtml(m.roi_sources, false)}
+<p class="muted">Ranges, not promises: after 90 days, your own tracked calls and jobs replace these estimates. Fixes to your Google profile, website and Instagram are extra upside and are not counted here.</p>`
+      );
+  const returnLine = p
+    ? planLine(p)
+    : m.roi
+      ? `${m.roi.lever}: about ${money(m.roi.scenarios.base?.steady_month.spend)} a month in ad spend, ${money(m.roi.scenarios.base?.year.net)} net over 12 months in the base case (${money(m.roi.scenarios.conservative?.year.net)} to ${money(m.roi.scenarios.optimistic?.year.net)} across the scenarios).`
+      : m.roi_note ?? '';
   const sources = [
     f.site?.business ? `Website scan of ${f.site.business.final_url ?? f.site.business.url} (${f.site.business.fetched_at.slice(0, 10)})` : null,
     f.maps ? `${f.maps.source} (${f.maps.fetched_at.slice(0, 10)})` : null,
@@ -323,29 +453,25 @@ td,th{padding:5px 7px}
 .kpi .v{font-size:17pt}
 .kpi .l{font-size:8.5pt}
 .foot{position:absolute;left:0.6in;right:0.6in;bottom:0.35in;font-size:8pt;color:#6b7280;border-top:1px solid #e5e7eb;padding-top:6px}
+.ranked td,.ranked th{font-size:8.5pt;padding:4px 6px}
+.note{font-size:7.5pt;color:#4b5563;margin-top:2px}
 </style></head><body>
 <section class="page cover">
   <div class="band">${logoImg(b, '')}<h1>${esc(f.business.name)}</h1><div class="muted">Marketing audit${f.business.city ? ` · ${esc(f.business.city)}` : ''} · Prepared by ${PREPARED_BY} · ${esc(d.date)}</div></div>
   <div class="inner">
     <p class="headline">${esc(m.writeup.headline)}</p>
     <p>${esc(m.writeup.verdict)}</p>
-    ${kpiHtml(kpis(f, m))}
+    ${kpiHtml(kpis(f, m, p))}
     <h3>The return we modeled</h3>
-    <p>${esc(m.roi ? `${m.roi.lever}: about ${money(m.roi.scenarios.base?.steady_month.spend)} a month in ad spend, ${money(m.roi.scenarios.base?.year.net)} net over 12 months in the base case (${money(m.roi.scenarios.conservative?.year.net)} to ${money(m.roi.scenarios.optimistic?.year.net)} across the scenarios).` : m.roi_note ?? '')}</p>
+    <p>${esc(returnLine)}</p>
   </div>
   <div class="foot">${footer}</div>
 </section>
 ${areas}
 ${section('8 · Plan', 'The 90-day plan', `<h3>Weeks 1–2</h3>${listHtml(plan.weeks_1_2, false)}<h3>Weeks 3–6</h3>${listHtml(plan.weeks_3_6, false)}<h3>Weeks 7–12</h3>${listHtml(plan.weeks_7_12, false)}`)}
+${returnSections}
 ${section(
-  '9 · Return',
-  'What search ads could return',
-  `<p>${esc(m.roi?.lever ?? '')}</p>${roiTable(m)}<p>${esc(feeLine(m))}</p>${stopLoss(m) ? `<p><strong>${esc(stopLoss(m)!)}</strong></p>` : ''}
-<h3>Where the numbers come from</h3>${listHtml(m.roi_sources, false)}
-<p class="muted">Ranges, not promises: after 90 days, your own tracked calls and jobs replace these estimates. Fixes to your Google profile, website and Instagram are extra upside and are not counted here.</p>`
-)}
-${section(
-  '10 · Sources',
+  `${p ? 11 : 10} · Sources`,
   'Sources and limits',
   `<h3>Data used</h3>${listHtml(sources, false)}${missing.length ? `<h3>Not available this time</h3>${listHtml(missing, false)}` : ''}${m.writeup.cant_see.length ? `<h3>Needs owner access</h3>${listHtml(m.writeup.cant_see, false)}` : ''}<p class="muted">Ratings, followers and rankings change daily; figures are as of the dates above.</p>`
 )}
@@ -355,10 +481,25 @@ ${section(
 // ---------------------------------------------------------------------------
 // Slides
 
+/** The ad plan slide: the rows worth running, medium case. */
+function deckPlanBody(p: AdplanOutput) {
+  const live = p.plan.rows.filter((r) => r.recommendation !== 'skip').slice(0, 6);
+  if (!live.length) return `<p>No ad row is worth funding or testing. The full audit lists every row and why.</p>`;
+  return `<table><thead><tr><th>Angle</th><th>Platform</th><th>Ad spend a month</th><th>12-month net before team time</th><th>Call</th></tr></thead><tbody>${live
+    .map(
+      (r) =>
+        `<tr><td>${esc(r.angle)}</td><td>${esc(r.platform_label)}</td><td>${money(r.scenarios.medium.spend)}</td><td>${r.roi_tier === 'not modeled' ? NOT_MODELED : money(r.scenarios.medium.year_net)}</td><td>${CALLS[r.recommendation]}</td></tr>`
+    )
+    .join('')}</tbody></table><p class="muted" style="margin-top:24px" data-trim>Skipped rows, platform rules, stop-losses and sources are in the full audit.</p>`;
+}
+
 export const SLIDE_IDS = ['cover', 'glance', 'google', 'social', 'website', 'ads', 'competitors', 'keywords', 'plan', 'roi', 'next'] as const;
+/** The slide the ad plan adds, between the return and next steps. */
+export const AD_PLAN_SLIDE_ID = 'adplan';
 
 export function buildDeckHtml(d: ReportData, links: { audit: string }): string {
   const { facts: f, model: m, brand: b } = d;
+  const p = hasPlan(d.adplan) ? d.adplan : null;
   const auditLink = driveLink(links.audit);
   const slide = (id: string, n: number, title: string, body: string) =>
     `<section class="slide" id="${id}"><header class="band"><span>${esc(title)}</span>${logoImg(b, 'mini')}</header><div class="body" data-fit>${body}</div><footer>${esc(f.business.name)} · Prepared by ${PREPARED_BY} · ${esc(d.date)}<span>${n}</span></footer></section>`;
@@ -403,20 +544,33 @@ td,th{padding:14px 18px;font-size:30px}
 .cta{font-size:40px;font-weight:700}
 </style></head><body>
 <section class="slide band cover" id="cover">${logoImg(b, '')}<h1>${esc(f.business.name)}</h1><div class="sub">Marketing audit · Prepared by ${PREPARED_BY} · ${esc(d.date)}</div></section>
-${slide('glance', 2, 'At a glance', `<p class="lead"><strong>${esc(m.writeup.headline)}</strong></p><p>${esc(m.writeup.verdict)}</p>${kpiHtml(kpis(f, m))}`)}
+${slide('glance', 2, 'At a glance', `<p class="lead"><strong>${esc(m.writeup.headline)}</strong></p><p>${esc(m.writeup.verdict)}</p>${kpiHtml(kpis(f, m, p))}`)}
 ${areaSlides}
 ${slide('plan', 9, 'The 90-day plan', `<div class="cols" style="grid-template-columns:1fr 1fr 1fr"><div><h3>Weeks 1–2</h3>${listHtml(plan.weeks_1_2.slice(0, 3))}</div><div><h3>Weeks 3–6</h3>${listHtml(plan.weeks_3_6.slice(0, 3))}</div><div><h3>Weeks 7–12</h3>${listHtml(plan.weeks_7_12.slice(0, 3))}</div></div>`)}
-${slide(
-  'roi',
-  10,
-  'What search ads could return',
-  roiRows
-    ? `<table><thead><tr><th>Scenario</th><th>Monthly ad spend</th><th>Leads a month</th><th>12-month net</th></tr></thead><tbody>${roiRows}</tbody></table><p style="margin-top:30px">${esc(feeLine(m))}</p>${stopLoss(m) ? `<p data-trim>${esc(stopLoss(m)!)}</p>` : ''}<p class="muted" data-trim>Ranges, not promises. Sources are in the full audit.</p>`
-    : `<p>${esc(m.roi_note ?? 'No return was modeled.')}</p>`
-)}
+${
+  p
+    ? slide(
+        'roi',
+        10,
+        'What pays back first',
+        `<table><thead><tr><th>Change</th><th>12-month net after team time, medium case</th><th>Back per $1</th></tr></thead><tbody>${p.ranked
+          .slice(0, 5)
+          .map((c) => `<tr><td>${esc(c.title)}</td><td>${c.scenarios ? money(c.scenarios.medium.net_year) : NOT_MODELED}</td><td>${esc(backPerDollar(c))}</td></tr>`)
+          .join('')}</tbody></table><p style="margin-top:30px" data-trim>${esc(planLine(p))}</p><p class="muted" data-trim>${esc(feeLine(m))}</p>`
+      ) +
+      slide(AD_PLAN_SLIDE_ID, 11, 'The ad plan', deckPlanBody(p))
+    : slide(
+        'roi',
+        10,
+        'What search ads could return',
+        roiRows
+          ? `<table><thead><tr><th>Scenario</th><th>Monthly ad spend</th><th>Leads a month</th><th>12-month net</th></tr></thead><tbody>${roiRows}</tbody></table><p style="margin-top:30px">${esc(feeLine(m))}</p>${stopLoss(m) ? `<p data-trim>${esc(stopLoss(m)!)}</p>` : ''}<p class="muted" data-trim>Ranges, not promises. Sources are in the full audit.</p>`
+          : `<p>${esc(m.roi_note ?? 'No return was modeled.')}</p>`
+      )
+}
 ${slide(
   'next',
-  11,
+  p ? 12 : 11,
   'Next steps',
   `${listHtml(m.writeup.next_steps)}<p class="cta" style="margin-top:50px"><a href="${esc(auditLink)}">Full audit (PDF)</a></p>`
 )}
@@ -426,8 +580,21 @@ ${slide(
 // ---------------------------------------------------------------------------
 // One-page summary
 
+/** The summary's return: the three highest-returning changes and the plan in one line. */
+function summaryPlan(p: AdplanOutput, m: ModelOutput) {
+  const top = p.ranked.filter((c) => c.modeled).slice(0, 3);
+  const w = p.comparison.with_plan;
+  const line = p.comparison.included.length
+    ? `With the plan: ${money(w.added_monthly_spend.medium)} a month in added ad spend and ${num(w.team_hours)} team hours, ${money(w.net_year.low)} to ${money(w.net_year.high)} over 12 months.`
+    : planLine(p);
+  return `<h3>What pays back first</h3>
+${top.length ? `<table><thead><tr><th>Change</th><th>12-month net after team time, medium case</th><th>Back per $1</th></tr></thead><tbody>${top.map((c) => `<tr><td>${esc(c.title)}</td><td>${money(c.scenarios!.medium.net_year)}</td><td>${esc(backPerDollar(c))}</td></tr>`).join('')}</tbody></table>` : ''}
+<p class="muted" data-trim>${esc(line)} ${esc(feeLine(m))}</p>`;
+}
+
 export function buildSummaryHtml(d: ReportData, links: { deck: string; audit: string; folder: string }): string {
   const { facts: f, model: m, brand: b } = d;
+  const p = hasPlan(d.adplan) ? d.adplan : null;
   const deck = driveLink(links.deck);
   const audit = driveLink(links.audit);
   const folder = driveLink(links.folder);
@@ -462,11 +629,11 @@ td,th{padding:4px 6px}
 <div class="body" data-fit>
 <p class="headline">${esc(m.writeup.headline)}</p>
 <p>${esc(m.writeup.verdict)}</p>
-${kpiHtml(kpis(f, m))}
+${kpiHtml(kpis(f, m, p))}
 <h3>Five findings</h3>
 <ul class="findings">${findings.map(({ k, text }) => `<li data-trim><strong>${AREA_TITLES[k]}:</strong> ${esc(text)}<a href="${esc(deck)}">Slides ›</a></li>`).join('')}</ul>
-<h3>What search ads could return</h3>
-${roiRows ? `<table><thead><tr><th>Scenario</th><th>Ad spend</th><th>12-month net</th></tr></thead><tbody>${roiRows}</tbody></table><p class="muted">${esc(feeLine(m))}</p>` : `<p class="muted">${esc(m.roi_note ?? '')}</p>`}
+${p ? summaryPlan(p, m) : `<h3>What search ads could return</h3>
+${roiRows ? `<table><thead><tr><th>Scenario</th><th>Ad spend</th><th>12-month net</th></tr></thead><tbody>${roiRows}</tbody></table><p class="muted">${esc(feeLine(m))}</p>` : `<p class="muted">${esc(m.roi_note ?? '')}</p>`}`}
 <h3>Next 90 days</h3>
 ${listHtml(m.writeup.next_steps)}
 </div>

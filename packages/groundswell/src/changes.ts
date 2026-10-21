@@ -24,7 +24,8 @@ import type { AngleValue, PlanRow } from './adplan.js';
  *   with its reason and cost.
  */
 
-export type ChangeArea = 'ads' | 'seo' | 'website' | 'google' | 'reviews' | 'listings' | 'social' | 'email';
+export const CHANGE_AREAS = ['ads', 'seo', 'website', 'google', 'reviews', 'listings', 'social', 'email'] as const;
+export type ChangeArea = (typeof CHANGE_AREAS)[number];
 
 export interface ChangeCost {
   /** Team hours to make the change: [low case, medium, high case] (the low case takes longest). */

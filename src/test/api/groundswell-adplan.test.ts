@@ -1,0 +1,133 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+const openai = vi.hoisted(() => ({ chatJson: vi.fn() }));
+vi.mock('../../../api/_lib/groundswell/openai', () => ({ chatJson: openai.chatJson, GROUNDSWELL_MODEL: () => 'test-model' }));
+
+import { baselineFrom, checkPlan, isAdplanOutput, PLANNER_SYSTEM, runAdplan } from '../../../api/_lib/groundswell/adplan';
+import { buildFacts } from '../../../api/_lib/groundswell/model';
+import { STEPS } from '../../../api/_lib/groundswell/steps';
+import { PermanentStepError } from '../../../api/_lib/groundswell/types';
+import { STEP_LABELS } from '../../../src/lib/groundswell';
+import { GROUNDSWELL_CONFIG } from '../../../packages/groundswell/groundswell.config';
+import { sampleAdplanOutput, sampleAudit, sampleModelOutput, sampleOutputs, samplePlannerJson } from './fixtures/groundswell-report';
+
+const facts = () => buildFacts(sampleAudit, sampleOutputs());
+const ctx = (outputs: Record<string, unknown>) => ({ audit: sampleAudit, outputs, deadline: Date.now() + 200_000, attempt: 1 });
+
+describe('checking the planner answer against the data', () => {
+  const planned = checkPlan(samplePlannerJson, facts(), sampleModelOutput(), GROUNDSWELL_CONFIG);
+
+  it('keeps only keywords from Keyword Planner, each in one angle', () => {
+    expect(planned.angles.map((a) => [a.id, a.keywords.map((k) => k.keyword)])).toEqual([
+      ['brake-repair', ['brake repair near me']],
+      ['car-ac-repair', ['car ac repair']],
+    ]);
+    expect(planned.dropped.keywords).toEqual(['brake pads cheap']);
+  });
+
+  it('renames an angle that claims "best", and drops a reason quoting a number not in the data', () => {
+    expect(planned.angles[1].name).toBe('Car ac repair');
+    expect(planned.angles[1].why).not.toMatch(/97/);
+    expect(planned.angles[0].why).toBe('Brakes are named on the homepage, and booking through Square is already live.');
+  });
+
+  it('values each angle with the write-up estimate and reads incrementality from the ranks', () => {
+    expect(planned.angles[0].value).toMatchObject({ per_customer: [300, 420, 600], close: [0.25, 0.35, 0.45], gross_margin: [0.5, 0.5, 0.5] });
+    // The site ranks only for "auto repair fort lauderdale", so these angles' rank is unconfirmed.
+    expect(planned.angles[0].incrementality).toBe(GROUNDSWELL_CONFIG.incrementality.ranks_2_to_4);
+  });
+
+  it('keeps fixes with a known effort type, falls back to the finding area, and ignores invented ids', () => {
+    expect(planned.fixes.map((x) => [x.id, x.effort, x.area])).toEqual([
+      ['google-1', 'review_requests', 'reviews'],
+      ['social-1', 'social_posts', 'social'],
+      ['website-1', 'service_page_seo', 'seo'],
+      ['ads-1', 'site_fix', 'ads'],
+    ]);
+    expect(planned.dropped.fixes).toEqual(['Build a page for brake repair']);
+    expect(planned.fixes[0].evidence).toBe('Ask every customer for a review');
+  });
+
+  it('falls back to general for an unknown industry, and to the largest searches when no angle survives', () => {
+    const empty = checkPlan({ industry: 'aliens', angles: [{ name: 'Nothing', keywords: ['not a keyword'] }] }, facts(), sampleModelOutput(), GROUNDSWELL_CONFIG);
+    expect(empty.industry.id).toBe('general');
+    expect(empty.fallback_angle).toBe(true);
+    expect(empty.dropped.angles).toEqual(['Nothing']);
+    expect(empty.angles).toHaveLength(1);
+    expect(empty.angles[0]).toMatchObject({ name: 'Auto repair' });
+    expect(empty.angles[0].keywords.map((k) => k.keyword)).toContain('auto repair fort lauderdale');
+    expect(checkPlan({ industry: 'it_services' }, facts(), sampleModelOutput(), GROUNDSWELL_CONFIG).industry.id).toBe('it_services');
+  });
+
+  it('refuses to plan without keyword demand', () => {
+    const outputs = { ...sampleOutputs(), keywords: { ideas: [] } };
+    expect(() => checkPlan(samplePlannerJson, buildFacts(sampleAudit, outputs), sampleModelOutput(), GROUNDSWELL_CONFIG)).toThrow(PermanentStepError);
+  });
+});
+
+describe('today, from the Ads Current', () => {
+  it('says what is visible and that spend is not public', () => {
+    expect(baselineFrom(facts())).toEqual({
+      monthly_ad_spend: null,
+      ad_spend_basis: 'The website carries a Google Ads tag; Ahrefs shows no paid search pages. Ad spend is not public.',
+    });
+    expect(baselineFrom(buildFacts(sampleAudit, { ...sampleOutputs(), ads: undefined })).ad_spend_basis).toMatch(/could not be checked/);
+  });
+});
+
+describe('the ad-plan step', () => {
+  beforeEach(() => openai.chatJson.mockReset());
+
+  it('runs after the write-up, before delivery, as an optional step with an admin label', () => {
+    const names = STEPS.map((s) => s.name);
+    expect(names.indexOf('adplan')).toBe(names.indexOf('model') + 1);
+    expect(STEPS.find((s) => s.name === 'adplan')?.optional).toBe(true);
+    expect(STEP_LABELS.adplan).toBeTruthy();
+  });
+
+  it('asks the planner once with the gathered keywords, then plans and ranks', async () => {
+    openai.chatJson.mockResolvedValueOnce(samplePlannerJson);
+    const out = await runAdplan(ctx({ ...sampleOutputs(), model: sampleModelOutput() }));
+    expect(openai.chatJson).toHaveBeenCalledTimes(1);
+    const [system, user] = openai.chatJson.mock.calls[0];
+    expect(system).toBe(PLANNER_SYSTEM);
+    expect(user).toContain('brake repair near me');
+    expect(user).toContain('review_requests');
+    expect(isAdplanOutput(out)).toBe(true);
+    expect(out.ranked.map((c) => c.id)).toEqual(sampleAdplanOutput().ranked.map((c) => c.id));
+  });
+
+  it('is skipped, without calling the planner, when there is no write-up or no keyword demand', async () => {
+    await expect(runAdplan(ctx(sampleOutputs()))).rejects.toBeInstanceOf(PermanentStepError);
+    await expect(runAdplan(ctx({ ...sampleOutputs(), keywords: { ideas: [] }, model: sampleModelOutput() }))).rejects.toBeInstanceOf(PermanentStepError);
+    expect(openai.chatJson).not.toHaveBeenCalled();
+  });
+});
+
+describe('the sample plan', () => {
+  const p = sampleAdplanOutput();
+
+  it('ranks modeled changes first, then the sorted findings cheapest first, and leaves covered ones out', () => {
+    expect(p.ranked.map((c) => c.id)).toEqual([
+      'ads-brake-repair-meta',
+      'ads-car-ac-repair-meta',
+      'seo-brake-repair',
+      'seo-car-ac-repair',
+      'fix-ads-1',
+      'fix-google-1',
+      'fix-social-1',
+    ]);
+    // The service-page finding is covered by the modeled ranking pages.
+    expect(p.ranked.some((c) => c.id === 'fix-website-1')).toBe(false);
+  });
+
+  it('skips Google Search when it loses money at the estimated ticket', () => {
+    expect(p.plan.rows.filter((r) => r.platform === 'google_search').every((r) => r.recommendation === 'skip')).toBe(true);
+  });
+
+  it('is recognised as a plan; partial or missing outputs are not', () => {
+    expect(isAdplanOutput(p)).toBe(true);
+    expect(isAdplanOutput(null)).toBe(false);
+    expect(isAdplanOutput({ skipped: 'x' })).toBe(false);
+  });
+});

@@ -52,6 +52,8 @@ export const GROUNDSWELL_CONFIG: GroundswellConfig = validateConfig({
     profile_posts: { hours: [1, 1, 1], monthly_hours: [4, 3, 2], basis: 'A Google Business Profile post every week.' },
     review_requests: { hours: [3, 2, 1], monthly_hours: [2, 1, 1], basis: 'Review cards and a follow-up after visits or events.' },
     listing_fixes: { hours: [2, 1, 1], basis: 'Correct a broken or out-of-date listing.' },
+    site_fix: { hours: [4, 3, 2], basis: 'One small website fix: page titles, structured data, tracking tags, or a booking link.' },
+    social_posts: { hours: [2, 1, 1], monthly_hours: [6, 4, 3], basis: 'Plan and post to one social account every week.' },
   },
 
   impact: {
@@ -69,6 +71,10 @@ export const GROUNDSWELL_CONFIG: GroundswellConfig = validateConfig({
     },
     // New Wave's rule: an SEO change shows nothing for two months, then builds to full effect by month six.
     seo_ramp: [0, 0, 0.25, 0.5, 0.75],
+    seo_target: {
+      positions: [10, 6, 4],
+      basis: 'New Wave’s estimate of where one dedicated page reaches by month six: tenth, sixth or fourth place.',
+    },
   },
 
   incrementality: {

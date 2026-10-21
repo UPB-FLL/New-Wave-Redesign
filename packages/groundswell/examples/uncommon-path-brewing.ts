@@ -241,7 +241,7 @@ export function upbChanges(plan: AdPlan, config: GroundswellConfig): ChangeInput
         curve: 'organic',
         monthly_searches: 620,
         from_position: null,
-        to_position: [10, 6, 4],
+        to_position: config.impact.seo_target.positions,
         visit_to_lead: visitToLead,
         basis:
           'Organic clicks from Advanced Web Ranking’s 2026 curve; visitors inquire at the restaurant search-ad conversion rate (LocaliQ 2026), discounted as for a new account, since no organic figure is published.',

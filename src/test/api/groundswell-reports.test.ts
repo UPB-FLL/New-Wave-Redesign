@@ -1,9 +1,9 @@
 import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { brandFrom, contrast, FALLBACK_PRIMARY } from '../../../api/_lib/groundswell/brand';
-import { buildAuditHtml, buildDeckHtml, buildSummaryHtml, feeLine, money, SLIDE_IDS } from '../../../api/_lib/groundswell/reports';
+import { AD_PLAN_SLIDE_ID, buildAuditHtml, buildDeckHtml, buildSummaryHtml, feeLine, money, SLIDE_IDS } from '../../../api/_lib/groundswell/reports';
 import { assertDriveOnly, countPdfPages, pdfLinks } from '../../../api/_lib/groundswell/render';
-import { sampleReportData } from './fixtures/groundswell-report';
+import { sampleReportData, sampleReportDataWithPlan } from './fixtures/groundswell-report';
 
 const AUDIT = 'https://drive.google.com/file/d/AUDIT_ID/view?usp=sharing';
 const DECK = 'https://drive.google.com/file/d/DECK_ID/view?usp=sharing';
@@ -68,6 +68,55 @@ describe('report HTML', () => {
   });
 });
 
+describe('report HTML with the ad plan', () => {
+  const data = sampleReportDataWithPlan();
+  const text = (html: string) => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+
+  it('the full audit replaces the single search-ad return with the ranking and the ad plan', () => {
+    const html = text(buildAuditHtml(data));
+    expect(html).toContain('What pays back first');
+    expect(html).toContain('The ad plan');
+    expect(html).toContain('11 · Sources');
+    expect(html).not.toContain('What search ads could return');
+    expect(html).toContain('Brake repair: Meta (Facebook and Instagram) ads');
+    expect(html).toContain('No published figure measures what this kind of change returns');
+    expect(html).toContain('Ad spend is not public');
+    expect(html).toContain('12-month net with the plan, medium case');
+    // The ad plan's net leaves team time out; the ranking counts it. Both say so.
+    expect(html).toContain('12-month net before team time, low to high');
+    expect(html).toContain('12-month net after team time, low to high');
+  });
+
+  it('without the plan (an older audit, or a skipped step) the reports keep the search-ad model', () => {
+    const html = text(buildAuditHtml(sampleReportData()));
+    expect(html).toContain('What search ads could return');
+    expect(html).toContain('10 · Sources');
+    expect(html).not.toContain('What pays back first');
+  });
+
+  it('the slides add the ad plan before next steps and still link only the audit', () => {
+    const html = buildDeckHtml(data, { audit: AUDIT });
+    for (const id of [...SLIDE_IDS, AD_PLAN_SLIDE_ID]) expect(html).toContain(`id="${id}"`);
+    expect(html.indexOf(`id="${AD_PLAN_SLIDE_ID}"`)).toBeLessThan(html.indexOf('id="next"'));
+    expect(hrefs(html)).toEqual([AUDIT]);
+    expect(text(html)).toContain('What pays back first');
+  });
+
+  it('when nothing in the plan pays back, no figure from the old search-ad model appears', () => {
+    const none = { ...data.adplan!, comparison: { ...data.adplan!.comparison, included: [] } };
+    const html = text(buildAuditHtml({ ...data, adplan: none }));
+    expect(html).not.toContain('Base case, 12-month net from search ads');
+    expect(html).toContain('No change pays back in the medium case');
+  });
+
+  it('the summary shows the three highest-returning changes', () => {
+    const html = text(buildSummaryHtml(data, { deck: DECK, audit: AUDIT, folder: FOLDER }));
+    expect(html).toContain('What pays back first');
+    expect(html).toContain('Brake repair: Meta (Facebook and Instagram) ads');
+    expect(html).not.toContain('What search ads could return');
+  });
+});
+
 describe('PDF checks', () => {
   it('reads link targets and pages from PDF text', () => {
     const pdf = new TextEncoder().encode(
@@ -101,5 +150,21 @@ describe.skipIf(!hasChromium)('printing (headless Chromium)', () => {
     expect(new Set(summary.links)).toEqual(new Set([DECK, AUDIT, FOLDER]));
     // The sample's logo host does not exist; the logo's onerror removes it rather than print a broken image.
     expect(audit.bytes.length).toBeLessThan(5 * 1024 * 1024);
+  }, 120_000);
+
+  it('with the ad plan, the slides are twelve and the summary still one page', async () => {
+    process.env.CHROMIUM_PATH = chromium;
+    const { withBrowser } = await import('../../../api/_lib/groundswell/browser');
+    const { renderPdf } = await import('../../../api/_lib/groundswell/render');
+    const data = sampleReportDataWithPlan();
+    const [audit, deck, summary] = await withBrowser(async (browser) => [
+      await renderPdf(browser, buildAuditHtml(data)),
+      await renderPdf(browser, buildDeckHtml(data, { audit: AUDIT })),
+      await renderPdf(browser, buildSummaryHtml(data, { deck: DECK, audit: AUDIT, folder: FOLDER })),
+    ]);
+    expect(audit.links).toEqual([]);
+    expect(audit.pages).toBeGreaterThanOrEqual(11);
+    expect(deck.pages).toBe(12);
+    expect(summary.pages).toBe(1);
   }, 120_000);
 });

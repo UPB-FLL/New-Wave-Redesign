@@ -1,4 +1,5 @@
 import { getSupabaseAdmin } from '../supabaseAdmin.js';
+import { isAdplanOutput } from './adplan.js';
 import { withBrowser } from './browser.js';
 import { brandFrom } from './brand.js';
 import {
@@ -42,7 +43,9 @@ function reportData(ctx: StepContext): ReportData {
   const model = ctx.outputs.model as ModelOutput | undefined;
   if (!model) throw new PermanentStepError('The write-up is missing, so the reports cannot be built.');
   const facts = buildFacts(ctx.audit, ctx.outputs);
-  return { facts, model, brand: brandFrom(facts.site?.business), date: formatDate(new Date(model.generated_at)) };
+  // An audit started before the ad-plan step existed, or one whose step was skipped, has no plan.
+  const adplan = isAdplanOutput(ctx.outputs.adplan) ? ctx.outputs.adplan : null;
+  return { facts, model, brand: brandFrom(facts.site?.business), adplan, date: formatDate(new Date(model.generated_at)) };
 }
 
 const need = <T>(ctx: StepContext, step: string): T => {

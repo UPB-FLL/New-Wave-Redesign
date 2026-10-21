@@ -6,11 +6,18 @@ export const config: GroundswellConfig = validateConfig({
   version: 1,
   incrementality: { source: 'test', as_of: '2026', ranks_first: 0.5, ranks_2_to_4: 0.8, ranks_5_plus: 1 },
   team: { hourly_cost: 100, basis: 'test' },
-  effort: { quick: { hours: [2, 2, 2], basis: 'test' } },
+  effort: {
+    quick: { hours: [2, 2, 2], basis: 'test' },
+    search_campaign: { hours: [4, 4, 4], monthly_hours: [1, 1, 1], basis: 'test' },
+    social_campaign: { hours: [3, 3, 3], basis: 'test' },
+    service_page_seo: { hours: [10, 10, 10], basis: 'test' },
+    site_fix: { hours: [2, 2, 2], basis: 'test' },
+  },
   impact: {
     organic_ctr: { source: 'test', as_of: '2026', by_position: [0.4, 0.2, 0.1, 0.05] },
     local_pack_ctr: { source: 'test', as_of: '2026', by_position: [0.2, 0.1, 0.05] },
     seo_ramp: [],
+    seo_target: { positions: [4, 2, 1], basis: 'test' },
   },
   platforms: {
     google_search: {
