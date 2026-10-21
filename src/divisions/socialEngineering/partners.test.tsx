@@ -100,11 +100,17 @@ describe('partner dashboard', () => {
         drive_folder_url: 'https://drive.google.com/drive/folders/F', summary_pdf_url: 'https://drive.google.com/file/d/S/view',
         deck_pdf_url: 'https://example.com/not-drive', audit_pdf_url: null, created_at: '2026-10-21T00:00:00Z', completed_at: '2026-10-21T01:00:00Z',
       },
+      {
+        id: 'a2', business_name: 'Reef Diner', city: 'Miami', website: 'https://reef.example', instagram: null, competitors: [], status: 'review',
+        drive_folder_url: null, summary_pdf_url: null, deck_pdf_url: null, audit_pdf_url: null, created_at: '2026-10-21T00:00:00Z', completed_at: null,
+      },
     ]);
     renderPortal(DIVISION_PARTNER_DASHBOARD_PATH);
     const list = await screen.findByRole('list', { name: 'Your audits' });
     expect(robots()).toBe('noindex, nofollow');
     expect(within(list).getByText('Reports ready')).toBeInTheDocument();
+    // Held before delivery while a person checks the figures; no reason is shown to a partner.
+    expect(within(list).getByText('In review')).toBeInTheDocument();
     expect(within(list).getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual([
       'https://drive.google.com/file/d/S/view',
       'https://drive.google.com/drive/folders/F',

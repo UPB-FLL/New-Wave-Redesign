@@ -11,6 +11,9 @@ import { PermanentStepError, type AuditRow, type StepDefinition } from './types.
  * - failure: retried on a later call up to MAX_ATTEMPTS; then an optional step is
  *   `skipped` (the audit goes on without it) and a required one fails the audit
  *   with a sentence an admin can act on.
+ * - hold: a step whose output carries `hold` (verify.ts, when a check cannot
+ *   vouch for the figures) is `done`, and the audit stops in `review` before
+ *   anything is delivered, until an admin delivers it or runs the checks again.
  */
 
 export const MAX_ATTEMPTS = 3;
@@ -28,7 +31,7 @@ interface ClaimedStep {
 }
 
 export interface WorkerReport {
-  ran: { audit_id: string; step: string; outcome: 'done' | 'retry' | 'skipped' | 'failed'; error?: string }[];
+  ran: { audit_id: string; step: string; outcome: 'done' | 'retry' | 'skipped' | 'failed' | 'held'; error?: string }[];
   finished: string[];
 }
 
@@ -56,14 +59,15 @@ export async function startQueuedAudits(
   return ((data ?? []) as unknown[]).map((v) => (typeof v === 'string' ? v : (v as { start_queued_audits: string }).start_queued_audits));
 }
 
-async function loadOutputs(db: SupabaseClient, auditId: string): Promise<Record<string, unknown>> {
-  const { data, error } = await db
-    .from('marketing_audit_steps')
-    .select('step,output')
-    .eq('audit_id', auditId)
-    .eq('status', 'done');
+/** The outputs of the audit's finished steps, and the names of all its steps in order. */
+async function loadSteps(db: SupabaseClient, auditId: string): Promise<{ outputs: Record<string, unknown>; steps: string[] }> {
+  const { data, error } = await db.from('marketing_audit_steps').select('step,status,output,position').eq('audit_id', auditId);
   if (error) throw new Error(error.message);
-  return Object.fromEntries((data ?? []).map((r: { step: string; output: unknown }) => [r.step, r.output]));
+  const rows = ((data ?? []) as { step: string; status: string; output: unknown; position: number }[]).sort((a, b) => a.position - b.position);
+  return {
+    outputs: Object.fromEntries(rows.filter((r) => r.status === 'done').map((r) => [r.step, r.output])),
+    steps: rows.map((r) => r.step),
+  };
 }
 
 async function failAudit(db: SupabaseClient, auditId: string, sentence: string) {
@@ -71,6 +75,24 @@ async function failAudit(db: SupabaseClient, auditId: string, sentence: string) 
     .from('marketing_audits')
     .update({ status: 'failed', error: sentence, completed_at: new Date().toISOString() })
     .eq('id', auditId);
+}
+
+/** The reason a step's output asks for a person before delivery, or null. */
+export function holdReason(output: unknown): string | null {
+  const hold = (output as { hold?: unknown } | null | undefined)?.hold;
+  return typeof hold === 'string' && hold ? hold : null;
+}
+
+/**
+ * Stops an audit for a person. Before migration 20261024120000 the database
+ * refuses the `review` status; the audit then fails with the reason instead,
+ * so nothing is delivered either way. Any other error retries the step.
+ */
+async function holdAudit(db: SupabaseClient, auditId: string, why: string) {
+  const { error } = await db.from('marketing_audits').update({ status: 'review', error: why }).eq('id', auditId);
+  if (!error) return;
+  if (/check constraint|23514/i.test(`${error.message} ${(error as { code?: string }).code ?? ''}`)) await failAudit(db, auditId, `Needs review: ${why}`);
+  else throw new Error(`Could not hold the audit for review: ${error.message}`);
 }
 
 export async function runWorker(
@@ -102,11 +124,12 @@ export async function runWorker(
     }
 
     try {
-      const outputs = await loadOutputs(db, claimed.audit_id);
+      const { outputs, steps: names } = await loadSteps(db, claimed.audit_id);
       const branding = await loadBranding(db, claimed.audit_id);
       const output = await def.run({
         audit: { ...(auditRow as AuditRow), branding },
         outputs,
+        steps: names,
         deadline: deadline - SAFETY_MS,
         attempt: claimed.attempts,
       });
@@ -114,6 +137,12 @@ export async function runWorker(
         .from('marketing_audit_steps')
         .update({ status: 'done', output: output ?? null, error: null, finished_at: new Date().toISOString() })
         .eq('id', claimed.id);
+      const hold = holdReason(output);
+      if (hold) {
+        await holdAudit(db, claimed.audit_id, hold);
+        report.ran.push({ audit_id: claimed.audit_id, step: claimed.step, outcome: 'held', error: hold });
+        continue;
+      }
       report.ran.push({ audit_id: claimed.audit_id, step: claimed.step, outcome: 'done' });
       if (def === steps[steps.length - 1]) report.finished.push(claimed.audit_id);
     } catch (err) {

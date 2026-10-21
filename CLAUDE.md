@@ -2,6 +2,59 @@
 
 ## Recent Changes
 
+### Groundswell: review, re-interpret, re-run before delivery (2026-10-21)
+
+Owner's choices: re-read the plan's sources, re-run the plan and add a
+reviewer; hold for a person when the passes still disagree; the write-up's
+estimates (job value, close rate, margin) stay fixed across passes; audits
+and benchmarks both (the competitor pages are not re-read).
+
+- **Package** (`packages/groundswell/src/verify.ts`): `planFigures` (what a
+  reader acts on: angle demand, keyword searches and bids, each row's clicks,
+  cost per click and 12-month net, the change ranking, fund / test / skip and
+  the top three as calls), `compareFigures` (within `verification.tolerance`;
+  counts may differ by one; money judged against what is at stake; a figure
+  one pass read and the other could not is a disagreement), `findAgreement`
+  (the latest pass against every earlier one; the first pass is delivered
+  whenever it held up; two later reads that both missed a source never stand
+  in for it), and `refreshAngles` (the plan's angles priced from another
+  Keyword Planner read). Setup file: `verification.max_review_drops` (0.25,
+  New Wave's rule).
+- **Steps** (`api/_lib/groundswell/verify.ts`), for rounds 2 to
+  `verification.max_rounds` (3) after `adcopy` (audits) or `benchmark`:
+  `verify_read_N` (optional) reads Google Maps, Ahrefs, Keyword Planner and
+  Instagram again in parallel, only those the first pass read;
+  `verify_check_N` re-runs the plan and the search-ad model on it and
+  compares. Agreed: one reviewer call (OpenAI) checks every sentence of the
+  write-up and a benchmark's; a fix keeps only the data's numbers, anything
+  else drops the sentence. When a later read is the one that held up, the
+  check's `outputs` carry it with the plan, the ROI model, the ad copy
+  (`refitCopy`) and the benchmark scorecard (`scoreTables`) re-run on it.
+  Delivery builds from the settled check (`verifiedOutputs` in
+  `reportData`). The last round comes from the audit's own step list
+  (`StepContext.steps`), and the worker knows rounds up to 5
+  (`SUPPORTED_ROUNDS`, `ALL_STEPS`). The ad plan now stores its sorted
+  `fixes` so the ranking can be re-run.
+- **Hold**: no agreement after the last round, a headline or verdict the
+  reviewer could not keep, more than `max_review_drops` dropped, or a
+  reviewer that never answered sets `hold`; the engine marks the step done
+  and the audit `review` (it falls back to `failed` with "Needs review: …"
+  before the migration), so nothing is delivered.
+- **Migration** `20261024120000`: `marketing_audits_status_check` gains
+  `'review'`.
+- **Admin and partners**: `/admin/groundswell/audits` shows "Needs review"
+  with each figure that moved (first read against the latest) and what the
+  reviewer changed, plus "Deliver anyway" (the first read, reviewed) and "Run
+  the checks again" (`POST /api/groundswell/run` with `action`, handled by
+  `api/_lib/groundswell/review.ts`); the overview counts them; partners see
+  "In review", never the reason.
+- **Tests**: `packages/groundswell/test/verify.test.ts`,
+  `src/test/api/groundswell-verify.test.ts` (Currents and OpenAI mocked:
+  rounds, holds, the reviewer, delivery, answering a held audit), plus hold
+  cases in `groundswell-engine.test.ts`, a benchmark case in
+  `groundswell-benchmark.test.ts`, and the route, admin, overview and
+  partner screens.
+
 ### Groundswell: white-label reports for partners (2026-10-21)
 
 Owner's choices: full white-label; the client keeps its colours and logo, the

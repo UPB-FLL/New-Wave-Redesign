@@ -307,9 +307,13 @@ export const GROUNDSWELL_CONFIG: GroundswellConfig = validateConfig({
   // ("Misleading and false content"), and the FTC expects any objective claim to be substantiated.
   unsupported_claims: ['best', '#1', 'number one', 'no. 1', 'top-rated', 'top rated', 'guaranteed', 'cheapest', 'world-class'],
 
+  // Review, re-interpret, re-run (src/verify.ts): a later read must agree with an earlier one within the tolerance;
+  // after max_rounds, or when the reviewer drops more than max_review_drops of the write-up, a person decides.
+  // New Wave's rules.
   verification: {
     tolerance: 0.1,
     max_rounds: 3,
+    max_review_drops: 0.25,
   },
 
   // The competitor benchmark (src/benchmark/): the business against its top two competitors.

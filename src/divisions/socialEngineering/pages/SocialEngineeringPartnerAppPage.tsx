@@ -49,6 +49,8 @@ const STATUS: Record<PartnerAudit['status'], { label: string; color: string }> =
   running: { label: 'In progress', color: 'var(--nwse-lure-amber-deep)' },
   done: { label: 'Reports ready', color: '#1f7a3a' },
   failed: { label: 'Didn’t finish; we’ll follow up', color: '#b42318' },
+  // Held before delivery while a person checks the figures.
+  review: { label: 'In review', color: 'var(--nwse-lure-amber-deep)' },
 };
 
 function usePartnerMeta(title: string) {

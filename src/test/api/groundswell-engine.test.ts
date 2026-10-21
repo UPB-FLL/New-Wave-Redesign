@@ -20,7 +20,7 @@ interface StepRow {
   error: string | null;
 }
 
-function fakeDb(stepNames: string[]) {
+function fakeDb(stepNames: string[], { refuse }: { refuse?: (table: string, patch: Record<string, unknown>) => boolean } = {}) {
   const audits = new Map<string, Record<string, unknown>>([[sampleAudit.id, { ...sampleAudit, status: 'running' }]]);
   const steps: StepRow[] = stepNames.map((step, i) => ({
     id: `s${i}`,
@@ -71,6 +71,8 @@ function fakeDb(stepNames: string[]) {
         },
         single: async () => ({ data: rows()[0] ?? null, error: rows()[0] ? null : { message: 'not found' } }),
         then: (resolve: (v: unknown) => void) => {
+          // A CHECK constraint the database does not have yet (a status before its migration).
+          if (patch && refuse?.(table, patch)) return resolve({ data: null, error: { message: 'new row violates check constraint' } });
           if (patch) rows().forEach((r) => Object.assign(r, patch));
           resolve({ data: rows(), error: null });
         },
@@ -90,6 +92,17 @@ const def = (name: string, run: StepDefinition['run'], optional = false): StepDe
 });
 
 const plenty = () => Date.now() + 10 * 60_000;
+
+/** A query builder whose updates fail with a connection error; reads still work. */
+function brokenUpdate<T extends object>(chain: T): T {
+  const c = chain as unknown as Record<string, unknown>;
+  return new Proxy(c, {
+    get(target, key) {
+      if (key !== 'update') return target[key as string];
+      return () => ({ eq: () => ({ then: (resolve: (v: unknown) => void) => resolve({ data: null, error: { message: 'connection reset' } }) }) });
+    },
+  }) as unknown as T;
+}
 
 describe('startQueuedAudits', () => {
   it('passes the step names in order and returns the ids it started', async () => {
@@ -131,6 +144,42 @@ describe('runWorker', () => {
     await runWorker(db, steps, { deadline: plenty() });
     expect(rows.map((r) => r.status)).toEqual(['failed', 'pending']);
     expect(audits.get(sampleAudit.id)).toMatchObject({ status: 'failed', error: 'site failed: No website.' });
+  });
+
+  it('hands each step the names of all the audit\'s steps, in order', async () => {
+    const seen: (string[] | undefined)[] = [];
+    const { db } = fakeDb(['one', 'two']);
+    await runWorker(db, [def('one', async (ctx) => seen.push(ctx.steps)), def('two', async (ctx) => seen.push(ctx.steps))], { deadline: plenty() });
+    expect(seen).toEqual([['one', 'two'], ['one', 'two']]);
+  });
+
+  it('holds the audit for a person when a step asks, and runs nothing after it', async () => {
+    let after = false;
+    const steps = [def('check', async () => ({ status: 'held', hold: 'The figures moved.' })), def('deliver', async () => (after = true))];
+    const { db, steps: rows, audits } = fakeDb(['check', 'deliver']);
+    const report = await runWorker(db, steps, { deadline: plenty() });
+    expect(rows.map((r) => r.status)).toEqual(['done', 'pending']);
+    expect(rows[0].output).toEqual({ status: 'held', hold: 'The figures moved.' });
+    expect(audits.get(sampleAudit.id)).toMatchObject({ status: 'review', error: 'The figures moved.' });
+    expect(report.ran).toEqual([{ audit_id: sampleAudit.id, step: 'check', outcome: 'held', error: 'The figures moved.' }]);
+    expect(after).toBe(false);
+  });
+
+  it('fails a held audit with the reason before the review status exists, so nothing is delivered', async () => {
+    const steps = [def('check', async () => ({ hold: 'The figures moved.' })), def('deliver', async () => 'never')];
+    const { db, audits } = fakeDb(['check', 'deliver'], { refuse: (table, patch) => table === 'marketing_audits' && patch.status === 'review' });
+    await runWorker(db, steps, { deadline: plenty() });
+    expect(audits.get(sampleAudit.id)).toMatchObject({ status: 'failed', error: 'Needs review: The figures moved.' });
+  });
+
+  it('retries the step, rather than failing the audit, when holding it fails for another reason', async () => {
+    const steps = [def('check', async () => ({ hold: 'The figures moved.' })), def('deliver', async () => 'never')];
+    const { db, steps: rows, audits } = fakeDb(['check', 'deliver']);
+    const flaky = { ...db, from: (t: string) => (t === 'marketing_audits' ? brokenUpdate(db.from(t)) : db.from(t)) } as unknown as typeof db;
+    const report = await runWorker(flaky, steps, { deadline: plenty() });
+    expect(report.ran[0]).toMatchObject({ step: 'check', outcome: 'retry', error: 'Could not hold the audit for review: connection reset' });
+    expect(rows[0].status).toBe('pending');
+    expect(audits.get(sampleAudit.id)).toMatchObject({ status: 'running' });
   });
 
   it('does not start a step without enough time left', async () => {
