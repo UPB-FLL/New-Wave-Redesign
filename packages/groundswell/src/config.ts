@@ -1,0 +1,159 @@
+/**
+ * The shape of Groundswell's setup file (../groundswell.config.ts).
+ *
+ * Everything an audit depends on that is not data about the business lives
+ * in the setup file: which platforms exist and their published benchmarks,
+ * which industries audit and advertise where, how the low / medium / high
+ * scenarios are built, how rows are sorted into tiers, and how close the
+ * second pass must come to the first before an audit counts as accurate.
+ * Code reads these values; it never hard-codes them.
+ *
+ * This module imports nothing outside the package, so Groundswell can run
+ * outside New Wave as-is.
+ */
+
+/** The three scenarios every number is modeled in. */
+export const SCENARIOS = ['low', 'medium', 'high'] as const;
+export type Scenario = (typeof SCENARIOS)[number];
+/** One value per scenario, in SCENARIOS order. */
+export type Triple = readonly [number, number, number];
+
+/** A published figure, with where it came from and when. */
+export interface Sourced {
+  source: string;
+  url?: string;
+  /** The edition or date the figure is from, e.g. "2025". */
+  as_of: string;
+}
+
+export type AdPlatformId = 'google_search' | 'meta' | 'reddit' | 'tiktok' | 'linkedin';
+
+/**
+ * How a platform buys traffic. `search` platforms are sized by search demand
+ * (people already looking); `social` platforms are sized by a test budget,
+ * since nobody types the angle into them.
+ */
+export type BuyingModel = 'search' | 'social';
+
+export interface PlatformBenchmarks extends Sourced {
+  /** Cost per click in USD: [low, medium, high] scenario values (the low scenario pays the most). */
+  cpc: Triple;
+  /** Click-through rate, 0-1. Search platforms only use it to size clicks. */
+  ctr: Triple;
+  /** Share of clicks that become a lead or a visit intent (call, directions, form), 0-1. */
+  cvr: Triple;
+}
+
+/** Character limits for one ad format, from the platform's own help pages. */
+export interface TemplateSpec extends Sourced {
+  format: string;
+  fields: Record<string, { max_chars: number; min_count?: number; max_count?: number; note?: string }>;
+}
+
+export interface PlatformConfig {
+  id: AdPlatformId;
+  label: string;
+  buying: BuyingModel;
+  benchmarks: PlatformBenchmarks;
+  template: TemplateSpec;
+  /** Social only: the smallest monthly test worth running (USD), and the share of the angle's search spend to match. */
+  test_budget?: { min_monthly: number; share_of_search_spend: number; basis: string };
+  /** Categories this platform will not advertise, or only with restrictions (e.g. alcohol). */
+  restricted_categories?: Record<string, string>;
+}
+
+/** Where to look and where to advertise for one kind of business. */
+export interface IndustryProfile {
+  id: string;
+  label: string;
+  /** Words that suggest this profile (the planner agent may still pick another, within the allowlist). */
+  match: string[];
+  /** Public platforms the audit checks, in priority order (Google is always checked). */
+  audit_platforms: string[];
+  /** Ad platforms allowed for this industry. */
+  ad_platforms: AdPlatformId[];
+  /** Restricted categories this industry falls under (e.g. "alcohol"). */
+  restricted?: string[];
+  /** Benchmark industry to prefer when a platform publishes per-industry figures. */
+  benchmark_industry?: string;
+}
+
+export interface TierRules {
+  /** Cost per click (USD, medium scenario): below the first is "low", at or above the second is "high". */
+  cpc: readonly [number, number];
+  /** Estimated clicks a month (medium scenario): below the first is "low", at or above the second is "high". */
+  clicks: readonly [number, number];
+  /** Return on ad spend as net ÷ spend (medium scenario): below 0 loses money; at or above this is "strong". */
+  roi_strong: number;
+}
+
+export interface SearchScenarioRules {
+  /** Share of the searches a new, modest account wins. */
+  impression_share: Triple;
+  /** Multipliers on the platform's benchmark CTR and CVR (new accounts start below average). */
+  ctr_factor: Triple;
+  cvr_factor: Triple;
+  /** Months before full performance: the first months run at these fractions. */
+  ramp: number[];
+}
+
+export interface VerificationRules {
+  /** How far a re-run figure may move from the first pass and still agree (0-1). */
+  tolerance: number;
+  /** Most rounds of review → re-interpret → re-run before an audit is flagged instead of delivered. */
+  max_rounds: number;
+}
+
+export interface GroundswellConfig {
+  version: number;
+  platforms: Record<AdPlatformId, PlatformConfig>;
+  industries: IndustryProfile[];
+  search: SearchScenarioRules;
+  tiers: TierRules;
+  /** An angle with fewer monthly searches than this is not worth a search campaign of its own. */
+  min_angle_searches: number;
+  /** Words an ad may not claim without third-party proof shown with it. */
+  unsupported_claims: string[];
+  verification: VerificationRules;
+}
+
+export function scenarioIndex(s: Scenario): 0 | 1 | 2 {
+  return SCENARIOS.indexOf(s) as 0 | 1 | 2;
+}
+
+/** Throws with every problem at once, so a bad setup file fails before any audit runs. */
+export function validateConfig(c: GroundswellConfig): GroundswellConfig {
+  const problems: string[] = [];
+  const triple = (path: string, t: readonly number[], { unit = false, ascending }: { unit?: boolean; ascending?: boolean } = {}) => {
+    if (t.length !== 3 || t.some((x) => !Number.isFinite(x) || x < 0)) problems.push(`${path} must be three non-negative numbers`);
+    else if (unit && t.some((x) => x > 1)) problems.push(`${path} must be between 0 and 1`);
+    else if (ascending === true && !(t[0] <= t[1] && t[1] <= t[2])) problems.push(`${path} must rise from low to high`);
+    else if (ascending === false && !(t[0] >= t[1] && t[1] >= t[2])) problems.push(`${path} must fall from low to high`);
+  };
+  for (const [id, p] of Object.entries(c.platforms)) {
+    if (p.id !== id) problems.push(`platforms.${id}.id must be "${id}"`);
+    if (!p.benchmarks.source || !p.benchmarks.as_of) problems.push(`platforms.${id}.benchmarks needs a source and as_of`);
+    // The low scenario pays the most per click and converts the least.
+    triple(`platforms.${id}.benchmarks.cpc`, p.benchmarks.cpc, { ascending: false });
+    triple(`platforms.${id}.benchmarks.ctr`, p.benchmarks.ctr, { unit: true, ascending: true });
+    triple(`platforms.${id}.benchmarks.cvr`, p.benchmarks.cvr, { unit: true, ascending: true });
+    if (p.buying === 'social' && !p.test_budget) problems.push(`platforms.${id} is social and needs a test_budget`);
+    if (!p.template.source || Object.keys(p.template.fields).length === 0) problems.push(`platforms.${id}.template needs a source and fields`);
+  }
+  const ids = new Set<string>();
+  for (const ind of c.industries) {
+    if (ids.has(ind.id)) problems.push(`industries: duplicate id "${ind.id}"`);
+    ids.add(ind.id);
+    for (const p of ind.ad_platforms) if (!c.platforms[p]) problems.push(`industries.${ind.id} names unknown ad platform "${p}"`);
+  }
+  if (!ids.has('general')) problems.push('industries needs a "general" profile to fall back on');
+  triple('search.impression_share', c.search.impression_share, { unit: true, ascending: true });
+  triple('search.ctr_factor', c.search.ctr_factor, { ascending: true });
+  triple('search.cvr_factor', c.search.cvr_factor, { ascending: true });
+  if (!(c.tiers.cpc[0] < c.tiers.cpc[1])) problems.push('tiers.cpc must be [lower, upper]');
+  if (!(c.tiers.clicks[0] < c.tiers.clicks[1])) problems.push('tiers.clicks must be [lower, upper]');
+  if (!(c.verification.tolerance > 0 && c.verification.tolerance < 1)) problems.push('verification.tolerance must be between 0 and 1');
+  if (!(c.verification.max_rounds >= 2)) problems.push('verification.max_rounds must be at least 2 (a first pass and a re-run)');
+  if (problems.length) throw new Error(`Groundswell setup file is invalid:\n- ${problems.join('\n- ')}`);
+  return c;
+}
