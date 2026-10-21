@@ -26,6 +26,7 @@ testing and are superseded by this document (see "History").
 | Marketing | `/social-engineering/marketing` |
 | Integration | `/social-engineering/integration` |
 | Digital oversight | `/social-engineering/digital-oversight` |
+| Croissance (the audit, run by the Groundswell engine) | `/social-engineering/croissance` |
 | Customers | `/social-engineering/customers` |
 | Contact us (clients, questions, partnerships) | `/social-engineering/contact-us` |
 | Book a discovery call (new projects) | `/social-engineering/contact` |
@@ -137,11 +138,31 @@ division is a New Wave IT division, not a separate company.
     currents (`DarkCurrents` in `sections.tsx`); the closing CTA band keeps its
     own, stronger ones.
 
+## Croissance (`/social-engineering/croissance`)
+
+How the division's audit works, for prospects. **Croissance** (French for
+growth) is the audit's public name; internally it is still the marketing
+audit. **Groundswell** is the
+engine's public name and **Currents** its connectors: Search (Keyword Planner
+and organic search data), Maps (Google Maps and the Business Profile), Social
+(public Instagram), Site (the website, PageSpeed Insights, the Wayback
+Machine), Ads (Google Ads Transparency Center and site tags), and Delivery
+(the Google Drive folder). The page names no vendors and nothing internal
+(no table, project, or tool names). Copy is in `content/croissance.ts`
+and must match `.claude/skills/marketing-audit` (public data only, sources
+and dates on every number, three reports in the client's brand, Drive links).
+The example board uses the skill's made-up sample business and
+`roi_model.py`'s output for it; no percentages (rates are left out). Linked
+from the header (after Services on desktop; beside Overview in the phone
+sheet) and the footer's division column. On a 320x568 phone the sheet's top
+row now wraps to two lines: the discovery-call button still fits the first
+screen, and the endorsement at the foot needs a short scroll.
+
 ## Customers and Contact us
 
 Two non-service pages, linked from the header (desktop nav and the phone
-sheet: Overview · Services · Customers · Contact us · **Book a discovery
-call**) and from the footer's "NW Social Engineering" column.
+sheet: Overview · Services · Croissance · Customers · Contact us · **Book a
+discovery call**) and from the footer's "NW Social Engineering" column.
 
 ### Customers (`/social-engineering/customers`)
 
@@ -243,13 +264,13 @@ layouts; every small-screen rule is either a `max-width` media query in
   header rows, logo (160px), and menu toggle are sized in px, not rem, so the
   header still matches the token when the reader enlarges text and the toggle
   stays on screen.
-  The sheet opens with one row of page links (Overview, Customers, Contact us;
-  it wraps under larger text), then the six services, then the amber
-  discovery-call button. Sharing Overview's row keeps the sheet as tall as it
-  was before Customers and Contact us were added, so on a 320x568 phone the
-  button and the endorsement at the foot both fit on the first screen. The
+  The sheet opens with one wrapping row of page links (Overview, Croissance,
+  Customers, Contact us), then the six services, then the amber
+  discovery-call button. On a 320x568 phone the row takes two lines, so the
+  button still fits the first screen and the endorsement at the foot needs a
+  short scroll (before Croissance was added, both fit). The
   desktop link row replaces the menu at `(min-width: 64em)`: 1024px at the
-  default text size (the `lg` point, with at least 200px between the logo and
+  default text size (the `lg` point, with about 110px between the logo and
   the first link), and later when the reader enlarges text, so the row and its
   "Book a discovery call" button never run past the fixed header's edge.
   `DESKTOP_NAV_QUERY` in `DivisionHeader.tsx` and its `[@media(min-width:64em)]:`

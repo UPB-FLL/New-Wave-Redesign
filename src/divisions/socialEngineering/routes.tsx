@@ -3,6 +3,7 @@ import { Component, Suspense, lazy, type ReactNode } from 'react';
 // Division pages load on demand so New Wave IT pages ship no division code.
 const HubPage = lazy(() => import('./pages/SocialEngineeringHubPage'));
 const ServicePage = lazy(() => import('./pages/SocialEngineeringServicePage'));
+const CroissancePage = lazy(() => import('./pages/SocialEngineeringCroissancePage'));
 const CustomersPage = lazy(() => import('./pages/SocialEngineeringCustomersPage'));
 const ContactUsPage = lazy(() => import('./pages/SocialEngineeringContactUsPage'));
 const ContactPage = lazy(() => import('./pages/SocialEngineeringContactPage'));
@@ -54,6 +55,14 @@ export function SocialEngineeringServiceRoute({ slug }: { slug: string }) {
   return (
     <Deferred>
       <ServicePage slug={slug} />
+    </Deferred>
+  );
+}
+
+export function SocialEngineeringCroissanceRoute() {
+  return (
+    <Deferred>
+      <CroissancePage />
     </Deferred>
   );
 }
