@@ -13,6 +13,7 @@ import {
   DIVISION_PARTNERS_PATH,
   DIVISION_NAME,
   DIVISION_ORGANIZATION_ID,
+  DIVISION_SERVICE_AREA,
   DIVISION_SHORT_NAME,
   DIVISION_TAGLINE,
   PARENT_NAME,
@@ -30,12 +31,8 @@ type JsonLdNode = Record<string, unknown>;
 // Breadcrumbs use the guide's running-copy name; the full name leads every page.
 const HUB_CRUMB = { name: DIVISION_SHORT_NAME, path: DIVISION_BASE_PATH };
 
-const AREA_SERVED: JsonLdNode[] = [
-  { '@type': 'City', name: 'Fort Lauderdale' },
-  { '@type': 'City', name: 'Miami' },
-  { '@type': 'City', name: 'Boca Raton' },
-  { '@type': 'AdministrativeArea', name: 'South Florida' },
-];
+// The division works remotely with small businesses anywhere in the country.
+const AREA_SERVED: JsonLdNode[] = [{ '@type': 'Country', name: DIVISION_SERVICE_AREA }];
 
 /** New Wave IT, by the @id index.html declares: every division reference to the parent company. */
 function parentOrganizationRef(): JsonLdNode {
@@ -53,16 +50,20 @@ export function divisionOrganizationNode(): JsonLdNode {
     image: absoluteUrl(DIVISION_ASSETS.ogImage),
     slogan: DIVISION_TAGLINE,
     description:
-      'The social media, brand development, website design, and marketing division of New Wave IT, serving Fort Lauderdale and South Florida.',
+      'The growth division of New Wave IT: data, integrations, and smart advertising for small businesses across the United States.',
     parentOrganization: parentOrganizationRef(),
     areaServed: AREA_SERVED,
     knowsAbout: [
+      'Growth marketing for small businesses',
+      'Marketing analytics and attribution',
+      'Conversion tracking',
+      'Marketing technology integration',
+      'Paid search advertising',
+      'Paid social advertising',
+      'Email and SMS marketing',
       'Social media management',
       'Brand development',
       'Website design',
-      'Digital marketing',
-      'Marketing technology integration',
-      'Digital presence management',
       'Local SEO',
     ],
   };

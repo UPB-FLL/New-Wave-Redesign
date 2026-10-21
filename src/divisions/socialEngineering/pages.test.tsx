@@ -188,6 +188,103 @@ describe('division positioning', () => {
   it('keeps the web app manifest on-message', () => {
     expect(readFileSync(path.resolve(__dirname, '../../../public/brand/social-engineering/site.webmanifest'), 'utf8')).not.toMatch(SECURITY_WORDING);
   });
+
+  // The division is a national, remote-first growth team for small businesses
+  // (2026-10-21). No page, title, description, or keyword set may position it
+  // as a home-market agency again. The Customers page's facts (where each
+  // business is) and the Croissance example's audit data are facts about
+  // other businesses, so they are checked for the positioning copy only.
+  const LOCAL_POSITIONING = /Fort Lauderdale|South Florida|Broward|Palm Beach|Miami|Boca Raton|South FL\b/i;
+  const positioningPages: [string, React.ReactElement][] = [
+    ['hub', <SocialEngineeringHubPage />],
+    ...divisionServices.map((service): [string, React.ReactElement] => [service.slug, <SocialEngineeringServicePage slug={service.slug} />]),
+    ['contact-us', <SocialEngineeringContactUsPage />],
+    ['contact', <SocialEngineeringContactPage />],
+  ];
+
+  it.each(positioningPages)('%s positions the division nationally, never as a local agency', (_name, page) => {
+    stubTokenFetch();
+    renderAt(page);
+    const main = screen.getByRole('main');
+    // The footer and the shared contact form carry the company's postal
+    // address, which is a fact, so only the page's own copy is checked.
+    const copy = [...main.querySelectorAll(':scope > *:not([data-contact-section])')].map((element) => element.textContent ?? '').join(' ');
+    expect(copy.length).toBeGreaterThan(200);
+    expect(copy).not.toMatch(LOCAL_POSITIONING);
+    expect(document.title).not.toMatch(LOCAL_POSITIONING);
+    expect(document.head.innerHTML).not.toMatch(LOCAL_POSITIONING);
+  });
+
+  it('describes the division as national in its copy, metadata, and structured data', () => {
+    // The Croissance page's worked example (the sample board and the ad plan's
+    // footnote) names the real places its data came from, so only the audit
+    // page's own positioning fields are checked here.
+    const auditPositioning = [auditContent.metaTitle, auditContent.metaDescription, auditContent.keywords, auditContent.headline, auditContent.summary];
+    const copy = JSON.stringify([hubContent, divisionServices, contactContent, contactUsContent, customersContent, auditPositioning]);
+    expect(copy).not.toMatch(LOCAL_POSITIONING);
+    expect(hubContent.summary).toMatch(/across the United States/);
+    expect(hubContent.industries.note).toMatch(/Remote-first/);
+    renderAt(<SocialEngineeringHubPage />);
+    const graph = JSON.parse(jsonLdBlocks()[0].textContent ?? '')['@graph'];
+    const organization = graph.find((node: { '@type': string }) => node['@type'] === 'Organization');
+    expect(organization.areaServed).toEqual([{ '@type': 'Country', name: 'United States' }]);
+    expect(organization.description).toMatch(/small businesses across the United States/);
+  });
+});
+
+describe('the growth system', () => {
+  it('names the three pillars on the hub, in order, with their icons, the loop, and the 90-day plan', () => {
+    const { container } = renderAt(<SocialEngineeringHubPage />);
+    const pillars = screen.getByRole('region', { name: 'Data, integrations, and smart advertising, working as one system' });
+    expect(pillars).toHaveAttribute('id', 'pillars');
+    const cards = within(pillars).getAllByRole('heading', { level: 3 });
+    expect(cards.map((card) => card.textContent)).toEqual(['Data', 'Integrations', 'Smart advertising']);
+    hubContent.pillars.forEach((pillar) => {
+      expect(pillars.querySelector(`svg[data-icon="${pillar.icon}"]`), pillar.icon).not.toBeNull();
+      pillar.items.forEach((item) => expect(pillars).toHaveTextContent(item));
+    });
+    // The hero's ghost button opens on the pillars, and its facts line is a line, not a list.
+    const hero = screen.getByRole('heading', { level: 1 }).closest('section')!;
+    expect(within(hero).getByRole('link', { name: 'How it works' })).toHaveAttribute('href', '#pillars');
+    expect(hero.querySelector('[data-role="hero-facts"]')?.tagName).toBe('P');
+    // The growth loop is decorative, drawn from the icon set, and explained beside it.
+    const loop = container.querySelector('svg[data-role="growth-loop"]')!;
+    expect(loop).toHaveAttribute('aria-hidden', 'true');
+    expect(loop.querySelectorAll('[data-loop-node]')).toHaveLength(4);
+    expect(loop.querySelector('text')).toBeNull();
+    expect(loop.closest('figure')).toHaveTextContent('The growth loop');
+    // The 90-day plan and the rhythm after it.
+    expect(hubContent.roadmap.map((phase) => phase.phase)).toEqual(['Days 1–30', 'Days 31–60', 'Days 61–90 and on']);
+    expect(container.querySelector('[data-role="cadence"]')).toHaveTextContent('Weekly');
+  });
+
+  it.each(divisionServices.map((service) => [service.slug, service] as const))('%s shows its facts at a glance, its outcomes, and where it fits', (_slug, service) => {
+    const { container } = renderAt(<SocialEngineeringServicePage slug={service.slug} />);
+    const glance = container.querySelector('[data-role="glance"]')!;
+    expect(glance.tagName).toBe('DL');
+    expect(within(glance as HTMLElement).getAllByRole('term').map((term) => term.textContent)).toEqual(['Best for', 'Engagement', 'Measured by', 'Works with']);
+    service.glance.forEach((item) => expect(glance).toHaveTextContent(item.value));
+    // Directly under the hero, before anything else.
+    expect(container.querySelector('main > section:nth-of-type(2) [data-role="glance"]')).not.toBeNull();
+    const outcomes = container.querySelector('[data-role="outcomes"]')!;
+    expect(within(outcomes as HTMLElement).getAllByRole('listitem')).toHaveLength(3);
+    service.outcomes.forEach((outcome) => expect(outcomes).toHaveTextContent(outcome));
+    const strip = container.querySelector('[data-role="pillar-strip"]')!;
+    expect(strip).toHaveAttribute('data-active', service.pillar);
+    const current = strip.querySelector('[aria-current="true"]')!;
+    expect(current).toHaveTextContent(hubContent.pillars.find((pillar) => pillar.key === service.pillar)!.title);
+    expect(strip.querySelectorAll('[aria-current="true"]')).toHaveLength(1);
+  });
+
+  it('gives every service a pillar, four glance facts, and three outcomes, with no invented numbers', () => {
+    divisionServices.forEach((service) => {
+      expect(['data', 'integrations', 'advertising']).toContain(service.pillar);
+      expect(service.glance).toHaveLength(4);
+      expect(service.outcomes).toHaveLength(3);
+      [...service.glance.map((item) => item.value), ...service.outcomes].forEach((text) => expect(text).not.toMatch(/\d/));
+    });
+    expect(new Set(divisionServices.map((service) => service.pillar)).size).toBe(3);
+  });
 });
 
 describe('division icons', () => {
@@ -540,7 +637,7 @@ describe('the two contact pages', () => {
     expect(DIVISION_CONTACT_PATH).toBe('/social-engineering/contact');
     expect(contactContent.metaTitle).toBe('Book a discovery call | New Wave: Social Engineering');
     expect(contactContent.metaDescription).toBe(
-      'Book a discovery call with New Wave: Social Engineering, the social media, brand, web, and marketing division of New Wave IT in Fort Lauderdale.',
+      'Book a discovery call with New Wave: Social Engineering, the growth division of New Wave IT, about growing your sales with data, integrations, and ads.',
     );
     expect(contactContent.headline).toBe('Book a discovery call');
     renderAt(<SocialEngineeringContactPage />);

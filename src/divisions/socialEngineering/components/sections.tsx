@@ -4,8 +4,8 @@ import { NwseIcon } from '../icons/NwseIcon';
 import type { DivisionIconName } from '../icons/iconData';
 import type { ScenePageKey } from '../motion/scenes';
 import { SceneSlot } from '../motion/scenes/SceneSlot';
-import { DIVISION_CONTACT_PATH, DIVISION_PRIMARY_CTA } from '../site';
-import type { DivisionFaq, DivisionPageSeo, DivisionPoint, DivisionRoadmapPhase } from '../types';
+import { DIVISION_BASE_PATH, DIVISION_CONTACT_PATH, DIVISION_PRIMARY_CTA } from '../site';
+import type { DivisionFaq, DivisionGlance, DivisionPageSeo, DivisionPillar, DivisionPillarKey, DivisionPoint, DivisionRoadmapPhase } from '../types';
 import { DivisionCurrents } from './DivisionCurrents';
 
 export function Breadcrumbs({ trail }: { trail: DivisionPageSeo['breadcrumbs'] }) {
@@ -164,12 +164,20 @@ const HERO_SCENE_COLUMNS: Record<HeroSceneSize, string> = {
   compact: '[@media(min-width:64em)]:grid-cols-[minmax(0,1fr)_minmax(0,16rem)] [@media(min-width:80em)]:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]',
 };
 
+/**
+ * The hero's ground: Deep Current, with a soft Lure Amber glow rising from
+ * the top right corner (behind the scene), so the dark band reads as lit
+ * rather than flat. The currents (DarkCurrents) paint over it unchanged.
+ */
+const HERO_GROUND = `radial-gradient(48rem 26rem at 100% 0%, color-mix(in srgb, var(--nwse-lure-amber) 14%, transparent), transparent 70%), var(--nw-deep-current)`;
+
 export function DivisionHero({
   kicker,
   headline,
   summary,
   breadcrumbs,
   actions,
+  facts,
   kickerInHeading = false,
   scene,
   sceneOnPhones = 'show',
@@ -180,6 +188,8 @@ export function DivisionHero({
   summary: string;
   breadcrumbs?: DivisionPageSeo['breadcrumbs'];
   actions?: ReactNode;
+  /** Short facts under the summary ("Nationwide, remote-first"), as one dotted line, never a list. */
+  facts?: readonly string[];
   /** Render the kicker as the first line of the H1 (keeps a brand-line headline topical). */
   kickerInHeading?: boolean;
   /** The page's line-art scene (motion/scenes): beside the text from 64em, after the actions below it. */
@@ -191,6 +201,20 @@ export function DivisionHero({
 }) {
   // Balanced below lg, so a tablet hero never ends on a one-word line.
   const headingClass = 'nwse-type-display-1 mt-3 max-w-4xl text-[var(--nw-cloud-white)] max-lg:text-balance sm:mt-4';
+  // Each fact carries its own trailing separator, so a wrapped line ends on a
+  // dot rather than starting with one.
+  const factsLine = facts?.length ? (
+    <p className="nwse-type-label mt-5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[var(--nw-mist-gray)] sm:mt-6" data-role="hero-facts">
+      {facts.map((fact, index) => (
+        <span key={fact} className="flex items-center gap-x-3">
+          {fact}
+          {index < facts.length - 1 ? (
+            <span aria-hidden="true" className="h-1 w-1 rounded-full" style={{ background: 'var(--nwse-lure-amber)' }} />
+          ) : null}
+        </span>
+      ))}
+    </p>
+  ) : null;
   const heading = kickerInHeading ? (
     <h1>
       <span className="nwse-type-kicker nwse-kicker-on-dark block max-sm:text-balance">{kicker}</span>
@@ -216,7 +240,7 @@ export function DivisionHero({
       </div>
     ) : null;
   return (
-    <section className="nwse-dark relative overflow-hidden" style={{ background: 'var(--nw-deep-current)' }}>
+    <section className="nwse-dark relative overflow-hidden" style={{ background: HERO_GROUND }}>
       <DarkCurrents />
       {/* Landscape phones (below lg, at most 500px tall) keep the phone spacing
           (here, in Breadcrumbs, and around the summary and actions). */}
@@ -229,6 +253,7 @@ export function DivisionHero({
             <div className="[@media(min-width:64em)]:col-start-1 [@media(min-width:64em)]:row-start-1">
               {heading}
               {summaryText}
+              {factsLine}
             </div>
             <div className="[@media(min-width:48em)]:flex [@media(min-width:48em)]:max-w-[44rem] [@media(min-width:48em)]:items-start [@media(min-width:48em)]:gap-8 [@media(min-width:64em)]:contents">
               {actionRow(true)}
@@ -239,6 +264,7 @@ export function DivisionHero({
           <>
             {heading}
             {summaryText}
+            {factsLine}
             {actionRow(false)}
           </>
         )}
@@ -272,7 +298,8 @@ export function SectionIntro({
   return (
     <div className={align === 'center' ? 'mx-auto max-w-3xl text-center' : 'max-w-3xl'}>
       <p className="nwse-type-kicker nwse-kicker">{kicker}</p>
-      <h2 id={id} className="nwse-type-display-2 mt-2 text-[var(--nw-current-navy)] sm:mt-3">
+      {/* Balanced, so a two-line heading never strands its last word. */}
+      <h2 id={id} className="nwse-type-display-2 mt-2 text-balance text-[var(--nw-current-navy)] sm:mt-3">
         {title}
       </h2>
       {description ? <p className="nwse-type-body mt-3 text-[var(--nw-slate)] sm:mt-4">{description}</p> : null}
@@ -305,8 +332,12 @@ export function PointGrid({
     </li>
   ));
   if (!withScene) {
+    // Five cards in three columns: the last one takes the row's remaining
+    // two cells from lg, so the grid never ends on an empty cell.
     return (
-      <ul className={`nwse-hairlines mt-6 grid grid-cols-1 gap-0 sm:mt-8 md:gap-4 md:grid-cols-2 lg:mt-10 ${columns === 3 ? 'lg:grid-cols-3' : ''} ${ODD_ORPHAN_LI}`}>
+      <ul
+        className={`nwse-hairlines mt-6 grid grid-cols-1 gap-0 sm:mt-8 md:gap-4 md:grid-cols-2 lg:mt-10 ${columns === 3 ? 'lg:grid-cols-3 lg:[&>li:last-child:nth-child(3n+2)]:col-span-2' : ''} ${ODD_ORPHAN_LI}`}
+      >
         {items}
       </ul>
     );
@@ -519,6 +550,13 @@ export function CtaBand({ heading, body }: { heading: string; body: string }) {
   );
 }
 
+// A band's vertical rhythm: the page's regular beat, or the compact one for a
+// strip that sits directly under a hero (the service pages' "At a glance").
+const BAND_PADDING = {
+  regular: 'py-10 sm:py-14 lg:py-20',
+  compact: 'py-6 sm:py-8 lg:py-10',
+} as const;
+
 /**
  * A light section: Cloud White (`light`) or Pure White (`white`), with the
  * division's currents faintly behind it (.nwse-band in division.css; mirrored
@@ -527,11 +565,13 @@ export function CtaBand({ heading, body }: { heading: string; body: string }) {
 export function Band({
   children,
   tone = 'light',
+  size = 'regular',
   id,
   labelledBy,
 }: {
   children: ReactNode;
   tone?: 'light' | 'white';
+  size?: keyof typeof BAND_PADDING;
   id?: string;
   labelledBy?: string;
 }) {
@@ -540,10 +580,156 @@ export function Band({
       id={id}
       aria-labelledby={labelledBy}
       data-tone={tone}
-      className="nwse-band relative py-10 sm:py-14 lg:py-20"
+      className={`nwse-band relative ${BAND_PADDING[size]}`}
       style={{ background: tone === 'white' ? 'var(--nw-pure-white)' : 'var(--nw-cloud-white)' }}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">{children}</div>
     </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// The growth system: pillars, glance strips, outcomes, chips, cadence.
+// ---------------------------------------------------------------------------
+
+/**
+ * The hub's three pillars: one card each, with a 56px icon tile, the promise,
+ * and the work inside it as a check list. One column on phones, three from lg;
+ * on tablets the third card spans the row rather than standing alone.
+ */
+export function PillarCards({ pillars }: { pillars: readonly DivisionPillar[] }) {
+  return (
+    <ol className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 sm:gap-4 md:grid-cols-2 lg:mt-10 lg:grid-cols-3 md:max-lg:[&>li:last-child:nth-child(odd)]:col-span-2" data-role="pillars">
+      {pillars.map((pillar, index) => (
+        <li key={pillar.key} id={`pillar-${pillar.key}`} className="nwse-card relative flex flex-col overflow-hidden p-5 sm:p-6 lg:p-7">
+          <span className="absolute inset-x-0 top-0 h-1" style={{ background: 'var(--nwse-lure-amber)' }} aria-hidden="true" />
+          <div className="flex items-center justify-between gap-4">
+            <span className="nwse-icon h-14 w-14 shrink-0">
+              <NwseIcon name={pillar.icon} size={28} />
+            </span>
+            <span className="nwse-type-label nwse-label">{String(index + 1).padStart(2, '0')}</span>
+          </div>
+          <h3 className="nwse-type-title-1 mt-5 text-[var(--nw-current-navy)]">{pillar.title}</h3>
+          <p className="nwse-type-body mt-2 text-[var(--nw-slate)]">{pillar.summary}</p>
+          <div className="mt-4 border-t pt-4" style={{ borderColor: 'var(--nw-mist-gray)' }}>
+            <CheckList items={pillar.items} />
+          </div>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+/**
+ * A service page's "At a glance": four label/value pairs in one row from lg
+ * (two by two on tablets, stacked on phones), each with a hairline to its left
+ * from the second column on.
+ */
+export function GlanceStrip({ items, labelledBy }: { items: readonly DivisionGlance[]; labelledBy: string }) {
+  return (
+    <dl
+      aria-labelledby={labelledBy}
+      data-role="glance"
+      className="nwse-card grid grid-cols-1 divide-y divide-[color:var(--nw-mist-gray)] sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4"
+    >
+      {items.map((item, index) => (
+        <div
+          key={item.label}
+          className={`flex flex-col gap-1.5 px-5 py-4 sm:py-5 lg:px-6 ${index % 2 === 1 ? 'sm:border-l' : ''} ${index >= 2 ? 'sm:border-t lg:border-t-0' : ''} ${index > 0 ? 'lg:border-l' : ''}`}
+          style={{ borderColor: 'var(--nw-mist-gray)' }}
+        >
+          <dt className="nwse-type-label nwse-label">{item.label}</dt>
+          <dd className="nwse-type-body-small font-medium text-[var(--nw-current-navy)]">{item.value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+/**
+ * What changes for the business: three statements, each led by a large amber
+ * numeral. One grouped list on phones (.nwse-rowlist), three cards from md.
+ */
+export function OutcomeList({ outcomes }: { outcomes: readonly string[] }) {
+  return (
+    <ol className="nwse-rowlist mt-6 grid grid-cols-1 gap-0 sm:mt-8 md:grid-cols-3 md:gap-4 lg:mt-10" data-role="outcomes">
+      {outcomes.map((outcome, index) => (
+        <li key={outcome} className="nwse-card flex flex-col gap-3 p-5 sm:p-6 lg:p-7">
+          <span className="nwse-type-display-2 nwse-type-numeric text-[var(--nwse-lure-amber-deep)]" aria-hidden="true">
+            {String(index + 1).padStart(2, '0')}
+          </span>
+          <p className="nwse-type-body text-[var(--nw-current-navy)]">{outcome}</p>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+/**
+ * Where a service sits in the system: the three pillars as a row, the one the
+ * service serves first outlined in amber and tagged, then a link to the hub's
+ * pillars. Stacked on phones, three across from md.
+ */
+export function PillarStrip({ pillars, active }: { pillars: readonly DivisionPillar[]; active: DivisionPillarKey }) {
+  return (
+    <>
+      <ol className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 md:grid-cols-3 md:gap-4 lg:mt-10" data-role="pillar-strip" data-active={active}>
+        {pillars.map((pillar) => {
+          const current = pillar.key === active;
+          return (
+            <li
+              key={pillar.key}
+              aria-current={current ? 'true' : undefined}
+              className="nwse-card flex items-start gap-4 p-4 sm:p-5"
+              style={current ? { borderColor: 'var(--nwse-lure-amber-deep)', borderWidth: 2 } : undefined}
+            >
+              <span className="nwse-icon h-11 w-11 shrink-0">
+                <NwseIcon name={pillar.icon} size={22} />
+              </span>
+              <div className="min-w-0">
+                <p className="nwse-type-label nwse-label">{current ? 'This service, first' : 'Supports'}</p>
+                <h3 className="nwse-type-title-2 mt-0.5 text-[var(--nw-current-navy)]">{pillar.title}</h3>
+                <p className="nwse-type-body-small mt-1 text-[var(--nw-slate)]">{pillar.summary}</p>
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+      <Link to={`${DIVISION_BASE_PATH}#pillars`} className="nwse-link mt-5 inline-flex items-center gap-1.5 text-sm max-lg:min-h-11 sm:mt-6">
+        How the three work together
+        <NwseIcon name="arrow-right" size={14} />
+      </Link>
+    </>
+  );
+}
+
+/** Short labels as wrapping chips (kinds of business, for example). */
+export function ChipList({ items, label }: { items: readonly string[]; label: string }) {
+  return (
+    <ul className="mt-6 flex flex-wrap gap-2 sm:mt-8" aria-label={label}>
+      {items.map((item) => (
+        <li
+          key={item}
+          className="nwse-type-body-small rounded-full border px-3.5 py-1.5 font-medium text-[var(--nw-current-navy)]"
+          style={{ borderColor: 'var(--nw-mist-gray)', background: 'var(--nw-pure-white)' }}
+        >
+          {item}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** The working rhythm after launch (weekly, monthly, quarterly): three columns under a hairline. */
+export function CadenceRow({ cadence }: { cadence: readonly DivisionPoint[] }) {
+  return (
+    <dl className="mt-8 grid grid-cols-1 gap-6 border-t pt-6 sm:mt-10 sm:pt-8 md:grid-cols-3 md:gap-8" style={{ borderColor: 'var(--nw-mist-gray)' }} data-role="cadence">
+      {cadence.map((item) => (
+        <div key={item.title}>
+          <dt className="nwse-type-label nwse-label">{item.title}</dt>
+          <dd className="nwse-type-body-small mt-1.5 text-[var(--nw-slate)]">{item.detail}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }

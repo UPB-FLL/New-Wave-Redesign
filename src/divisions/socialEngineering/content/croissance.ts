@@ -166,11 +166,11 @@ export const auditContent = {
   metaDescription:
     'Croissance from New Wave: Social Engineering audits your Google, social, website, ads, and rivals from public data, then delivers three reports in your brand.',
   keywords:
-    'croissance, growth audit, marketing audit, local marketing audit fort lauderdale, competitor analysis south florida, google ads roi estimate, social media audit, new wave it',
+    'croissance, growth audit, marketing audit for small business, competitor analysis, local search audit, google ads roi estimate, social media audit, new wave it',
   navLabel: AUDIT_PRODUCT_NAME,
   kicker: `${AUDIT_PRODUCT_NAME} · powered by ${AUDIT_ENGINE_NAME}`,
   headline: 'A growth audit anyone on your team can read',
-  summary: `${AUDIT_PRODUCT_NAME}, French for growth, is how New Wave: Social Engineering audits your marketing before we recommend anything. Its ${AUDIT_ENGINE_NAME} engine gathers your public data and your rivals’, models a realistic return, and hands you three reports in your own brand.`,
+  summary: `${AUDIT_PRODUCT_NAME}, French for growth, is how New Wave: Social Engineering audits your marketing before we recommend anything, for any business in the United States. Its ${AUDIT_ENGINE_NAME} engine gathers your public data and your rivals’, models a realistic return, and hands you three reports in your own brand.`,
   engine: {
     kicker: 'The engine',
     heading: `${AUDIT_ENGINE_NAME} and its ${AUDIT_CONNECTORS_NAME}`,

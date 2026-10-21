@@ -1,15 +1,19 @@
 import { Link } from 'react-router-dom';
 import { DivisionLayout } from '../components/DivisionLayout';
-import { DivisionLogo } from '../components/DivisionLogo';
 import { FamilyLockup } from '../components/FamilyLockup';
+import { GrowthLoop } from '../components/GrowthLoop';
+import { GROWTH_LOOP_NODES, type GrowthLoopNodeKey } from '../components/growthLoop';
 import { ServiceIcon } from '../components/ServiceIcon';
 import {
   Band,
+  CadenceRow,
+  ChipList,
   CtaBand,
   DarkCurrents,
   DivisionHero,
   FaqList,
   JourneyStrip,
+  PillarCards,
   PointGrid,
   PrimaryCta,
   RoadmapGrid,
@@ -24,6 +28,17 @@ import { useDivisionMeta } from '../useDivisionMeta';
 
 const seo = hubPageSeo();
 
+/** Under the hero summary: how the division works, in three short facts (no numbers; one line from lg). */
+const HERO_FACTS = ['Nationwide', 'Remote-first', 'Reported against revenue'] as const;
+
+/** The loop's four steps, in the drawing's order, named beside it. */
+const LOOP_STEPS: Record<GrowthLoopNodeKey, { title: string; detail: string }> = {
+  data: { title: 'Data', detail: 'The audit and the tracking say where the demand is and what it costs.' },
+  integrations: { title: 'Integrations', detail: 'Your tools are connected, so every lead and sale is captured and traced.' },
+  advertising: { title: 'Smart advertising', detail: 'Campaigns bid on that data and land on pages that can take the order.' },
+  sales: { title: 'Sales', detail: 'Revenue flows back into the reporting and sets the next decision.' },
+};
+
 export default function SocialEngineeringHubPage() {
   useDivisionMeta(seo);
   const content = hubContent;
@@ -37,18 +52,19 @@ export default function SocialEngineeringHubPage() {
         kicker={content.kicker}
         headline={content.headline}
         summary={content.summary}
+        facts={HERO_FACTS}
         actions={
           <>
             <PrimaryCta />
-            <a href="#services" className="nwse-btn nwse-btn-ghost-dark">
-              Explore services
+            <a href="#pillars" className="nwse-btn nwse-btn-ghost-dark">
+              How it works
             </a>
           </>
         }
       />
 
       <Band tone="white" labelledBy="nwse-intro">
-        <div className="grid items-center gap-0 lg:grid-cols-[1.4fr_1fr] lg:gap-10">
+        <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
           <div>
             <SectionIntro kicker="The opportunity" title={content.intro.heading} id="nwse-intro" />
             <div className="nwse-type-body mt-4 flex max-w-3xl flex-col gap-4 text-[var(--nw-slate)] sm:mt-6">
@@ -57,17 +73,44 @@ export default function SocialEngineeringHubPage() {
               ))}
             </div>
           </div>
-          {/* Decorative: desktop only, where it balances the text column. */}
-          <div className="hidden lg:flex lg:justify-end">
-            <DivisionLogo lockup="mark" ground="light" width={200} decorative className="h-auto w-40 sm:w-52" />
-          </div>
+          {/* The growth loop: the drawing is decorative; the list beside it says the same in words. */}
+          <figure className="nwse-card p-4 sm:p-6" data-role="growth-system">
+            <GrowthLoop />
+            <figcaption className="mt-4 border-t pt-4 sm:mt-5 sm:pt-5" style={{ borderColor: 'var(--nw-mist-gray)' }}>
+              <p className="nwse-type-label nwse-label">The growth loop</p>
+              <ol className="mt-3 grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
+                {GROWTH_LOOP_NODES.map(({ key }, index) => (
+                  <li key={key} className="flex gap-3">
+                    <span className="nwse-type-label nwse-type-numeric mt-0.5 shrink-0 text-[var(--nwse-lure-amber-deep)]" aria-hidden="true">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <span className="nwse-type-body-small text-[var(--nw-slate)]">
+                      <span className="font-semibold text-[var(--nw-current-navy)]">{LOOP_STEPS[key].title}. </span>
+                      {LOOP_STEPS[key].detail}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </figcaption>
+          </figure>
         </div>
       </Band>
 
-      <Band id="services" labelledBy="nwse-services">
+      <Band id="pillars" labelledBy="nwse-pillars">
+        <SectionIntro
+          kicker="What we’re built on"
+          title="Data, integrations, and smart advertising, working as one system"
+          description="Each pillar is useful on its own. Together they are why the advertising budget can answer for sales: the data says where to spend, the integrations capture what it brings in, and the reporting shows it."
+          id="nwse-pillars"
+        />
+        <PillarCards pillars={content.pillars} />
+      </Band>
+
+      <Band tone="white" id="services" labelledBy="nwse-services">
         <SectionIntro
           kicker="Services"
-          title="Social, brand, web, and marketing under one roof"
+          title="Six services, one goal: more sales you can trace"
+          description="Take one, or the set. Every service plugs into the same tracking and the same monthly report."
           id="nwse-services"
         />
         {/* Below lg each service is a row (icon, title, and arrow on one line, the
@@ -104,20 +147,11 @@ export default function SocialEngineeringHubPage() {
         </ul>
       </Band>
 
-      <Band tone="white" id="process" labelledBy="nwse-method">
-        <SectionIntro
-          kicker="How we work"
-          title="Discover, prioritize, build"
-          description="Every engagement starts with discovery and prioritization before anything is built."
-          id="nwse-method"
-        />
-        <StepList steps={content.method} />
-      </Band>
-
       <Band labelledBy="nwse-data">
         <SectionIntro
-          kicker="What we gather"
+          kicker="Discovery"
           title="Every touchpoint, mapped to the customer journey"
+          description="Before anything is recommended, the audit and discovery put the whole business on one map: where demand is, how customers move, and what can be measured."
           id="nwse-data"
         />
         <JourneyStrip stages={content.journey} />
@@ -125,9 +159,31 @@ export default function SocialEngineeringHubPage() {
         <PointGrid points={content.dataWeGather} scene="hubSection" />
       </Band>
 
-      <Band tone="white" labelledBy="nwse-roadmap">
-        <SectionIntro kicker="The roadmap" title="A practical path forward" id="nwse-roadmap" />
+      <Band tone="white" id="process" labelledBy="nwse-method">
+        <SectionIntro
+          kicker="How we work"
+          title="Audit, plan, build and run"
+          description="Nothing is built before it has been measured and prioritized, and nothing runs without a number it answers to."
+          id="nwse-method"
+        />
+        <StepList steps={content.method} />
+      </Band>
+
+      <Band labelledBy="nwse-roadmap">
+        <SectionIntro
+          kicker="The first 90 days"
+          title="A 90-day plan, then a rhythm that holds"
+          description="Foundation first, demand second, scale third. After that the work runs on a weekly, monthly, and quarterly beat."
+          id="nwse-roadmap"
+        />
         <RoadmapGrid phases={content.roadmap} />
+        <CadenceRow cadence={content.cadence} />
+      </Band>
+
+      <Band tone="white" labelledBy="nwse-industries">
+        <SectionIntro kicker="Who we work with" title={content.industries.heading} description={content.industries.intro} id="nwse-industries" />
+        <ChipList items={content.industries.items} label="Kinds of business we work with" />
+        <p className="nwse-type-body-small mt-5 max-w-3xl text-[var(--nw-slate)] sm:mt-6">{content.industries.note}</p>
       </Band>
 
       <section
@@ -139,8 +195,11 @@ export default function SocialEngineeringHubPage() {
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <p className="nwse-type-kicker nwse-kicker-on-dark">What we measure</p>
           <h2 id="nwse-metrics" className="nwse-type-display-2 mt-2 max-w-3xl text-[var(--nw-cloud-white)] sm:mt-3">
-            Measured against bookings and inquiries
+            Measured against sales, not activity
           </h2>
+          <p className="nwse-type-body mt-3 max-w-2xl text-[var(--nw-mist-gray)] sm:mt-4">
+            The same five measures on every report, defined the same way every month, so the numbers can be compared and the budget can follow them.
+          </p>
           <dl className="mt-6 grid grid-cols-1 gap-x-8 gap-y-0 sm:mt-8 md:gap-y-6 md:grid-cols-2 lg:mt-10 lg:grid-cols-3 md:max-lg:[&>div:last-child:nth-child(odd)]:col-span-2">
             {content.metrics.map((metric) => (
               <div key={metric.title} className="border-t py-4 md:pb-0 md:pt-5" style={{ borderColor: 'color-mix(in srgb, var(--nw-slate) 70%, transparent)' }}>

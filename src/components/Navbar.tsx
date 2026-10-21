@@ -182,7 +182,7 @@ export default function Navbar() {
                       <span className="flex-1">
                         <span className="block text-sm font-semibold text-brand-navy">New Wave: Social Engineering</span>
                         <span className="block text-xs" style={{ color: 'var(--nw-slate)' }}>
-                          Our social media, brand, web, and marketing division
+                          Our growth division: data, integrations, and smart advertising for small businesses
                         </span>
                       </span>
                       <ArrowRight size={15} className="shrink-0 text-brand-tide-blue" />

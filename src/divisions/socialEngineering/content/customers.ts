@@ -92,8 +92,8 @@ export const appsContent = {
 export const customersContent = {
   metaTitle: 'Our customers | New Wave: Social Engineering',
   metaDescription:
-    'Meet the customers of New Wave: Social Engineering, a Fort Lauderdale social media and marketing agency from New Wave IT, and see what each business does.',
-  keywords: 'marketing agency fort lauderdale customers, south florida marketing agency customers, new wave it',
+    'Meet the customers of New Wave: Social Engineering, the growth division of New Wave IT, and see what each business does, with a link to each one’s website.',
+  keywords: 'new wave social engineering customers, small business growth agency customers, new wave it',
   navLabel: 'Customers',
   kicker: 'Customers',
   headline: 'Businesses we work with',

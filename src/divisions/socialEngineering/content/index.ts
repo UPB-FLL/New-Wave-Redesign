@@ -31,11 +31,11 @@ export function findDivisionService(slug: string | undefined): DivisionServiceCo
 export const contactContent = {
   metaTitle: 'Book a discovery call | New Wave: Social Engineering',
   metaDescription:
-    'Book a discovery call with New Wave: Social Engineering, the social media, brand, web, and marketing division of New Wave IT in Fort Lauderdale.',
+    'Book a discovery call with New Wave: Social Engineering, the growth division of New Wave IT, about growing your sales with data, integrations, and ads.',
   keywords:
-    'book a discovery call, marketing agency fort lauderdale contact, social media and web design quote south florida, new wave it',
+    'book a discovery call, small business growth marketing consultation, marketing audit for small business, paid advertising consultation, new wave it',
   kicker: 'Start with discovery',
   headline: 'Book a discovery call',
   summary:
-    'Before we recommend anything, we’d like to understand the business: where you want to be in 12 months, how customers find you today, and where the gaps are.',
+    'Before we recommend anything, we’d like to understand the business: where you want to be in 12 months, how customers find and buy from you today, and what is in place to measure it.',
 } as const;

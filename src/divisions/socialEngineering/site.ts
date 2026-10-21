@@ -64,8 +64,10 @@ export const DIVISION_ENDORSEMENT = 'A New Wave IT division';
 export const PARENT_NAME = 'New Wave IT';
 
 export const DIVISION_TAGLINE = 'Growth decisions made on data, not guesswork.';
-/** Descriptor that sits with the logo, as in the division's pitch materials. */
-export const DIVISION_DESCRIPTOR = 'Social · Brand · Web · Marketing';
+/** Descriptor that sits with the logo: the three things the division is built on. */
+export const DIVISION_DESCRIPTOR = 'Data · Integrations · Smart advertising';
+/** Where the division works: every division page says so; no page names a home market as its territory. */
+export const DIVISION_SERVICE_AREA = 'United States';
 /** Primary call to action on every division page: every engagement starts with discovery. */
 export const DIVISION_PRIMARY_CTA = 'Book a discovery call';
 

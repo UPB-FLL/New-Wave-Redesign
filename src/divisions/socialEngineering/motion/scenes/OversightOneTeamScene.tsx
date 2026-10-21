@@ -1,5 +1,5 @@
-// Digital oversight hero: "...with one Fort Lauderdale team accountable for all
-// of it." and "The aim is to catch a broken path before a customer runs into it."
+// Analytics and oversight hero: "...with one team accountable for all of it"
+// and "Broken paths caught before customers run into them."
 // One dial (one team) watches every touchpoint on the customer's path. Its
 // needle checks each touchpoint in turn, finds the broken link, and the missing
 // piece is drawn in before the customer arrives; the customer then gets

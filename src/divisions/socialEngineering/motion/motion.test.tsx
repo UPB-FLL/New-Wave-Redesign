@@ -417,8 +417,9 @@ describe('path geometry', () => {
 });
 
 describe('scene icons', () => {
-  it('draws from the approved icon set: 35 icons, at most one accent path each', () => {
-    expect(DIVISION_ICON_NAMES).toHaveLength(35);
+  it('draws from the approved icon set: 38 icons, at most one accent path each', () => {
+    // The kit's 35 plus the three pillar icons (icons.test.ts holds the set).
+    expect(DIVISION_ICON_NAMES).toHaveLength(38);
     for (const name of DIVISION_ICON_NAMES) {
       const { paths } = DIVISION_ICONS[name];
       expect(paths.length, name).toBeGreaterThan(0);

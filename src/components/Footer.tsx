@@ -15,7 +15,7 @@ const serviceLinks = [
   { label: 'IT Support Fort Lauderdale', href: '/it-support-fort-lauderdale' },
   { label: 'Managed IT Fort Lauderdale', href: '/managed-it-services-fort-lauderdale' },
   // Division: New Wave: Social Engineering (listed only while it's published).
-  ...(DIVISION_PUBLISHED ? [{ label: 'Social Media & Marketing', href: '/social-engineering' }] : []),
+  ...(DIVISION_PUBLISHED ? [{ label: 'Growth Marketing & Advertising', href: '/social-engineering' }] : []),
 ];
 
 const companyLinks = [
