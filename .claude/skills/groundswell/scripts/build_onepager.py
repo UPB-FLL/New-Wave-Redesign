@@ -5,6 +5,9 @@ Usage: python3 -I build_onepager.py <onepager.json> <audit_spec.json> <roi.json>
 onepager.json: company, place, logo (path relative to onepager.json), logo_h, prepared ("October 20, 2026"),
 as_of ("October 2026"), headline, kpis [[value, label] x4], findings [[slide_id, text] x5], actions [x3],
 links {deck_pdf, audit_pdf, folder}. Every link must be a Google Drive link; anything else is refused.
+Optional: fee ("replaces" when NWSE's fee replaces a current marketer's, the default; "none" when the
+business has no marketer; "client" when it is already an NWSE client) and tracked (what the business's
+own tracking replaces the estimates with; default "calls and jobs", e.g. "inquiries and bookings").
 Slide numbers come from <deck_root>/project/deck.json, so "Slide 4" always names the right page.
 Print it with: node render_pdf.cjs summary <out.html> <out.pdf>
 """
@@ -15,6 +18,12 @@ import os
 import sys
 
 DRIVE = "https://drive.google.com/"
+# The fee sentence under the ROI figures (references/roi-method.md, "Fee-neutral framing").
+FEE_NOTES = {
+    "replaces": "Management replaces the fee you already pay your current marketing company, so the new money is ad spend.",
+    "none": "Our management fee is not included: these figures are before it.",
+    "client": "You are already a New Wave: Social Engineering client, so the only new money is ad spend.",
+}
 MIME = {"png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg", "svg": "image/svg+xml", "webp": "image/webp"}
 
 
@@ -39,6 +48,10 @@ def main():
     order = json.load(open(os.path.join(deck_root, "project", "deck.json")))["order"]
     slide_no = {sid: i for i, sid in enumerate(order, 1)}
     links = c["links"]
+    fee = c.get("fee", "replaces")
+    if fee not in FEE_NOTES:
+        sys.exit(f"fee must be one of {sorted(FEE_NOTES)}, got: {fee!r}")
+    tracked = c.get("tracked", "calls and jobs")
     for k in ("deck_pdf", "audit_pdf", "folder"):
         if not str(links.get(k, "")).startswith(DRIVE):
             sys.exit(f"links.{k} must be a Google Drive link ({DRIVE}...), got: {links.get(k)!r}")
@@ -106,7 +119,7 @@ def main():
 <div class="roi"><div class="main"><div class="n">{money(base[0], True)} net</div><div class="t">Base case, on about {money(base[1])} of ad spend ({base[2]}% ROI)</div></div>
 <div class="s"><div class="n">{money(cons[0], True)}</div><div class="t">{cons_text}</div></div>
 <div class="s"><div class="n">{money(up[0], True)}</div><div class="t">Upside case</div></div></div>
-<p class="note">Management replaces the fee you already pay your current marketing company, so the new money is ad spend. Ranges, not promises: your tracked calls and jobs replace our estimates after 90 days.</p>
+<p class="note">{esc(FEE_NOTES[fee])} Ranges, not promises: your tracked {esc(tracked)} replace our estimates after 90 days.</p>
 <div class="row"><h2>The first 90 days</h2>{slide('plan')}</div><ol>{acts}</ol>
 </div>
 <div class="foot">Slide deck (PDF): <a href="{esc(links['deck_pdf'])}">{esc(links['deck_pdf'])}</a><br>Full audit (PDF): <a href="{esc(links['audit_pdf'])}">{esc(links['audit_pdf'])}</a><br>All files: <a href="{esc(links['folder'])}">{esc(links['folder'])}</a></div>
