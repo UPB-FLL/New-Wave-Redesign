@@ -4,6 +4,9 @@ import { runRoiModel } from '../../../../api/_lib/groundswell/roi';
 import { buildFacts, roiInputsFrom, normalizeEstimates, normalizeWriteup } from '../../../../api/_lib/groundswell/model';
 import type { ModelOutput, ReportData } from '../../../../api/_lib/groundswell/reports';
 import { brandFrom } from '../../../../api/_lib/groundswell/brand';
+import { baselineFrom, checkPlan, positionsFrom, type AdplanOutput } from '../../../../api/_lib/groundswell/adplan';
+import { GROUNDSWELL_CONFIG } from '../../../../packages/groundswell/groundswell.config';
+import { planAudit } from '../../../../packages/groundswell/src/audit';
 
 /** A made-up business ("Harbor Auto Care (sample)") with every Current's output. */
 
@@ -133,5 +136,44 @@ export function sampleModelOutput(): ModelOutput {
 export function sampleReportData(): ReportData {
   const outputs = sampleOutputs();
   const facts = buildFacts(sampleAudit, outputs);
-  return { facts, model: sampleModelOutput(), brand: brandFrom(facts.site?.business), date: 'October 21, 2026' };
+  return { facts, model: sampleModelOutput(), brand: brandFrom(facts.site?.business), adplan: null, date: 'October 21, 2026' };
+}
+
+/** What the planner might answer for the sample (one keyword and one fix are not in the data). */
+export const samplePlannerJson = {
+  industry: 'general',
+  angles: [
+    { name: 'Brake repair', why: 'Brakes are named on the homepage, and booking through Square is already live.', keywords: ['brake repair near me', 'brake pads cheap'] },
+    { name: 'Best AC repair', why: 'AC repair is on the homepage; 97 in 100 drivers need it.', keywords: ['car ac repair', 'Brake Repair Near Me'] },
+  ],
+  fixes: [
+    { id: 'google-1', effort: 'review_requests', area: 'reviews', title: 'Ask every customer for a review' },
+    { id: 'social-1', effort: 'social_posts', area: 'social', title: 'Post weekly on Instagram' },
+    { id: 'website-1', effort: 'service_page_seo', area: 'seo', title: 'Add service pages' },
+    { id: 'ads-1', effort: 'site_fix', area: 'nowhere', title: 'Add the Meta pixel' },
+    { id: 'keywords-1', effort: 'made_up', area: 'seo', title: 'Build a page for brake repair' },
+    { id: 'invented-9', effort: 'site_fix', area: 'website', title: 'Not a finding' },
+  ],
+};
+
+export function sampleAdplanOutput(): AdplanOutput {
+  const outputs = sampleOutputs();
+  const facts = buildFacts(sampleAudit, outputs);
+  const model = sampleModelOutput();
+  const planned = checkPlan(samplePlannerJson, facts, model, GROUNDSWELL_CONFIG);
+  const baseline = baselineFrom(facts);
+  return {
+    model: 'test-model',
+    generated_at: '2026-10-21T12:00:00.000Z',
+    industry: { id: planned.industry.id, label: planned.industry.label },
+    angles: planned.angles,
+    fallback_angle: planned.fallback_angle,
+    baseline,
+    dropped: planned.dropped,
+    ...planAudit({ angles: planned.angles, industry: planned.industry, positions: positionsFrom(facts), fixes: planned.fixes, baseline }, GROUNDSWELL_CONFIG),
+  };
+}
+
+export function sampleReportDataWithPlan(): ReportData {
+  return { ...sampleReportData(), adplan: sampleAdplanOutput() };
 }

@@ -340,6 +340,7 @@ Write in plain words for a busy owner. Rules:
 - Never describe as active something the data does not show.
 - Use they/them for people. Do not name people.
 - Recommend concrete fixes in priority order.
+- Do not choose ad platforms, budgets or campaigns in the plan or next steps: the return section, modeled from the data after this write-up, decides which ads to run. Say "start the ads the return section funds" instead.
 Return JSON only with this shape:
 {"headline": string (max 12 words),
  "verdict": string (2-3 sentences),

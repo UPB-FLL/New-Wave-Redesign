@@ -127,8 +127,9 @@ To run Groundswell elsewhere:
 1. Copy this folder into a new repository.
 2. Supply the data: keyword demand and bids per angle, and the business's
    published prices.
-3. Call `validateConfig` on your setup file, then `buildAdPlan` and
-   `templateProblems`.
+3. Call `validateConfig` on your setup file, then `planAudit`
+   (`src/audit.ts`: the ad plan, every change ranked, and today against the
+   plan) and `templateProblems`.
 
 The remaining engine (the Currents, the step runner, delivery) moves in here
 behind small adapters for storage, documents and the language model as the
@@ -143,6 +144,17 @@ permission, kept as inputs so every number comes from the model.
 tests cheap happy-hour and brewery searches without modeling a return (no
 drink prices are published), shows pizza ads losing money at a $22 pie, and
 rules out TikTok and Reddit, whose alcohol rules require a sales team.
+
+## One audit's plan (`src/audit.ts`)
+
+`planAudit` takes what an engine gathers and judges (the angles, the industry
+profile, where the website already ranks, and the audit's findings sorted
+into `effort` types) and returns the ad plan, every change ranked, and today
+against the plan. Besides the ad rows it adds, for each angle with a value,
+one page that ranks for its searches: modeled from where the website ranks
+now to `impact.seo_target`, unless it already ranks there. Findings of a type
+those already cover are left out, so nothing is ranked twice; the rest are
+listed as not modeled, cheapest first.
 
 ## Every change, ranked (`src/changes.ts`)
 
@@ -183,8 +195,10 @@ a service (SaaS), with tools linked in as each client needs them. In order:
    as the business is set up today against the return with the team's
    plan**. Still to come with the live engine: each audit writes its top
    changes to a use-case library for later audits.
-3. **The ad plan in the live engine** (`api/_lib/groundswell`): an `adplan`
-   step, and a board and slide in the reports.
+3. **The ad plan in the live engine** (now): the `adplan` step
+   (`api/_lib/groundswell/adplan.ts`) and the reports' return section, slides
+   and summary. Next: ad copy written for each funded or tested row and
+   checked by `templateProblems`, and the use-case library.
 4. **Review, re-interpret, re-run** before an audit counts as accurate.
 5. **The planner agent and connectors.** An agent picks the industry profile
    and the platforms to audit (LinkedIn for IT; Angi, Yelp and Reddit for
@@ -203,7 +217,7 @@ a service (SaaS), with tools linked in as each client needs them. In order:
 |---|---|
 | Setup file, ad plan, templates | Here, tested (`test/`). |
 | Every change ranked by return; today against the plan | Here, tested; shown on Croissance for the brewery. |
-| Ad plan in the live audits and reports | Next. |
+| Ad plan and ranking in the live audits and reports | Live: the `adplan` step and `planAudit` (`src/audit.ts`). Ad copy in the reports is next. |
 | Review → re-interpret → re-run | Planned. |
 | Planner agent and industry platforms | Planned: an agent picks the industry profile from the business's data, within the setup file's allowlist. |
 | SEO, website and Google Business Profile audits | Partly live (`api/_lib/groundswell/currents/`); being widened. |

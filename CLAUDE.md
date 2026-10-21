@@ -37,6 +37,35 @@ Full notes: "Positioning (2026-10-21)" in `docs/social-engineering-division.md`.
   pins in `responsive.test.tsx`, `motion.test.tsx`, and the discovery-call
   description in `pages.test.tsx`.
 
+### Groundswell: the ad plan and change ranking in the live audits (2026-10-21)
+
+- **Step** `adplan` (`api/_lib/groundswell/adplan.ts`), after `model`,
+  optional. One planner call (OpenAI) picks the industry profile, groups the
+  Keyword Planner searches into at most four angles, and sorts the
+  write-up's fixes into the setup file's `effort` types. `checkPlan` holds it
+  to the data: only keywords Keyword Planner returned, each in one angle; no
+  "best" in angle names; no sentence with a number not in the data; unknown
+  industries become `general`; if no angle survives, the largest searches
+  become one. Angle values are the write-up's labelled estimates;
+  incrementality comes from Ahrefs ranks. Then `planAudit`
+  (`packages/groundswell/src/audit.ts`) builds the plan, the ranking and today
+  against the plan. No keyword demand skips the step.
+- **Reports** (owner's choice: replace): with the step's output, the full
+  audit's return becomes "What pays back first" (today vs the plan, every
+  change ranked) and "The ad plan" (angles, rows, stop-losses, platform
+  rules, sources); the slides gain an ad plan slide (12); the summary shows
+  the top three changes. The ad plan's net is before team time and the
+  ranking's after; the headers say so. Without the output (a skipped step,
+  or an audit started before this deploy) the reports keep the single
+  search-ad model. The write-up prompt no longer picks ad platforms or
+  budgets, so it cannot contradict the plan.
+- **Setup file**: `impact.seo_target` (positions [10, 6, 4], New Wave's
+  estimate) and two effort types, `site_fix` and `social_posts` (New Wave's
+  estimates; edit them to match the team).
+- **Tests**: `src/test/api/groundswell-adplan.test.ts`, plan cases in
+  `groundswell-reports.test.ts` (12 slides, one-page summary), and
+  `packages/groundswell/test/audit.test.ts`.
+
 ### Groundswell package: setup file, ad plan, templates (2026-10-21)
 
 Groundswell is the engine; Croissance is the data it produces. The part of

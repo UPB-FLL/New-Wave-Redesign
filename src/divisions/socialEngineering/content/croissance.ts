@@ -91,13 +91,13 @@ export const auditReports: readonly AuditReport[] = [
   },
   {
     name: 'Slides',
-    format: '11 slides',
+    format: '12 slides',
     audience: 'For the meeting',
-    detail: 'At a glance, Google, social, website, ads, competitors, keywords, the plan, the return, and next steps.',
+    detail: 'At a glance, Google, social, website, ads, competitors, keywords, the plan, what pays back first, the ad plan, and next steps.',
   },
   {
     name: 'Full audit',
-    format: '10 boards',
+    format: '11 boards',
     audience: 'For whoever does the work',
     detail: 'Every finding with its source and date: history, rivals, keyword-to-page changes, and a 12-week plan.',
   },
@@ -193,7 +193,7 @@ export const auditContent = {
       },
       {
         title: 'Model',
-        detail: 'One lever with a measurable return, Google Search ads, is modeled in three scenarios from cited benchmarks.',
+        detail: 'Every change is costed and ranked by return: an ad plan for each angle on every platform your industry allows, plus search, website and listing changes, in three scenarios from cited benchmarks.',
         icon: 'method-prioritize',
       },
       {
@@ -301,7 +301,7 @@ export const auditContent = {
     {
       question: 'How is the return worked out?',
       answer:
-        'From the searches in your area, published search-ad benchmarks for your industry, your prices or your competitors’, and industry margins. It is shown as three scenarios, and after 90 days your own tracked results replace the estimates.',
+        'From the searches in your area, published ad benchmarks for your industry on each platform it can use, your prices or your competitors’, industry margins, and the team time each change takes. It is shown as three scenarios, and after 90 days your own tracked results replace the estimates.',
     },
     {
       question: 'Who can see the reports?',
