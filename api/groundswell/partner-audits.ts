@@ -10,8 +10,9 @@ import { getSupabaseAdmin, isSupabaseConfigured } from '../_lib/supabaseAdmin.js
  * GET: the audits this partner submitted, newest first, with Drive links once
  * done. Error details stay internal; a failed audit only says so.
  * POST: queue a business (same checks as the admin form), as an audit or a
- * competitor benchmark (`kind: 'benchmark'`, two competitors). It waits in the
- * queue until an admin runs it.
+ * competitor benchmark (`kind: 'benchmark'`, two competitors), optionally
+ * with the business's logo link and main colour for its reports. It waits in
+ * the queue until an admin runs it.
  */
 
 export const PARTNER_DAILY_LIMIT = 20;
@@ -38,6 +39,8 @@ function emptyDraft(body: Record<string, unknown>): AuditDraft {
     instagram: str(body.instagram),
     notes: str(body.notes).slice(0, 2000),
     ...(body.kind === 'benchmark' ? { kind: 'benchmark' as const } : {}),
+    brand_logo_url: str(body.brand_logo_url),
+    brand_color: str(body.brand_color),
     competitors: competitors.map((c) => {
       const r = (c ?? {}) as Record<string, unknown>;
       return { name: str(r.name), website: str(r.website), instagram: str(r.instagram) };
@@ -75,6 +78,9 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     .insert({ ...row, status: 'queued', partner_id: partner.id })
     .select(row.kind ? PARTNER_COLUMNS + BENCHMARK_COLUMNS : PARTNER_COLUMNS)
     .single();
+  if (error && missingColumn(error.message) && (row.brand_logo_url || row.brand_color)) {
+    return res.status(503).json({ error: 'A business’s own logo and colour are not available yet. Queue it without them.' });
+  }
   if (error || !data) {
     console.error('Partner audit insert failed:', error?.message);
     return res.status(400).json({ error: 'Could not queue that audit. Check the website and Instagram and try again.' });

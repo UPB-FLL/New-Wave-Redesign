@@ -4,6 +4,8 @@
  * 20261021120000_groundswell_engine.sql).
  */
 
+import type { AuditBranding } from './branding.js';
+
 export interface AuditCompetitor {
   name: string;
   website: string | null;
@@ -18,6 +20,8 @@ export interface AuditRow {
   instagram: string | null;
   competitors: AuditCompetitor[];
   notes: string | null;
+  /** Who the reports are from and any override of the business's look; absent means New Wave's, as before. */
+  branding?: AuditBranding;
 }
 
 /** The public "Current" each step belongs to (content/croissance.ts names them). */

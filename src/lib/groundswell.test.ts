@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { buildAuditInsert, buildCompetitor, isDriveLink, normalizeInstagram, normalizeWebsite, type AuditDraft } from './groundswell';
+import { buildPartnerBranding, normalizeBrandColor, normalizeLogoUrl } from './groundswellValidation';
 
 const draft = (over: Partial<AuditDraft> = {}): AuditDraft => ({
   business_name: 'Flow and Mills',
@@ -54,6 +55,38 @@ describe('buildAuditInsert', () => {
   it('names an unnamed competitor after its website or handle', () => {
     const row = buildAuditInsert(draft({ competitors: [{ name: '', website: '', instagram: 'rival_shop' }] }));
     expect(row.competitors[0].name).toBe('@rival_shop');
+  });
+});
+
+describe('white-label branding input', () => {
+  it('takes an https logo on a public host, and nothing else', () => {
+    expect(normalizeLogoUrl('')).toBeNull();
+    expect(normalizeLogoUrl(' https://cdn.reef.example/logo.png ')).toBe('https://cdn.reef.example/logo.png');
+    expect(() => normalizeLogoUrl('http://reef.example/logo.png')).toThrow(/https:\/\//);
+    for (const bad of ['https://localhost/x.png', 'https://10.0.0.1/x.png', 'https://user:pw@reef.example/x.png', 'https://printer.local/x.png', 'logo.png']) {
+      expect(() => normalizeLogoUrl(bad), bad).toThrow();
+    }
+    expect(() => normalizeLogoUrl(`https://reef.example/${'a'.repeat(500)}`)).toThrow(/too long/);
+  });
+
+  it('reads a colour code in any common form', () => {
+    expect(normalizeBrandColor('')).toBeNull();
+    expect(normalizeBrandColor('#ABC')).toBe('#aabbcc');
+    expect(normalizeBrandColor('1A2B3C')).toBe('#1a2b3c');
+    expect(() => normalizeBrandColor('teal')).toThrow(/colour code/);
+  });
+
+  it('checks a partner\'s name and logo together, an empty name meaning the company', () => {
+    expect(buildPartnerBranding({ display_name: '  Reef   Growth ', logo_url: '' })).toEqual({ display_name: 'Reef Growth', logo_url: null });
+    expect(buildPartnerBranding({})).toEqual({ display_name: null, logo_url: null });
+    expect(() => buildPartnerBranding({ display_name: 'R' })).toThrow(/at least two/);
+    expect(() => buildPartnerBranding({ display_name: 'x'.repeat(121) })).toThrow(/at most 120/);
+  });
+
+  it('sends a business\'s logo and colour only when set', () => {
+    expect(buildAuditInsert(draft())).not.toHaveProperty('brand_color');
+    expect(buildAuditInsert(draft({ brand_logo_url: 'https://flow.example/l.png', brand_color: '#FA0' }))).toMatchObject({ brand_logo_url: 'https://flow.example/l.png', brand_color: '#ffaa00' });
+    expect(() => buildAuditInsert(draft({ brand_color: 'orange' }))).toThrow();
   });
 });
 

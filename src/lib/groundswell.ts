@@ -153,6 +153,9 @@ export interface GroundswellPartner {
   created_at: string;
   last_sign_in_at: string | null;
   audit_count: number;
+  /** The name and logo the partner's reports carry; missing before the white-label migration (20261023120000). */
+  display_name?: string | null;
+  logo_url?: string | null;
 }
 
 export interface PartnerDraft {
@@ -179,4 +182,9 @@ export function invitePartner(draft: PartnerDraft): Promise<PartnerInvite> {
 
 export function updatePartner(id: string, action: 'resend' | 'disable' | 'enable'): Promise<PartnerInvite | { partner: GroundswellPartner }> {
   return adminApi('/api/groundswell/partners', { method: 'PATCH', body: JSON.stringify({ id, action }) });
+}
+
+/** Sets the name and logo a partner's reports carry instead of New Wave's. */
+export function setPartnerBranding(id: string, branding: { display_name: string; logo_url: string }): Promise<{ partner: GroundswellPartner }> {
+  return adminApi('/api/groundswell/partners', { method: 'PATCH', body: JSON.stringify({ id, action: 'branding', ...branding }) });
 }

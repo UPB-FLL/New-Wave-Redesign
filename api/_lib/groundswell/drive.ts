@@ -4,14 +4,17 @@ import { PermanentStepError } from './types.js';
 
 /**
  * Google Drive through Composio, as the account in GROUNDSWELL_DRIVE_OWNER
- * (josh@newwaveitfl.com by default). Reports go to My Drive/Customers/<Business>/;
- * the business folder and every file are shared "anyone with the link" as viewer,
+ * (josh@newwaveitfl.com by default). Reports go to My Drive/Customers/<Business>/,
+ * or Partners/<Partner>/<Business>/ for a partner's audit; the business folder
+ * and every file are shared "anyone with the link" as viewer,
  * never discoverable, never to individual addresses.
  */
 
 export const driveOwner = () => (process.env.GROUNDSWELL_DRIVE_OWNER || 'josh@newwaveitfl.com').toLowerCase();
 
 export const CUSTOMERS_FOLDER = 'Customers';
+/** A partner's audits: Partners/<Partner>/<Business>. */
+export const PARTNERS_FOLDER = 'Partners';
 const FOLDER_MIME = 'application/vnd.google-apps.folder';
 /** GOOGLEDRIVE_UPLOAD_FILE takes files up to 5 MB. */
 export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;

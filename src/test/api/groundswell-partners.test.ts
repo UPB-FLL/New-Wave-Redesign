@@ -25,6 +25,7 @@ import { hashToken } from '../../../api/_lib/tokens';
 import type { ApiRequest, ApiResponse } from '../../../api/_lib/http';
 import partnerAuth from '../../../api/groundswell/partner-auth';
 import partnerAudits from '../../../api/groundswell/partner-audits';
+import partnerBranding from '../../../api/groundswell/partner-branding';
 import partners from '../../../api/groundswell/partners';
 
 /** The fields these routes answer with, loosely: each test reads the ones its route sends. */
@@ -311,5 +312,64 @@ describe('admin partner management', () => {
     await call(partners, 'PATCH', { id: 'p-active', action: 'resend' }, admin);
     expect(mail.send.mock.calls[mail.send.mock.calls.length - 1][0].subject).toBe('Reset your Croissance partner password');
     expect((await call(partners, 'PATCH', { id: 'p-off', action: 'resend' }, admin)).statusCode).toBe(409);
+  });
+});
+
+describe('white-label branding', () => {
+  const admin = { authorization: 'Bearer admin-session' };
+  const LOGO = 'https://reef.example/logo.png';
+  async function partnerHeaders() {
+    return { authorization: `Bearer ${(await signIn()).body.token}` };
+  }
+  /** The same rows, in a database the white-label migration has not reached. */
+  const beforeMigration = () => {
+    db.current = fakeSupabase(db.current!.tables, { groundswell_partners: ['display_name', 'logo_url'], marketing_audits: ['brand_logo_url', 'brand_color'] });
+  };
+
+  it('lets a partner set the name and logo its reports carry, checked first', async () => {
+    const headers = await partnerHeaders();
+    const first = await call(partnerBranding, 'GET', undefined, headers);
+    expect(first.statusCode).toBe(200);
+    expect(first.body).toMatchObject({ company: 'Reef Agency', branding: { display_name: null, logo_url: null }, available: true });
+    expect((await call(partnerBranding, 'PUT', { display_name: 'Reef Growth Co', logo_url: 'http://reef.example/logo.png' }, headers)).statusCode).toBe(400);
+    const saved = await call(partnerBranding, 'PUT', { display_name: '  Reef  Growth Co ', logo_url: LOGO }, headers);
+    expect(saved.statusCode).toBe(200);
+    expect(saved.body).toMatchObject({ branding: { display_name: 'Reef Growth Co', logo_url: LOGO } });
+    expect(db.current!.tables.groundswell_partners.find((p) => p.id === 'p-active')).toMatchObject({ display_name: 'Reef Growth Co', logo_url: LOGO });
+    expect((await call(partnerBranding, 'GET')).statusCode).toBe(401);
+  });
+
+  it('says branding is not available, and refuses a save, before the migration', async () => {
+    const headers = await partnerHeaders();
+    beforeMigration();
+    expect((await call(partnerBranding, 'GET', undefined, headers)).body).toMatchObject({ company: 'Reef Agency', available: false });
+    expect((await call(partnerBranding, 'PUT', { display_name: 'Reef Growth Co' }, headers)).statusCode).toBe(503);
+  });
+
+  it('lets an admin set a partner\'s branding, and keeps working before the migration', async () => {
+    const res = await call(partners, 'PATCH', { id: 'p-invited', action: 'branding', display_name: 'Tide Growth', logo_url: LOGO }, admin);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.partner).toMatchObject({ company: 'Tide Co', display_name: 'Tide Growth', logo_url: LOGO });
+    expect((await call(partners, 'PATCH', { id: 'p-invited', action: 'branding', logo_url: 'not a link' }, admin)).statusCode).toBe(400);
+
+    beforeMigration();
+    expect((await call(partners, 'GET', undefined, admin)).body.partners.map((p) => p.id)).toEqual(['p-active', 'p-invited', 'p-off']);
+    const invited = await call(partners, 'POST', { company: 'Late Co', email: 'hi@late.example' }, admin);
+    expect(invited.statusCode).toBe(201);
+    expect((await call(partners, 'PATCH', { id: 'p-active', action: 'disable' }, admin)).statusCode).toBe(200);
+    expect((await call(partners, 'PATCH', { id: 'p-invited', action: 'branding', display_name: 'Tide Growth' }, admin)).statusCode).toBe(503);
+  });
+
+  it('queues a business with its own logo and colour, checked, and only names those columns when set', async () => {
+    const headers = await partnerHeaders();
+    const bad = await call(partnerAudits, 'POST', { business_name: 'Harbor Auto', website: 'harbor.example', brand_color: 'teal' }, headers);
+    expect(bad.statusCode).toBe(400);
+    const ok = await call(partnerAudits, 'POST', { business_name: 'Harbor Auto', website: 'harbor.example', brand_logo_url: 'https://harbor.example/l.png', brand_color: '#ABC' }, headers);
+    expect(ok.statusCode).toBe(201);
+    expect(db.current!.tables.marketing_audits.find((a) => a.business_name === 'Harbor Auto')).toMatchObject({ brand_logo_url: 'https://harbor.example/l.png', brand_color: '#aabbcc', partner_id: 'p-active' });
+
+    beforeMigration();
+    expect((await call(partnerAudits, 'POST', { business_name: 'Bay Bakery', website: 'bay.example', brand_color: '#123456' }, headers)).statusCode).toBe(503);
+    expect((await call(partnerAudits, 'POST', { business_name: 'Bay Bakery', website: 'bay.example' }, headers)).statusCode).toBe(201);
   });
 });

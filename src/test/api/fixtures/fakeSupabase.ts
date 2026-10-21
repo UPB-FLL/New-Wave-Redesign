@@ -2,10 +2,12 @@
  * A small in-memory stand-in for the supabase-js query builder, enough for the
  * Groundswell partner routes: select/insert/update/delete with eq, is, gt, in,
  * order, limit, single and maybeSingle. Rows are plain objects; ids are made up.
+ * `missing` lists columns a table does not have yet (a migration not applied):
+ * naming one in a select or a write fails the statement as Postgres does (42703).
  */
 type Row = Record<string, unknown>;
 
-export function fakeSupabase(seed: Record<string, Row[]> = {}) {
+export function fakeSupabase(seed: Record<string, Row[]> = {}, missing: Record<string, string[]> = {}) {
   const tables: Record<string, Row[]> = Object.fromEntries(Object.entries(seed).map(([k, v]) => [k, v.map((r) => ({ ...r }))]));
   let nextId = 1;
   const unique: Record<string, string[]> = { groundswell_partners: ['email'], groundswell_partner_sessions: ['token_hash'], groundswell_partner_tokens: ['token_hash'] };
@@ -25,6 +27,9 @@ export function fakeSupabase(seed: Record<string, Row[]> = {}) {
     const matching = () => tables[table].filter((r) => filters.every((f) => f(r)));
 
     const run = (): { data: Row[] | null; error: { message: string; code?: string } | null } => {
+      const named = [...(columns && columns !== '*' ? columns.split(',').map((c) => c.trim()) : []), ...Object.keys(payload ?? {})];
+      const absent = named.find((c) => (missing[table] ?? []).includes(c));
+      if (absent) return { data: null, error: { message: `column ${table}.${absent} does not exist`, code: '42703' } };
       if (op === 'insert') {
         const row = { id: `id-${nextId++}`, created_at: new Date().toISOString(), ...payload } as Row;
         for (const col of unique[table] ?? []) {

@@ -2,6 +2,45 @@
 
 ## Recent Changes
 
+### Groundswell: white-label reports for partners (2026-10-21)
+
+Owner's choices: full white-label; the client keeps its colours and logo, the
+partner's logo and name sit with "Prepared by"; branding is set in the
+partner portal and by admins; logos are https links (no uploads).
+
+- **Migration** `20261023120000` (additive, nullable):
+  `groundswell_partners.display_name` / `logo_url` (the name and logo a
+  partner's reports carry; the company when unset), and
+  `marketing_audits.brand_logo_url` / `brand_color` (a business's own logo
+  and colour, when its website's are wrong). Code reads them only where they
+  exist (42703 fallbacks), so it runs before or after the migration.
+- **Engine**: `loadBranding` (`api/_lib/groundswell/branding.ts`) reads an
+  audit's partner and overrides when a step is claimed (`AuditRow.branding`).
+  Only a missing column falls back; any other read error fails the step, so a
+  partner's report is never printed as New Wave's.
+- **Reports**: `preparerFor` / `Preparer` ("Prepared by <partner>", its logo
+  on every cover) in all four PDFs, and `ownWording`, a last pass over a
+  partner's HTML: "New Wave's estimate" becomes "our estimate", any other
+  New Wave, Groundswell or Croissance name becomes the partner's. A test
+  renders every report for a partner and fails on any of those names.
+  `brandFrom` takes the queued colour and logo first (the colour still has
+  to carry text at 4.5:1).
+- **Drive**: a partner's audits go to `Partners/<company> (<id>)/<Business>`,
+  never a link-shared business folder a same-named New Wave customer (or
+  another partner's client) might have. Drive still shows the owner's account
+  to viewers.
+- **Portal and admin**: "Your branding" on the partner dashboard
+  (`api/groundswell/partner-branding.ts`, GET/PUT), a Branding editor per
+  partner at `/admin/groundswell/partners` (PATCH `action: 'branding'`), and
+  an optional logo and colour on both queue forms. Shared checks:
+  `normalizeLogoUrl` (https, public host, ≤ 500), `normalizeBrandColor`,
+  `buildPartnerBranding` (`src/lib/groundswellValidation.ts`).
+- **Tests**: `src/test/api/groundswell-white-label.test.ts` (wording, every
+  report, overrides, loading, Drive folder, printing), plus branding cases in
+  `groundswell-partners.test.ts`, `groundswell-benchmark.test.ts`,
+  `partners.test.tsx` and `src/lib/groundswell.test.ts`;
+  `fakeSupabase` can now simulate a column a migration has not added.
+
 ### Groundswell: ad copy for the rows the ad plan runs (2026-10-21)
 
 - **Package** (`packages/groundswell/src/adcopy.ts`): `copyTargets` (one ad

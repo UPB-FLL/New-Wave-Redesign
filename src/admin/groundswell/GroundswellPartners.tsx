@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Copy, Loader2, Mail, Power, UserPlus } from 'lucide-react';
+import { Copy, Loader2, Mail, Palette, Power, UserPlus } from 'lucide-react';
 import {
   invitePartner,
   listPartners,
+  setPartnerBranding,
   updatePartner,
   type GroundswellPartner,
   type PartnerDraft,
@@ -12,7 +13,9 @@ import {
  * Partner accounts for the Croissance partner portal: outside agencies and
  * resellers who submit businesses and see the audits they submitted. Accounts
  * are by invitation; the invite email carries a link to choose a password, and
- * the same link is shown here once in case the email does not arrive.
+ * the same link is shown here once in case the email does not arrive. A
+ * partner's reports are white-labelled: "Prepared by" its name and logo (set
+ * here or by the partner in the portal), never New Wave's.
  */
 
 const emptyDraft = (): PartnerDraft => ({ company: '', contact_name: '', email: '', notes: '' });
@@ -28,6 +31,40 @@ const input =
 
 const when = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString('en-US') : 'never');
 
+function BrandingEditor({ partner, onSaved }: { partner: GroundswellPartner; onSaved: () => Promise<void> }) {
+  const [name, setName] = useState(partner.display_name ?? '');
+  const [logo, setLogo] = useState(partner.logo_url ?? '');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const save = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setBusy(true);
+    try {
+      await setPartnerBranding(partner.id, { display_name: name, logo_url: logo });
+      await onSaved();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not save the branding.');
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <form onSubmit={save} className="w-full grid gap-2 md:grid-cols-[1fr_1fr_auto] items-start">
+      <input className={input} aria-label={`Name on ${partner.company}'s reports`} placeholder={partner.company} value={name} onChange={(e) => setName(e.target.value)} />
+      <input className={input} aria-label={`${partner.company}'s logo link`} placeholder="https://…/logo.png" value={logo} onChange={(e) => setLogo(e.target.value)} />
+      <button type="submit" disabled={busy} className="rounded-lg px-3 py-2 text-sm font-semibold disabled:opacity-50" style={{ background: '#39CCCC', color: '#0f1923' }}>
+        Save branding
+      </button>
+      {error && (
+        <p className="md:col-span-3 text-xs" role="alert" style={{ color: '#FFB3B3' }}>
+          {error}
+        </p>
+      )}
+    </form>
+  );
+}
+
 export default function GroundswellPartners() {
   const [partners, setPartners] = useState<GroundswellPartner[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,6 +73,7 @@ export default function GroundswellPartners() {
   const [error, setError] = useState<string | null>(null);
   const [link, setLink] = useState<{ company: string; url: string; emailed: boolean } | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [brandingId, setBrandingId] = useState<string | null>(null);
 
   const refresh = async () => {
     try {
@@ -156,6 +194,7 @@ export default function GroundswellPartners() {
                       <span>last sign-in {when(p.last_sign_in_at)}</span>
                     </div>
                     {p.notes && <p className="text-xs text-white/40 mt-1">{p.notes}</p>}
+                    <p className="text-xs text-white/50 mt-1">Reports say “Prepared by {p.display_name || p.company}”{p.logo_url ? ', with their logo' : ''}.</p>
                   </div>
                   <div className="flex items-center gap-4 text-sm">
                     <span className="text-xs font-semibold rounded-full px-2.5 py-1" style={{ color: s.color, background: 'rgba(255,255,255,0.05)' }}>
@@ -174,7 +213,24 @@ export default function GroundswellPartners() {
                     >
                       <Power size={14} /> {p.status === 'disabled' ? 'Turn on' : 'Turn off'}
                     </button>
+                    <button
+                      type="button"
+                      aria-expanded={brandingId === p.id}
+                      onClick={() => setBrandingId(brandingId === p.id ? null : p.id)}
+                      className="inline-flex items-center gap-1.5 text-white/40 hover:text-white"
+                    >
+                      <Palette size={14} /> Branding
+                    </button>
                   </div>
+                  {brandingId === p.id && (
+                    <BrandingEditor
+                      partner={p}
+                      onSaved={async () => {
+                        setBrandingId(null);
+                        await refresh();
+                      }}
+                    />
+                  )}
                 </li>
               );
             })}

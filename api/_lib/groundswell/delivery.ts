@@ -10,6 +10,7 @@ import {
   ensureFolder,
   fileLink,
   folderLink,
+  PARTNERS_FOLDER,
   safeName,
   shareAnyoneReader,
   uploadPdf,
@@ -17,7 +18,7 @@ import {
 } from './drive.js';
 import { buildFacts } from './model.js';
 import { assertDriveOnly, renderPdf } from './render.js';
-import { buildAuditHtml, buildDeckHtml, buildSummaryHtml, formatDate, type ModelOutput, type ReportData } from './reports.js';
+import { buildAuditHtml, buildDeckHtml, buildSummaryHtml, formatDate, preparerFor, type ModelOutput, type ReportData } from './reports.js';
 import { buildBenchmarkHtml } from './reportsBenchmark.js';
 import { PermanentStepError, type StepContext } from './types.js';
 
@@ -51,7 +52,17 @@ function reportData(ctx: StepContext): ReportData {
   const adplan = isAdplanOutput(ctx.outputs.adplan) ? ctx.outputs.adplan : null;
   const adcopy = isAdcopyOutput(ctx.outputs.adcopy) ? ctx.outputs.adcopy : null;
   const benchmark = isBenchmarkOutput(ctx.outputs.benchmark) ? ctx.outputs.benchmark : null;
-  return { facts, model, brand: brandFrom(facts.site?.business), adplan, adcopy, benchmark, date: formatDate(new Date(model.generated_at)) };
+  const branding = ctx.audit.branding;
+  return {
+    facts,
+    model,
+    brand: brandFrom(facts.site?.business, branding),
+    adplan,
+    adcopy,
+    benchmark,
+    preparer: preparerFor(branding),
+    date: formatDate(new Date(model.generated_at)),
+  };
 }
 
 /** True for a usable benchmark step output (only a competitor benchmark has one). */
@@ -72,9 +83,18 @@ function fileName(ctx: StepContext, title: string) {
   return `${safeName(ctx.audit.business_name)} - ${title} (${day}).pdf`;
 }
 
+/**
+ * The business's folder: Customers/<Business> for New Wave's audits, and
+ * Partners/<Partner> (<id>)/<Business> for a partner's, so a partner's client
+ * never shares a link-shared folder with a New Wave customer, or another
+ * partner's client, of the same name. Only the business folder is shared.
+ */
 export async function runDeliverPrepare(ctx: StepContext): Promise<Prepared> {
   const owner = await checkAccount();
-  const customers_id = await ensureFolder(CUSTOMERS_FOLDER, 'root');
+  const partner = ctx.audit.branding?.partner;
+  const customers_id = partner
+    ? await ensureFolder(`${safeName(partner.company)} (${partner.id.slice(0, 8)})`, await ensureFolder(PARTNERS_FOLDER, 'root'))
+    : await ensureFolder(CUSTOMERS_FOLDER, 'root');
   const folder_id = await ensureFolder(safeName(ctx.audit.business_name), customers_id);
   return { folder_id, customers_id, owner };
 }
@@ -96,7 +116,7 @@ export async function runDeliverAudit(ctx: StepContext): Promise<Uploaded> {
 export async function runDeliverBenchmark(ctx: StepContext): Promise<Uploaded> {
   const d = reportData(ctx);
   if (!d.benchmark) throw new PermanentStepError('The benchmark write-up is missing, so the benchmark PDF cannot be built.');
-  return printAndUpload(ctx, 'Competitive Benchmark', buildBenchmarkHtml({ facts: d.facts, brand: d.brand, date: d.date, benchmark: d.benchmark }));
+  return printAndUpload(ctx, 'Competitive Benchmark', buildBenchmarkHtml({ facts: d.facts, brand: d.brand, date: d.date, benchmark: d.benchmark, preparer: d.preparer }));
 }
 
 export async function runDeliverDeck(ctx: StepContext): Promise<Uploaded> {
