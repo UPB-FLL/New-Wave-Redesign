@@ -1,0 +1,169 @@
+/* Groundswell's app shell: the parent's --nw-* tokens (styles/brand.css) plus
+   the division's amber accent, on light surfaces. Scoped to .gs-root so no
+   New Wave IT or division page picks it up. Amber text on white uses the deep
+   shade (5.09:1, AA). */
+.gs-root {
+  --gs-accent: #F2A33A;
+  --gs-accent-deep: #A65B0B;
+  --gs-ok: #1f7a3a;
+  --gs-bad: #b42318;
+  --gs-wait: #526271;
+  min-height: 100vh;
+  background: var(--nw-cloud-white);
+  color: var(--nw-current-navy);
+  font-family: var(--nw-font-body);
+}
+
+.gs-root h1,
+.gs-root h2,
+.gs-root h3 {
+  font-family: var(--nw-font-display);
+  letter-spacing: 0;
+}
+
+.gs-card {
+  background: var(--nw-pure-white);
+  border: 1px solid var(--nw-mist-gray);
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(9, 19, 29, 0.05);
+}
+
+.gs-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.625rem 1.125rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25;
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+.gs-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.gs-btn-primary {
+  background: var(--gs-accent-deep);
+  color: var(--nw-pure-white);
+}
+
+.gs-btn-primary:not(:disabled):hover {
+  background: var(--nw-current-navy);
+}
+
+.gs-btn-secondary {
+  background: var(--nw-pure-white);
+  border: 1px solid var(--nw-mist-gray);
+  color: var(--nw-current-navy);
+}
+
+.gs-btn-secondary:not(:disabled):hover {
+  border-color: var(--nw-slate);
+}
+
+.gs-btn-ghost {
+  background: transparent;
+  color: var(--nw-slate);
+}
+
+.gs-btn-ghost:not(:disabled):hover {
+  background: var(--nw-mist-gray);
+  color: var(--nw-current-navy);
+}
+
+.gs-btn-danger {
+  background: transparent;
+  color: var(--nw-slate);
+}
+
+.gs-btn-danger:not(:disabled):hover {
+  color: var(--gs-bad);
+}
+
+.gs-link {
+  color: var(--gs-accent-deep);
+  font-weight: 600;
+  text-underline-offset: 4px;
+}
+
+.gs-link:hover {
+  text-decoration: underline;
+}
+
+.gs-label {
+  display: block;
+  margin-bottom: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--nw-current-navy);
+}
+
+.gs-muted {
+  color: var(--nw-slate);
+}
+
+.gs-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 0.125rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.gs-notice,
+.gs-alert {
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+}
+
+.gs-notice {
+  background: rgba(242, 163, 58, 0.12);
+  color: var(--nw-current-navy);
+}
+
+.gs-alert {
+  background: rgba(180, 35, 24, 0.08);
+  color: var(--gs-bad);
+}
+
+/* The shell's navigation: a column beside the content on wide screens, a
+   row of tabs under the top bar on phones. */
+.gs-nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--nw-slate);
+  white-space: nowrap;
+}
+
+.gs-nav-link:hover {
+  background: var(--nw-mist-gray);
+  color: var(--nw-current-navy);
+}
+
+.gs-nav-link[aria-current='page'] {
+  background: rgba(242, 163, 58, 0.16);
+  color: var(--nw-current-navy);
+}
+
+/* Print: the Drive links and lists, not the chrome. */
+@media print {
+  .gs-chrome {
+    display: none;
+  }
+}

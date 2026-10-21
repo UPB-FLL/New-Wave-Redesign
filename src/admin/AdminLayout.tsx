@@ -3,9 +3,10 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import {
   LayoutDashboard, LogOut, Menu, X, Waves, Search, ChevronRight, ExternalLink,
-  Home, Layers, DollarSign, Info, Mail, Activity, FileText, Settings, Globe, Gauge, ClipboardList, Handshake,
+  Home, Layers, DollarSign, Info, Mail, Activity, FileText, Settings, Globe, Gauge,
   type LucideIcon,
 } from 'lucide-react';
+import { GROUNDSWELL_ADMIN_PATH } from '../groundswell/site';
 import { usePageMeta } from '../lib/usePageMeta';
 import { ADMIN_NAV, pageForPath, searchAdminNav, type AdminNavEntry, type AdminNavPage } from './adminNav';
 import { contentManager, type ContentManagerState } from './ContentManager';
@@ -13,7 +14,8 @@ import PublishBar from './components/PublishBar';
 
 /**
  * One sidebar for the whole admin: Site pages (one row per public page, its
- * block editors beneath), Blog, SEO, and Groundswell. A search box at the top
+ * block editors beneath), Blog, and SEO, with a link to Groundswell's own
+ * portal (/groundswell/admin) at its foot. A search box at the top
  * filters the entries by label, page, and the words in `adminNav.ts`. The
  * publish bar lives here so it is on every editor, and shows only while
  * something is unsaved or a save is in flight.
@@ -24,7 +26,6 @@ const PAGE_ICONS: Record<string, LucideIcon> = {
 };
 const ENTRY_ICONS: Record<string, LucideIcon> = {
   '/admin/blog': FileText, '/admin/blog/settings': Settings, '/admin/seo': Globe,
-  '/admin/groundswell': Gauge, '/admin/groundswell/audits': ClipboardList, '/admin/groundswell/partners': Handshake,
 };
 
 const OPEN_PAGES_KEY = 'nw_admin_open_pages';
@@ -211,7 +212,11 @@ export default function AdminLayout() {
           )}
         </nav>
 
-        <div className="p-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <div className="p-3 space-y-0.5" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+          <NavLink to={GROUNDSWELL_ADMIN_PATH} className={linkClass} onClick={closeSidebar}>
+            <Gauge size={16} />
+            Open Groundswell
+          </NavLink>
           <button
             onClick={handleLogout}
             className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all hover:bg-white/5"

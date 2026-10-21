@@ -18,7 +18,6 @@ import {
   DIVISION_CONTACT_US_PATH,
   DIVISION_CUSTOMERS_PATH,
   DIVISION_CROISSANCE_PATH,
-  DIVISION_PARTNERS_PATH,
   DIVISION_SERVICE_SLUGS,
   divisionServicePath,
 } from './site';
@@ -27,7 +26,6 @@ export type DivisionPageModule =
   | 'SocialEngineeringHubPage'
   | 'SocialEngineeringServicePage'
   | 'SocialEngineeringCroissancePage'
-  | 'SocialEngineeringPartnersPage'
   | 'SocialEngineeringCustomersPage'
   | 'SocialEngineeringContactUsPage'
   | 'SocialEngineeringContactPage';
@@ -36,7 +34,6 @@ const PAGE_MODULES = new Map<string, DivisionPageModule>([
   [DIVISION_BASE_PATH, 'SocialEngineeringHubPage'],
   ...DIVISION_SERVICE_SLUGS.map((slug): [string, DivisionPageModule] => [divisionServicePath(slug), 'SocialEngineeringServicePage']),
   [DIVISION_CROISSANCE_PATH, 'SocialEngineeringCroissancePage'],
-  [DIVISION_PARTNERS_PATH, 'SocialEngineeringPartnersPage'],
   [DIVISION_CUSTOMERS_PATH, 'SocialEngineeringCustomersPage'],
   [DIVISION_CONTACT_US_PATH, 'SocialEngineeringContactUsPage'],
   [DIVISION_CONTACT_PATH, 'SocialEngineeringContactPage'],

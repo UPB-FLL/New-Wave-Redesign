@@ -41,6 +41,40 @@ partner portal and by admins; logos are https links (no uploads).
   `partners.test.tsx` and `src/lib/groundswell.test.ts`;
   `fakeSupabase` can now simulate a column a migration has not added.
 
+### Groundswell portal at /groundswell (2026-10-21)
+
+Groundswell has its own address, newwaveitfl.com/groundswell, for partners
+and New Wave staff (plan: the "Groundswell portal design plan" doc; this is
+PR 1 of 4, the address and the shell; customers, partner-run audits and
+polish follow). Code: `src/groundswell/`.
+
+- **Pages**: `/groundswell` is the sign-in (partner email and password,
+  reset link, a "New Wave staff sign-in" link). It is a static New Wave IT
+  route (`IT_PAGE_META['/groundswell']`, prerendered, in the sitemap) whose
+  code loads on demand (`src/pages/GroundswellSignInPage.tsx` wraps the lazy
+  page). `/groundswell/customers` is the partner app (the old dashboard:
+  add a customer, see your own audits and Drive links), `/set-password` is
+  where invite and reset links land, and `/groundswell/admin` (+ `/audits`,
+  `/partners`) is the staff section behind the content admin's Supabase
+  sign-in (`AdminGuard` now takes `title`/`subtitle`). Everything but the
+  sign-in is noindex, outside the sitemap and the prerender.
+- **Shell** (`GroundswellShell.tsx`, `groundswell.css`, scoped to
+  `.gs-root`): top bar, left nav on desktop and tabs on phones, light
+  surfaces with the division's amber accent; `GroundswellFrame` wraps the
+  pages shown before sign-in. The three staff screens moved from
+  `src/admin/groundswell/` to `src/groundswell/admin/` and were restyled to
+  it; the content admin's sidebar keeps one "Open Groundswell" link.
+- **Old addresses**: `/social-engineering/croissance/partners{,/dashboard,
+  /set-password}` and `/admin/groundswell{,/*}` redirect permanently in
+  `vercel.json` (the query string, so an old invite token, is kept) and
+  client-side in `App.tsx`. Invite and reset emails now link to
+  `/groundswell/set-password` (`PARTNER_BASE_PATH` in
+  `api/_lib/groundswell/partners.ts`). The division lost its partner page,
+  content, SEO entry and preload mapping.
+- **Tests**: `src/groundswell/portal.test.tsx` (sign-in, customers, set
+  password, the shell, the redirects) and the moved admin tests; updated
+  pins in `it-prerender` (32 routes), `division-integration`,
+  `FormPrivacyNotice`, and the partner API test.
 ### Admin panel rework, phase 1: one sidebar, organised by site page (2026-10-21)
 
 From the plan Josh approved on 2026-10-21 (Claude Doc "New Wave admin panel

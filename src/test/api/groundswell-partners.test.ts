@@ -195,7 +195,7 @@ describe('invite and reset links', () => {
     expect(created.body.emailed).toBe(true);
     expect(mail.send).toHaveBeenCalledWith(expect.objectContaining({ to: 'hello@newco.example', subject: 'Your Croissance partner account' }));
     const token = new URL(created.body.invite_url).searchParams.get('token')!;
-    expect(created.body.invite_url).toMatch(/^https:\/\/www\.newwaveitfl\.com\/social-engineering\/croissance\/partners\/set-password\?token=/);
+    expect(created.body.invite_url).toMatch(/^https:\/\/www\.newwaveitfl\.com\/groundswell\/set-password\?token=/);
 
     expect((await call(partnerAuth, 'POST', { action: 'set-password', token, password: 'short' })).statusCode).toBe(400);
     const ok = await call(partnerAuth, 'POST', { action: 'set-password', token, password: 'a brand new passphrase' });
