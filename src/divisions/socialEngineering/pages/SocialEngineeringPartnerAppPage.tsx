@@ -3,15 +3,18 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import FormPrivacyNotice from '../../../components/legal/FormPrivacyNotice';
 import {
   currentPartner,
+  getPartnerBranding,
   listPartnerAudits,
   partnerSignOut,
   PartnerSignedOut,
+  savePartnerBranding,
   setPartnerPassword,
   submitPartnerAudit,
   type PartnerAudit,
+  type PartnerBrandingState,
   type PartnerSummary,
 } from '../../../lib/groundswellPartner';
-import { buildAuditInsert, isDriveLink, type AuditDraft } from '../../../lib/groundswellValidation';
+import { buildAuditInsert, buildPartnerBranding, isDriveLink, type AuditDraft } from '../../../lib/groundswellValidation';
 import { usePageMeta } from '../../../lib/usePageMeta';
 import { DivisionLayout } from '../components/DivisionLayout';
 import { Band, DivisionHero } from '../components/sections';
@@ -20,8 +23,9 @@ import { DIVISION_NAME, DIVISION_PARTNERS_PATH } from '../site';
 
 /**
  * The partner portal's signed-in pages, both noindex and outside the sitemap:
- * - `dashboard`: queue a business for a Croissance audit and follow the
- *   partner's own audits to their Drive links.
+ * - `dashboard`: queue a business for a Croissance audit, follow the
+ *   partner's own audits to their Drive links, and set the name and logo the
+ *   reports carry (they never name New Wave).
  * - `set-password`: where invite and reset links land.
  */
 
@@ -35,6 +39,8 @@ const emptyDraft = (): AuditDraft => ({
   website: '',
   instagram: '',
   notes: '',
+  brand_logo_url: '',
+  brand_color: '',
   competitors: [{ name: '', website: '', instagram: '' }],
 });
 
@@ -167,6 +173,28 @@ function SubmitForm({ onQueued }: { onQueued: () => void }) {
         </label>
         <textarea id="pa-notes" rows={3} value={draft.notes} onChange={(e) => set('notes', e.target.value)} className={field} />
       </div>
+      <details className="mt-4">
+        <summary className="cursor-pointer text-sm font-semibold text-[var(--nw-current-navy)] max-sm:min-h-11">
+          This business’s logo and colour (optional)
+        </summary>
+        <p className="nwse-type-body-small mt-2 text-[var(--nw-slate)]">
+          The reports use the business’s own logo and colours from its website. Set them here if the website’s are wrong or missing.
+        </p>
+        <div className="mt-3 grid gap-4 sm:grid-cols-2">
+          <div>
+            <label htmlFor="pa-brand-logo" className={label}>
+              Logo link
+            </label>
+            <input id="pa-brand-logo" value={draft.brand_logo_url ?? ''} placeholder="https://…/logo.png" onChange={(e) => set('brand_logo_url', e.target.value)} className={field} />
+          </div>
+          <div>
+            <label htmlFor="pa-brand-color" className={label}>
+              Main colour
+            </label>
+            <input id="pa-brand-color" value={draft.brand_color ?? ''} placeholder="#1a2b3c" onChange={(e) => set('brand_color', e.target.value)} className={field} />
+          </div>
+        </div>
+      </details>
       {error ? (
         <p className="mt-3 text-sm text-[#b42318]" role="alert">
           {error}
@@ -181,6 +209,103 @@ function SubmitForm({ onQueued }: { onQueued: () => void }) {
         {benchmark ? 'Queue the audit and benchmark' : 'Queue the audit'}
       </button>
       <FormPrivacyNotice action="Queuing an audit" />
+    </form>
+  );
+}
+
+/** The name and logo a partner's reports carry ("Prepared by …"), never New Wave's. */
+function BrandingPanel() {
+  const [state, setState] = useState<PartnerBrandingState | null>(null);
+  const [name, setName] = useState('');
+  const [logo, setLogo] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    let live = true;
+    getPartnerBranding()
+      .then((b) => {
+        if (!live) return;
+        setState(b);
+        setName(b.branding.display_name ?? '');
+        setLogo(b.branding.logo_url ?? '');
+      })
+      .catch((err) => live && setError(err instanceof Error ? err.message : 'Could not load your branding.'));
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  const save = async (e: FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setNotice(null);
+    try {
+      buildPartnerBranding({ display_name: name, logo_url: logo });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Check the details.');
+      return;
+    }
+    setBusy(true);
+    try {
+      const saved = await savePartnerBranding({ display_name: name, logo_url: logo });
+      setState(saved);
+      setNotice('Saved. Reports for audits that finish from now on carry it.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not save your branding.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const shown = name.trim() || state?.company || '';
+  return (
+    <form onSubmit={save} className="nw-surface mt-8 rounded-lg p-5 sm:p-6" aria-labelledby="partner-branding-heading">
+      <h2 id="partner-branding-heading" className="nwse-type-title-1 text-[var(--nw-current-navy)]">
+        Your branding
+      </h2>
+      <p className="nwse-type-body-small mt-1 text-[var(--nw-slate)]">
+        Your reports say “Prepared by” your name, with your logo beside it. Each business keeps its own colours and logo.
+      </p>
+      {state && !state.available ? (
+        <p className="mt-3 text-sm text-[var(--nw-slate)]" role="status">
+          Branding isn’t switched on yet. Until it is, reports carry your company name.
+        </p>
+      ) : null}
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <div>
+          <label htmlFor="pb-name" className={label}>
+            Name on your reports
+          </label>
+          <input id="pb-name" value={name} placeholder={state?.company ?? ''} onChange={(e) => setName(e.target.value)} className={field} />
+        </div>
+        <div>
+          <label htmlFor="pb-logo" className={label}>
+            Logo link
+          </label>
+          <input id="pb-logo" value={logo} placeholder="https://…/logo.png" onChange={(e) => setLogo(e.target.value)} className={field} />
+        </div>
+      </div>
+      {shown ? (
+        <p className="nwse-type-body-small mt-4 flex items-center gap-2 text-[var(--nw-slate)]">
+          Preview: Prepared by {shown}
+          {/^https:\/\//.test(logo.trim()) ? <img src={logo.trim()} alt="" className="h-6 max-w-[9rem] object-contain" /> : null}
+        </p>
+      ) : null}
+      {error ? (
+        <p className="mt-3 text-sm text-[#b42318]" role="alert">
+          {error}
+        </p>
+      ) : null}
+      {notice ? (
+        <p className="mt-3 text-sm text-[var(--nw-slate)]" role="status">
+          {notice}
+        </p>
+      ) : null}
+      <button type="submit" disabled={busy || !state?.available} className="nwse-btn nwse-btn-amber-deep mt-5 disabled:opacity-60">
+        Save branding
+      </button>
     </form>
   );
 }
@@ -303,6 +428,9 @@ function Dashboard() {
               <AuditList audits={audits} />
             </section>
           </div>
+        ) : null}
+        {partner ? (
+          <BrandingPanel />
         ) : (
           <p aria-busy="true" className="text-sm text-[var(--nw-slate)]">
             Loading…

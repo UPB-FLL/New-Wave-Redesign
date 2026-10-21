@@ -6,6 +6,7 @@ import type { PlanRow } from '../../../packages/groundswell/src/adplan.js';
 import type { ChangeArea, RankedChange } from '../../../packages/groundswell/src/changes.js';
 import type { AdcopyOutput } from './adcopy.js';
 import type { AdplanOutput } from './adplan.js';
+import type { AuditBranding } from './branding.js';
 import type { BenchmarkOutput } from './benchmark.js';
 import type { Brand } from './brand.js';
 import { AREAS, type AreaKey, type Facts, type runModel } from './model.js';
@@ -39,11 +40,47 @@ export interface ReportData {
   adcopy?: AdcopyOutput | null;
   /** The benchmark step's output, for a competitor benchmark; absent for an audit. */
   benchmark?: BenchmarkOutput | null;
-  /** Shown as "Prepared by New Wave: Social Engineering · <date>". */
+  /** Who the reports are from; absent means New Wave. */
+  preparer?: Preparer;
+  /** Shown as "Prepared by <preparer> · <date>". */
   date: string;
 }
 
 export const PREPARED_BY = 'New Wave: Social Engineering';
+
+/** Who the reports are from. A partner's are white-labelled: its name and logo, and no New Wave name anywhere. */
+export interface Preparer {
+  name: string;
+  logo: string | null;
+  whiteLabel: boolean;
+}
+
+export const NEW_WAVE_PREPARER: Preparer = { name: PREPARED_BY, logo: null, whiteLabel: false };
+
+export function preparerFor(branding: AuditBranding | null | undefined): Preparer {
+  const p = branding?.partner;
+  return p ? { name: p.name, logo: p.logo, whiteLabel: true } : NEW_WAVE_PREPARER;
+}
+
+export const preparedBy = (p: Preparer) => `Prepared by ${esc(p.name)}`;
+/** The partner's logo beside "Prepared by" on a cover; New Wave's reports have none. */
+export const preparerLogo = (p: Preparer) => (p.logo ? `<img class="preparer" src="${esc(p.logo)}" alt="${esc(p.name)}" onerror="this.remove()">` : '');
+
+/** Lead-aware: "Our" at the start of a sentence or element, "our" inside one. */
+const OURS = /(>\s*|[.!?]\s+)?(?:New Wave(?:: Social Engineering| IT)?|NW Social Engineering|Groundswell)(?:’s|'s|’|')?\s?(?=estimate|rule|working|internal|smallest|cost|hourly|own)/g;
+const ENGINE_NAMES = /New Wave: Social Engineering|NW Social Engineering|New Wave IT|New Wave|Groundswell|Croissance/g;
+
+/**
+ * A partner's report in its own words: New Wave's rules and estimates become
+ * "our" ("New Wave’s estimate" → "our estimate"), and any other mention of New
+ * Wave, Groundswell or Croissance (from the setup file's notes or a model's
+ * wording) becomes the partner's name. New Wave's own reports pass unchanged.
+ */
+export function ownWording(html: string, p: Preparer): string {
+  if (!p.whiteLabel) return html;
+  const name = esc(p.name);
+  return html.replace(OURS, (_m, lead: string | undefined) => (lead !== undefined ? `${lead}Our ` : 'our ')).replace(ENGINE_NAMES, () => name);
+}
 
 export function driveLink(url: string): string {
   if (!/^https:\/\/drive\.google\.com\//.test(url)) throw new Error(`Reports may only link to Google Drive, not ${url}`);
@@ -102,6 +139,7 @@ export function baseCss(b: Brand) {
   return `${fontFace()}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{font-family:'Report',Inter,Arial,Helvetica,sans-serif;color:#111827;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.preparer{height:1.6em;max-width:9em;vertical-align:middle;margin-left:6px;background:#fff;border-radius:3px;padding:1px 3px;object-fit:contain}
 h1,h2,h3{color:${b.heading};line-height:1.15}
 .band{background:${b.primary};color:${b.onPrimary}}
 .band h1,.band h2,.band h3,.band .muted{color:${b.onPrimary}}
@@ -161,7 +199,7 @@ function scenarioRows(m: ModelOutput) {
 }
 
 export function feeLine(m: ModelOutput) {
-  if (m.estimates.is_nwse_client === true) return 'You are already a New Wave: Social Engineering client, so the only new money is ad spend.';
+  if (m.estimates.is_nwse_client === true) return `You are already a client of ${PREPARED_BY}, so the only new money is ad spend.`;
   return m.estimates.has_current_marketer === false
     ? 'These figures are before any management fee.'
     : 'Management is fee-neutral: our fee replaces what you pay your current marketing company, so the only new money is ad spend.';
@@ -429,7 +467,8 @@ export function buildAuditHtml(d: ReportData): string {
   const p = hasPlan(d.adplan) ? d.adplan : null;
   // Copy only alongside its plan, and only when there is something to show.
   const copy = p && d.adcopy && (d.adcopy.ads.length || d.adcopy.not_written.length) ? d.adcopy : null;
-  const footer = `${esc(f.business.name)} · Marketing audit · Prepared by ${PREPARED_BY} · ${esc(d.date)}`;
+  const who = d.preparer ?? NEW_WAVE_PREPARER;
+  const footer = `${esc(f.business.name)} · Marketing audit · ${preparedBy(who)} · ${esc(d.date)}`;
   const section = (kicker: string, title: string, body: string) =>
     `<section class="page"><div class="kicker">${esc(kicker)}</div><h2>${esc(title)}</h2>${body}<div class="foot">${footer}</div></section>`;
 
@@ -464,7 +503,7 @@ export function buildAuditHtml(d: ReportData): string {
   ].filter((s): s is string => Boolean(s));
   const missing = f.missing.map((k) => `${k[0].toUpperCase()}${k.slice(1)} data could not be gathered for this audit.`);
 
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(f.business.name)} - Full Marketing Audit</title><style>
+  return ownWording(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(f.business.name)} - Full Marketing Audit</title><style>
 ${baseCss(b)}
 @page{size:Letter;margin:0}
 .page{width:8.5in;min-height:11in;padding:0.6in 0.6in 0.8in;position:relative;page-break-after:always;font-size:10.5pt;line-height:1.45}
@@ -491,7 +530,7 @@ td,th{padding:5px 7px}
 .note{font-size:7.5pt;color:#4b5563;margin-top:2px}
 </style></head><body>
 <section class="page cover">
-  <div class="band">${logoImg(b, '')}<h1>${esc(f.business.name)}</h1><div class="muted">Marketing audit${f.business.city ? ` · ${esc(f.business.city)}` : ''} · Prepared by ${PREPARED_BY} · ${esc(d.date)}</div></div>
+  <div class="band">${logoImg(b, '')}<h1>${esc(f.business.name)}</h1><div class="muted">Marketing audit${f.business.city ? ` · ${esc(f.business.city)}` : ''} · ${preparedBy(who)}${preparerLogo(who)} · ${esc(d.date)}</div></div>
   <div class="inner">
     <p class="headline">${esc(m.writeup.headline)}</p>
     <p>${esc(m.writeup.verdict)}</p>
@@ -509,7 +548,7 @@ ${section(
   'Sources and limits',
   `<h3>Data used</h3>${listHtml(sources, false)}${missing.length ? `<h3>Not available this time</h3>${listHtml(missing, false)}` : ''}${m.writeup.cant_see.length ? `<h3>Needs owner access</h3>${listHtml(m.writeup.cant_see, false)}` : ''}<p class="muted">Ratings, followers and rankings change daily; figures are as of the dates above.</p>`
 )}
-</body></html>`;
+</body></html>`, who);
 }
 
 // ---------------------------------------------------------------------------
@@ -559,8 +598,9 @@ export function buildDeckHtml(d: ReportData, links: { audit: string }): string {
   const p = hasPlan(d.adplan) ? d.adplan : null;
   const bench = d.benchmark ?? null;
   const auditLink = driveLink(links.audit);
+  const who = d.preparer ?? NEW_WAVE_PREPARER;
   const slide = (id: string, n: number, title: string, body: string) =>
-    `<section class="slide" id="${id}"><header class="band"><span>${esc(title)}</span>${logoImg(b, 'mini')}</header><div class="body" data-fit>${body}</div><footer>${esc(f.business.name)} · Prepared by ${PREPARED_BY} · ${esc(d.date)}<span>${n}</span></footer></section>`;
+    `<section class="slide" id="${id}"><header class="band"><span>${esc(title)}</span>${logoImg(b, 'mini')}</header><div class="body" data-fit>${body}</div><footer>${esc(f.business.name)} · ${preparedBy(who)} · ${esc(d.date)}<span>${n}</span></footer></section>`;
 
   const areaSlides = AREAS.map((k, i) => {
     const a = m.writeup.areas[k];
@@ -577,7 +617,7 @@ export function buildDeckHtml(d: ReportData, links: { audit: string }): string {
     .map(({ key, label, r }) => `<tr${key === 'base' ? ' class="base"' : ''}><td>${label}</td><td>${money(r.steady_month.spend)}</td><td>${num(r.steady_month.leads)}</td><td>${money(r.year.net)}</td></tr>`)
     .join('');
 
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(f.business.name)} - Marketing Audit Slides</title><style>
+  return ownWording(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(f.business.name)} - Marketing Audit Slides</title><style>
 ${baseCss(b)}
 @page{size:1920px 1080px;margin:0}
 .slide{width:1920px;height:1080px;position:relative;overflow:hidden;page-break-after:always;font-size:30px;line-height:1.35}
@@ -601,7 +641,7 @@ td,th{padding:14px 18px;font-size:30px}
 .cover .sub{font-size:36px}
 .cta{font-size:40px;font-weight:700}
 </style></head><body>
-<section class="slide band cover" id="cover">${logoImg(b, '')}<h1>${esc(f.business.name)}</h1><div class="sub">Marketing audit · Prepared by ${PREPARED_BY} · ${esc(d.date)}</div></section>
+<section class="slide band cover" id="cover">${logoImg(b, '')}<h1>${esc(f.business.name)}</h1><div class="sub">Marketing audit · ${preparedBy(who)}${preparerLogo(who)} · ${esc(d.date)}</div></section>
 ${slide('glance', 2, 'At a glance', `<p class="lead"><strong>${esc(m.writeup.headline)}</strong></p><p>${esc(m.writeup.verdict)}</p>${kpiHtml(kpis(f, m, p))}`)}
 ${areaSlides}
 ${slide('plan', 9, 'The 90-day plan', `<div class="cols" style="grid-template-columns:1fr 1fr 1fr"><div><h3>Weeks 1–2</h3>${listHtml(plan.weeks_1_2.slice(0, 3))}</div><div><h3>Weeks 3–6</h3>${listHtml(plan.weeks_3_6.slice(0, 3))}</div><div><h3>Weeks 7–12</h3>${listHtml(plan.weeks_7_12.slice(0, 3))}</div></div>`)}
@@ -633,7 +673,7 @@ ${slide(
   'Next steps',
   `${listHtml(m.writeup.next_steps)}<p class="cta" style="margin-top:50px"><a href="${esc(auditLink)}">Full audit (PDF)</a></p>`
 )}
-</body></html>`;
+</body></html>`, who);
 }
 
 // ---------------------------------------------------------------------------
@@ -658,6 +698,7 @@ export function buildSummaryHtml(d: ReportData, links: { deck: string; audit: st
   const deck = driveLink(links.deck);
   const audit = driveLink(links.audit);
   const folder = driveLink(links.folder);
+  const who = d.preparer ?? NEW_WAVE_PREPARER;
   const findings = (['google', 'social', 'website', 'ads', 'keywords'] as AreaKey[])
     .map((k) => ({ k, text: m.writeup.areas[k].costing[0] || m.writeup.areas[k].summary }))
     .filter((x) => x.text);
@@ -665,7 +706,7 @@ export function buildSummaryHtml(d: ReportData, links: { deck: string; audit: st
     .map(({ key, label, r }) => `<tr${key === 'base' ? ' class="base"' : ''}><td>${label}</td><td>${money(r.steady_month.spend)}/mo</td><td>${money(r.year.net)}</td></tr>`)
     .join('');
 
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(f.business.name)} - Marketing Audit Summary</title><style>
+  return ownWording(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(f.business.name)} - Marketing Audit Summary</title><style>
 ${baseCss(b)}
 @page{size:Letter;margin:0}
 .sheet{width:8.5in;height:11in;position:relative;overflow:hidden;font-size:9.5pt;line-height:1.4}
@@ -685,7 +726,7 @@ table{font-size:9pt}
 td,th{padding:4px 6px}
 .sheet>footer{position:absolute;left:0.5in;right:0.5in;bottom:0.35in;border-top:1px solid #e5e7eb;padding-top:6px;font-size:8.5pt;display:flex;gap:18px}
 </style></head><body><div class="sheet">
-<header class="band"><div><h1>${esc(f.business.name)}</h1><div class="muted">Marketing audit summary · Prepared by ${PREPARED_BY} · ${esc(d.date)}</div></div>${logoImg(b, '')}</header>
+<header class="band"><div><h1>${esc(f.business.name)}</h1><div class="muted">Marketing audit summary · ${preparedBy(who)}${preparerLogo(who)} · ${esc(d.date)}</div></div>${logoImg(b, '')}</header>
 <div class="body" data-fit>
 <p class="headline">${esc(m.writeup.headline)}</p>
 <p>${esc(m.writeup.verdict)}</p>
@@ -699,5 +740,5 @@ ${benchLines.length ? `<h3>Against your competitors</h3>${listHtml(benchLines)}`
 ${listHtml(m.writeup.next_steps)}
 </div>
 <footer><a href="${esc(deck)}">Slides (PDF)</a><a href="${esc(audit)}">Full audit (PDF)</a><a href="${esc(folder)}">All files (Google Drive)</a></footer>
-</div></body></html>`;
+</div></body></html>`, who);
 }

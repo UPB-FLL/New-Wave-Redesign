@@ -243,9 +243,12 @@ a service (SaaS), with tools linked in as each client needs them. In order:
    home services), within the setup file's allowlist, and runs the flow.
    Data sources plug in as connectors, so a reseller can link in the tools
    they use.
-6. **White-label.** A partner (for example a marketing agency reselling
-   Croissance) sets its own branding, and its sub-clients' branding, from the
-   partner portal; reports say "Prepared by" the partner.
+6. **White-label** (now, in New Wave's engine). A partner (for example a
+   marketing agency reselling Croissance) sets the name and logo its reports
+   carry from the partner portal, and any business's logo and colour when
+   queuing it; a partner's reports say "Prepared by" the partner and never
+   name New Wave, Groundswell or Croissance. Next: reports filed in the
+   partner's own Drive (today Drive shows New Wave's account as the owner).
 7. **Standalone.** The rest of the engine moves here behind adapters for
    storage, documents and the language model, ready for its own deployment.
 
@@ -257,6 +260,7 @@ a service (SaaS), with tools linked in as each client needs them. In order:
 | Every change ranked by return; today against the plan | Here, tested; shown on Croissance for the brewery. |
 | Ad plan and ranking in the live audits and reports | Live: the `adplan` step and `planAudit` (`src/audit.ts`). |
 | Ad copy for the rows the plan runs | Live: the `adcopy` step, `checkCopy` (`src/adcopy.ts`), and the full audit's "Ad copy, ready to paste". |
+| White-label for partners | Live in New Wave's engine (`api/_lib/groundswell/branding.ts`, `ownWording` in `reports.ts`); the partner's own Drive is next. |
 | Competitor benchmark | Here, tested (`src/benchmark/`); live as the `benchmark` audit kind. |
 | Review → re-interpret → re-run | Planned. |
 | Planner agent and industry platforms | Planned: an agent picks the industry profile from the business's data, within the setup file's allowlist. |

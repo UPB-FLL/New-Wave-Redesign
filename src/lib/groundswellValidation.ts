@@ -33,6 +33,9 @@ export interface GroundswellAudit {
   /** Missing before the benchmark migration (20261022120000); then 'audit' unless queued as a benchmark. */
   kind?: AuditKind;
   benchmark_pdf_url?: string | null;
+  /** Overrides for the business's own look in its reports; missing before the white-label migration (20261023120000). */
+  brand_logo_url?: string | null;
+  brand_color?: string | null;
   created_at: string;
   completed_at: string | null;
 }
@@ -46,6 +49,9 @@ export interface AuditDraft {
   competitors: { name: string; website: string; instagram: string }[];
   /** 'benchmark' compares the business with its first two competitors; omitted means an audit. */
   kind?: AuditKind;
+  /** Optional: the business's logo link and main colour, when its website's are wrong or missing. */
+  brand_logo_url?: string;
+  brand_color?: string;
 }
 
 const INSTAGRAM_HANDLE = /^[A-Za-z0-9._]{1,30}$/;
@@ -86,6 +92,53 @@ export function isDriveLink(url: string | null | undefined): boolean {
   return typeof url === 'string' && /^https:\/\/drive\.google\.com\//.test(url);
 }
 
+/** Hosts a report must never load from: local names and bare IP addresses. */
+const PRIVATE_HOST = /^(localhost|.+\.local|.+\.internal)$|^\d{1,3}(\.\d{1,3}){3}$|^\[/i;
+const LOGO_MAX_CHARS = 500;
+
+/** An https link to a logo image on a public host; "" → null. Throws a readable Error. */
+export function normalizeLogoUrl(input: string): string | null {
+  const raw = input.trim();
+  if (!raw) return null;
+  if (raw.length > LOGO_MAX_CHARS) throw new Error('That logo link is too long.');
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    throw new Error(`“${raw}” isn’t a web address.`);
+  }
+  if (url.protocol !== 'https:') throw new Error('The logo link must start with https://.');
+  if (url.username || url.password || !url.hostname.includes('.') || PRIVATE_HOST.test(url.hostname)) {
+    throw new Error(`“${raw}” isn’t a public web address.`);
+  }
+  return url.toString();
+}
+
+/** "#1A2B3C", "1a2b3c" or "#abc" → "#1a2b3c"; "" → null. Throws a readable Error. */
+export function normalizeBrandColor(input: string): string | null {
+  const raw = input.trim();
+  if (!raw) return null;
+  const m = raw.match(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i);
+  if (!m) throw new Error(`“${raw}” isn’t a colour code like #1a2b3c.`);
+  const hex = m[1].length === 3 ? [...m[1]].map((c) => c + c).join('') : m[1];
+  return `#${hex.toLowerCase()}`;
+}
+
+/** What a partner's reports carry instead of New Wave's name: a display name (else the company) and a logo. */
+export interface PartnerBranding {
+  display_name: string | null;
+  logo_url: string | null;
+}
+
+/** Validates branding from the partner portal or the admin screen; throws a readable Error. */
+export function buildPartnerBranding(input: { display_name?: unknown; logo_url?: unknown }): PartnerBranding {
+  const str = (v: unknown) => (typeof v === 'string' ? v : '');
+  const display_name = str(input.display_name).replace(/\s+/g, ' ').trim();
+  if (display_name && display_name.length < 2) throw new Error('The name on your reports needs at least two characters.');
+  if (display_name.length > 120) throw new Error('The name on your reports can be at most 120 characters.');
+  return { display_name: display_name || null, logo_url: normalizeLogoUrl(str(input.logo_url)) };
+}
+
 export type CompetitorDraft = AuditDraft['competitors'][number];
 
 /** Validates one competitor row; an unnamed one is named after its website or @handle. */
@@ -105,6 +158,9 @@ export interface AuditInsert {
   competitors: AuditCompetitor[];
   /** Sent only for a benchmark, so queueing an audit never names the column. */
   kind?: 'benchmark';
+  /** Sent only when set, like `kind`. */
+  brand_logo_url?: string;
+  brand_color?: string;
 }
 
 /** Validates a draft from the admin form; throws a readable Error on bad input. */
@@ -120,6 +176,8 @@ export function buildAuditInsert(draft: AuditDraft): AuditInsert {
   if (draft.kind === 'benchmark' && competitors.length < BENCHMARK_COMPETITORS) {
     throw new Error('A benchmark needs two competitors, each with a website or an Instagram handle.');
   }
+  const brand_logo_url = normalizeLogoUrl(draft.brand_logo_url ?? '');
+  const brand_color = normalizeBrandColor(draft.brand_color ?? '');
   return {
     business_name,
     city: draft.city.trim() || null,
@@ -128,5 +186,7 @@ export function buildAuditInsert(draft: AuditDraft): AuditInsert {
     notes: draft.notes.trim() || null,
     competitors,
     ...(draft.kind === 'benchmark' ? { kind: 'benchmark' as const } : {}),
+    ...(brand_logo_url ? { brand_logo_url } : {}),
+    ...(brand_color ? { brand_color } : {}),
   };
 }

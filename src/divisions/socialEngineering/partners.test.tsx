@@ -10,6 +10,8 @@ const api = vi.hoisted(() => ({
   submitPartnerAudit: vi.fn(),
   partnerSignOut: vi.fn(),
   setPartnerPassword: vi.fn(),
+  getPartnerBranding: vi.fn(),
+  savePartnerBranding: vi.fn(),
 }));
 
 vi.mock('../../lib/groundswellPartner', async (orig) => ({ ...(await orig<typeof import('../../lib/groundswellPartner')>()), ...api }));
@@ -36,6 +38,7 @@ const robots = () => document.head.querySelector('meta[name="robots"]')?.getAttr
 beforeEach(() => {
   Object.values(api).forEach((fn) => fn.mockReset());
   api.currentPartner.mockResolvedValue(null);
+  api.getPartnerBranding.mockResolvedValue({ company: 'Reef Agency', branding: { display_name: null, logo_url: null }, available: true });
   vi.stubGlobal(
     'IntersectionObserver',
     class {
@@ -120,6 +123,34 @@ describe('partner dashboard', () => {
     fireEvent.change(screen.getByLabelText('Website'), { target: { value: 'harbor.example' } });
     fireEvent.click(screen.getByRole('button', { name: 'Queue the audit' }));
     expect(await screen.findByRole('status')).toHaveTextContent('Harbor Auto is queued');
+  });
+
+  it('sets the name and logo the reports carry, checking the logo link first', async () => {
+    api.currentPartner.mockResolvedValue({ company: 'Reef Agency', contact_name: null, email: 'sam@reef.example' });
+    api.listPartnerAudits.mockResolvedValue([]);
+    api.savePartnerBranding.mockImplementation(async (b: { display_name: string; logo_url: string }) => ({ company: 'Reef Agency', branding: b, available: true }));
+    renderPortal(DIVISION_PARTNER_DASHBOARD_PATH);
+    const panel = within((await screen.findByRole('heading', { name: 'Your branding' })).closest('form')!);
+    expect(panel.getByText(/Preview: Prepared by Reef Agency/)).toBeInTheDocument();
+    fireEvent.change(panel.getByLabelText('Name on your reports'), { target: { value: 'Reef Growth Co' } });
+    fireEvent.change(panel.getByLabelText('Logo link'), { target: { value: 'http://reef.example/logo.png' } });
+    fireEvent.click(panel.getByRole('button', { name: 'Save branding' }));
+    expect(await panel.findByRole('alert')).toHaveTextContent('must start with https://');
+    expect(api.savePartnerBranding).not.toHaveBeenCalled();
+    fireEvent.change(panel.getByLabelText('Logo link'), { target: { value: 'https://reef.example/logo.png' } });
+    fireEvent.click(panel.getByRole('button', { name: 'Save branding' }));
+    await waitFor(() => expect(api.savePartnerBranding).toHaveBeenCalledWith({ display_name: 'Reef Growth Co', logo_url: 'https://reef.example/logo.png' }));
+    expect(await panel.findByRole('status')).toHaveTextContent('Saved');
+    expect(panel.getByText(/Preview: Prepared by Reef Growth Co/)).toBeInTheDocument();
+  });
+
+  it('says branding is not on yet before the database supports it', async () => {
+    api.currentPartner.mockResolvedValue({ company: 'Reef Agency', contact_name: null, email: 'sam@reef.example' });
+    api.listPartnerAudits.mockResolvedValue([]);
+    api.getPartnerBranding.mockResolvedValue({ company: 'Reef Agency', branding: { display_name: null, logo_url: null }, available: false });
+    renderPortal(DIVISION_PARTNER_DASHBOARD_PATH);
+    expect(await screen.findByText(/Branding isn’t switched on yet/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Save branding' })).toBeDisabled();
   });
 });
 

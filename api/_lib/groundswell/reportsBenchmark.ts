@@ -4,7 +4,7 @@ import { escapeHtml as esc } from '../http.js';
 import type { BenchmarkOutput } from './benchmark.js';
 import type { Brand } from './brand.js';
 import type { Facts } from './model.js';
-import { baseCss, listHtml, logoImg, num, PREPARED_BY, table } from './reports.js';
+import { baseCss, listHtml, logoImg, NEW_WAVE_PREPARER, num, ownWording, preparedBy, preparerLogo, table, type Preparer } from './reports.js';
 
 /**
  * The competitive benchmark PDF (Letter, the client's brand): the business
@@ -18,6 +18,8 @@ export interface BenchmarkReportData {
   brand: Brand;
   date: string;
   benchmark: BenchmarkOutput;
+  /** Who the report is from; absent means New Wave. */
+  preparer?: Preparer;
 }
 
 const pct = (x: number | null | undefined) => (x === null || x === undefined ? 'not checked' : `${(x * 100).toFixed(2)}%`);
@@ -31,7 +33,8 @@ const AREA_WORDS: Record<string, string> = { offers: 'Offers', content: 'Content
 export function buildBenchmarkHtml(d: BenchmarkReportData): string {
   const { facts: f, brand: b, benchmark: x } = d;
   const w = x.writeup;
-  const footer = `${esc(f.business.name)} · Competitive benchmark · Prepared by ${PREPARED_BY} · ${esc(d.date)}`;
+  const who = d.preparer ?? NEW_WAVE_PREPARER;
+  const footer = `${esc(f.business.name)} · Competitive benchmark · ${preparedBy(who)} · ${esc(d.date)}`;
   const section = (kicker: string, title: string, body: string) =>
     `<section class="page"><div class="kicker">${esc(kicker)}</div><h2>${esc(title)}</h2>${body}<div class="foot">${footer}</div></section>`;
   const [own] = x.accounts;
@@ -43,7 +46,7 @@ export function buildBenchmarkHtml(d: BenchmarkReportData): string {
     { v: num(own.engagement?.cadence_per_week ?? null, 1), l: 'Posts per week' },
   ];
   const cover = `<section class="page cover">
-  <div class="band">${logoImg(b, '')}<h1>${esc(f.business.name)}</h1><div class="muted">Competitive benchmark against ${esc(x.names.slice(1).join(' and '))} · Prepared by ${PREPARED_BY} · ${esc(d.date)}</div></div>
+  <div class="band">${logoImg(b, '')}<h1>${esc(f.business.name)}</h1><div class="muted">Competitive benchmark against ${esc(x.names.slice(1).join(' and '))} · ${preparedBy(who)}${preparerLogo(who)} · ${esc(d.date)}</div></div>
   <div class="inner"><p>${esc(w.verdict)}</p>
   <div class="kpis">${tiles.map((t) => `<div class="kpi"><div class="v">${esc(t.v)}</div><div class="l">${esc(t.l)}</div></div>`).join('')}</div></div>
   <div class="foot">${footer}</div></section>`;
@@ -178,7 +181,7 @@ ${x.ads
     }`
   );
 
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(f.business.name)} - Competitive benchmark</title><style>
+  return ownWording(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(f.business.name)} - Competitive benchmark</title><style>
 ${baseCss(b)}
 @page{size:Letter;margin:0}
 .page{width:8.5in;min-height:11in;padding:0.6in 0.6in 0.8in;position:relative;page-break-after:always;font-size:10pt;line-height:1.45}
@@ -202,5 +205,5 @@ td,th{padding:4px 6px;word-break:break-word}
 .foot{position:absolute;left:0.6in;right:0.6in;bottom:0.35in;font-size:8pt;color:#6b7280;border-top:1px solid #e5e7eb;padding-top:6px}
 </style></head><body>
 ${cover}${scorecard}${earns}${ads}${pricing}${differences}${avoid}${plan}${appendixA}${appendixB}${appendixC}
-</body></html>`;
+</body></html>`, who);
 }

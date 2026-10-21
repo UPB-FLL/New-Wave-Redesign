@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { loadBranding } from './branding.js';
 import { PermanentStepError, type AuditRow, type StepDefinition } from './types.js';
 
 /**
@@ -102,8 +103,9 @@ export async function runWorker(
 
     try {
       const outputs = await loadOutputs(db, claimed.audit_id);
+      const branding = await loadBranding(db, claimed.audit_id);
       const output = await def.run({
-        audit: auditRow as AuditRow,
+        audit: { ...(auditRow as AuditRow), branding },
         outputs,
         deadline: deadline - SAFETY_MS,
         attempt: claimed.attempts,

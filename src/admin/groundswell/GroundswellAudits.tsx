@@ -26,6 +26,8 @@ const emptyDraft = (): AuditDraft => ({
   website: '',
   instagram: '',
   notes: '',
+  brand_logo_url: '',
+  brand_color: '',
   competitors: [{ name: '', website: '', instagram: '' }],
 });
 
@@ -265,6 +267,14 @@ export default function GroundswellAudits() {
           <span>Notes for the audit (optional)</span>
           <textarea className={input} rows={2} value={draft.notes} onChange={(e) => setField('notes', e.target.value)} />
         </label>
+
+        <details className="text-sm text-white/70">
+          <summary className="cursor-pointer">The business’s logo and colour (optional; the reports use its website’s otherwise)</summary>
+          <div className="grid gap-3 md:grid-cols-2 mt-2">
+            <input className={input} aria-label="The business’s logo link" placeholder="https://…/logo.png" value={draft.brand_logo_url ?? ''} onChange={(e) => setField('brand_logo_url', e.target.value)} />
+            <input className={input} aria-label="The business’s main colour" placeholder="#1a2b3c" value={draft.brand_color ?? ''} onChange={(e) => setField('brand_color', e.target.value)} />
+          </div>
+        </details>
 
         <button
           type="submit"
