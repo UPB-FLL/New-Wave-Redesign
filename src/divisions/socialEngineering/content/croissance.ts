@@ -218,6 +218,23 @@ export const auditContent = {
     heading: 'What the numbers look like',
     intro: 'What one client’s audit found, and the return board it modeled. Every audit shows three scenarios, highlights the base case, and names its sources under the table.',
   },
+  adPlan: {
+    kicker: 'The ad plan',
+    heading: 'Win the searches you can own',
+    intro:
+      'Groundswell models every angle a business can win on every ad platform its industry allows, in a low, medium and high case, and ranks them by return. For the brewery that means private events and pizza, not “best brewery”.',
+    columns: { angle: 'Angle', platform: 'Platform', cpc: 'Cost per click', clicks: 'Clicks a month', spend: 'Ad spend a month', net: '12-month net, low to high', call: 'Call' },
+    calls: { fund: 'Fund', test: 'Test', skip: 'Skip' },
+    /** The platform rules the funded and tested rows run under. */
+    conditionsHeading: 'Platform rules',
+    /** Shown when a platform has no published benchmark: nothing is guessed. */
+    unmodeledHeading: 'Not modeled',
+    templatesHeading: 'Ready-to-run ads',
+    templatesIntro:
+      'Every funded or tested row comes with ads checked against the platform’s character limits. None claims “best” without third-party proof named beside it.',
+    footnote:
+      'Medium case, a month at full speed; the 12-month net includes a two-month ramp. Keyword demand and bids: Google Ads Keyword Planner, Broward County, read October 21, 2026. Platform costs: LocaliQ 2026 benchmarks, named per row in the full audit.',
+  },
   growth: {
     kicker: 'Built to grow',
     heading: 'An audit that grows with you',

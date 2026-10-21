@@ -216,7 +216,11 @@ describe('division positioning', () => {
   });
 
   it('describes the division as national in its copy, metadata, and structured data', () => {
-    const copy = JSON.stringify([hubContent, divisionServices, contactContent, contactUsContent, customersContent, auditContent]);
+    // The Croissance page's worked example (the sample board and the ad plan's
+    // footnote) names the real places its data came from, so only the audit
+    // page's own positioning fields are checked here.
+    const auditPositioning = [auditContent.metaTitle, auditContent.metaDescription, auditContent.keywords, auditContent.headline, auditContent.summary];
+    const copy = JSON.stringify([hubContent, divisionServices, contactContent, contactUsContent, customersContent, auditPositioning]);
     expect(copy).not.toMatch(LOCAL_POSITIONING);
     expect(hubContent.summary).toMatch(/across the United States/);
     expect(hubContent.industries.note).toMatch(/Remote-first/);
@@ -440,6 +444,28 @@ describe('SocialEngineeringCroissancePage', () => {
     expect(sample).toHaveTextContent('October 21, 2026');
     expect(within(sample).getAllByRole('listitem')).toHaveLength(auditSample.findings.length + auditSample.scenarios.length);
     expect(auditSample.scenarios.filter((s) => 'highlighted' in s && s.highlighted).map((s) => s.name)).toEqual(['Base case']);
+  });
+});
+
+describe('Croissance ad plan', () => {
+  it('shows the brewery’s plan from the model, funded rows first, with Reddit listed as not modeled', () => {
+    renderAt(<SocialEngineeringCroissancePage />);
+    const band = screen.getByRole('region', { name: auditContent.adPlan.heading });
+    const rows = within(band).getAllByRole('row').slice(1); // the header row first
+    expect(within(rows[0]).getByRole('rowheader')).toHaveTextContent('Private events');
+    expect(rows[0]).toHaveTextContent('Fund');
+    expect(band).toHaveTextContent(/Not modeled: No credible published Reddit cost per click/);
+    // Alcohol rules surface as reasons, not silently dropped rows.
+    expect(band).toHaveTextContent(/TikTok alcohol ads must be shown only to people 25 and older/);
+    expect(band.textContent).not.toMatch(/%/);
+  });
+
+  it('previews ready-to-run ads for Google, Meta, Reddit and TikTok', () => {
+    renderAt(<SocialEngineeringCroissancePage />);
+    const band = screen.getByRole('region', { name: auditContent.adPlan.heading });
+    for (const label of ['Google Search · Responsive search ad', 'Meta (Facebook and Instagram) · Feed image ad', 'Reddit · Promoted post', 'TikTok · In-feed ad']) {
+      expect(within(band).getByText(label)).toBeInTheDocument();
+    }
   });
 });
 

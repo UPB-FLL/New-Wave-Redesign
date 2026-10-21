@@ -9,7 +9,8 @@ Instagram, reviews) is reported as unmodeled upside, never added to the numbers.
 NWSE's management fee replaces the fee the business already pays its current marketing company, so the
 only new money is ad spend. Say so on the ROI board, the ROI slide and the summary. If the business has no
 current marketer (the notes or research say so), say that the fee is not included and the numbers are
-before it.
+before it. If it is already an NWSE client, there is no fee to add or replace: the only new money is ad
+spend. The summary's `fee` key picks the matching sentence (`report-specs.md`).
 
 ## Model (`scripts/roi_model.py`)
 

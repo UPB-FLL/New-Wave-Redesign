@@ -65,7 +65,8 @@ slide (exit 2 otherwise). Shorten text rather than shrink type. The closing slid
 
 Headline, four KPIs, five findings each tied to a slide id, the three ROI scenarios, three 90-day steps,
 and a footer with the deck, audit and folder links. It must fit one Letter page (`render_pdf.cjs` exits 2
-otherwise).
+otherwise). Set `fee` in the summary JSON to match `roi-method.md` ("replaces", the default; "none"; or
+"client"), and `tracked` when the lever's results aren't calls and jobs (e.g. "inquiries and bookings").
 
 ## Writing rules
 
