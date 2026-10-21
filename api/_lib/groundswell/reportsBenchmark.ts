@@ -159,7 +159,7 @@ ${x.ads
   );
 
   const method = [
-    'Instagram: one page of posts and one page of reels per account (ScrapeCreators). Likes an account hides are marked hidden and left out of medians; pinned posts are left out of posts per week.',
+    'Instagram: one page of posts and one page of reels per account (ScrapeCreators). Likes an account hides are marked hidden and left out of medians; pinned posts are left out of posts per week; reels per week cover the last 28 days, or fewer when one page of reels does not reach back that far.',
     'Ads: the Meta Ad Library by each Facebook Page’s own id, Google’s Ads Transparency Center, and Ahrefs’ paid-search history. Spend is never shown.',
     `Prices: up to ${GROUNDSWELL_CONFIG.benchmark.pricing_pages_per_account} offer pages per account, read in a headless browser. Offers are sorted into tiers by a model; a price is shown only where a page shows it.`,
     'Authority: Ahrefs domain rating, referring domains (press from a fixed list of media sites), top pages and keywords; the sitemap; the About page.',

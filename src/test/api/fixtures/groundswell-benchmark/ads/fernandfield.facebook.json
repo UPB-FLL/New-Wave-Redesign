@@ -1,0 +1,13 @@
+{
+  "profile": { "name": "Fern & Field Health Coaching", "url": "https://www.facebook.example/fernandfield/", "category": "Health & wellness website", "likeCount": 988,
+    "adLibrary": { "pageId": "910000000000002", "adStatus": null } },
+  "company_ads": { "query": { "page_id": "910000000000002", "status": "ALL", "country": "ALL" }, "has_more": false, "next_cursor": null, "items": [
+    { "ad_archive_id": "920000000000001", "is_active": true, "start_date_string": "2026-10-19T07:00:00.000Z", "end_date_string": "2026-10-20T07:00:00.000Z", "total_active_time": 86141,
+      "publisher_platform": ["FACEBOOK", "INSTAGRAM"], "page_id": "910000000000002", "page_name": "Fern & Field Health Coaching", "page_like_count": 988, "spend": null, "impressions": null, "currency": "",
+      "snapshot": { "display_format": "IMAGE", "title": "Bloating is common, not normal", "cta_text": "Book now", "cta_type": "BOOK_TRAVEL",
+        "link_url": "https://fernandfield.example/contact?interest=A%20complimentary%20consultation", "caption": "https://fernandfield.example/contact?interest=A%20comp...",
+        "link_description": "Contact Fern & Field to book a complimentary consult or ask about the 4-month functional health program. Virtual sessions for clients across the US.",
+        "body": { "text": "Bloating after every meal is so common that most women assume it is just how their body works.\n\nIt isn't. It's a signal.\n\nWhen a client tells us she is bloated all the time we want to know why:\n→ enough stomach acid and enzymes to break food down?\n→ an overgrowth or imbalance in the gut?\n→ foods that trigger it?\n→ constipation or slow motility?\n→ eating on the go, stressed, in a rush?\n\nCommon doesn't mean normal.\n\nWe can help. Book a complimentary consultation.\n\nClick book now\nor\nComment DEEP DIVE to learn more about our process and finally get some answers for bloating!" },
+        "images": [{ "original_image_url": null, "resized_image_url": null }], "videos": [], "cards": [] } } ] },
+  "notes": "Meta does not disclose spend, impressions or reach for non-political ads; the fields are null in the real response too."
+}

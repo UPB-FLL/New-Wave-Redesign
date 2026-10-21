@@ -1,0 +1,25 @@
+{
+  "data": {
+    "user": {
+      "username": "fernandfield",
+      "full_name": "MORGAN | Holistic Health Practitioner",
+      "id": "310000002",
+      "follower_count": 82306,
+      "following_count": 4384,
+      "timeline_media_count": 961,
+      "is_verified": true,
+      "is_business_account": false,
+      "is_professional_account": true,
+      "category_name": null,
+      "biography": "We find & fix what your doctor missed.\nGut health | Fertility | Autoimmune | Mold\nVirtual programs to help you reclaim your health\nWork with us ↓",
+      "bio_links": [
+        {
+          "title": "Stan store",
+          "url": "https://stan.example/fernandfield",
+          "link_type": "external"
+        }
+      ],
+      "pronouns": []
+    }
+  }
+}

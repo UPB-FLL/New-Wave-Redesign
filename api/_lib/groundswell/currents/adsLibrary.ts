@@ -26,7 +26,8 @@ export function toMetaAd(r: Record<string, unknown>): MetaAd {
   const started = r.start_date_string ?? r.start_date ?? r.startDate;
   return {
     id: String(r.ad_archive_id ?? r.adArchiveID ?? r.id ?? ''),
-    started: typeof started === 'number' ? new Date(started * 1000).toISOString().slice(0, 10) : str(started, 30),
+    // The date only: epoch seconds, or an ISO timestamp cut to its day.
+    started: typeof started === 'number' ? new Date(started * 1000).toISOString().slice(0, 10) : (str(started, 30)?.replace(/^(\d{4}-\d{2}-\d{2})T.*$/, '$1') ?? null),
     active: r.is_active === true || r.isActive === true,
     platforms: (Array.isArray(r.publisher_platform) ? r.publisher_platform : Array.isArray(r.publisherPlatform) ? r.publisherPlatform : []).map(String),
     title: str(snap.title ?? r.title, 120),
@@ -34,6 +35,12 @@ export function toMetaAd(r: Record<string, unknown>): MetaAd {
     cta: str(snap.cta_text ?? r.cta_text, 40),
     landing_url: str(snap.link_url ?? r.link_url, 300),
   };
+}
+
+/** The ads in a LIST_FACEBOOK_COMPANY_ADS response, whatever it nests them under. */
+export function adRows(list: unknown): Record<string, unknown>[] {
+  const rows = findKey<unknown[]>(list, 'results') ?? findKey<unknown[]>(list, 'ads') ?? findKey<unknown[]>(list, 'searchResults') ?? findKey<unknown[]>(list, 'items') ?? [];
+  return (Array.isArray(rows) ? rows : []).map((r) => (r ?? {}) as Record<string, unknown>);
 }
 
 async function metaFor(a: BenchAccount) {
@@ -44,8 +51,7 @@ async function metaFor(a: BenchAccount) {
   const statusText = typeof lib?.adStatus === 'string' ? lib.adStatus : null;
   if (!pageId) return { pageId, statusText, ads: [], note: 'The Page has no Ad Library id.' };
   const list = await executeTool('SCRAPECREATORS_LIST_FACEBOOK_COMPANY_ADS', { page_id: pageId, status: 'ALL', country: 'ALL', trim: true });
-  const rows = findKey<unknown[]>(list, 'results') ?? findKey<unknown[]>(list, 'ads') ?? findKey<unknown[]>(list, 'searchResults') ?? [];
-  return { pageId, statusText, ads: rows.map((r) => toMetaAd((r ?? {}) as Record<string, unknown>)), note: null };
+  return { pageId, statusText, ads: adRows(list).map(toMetaAd), note: null };
 }
 
 async function paidHistory(domain: string) {

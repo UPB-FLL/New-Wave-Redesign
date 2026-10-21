@@ -1,0 +1,290 @@
+{
+  "generated_from": "A by-hand competitor benchmark session on 2026-10-21. Identities replaced; every date, like, comment, play and price kept.",
+  "rules": {
+    "dedupe": "key = created_at date + first 60 caption characters; keep the copy with play_count",
+    "hidden_likes": "like_count <= 5 && comment_count >= 8, plus like_count === 3 when the visible median is above 100",
+    "cta": "/\\b[Cc]omment\\s+[\"“]?([A-Z]{3,}(?:\\s[A-Z]{3,})?)/ (keyword case-sensitive)",
+    "engagement_rate": "median of (like_count + comment_count) / followers over items with visible likes",
+    "cadence_window": "unique non-pinned items in the 14 days ending 2026-10-20, ÷ 2",
+    "pinned": "a feed item dated more than 30 days before the item after it"
+  },
+  "accounts": {
+    "harborlightnutrition": {
+      "handle": "harborlightnutrition",
+      "followers": 83199,
+      "items_n": 20,
+      "likes_hidden_n": 0,
+      "likes_median": 28.5,
+      "comments_median": 2,
+      "comments_mean": 5.5,
+      "engagement_rate_median_pct": 0.04,
+      "cta_items_n": 0,
+      "cta_comments_mean": null,
+      "non_cta_comments_mean": 5.5,
+      "reel_plays_median": 2772,
+      "reel_plays_max": 13386,
+      "carousel_slides_mean": null,
+      "cadence_per_week": 8.5,
+      "cadence_items_in_window": 17,
+      "reels_per_week": 6,
+      "pinned_n": 3,
+      "format_mix_feed": {
+        "carousel": 8,
+        "reel": 4
+      },
+      "best_item": {
+        "date": "2026-10-09",
+        "likes": 132,
+        "comments": 35,
+        "plays": 13386
+      },
+      "reel_age_days_range": [
+        1,
+        14
+      ]
+    },
+    "fernandfield": {
+      "handle": "fernandfield",
+      "followers": 82306,
+      "items_n": 24,
+      "likes_hidden_n": 14,
+      "likes_median": 347,
+      "comments_median": 23,
+      "comments_mean": 28.2,
+      "engagement_rate_median_pct": 0.45,
+      "cta_items_n": 5,
+      "cta_comments_mean": 61.4,
+      "non_cta_comments_mean": 19.5,
+      "reel_plays_median": 8335.5,
+      "reel_plays_max": 13798,
+      "carousel_slides_mean": 8.8,
+      "cadence_per_week": 2,
+      "cadence_items_in_window": 6,
+      "cadence_window": "2026-09-29 to 2026-10-19 feed posts ÷ 3",
+      "reels_per_week": 0.25,
+      "pinned_n": 0,
+      "format_mix_feed": {
+        "carousel": 12
+      },
+      "best_item": {
+        "date": "2026-07-29",
+        "likes": 1395,
+        "comments": 28
+      },
+      "reel_age_days_range": [
+        41,
+        481
+      ]
+    }
+  },
+  "ads": {
+    "harborlightnutrition": {
+      "meta_ad_status": "not_running",
+      "meta_ads_inactive_n": 0,
+      "google_ads_status": "none",
+      "pixels": {
+        "meta": false,
+        "google_ads": false,
+        "tiktok": false
+      },
+      "paid_search_cost_usd_last_25_months": 0
+    },
+    "fernandfield": {
+      "meta_ad_status": "running",
+      "meta_ads": [
+        {
+          "started": "2026-10-19",
+          "active": true,
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "cta": "Book now"
+        }
+      ],
+      "google_ads_status": "none",
+      "pixels": {
+        "meta": true,
+        "google_ads": true,
+        "tiktok": false
+      },
+      "paid_search_cost_usd": 0
+    }
+  },
+  "authority": {
+    "harborlightnutrition": {
+      "domain_rating": 43,
+      "referring_domains_live": 1472,
+      "org_traffic_month": 1453,
+      "org_keywords": 263,
+      "press_domains_n": 8,
+      "owned_channels": [
+        "podcast",
+        "substack",
+        "newsletter",
+        "app",
+        "youtube",
+        "store"
+      ],
+      "testimonials_page": true,
+      "licensed": true
+    },
+    "fernandfield": {
+      "domain_rating": 10,
+      "referring_domains_live": 971,
+      "org_traffic_month": 0,
+      "org_keywords": 2,
+      "press_domains_n": 0,
+      "content_pages_n": 15,
+      "owned_channels": [
+        "store"
+      ],
+      "testimonials_page": false,
+      "licensed": false
+    }
+  },
+  "pricing": {
+    "harborlightnutrition": {
+      "prices_published": true,
+      "core_offer_priced": false,
+      "offers": [
+        {
+          "tier": "core",
+          "name": "1:1 nutrition coaching / concierge care",
+          "price_low": null,
+          "price_high": null,
+          "cadence": null,
+          "includes_testing": null,
+          "url": "https://harborlightnutrition.example/nutrition-coaching/"
+        },
+        {
+          "tier": "private_small",
+          "name": "Mold Bundle: mycotoxin test, RD review, protocol, guided implementation",
+          "price_low": 497,
+          "price_high": 498,
+          "cadence": "one_time",
+          "includes_testing": true,
+          "url": "https://harborlightnutrition.example/mold-bundle/"
+        },
+        {
+          "tier": "low_ticket",
+          "name": "The Histamine Solution course, 6 weeks, lifetime access",
+          "price_low": 199,
+          "price_high": 199,
+          "cadence": "one_time",
+          "includes_testing": false,
+          "url": "https://harborlightnutrition.example/course/histamine-solution/"
+        },
+        {
+          "tier": "free",
+          "name": "Exploration call (20 min), mold quiz, health guide, podcast, Substack, app",
+          "price_low": 0,
+          "price_high": 0,
+          "cadence": null,
+          "includes_testing": false,
+          "url": "https://harborlightnutrition.example/"
+        }
+      ],
+      "payment_plans": true,
+      "refunds": "none",
+      "accepts_insurance": null,
+      "hsa_fsa_mentioned": false,
+      "free_consult": true,
+      "lead_magnets": [
+        "mold quiz",
+        "health guide",
+        "grocery guide"
+      ],
+      "dm_automation": false,
+      "contact_email_domain": "own"
+    },
+    "fernandfield": {
+      "prices_published": true,
+      "core_offer_priced": true,
+      "offers": [
+        {
+          "tier": "core",
+          "name": "4-Month Program, labs included",
+          "price_low": 2800,
+          "price_high": 3500,
+          "cadence": "one_time",
+          "includes_testing": true,
+          "url": "https://fernandfield.example/work-with-us"
+        },
+        {
+          "tier": "private_small",
+          "name": "One-time consultation, 2 labs reviewed, labs not included, credited toward program",
+          "price_low": 350,
+          "price_high": 350,
+          "cadence": "one_time",
+          "includes_testing": false,
+          "url": "https://fernandfield.example/work-with-us"
+        },
+        {
+          "tier": "retention",
+          "name": "Returning client support, 3-month minimum then monthly",
+          "price_low": 1500,
+          "price_high": 1500,
+          "cadence": "monthly",
+          "includes_testing": false,
+          "url": "https://fernandfield.example/work-with-us",
+          "note": "then 50 per month"
+        },
+        {
+          "tier": "membership",
+          "name": "The Collective: Essentials / Guided / Complete",
+          "price_low": 79,
+          "price_high": 300,
+          "cadence": "monthly",
+          "includes_testing": null,
+          "url": "https://fernandfield.example/collective"
+        },
+        {
+          "tier": "low_ticket",
+          "name": "Unexplained Infertility Guide",
+          "price_low": 28,
+          "price_high": 28,
+          "cadence": "one_time",
+          "includes_testing": false,
+          "url": "https://stan.example/fernandfield"
+        },
+        {
+          "tier": "free",
+          "name": "Complimentary 20-minute consult, free bloodwork guide via DM",
+          "price_low": 0,
+          "price_high": 0,
+          "cadence": null,
+          "includes_testing": false,
+          "url": "https://fernandfield.example/contact"
+        }
+      ],
+      "payment_plans": true,
+      "refunds": "none",
+      "accepts_insurance": false,
+      "hsa_fsa_mentioned": true,
+      "free_consult": true,
+      "lead_magnets": [
+        "bloodwork guide"
+      ],
+      "dm_automation": true,
+      "contact_email_domain": "gmail"
+    }
+  },
+  "scorecard_leaders": {
+    "engagement_rate": "fernandfield",
+    "cadence": "harborlightnutrition",
+    "published_prices": "fernandfield",
+    "core_offer_priced": "fernandfield",
+    "entry_products": "harborlightnutrition",
+    "recurring": "fernandfield",
+    "meta_ads": "fernandfield",
+    "pixels": "fernandfield",
+    "domain_rating": "harborlightnutrition",
+    "organic_traffic": "harborlightnutrition",
+    "press": "harborlightnutrition",
+    "owned_channels": "harborlightnutrition",
+    "testimonials": "harborlightnutrition",
+    "credentials": "harborlightnutrition",
+    "followers": "even"
+  }
+}

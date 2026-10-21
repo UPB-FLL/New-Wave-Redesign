@@ -74,9 +74,15 @@ two competitors entered, and a fourth PDF.
   count on the overview.
 - **Tests**: `packages/groundswell/test/benchmark.test.ts`,
   `src/test/api/groundswell-benchmark.test.ts` (made-up accounts; prints the
-  PDF, 13 slides, one-page summary), plus partner, admin and route cases. The
-  real Isabel Smith Nutrition / Wildly Primal session data is to be added as
-  fixtures once its owner confirms in that session.
+  PDF, 13 slides, one-page summary), plus partner, admin and route cases.
+- **Real-session fixtures** (`src/test/api/fixtures/groundswell-benchmark/`,
+  anonymised: two fictional accounts, every date, count and price kept;
+  `groundswell-benchmark-fixtures.test.ts`): the rules reproduce that by-hand
+  session's figures, ad statuses, prices and leaders, except where its own
+  numbers do not follow from its data (the test's `DIFFERS` and
+  `LEADERS_DIFFER` say why). Two spec rules changed on that data: pinned posts
+  are the leading posts (at most three) older than a post after them, and
+  reels per week divide by the weeks a cut-short reels page covers (`has_more`).
 
 ### Groundswell: the ad plan and change ranking in the live audits (2026-10-21)
 

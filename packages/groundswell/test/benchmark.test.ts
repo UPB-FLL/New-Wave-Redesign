@@ -83,6 +83,26 @@ describe('engagement', () => {
     expect(profile.cadence_per_week).toBe(1.5); // three unpinned items in 14 days
   });
 
+  it('flags up to three leading posts older than one after them, pinned newest first or not', () => {
+    const p = engagementProfile('pins', 10_000, [
+      item({ taken_at: daysAgo(20), caption: 'Pin 1' }),
+      item({ taken_at: daysAgo(40), caption: 'Pin 2' }),
+      item({ taken_at: daysAgo(60), caption: 'Pin 3' }),
+      item({ taken_at: daysAgo(80), caption: 'A fourth: Instagram pins three' }),
+      item({ taken_at: daysAgo(1), caption: 'Newest' }),
+      item({ taken_at: daysAgo(2), caption: 'Next' }),
+    ], [], NOW);
+    expect(p.items.filter((i) => i.pinned).map((i) => i.hook)).toEqual(['Pin 1', 'Pin 2', 'Pin 3']);
+    const plain = engagementProfile('plain', 10_000, [item({ taken_at: daysAgo(1) }), item({ taken_at: daysAgo(40), caption: 'b' })], [], NOW);
+    expect(plain.items.some((i) => i.pinned)).toBe(false);
+  });
+
+  it('divides reels by the weeks a cut-short reels page covers, else by four', () => {
+    const reels = [1, 3, 6, 9, 14].map((d, n) => item({ list: 'reel', media_type: 2, product_type: 'clips', taken_at: daysAgo(d), caption: `r${n}`, play_count: 100 }));
+    expect(engagementProfile('r', 1_000, [], reels, NOW, true).reels_per_week).toBe(2.5); // 5 reels over 2 weeks
+    expect(engagementProfile('r', 1_000, [], reels, NOW, false).reels_per_week).toBe(1.25); // 5 ÷ 4
+  });
+
   it('treats a placeholder like count with many comments as hidden', () => {
     const cta = profile.items.find((i) => i.cta_keyword === 'GUIDE')!;
     expect(cta.likes_hidden).toBe(true);

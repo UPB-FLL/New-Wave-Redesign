@@ -1,0 +1,268 @@
+{
+  "account": "fernandfield",
+  "pages": [
+    {
+      "url": "https://fernandfield.example/work-with-us",
+      "chars": 5802,
+      "dollar_matches": [
+        {
+          "price": "$2,800",
+          "context": "gether depending on how much guidance, testing, and ongoing support you’re looking for. 4-Month Fern & Field Program $2,800–$3,500 payment plan options available Ask about the program Our 4-month program is for clients who want a deeper, mo"
+        },
+        {
+          "price": "$3,500",
+          "context": "depending on how much guidance, testing, and ongoing support you’re looking for. 4-Month Fern & Field Program $2,800–$3,500 payment plan options available Ask about the program Our 4-month program is for clients who want a deeper, more comp"
+        },
+        {
+          "price": "$350",
+          "context": "t the process rather than simply receiving recommendations and implementing them independently. One-Time Consultation $350 lab testing not included Ask about a consultation For clients who do not want a full program, we offer a one-time co"
+        },
+        {
+          "price": "$350",
+          "context": "r Personalized interpretation of your results A recommended protocol and next steps Lab testing is not included in the $350 consultation fee. We can make recommendations on the best labs for you based on the information on your intake form. W"
+        },
+        {
+          "price": "$350",
+          "context": "another consultation may be considered if appropriate, or you may choose to transition into our 4-month program and the $350 will be applied to the total. Returning Client Support $1,500 up front for the first 3 months, then $250 per month"
+        },
+        {
+          "price": "$1,500",
+          "context": "may choose to transition into our 4-month program and the $350 will be applied to the total. Returning Client Support $1,500 up front for the first 3 months, then $250 per month Ask about returning For clients who have previously completed a"
+        },
+        {
+          "price": "$250permonth",
+          "context": "ram and the $350 will be applied to the total. Returning Client Support $1,500 up front for the first 3 months, then $250 per month Ask about returning For clients who have previously completed a Fern & Field program and want to work with us again,"
+        },
+        {
+          "price": "$1,500",
+          "context": "program and want to work with us again, we offer a monthly returning-client option with a 3-month minimum commitment of $1,500 up front and $250 each month after on a month-to-month basis. This is designed for past clients who have a new goal, w"
+        },
+        {
+          "price": "$250",
+          "context": "work with us again, we offer a monthly returning-client option with a 3-month minimum commitment of $1,500 up front and $250 each month after on a month-to-month basis. This is designed for past clients who have a new goal, want to revisit the"
+        },
+        {
+          "price": "$2,800",
+          "context": "rotocol changes are made. SIDE BY SIDE Which option is right for you? FOR ONGOING OR COMPLEX CASES 4-Month Program $2,800–$3,500 If you are dealing with ongoing symptoms, a more complex health history, or want continued guidance, testing st"
+        },
+        {
+          "price": "$3,500",
+          "context": "changes are made. SIDE BY SIDE Which option is right for you? FOR ONGOING OR COMPLEX CASES 4-Month Program $2,800–$3,500 If you are dealing with ongoing symptoms, a more complex health history, or want continued guidance, testing strategy,"
+        },
+        {
+          "price": "$350",
+          "context": "ogram is the appropriate option. Read the details : 4-Month Program FOR STRAIGHTFORWARD CASES One-Time Consultation $350 If your case is appropriate for a one-time review and you want Fern & Field recommended labs interpreted along with a"
+        },
+        {
+          "price": "$350",
+          "context": "one-time review and you want Fern & Field recommended labs interpreted along with a clear protocol and next steps, the $350 consultation may be a good fit. Read the details : One-Time Consultation PAST CLIENTS ONLY Returning Client Support"
+        },
+        {
+          "price": "$1,500",
+          "context": "consultation may be a good fit. Read the details : One-Time Consultation PAST CLIENTS ONLY Returning Client Support $1,500 3-month minimum, then $250 per month If you have previously completed a Fern & Field program and want to return for"
+        },
+        {
+          "price": "$250permonth",
+          "context": ". Read the details : One-Time Consultation PAST CLIENTS ONLY Returning Client Support $1,500 3-month minimum, then $250 per month If you have previously completed a Fern & Field program and want to return for a new goal, updated testing, fertility"
+        }
+      ],
+      "flags": {
+        "non_refundable": true,
+        "cancellation": false,
+        "insurance": false,
+        "hsa_fsa": false,
+        "free_consult": true,
+        "payment_plan": true,
+        "lead_magnet": false,
+        "book_call": true
+      }
+    },
+    {
+      "url": "https://fernandfield.example/faq",
+      "chars": 5429,
+      "dollar_matches": [
+        {
+          "price": "$2,800",
+          "context": "ch person rather than being limited by what an insurance plan will approve. What does it cost? The 4-month program is $2,800–$3,500, depending on the testing your case calls for, with payment plan options available. A one-time consultation is $"
+        },
+        {
+          "price": "$3,500,",
+          "context": "on rather than being limited by what an insurance plan will approve. What does it cost? The 4-month program is $2,800–$3,500, depending on the testing your case calls for, with payment plan options available. A one-time consultation is $350, wit"
+        },
+        {
+          "price": "$350,",
+          "context": "0–$3,500, depending on the testing your case calls for, with payment plan options available. A one-time consultation is $350, with lab testing ordered separately. Returning-client support, for people who have already completed a program with us,"
+        },
+        {
+          "price": "$1,500",
+          "context": "h lab testing ordered separately. Returning-client support, for people who have already completed a program with us, is $1,500 up front for the first three months and $250 a month after that. We talk it through openly on the complimentary consult"
+        },
+        {
+          "price": "$250",
+          "context": "ent support, for people who have already completed a program with us, is $1,500 up front for the first three months and $250 a month after that. We talk it through openly on the complimentary consult, before anyone commits to anything. Do you"
+        },
+        {
+          "price": "$350,",
+          "context": "h a review. In the 4-month program, it is chosen for your case and walked through with you. In a one-time consultation ($350, lab testing not included), we recommend labs based on your intake form, they are ordered separately, and we review the"
+        }
+      ],
+      "flags": {
+        "non_refundable": true,
+        "cancellation": false,
+        "insurance": true,
+        "hsa_fsa": false,
+        "free_consult": true,
+        "payment_plan": true,
+        "lead_magnet": false,
+        "book_call": true
+      }
+    },
+    {
+      "url": "https://fernandfield.example/collective",
+      "chars": 6280,
+      "dollar_matches": [
+        {
+          "price": "$79permonth",
+          "context": "derstand their own body: taught properly, in a group, with a plan for what to actually do each month. MEMBERSHIP From $79 per month Essentials $79 Guided $180 Complete $300 WHAT YOU GET Four things, every month Education, access, community and imp"
+        },
+        {
+          "price": "$79",
+          "context": "aught properly, in a group, with a plan for what to actually do each month. MEMBERSHIP From $79 per month Essentials $79 Guided $180 Complete $300 WHAT YOU GET Four things, every month Education, access, community and implementation. In"
+        },
+        {
+          "price": "$180",
+          "context": "rly, in a group, with a plan for what to actually do each month. MEMBERSHIP From $79 per month Essentials $79 Guided $180 Complete $300 WHAT YOU GET Four things, every month Education, access, community and implementation. In one place, e"
+        },
+        {
+          "price": "$300",
+          "context": "p, with a plan for what to actually do each month. MEMBERSHIP From $79 per month Essentials $79 Guided $180 Complete $300 WHAT YOU GET Four things, every month Education, access, community and implementation. In one place, every month. A"
+        },
+        {
+          "price": "$79permonth",
+          "context": "ten we meet — from reading labs you already hold, to testing through us, to bloodwork and a weekly rhythm. Essentials $79 per month For people who already hold recent labs and want a practitioner to read them properly and build the plan around them."
+        },
+        {
+          "price": "$79permonth",
+          "context": "ological ones A personalized nutrition and lifestyle plan Testing is not ordered through us at this level. INVESTMENT $79 per month Guided $180 per month Testing through us according to your plan, with a monthly rhythm of check-ins to keep the work"
+        },
+        {
+          "price": "$180permonth",
+          "context": "lized nutrition and lifestyle plan Testing is not ordered through us at this level. INVESTMENT $79 per month Guided $180 per month Testing through us according to your plan, with a monthly rhythm of check-ins to keep the work moving between them. T"
+        },
+        {
+          "price": "$180permonth",
+          "context": "heck-ins A personalized nutrition and lifestyle plan Which panels your plan includes depends on your case. INVESTMENT $180 per month Complete $300 per month The closest support we offer: bloodwork through us, a weekly rhythm of check-ins, and access"
+        },
+        {
+          "price": "$300permonth",
+          "context": "trition and lifestyle plan Which panels your plan includes depends on your case. INVESTMENT $180 per month Complete $300 per month The closest support we offer: bloodwork through us, a weekly rhythm of check-ins, and access to the practitioner porta"
+        },
+        {
+          "price": "$300permonth",
+          "context": "d nutrition and lifestyle plan Which panels your plan includes depends on your case. What’s in the portal INVESTMENT $300 per month AT EVERY LEVEL Whichever level you are on, the membership itself is the same. These come with all three. One deep-di"
+        }
+      ],
+      "flags": {
+        "non_refundable": false,
+        "cancellation": false,
+        "insurance": false,
+        "hsa_fsa": false,
+        "free_consult": true,
+        "payment_plan": true,
+        "lead_magnet": false,
+        "book_call": true
+      }
+    },
+    {
+      "url": "https://fernandfield.example/shop",
+      "chars": 4616,
+      "dollar_matches": [],
+      "flags": {
+        "non_refundable": false,
+        "cancellation": false,
+        "insurance": false,
+        "hsa_fsa": false,
+        "free_consult": true,
+        "payment_plan": false,
+        "lead_magnet": true,
+        "book_call": true
+      }
+    },
+    {
+      "url": "https://stan.example/fernandfield",
+      "chars": 670,
+      "dollar_matches": [
+        {
+          "price": "$28",
+          "context": "FERN & FIELD Not getting pregnant? This guide contains the root causes your doctor missed.... $28 Get The Guide WAYS TO WORK WITH US: SCHEDULE A FREE CONSULT FERN & FIELD WEBSITE WILD APPROVED BRANDS Order profession"
+        }
+      ],
+      "flags": {
+        "non_refundable": false,
+        "cancellation": false,
+        "insurance": false,
+        "hsa_fsa": false,
+        "free_consult": true,
+        "payment_plan": false,
+        "lead_magnet": false,
+        "book_call": false
+      }
+    },
+    {
+      "url": "https://fernandfield.example/functional-labs",
+      "chars": 7643,
+      "dollar_matches": [],
+      "flags": {
+        "non_refundable": false,
+        "cancellation": false,
+        "insurance": false,
+        "hsa_fsa": false,
+        "free_consult": true,
+        "payment_plan": false,
+        "lead_magnet": false,
+        "book_call": true
+      }
+    },
+    {
+      "url": "https://fernandfield.example/contact",
+      "chars": 2314,
+      "dollar_matches": [],
+      "flags": {
+        "non_refundable": false,
+        "cancellation": false,
+        "insurance": false,
+        "hsa_fsa": false,
+        "free_consult": true,
+        "payment_plan": false,
+        "lead_magnet": false,
+        "book_call": true
+      }
+    },
+    {
+      "url": "https://fernandfield.example/about",
+      "chars": 2000,
+      "dollar_matches": [],
+      "flags": {
+        "non_refundable": false,
+        "cancellation": false,
+        "insurance": false,
+        "hsa_fsa": false,
+        "free_consult": true,
+        "payment_plan": false,
+        "lead_magnet": false,
+        "book_call": true
+      }
+    }
+  ],
+  "flags": {
+    "non_refundable": true,
+    "cancellation": false,
+    "insurance": true,
+    "hsa_fsa": false,
+    "free_consult": true,
+    "payment_plan": true,
+    "lead_magnet": true,
+    "book_call": true
+  },
+  "prices_published": true
+}

@@ -50,7 +50,9 @@ async function depth(handle: string, followers: number | null): Promise<Engageme
     handle,
     followers,
     mediaList(posts).map((r) => toRawItem(r, 'post')),
-    mediaList(reels).map((r) => toRawItem(r, 'reel'))
+    mediaList(reels).map((r) => toRawItem(r, 'reel')),
+    Date.now(),
+    findKey(reels, 'has_more') === true
   );
 }
 

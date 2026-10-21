@@ -162,9 +162,13 @@ The business against its top two competitors, for any industry. The rules
 are code here; the engine only fetches the data.
 
 - **Engagement** (`engagement.ts`): one page of posts and one of reels per
-  account, deduped (the reels page repeats posts), pinned posts left out of
-  cadence, hidden likes detected (an account that hides likes reads as a small
-  placeholder), and comment-to-DM prompts ("comment GUIDE") counted.
+  account, deduped (the reels page repeats posts), pinned posts (the leading
+  posts, at most three, older than a post after them) left out of cadence,
+  hidden likes detected (an account that hides likes reads as a small
+  placeholder), comment-to-DM prompts ("comment GUIDE") counted, and reels
+  per week over the weeks a reels page actually covers when it stops short of
+  28 days. A real by-hand benchmark, anonymised, checks these rules
+  (`src/test/api/fixtures/groundswell-benchmark/` in New Wave's repository).
 - **Ads** (`ads.ts`): the Meta Ad Library by the Page's own id and Google's Ads
   Transparency Center. A verified negative ("isn't currently running ads", "0
   ads, any time") is kept apart from "could not be determined". No spend,

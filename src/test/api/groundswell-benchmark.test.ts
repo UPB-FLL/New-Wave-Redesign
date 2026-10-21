@@ -24,7 +24,7 @@ import {
   fakeFetch,
   igPosts,
   igReels,
-} from './fixtures/groundswell-benchmark';
+} from './fixtures/groundswell-benchmark-sample';
 
 const ctx = (outputs: Record<string, unknown>) => ({ audit: benchmarkAudit, outputs, deadline: Date.now() + 250_000, attempt: 1 });
 

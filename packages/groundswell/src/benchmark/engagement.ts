@@ -8,12 +8,18 @@
  *   marks it a clip (or it came from the reels list), else a video;
  * - dedupe: the reels page repeats posts; items match on time and the first
  *   60 characters of the caption, and the copy with plays is kept;
- * - pinned: the feed lists pinned posts first, out of order; a post more than
- *   30 days older than the one after it is pinned and left out of cadence;
+ * - pinned: Instagram lists up to three pinned posts first, out of date
+ *   order, and every other post newest first; so each of the leading posts
+ *   that is more than a day older than a post listed after it is pinned, and
+ *   left out of cadence (the spec's "30 days older than the next post" missed
+ *   pinned posts listed newest first);
  * - hidden likes: an account that hides likes reads as a small placeholder
  *   (seen as 3). Likes of 5 or fewer with 8 or more comments are hidden, and so
  *   is a 3 when the account's visible median is above 100. Hidden items are
  *   left out of like and engagement-rate medians;
+ * - reels per week: reels in the last 28 days ÷ 4, unless the reels page
+ *   stops short (more reels exist) inside 28 days, in which case the count is
+ *   divided by the weeks that page covers (in whole days), at least one;
  * - comment-to-DM prompts: "comment GUIDE" style calls, keyword in capitals.
  */
 
@@ -67,7 +73,7 @@ export interface EngagementProfile {
   best_item: EngagementItem | null;
   /** Unpinned items in the last 14 days, per week. */
   cadence_per_week: number;
-  /** Reels in the last 28 days, per week. */
+  /** Reels in the last 28 days, per week, or over the days a page that stops short covers. */
   reels_per_week: number;
   format_mix: Record<MediaType, number>;
   carousel_slides_mean: number | null;
@@ -82,7 +88,10 @@ export interface EngagementProfile {
 }
 
 const DAY = 86_400_000;
-const PINNED_GAP_DAYS = 30;
+/** Instagram's limit on pinned posts. */
+const PINNED_MAX = 3;
+const PINNED_MARGIN_DAYS = 1;
+const REELS_WINDOW_DAYS = 28;
 const HOOK_CHARS = 90;
 const DEDUPE_CHARS = 60;
 
@@ -133,12 +142,21 @@ interface Timed extends RawMediaItem {
   pinned: boolean;
 }
 
-/** Marks pinned posts: in feed order, a post more than 30 days older than the one after it. */
+/** Marks pinned posts: in feed order, each of the first three, while each is more than a day older than a post after it. */
 function markPinned(posts: Timed[]): Timed[] {
+  let leading = true;
   return posts.map((p, i) => {
-    const next = posts[i + 1];
-    return { ...p, pinned: Boolean(next && next.t - p.t > PINNED_GAP_DAYS * DAY) };
+    const newestAfter = Math.max(-Infinity, ...posts.slice(i + 1).map((q) => q.t));
+    leading = leading && i < PINNED_MAX && newestAfter - p.t > PINNED_MARGIN_DAYS * DAY;
+    return { ...p, pinned: leading };
   });
+}
+
+/** Weeks the reels page covers: four, or fewer when the page stops short inside 28 days. */
+function reelWeeks(reels: Timed[], reelsHaveMore: boolean, now: number): number {
+  if (!reelsHaveMore || !reels.length) return REELS_WINDOW_DAYS / 7;
+  const days = Math.ceil((now - Math.min(...reels.map((r) => r.t))) / DAY);
+  return Math.max(1, Math.min(REELS_WINDOW_DAYS, days) / 7);
 }
 
 /** One item per post or reel: the copy with plays wins when both lists carry it. */
@@ -162,11 +180,14 @@ export function engagementProfile(
   followers: number | null,
   posts: RawMediaItem[],
   reels: RawMediaItem[],
-  now = Date.now()
+  now = Date.now(),
+  /** The reels list said more reels exist beyond this page. */
+  reelsHaveMore = false
 ): EngagementProfile {
   const timed = (xs: RawMediaItem[]) =>
     xs.map((x) => ({ ...x, t: timeOf(x.taken_at), pinned: false })).filter((x): x is Timed => x.t !== null);
-  const unique = dedupe([...markPinned(timed(posts)), ...timed(reels)]).sort((a, b) => b.t - a.t);
+  const reelPage = timed(reels);
+  const unique = dedupe([...markPinned(timed(posts)), ...reelPage]).sort((a, b) => b.t - a.t);
 
   // Hidden likes, in two passes: the obvious placeholders first, then a 3 among visible likes in the hundreds.
   const firstPassVisible = unique
@@ -221,7 +242,7 @@ export function engagementProfile(
     engagement_rate_best: rates.length ? Math.max(...rates) : null,
     best_item: best,
     cadence_per_week: within(14).filter((i) => !i.pinned).length / 2,
-    reels_per_week: within(28).filter((i) => i.type === 'reel').length / 4,
+    reels_per_week: within(REELS_WINDOW_DAYS).filter((i) => i.type === 'reel').length / reelWeeks(reelPage, reelsHaveMore, now),
     format_mix: mix,
     carousel_slides_mean: mean(slides),
     reel_plays_median: median(withPlays.map((r) => r.plays as number)),
