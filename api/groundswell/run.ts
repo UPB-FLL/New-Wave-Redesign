@@ -2,7 +2,7 @@ import { requireAdmin } from '../_lib/adminKey.js';
 import { runWorkerInBackground } from '../_lib/groundswell/background.js';
 import { isComposioConfigured } from '../_lib/groundswell/composio.js';
 import { startQueuedAudits } from '../_lib/groundswell/engine.js';
-import { STEPS } from '../_lib/groundswell/steps.js';
+import { BENCHMARK_STEPS, STEPS } from '../_lib/groundswell/steps.js';
 import { methodGuard, type ApiRequest, type ApiResponse } from '../_lib/http.js';
 import { getSupabaseAdmin, isSupabaseConfigured } from '../_lib/supabaseAdmin.js';
 
@@ -61,7 +61,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
 
   let started: string[];
   try {
-    started = await startQueuedAudits(getSupabaseAdmin(), STEPS, MAX_AUDITS_PER_CLICK);
+    started = await startQueuedAudits(getSupabaseAdmin(), STEPS, MAX_AUDITS_PER_CLICK, BENCHMARK_STEPS);
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: 'Could not start the queued audits.' });

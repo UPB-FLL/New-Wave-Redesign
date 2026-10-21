@@ -1,5 +1,6 @@
 import { getSupabaseAdmin } from '../supabaseAdmin.js';
 import { isAdplanOutput } from './adplan.js';
+import type { BenchmarkOutput } from './benchmark.js';
 import { withBrowser } from './browser.js';
 import { brandFrom } from './brand.js';
 import {
@@ -16,12 +17,14 @@ import {
 import { buildFacts } from './model.js';
 import { assertDriveOnly, renderPdf } from './render.js';
 import { buildAuditHtml, buildDeckHtml, buildSummaryHtml, formatDate, type ModelOutput, type ReportData } from './reports.js';
+import { buildBenchmarkHtml } from './reportsBenchmark.js';
 import { PermanentStepError, type StepContext } from './types.js';
 
 /**
  * Delivery Current. Drive ids only exist once a file is uploaded, so the
- * reports go up in link order: the full audit (no links), then the slides
- * (link the audit), then the summary (links the slides, audit and folder).
+ * reports go up in link order: the full audit (no links), the competitive
+ * benchmark when the audit is one (no links), then the slides (link the
+ * audit), then the summary (links the slides, audit and folder).
  * The last step shares everything, verifies it, and writes the links back.
  */
 
@@ -45,7 +48,14 @@ function reportData(ctx: StepContext): ReportData {
   const facts = buildFacts(ctx.audit, ctx.outputs);
   // An audit started before the ad-plan step existed, or one whose step was skipped, has no plan.
   const adplan = isAdplanOutput(ctx.outputs.adplan) ? ctx.outputs.adplan : null;
-  return { facts, model, brand: brandFrom(facts.site?.business), adplan, date: formatDate(new Date(model.generated_at)) };
+  const benchmark = isBenchmarkOutput(ctx.outputs.benchmark) ? ctx.outputs.benchmark : null;
+  return { facts, model, brand: brandFrom(facts.site?.business), adplan, benchmark, date: formatDate(new Date(model.generated_at)) };
+}
+
+/** True for a usable benchmark step output (only a competitor benchmark has one). */
+export function isBenchmarkOutput(x: unknown): x is BenchmarkOutput {
+  const o = x as Partial<BenchmarkOutput> | null | undefined;
+  return Boolean(o && Array.isArray(o.scorecard) && Array.isArray(o.accounts) && o.writeup);
 }
 
 const need = <T>(ctx: StepContext, step: string): T => {
@@ -81,6 +91,12 @@ export async function runDeliverAudit(ctx: StepContext): Promise<Uploaded> {
   return printAndUpload(ctx, 'Full Marketing Audit', buildAuditHtml(reportData(ctx)));
 }
 
+export async function runDeliverBenchmark(ctx: StepContext): Promise<Uploaded> {
+  const d = reportData(ctx);
+  if (!d.benchmark) throw new PermanentStepError('The benchmark write-up is missing, so the benchmark PDF cannot be built.');
+  return printAndUpload(ctx, 'Competitive Benchmark', buildBenchmarkHtml({ facts: d.facts, brand: d.brand, date: d.date, benchmark: d.benchmark }));
+}
+
 export async function runDeliverDeck(ctx: StepContext): Promise<Uploaded> {
   const audit = need<Uploaded>(ctx, 'deliver_audit');
   return printAndUpload(ctx, 'Marketing Audit Slides', buildDeckHtml(reportData(ctx), { audit: fileLink(audit.file_id) }));
@@ -101,9 +117,11 @@ export async function runDeliverSummary(ctx: StepContext): Promise<Uploaded> {
 export async function runDeliverFinish(ctx: StepContext) {
   const { folder_id } = need<Prepared>(ctx, 'deliver_prepare');
   const files = (['deliver_audit', 'deliver_deck', 'deliver_summary'] as const).map((s) => need<Uploaded>(ctx, s));
-  for (const id of [folder_id, ...files.map((f) => f.file_id)]) await shareAnyoneReader(id);
+  // Only a competitor benchmark has a fourth file; an audit's update never names the column.
+  const bench = ctx.outputs.deliver_benchmark as Uploaded | undefined;
+  for (const id of [folder_id, ...files.map((f) => f.file_id), ...(bench ? [bench.file_id] : [])]) await shareAnyoneReader(id);
   await verifyShared(folder_id);
-  for (const f of files) await verifyShared(f.file_id, folder_id);
+  for (const f of [...files, ...(bench ? [bench] : [])]) await verifyShared(f.file_id, folder_id);
 
   const [audit, deck, summary] = files;
   const links = {
@@ -111,6 +129,7 @@ export async function runDeliverFinish(ctx: StepContext) {
     audit_pdf_url: fileLink(audit.file_id),
     deck_pdf_url: fileLink(deck.file_id),
     summary_pdf_url: fileLink(summary.file_id),
+    ...(bench ? { benchmark_pdf_url: fileLink(bench.file_id) } : {}),
   };
   const { error } = await getSupabaseAdmin()
     .from('marketing_audits')

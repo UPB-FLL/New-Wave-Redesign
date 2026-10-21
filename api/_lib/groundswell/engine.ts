@@ -33,8 +33,24 @@ export interface WorkerReport {
 
 const message = (err: unknown) => (err instanceof Error ? err.message : String(err)).slice(0, 500);
 
-export async function startQueuedAudits(db: SupabaseClient, steps: StepDefinition[], max = 3): Promise<string[]> {
-  const { data, error } = await db.rpc('start_queued_audits', { step_names: steps.map((s) => s.name), max_audits: max });
+/**
+ * Starts queued audits, giving each the step list for its kind. Before the
+ * benchmark migration (20261022120000) the database has only the two-argument
+ * function; then every audit gets the audit steps.
+ */
+export async function startQueuedAudits(
+  db: SupabaseClient,
+  steps: StepDefinition[],
+  max = 3,
+  benchmarkSteps: StepDefinition[] | null = null
+): Promise<string[]> {
+  const args = { step_names: steps.map((s) => s.name), max_audits: max };
+  let { data, error } = benchmarkSteps
+    ? await db.rpc('start_queued_audits', { ...args, benchmark_step_names: benchmarkSteps.map((s) => s.name) })
+    : await db.rpc('start_queued_audits', args);
+  if (error && benchmarkSteps && /could not find the function|function .* does not exist|PGRST202/i.test(`${error.message} ${(error as { code?: string }).code ?? ''}`)) {
+    ({ data, error } = await db.rpc('start_queued_audits', args));
+  }
   if (error) throw new Error(`Could not start queued audits: ${error.message}`);
   return ((data ?? []) as unknown[]).map((v) => (typeof v === 'string' ? v : (v as { start_queued_audits: string }).start_queued_audits));
 }

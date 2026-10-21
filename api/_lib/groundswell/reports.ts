@@ -5,6 +5,7 @@ import { GROUNDSWELL_CONFIG } from '../../../packages/groundswell/groundswell.co
 import type { PlanRow } from '../../../packages/groundswell/src/adplan.js';
 import type { ChangeArea, RankedChange } from '../../../packages/groundswell/src/changes.js';
 import type { AdplanOutput } from './adplan.js';
+import type { BenchmarkOutput } from './benchmark.js';
 import type { Brand } from './brand.js';
 import { AREAS, type AreaKey, type Facts, type runModel } from './model.js';
 import type { RoiScenarioResult } from './roi.js';
@@ -33,6 +34,8 @@ export interface ReportData {
   brand: Brand;
   /** The ad-plan step's output; null when it did not run. */
   adplan: AdplanOutput | null;
+  /** The benchmark step's output, for a competitor benchmark; absent for an audit. */
+  benchmark?: BenchmarkOutput | null;
   /** Shown as "Prepared by New Wave: Social Engineering · <date>". */
   date: string;
 }
@@ -92,7 +95,7 @@ function fontFace(): string {
   return fontCache ?? '';
 }
 
-function baseCss(b: Brand) {
+export function baseCss(b: Brand) {
   return `${fontFace()}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{font-family:'Report',Inter,Arial,Helvetica,sans-serif;color:#111827;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -113,10 +116,10 @@ ul{padding-left:1.1em}
 .base{background:${b.tint}}`;
 }
 
-const logoImg = (b: Brand, cls: string) =>
+export const logoImg = (b: Brand, cls: string) =>
   b.logo ? `<img class="logo ${cls}" src="${esc(b.logo)}" alt="" onerror="this.remove()">` : '';
 
-const listHtml = (items: string[], trim = true) =>
+export const listHtml = (items: string[], trim = true) =>
   items.length ? `<ul>${items.map((i) => `<li${trim ? ' data-trim' : ''}>${esc(i)}</li>`).join('')}</ul>` : '';
 
 interface Kpi {
@@ -269,7 +272,7 @@ ${unmodeled.length || small.length ? `<h3>Not modeled</h3>${listHtml([...unmodel
 // ---------------------------------------------------------------------------
 // Area tables (shared by the audit; the slides use the write-up only)
 
-function table(head: string[], rows: string[][]) {
+export function table(head: string[], rows: string[][]) {
   if (!rows.length) return '';
   return `<table><thead><tr>${head.map((h) => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows
     .map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join('')}</tr>`)
@@ -496,10 +499,34 @@ function deckPlanBody(p: AdplanOutput) {
 export const SLIDE_IDS = ['cover', 'glance', 'google', 'social', 'website', 'ads', 'competitors', 'keywords', 'plan', 'roi', 'next'] as const;
 /** The slide the ad plan adds, between the return and next steps. */
 export const AD_PLAN_SLIDE_ID = 'adplan';
+/** The slides a competitor benchmark adds, before next steps. */
+export const BENCHMARK_SLIDE_IDS = ['benchmark_scorecard', 'benchmark_plan'] as const;
+
+const leaderWord = (x: BenchmarkOutput, l: number | 'even' | null) => (l === null ? '–' : l === 'even' ? 'Even' : x.names[l]);
+
+/** The benchmark slides: the scorecard's rows with a leader, and the top differences. */
+function benchmarkSlides(x: BenchmarkOutput, slide: (id: string, n: number, title: string, body: string) => string, first: number) {
+  const rows = x.scorecard.filter((r) => r.leader !== null).slice(0, 7);
+  return (
+    slide(BENCHMARK_SLIDE_IDS[0], first, 'Against your competitors', table(['', ...x.names, 'Leader'], rows.map((r) => [r.label, ...r.shown, leaderWord(x, r.leader)]))) +
+    slide(
+      BENCHMARK_SLIDE_IDS[1],
+      first + 1,
+      'Closing the gap',
+      table(['#', 'Change', 'Do this', '90-day target'], x.writeup.differences.slice(0, 5).map((r) => [String(r.rank), r.title, r.change, r.target]))
+    )
+  );
+}
+
+/** The summary's "Against your competitors" lines: up to three gaps, in words. */
+export function benchmarkSummaryLines(x: BenchmarkOutput): string[] {
+  return x.gaps.slice(0, 3).map((g) => `${g.label}: ${g.business} here against ${g.competitor} at ${g.leader}.`);
+}
 
 export function buildDeckHtml(d: ReportData, links: { audit: string }): string {
   const { facts: f, model: m, brand: b } = d;
   const p = hasPlan(d.adplan) ? d.adplan : null;
+  const bench = d.benchmark ?? null;
   const auditLink = driveLink(links.audit);
   const slide = (id: string, n: number, title: string, body: string) =>
     `<section class="slide" id="${id}"><header class="band"><span>${esc(title)}</span>${logoImg(b, 'mini')}</header><div class="body" data-fit>${body}</div><footer>${esc(f.business.name)} · Prepared by ${PREPARED_BY} · ${esc(d.date)}<span>${n}</span></footer></section>`;
@@ -568,9 +595,10 @@ ${
           : `<p>${esc(m.roi_note ?? 'No return was modeled.')}</p>`
       )
 }
+${bench ? benchmarkSlides(bench, slide, p ? 12 : 11) : ''}
 ${slide(
   'next',
-  p ? 12 : 11,
+  (p ? 12 : 11) + (bench ? BENCHMARK_SLIDE_IDS.length : 0),
   'Next steps',
   `${listHtml(m.writeup.next_steps)}<p class="cta" style="margin-top:50px"><a href="${esc(auditLink)}">Full audit (PDF)</a></p>`
 )}
@@ -595,6 +623,7 @@ ${top.length ? `<table><thead><tr><th>Change</th><th>12-month net after team tim
 export function buildSummaryHtml(d: ReportData, links: { deck: string; audit: string; folder: string }): string {
   const { facts: f, model: m, brand: b } = d;
   const p = hasPlan(d.adplan) ? d.adplan : null;
+  const benchLines = d.benchmark ? benchmarkSummaryLines(d.benchmark) : [];
   const deck = driveLink(links.deck);
   const audit = driveLink(links.audit);
   const folder = driveLink(links.folder);
@@ -634,6 +663,7 @@ ${kpiHtml(kpis(f, m, p))}
 <ul class="findings">${findings.map(({ k, text }) => `<li data-trim><strong>${AREA_TITLES[k]}:</strong> ${esc(text)}<a href="${esc(deck)}">Slides ›</a></li>`).join('')}</ul>
 ${p ? summaryPlan(p, m) : `<h3>What search ads could return</h3>
 ${roiRows ? `<table><thead><tr><th>Scenario</th><th>Ad spend</th><th>12-month net</th></tr></thead><tbody>${roiRows}</tbody></table><p class="muted">${esc(feeLine(m))}</p>` : `<p class="muted">${esc(m.roi_note ?? '')}</p>`}`}
+${benchLines.length ? `<h3>Against your competitors</h3>${listHtml(benchLines)}` : ''}
 <h3>Next 90 days</h3>
 ${listHtml(m.writeup.next_steps)}
 </div>

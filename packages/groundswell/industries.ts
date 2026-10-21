@@ -18,6 +18,7 @@ export const INDUSTRIES: IndustryProfile[] = [
     ad_platforms: ['google_search', 'meta', 'reddit', 'tiktok'],
     restricted: ['alcohol'],
     benchmark_industry: 'Restaurants & Food',
+    do_not_copy: ['Alcohol content aimed at anyone under 21, or drinking games and binge offers.'],
   },
   {
     id: 'event_venue',
@@ -34,6 +35,8 @@ export const INDUSTRIES: IndustryProfile[] = [
     audit_platforms: ['angi', 'yelp', 'nextdoor', 'reddit', 'bbb', 'google_local_services', 'facebook', 'thumbtack'],
     ad_platforms: ['google_search', 'meta', 'reddit'],
     benchmark_industry: 'Home & Home Improvement',
+    licences: ['licensed', 'insured', 'bonded', 'NATE', 'EPA'],
+    do_not_copy: ['Prices or response times the business cannot meet in every job.', 'Claims of a licence the business does not hold for the work advertised.'],
   },
   {
     id: 'it_services',
@@ -51,6 +54,12 @@ export const INDUSTRIES: IndustryProfile[] = [
     ad_platforms: ['google_search', 'meta', 'tiktok'],
     restricted: ['health'],
     benchmark_industry: 'Health & Fitness',
+    licences: ['RD', 'RDN', 'LDN', 'MD', 'DO', 'NP', 'PA-C', 'LMHC', 'LCSW', 'PhD', 'DC', 'PT', 'DPT'],
+    do_not_copy: [
+      'Medical, drug or vaccine claims, or promises to treat, cure or prevent a condition.',
+      'Anything that would breach a licence the business holds, or practise outside its scope.',
+      'Disparaging physicians or conventional care.',
+    ],
   },
   {
     id: 'events_entertainment',

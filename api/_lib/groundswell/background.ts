@@ -1,7 +1,7 @@
 import { waitUntil } from '@vercel/functions';
 import { getSupabaseAdmin } from '../supabaseAdmin.js';
 import { runWorker } from './engine.js';
-import { STEPS } from './steps.js';
+import { ALL_STEPS } from './steps.js';
 
 /**
  * Runs the worker after the response is sent (Vercel keeps the function alive
@@ -14,7 +14,7 @@ export const FUNCTION_SECONDS = 300;
 export function runWorkerInBackground(startedAt: number): void {
   const deadline = startedAt + FUNCTION_SECONDS * 1000 - 10_000;
   waitUntil(
-    runWorker(getSupabaseAdmin(), STEPS, { deadline })
+    runWorker(getSupabaseAdmin(), ALL_STEPS, { deadline })
       .then((report) => {
         if (report.ran.length) console.log('Groundswell worker:', JSON.stringify(report));
       })

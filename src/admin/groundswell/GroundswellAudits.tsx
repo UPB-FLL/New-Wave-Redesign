@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import {
   addCompetitor,
+  BENCHMARK_COMPETITORS,
   deleteAudit,
   isDriveLink,
   listAudits,
@@ -126,7 +127,18 @@ export default function GroundswellAudits() {
     }
   };
 
-  const setField = (key: keyof Omit<AuditDraft, 'competitors'>, value: string) => setDraft((d) => ({ ...d, [key]: value }));
+  const setField = (key: keyof Omit<AuditDraft, 'competitors' | 'kind'>, value: string) => setDraft((d) => ({ ...d, [key]: value }));
+  const benchmark = draft.kind === 'benchmark';
+  // A benchmark compares the first two competitors, so the form always shows two rows for them.
+  const setBenchmark = (on: boolean) =>
+    setDraft((d) => ({
+      ...d,
+      kind: on ? 'benchmark' : 'audit',
+      competitors: on && d.competitors.length < BENCHMARK_COMPETITORS
+        ? [...d.competitors, ...Array.from({ length: BENCHMARK_COMPETITORS - d.competitors.length }, () => ({ name: '', website: '', instagram: '' }))]
+        : d.competitors,
+    }));
+  const competitorLabel = (i: number) => (benchmark && i === 0 ? 'Competitor 1 (top)' : `Competitor ${i + 1}`);
   const setCompetitor = (i: number, key: 'name' | 'website' | 'instagram', value: string) =>
     setDraft((d) => ({ ...d, competitors: d.competitors.map((c, j) => (j === i ? { ...c, [key]: value } : c)) }));
 
@@ -212,16 +224,27 @@ export default function GroundswellAudits() {
           </label>
         </div>
 
+        <label className="flex items-start gap-3 text-sm text-white/80">
+          <input type="checkbox" className="mt-1" checked={benchmark} onChange={(e) => setBenchmark(e.target.checked)} />
+          <span>
+            Benchmark against the top 2 competitors
+            <span className="block text-xs text-white/50">
+              Adds a competitive benchmark PDF: engagement per post, ads on record, published prices and authority, with a plan
+              to close the gap. The first two competitors are compared, in the order entered.
+            </span>
+          </span>
+        </label>
+
         <fieldset className="space-y-3">
-          <legend className="text-sm font-semibold text-white/80">Competitors (optional)</legend>
+          <legend className="text-sm font-semibold text-white/80">{benchmark ? 'Competitors (the first two are required)' : 'Competitors (optional)'}</legend>
           {draft.competitors.map((c, i) => (
             <div key={i} className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto] items-center">
-              <input className={input} aria-label={`Competitor ${i + 1} name`} placeholder="Name" value={c.name} onChange={(e) => setCompetitor(i, 'name', e.target.value)} />
-              <input className={input} aria-label={`Competitor ${i + 1} website`} placeholder="Website" value={c.website} onChange={(e) => setCompetitor(i, 'website', e.target.value)} />
-              <input className={input} aria-label={`Competitor ${i + 1} Instagram`} placeholder="Instagram" value={c.instagram} onChange={(e) => setCompetitor(i, 'instagram', e.target.value)} />
+              <input className={input} aria-label={`${competitorLabel(i)} name`} placeholder={benchmark && i < BENCHMARK_COMPETITORS ? competitorLabel(i) : 'Name'} value={c.name} onChange={(e) => setCompetitor(i, 'name', e.target.value)} />
+              <input className={input} aria-label={`${competitorLabel(i)} website`} placeholder="Website" value={c.website} onChange={(e) => setCompetitor(i, 'website', e.target.value)} />
+              <input className={input} aria-label={`${competitorLabel(i)} Instagram`} placeholder="Instagram" value={c.instagram} onChange={(e) => setCompetitor(i, 'instagram', e.target.value)} />
               <button
                 type="button"
-                aria-label={`Remove competitor ${i + 1}`}
+                aria-label={`Remove ${competitorLabel(i).toLowerCase()}`}
                 className="p-2 rounded-lg text-white/40 hover:text-white hover:bg-white/5"
                 onClick={() => setDraft((d) => ({ ...d, competitors: d.competitors.filter((_, j) => j !== i) }))}
               >
@@ -249,7 +272,7 @@ export default function GroundswellAudits() {
           className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-60"
           style={{ background: '#39CCCC', color: '#0f1923' }}
         >
-          {saving ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />} Queue audit
+          {saving ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />} {benchmark ? 'Queue benchmark' : 'Queue audit'}
         </button>
       </form>
 
@@ -268,6 +291,7 @@ export default function GroundswellAudits() {
                 ['Summary PDF', a.summary_pdf_url, ExternalLink],
                 ['Slide deck', a.deck_pdf_url, ExternalLink],
                 ['Full audit', a.audit_pdf_url, ExternalLink],
+                ['Benchmark', a.benchmark_pdf_url ?? null, ExternalLink],
               ] as const;
               return (
                 <li key={a.id} className="rounded-2xl p-5 space-y-3" style={{ background: '#111c27', border: '1px solid rgba(255,255,255,0.06)' }}>
@@ -282,8 +306,15 @@ export default function GroundswellAudits() {
                         {a.partner_id && <span>via {partnerNames.get(a.partner_id) ?? 'a partner'}</span>}
                       </div>
                     </div>
-                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold rounded-full px-2.5 py-1" style={{ color: s.color, background: 'rgba(255,255,255,0.05)' }}>
-                      <s.Icon size={12} className={a.status === 'running' ? 'animate-spin' : ''} /> {s.label}
+                    <span className="inline-flex items-center gap-2">
+                      {a.kind === 'benchmark' && (
+                        <span className="text-xs font-semibold rounded-full px-2.5 py-1" style={{ color: '#F5C26B', background: 'rgba(255,255,255,0.05)' }}>
+                          Benchmark
+                        </span>
+                      )}
+                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold rounded-full px-2.5 py-1" style={{ color: s.color, background: 'rgba(255,255,255,0.05)' }}>
+                        <s.Icon size={12} className={a.status === 'running' ? 'animate-spin' : ''} /> {s.label}
+                      </span>
                     </span>
                   </div>
                   {steps[a.id]?.length ? <StepProgress steps={steps[a.id]} /> : null}

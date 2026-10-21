@@ -21,7 +21,7 @@ vi.mock('@vercel/functions', () => ({ waitUntil }));
 import handler, { MAX_AUDITS_PER_CLICK } from '../../../api/groundswell/run';
 import worker from '../../../api/groundswell/worker';
 import { FUNCTION_SECONDS } from '../../../api/_lib/groundswell/background';
-import { STEPS } from '../../../api/_lib/groundswell/steps';
+import { ALL_STEPS, BENCHMARK_STEPS, STEPS } from '../../../api/_lib/groundswell/steps';
 
 function makeRes() {
   return {
@@ -125,11 +125,13 @@ describe('POST /api/groundswell/run', () => {
     const res = await call(handler);
     expect(res.statusCode).toBe(200);
     expect(res.body).toEqual({ started: 2 });
-    expect(engine.startQueuedAudits).toHaveBeenCalledWith({ fake: 'db' }, STEPS, MAX_AUDITS_PER_CLICK);
+    // Audits get the audit steps; competitor benchmarks the benchmark steps.
+    expect(engine.startQueuedAudits).toHaveBeenCalledWith({ fake: 'db' }, STEPS, MAX_AUDITS_PER_CLICK, BENCHMARK_STEPS);
     expect(waitUntil).toHaveBeenCalledTimes(1);
     await waitUntil.mock.calls[0][0];
     const [, steps, { deadline }] = engine.runWorker.mock.calls[0];
-    expect(steps).toBe(STEPS);
+    // The worker knows every step, so it can run either kind.
+    expect(steps).toBe(ALL_STEPS);
     expect(deadline - Date.now()).toBeLessThanOrEqual(FUNCTION_SECONDS * 1000);
   });
 

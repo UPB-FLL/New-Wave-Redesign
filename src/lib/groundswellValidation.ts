@@ -3,6 +3,10 @@
 // as the admin screen.
 
 export type AuditStatus = 'queued' | 'running' | 'done' | 'failed';
+/** An audit, or a competitor benchmark (the audit plus a comparison with the top two competitors). */
+export type AuditKind = 'audit' | 'benchmark';
+/** Competitors a benchmark compares: the first ones entered, in order. */
+export const BENCHMARK_COMPETITORS = 2;
 
 export interface AuditCompetitor {
   name: string;
@@ -26,6 +30,9 @@ export interface GroundswellAudit {
   audit_pdf_url: string | null;
   /** The partner who submitted it; null when an admin queued it. */
   partner_id: string | null;
+  /** Missing before the benchmark migration (20261022120000); then 'audit' unless queued as a benchmark. */
+  kind?: AuditKind;
+  benchmark_pdf_url?: string | null;
   created_at: string;
   completed_at: string | null;
 }
@@ -37,6 +44,8 @@ export interface AuditDraft {
   instagram: string;
   notes: string;
   competitors: { name: string; website: string; instagram: string }[];
+  /** 'benchmark' compares the business with its first two competitors; omitted means an audit. */
+  kind?: AuditKind;
 }
 
 const INSTAGRAM_HANDLE = /^[A-Za-z0-9._]{1,30}$/;
@@ -94,6 +103,8 @@ export interface AuditInsert {
   instagram: string | null;
   notes: string | null;
   competitors: AuditCompetitor[];
+  /** Sent only for a benchmark, so queueing an audit never names the column. */
+  kind?: 'benchmark';
 }
 
 /** Validates a draft from the admin form; throws a readable Error on bad input. */
@@ -106,6 +117,9 @@ export function buildAuditInsert(draft: AuditDraft): AuditInsert {
   const competitors = draft.competitors
     .filter((c) => c.name.trim() || c.website.trim() || c.instagram.trim())
     .map(buildCompetitor);
+  if (draft.kind === 'benchmark' && competitors.length < BENCHMARK_COMPETITORS) {
+    throw new Error('A benchmark needs two competitors, each with a website or an Instagram handle.');
+  }
   return {
     business_name,
     city: draft.city.trim() || null,
@@ -113,5 +127,6 @@ export function buildAuditInsert(draft: AuditDraft): AuditInsert {
     instagram,
     notes: draft.notes.trim() || null,
     competitors,
+    ...(draft.kind === 'benchmark' ? { kind: 'benchmark' as const } : {}),
   };
 }

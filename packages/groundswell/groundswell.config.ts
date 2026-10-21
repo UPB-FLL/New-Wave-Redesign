@@ -311,4 +311,33 @@ export const GROUNDSWELL_CONFIG: GroundswellConfig = validateConfig({
     tolerance: 0.1,
     max_rounds: 3,
   },
+
+  // The competitor benchmark (src/benchmark/): the business against its top two competitors.
+  benchmark: {
+    // Each account costs ScrapeCreators credits, Ahrefs units and render time, so the cap lives here, not in the admin screen.
+    accounts: 3,
+    pricing_pages_per_account: 10,
+    entry_product_max: 600,
+    // Working bands, not a published benchmark: replace them with a cited report when one is chosen.
+    engagement_bands: {
+      source: 'New Wave’s working bands for small accounts (an assumption, not a published benchmark)',
+      as_of: '2026',
+      very_low_below: 0.001,
+      low_below: 0.003,
+      normal_below: 0.01,
+    },
+    press_domains: [
+      'cnn.com', 'vogue.com', 'healthline.com', 'webmd.com', 'businessinsider.com', 'huffpost.com', 'msn.com', 'nytimes.com',
+      'forbes.com', 'shape.com', 'womenshealthmag.com', 'menshealth.com', 'mindbodygreen.com', 'wellandgood.com', 'usatoday.com',
+      'washingtonpost.com', 'wsj.com', 'bloomberg.com', 'cnbc.com', 'nbcnews.com', 'cbsnews.com', 'abcnews.go.com', 'foxnews.com',
+      'npr.org', 'today.com', 'people.com', 'yahoo.com', 'apnews.com', 'reuters.com', 'theguardian.com', 'bbc.com', 'inc.com',
+      'entrepreneur.com', 'fastcompany.com', 'eater.com', 'timeout.com', 'thrillist.com', 'bonappetit.com', 'foodandwine.com',
+    ],
+    platform_hosts: ['blogspot.com', 'wordpress.com', 'squarespace.com', 'amazonaws.com', 'wixsite.com', 'medium.com', 'tumblr.com', 'weebly.com'],
+    do_not_copy: [
+      'Claims the business cannot prove (best, number one, guaranteed results).',
+      'Non-refundable high-ticket offers sold to cold traffic.',
+      'Disparaging a competitor or another profession.',
+    ],
+  },
 });

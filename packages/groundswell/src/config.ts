@@ -91,6 +91,10 @@ export interface IndustryProfile {
   restricted?: string[];
   /** Benchmark industry to prefer when a platform publishes per-industry figures. */
   benchmark_industry?: string;
+  /** Licence and certification words a competitor benchmark looks for in an About page (whole words). */
+  licences?: string[];
+  /** Tactics a benchmark must never recommend copying in this industry, on top of the setup file's defaults. */
+  do_not_copy?: string[];
 }
 
 export interface TierRules {
@@ -126,6 +130,24 @@ export interface IncrementalityRules extends Sourced {
   ranks_5_plus: number;
 }
 
+/** The competitor benchmark: the business against its top competitors (src/benchmark/). */
+export interface BenchmarkRules {
+  /** Accounts in one benchmark: the business and its top competitors. */
+  accounts: number;
+  /** Offer and price pages read per account. */
+  pricing_pages_per_account: number;
+  /** An offer priced below this (USD) counts as an entry product. */
+  entry_product_max: number;
+  /** Engagement-rate bands (a fraction of followers), named in the write-up as words. */
+  engagement_bands: Sourced & { very_low_below: number; low_below: number; normal_below: number };
+  /** Media and press domains whose links count as press. */
+  press_domains: string[];
+  /** Hosting platforms whose links never count as press. */
+  platform_hosts: string[];
+  /** Tactics no benchmark recommends copying, in any industry. */
+  do_not_copy: string[];
+}
+
 /** Published figures the change ranking uses to put a return on non-ad changes. */
 export interface ImpactRules {
   /** Organic click-through rate by position 1 to 10, 0-1. */
@@ -155,6 +177,7 @@ export interface GroundswellConfig {
   /** Words an ad may not claim without third-party proof shown with it. */
   unsupported_claims: string[];
   verification: VerificationRules;
+  benchmark: BenchmarkRules;
 }
 
 /** The benchmarks a platform uses for an industry: its per-industry set when there is one, else the all-industry set. */
@@ -219,6 +242,15 @@ export function validateConfig(c: GroundswellConfig): GroundswellConfig {
   if (target.some((p) => !Number.isInteger(p) || p < 1 || p > c.impact.organic_ctr.by_position.length) || target[0] < target[1] || target[1] < target[2]) {
     problems.push('impact.seo_target.positions must be whole positions on the organic curve, the low case lowest on the page');
   }
+  const bands = c.benchmark.engagement_bands;
+  if (!(bands.very_low_below > 0 && bands.very_low_below < bands.low_below && bands.low_below < bands.normal_below && bands.normal_below < 1)) {
+    problems.push('benchmark.engagement_bands must rise between 0 and 1');
+  }
+  if (!bands.source || !bands.as_of) problems.push('benchmark.engagement_bands needs a source and as_of');
+  if (!(c.benchmark.accounts >= 2)) problems.push('benchmark.accounts must be at least 2 (the business and a competitor)');
+  if (!(c.benchmark.pricing_pages_per_account >= 1)) problems.push('benchmark.pricing_pages_per_account must be at least 1');
+  if (!c.benchmark.press_domains.length) problems.push('benchmark.press_domains must list at least one domain');
+  if (c.benchmark.press_domains.some((d) => c.benchmark.platform_hosts.includes(d))) problems.push('benchmark.press_domains may not list a platform host');
   if (!(c.verification.tolerance > 0 && c.verification.tolerance < 1)) problems.push('verification.tolerance must be between 0 and 1');
   if (!(c.verification.max_rounds >= 2)) problems.push('verification.max_rounds must be at least 2 (a first pass and a re-run)');
   if (problems.length) throw new Error(`Groundswell setup file is invalid:\n- ${problems.join('\n- ')}`);

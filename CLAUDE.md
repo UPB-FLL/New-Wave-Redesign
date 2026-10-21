@@ -37,6 +37,47 @@ Full notes: "Positioning (2026-10-21)" in `docs/social-engineering-division.md`.
   pins in `responsive.test.tsx`, `motion.test.tsx`, and the discovery-call
   description in `pages.test.tsx`.
 
+### Groundswell: competitor benchmark (2026-10-22)
+
+From the spec in PR #110 (`docs/groundswell-competitor-benchmark.md`). A
+second audit kind, `benchmark`: the audit plus a comparison with the first
+two competitors entered, and a fourth PDF.
+
+- **Package** (`packages/groundswell/src/benchmark/`, the resellable part):
+  engagement (dedupe, pinned, hidden likes, comment-to-DM prompts), ad
+  evidence (verified negative vs unknown, never spend), pricing extraction and
+  `checkLadder`, authority (press list, owned channels, credentials by the
+  industry's licence words), and the scorecard with gaps and levers. Setup
+  file: a `benchmark` section; industry profiles gain `licences` and
+  `do_not_copy`.
+- **Engine** (`BENCHMARK_STEPS` in `steps.ts`): after `adplan` (they read its
+  industry profile), `social_depth`, `ads_library`, `pricing` and
+  `authority` (optional), then `benchmark` (scorecard in code, one guarded
+  write-up call; the industry's do-not-copy rules always included) and
+  `deliver_benchmark` before the slides. Audits keep `STEPS` unchanged; the
+  worker knows every step (`ALL_STEPS`). Pricing makes one extra model call to
+  sort offers, held to the prices found. Accounts: `benchmarkAccounts.ts`.
+- **Reports**: `reportsBenchmark.ts` (Letter, no links: scorecard,
+  engagement, ads, pricing, differences, do not copy, plan and targets, three
+  appendices); the slides gain `benchmark_scorecard` and `benchmark_plan`; the
+  summary an "Against your competitors" band. `deliver_finish` shares and
+  saves `benchmark_pdf_url` only when that file exists.
+- **Migration** `20261022120000`: `kind` ('audit' | 'benchmark', two
+  competitors required), `benchmark_pdf_url` (Drive only, null on admin
+  inserts), and `start_queued_audits(step_names, max_audits,
+  benchmark_step_names DEFAULT NULL)` replacing the two-argument function, so
+  old two-argument calls still work. The code reads and writes the new columns
+  only where they exist, and `startQueuedAudits` falls back to the old call.
+- **Admin and partners**: a "Benchmark against the top 2 competitors" switch
+  on both queue forms (`buildAuditInsert` needs two competitors and sends
+  `kind` only for a benchmark), a Benchmark badge and link, and a benchmark
+  count on the overview.
+- **Tests**: `packages/groundswell/test/benchmark.test.ts`,
+  `src/test/api/groundswell-benchmark.test.ts` (made-up accounts; prints the
+  PDF, 13 slides, one-page summary), plus partner, admin and route cases. The
+  real Isabel Smith Nutrition / Wildly Primal session data is to be added as
+  fixtures once its owner confirms in that session.
+
 ### Groundswell: the ad plan and change ranking in the live audits (2026-10-21)
 
 - **Step** `adplan` (`api/_lib/groundswell/adplan.ts`), after `model`,

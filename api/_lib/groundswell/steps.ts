@@ -1,4 +1,9 @@
 import { runAdplan } from './adplan.js';
+import { runBenchmark } from './benchmark.js';
+import { runAdsLibrary } from './currents/adsLibrary.js';
+import { runAuthority } from './currents/authority.js';
+import { runPricing } from './currents/pricing.js';
+import { runSocialDepth } from './currents/socialDepth.js';
 import { runAds } from './currents/ads.js';
 import { runMaps } from './currents/maps.js';
 import { runKeywords, runSearch } from './currents/search.js';
@@ -6,6 +11,7 @@ import { runSite } from './currents/site.js';
 import { runSocial } from './currents/social.js';
 import {
   runDeliverAudit,
+  runDeliverBenchmark,
   runDeliverDeck,
   runDeliverFinish,
   runDeliverPrepare,
@@ -34,3 +40,29 @@ export const STEPS: StepDefinition[] = [
   { name: 'deliver_summary', current: 'Delivery', label: 'Summary PDF', optional: false, run: runDeliverSummary },
   { name: 'deliver_finish', current: 'Delivery', label: 'Share and save links', optional: false, run: runDeliverFinish },
 ];
+
+const step = (name: string) => STEPS.find((s) => s.name === name)!;
+
+/**
+ * A competitor benchmark (marketing_audits.kind = 'benchmark'): the audit's
+ * steps plus four data steps after the ad plan (they read its industry
+ * profile), the benchmark write-up, and a fourth PDF before the slides and the
+ * summary. The data steps are optional; the write-up and its PDF are not.
+ */
+export const BENCHMARK_STEPS: StepDefinition[] = [
+  ...STEPS.slice(0, STEPS.findIndex((s) => s.name === 'adplan') + 1),
+  { name: 'social_depth', current: 'Social', label: 'Instagram posts and reels', optional: true, run: runSocialDepth },
+  { name: 'ads_library', current: 'Ads', label: 'Meta Ad Library and Google Ads Transparency', optional: true, run: runAdsLibrary },
+  { name: 'pricing', current: 'Site', label: 'Offers and prices', optional: true, run: runPricing },
+  { name: 'authority', current: 'Search', label: 'Domain authority, press, owned channels', optional: true, run: runAuthority },
+  { name: 'benchmark', current: 'Model', label: 'Scorecard, gaps and plan', optional: false, run: runBenchmark },
+  step('deliver_prepare'),
+  step('deliver_audit'),
+  { name: 'deliver_benchmark', current: 'Delivery', label: 'Benchmark PDF', optional: false, run: runDeliverBenchmark },
+  step('deliver_deck'),
+  step('deliver_summary'),
+  step('deliver_finish'),
+];
+
+/** Every step either kind can run, for the worker (it runs whatever rows an audit was given). */
+export const ALL_STEPS: StepDefinition[] = BENCHMARK_STEPS;

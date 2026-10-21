@@ -69,4 +69,13 @@ export const config: GroundswellConfig = validateConfig({
   min_angle_searches: 100,
   unsupported_claims: ['best', '#1', 'number one'],
   verification: { tolerance: 0.1, max_rounds: 2 },
+  benchmark: {
+    accounts: 3,
+    pricing_pages_per_account: 10,
+    entry_product_max: 600,
+    engagement_bands: { source: 'test', as_of: '2026', very_low_below: 0.001, low_below: 0.003, normal_below: 0.01 },
+    press_domains: ['cnn.com', 'vogue.com'],
+    platform_hosts: ['blogspot.com'],
+    do_not_copy: ['Unproven claims.'],
+  },
 });

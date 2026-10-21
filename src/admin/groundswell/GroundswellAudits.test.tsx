@@ -41,7 +41,7 @@ vi.mock('../../lib/groundswell', async (orig) => {
 });
 
 import GroundswellAudits from './GroundswellAudits';
-import { addCompetitor, listAudits, startQueuedAudits } from '../../lib/groundswell';
+import { addCompetitor, listAudits, queueAudit, startQueuedAudits } from '../../lib/groundswell';
 
 describe('GroundswellAudits admin screen', () => {
   it('lists requests and shows only Google Drive links', async () => {
@@ -95,5 +95,16 @@ describe('GroundswellAudits admin screen', () => {
     render(<GroundswellAudits />);
     await waitFor(() => expect(screen.getByText('Windy City Auto')).toBeInTheDocument());
     expect(screen.getByRole('button', { name: /Run queued audits now/ })).toBeDisabled();
+  });
+
+  it('queues a competitor benchmark with two labelled competitor rows', async () => {
+    render(<GroundswellAudits />);
+    await screen.findByText('Windy City Auto');
+    fireEvent.click(screen.getByLabelText(/Benchmark against the top 2 competitors/));
+    expect(screen.getByLabelText('Competitor 1 (top) name')).toBeInTheDocument();
+    expect(screen.getByLabelText('Competitor 2 name')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Business name'), { target: { value: 'Bench Shop' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Queue benchmark' }));
+    await waitFor(() => expect(queueAudit).toHaveBeenCalledWith(expect.objectContaining({ kind: 'benchmark', business_name: 'Bench Shop' })));
   });
 });
