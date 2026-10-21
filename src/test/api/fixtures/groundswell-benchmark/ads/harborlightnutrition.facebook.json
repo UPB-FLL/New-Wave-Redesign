@@ -1,0 +1,6 @@
+{
+  "profile": { "name": "Harborlight Nutrition", "url": "https://www.facebook.example/harborlightnutrition/", "category": "Health & wellness website", "followerCount": 2900, "likeCount": 2963, "creationDate": "October 7, 2014", "website": "https://www.harborlightnutrition.example/explore/",
+    "adLibrary": { "pageId": "910000000000001", "adStatus": "This Page isn't currently running ads." } },
+  "company_ads": { "query": { "page_id": "910000000000001", "status": "ALL", "country": "ALL" }, "items": [], "has_more": false, "next_cursor": null },
+  "notes": "Keyword and company-name searches of the Ad Library are not evidence: a keyword search for this business's name returned two ads from an unrelated advertiser whose copy contained the word 'nutrition'."
+}
