@@ -126,8 +126,23 @@ export interface IncrementalityRules extends Sourced {
   ranks_5_plus: number;
 }
 
+/** Published figures the change ranking uses to put a return on non-ad changes. */
+export interface ImpactRules {
+  /** Organic click-through rate by position 1 to 10, 0-1. */
+  organic_ctr: Sourced & { by_position: readonly number[] };
+  /** Google local pack (Maps) click-through rate by position; positions past the curve count as 0. */
+  local_pack_ctr: Sourced & { by_position: readonly number[] };
+  /** Months for an SEO change to reach full effect: the first months run at these fractions. */
+  seo_ramp: number[];
+}
+
 export interface GroundswellConfig {
   version: number;
+  /** What an hour of the team's time costs: the cost side of every non-ad change. */
+  team: { hourly_cost: number; basis: string };
+  /** Team hours for each kind of change: to make it, and a month to keep it going. New Wave's estimates. */
+  effort: Record<string, { hours: Triple; monthly_hours?: Triple; basis: string }>;
+  impact: ImpactRules;
   incrementality: IncrementalityRules;
   platforms: Record<AdPlatformId, PlatformConfig>;
   industries: IndustryProfile[];
@@ -190,6 +205,14 @@ export function validateConfig(c: GroundswellConfig): GroundswellConfig {
   triple('search.cvr_factor', c.search.cvr_factor, { ascending: true });
   if (!(c.tiers.cpc[0] < c.tiers.cpc[1])) problems.push('tiers.cpc must be [lower, upper]');
   if (!(c.tiers.clicks[0] < c.tiers.clicks[1])) problems.push('tiers.clicks must be [lower, upper]');
+  if (!(c.team.hourly_cost > 0)) problems.push('team.hourly_cost must be above 0');
+  for (const [name, set] of [['organic_ctr', c.impact.organic_ctr], ['local_pack_ctr', c.impact.local_pack_ctr]] as const) {
+    const xs = set.by_position;
+    if (!set.source || !set.as_of) problems.push(`impact.${name} needs a source and as_of`);
+    if (xs.length < 3 || xs.some((x, i) => !(x >= 0 && x <= 1) || (i > 0 && x > xs[i - 1]))) {
+      problems.push(`impact.${name}.by_position must be rates between 0 and 1 that fall with position`);
+    }
+  }
   if (!(c.verification.tolerance > 0 && c.verification.tolerance < 1)) problems.push('verification.tolerance must be between 0 and 1');
   if (!(c.verification.max_rounds >= 2)) problems.push('verification.max_rounds must be at least 2 (a first pass and a re-run)');
   if (problems.length) throw new Error(`Groundswell setup file is invalid:\n- ${problems.join('\n- ')}`);

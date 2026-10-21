@@ -36,6 +36,41 @@ const LOCALIQ_FACEBOOK = {
 export const GROUNDSWELL_CONFIG: GroundswellConfig = validateConfig({
   version: 1,
 
+  // New Wave's internal cost of a team hour, set by the owner on October 21, 2026. Every non-ad change's cost is
+  // its hours at this rate, so changes are ranked by return on the team's time as well as on ad spend.
+  team: { hourly_cost: 75, basis: 'New Wave’s internal cost of a team hour (set by the owner, October 21, 2026).' },
+
+  // New Wave's estimates of team time per change ([low case, medium, high case]: the low case takes longest).
+  // Edit them to match how long the team really takes; every ranking moves with them.
+  effort: {
+    search_campaign: { hours: [8, 6, 4], monthly_hours: [4, 3, 2], basis: 'Build one search campaign, then manage it weekly.' },
+    social_campaign: { hours: [6, 4, 3], monthly_hours: [3, 2, 1], basis: 'Build one social test with its creative, then manage it.' },
+    service_page_seo: { hours: [12, 8, 6], basis: 'Write or rework one page for one set of searches, with its links.' },
+    merge_pages: { hours: [10, 6, 4], basis: 'Merge pages that compete for the same search, with redirects.' },
+    entry_layers: { hours: [3, 2, 1], basis: 'Combine the age and cookie steps; move any promotion off the entry.' },
+    best_of_pitch: { hours: [8, 6, 4], basis: 'Pitch the city guides and lists that name rivals.' },
+    profile_posts: { hours: [1, 1, 1], monthly_hours: [4, 3, 2], basis: 'A Google Business Profile post every week.' },
+    review_requests: { hours: [3, 2, 1], monthly_hours: [2, 1, 1], basis: 'Review cards and a follow-up after visits or events.' },
+    listing_fixes: { hours: [2, 1, 1], basis: 'Correct a broken or out-of-date listing.' },
+  },
+
+  impact: {
+    organic_ctr: {
+      source: 'Advanced Web Ranking, Google Organic CTR by Position: 2026 Study (unbranded searches, all devices, US, July 2026)',
+      url: 'https://www.advancedwebranking.com/seo/organic-ctr',
+      as_of: '2026',
+      by_position: [0.1938, 0.0964, 0.0602, 0.0388, 0.0268, 0.0186, 0.0137, 0.011, 0.0094, 0.0081],
+    },
+    local_pack_ctr: {
+      source: 'First Page Sage, Google Click-Through Rates by Ranking Position in 2026 (local pack; an agency panel, positions 1 to 3 only)',
+      url: 'https://firstpagesage.com/reports/google-click-through-rates-ctrs-by-ranking-position/',
+      as_of: '2026',
+      by_position: [0.148, 0.126, 0.119],
+    },
+    // New Wave's rule: an SEO change shows nothing for two months, then builds to full effect by month six.
+    seo_ramp: [0, 0, 0.25, 0.5, 0.75],
+  },
+
   incrementality: {
     source: 'Chan, Kumar, Ma and Koehler (Google, 2012), 390 search-ad pause studies',
     as_of: '2012',

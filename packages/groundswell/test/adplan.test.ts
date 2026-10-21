@@ -1,64 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { buildAdPlan, searchCpc, type AngleInput } from '../src/adplan';
-import { validateConfig, type GroundswellConfig, type IndustryProfile } from '../src/config';
+import { validateConfig, type IndustryProfile } from '../src/config';
 import { claimsIn, templateProblems } from '../src/templates';
 
-// A small setup file with round numbers, so the arithmetic can be checked by hand.
-const spec = (format: string) => ({ source: 'test', as_of: '2026', format, fields: { headline: { max_chars: 30, min_count: 1, max_count: 3 }, body: { max_chars: 90 } } });
-const config: GroundswellConfig = validateConfig({
-  version: 1,
-  incrementality: { source: 'test', as_of: '2026', ranks_first: 0.5, ranks_2_to_4: 0.8, ranks_5_plus: 1 },
-  platforms: {
-    google_search: {
-      id: 'google_search',
-      label: 'Google Search',
-      buying: 'search',
-      benchmarks: { source: 'Search bench', as_of: '2026', cpc: [4, 3, 2], ctr: [0.1, 0.1, 0.1], cvr: [0.1, 0.1, 0.1] },
-      template: spec('Search ad'),
-    },
-    meta: {
-      id: 'meta',
-      label: 'Meta',
-      buying: 'social',
-      benchmarks: { source: 'Meta bench', as_of: '2026', cpc: [2, 1, 0.5], ctr: [0.01, 0.01, 0.01], cvr: [0.05, 0.05, 0.05] },
-      template: spec('Feed ad'),
-      test_budget: { min_monthly: 100, share_of_search_spend: 0.5, basis: 'test rule' },
-      restricted_categories: { alcohol: { rule: 'Target 21+ only.', blocks_self_serve: false, source: 'test' } },
-    },
-    reddit: {
-      id: 'reddit',
-      label: 'Reddit',
-      buying: 'social',
-      benchmarks: { source: 'Reddit bench', as_of: '2026', cpc: [2, 1, 0.5], ctr: [0.01, 0.01, 0.01], cvr: [0.05, 0.05, 0.05] },
-      template: spec('Promoted post'),
-      test_budget: { min_monthly: 100, share_of_search_spend: 0.5, basis: 'test rule' },
-      restricted_categories: { alcohol: { rule: 'Alcohol needs a sales rep.', blocks_self_serve: true, source: 'test' } },
-    },
-    tiktok: {
-      id: 'tiktok',
-      label: 'TikTok',
-      buying: 'social',
-      benchmarks: { source: 'TikTok bench', as_of: '2026', cpc: [2, 1, 0.5], ctr: [0.01, 0.01, 0.01], cvr: [0.05, 0.05, 0.05] },
-      template: spec('In-feed ad'),
-      test_budget: { min_monthly: 100, share_of_search_spend: 0.5, basis: 'test rule' },
-    },
-    linkedin: {
-      id: 'linkedin',
-      label: 'LinkedIn',
-      buying: 'social',
-      benchmarks: null,
-      benchmarks_missing: 'No credible LinkedIn benchmark.',
-      template: spec('Sponsored content'),
-      test_budget: { min_monthly: 300, share_of_search_spend: 0, basis: 'test rule' },
-    },
-  },
-  industries: [{ id: 'general', label: 'General', match: [], audit_platforms: ['google_maps'], ad_platforms: ['google_search', 'meta'] }],
-  search: { impression_share: [1, 1, 1], ctr_factor: [1, 1, 1], cvr_factor: [1, 1, 1], ramp: [] },
-  tiers: { cpc: [1, 3], clicks: [20, 100], roi_strong: 1 },
-  min_angle_searches: 100,
-  unsupported_claims: ['best', '#1', 'number one'],
-  verification: { tolerance: 0.1, max_rounds: 2 },
-});
+import { config } from './fixture';
 
 const industry = (ad_platforms: IndustryProfile['ad_platforms'], extra: Partial<IndustryProfile> = {}): IndustryProfile => ({
   id: 'test',

@@ -5,8 +5,9 @@ import { NwseIcon } from '../icons/NwseIcon';
 import { croissancePageSeo } from '../seo';
 import { useDivisionMeta } from '../useDivisionMeta';
 import { GROUNDSWELL_CONFIG } from '../../../../packages/groundswell/groundswell.config';
-import { UPB_ANGLES, UPB_INDUSTRY, UPB_TEMPLATES } from '../../../../packages/groundswell/examples/uncommon-path-brewing';
+import { UPB_ANGLES, UPB_BASELINE, UPB_INDUSTRY, UPB_TEMPLATES, upbChanges } from '../../../../packages/groundswell/examples/uncommon-path-brewing';
 import { buildAdPlan, type PlanRow } from '../../../../packages/groundswell/src/adplan';
+import { compareWithToday, rankChanges, type RankedChange } from '../../../../packages/groundswell/src/changes';
 
 const seo = croissancePageSeo();
 
@@ -110,6 +111,8 @@ function SampleBoard() {
 // The brewery's ad plan, computed from its use-case inputs and the setup file: no number here is typed by hand.
 const upbIndustry = GROUNDSWELL_CONFIG.industries.find((i) => i.id === UPB_INDUSTRY)!;
 const upbPlan = buildAdPlan(UPB_ANGLES, upbIndustry, GROUNDSWELL_CONFIG);
+const upbRanked = rankChanges(upbChanges(upbPlan, GROUNDSWELL_CONFIG), GROUNDSWELL_CONFIG);
+const upbComparison = compareWithToday(upbRanked, UPB_BASELINE);
 
 const dollars = (x: number) => `${x < 0 ? '−' : ''}$${Math.abs(Math.round(x / 10) * 10).toLocaleString('en-US')}`;
 const cents = (x: number) => `$${x.toFixed(2)}`;
@@ -234,6 +237,99 @@ function TemplatePreviews() {
   );
 }
 
+/** Benefit per dollar of cost (team time and spend), as "$1.73"; no percentages on the page. */
+function backPerDollar(c: RankedChange) {
+  const m = c.scenarios?.medium;
+  if (!m || m.cost_year <= 0) return auditContent.changes.notModeled;
+  return `$${(m.benefit_year / m.cost_year).toFixed(2)}`;
+}
+
+function ChangeRanking() {
+  const c = auditContent.changes;
+  return (
+    <div className="nwse-card mt-6 overflow-hidden sm:mt-8 lg:mt-10">
+      <table className="w-full text-left max-md:block">
+        <thead className="max-md:hidden">
+          <tr className="border-b" style={{ borderColor: 'var(--nw-mist-gray)' }}>
+            {[c.columns.rank, c.columns.change, c.columns.area, c.columns.hours, c.columns.net, c.columns.back].map((h) => (
+              <th key={h} scope="col" className="nwse-type-label nwse-label px-4 py-3 font-normal lg:px-6">
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="max-md:block">
+          {upbRanked.map((ch) => (
+            <tr key={ch.id} className="border-b align-top last:border-b-0 max-md:block max-md:px-4 max-md:py-4" style={{ borderColor: 'var(--nw-mist-gray)' }}>
+              <td className="nwse-type-body-small px-4 py-3 tabular-nums text-[var(--nw-slate)] max-md:inline max-md:p-0 max-md:pr-2 lg:px-6">{ch.rank}</td>
+              <th scope="row" className="nwse-type-body-small px-4 py-3 text-left font-semibold text-[var(--nw-current-navy)] max-md:inline max-md:p-0 lg:px-6">
+                {ch.title}
+                <span className="mt-1 block font-normal text-[var(--nw-slate)]">{ch.impact.kind === 'not_modeled' ? ch.impact.reason : ch.evidence}</span>
+              </th>
+              <td className="nwse-type-body-small px-4 py-3 text-[var(--nw-slate)] max-md:mt-2 max-md:block max-md:p-0 lg:px-6">
+                <span className="md:hidden">{c.columns.area}: </span>
+                {c.areas[ch.area]}
+              </td>
+              <td className="nwse-type-body-small px-4 py-3 tabular-nums text-[var(--nw-current-navy)] max-md:block max-md:p-0 lg:px-6">
+                <span className="md:hidden">{c.columns.hours}: </span>
+                {Math.round(ch.hours)}
+              </td>
+              <td className="nwse-type-body-small px-4 py-3 tabular-nums text-[var(--nw-current-navy)] max-md:block max-md:p-0 lg:px-6">
+                <span className="md:hidden">{c.columns.net}: </span>
+                {ch.scenarios ? `${dollars(ch.scenarios.low.net_year)} to ${dollars(ch.scenarios.high.net_year)}` : c.notModeled}
+              </td>
+              <td className="nwse-type-body-small px-4 py-3 font-semibold tabular-nums text-[var(--nw-current-navy)] max-md:block max-md:p-0 lg:px-6">
+                <span className="font-normal md:hidden">{c.columns.back}: </span>
+                {backPerDollar(ch)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/** The business as set up today against the plan, side by side. */
+function TodayVsPlan() {
+  const c = auditContent.changes;
+  const w = upbComparison.with_plan;
+  const cell = (label: string, value: string) => (
+    <div className="flex items-baseline justify-between gap-4 border-t py-2.5" style={{ borderColor: 'var(--nw-mist-gray)' }}>
+      <dt className="nwse-type-body-small text-[var(--nw-slate)]">{label}</dt>
+      <dd className="nwse-type-body-small text-right font-semibold tabular-nums text-[var(--nw-current-navy)]">{value}</dd>
+    </div>
+  );
+  return (
+    <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
+      <div className="nwse-card p-4 sm:p-5 lg:p-6">
+        <h3 className="nwse-type-title-2 text-[var(--nw-current-navy)]">{c.todayHeading}</h3>
+        <dl className="mt-3">
+          {cell(c.labels.adSpend, UPB_BASELINE.monthly_ad_spend === null ? 'Not public' : dollars(UPB_BASELINE.monthly_ad_spend))}
+          {cell(c.labels.customers, '0')}
+          {cell(c.labels.net, '$0')}
+        </dl>
+        <p className="nwse-type-body-small mt-2 text-[var(--nw-slate)]">{UPB_BASELINE.ad_spend_basis}</p>
+      </div>
+      <div className="nwse-card p-4 sm:p-5 lg:p-6" style={{ borderColor: 'var(--nwse-lure-amber-deep)', borderWidth: 2 }}>
+        <h3 className="nwse-type-title-2 text-[var(--nw-current-navy)]">{c.planHeading}</h3>
+        <dl className="mt-3">
+          {cell(c.labels.addedSpend, dollars(w.added_monthly_spend.medium))}
+          {cell(c.labels.hours, String(Math.round(w.team_hours)))}
+          {cell(c.labels.customers, w.extra_customers_month.medium.toFixed(1))}
+          {cell(c.labels.net, `${dollars(w.net_year.low)} to ${dollars(w.net_year.high)} (${dollars(w.net_year.medium)} ${c.labels.medium})`)}
+        </dl>
+        <p className="nwse-type-body-small mt-2 text-[var(--nw-slate)]">
+          {upbRanked
+            .filter((ch) => upbComparison.included.includes(ch.id))
+            .map((ch) => ch.title)
+            .join(' · ')}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function SocialEngineeringCroissancePage() {
   useDivisionMeta(seo);
   const content = auditContent;
@@ -281,7 +377,14 @@ export default function SocialEngineeringCroissancePage() {
         <TemplatePreviews />
       </Band>
 
-      <Band tone="white" labelledBy="nwse-audit-growth">
+      <Band tone="white" labelledBy="nwse-audit-changes">
+        <SectionIntro kicker={content.changes.kicker} title={content.changes.heading} description={content.changes.intro} id="nwse-audit-changes" />
+        <TodayVsPlan />
+        <ChangeRanking />
+        <p className="nwse-type-body-small mt-3 max-w-4xl text-[var(--nw-slate)]">{content.changes.footnote}</p>
+      </Band>
+
+      <Band labelledBy="nwse-audit-growth">
         <SectionIntro kicker={content.growth.kicker} title={content.growth.heading} description={content.growth.intro} id="nwse-audit-growth" />
         <div className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 md:grid-cols-2 md:gap-4 lg:mt-10">
           {content.growth.groups.map((group) => (
@@ -293,7 +396,7 @@ export default function SocialEngineeringCroissancePage() {
         </div>
       </Band>
 
-      <Band labelledBy="nwse-audit-faq">
+      <Band tone="white" labelledBy="nwse-audit-faq">
         <SectionIntro kicker="Questions" title="Common questions" id="nwse-audit-faq" />
         <FaqList faqs={content.faqs} />
       </Band>
