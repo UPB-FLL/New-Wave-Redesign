@@ -144,12 +144,18 @@ function addVariants(allowed: Set<string>, x: number) {
 
 /** Every number in the facts (and simple roundings of it), plus small counts. */
 export function allowedNumbers(...sources: unknown[]): Set<string> {
-  const allowed = new Set<string>();
+  const allowed = numbersIn(...sources);
   for (let i = 0; i <= 12; i++) allowed.add(String(i));
   // The reports' own time windows ("the last 30 days", "a 90-day plan").
   for (const w of [30, 60, 90]) allowed.add(String(w));
   const year = new Date().getFullYear();
   for (let y = year - 30; y <= year + 1; y++) allowed.add(String(y));
+  return allowed;
+}
+
+/** Only the numbers in the sources (and simple roundings of them): no small counts, windows or years. */
+export function numbersIn(...sources: unknown[]): Set<string> {
+  const allowed = new Set<string>();
   const walk = (v: unknown, depth: number) => {
     if (depth > 12 || v === null || v === undefined) return;
     if (typeof v === 'number') addVariants(allowed, v);

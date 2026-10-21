@@ -1,4 +1,5 @@
 import { getSupabaseAdmin } from '../supabaseAdmin.js';
+import { isAdcopyOutput } from './adcopy.js';
 import { isAdplanOutput } from './adplan.js';
 import type { BenchmarkOutput } from './benchmark.js';
 import { withBrowser } from './browser.js';
@@ -48,8 +49,9 @@ function reportData(ctx: StepContext): ReportData {
   const facts = buildFacts(ctx.audit, ctx.outputs);
   // An audit started before the ad-plan step existed, or one whose step was skipped, has no plan.
   const adplan = isAdplanOutput(ctx.outputs.adplan) ? ctx.outputs.adplan : null;
+  const adcopy = isAdcopyOutput(ctx.outputs.adcopy) ? ctx.outputs.adcopy : null;
   const benchmark = isBenchmarkOutput(ctx.outputs.benchmark) ? ctx.outputs.benchmark : null;
-  return { facts, model, brand: brandFrom(facts.site?.business), adplan, benchmark, date: formatDate(new Date(model.generated_at)) };
+  return { facts, model, brand: brandFrom(facts.site?.business), adplan, adcopy, benchmark, date: formatDate(new Date(model.generated_at)) };
 }
 
 /** True for a usable benchmark step output (only a competitor benchmark has one). */

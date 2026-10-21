@@ -2,6 +2,30 @@
 
 ## Recent Changes
 
+### Groundswell: ad copy for the rows the ad plan runs (2026-10-21)
+
+- **Package** (`packages/groundswell/src/adcopy.ts`): `copyTargets` (one ad
+  per angle and platform the plan funds or tests, funded first, at most
+  `COPY_LIMIT` 8) and `checkCopy`, which holds written copy to the format:
+  each line within the platform's limit, no claim from `unsupported_claims`
+  (owner's choice: never, even with proof), no number the caller rejects,
+  repeats and unknown fields dropped; a search ad's targeting is its Keyword
+  Planner keywords; the rest must pass `templateProblems`, or the row is
+  listed as not written with the reason.
+- **Step** `adcopy` (`api/_lib/groundswell/adcopy.ts`), optional, after
+  `adplan` in audits and benchmarks. One OpenAI call from the business's own
+  facts only (`copyFacts`: its website's title, description and headings, its
+  Google listing, its Instagram bio; never a competitor); the number guard
+  allows only numbers in what the model was sent. No plan, or no row the plan
+  runs, skips it.
+- **Reports** (owner's choice: the full audit only): "11 · Ad copy, ready to
+  paste" after the ad plan, field by field with each limit, then the rows not
+  written; Sources becomes 12. Slides (12) and the summary are unchanged; an
+  audit without the step's output reads as before.
+- **Tests**: `packages/groundswell/test/adcopy.test.ts` (the brewery's plan
+  and hand-written ads) and `src/test/api/groundswell-adcopy.test.ts` (the
+  step with OpenAI mocked, the audit section, printing).
+
 ### Groundswell: `social_depth` current for the competitor benchmark (2026-10-21)
 
 First step of the benchmark workflow in `docs/groundswell-competitor-benchmark.md`
