@@ -1,3 +1,4 @@
+import { runAdcopy } from './adcopy.js';
 import { runAdplan } from './adplan.js';
 import { runBenchmark } from './benchmark.js';
 import { runAdsLibrary } from './currents/adsLibrary.js';
@@ -34,6 +35,7 @@ export const STEPS: StepDefinition[] = [
   { name: 'ads', current: 'Ads', label: 'Ads', optional: true, run: runAds },
   { name: 'model', current: 'Model', label: 'Write-up and ROI', optional: false, run: runModel },
   { name: 'adplan', current: 'Model', label: 'Ad plan and change ranking', optional: true, run: runAdplan },
+  { name: 'adcopy', current: 'Model', label: 'Ad copy', optional: true, run: runAdcopy },
   { name: 'deliver_prepare', current: 'Delivery', label: 'Drive folder', optional: false, run: runDeliverPrepare },
   { name: 'deliver_audit', current: 'Delivery', label: 'Full audit PDF', optional: false, run: runDeliverAudit },
   { name: 'deliver_deck', current: 'Delivery', label: 'Slides PDF', optional: false, run: runDeliverDeck },
@@ -45,12 +47,13 @@ const step = (name: string) => STEPS.find((s) => s.name === name)!;
 
 /**
  * A competitor benchmark (marketing_audits.kind = 'benchmark'): the audit's
- * steps plus four data steps after the ad plan (they read its industry
- * profile), the benchmark write-up, and a fourth PDF before the slides and the
- * summary. The data steps are optional; the write-up and its PDF are not.
+ * steps plus four data steps after the ad plan and its copy (they read the
+ * plan's industry profile), the benchmark write-up, and a fourth PDF before the
+ * slides and the summary. The data steps are optional; the write-up and its PDF
+ * are not.
  */
 export const BENCHMARK_STEPS: StepDefinition[] = [
-  ...STEPS.slice(0, STEPS.findIndex((s) => s.name === 'adplan') + 1),
+  ...STEPS.slice(0, STEPS.findIndex((s) => s.name === 'adcopy') + 1),
   { name: 'social_depth', current: 'Social', label: 'Instagram posts and reels', optional: true, run: runSocialDepth },
   { name: 'ads_library', current: 'Ads', label: 'Meta Ad Library and Google Ads Transparency', optional: true, run: runAdsLibrary },
   { name: 'pricing', current: 'Site', label: 'Offers and prices', optional: true, run: runPricing },

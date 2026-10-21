@@ -4,6 +4,7 @@ import { escapeHtml as esc } from '../http.js';
 import { GROUNDSWELL_CONFIG } from '../../../packages/groundswell/groundswell.config.js';
 import type { PlanRow } from '../../../packages/groundswell/src/adplan.js';
 import type { ChangeArea, RankedChange } from '../../../packages/groundswell/src/changes.js';
+import type { AdcopyOutput } from './adcopy.js';
 import type { AdplanOutput } from './adplan.js';
 import type { BenchmarkOutput } from './benchmark.js';
 import type { Brand } from './brand.js';
@@ -34,6 +35,8 @@ export interface ReportData {
   brand: Brand;
   /** The ad-plan step's output; null when it did not run. */
   adplan: AdplanOutput | null;
+  /** The ad-copy step's output; absent or null when it did not run. */
+  adcopy?: AdcopyOutput | null;
   /** The benchmark step's output, for a competitor benchmark; absent for an audit. */
   benchmark?: BenchmarkOutput | null;
   /** Shown as "Prepared by New Wave: Social Engineering · <date>". */
@@ -251,6 +254,30 @@ ${todayTable(p)}<p class="muted">${esc(p.baseline.ad_spend_basis)}</p>
 <p class="muted">Ranges, not promises: after 90 days, your own tracked calls and jobs replace these estimates.</p>`;
 }
 
+const fieldLabel = (name: string) => {
+  const words = name.replace(/_/g, ' ').replace(/(\d+)$/, ' $1');
+  return words[0].toUpperCase() + words.slice(1);
+};
+
+/** Each ad, field by field with its character limit, then the rows the plan runs that have none. */
+function adCopySection(c: AdcopyOutput) {
+  const ads = c.ads.map((a) => {
+    const spec = GROUNDSWELL_CONFIG.platforms[a.platform]?.template.fields ?? {};
+    const rows = Object.entries(a.fields).map(([name, value]) => {
+      const lines = Array.isArray(value) ? value : [value];
+      const limit = spec[name] ? ` <span class="note">(up to ${spec[name].max_chars} characters)</span>` : '';
+      return `<tr><th>${esc(fieldLabel(name))}${limit}</th><td>${lines.map((l) => esc(l)).join('<br>')}</td></tr>`;
+    });
+    return `<h3>${esc(a.angle)} · ${esc(a.platform_label)} (${CALLS[a.recommendation]})</h3>
+<table><tbody>${rows.join('')}<tr><th>Targeting</th><td>${esc(a.targeting)}</td></tr><tr><th>Call to action</th><td>${esc(a.call_to_action)}</td></tr></tbody></table>
+<p class="note">${esc(a.format)}; limits from ${esc(a.limits_source)}.</p>`;
+  });
+  const missing = c.not_written.map((n) => `${n.angle} on ${n.platform_label}: ${n.reason}`);
+  return `<p>One ad for each row the plan runs, written from your own website, Google listing and Instagram, and checked line by line: every line fits the platform's limit, uses no number your public data does not show, and makes no claim that would need a source (${esc(GROUNDSWELL_CONFIG.unsupported_claims.slice(0, 4).map((x) => `"${x}"`).join(', '))} and the like). Edit freely within the limits.</p>
+${ads.join('')}
+${missing.length ? `<h3>Not written</h3>${listHtml(missing, false)}` : ''}`;
+}
+
 function adPlanSection(p: AdplanOutput) {
   const live = p.plan.rows.filter((r) => r.recommendation !== 'skip');
   const stops = live
@@ -400,6 +427,8 @@ function roiTable(m: ModelOutput) {
 export function buildAuditHtml(d: ReportData): string {
   const { facts: f, model: m, brand: b } = d;
   const p = hasPlan(d.adplan) ? d.adplan : null;
+  // Copy only alongside its plan, and only when there is something to show.
+  const copy = p && d.adcopy && (d.adcopy.ads.length || d.adcopy.not_written.length) ? d.adcopy : null;
   const footer = `${esc(f.business.name)} · Marketing audit · Prepared by ${PREPARED_BY} · ${esc(d.date)}`;
   const section = (kicker: string, title: string, body: string) =>
     `<section class="page"><div class="kicker">${esc(kicker)}</div><h2>${esc(title)}</h2>${body}<div class="foot">${footer}</div></section>`;
@@ -410,7 +439,9 @@ export function buildAuditHtml(d: ReportData): string {
 
   const plan = m.writeup.plan;
   const returnSections = p
-    ? section('9 · Return', 'What pays back first', returnSection(p, m)) + section('10 · Ad plan', 'The ad plan', adPlanSection(p))
+    ? section('9 · Return', 'What pays back first', returnSection(p, m)) +
+      section('10 · Ad plan', 'The ad plan', adPlanSection(p)) +
+      (copy ? section('11 · Ad copy', 'Ad copy, ready to paste', adCopySection(copy)) : '')
     : section(
         '9 · Return',
         'What search ads could return',
@@ -474,7 +505,7 @@ ${areas}
 ${section('8 · Plan', 'The 90-day plan', `<h3>Weeks 1–2</h3>${listHtml(plan.weeks_1_2, false)}<h3>Weeks 3–6</h3>${listHtml(plan.weeks_3_6, false)}<h3>Weeks 7–12</h3>${listHtml(plan.weeks_7_12, false)}`)}
 ${returnSections}
 ${section(
-  `${p ? 11 : 10} · Sources`,
+  `${p ? (copy ? 12 : 11) : 10} · Sources`,
   'Sources and limits',
   `<h3>Data used</h3>${listHtml(sources, false)}${missing.length ? `<h3>Not available this time</h3>${listHtml(missing, false)}` : ''}${m.writeup.cant_see.length ? `<h3>Needs owner access</h3>${listHtml(m.writeup.cant_see, false)}` : ''}<p class="muted">Ratings, followers and rankings change daily; figures are as of the dates above.</p>`
 )}

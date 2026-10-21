@@ -33,9 +33,12 @@ decides the details, not the code.
    can win (see "Angles") and models each one on every ad platform its
    industry allows, in a low, medium and high scenario, ranked by cost per
    click, clicks and return.
-3. **Write templates** (`src/templates.ts`). Ready-to-paste ad copy for each
-   funded or tested row, checked against the platform's character limits and
-   against claims an ad cannot make without proof.
+3. **Write the ads** (`src/adcopy.ts`, `src/templates.ts`). Ready-to-paste
+   ad copy for each funded or tested row (`copyTargets`), held by
+   `checkCopy` to the platform's character limits, to numbers the data shows,
+   and to `templateProblems`. Written copy never makes a claim from
+   `unsupported_claims`, even with proof; a hand-written template may, with
+   the proof named.
 4. **Review, re-interpret, re-run** (planned). A reviewer pass checks every
    first-round number against the raw data. Anything that does not hold up
    is fetched again, the plan is re-run, and the audit counts as accurate
@@ -231,8 +234,9 @@ a service (SaaS), with tools linked in as each client needs them. In order:
    changes to a use-case library for later audits.
 3. **The ad plan in the live engine** (now): the `adplan` step
    (`api/_lib/groundswell/adplan.ts`) and the reports' return section, slides
-   and summary. Next: ad copy written for each funded or tested row and
-   checked by `templateProblems`, and the use-case library.
+   and summary, and the `adcopy` step (`api/_lib/groundswell/adcopy.ts`): an
+   ad for each funded or tested row, checked by `checkCopy`, in the full
+   audit. Next: the use-case library.
 4. **Review, re-interpret, re-run** before an audit counts as accurate.
 5. **The planner agent and connectors.** An agent picks the industry profile
    and the platforms to audit (LinkedIn for IT; Angi, Yelp and Reddit for
@@ -251,7 +255,8 @@ a service (SaaS), with tools linked in as each client needs them. In order:
 |---|---|
 | Setup file, ad plan, templates | Here, tested (`test/`). |
 | Every change ranked by return; today against the plan | Here, tested; shown on Croissance for the brewery. |
-| Ad plan and ranking in the live audits and reports | Live: the `adplan` step and `planAudit` (`src/audit.ts`). Ad copy in the reports is next. |
+| Ad plan and ranking in the live audits and reports | Live: the `adplan` step and `planAudit` (`src/audit.ts`). |
+| Ad copy for the rows the plan runs | Live: the `adcopy` step, `checkCopy` (`src/adcopy.ts`), and the full audit's "Ad copy, ready to paste". |
 | Competitor benchmark | Here, tested (`src/benchmark/`); live as the `benchmark` audit kind. |
 | Review → re-interpret → re-run | Planned. |
 | Planner agent and industry platforms | Planned: an agent picks the industry profile from the business's data, within the setup file's allowlist. |
