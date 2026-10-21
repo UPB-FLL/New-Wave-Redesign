@@ -1,8 +1,7 @@
 import type { AuditDraft, AuditStatus, PartnerBranding } from './groundswellValidation';
 
 /**
- * Browser client for the Croissance partner portal
- * (/social-engineering/croissance/partners). Partners are not Supabase users;
+ * Browser client for Groundswell's partner app (/groundswell). Partners are not Supabase users;
  * they hold an opaque session token from /api/groundswell/partner-auth. It lives
  * in sessionStorage, like the support portal's, so it ends with the tab.
  */

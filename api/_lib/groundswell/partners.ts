@@ -29,7 +29,8 @@ export const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 export const RESET_TTL_MS = 60 * 60 * 1000;
 
 export const SITE_URL = 'https://www.newwaveitfl.com';
-export const PARTNER_BASE_PATH = '/social-engineering/croissance/partners';
+/** Groundswell's address (src/groundswell/site.ts): invite and reset links land on its set-password page. */
+export const PARTNER_BASE_PATH = '/groundswell';
 export const setPasswordUrl = (token: string) => `${SITE_URL}${PARTNER_BASE_PATH}/set-password?token=${encodeURIComponent(token)}`;
 
 export const normalizeEmail = (email: unknown) => (typeof email === 'string' ? email.trim().toLowerCase() : '');
@@ -213,7 +214,7 @@ export async function notifyNewPartnerAudit(partner: PartnerProfile, businessNam
       from: FROM,
       to: 'contact@newwaveitfl.com',
       subject: `[Groundswell] ${partner.company} queued an audit: ${businessName}`,
-      html: `<p>${escapeHtml(partner.company)} (${escapeHtml(partner.email)}) queued a Croissance audit for <strong>${escapeHtml(businessName)}</strong>.</p><p>Run it from the admin portal: ${SITE_URL}/admin/groundswell/audits</p>`,
+      html: `<p>${escapeHtml(partner.company)} (${escapeHtml(partner.email)}) queued a Croissance audit for <strong>${escapeHtml(businessName)}</strong>.</p><p>Run it from Groundswell: ${SITE_URL}/groundswell/admin/audits</p>`,
     });
   } catch (err) {
     console.error('Groundswell partner notification failed:', err);

@@ -32,7 +32,7 @@ export interface AdminNavPage {
 export interface AdminNavGroup {
   id: string;
   label: string;
-  /** Pages (Site pages) or direct entries (Blog, SEO, Groundswell). */
+  /** Pages (Site pages) or direct entries (Blog, SEO). */
   pages?: AdminNavPage[];
   entries?: AdminNavEntry[];
 }
@@ -118,16 +118,9 @@ export const ADMIN_NAV: AdminNavGroup[] = [
       { label: 'Landing pages', path: '/admin/seo', keywords: ['local pages', 'competitor research', 'backlinks', 'keywords'] },
     ],
   },
-  {
-    id: 'groundswell',
-    label: 'Groundswell',
-    entries: [
-      { label: 'Overview', path: '/admin/groundswell', end: true, keywords: ['setup', 'croissance', 'audit counts'] },
-      { label: 'Audits', path: '/admin/groundswell/audits', keywords: ['queue', 'run', 'benchmark', 'reports', 'drive'] },
-      { label: 'Partners', path: '/admin/groundswell/partners', keywords: ['invite', 'reset link', 'agency', 'reseller'] },
-    ],
-  },
 ];
+// Groundswell is not in the model: it is its own portal at /groundswell
+// (staff pages under /groundswell/admin), linked from the sidebar's foot.
 
 /** Every entry, in sidebar order. */
 export function allNavEntries(): AdminNavEntry[] {

@@ -14,67 +14,79 @@ const api = vi.hoisted(() => ({
   savePartnerBranding: vi.fn(),
 }));
 
-vi.mock('../../lib/groundswellPartner', async (orig) => ({ ...(await orig<typeof import('../../lib/groundswellPartner')>()), ...api }));
+vi.mock('../lib/groundswellPartner', async (orig) => ({ ...(await orig<typeof import('../lib/groundswellPartner')>()), ...api }));
 
-import SocialEngineeringPartnerAppPage from './pages/SocialEngineeringPartnerAppPage';
-import SocialEngineeringPartnersPage from './pages/SocialEngineeringPartnersPage';
-import { partnersPageSeo } from './seo';
-import { DIVISION_PARTNER_DASHBOARD_PATH, DIVISION_PARTNERS_PATH, DIVISION_PARTNER_SET_PASSWORD_PATH } from './site';
+import GroundswellCustomersPage from './pages/GroundswellCustomersPage';
+import GroundswellSetPasswordPage from './pages/GroundswellSetPasswordPage';
+import GroundswellSignInPage from './pages/GroundswellSignInPage';
+import { LegacyAdminRedirect, LegacyPartnerRedirect } from './routes';
+import {
+  GROUNDSWELL_ADMIN_PATH,
+  GROUNDSWELL_CUSTOMERS_PATH,
+  GROUNDSWELL_PATH,
+  GROUNDSWELL_SET_PASSWORD_PATH,
+  LEGACY_ADMIN_PATH,
+  LEGACY_PARTNER_PATH,
+} from './site';
 
 function renderPortal(path: string) {
   return render(
     <MemoryRouter initialEntries={[path]}>
       <Routes>
-        <Route path={DIVISION_PARTNERS_PATH} element={<SocialEngineeringPartnersPage />} />
-        <Route path={DIVISION_PARTNER_DASHBOARD_PATH} element={<SocialEngineeringPartnerAppPage view="dashboard" />} />
-        <Route path={DIVISION_PARTNER_SET_PASSWORD_PATH} element={<SocialEngineeringPartnerAppPage view="set-password" />} />
+        <Route path={GROUNDSWELL_PATH} element={<GroundswellSignInPage />} />
+        <Route path={GROUNDSWELL_CUSTOMERS_PATH} element={<GroundswellCustomersPage />} />
+        <Route path={GROUNDSWELL_SET_PASSWORD_PATH} element={<GroundswellSetPasswordPage />} />
+        <Route path={GROUNDSWELL_ADMIN_PATH} element={<p>staff sign-in</p>} />
+        <Route path={`${GROUNDSWELL_ADMIN_PATH}/audits`} element={<p>staff audits</p>} />
+        <Route path={LEGACY_PARTNER_PATH} element={<LegacyPartnerRedirect to="sign-in" />} />
+        <Route path={`${LEGACY_PARTNER_PATH}/dashboard`} element={<LegacyPartnerRedirect to="customers" />} />
+        <Route path={`${LEGACY_PARTNER_PATH}/set-password`} element={<LegacyPartnerRedirect to="set-password" />} />
+        <Route path={`${LEGACY_ADMIN_PATH}/*`} element={<LegacyAdminRedirect />} />
       </Routes>
     </MemoryRouter>
   );
 }
 
 const robots = () => document.head.querySelector('meta[name="robots"]')?.getAttribute('content');
+const partner = { company: 'Reef Agency', contact_name: null, email: 'sam@reef.example' };
 
 beforeEach(() => {
   Object.values(api).forEach((fn) => fn.mockReset());
   api.currentPartner.mockResolvedValue(null);
   api.getPartnerBranding.mockResolvedValue({ company: 'Reef Agency', branding: { display_name: null, logo_url: null }, available: true });
-  vi.stubGlobal(
-    'IntersectionObserver',
-    class {
-      observe() {}
-      unobserve() {}
-      disconnect() {}
-    }
-  );
 });
 
-describe('partner portal sign-in page', () => {
-  it('is indexable, sits under Croissance, and carries the privacy notice', () => {
-    renderPortal(DIVISION_PARTNERS_PATH);
-    expect(screen.getByRole('heading', { level: 1, name: 'Croissance partner portal' })).toBeInTheDocument();
-    expect(robots()).toBe('index, follow');
-    expect(partnersPageSeo().breadcrumbs.map((c) => c.name)).toEqual(['NW Social Engineering', 'Croissance', 'Partner portal']);
+describe('Groundswell sign-in page', () => {
+  it('signs partners in, links staff to their own sign-in, and carries the privacy notice', () => {
+    renderPortal(GROUNDSWELL_PATH);
+    expect(screen.getByRole('heading', { level: 1, name: 'Groundswell' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Partner sign-in' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'New Wave staff sign-in' })).toHaveAttribute('href', GROUNDSWELL_ADMIN_PATH);
     expect(screen.getByTestId('form-privacy-notice')).toHaveTextContent(/Signing in sends/);
     expect(screen.getByRole('link', { name: /Ask about partnering/ })).toHaveAttribute('href', '/social-engineering/contact-us');
+    // No marketing chrome: the page is the product's front door, not a division page.
+    expect(screen.queryByRole('link', { name: /Book a discovery call/ })).not.toBeInTheDocument();
   });
 
-  it('signs in and opens the dashboard', async () => {
-    api.partnerSignIn.mockResolvedValue({ company: 'Reef Agency', contact_name: null, email: 'sam@reef.example' });
-    api.currentPartner.mockResolvedValueOnce(null).mockResolvedValue({ company: 'Reef Agency', contact_name: null, email: 'sam@reef.example' });
+  it('signs in and opens the partner’s customers in the shell', async () => {
+    api.partnerSignIn.mockResolvedValue(partner);
+    api.currentPartner.mockResolvedValueOnce(null).mockResolvedValue(partner);
     api.listPartnerAudits.mockResolvedValue([]);
-    renderPortal(DIVISION_PARTNERS_PATH);
+    renderPortal(GROUNDSWELL_PATH);
     fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'sam@reef.example' } });
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'correct horse battery' } });
     fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
     await waitFor(() => expect(api.partnerSignIn).toHaveBeenCalledWith('sam@reef.example', 'correct horse battery'));
-    expect(await screen.findByRole('heading', { level: 1, name: 'Reef Agency' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Customers' })).toBeInTheDocument();
+    expect(screen.getByText('Reef Agency')).toBeInTheDocument();
+    const nav = screen.getAllByRole('navigation', { name: 'Partner pages' })[0];
+    expect(within(nav).getByRole('link', { name: 'Customers' })).toHaveAttribute('href', GROUNDSWELL_CUSTOMERS_PATH);
   });
 
   it('shows the sign-in error and offers a reset link', async () => {
     api.partnerSignIn.mockRejectedValue(new Error('That email and password do not match an active partner account.'));
     api.requestPartnerReset.mockResolvedValue('If that email belongs to a partner account, a reset link is on its way.');
-    renderPortal(DIVISION_PARTNERS_PATH);
+    renderPortal(GROUNDSWELL_PATH);
     fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'sam@reef.example' } });
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'wrong one here' } });
     fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
@@ -86,14 +98,14 @@ describe('partner portal sign-in page', () => {
   });
 });
 
-describe('partner dashboard', () => {
+describe('partner customers page', () => {
   it('sends a signed-out visitor to sign in', async () => {
-    renderPortal(DIVISION_PARTNER_DASHBOARD_PATH);
-    expect(await screen.findByRole('heading', { level: 1, name: 'Croissance partner portal' })).toBeInTheDocument();
+    renderPortal(GROUNDSWELL_CUSTOMERS_PATH);
+    expect(await screen.findByRole('heading', { level: 1, name: 'Groundswell' })).toBeInTheDocument();
   });
 
-  it('is noindex and lists the partner’s audits with Drive links only', async () => {
-    api.currentPartner.mockResolvedValue({ company: 'Reef Agency', contact_name: null, email: 'sam@reef.example' });
+  it('is noindex and lists the partner’s customers with Drive links only', async () => {
+    api.currentPartner.mockResolvedValue(partner);
     api.listPartnerAudits.mockResolvedValue([
       {
         id: 'a1', business_name: 'Harbor Auto', city: 'Miami', website: 'https://harbor.example', instagram: null, competitors: [], status: 'done',
@@ -101,21 +113,25 @@ describe('partner dashboard', () => {
         deck_pdf_url: 'https://example.com/not-drive', audit_pdf_url: null, created_at: '2026-10-21T00:00:00Z', completed_at: '2026-10-21T01:00:00Z',
       },
     ]);
-    renderPortal(DIVISION_PARTNER_DASHBOARD_PATH);
-    const list = await screen.findByRole('list', { name: 'Your audits' });
+    renderPortal(GROUNDSWELL_CUSTOMERS_PATH);
+    const list = await screen.findByRole('list', { name: 'Your customers' });
     expect(robots()).toBe('noindex, nofollow');
     expect(within(list).getByText('Reports ready')).toBeInTheDocument();
     expect(within(list).getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual([
       'https://drive.google.com/file/d/S/view',
       'https://drive.google.com/drive/folders/F',
     ]);
+    // With customers listed, the form waits behind the one primary action.
+    expect(screen.queryByLabelText('Business name')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Add a customer/ }));
+    expect(screen.getByLabelText('Business name')).toBeInTheDocument();
   });
 
-  it('checks a submission before sending it, then queues it', async () => {
-    api.currentPartner.mockResolvedValue({ company: 'Reef Agency', contact_name: null, email: 'sam@reef.example' });
+  it('opens the form for a first customer, checks it before sending, then queues it', async () => {
+    api.currentPartner.mockResolvedValue(partner);
     api.listPartnerAudits.mockResolvedValue([]);
     api.submitPartnerAudit.mockResolvedValue({ business_name: 'Harbor Auto' });
-    renderPortal(DIVISION_PARTNER_DASHBOARD_PATH);
+    renderPortal(GROUNDSWELL_CUSTOMERS_PATH);
     fireEvent.change(await screen.findByLabelText('Business name'), { target: { value: 'Harbor Auto' } });
     fireEvent.click(screen.getByRole('button', { name: 'Queue the audit' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Add a website or an Instagram handle.');
@@ -126,10 +142,10 @@ describe('partner dashboard', () => {
   });
 
   it('sets the name and logo the reports carry, checking the logo link first', async () => {
-    api.currentPartner.mockResolvedValue({ company: 'Reef Agency', contact_name: null, email: 'sam@reef.example' });
+    api.currentPartner.mockResolvedValue(partner);
     api.listPartnerAudits.mockResolvedValue([]);
     api.savePartnerBranding.mockImplementation(async (b: { display_name: string; logo_url: string }) => ({ company: 'Reef Agency', branding: b, available: true }));
-    renderPortal(DIVISION_PARTNER_DASHBOARD_PATH);
+    renderPortal(GROUNDSWELL_CUSTOMERS_PATH);
     const panel = within((await screen.findByRole('heading', { name: 'Your branding' })).closest('form')!);
     expect(panel.getByText(/Preview: Prepared by Reef Agency/)).toBeInTheDocument();
     fireEvent.change(panel.getByLabelText('Name on your reports'), { target: { value: 'Reef Growth Co' } });
@@ -145,19 +161,29 @@ describe('partner dashboard', () => {
   });
 
   it('says branding is not on yet before the database supports it', async () => {
-    api.currentPartner.mockResolvedValue({ company: 'Reef Agency', contact_name: null, email: 'sam@reef.example' });
+    api.currentPartner.mockResolvedValue(partner);
     api.listPartnerAudits.mockResolvedValue([]);
     api.getPartnerBranding.mockResolvedValue({ company: 'Reef Agency', branding: { display_name: null, logo_url: null }, available: false });
-    renderPortal(DIVISION_PARTNER_DASHBOARD_PATH);
+    renderPortal(GROUNDSWELL_CUSTOMERS_PATH);
     expect(await screen.findByText(/Branding isn’t switched on yet/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Save branding' })).toBeDisabled();
+  });
+
+  it('signs out from the shell', async () => {
+    api.currentPartner.mockResolvedValue(partner);
+    api.listPartnerAudits.mockResolvedValue([]);
+    api.partnerSignOut.mockResolvedValue(undefined);
+    renderPortal(GROUNDSWELL_CUSTOMERS_PATH);
+    fireEvent.click(await screen.findByRole('button', { name: 'Sign out' }));
+    await waitFor(() => expect(api.partnerSignOut).toHaveBeenCalled());
+    expect(await screen.findByRole('heading', { level: 1, name: 'Groundswell' })).toBeInTheDocument();
   });
 });
 
 describe('set-password page', () => {
   it('saves a matching password from the link’s token', async () => {
     api.setPartnerPassword.mockResolvedValue(undefined);
-    renderPortal(`${DIVISION_PARTNER_SET_PASSWORD_PATH}?token=abc123`);
+    renderPortal(`${GROUNDSWELL_SET_PASSWORD_PATH}?token=abc123`);
     expect(robots()).toBe('noindex, nofollow');
     fireEvent.change(screen.getByLabelText('New password'), { target: { value: 'a long passphrase' } });
     fireEvent.change(screen.getByLabelText('Type it again'), { target: { value: 'a different one!' } });
@@ -166,11 +192,25 @@ describe('set-password page', () => {
     fireEvent.change(screen.getByLabelText('Type it again'), { target: { value: 'a long passphrase' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save password' }));
     await waitFor(() => expect(api.setPartnerPassword).toHaveBeenCalledWith('abc123', 'a long passphrase'));
-    expect(await screen.findByRole('link', { name: 'Sign in' })).toHaveAttribute('href', DIVISION_PARTNERS_PATH);
+    expect(await screen.findByRole('link', { name: 'Sign in' })).toHaveAttribute('href', GROUNDSWELL_PATH);
   });
 
   it('explains when the link is missing its token', () => {
-    renderPortal(DIVISION_PARTNER_SET_PASSWORD_PATH);
+    renderPortal(GROUNDSWELL_SET_PASSWORD_PATH);
     expect(screen.getByRole('alert')).toHaveTextContent('needs the link from your invite or reset email');
+  });
+});
+
+describe('old addresses', () => {
+  it('sends the Croissance partner URLs to Groundswell, keeping an invite link’s token', async () => {
+    renderPortal(LEGACY_PARTNER_PATH);
+    expect(await screen.findByRole('heading', { level: 1, name: 'Groundswell' })).toBeInTheDocument();
+    renderPortal(`${LEGACY_PARTNER_PATH}/set-password?token=abc123`);
+    expect(await screen.findByLabelText('New password')).toBeInTheDocument();
+  });
+
+  it('sends the content admin’s Groundswell pages to the staff section', async () => {
+    renderPortal(`${LEGACY_ADMIN_PATH}/audits`);
+    expect(await screen.findByText('staff audits')).toBeInTheDocument();
   });
 });

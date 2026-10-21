@@ -15,8 +15,8 @@ const BARE_ROUTES = ['/codenest'];
 
 function SiteChrome() {
   const { pathname } = useLocation();
-  // Division pages bring their own background and navigation.
-  if (BARE_ROUTES.includes(pathname) || isDivisionPath(pathname)) return null;
+  // Division and Groundswell pages bring their own background and navigation.
+  if (BARE_ROUTES.includes(pathname) || isDivisionPath(pathname) || isGroundswellPath(pathname)) return null;
   return (
     <>
       <WaveBackground />
@@ -63,6 +63,7 @@ import CodeNestPage from './pages/CodeNestPage';
 import BlogPage from './pages/BlogPage';
 import BlogPostPage from './pages/BlogPostPage';
 import NotFoundPage from './pages/NotFoundPage';
+import GroundswellSignInPage from './pages/GroundswellSignInPage';
 import { usePageMeta } from './lib/usePageMeta';
 import { HOME_PAGE_META } from './lib/routeMeta';
 import {
@@ -71,9 +72,6 @@ import {
   DIVISION_CONTACT_US_PATH,
   DIVISION_CUSTOMERS_PATH,
   DIVISION_CROISSANCE_PATH,
-  DIVISION_PARTNER_DASHBOARD_PATH,
-  DIVISION_PARTNER_SET_PASSWORD_PATH,
-  DIVISION_PARTNERS_PATH,
   DIVISION_PUBLISHED,
   DIVISION_SERVICE_SLUGS,
   divisionServicePath,
@@ -85,10 +83,25 @@ import {
   SocialEngineeringCustomersRoute,
   SocialEngineeringHubRoute,
   SocialEngineeringCroissanceRoute,
-  SocialEngineeringPartnerAppRoute,
-  SocialEngineeringPartnersRoute,
   SocialEngineeringServiceRoute,
 } from './divisions/socialEngineering/routes';
+import {
+  GROUNDSWELL_ADMIN_PATH,
+  GROUNDSWELL_CUSTOMERS_PATH,
+  GROUNDSWELL_SET_PASSWORD_PATH,
+  isGroundswellPath,
+  LEGACY_PARTNER_PATH,
+} from './groundswell/site';
+import {
+  GroundswellAdminAudits,
+  GroundswellAdminOverview,
+  GroundswellAdminPartners,
+  GroundswellAdminRoute,
+  GroundswellCustomersRoute,
+  GroundswellSetPasswordRoute,
+  LegacyAdminRedirect,
+  LegacyPartnerRedirect,
+} from './groundswell/routes';
 
 // The admin dashboard loads on demand: public visitors (and crawlers measuring
 // page speed) never download the editors.
@@ -109,9 +122,6 @@ const PricingEditor = lazy(() => import('./admin/editors/PricingEditor'));
 const StatusEditor = lazy(() => import('./admin/editors/StatusEditor'));
 const SeoPortal = lazy(() => import('./admin/seo/SeoPortal'));
 const SeoPageEditor = lazy(() => import('./admin/seo/SeoPageEditor'));
-const GroundswellAudits = lazy(() => import('./admin/groundswell/GroundswellAudits'));
-const GroundswellOverview = lazy(() => import('./admin/groundswell/GroundswellOverview'));
-const GroundswellPartners = lazy(() => import('./admin/groundswell/GroundswellPartners'));
 const ServicesDetailEditor = lazy(() => import('./admin/editors/ServicesDetailEditor'));
 const ThreatsDetailEditor = lazy(() => import('./admin/editors/ThreatsDetailEditor'));
 const ServicesCategoryEditor = lazy(() => import('./admin/editors/ServicesCategoryEditor'));
@@ -192,14 +202,24 @@ export default function App() {
               <Route key={slug} path={divisionServicePath(slug)} element={<SocialEngineeringServiceRoute slug={slug} />} />
             ))}
             <Route path={DIVISION_CROISSANCE_PATH} element={<SocialEngineeringCroissanceRoute />} />
-            <Route path={DIVISION_PARTNERS_PATH} element={<SocialEngineeringPartnersRoute />} />
-            <Route path={DIVISION_PARTNER_DASHBOARD_PATH} element={<SocialEngineeringPartnerAppRoute view="dashboard" />} />
-            <Route path={DIVISION_PARTNER_SET_PASSWORD_PATH} element={<SocialEngineeringPartnerAppRoute view="set-password" />} />
             <Route path={DIVISION_CUSTOMERS_PATH} element={<SocialEngineeringCustomersRoute />} />
             <Route path={DIVISION_CONTACT_US_PATH} element={<SocialEngineeringContactUsRoute />} />
             <Route path={DIVISION_CONTACT_PATH} element={<SocialEngineeringContactRoute />} />
           </>
         ) : null}
+        {/* Groundswell: the sign-in is a prerendered static route; the rest is noindex and loads on demand. */}
+        <Route path="/groundswell" element={<GroundswellSignInPage />} />
+        <Route path={GROUNDSWELL_SET_PASSWORD_PATH} element={<GroundswellSetPasswordRoute />} />
+        <Route path={GROUNDSWELL_CUSTOMERS_PATH} element={<GroundswellCustomersRoute />} />
+        <Route path={GROUNDSWELL_ADMIN_PATH} element={<GroundswellAdminRoute />}>
+          <Route index element={<GroundswellAdminOverview />} />
+          <Route path="audits" element={<GroundswellAdminAudits />} />
+          <Route path="partners" element={<GroundswellAdminPartners />} />
+        </Route>
+        {/* The partner portal's old addresses under Croissance. */}
+        <Route path={LEGACY_PARTNER_PATH} element={<LegacyPartnerRedirect to="sign-in" />} />
+        <Route path={`${LEGACY_PARTNER_PATH}/dashboard`} element={<LegacyPartnerRedirect to="customers" />} />
+        <Route path={`${LEGACY_PARTNER_PATH}/set-password`} element={<LegacyPartnerRedirect to="set-password" />} />
         <Route
           path="/admin"
           element={
@@ -231,11 +251,10 @@ export default function App() {
           <Route path="threats-detail" element={<ThreatsDetailEditor />} />
           <Route path="seo" element={<SeoPortal />} />
           <Route path="seo/:id" element={<SeoPageEditor />} />
-          <Route path="groundswell" element={<GroundswellOverview />} />
-          <Route path="groundswell/audits" element={<GroundswellAudits />} />
-          <Route path="groundswell/partners" element={<GroundswellPartners />} />
-          {/* The queue's old address, from before Groundswell had its own section. */}
-          <Route path="audits" element={<Navigate to="/admin/groundswell/audits" replace />} />
+          {/* Groundswell moved to its own section (/groundswell/admin); its old addresses redirect there. */}
+          <Route path="groundswell" element={<LegacyAdminRedirect />} />
+          <Route path="groundswell/*" element={<LegacyAdminRedirect />} />
+          <Route path="audits" element={<Navigate to={`${GROUNDSWELL_ADMIN_PATH}/audits`} replace />} />
         </Route>
         {/* Anything unmatched, including unknown /social-engineering/* paths: a noindex page, not a blank one. */}
         <Route path="*" element={<NotFoundPage />} />

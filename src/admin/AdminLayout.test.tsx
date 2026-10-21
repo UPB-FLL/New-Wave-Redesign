@@ -36,7 +36,7 @@ describe('AdminLayout sidebar', () => {
   it('shows the four groups with site pages collapsed, and expands the current page', () => {
     renderAt('/admin/hero');
     const nav = screen.getByRole('navigation', { name: 'Admin' });
-    for (const label of ['Site pages', 'Blog', 'SEO', 'Groundswell']) expect(within(nav).getByText(label)).toBeInTheDocument();
+    for (const label of ['Site pages', 'Blog', 'SEO']) expect(within(nav).getByText(label)).toBeInTheDocument();
     // Home holds the current editor, so it is open; the others stay closed.
     expect(within(nav).getByRole('button', { name: 'Home' })).toHaveAttribute('aria-expanded', 'true');
     expect(within(nav).getByRole('link', { name: 'Hero' })).toBeInTheDocument();
@@ -64,11 +64,11 @@ describe('AdminLayout sidebar', () => {
     const links = within(results).getAllByRole('link');
     expect(links.map((l) => l.getAttribute('href'))).toEqual(['/admin/hero', '/admin/contact', '/admin/footer']);
     expect(within(results).getAllByText('Contact and footer')).toHaveLength(2);
-    expect(screen.queryByText('Groundswell')).not.toBeInTheDocument();
+    expect(screen.queryByText('SEO')).not.toBeInTheDocument();
     fireEvent.click(links[2]);
     expect(screen.getByText('Footer editor body')).toBeInTheDocument();
     expect(search).toHaveValue('');
-    expect(screen.getByText('Groundswell')).toBeInTheDocument();
+    expect(screen.getByText('SEO')).toBeInTheDocument();
 
     fireEvent.change(search, { target: { value: 'zzz' } });
     expect(screen.getByText('Nothing matches "zzz".')).toBeInTheDocument();
@@ -84,12 +84,9 @@ describe('AdminLayout sidebar', () => {
     expect(screen.queryByRole('button', { name: 'Save changes' })).not.toBeInTheDocument();
   });
 
-  it('keeps the Groundswell links in place', () => {
+  it('links to Groundswell’s own portal instead of carrying its pages', () => {
     renderAt('/admin');
-    const nav = screen.getByRole('navigation', { name: 'Admin' });
-    const group = within(nav).getByRole('group', { name: 'Groundswell' });
-    expect(within(group).getAllByRole('link').map((l) => l.getAttribute('href'))).toEqual([
-      '/admin/groundswell', '/admin/groundswell/audits', '/admin/groundswell/partners',
-    ]);
+    expect(screen.getByRole('link', { name: 'Open Groundswell' })).toHaveAttribute('href', '/groundswell/admin');
+    expect(screen.queryByRole('group', { name: 'Groundswell' })).not.toBeInTheDocument();
   });
 });

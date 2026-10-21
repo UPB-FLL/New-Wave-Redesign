@@ -2,7 +2,8 @@ import { useEffect, useState, ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
 import AdminLogin from './AdminLogin';
 
-export default function AdminGuard({ children }: { children: ReactNode }) {
+/** Wraps staff-only pages: shows the sign-in form until a Supabase session exists. `title`/`subtitle` label that form. */
+export default function AdminGuard({ children, title, subtitle }: { children: ReactNode; title?: string; subtitle?: string }) {
   const [session, setSession] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -25,7 +26,7 @@ export default function AdminGuard({ children }: { children: ReactNode }) {
     );
   }
 
-  if (!session) return <AdminLogin />;
+  if (!session) return <AdminLogin title={title} subtitle={subtitle} />;
 
   return <>{children}</>;
 }
