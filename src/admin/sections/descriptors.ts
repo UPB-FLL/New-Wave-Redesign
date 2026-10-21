@@ -28,7 +28,7 @@ export const HERO: SectionDescriptor = {
   url: '/',
   blocks: [
     {
-      id: 'headline',
+      anchor: 'hero', id: 'headline',
       title: 'Headline',
       description: 'Badge, headline, and the text under it',
       fields: [
@@ -41,7 +41,7 @@ export const HERO: SectionDescriptor = {
       ],
     },
     {
-      id: 'cta',
+      anchor: 'hero', id: 'cta',
       title: 'Buttons and phone',
       fields: [
         text('cta_primary', 'Primary button label', 'Main action button text'),
@@ -50,7 +50,7 @@ export const HERO: SectionDescriptor = {
       ],
     },
     {
-      id: 'stats',
+      anchor: 'hero', id: 'stats',
       title: 'Mini stats',
       description: 'The short facts under the hero (24/7, Local, Flat-rate). Words, not unverified numbers.',
       fields: [{
@@ -60,7 +60,7 @@ export const HERO: SectionDescriptor = {
       }],
     },
     {
-      id: 'cards',
+      anchor: 'hero', id: 'cards',
       title: 'Feature cards',
       description: 'The cards on the right of the hero',
       fields: [{
@@ -81,9 +81,9 @@ export const TRUSTBAR: SectionDescriptor = {
   description: 'Partnerships shown below the hero. Only documented partners (Huntress, Microsoft, Cisco).',
   url: '/',
   blocks: [
-    { id: 'heading', title: 'Heading', fields: [text('heading', 'Heading text', 'e.g. Trusted by businesses across South Florida')] },
+    { anchor: 'trust-bar', id: 'heading', title: 'Heading', fields: [text('heading', 'Heading text', 'e.g. Trusted by businesses across South Florida')] },
     {
-      id: 'items',
+      anchor: 'trust-bar', id: 'items',
       title: 'Trust items',
       fields: [{
         key: 'items', label: 'Trust items', kind: 'list', itemLabel: 'item', titleKey: 'label', subtitleKey: 'sub',
@@ -107,9 +107,9 @@ export const SERVICES: SectionDescriptor = {
   description: 'The services band on the home page.',
   url: '/#services',
   blocks: [
-    { id: 'headline', title: 'Headline', fields: headlineBlock({ accent: 'Gradient-coloured word in the headline (e.g. Modern Business)' }) },
+    { anchor: 'services', id: 'headline', title: 'Headline', fields: headlineBlock({ accent: 'Gradient-coloured word in the headline (e.g. Modern Business)' }) },
     {
-      id: 'cards',
+      anchor: 'services', id: 'cards',
       title: 'Service cards',
       fields: [{
         key: 'cards', label: 'Service cards', kind: 'list', itemLabel: 'card', titleKey: 'title', subtitleKey: 'description',
@@ -137,18 +137,18 @@ export const WHYUS: SectionDescriptor = {
   url: '/why-us',
   blocks: [
     {
-      id: 'headline',
+      anchor: 'why-us', id: 'headline',
       title: 'Headline',
       fields: [...headlineBlock(), text('cta_label', 'Button label', 'Call-to-action button text')],
     },
     {
-      id: 'proof',
+      anchor: 'why-us', id: 'proof',
       title: 'Proof points',
       description: 'Short facts, no unverified numbers',
       fields: [strings('proof_points', 'Proof points')],
     },
     {
-      id: 'cards',
+      anchor: 'why-us', id: 'cards',
       title: 'Feature cards',
       fields: [{
         key: 'feature_cards', label: 'Feature cards', kind: 'list', itemLabel: 'card', titleKey: 'title', subtitleKey: 'desc',
@@ -157,7 +157,7 @@ export const WHYUS: SectionDescriptor = {
       }],
     },
     {
-      id: 'how',
+      anchor: 'why-us', id: 'how',
       title: 'How it works',
       fields: [
         text('how_it_works_title', 'Section title', 'e.g. How It Works'),
@@ -178,7 +178,7 @@ export const ABOUT: SectionDescriptor = {
   url: '/about',
   blocks: [
     {
-      id: 'headline',
+      anchor: 'about', id: 'headline',
       title: 'Headline',
       fields: [
         text('section_label', 'Section label', 'Label above the headline'),
@@ -187,12 +187,12 @@ export const ABOUT: SectionDescriptor = {
       ],
     },
     {
-      id: 'story',
+      anchor: 'about', id: 'story',
       title: 'Story',
       fields: [textarea('paragraph1', 'Paragraph 1', 'Opening paragraph'), textarea('paragraph2', 'Paragraph 2'), textarea('paragraph3', 'Paragraph 3', 'Closing paragraph')],
     },
     {
-      id: 'team',
+      anchor: 'about', id: 'team',
       title: 'Team',
       fields: [
         text('years_badge', 'Years badge', 'e.g. 15 or 20+ (leave empty to show none)'),
@@ -202,7 +202,7 @@ export const ABOUT: SectionDescriptor = {
       ],
     },
     {
-      id: 'approach',
+      anchor: 'about', id: 'approach',
       title: 'Our approach',
       fields: [
         text('approach_title', 'Section title', 'e.g. Our Approach'),
@@ -211,7 +211,7 @@ export const ABOUT: SectionDescriptor = {
       ],
     },
     {
-      id: 'why',
+      anchor: 'about', id: 'why',
       title: 'Why choose us',
       fields: [
         text('why_choose_title', 'Section title', 'e.g. Why Choose New Wave IT?'),
@@ -228,9 +228,9 @@ export const CONTACT: SectionDescriptor = {
   description: 'The contact section on /contact and the support page.',
   url: '/contact',
   blocks: [
-    { id: 'headline', title: 'Headline', fields: headlineBlock() },
+    { anchor: 'contact', id: 'headline', title: 'Headline', fields: headlineBlock() },
     {
-      id: 'details',
+      anchor: 'contact', id: 'details',
       title: 'Phone, email, address',
       fields: [
         text('phone', 'Phone number', 'As shown, e.g. (561) 564-1846'),
@@ -243,7 +243,7 @@ export const CONTACT: SectionDescriptor = {
       ],
     },
     {
-      id: 'success',
+      anchor: 'contact', id: 'success',
       title: 'Form success message',
       fields: [text('success_title', 'Success title'), textarea('success_body', 'Success message')],
     },
@@ -256,14 +256,14 @@ export const FOOTER: SectionDescriptor = {
   description: 'Tagline, contact details and links at the bottom of every page.',
   url: '/#footer',
   blocks: [
-    { id: 'branding', title: 'Tagline', fields: [textarea('tagline', 'Tagline')] },
+    { anchor: 'footer', id: 'branding', title: 'Tagline', fields: [textarea('tagline', 'Tagline')] },
     {
-      id: 'contact',
+      anchor: 'footer', id: 'contact',
       title: 'Contact info',
       fields: [text('phone', 'Phone', 'Main phone number'), text('email', 'Email'), textarea('address', 'Address', 'Full street address')],
     },
     {
-      id: 'links',
+      anchor: 'footer', id: 'links',
       title: 'Links',
       fields: [
         text('privacy_url', 'Privacy Policy URL'),

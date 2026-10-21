@@ -37,6 +37,7 @@ export default function Footer() {
 
   return (
     <footer
+      id="footer"
       className="relative overflow-hidden"
       style={{ background: 'var(--nw-deep-current)', borderTop: '1px solid var(--nw-current-navy)', zIndex: 10 }}
     >

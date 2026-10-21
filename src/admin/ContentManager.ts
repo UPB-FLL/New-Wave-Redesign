@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { writePreviewOverlay } from '../lib/preview';
 import { broadcastContentChange, writeContentCache } from '../lib/content';
 import type { ContentMap } from '../lib/content';
 
@@ -44,7 +45,17 @@ function readDraft(): Record<string, Partial<ContentMap>> {
   }
 }
 
+/** Sections whose preview overlay has been written, so a cleared one is removed. */
+const previewed = new Set<string>();
+
+/** Keep the draft (for this tab) and the preview overlays (for "View on site" tabs) in step with the pending edits. */
 function writeDraft(pending: Record<string, Partial<ContentMap>>): void {
+  for (const section of new Set([...previewed, ...Object.keys(pending)])) {
+    const changes = pending[section];
+    const map = changes ? Object.fromEntries(Object.entries(changes).filter((e): e is [string, string] => typeof e[1] === 'string')) : null;
+    writePreviewOverlay(section, map);
+    if (map && Object.keys(map).length > 0) previewed.add(section); else previewed.delete(section);
+  }
   try {
     if (Object.keys(pending).length === 0) sessionStorage.removeItem(DRAFT_KEY);
     else sessionStorage.setItem(DRAFT_KEY, JSON.stringify(pending));
@@ -69,6 +80,8 @@ export class ContentManager {
   private loadedAt: Record<string, string | null> = {};
 
   constructor() {
+    // A draft restored from the last page load is previewable too.
+    writeDraft(this.state.pendingChanges);
     // Pre-load common sections on initialization
     this.preloadSections();
   }

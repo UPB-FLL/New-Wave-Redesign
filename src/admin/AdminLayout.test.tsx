@@ -50,7 +50,7 @@ describe('AdminLayout sidebar', () => {
     const nav = screen.getByRole('navigation', { name: 'Admin' });
     fireEvent.click(within(nav).getByRole('button', { name: 'Pricing' }));
     expect(within(nav).getByRole('link', { name: 'Quote builder units' })).toHaveAttribute('href', '/admin/pricing-units');
-    expect(within(nav).getByRole('link', { name: /View on site/ })).toHaveAttribute('href', '/pricing');
+    expect(within(nav).getByRole('link', { name: /View on site/ })).toHaveAttribute('href', '/pricing?preview=1');
     expect(JSON.parse(localStorage.getItem('nw_admin_open_pages') ?? '[]')).toEqual(['pricing']);
     fireEvent.click(within(nav).getByRole('button', { name: 'Pricing' }));
     expect(within(nav).queryByRole('link', { name: 'Quote builder units' })).not.toBeInTheDocument();

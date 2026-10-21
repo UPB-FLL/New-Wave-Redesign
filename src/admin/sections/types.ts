@@ -47,6 +47,8 @@ export interface SectionBlock {
   id: string;
   title: string;
   description?: string;
+  /** The id of the element on the public page this block renders in, for "View on site" to land on. */
+  anchor?: string;
   fields: SectionField[];
 }
 

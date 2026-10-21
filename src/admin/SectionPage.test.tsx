@@ -60,7 +60,8 @@ describe('SectionPage', () => {
     expect(cards).toHaveAttribute('aria-expanded', 'true');
     expect(headline).toHaveAttribute('aria-expanded', 'false');
     expect(within(headline).getByText('Fort Lauderdale IT')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /View on site/ })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('link', { name: /View on site/ })).toHaveAttribute('href', '/?preview=1');
+    expect(screen.getByRole('link', { name: 'View Feature cards on the site' })).toHaveAttribute('href', '/?preview=1#hero');
   });
 
   it('writes an edit to the content manager and marks the block', async () => {
