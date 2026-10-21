@@ -6,7 +6,7 @@ import { STEPS } from './steps.js';
 /**
  * Runs the worker after the response is sent (Vercel keeps the function alive
  * for promises passed to waitUntil, up to its maxDuration). FUNCTION_SECONDS
- * must equal maxDuration for api/audits/run.ts and api/audits/worker.ts in
+ * must equal maxDuration for api/groundswell/run.ts and api/groundswell/worker.ts in
  * vercel.json (a test holds them in step).
  */
 export const FUNCTION_SECONDS = 300;

@@ -12,6 +12,7 @@ import {
   DIVISION_DESCRIPTOR,
   DIVISION_LOGO_MIN_WIDTH,
   DIVISION_CROISSANCE_PATH,
+  DIVISION_PARTNERS_PATH,
   DIVISION_NAME,
   DIVISION_PRIMARY_CTA,
   DIVISION_SHORT_NAME,
@@ -87,6 +88,11 @@ export function DivisionFooter() {
               <li>
                 <Link to={DIVISION_CROISSANCE_PATH} className={linkClass}>
                   Croissance
+                </Link>
+              </li>
+              <li>
+                <Link to={DIVISION_PARTNERS_PATH} className={linkClass}>
+                  Partner portal
                 </Link>
               </li>
               <li>

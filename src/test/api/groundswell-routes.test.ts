@@ -18,8 +18,8 @@ vi.mock('../../../api/_lib/supabaseAdmin', () => ({
 vi.mock('../../../api/_lib/groundswell/engine', () => engine);
 vi.mock('@vercel/functions', () => ({ waitUntil }));
 
-import handler, { MAX_AUDITS_PER_CLICK } from '../../../api/audits/run';
-import worker from '../../../api/audits/worker';
+import handler, { MAX_AUDITS_PER_CLICK } from '../../../api/groundswell/run';
+import worker from '../../../api/groundswell/worker';
 import { FUNCTION_SECONDS } from '../../../api/_lib/groundswell/background';
 import { STEPS } from '../../../api/_lib/groundswell/steps';
 
@@ -76,10 +76,24 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('POST /api/audits/run', () => {
-  it('accepts POST only', async () => {
-    expect((await call(handler, signedIn, 'GET')).statusCode).toBe(405);
+describe('POST /api/groundswell/run', () => {
+  it('accepts GET and POST only', async () => {
+    expect((await call(handler, signedIn, 'PUT')).statusCode).toBe(405);
     expect(engine.startQueuedAudits).not.toHaveBeenCalled();
+  });
+
+  it('reports which services are set up, by name only', async () => {
+    vi.stubEnv('RESEND_API_KEY', '');
+    const res = await call(handler, signedIn, 'GET');
+    expect(res.statusCode).toBe(200);
+    const body = res.body as { ready: boolean; checks: { key: string; ok: boolean; required: boolean }[] };
+    expect(body.ready).toBe(true);
+    expect(body.checks.find((c) => c.key === 'RESEND_API_KEY')).toMatchObject({ ok: false, required: false });
+    expect(JSON.stringify(body)).not.toContain('sk-test');
+    expect(JSON.stringify(body)).not.toContain('ak_test');
+    vi.stubEnv('OPENAI_API_KEY', '');
+    expect(((await call(handler, signedIn, 'GET')).body as { ready: boolean }).ready).toBe(false);
+    expect((await call(handler, {}, 'GET')).statusCode).toBe(401);
   });
 
   it('refuses callers who are not signed-in admins', async () => {
@@ -125,7 +139,7 @@ describe('POST /api/audits/run', () => {
   });
 });
 
-describe('POST /api/audits/worker', () => {
+describe('POST /api/groundswell/worker', () => {
   it('takes the cron key, answers at once and keeps working in the background', async () => {
     const res = await call(worker, { 'x-admin-key': 'test-admin-key' });
     expect(res.statusCode).toBe(202);
@@ -150,16 +164,20 @@ describe('Groundswell steps and Vercel limits', () => {
 
   it('gives both routes the time the worker plans for, and ships Chromium and the report font', () => {
     const vercel = JSON.parse(readFileSync('vercel.json', 'utf8'));
-    for (const route of ['api/audits/run.ts', 'api/audits/worker.ts']) {
+    for (const route of ['api/groundswell/run.ts', 'api/groundswell/worker.ts']) {
       expect(vercel.functions[route].maxDuration).toBe(FUNCTION_SECONDS);
       expect(vercel.functions[route].includeFiles).toContain('node_modules/@sparticuz/chromium/bin/**');
       expect(vercel.functions[route].includeFiles).toContain('inter-latin-var.woff2');
     }
   });
 
-  it('the migration pings the worker route this file defines', () => {
-    const sql = readFileSync('supabase/migrations/20261021120000_groundswell_engine.sql', 'utf8');
-    expect(sql).toContain("'https://www.newwaveitfl.com/api/audits/worker'");
-    for (const fn of ['claim_next_audit_step', 'start_queued_audits']) expect(sql).toContain(`GRANT EXECUTE ON FUNCTION ${fn}`);
+  it('the latest migration points the cron at the worker route, and the old address still rewrites there', () => {
+    const engineSql = readFileSync('supabase/migrations/20261021120000_groundswell_engine.sql', 'utf8');
+    for (const fn of ['claim_next_audit_step', 'start_queued_audits']) expect(engineSql).toContain(`GRANT EXECUTE ON FUNCTION ${fn}`);
+    const partnersSql = readFileSync('supabase/migrations/20261021140000_groundswell_partners.sql', 'utf8');
+    expect(partnersSql).toContain("'https://www.newwaveitfl.com/api/groundswell/worker'");
+    const vercel = JSON.parse(readFileSync('vercel.json', 'utf8'));
+    expect(vercel.rewrites).toContainEqual({ source: '/api/audits/worker', destination: '/api/groundswell/worker' });
+    expect(vercel.rewrites).toContainEqual({ source: '/api/audits/run', destination: '/api/groundswell/run' });
   });
 });

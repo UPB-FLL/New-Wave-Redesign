@@ -1,5 +1,5 @@
-// Shared Chromium launcher for the marketing-audit scripts.
-// Uses playwright-core from this folder (npm ci --prefix .claude/skills/marketing-audit/scripts)
+// Shared Chromium launcher for the groundswell scripts.
+// Uses playwright-core from this folder (npm ci --prefix .claude/skills/groundswell/scripts)
 // and the container's Chromium (CHROMIUM_PATH, default /opt/pw-browsers/chromium). Routes through
 // HTTPS_PROXY when it is set, so Google Fonts load the same way they do for a visitor.
 const fs = require('fs');

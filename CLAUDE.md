@@ -2,6 +2,50 @@
 
 ## Recent Changes
 
+### Groundswell section, internal rename, and the Croissance partner portal (2026-10-21)
+
+- **Rename**: everything internal is Groundswell. Admin:
+  `/admin/groundswell` (`src/admin/groundswell/`; `/admin/audits` redirects
+  to `/admin/groundswell/audits`). API: `api/groundswell/run.ts` and
+  `worker.ts` (`/api/audits/run` and `/api/audits/worker` still rewrite there,
+  after `/api/(.*)`, like `/api/blog/:id`). Client: `src/lib/groundswell.ts`,
+  with the pure input checks in `src/lib/groundswellValidation.ts` (the
+  partner API imports those). Skill: `.claude/skills/groundswell` (the manual
+  path). Tables keep their names (`marketing_audits`, `marketing_audit_steps`).
+  Croissance stays the public name for the audit.
+- **Admin section**: a "Groundswell" group in the sidebar with Overview
+  (setup checklist from `GET /api/groundswell/run`: variable names and
+  whether they are set, never values; audit counts; partner summary), Audits
+  (the queue; partner submissions say "via <company>"), and Partners
+  (invite, resend invite or reset link, turn off/on).
+- **Partner portal**: `/social-engineering/croissance/partners` (prerendered,
+  in the sitemap, footer link "Partner portal") is the sign-in page for
+  partners: outside agencies and resellers. Signed in, `/dashboard` lets
+  them queue businesses and see only their own audits with Drive links;
+  `/set-password` is where invite and reset links land. Both are noindex
+  and not prerendered.
+- **Partner auth is not Supabase Auth.** Any signed-in Supabase user is an
+  admin here (`requireAdmin`, the `authenticated` RLS policies), so partners
+  live in `groundswell_partners` (migration `20261021140000`) with scrypt
+  password hashes, `groundswell_partner_sessions` (12-hour bearer tokens,
+  SHA-256 digests only, kept in sessionStorage like the support portal), and
+  `groundswell_partner_tokens` (single-use invite links for 7 days, reset
+  links for 1 hour). The three tables have RLS on and no policies: only the
+  service role reads them. Routes: `api/groundswell/partner-auth.ts`
+  (sign-in, sign-out, set-password, forgot-password: the same answer whether
+  or not the account exists), `partner-audits.ts` (scoped to the partner;
+  no internal error text), and `partners.ts` (admin only). Sign-in is
+  rate-limited per IP and per email (in memory). Emails go through Resend
+  (`RESEND_API_KEY`); when one fails, the admin screen shows the link once to
+  pass on by hand. `marketing_audits.partner_id` records who submitted.
+- **Migration** `20261021140000` also re-points the `groundswell-worker` cron
+  at `/api/groundswell/worker` and adds a daily cleanup of expired sessions
+  and links.
+- **Tests**: `src/test/api/groundswell-partners.test.ts` (with
+  `fixtures/fakeSupabase.ts`), `src/divisions/socialEngineering/partners.test.tsx`,
+  `src/admin/groundswell/GroundswellAdmin.test.tsx`, plus the division
+  integration, footer, and privacy-notice lists.
+
 ### Groundswell: audits run on the site, not a Claude routine (2026-10-21)
 
 The marketing audit now runs entirely on Vercel functions and Supabase.
@@ -17,9 +61,9 @@ Code: `api/_lib/groundswell/`.
   next runnable step. A failed step retries up to 3 times; then an optional
   one is skipped and a required one fails the audit. `PermanentStepError`
   skips the retries (missing setup, bad input, a Google check page).
-- **Routes**: `api/audits/run.ts` (the admin button, `requireAdmin`) starts
+- **Routes**: `api/groundswell/run.ts` (the admin button, `requireAdmin`) starts
   up to 3 queued audits and runs the worker after answering (`waitUntil`).
-  `api/audits/worker.ts` is the heartbeat pg_cron posts to every minute while
+  `api/groundswell/worker.ts` is the heartbeat pg_cron posts to every minute while
   an audit is running (Vault `blog_admin_api_key` as `x-admin-key`). Both
   have `maxDuration: 300` (`FUNCTION_SECONDS`) and ship
   `@sparticuz/chromium` and the Inter font via `includeFiles`.
@@ -41,14 +85,14 @@ Code: `api/_lib/groundswell/`.
   to `Customers/<Business>/` as `GROUNDSWELL_DRIVE_OWNER`
   (josh@newwaveitfl.com), shares them anyone-with-the-link as viewer,
   verifies, and writes the links back. File names carry the date.
-- **Admin**: `/admin/audits` shows each running or failed audit's steps.
+- **Admin**: `/admin/groundswell/audits` shows each running or failed audit's steps.
 - **Setup** (Vercel): `COMPOSIO_API_KEY` from a Composio Platform project
   with Google Drive, Google Ads, ScrapeCreators and Ahrefs connected under
   `COMPOSIO_USER_ID` (default `groundswell`); `OPENAI_API_KEY` and the
   Supabase service role as before. Optional: `GOOGLE_ADS_CUSTOMER_ID`,
   `GROUNDSWELL_GEO_TARGETS`. Without the required ones the run route
   answers 503. `AUDIT_ROUTINE_ID`/`AUDIT_ROUTINE_TOKEN` are no longer read.
-- **Tests**: `src/test/api/groundswell-*.test.ts` and `audit-run.test.ts`;
+- **Tests**: `src/test/api/groundswell-*.test.ts` (routes: `groundswell-routes.test.ts`);
   the printing test runs when Chromium is at `CHROMIUM_PATH` or
   `/opt/pw-browsers/chromium`.
 ### Marketing audit fixes on the New Wave IT site (2026-10-21)
@@ -105,7 +149,7 @@ the Currents and the audit's ground rules, the five steps (queue, research,
 model, build, deliver), the three reports, example data, how the audit grows
 with the client's business and team, FAQs. Copy:
 `content/croissance.ts`; keep it in step with
-`.claude/skills/marketing-audit`. The example data is the skill's made-up
+`.claude/skills/groundswell`. The example data is the skill's made-up
 sample business (Harbor Auto Care) with `roi_model.py`'s figures, rounded to
 $10; it is labelled made up (a test checks), and must never be a real client.
 Linked from the division header (desktop row and phone sheet) and footer. Wired through every point of
@@ -113,6 +157,10 @@ the division's "Adding a page" checklist. The admin queue, skill, and table
 keep the internal "marketing audit" name.
 
 ### Marketing audit queue and skill (2026-10-20)
+
+Superseded in part: audits now run on Groundswell, the queue lives at
+`/admin/groundswell/audits`, and the skill is `.claude/skills/groundswell`
+(a manual path). See the two Groundswell entries above.
 
 NW Social Engineering prospect audits, queued from the admin site and run on
 demand by a Claude Code routine.

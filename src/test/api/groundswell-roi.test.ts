@@ -5,7 +5,7 @@ import { runRoiModel, runScenario, type RoiInputs } from '../../../api/_lib/grou
 
 const root = path.resolve(__dirname, '../../..');
 const inputs = JSON.parse(
-  readFileSync(path.join(root, '.claude/skills/marketing-audit/examples/sample/roi_inputs.json'), 'utf8')
+  readFileSync(path.join(root, '.claude/skills/groundswell/examples/sample/roi_inputs.json'), 'utf8')
 ) as RoiInputs;
 // Output of roi_model.py on the same inputs, so the port and the original cannot drift.
 const pythonOutput = JSON.parse(readFileSync(path.join(__dirname, 'fixtures/groundswell-roi-sample.json'), 'utf8'));

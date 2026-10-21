@@ -11,6 +11,8 @@ const PUBLIC_FORMS = [
   'src/components/support/SupportChatCard.tsx',
   'src/components/support/SupportEmailCard.tsx',
   'src/components/support/CustomerPortalCard.tsx',
+  'src/divisions/socialEngineering/pages/SocialEngineeringPartnersPage.tsx',
+  'src/divisions/socialEngineering/pages/SocialEngineeringPartnerAppPage.tsx',
 ];
 
 describe('FormPrivacyNotice', () => {
@@ -35,7 +37,7 @@ describe('FormPrivacyNotice', () => {
 
   it.each(PUBLIC_FORMS)('%s renders the notice', (file) => {
     const source = readFileSync(file, 'utf8');
-    expect(source).toMatch(/import FormPrivacyNotice from '[./]+legal\/FormPrivacyNotice';/);
+    expect(source).toMatch(/import FormPrivacyNotice from '[./]+(components\/)?legal\/FormPrivacyNotice';/);
     expect(source).toMatch(/<FormPrivacyNotice action="/);
   });
 });
