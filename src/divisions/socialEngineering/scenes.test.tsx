@@ -16,6 +16,7 @@ import { PAGE_SCENES, SCENE_PAGE_KEYS, type ScenePageKey } from './motion/scenes
 import { SceneSlot } from './motion/scenes/SceneSlot';
 import SocialEngineeringContactPage from './pages/SocialEngineeringContactPage';
 import SocialEngineeringContactUsPage from './pages/SocialEngineeringContactUsPage';
+import SocialEngineeringCroissancePage from './pages/SocialEngineeringCroissancePage';
 import SocialEngineeringCustomersPage from './pages/SocialEngineeringCustomersPage';
 import SocialEngineeringHubPage from './pages/SocialEngineeringHubPage';
 import SocialEngineeringServicePage from './pages/SocialEngineeringServicePage';
@@ -103,6 +104,9 @@ const PAGES_WITH_SCENES: [string, () => React.ReactElement, ScenePageKey[]][] = 
   ]),
   ['contact', () => <SocialEngineeringContactPage />, ['contact']],
   ['contact-us', () => <SocialEngineeringContactUsPage />, ['contactUs']],
+  // Croissance and Customers reuse registered scenes rather than adding their own.
+  ['croissance', () => <SocialEngineeringCroissancePage />, ['hub']],
+  ['customers', () => <SocialEngineeringCustomersPage />, ['hubSection']],
 ];
 
 describe('scene placement', () => {
@@ -259,6 +263,8 @@ describe('scene placement', () => {
       ]),
       ['contact', () => <SocialEngineeringContactPage />, 'compact'],
       ['contactUs', () => <SocialEngineeringContactUsPage />, 'compact'],
+      ['hub', () => <SocialEngineeringCroissancePage />, 'large'],
+      ['hubSection', () => <SocialEngineeringCustomersPage />, 'compact'],
     ];
     for (const [key, page, size] of cases) {
       const { container, unmount } = renderAt(page());
@@ -296,10 +302,19 @@ describe('scene placement', () => {
     expect(scenesIn(container)).toHaveLength(2);
   });
 
-  it('customers has no scene, and its hero keeps the full-size H1', () => {
-    const { container } = renderAt(<SocialEngineeringCustomersPage />);
-    expect(container.querySelector('[data-page-scene], [data-scene-slot], [data-scene]')).toBeNull();
-    expect(container.innerHTML).not.toContain('display-1-beside');
+  it('shows the Croissance scene from 375px and the Customers scene only beside the text, each on the dark hero', () => {
+    const croissance = renderAt(<SocialEngineeringCroissancePage />);
+    const croissanceHero = croissance.container.querySelector('main > section [data-page-scene="hub"]') as HTMLElement;
+    expect(classesOf(croissanceHero)).toContain(SMALL_PHONE_HIDDEN);
+    expect(classesOf(croissanceHero)).not.toContain(BELOW_GRID_HIDDEN);
+    expect(croissanceHero.style.background).toContain('var(--nw-deep-current)');
+    croissance.unmount();
+
+    // No actions in the Customers hero, so below the grid the scene would sit alone under the summary.
+    const customers = renderAt(<SocialEngineeringCustomersPage />);
+    const customersHero = customers.container.querySelector('main > section [data-page-scene="hubSection"]') as HTMLElement;
+    expect(classesOf(customersHero)).toContain(BELOW_GRID_HIDDEN);
+    expect(customersHero.style.background).toContain('var(--nw-deep-current)');
   });
 });
 

@@ -152,8 +152,11 @@ Machine), Ads (Google Ads Transparency Center and site tags), and Delivery
 (no table, project, or tool names). Copy is in `content/croissance.ts`
 and must match `.claude/skills/groundswell` (public data only, sources
 and dates on every number, three reports in the client's brand, Drive links).
-The example board uses the skill's made-up sample business and
-`roi_model.py`'s output for it; no percentages (rates are left out). Linked
+The example board is Uncommon Path Brewing's real audit (October 21, 2026),
+shown with the owner's permission (an exception, like the Customers apps band,
+to the rule against describing work for a customer): four findings from its
+summary and its three-scenario return board, copied from the PDFs in Drive.
+No percentages (rates and ROI are left out). Linked
 from the header (after Services on desktop; beside Overview in the phone
 sheet) and the footer's division column. On a 320x568 phone the sheet's top
 row now wraps to two lines: the discovery-call button still fits the first
@@ -702,6 +705,10 @@ All under `src/divisions/socialEngineering/motion/`:
 Placement lives in `components/sections.tsx`: `DivisionHero` takes `scene`,
 `sceneOnPhones`, and `sceneSize`, `PointGrid` takes `scene`, and both wrap the
 slot in `PageScene` (`aria-hidden="true"`, `data-page-scene="<key>"`).
+A page may reuse a registered scene instead of adding one: Croissance's hero
+shows `hub` (from 375px), and Customers' hero shows `hubSection` on the dark
+ground, beside the text only (`sceneOnPhones="hide"`, compact), since that
+hero has no actions.
 
 ### The contract, in short
 
@@ -862,10 +869,9 @@ once, and turning it off again keeps that frame (a scene never replays).
    `sceneSize="compact"`; a service sets `heroSceneSize` in its content
    file), or a slot in a section. Then update the tests that pin placement:
    add the page to `PAGES_WITH_SCENES` in `scenes.test.tsx` (and to the
-   compact-column case if it is compact), remove it from the "has no scene"
-   cases there if it had none, and update its expected hidden scenes in
+   compact-column case if it is compact), and update its expected hidden scenes in
    `responsive.test.tsx` (hub `['hub', 'hubSection']`, each service
-   `[slug]`, Contact us `['contactUs']`, Customers "hides nothing").
+   `[slug]`, Contact us `['contactUs']`, Customers `['hubSection']`).
 4. Check it at 320, 390, 768, 844 × 390, 1024, and 1440px, with reduced motion
    on, and confirm the IT pages request no new chunk.
 

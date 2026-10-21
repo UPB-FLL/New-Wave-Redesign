@@ -44,7 +44,7 @@ function ReportGrid() {
 }
 
 /**
- * The return board from the engine's made-up sample business: one card per
+ * A real client's audit: its key findings, then its return board, one card per
  * scenario (they stack on phones), the base case outlined in amber.
  */
 function SampleBoard() {
@@ -61,6 +61,14 @@ function SampleBoard() {
           <p className="nwse-type-body-small text-[var(--nw-slate)]">{auditSample.demand.label}</p>
         </div>
       </div>
+      <ul className="mt-4 grid grid-cols-2 gap-x-4 gap-y-5 border-b pb-5 sm:mt-6 sm:pb-6 lg:grid-cols-4" style={{ borderColor: 'var(--nw-mist-gray)' }}>
+        {auditSample.findings.map((finding) => (
+          <li key={finding.value + finding.label}>
+            <p className="nwse-type-title-1 tabular-nums text-[var(--nw-current-navy)]">{finding.value}</p>
+            <p className="nwse-type-body-small mt-1 text-[var(--nw-slate)]">{finding.label}</p>
+          </li>
+        ))}
+      </ul>
       <ul className="mt-4 grid grid-cols-1 gap-3 sm:mt-6 md:grid-cols-3 md:gap-4">
         {auditSample.scenarios.map((scenario) => {
           const highlighted = 'highlighted' in scenario && scenario.highlighted;
@@ -104,6 +112,11 @@ export default function SocialEngineeringCroissancePage() {
     <DivisionLayout>
       <DivisionHero
         breadcrumbs={seo.breadcrumbs}
+        // The hub's scene (guesswork straightening into a rising trend): the
+        // audit's story too. From 375px, like the service pages: the summary
+        // runs long on the smallest phones.
+        scene="hub"
+        sceneOnPhones="wide"
         kicker={content.kicker}
         headline={content.headline}
         summary={content.summary}

@@ -149,9 +149,10 @@ the Currents and the audit's ground rules, the five steps (queue, research,
 model, build, deliver), the three reports, example data, how the audit grows
 with the client's business and team, FAQs. Copy:
 `content/croissance.ts`; keep it in step with
-`.claude/skills/groundswell`. The example data is the skill's made-up
-sample business (Harbor Auto Care) with `roi_model.py`'s figures, rounded to
-$10; it is labelled made up (a test checks), and must never be a real client.
+`.claude/skills/groundswell`. The example is Uncommon Path Brewing's real
+audit (October 21, 2026), shown with the owner's permission: its summary's
+findings and its return board, copied from the PDFs in Drive. Update it only
+from a newer audit of the same business.
 Linked from the division header (desktop row and phone sheet) and footer. Wired through every point of
 the division's "Adding a page" checklist. The admin queue, skill, and table
 keep the internal "marketing audit" name.
@@ -504,7 +505,8 @@ No New Wave IT URL, title, canonical, or structured data changed. Full notes:
   `SceneSlot` reserves the 3:2 box and loads a scene only near the viewport.
   Placed by `DivisionHero` (`scene`, `sceneOnPhones`, `sceneSize`) on the hub,
   the six service pages, `/contact`, and Contact us, and by `PointGrid` in the
-  hub's "What we gather" band. Scenes play once, hold the final frame, and
+  hub's "What we gather" band. Croissance and Customers reuse registered
+  scenes in their heroes (`hub`; `hubSection`, beside the text only). Scenes play once, hold the final frame, and
   render it statically under reduced motion (read live); they are
   `aria-hidden`, and left out in forced colours and print. A scene that fails
   to load leaves its empty box (`SceneSlot`'s own error boundary, fresh for
