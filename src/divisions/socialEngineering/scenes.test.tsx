@@ -284,21 +284,23 @@ describe('scene placement', () => {
     expect((container.querySelector('[data-page-scene="hubSection"]') as HTMLElement).style.background).toBe('');
   });
 
-  it('fills the empty sixth cell of the hub’s "What we gather" grid from lg, and only there', () => {
+  it('sets the hub’s "What we gather" scene beside the band’s intro from lg, and only there', () => {
     const { container } = renderAt(<SocialEngineeringHubPage />);
     const band = screen.getByRole('region', { name: 'Every touchpoint, mapped to the customer journey' });
     const scene = band.querySelector('[data-page-scene="hubSection"]')!;
     expect(scene).not.toBeNull();
-    expect(classesOf(scene)).toEqual(expect.arrayContaining(['hidden', 'lg:block', 'lg:col-start-3', 'lg:row-start-2']));
-    // The cards keep their list; the scene is outside it, on the list's subgrid.
+    expect(classesOf(scene)).toEqual(['hidden', 'lg:block']);
+    // Beside the intro (the heading's wrapper), in a two-column row from lg.
+    const row = scene.parentElement!;
+    expect(row).toContainElement(band.querySelector('h2'));
+    expect(classesOf(row)).toEqual(expect.arrayContaining(['lg:grid', 'lg:items-center']));
+    expect(classesOf(row).some((name) => name.startsWith('lg:grid-cols-'))).toBe(true);
+    // The five cards keep their own list below, with its second row centred (sections.tsx FIVE_CENTRED_LI).
     const list = band.querySelector('ul.nwse-hairlines')!;
     expect(list.children).toHaveLength(hubContent.dataWeGather.length);
     expect(hubContent.dataWeGather).toHaveLength(5);
     expect(list).not.toContainElement(scene as HTMLElement);
-    // Placed explicitly at the first row, so the scene's cell can overlap its empty corner.
-    expect(classesOf(list)).toEqual(
-      expect.arrayContaining(['lg:grid-cols-subgrid', 'lg:grid-rows-subgrid', 'lg:col-start-1', 'lg:col-span-3', 'lg:row-start-1', 'lg:row-span-2']),
-    );
+    expect(list).toHaveAttribute('data-centred', 'true');
     expect(scenesIn(container)).toHaveLength(2);
   });
 

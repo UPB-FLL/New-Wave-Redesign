@@ -1,6 +1,7 @@
 import { DivisionLayout } from '../components/DivisionLayout';
 import { accentAt } from '../components/pillarStyle';
-import { Band, CheckList, CtaBand, DivisionHero, FaqList, PrimaryCta, SectionIntro, StepList } from '../components/sections';
+import { Band, CheckList, CtaBand, CtaStrip, DivisionHero, FaqList, PrimaryCta, SectionIntro } from '../components/sections';
+import { Tabs, type TabItem } from '../components/Tabs';
 import { auditConnectors, auditContent, auditReports, auditSample } from '../content';
 import { NwseIcon } from '../icons/NwseIcon';
 import { croissancePageSeo } from '../seo';
@@ -12,27 +13,112 @@ import { compareWithToday, rankChanges, type RankedChange } from '../../../../pa
 
 const seo = croissancePageSeo();
 
-/** The Currents: one tinted panel per kind of public data (the colour roles in rotation), with where it comes from and what it brings back. */
-function ConnectorGrid() {
+const pad = (n: number) => String(n).padStart(2, '0');
+
+/** The row of in-page links under the hero: one pill per section, so a reader can go straight to the part they came for. */
+function JumpNav() {
+  const c = auditContent.jump;
   return (
-    <ul className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 md:grid-cols-2 md:gap-4 lg:mt-10 lg:grid-cols-3">
-      {auditConnectors.map((connector, index) => {
-        const color = accentAt(index);
-        return (
-          <li key={connector.name} className={`nwse-tint ${color.tint} flex flex-col p-4 sm:p-5 lg:p-6`}>
-            <div className="flex items-center gap-3">
-              <span className={`nwse-icon ${color.tile} h-10 w-10 shrink-0`}>
-                <NwseIcon name={connector.icon} size={20} />
-              </span>
-              <h3 className="nwse-type-title-2 text-[var(--nw-current-navy)]">{connector.name}</h3>
-            </div>
-            <p className="nwse-type-label mt-4 text-[var(--nw-current-navy)]">{connector.source}</p>
-            <p className="nwse-type-body-small mt-2 text-[var(--nw-slate)]">{connector.gathers}</p>
-          </li>
-        );
-      })}
-    </ul>
+    <nav aria-label={c.label} className="flex flex-wrap items-center gap-2 sm:gap-3">
+      <span className="nwse-type-label nwse-label mr-1">{c.label}</span>
+      {c.items.map((item) => (
+        <a key={item.href} href={item.href} className="nwse-chip nwse-type-body-small font-medium">
+          {item.label}
+        </a>
+      ))}
+    </nav>
   );
+}
+
+/**
+ * The five steps as a stepper: one step at a time, each tab its numbered
+ * tile and name, Back and Next under the panel, and the discovery call in
+ * Next's place on the last step.
+ */
+function ProcessStepper() {
+  const c = auditContent.process;
+  const items: TabItem[] = c.steps.map((step, index) => {
+    const color = accentAt(index);
+    return {
+      id: `step-${index + 1}`,
+      title: step.title,
+      label: (
+        <>
+          <span className={`nwse-icon ${color.tile} h-9 w-9 shrink-0`} aria-hidden="true">
+            <span className="nwse-type-label nwse-type-numeric font-semibold">{pad(index + 1)}</span>
+          </span>
+          <span className="font-semibold">{step.title}</span>
+        </>
+      ),
+      panel: (
+        <div className="nwse-card grid gap-5 p-5 sm:p-6 md:grid-cols-[auto_minmax(0,1fr)] md:gap-6 lg:p-8">
+          <span className={`nwse-icon ${color.tile} h-14 w-14`}>{step.icon ? <NwseIcon name={step.icon} size={28} /> : null}</span>
+          <div>
+            <p className="nwse-type-label nwse-label">
+              Step {index + 1} of {c.steps.length}
+            </p>
+            <h3 className="nwse-type-title-1 mt-1 text-[var(--nw-current-navy)]">{step.title}</h3>
+            <p className="nwse-type-body mt-2 max-w-3xl text-[var(--nw-slate)]">{step.detail}</p>
+          </div>
+        </div>
+      ),
+    };
+  });
+  return (
+    <Tabs
+      items={items}
+      label={c.stepsLabel}
+      look="steps"
+      guided
+      nextLabel={auditContent.guide.next}
+      backLabel={auditContent.guide.back}
+      finish={<PrimaryCta tone="light" />}
+      className="mt-6 sm:mt-8 lg:mt-10"
+      bodyClassName="mt-4 sm:mt-5"
+    />
+  );
+}
+
+/**
+ * The Currents as an explorer: one chip per Current (its icon in the next
+ * colour role), and a panel in that role's tint with where it looks, what it
+ * brings back, and, where the worked example has a figure, what it found.
+ */
+function CurrentsExplorer() {
+  const c = auditContent.engine;
+  const items: TabItem[] = auditConnectors.map((connector, index) => {
+    const color = accentAt(index);
+    return {
+      id: connector.name.toLowerCase().replace(/\s+/g, '-'),
+      title: connector.name,
+      label: (
+        <>
+          <span className={`nwse-icon ${color.tile} h-7 w-7 shrink-0`} aria-hidden="true">
+            <NwseIcon name={connector.icon} size={16} />
+          </span>
+          {connector.name}
+        </>
+      ),
+      panel: (
+        <div className={`nwse-tint ${color.tint} grid gap-5 p-5 sm:p-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:gap-8 lg:p-7`}>
+          <div>
+            <h3 className="nwse-type-title-1 text-[var(--nw-current-navy)]">{connector.name}</h3>
+            <p className="nwse-type-label mt-4 text-[var(--nw-current-navy)]">{c.sourceLabel}</p>
+            <p className="nwse-type-body-small mt-1 text-[var(--nw-slate)]">{connector.source}</p>
+            <p className="nwse-type-label mt-4 text-[var(--nw-current-navy)]">{c.gathersLabel}</p>
+            <p className="nwse-type-body mt-1 text-[var(--nw-current-navy)]">{connector.gathers}</p>
+          </div>
+          {connector.example ? (
+            <div className="nwse-soft self-start p-4 sm:p-5">
+              <p className="nwse-type-label nwse-label">{c.exampleLabel}</p>
+              <p className="nwse-type-body mt-2 text-[var(--nw-current-navy)]">{connector.example}</p>
+            </div>
+          ) : null}
+        </div>
+      ),
+    };
+  });
+  return <Tabs items={items} label={c.explorerLabel} look="chips" className="mt-6 sm:mt-8 lg:mt-10" bodyClassName="mt-4" />;
 }
 
 /** The three reports as capped cards: a coloured cap each (cyan, green, amber), the format in the cap's text colour. */
@@ -57,33 +143,29 @@ function ReportGrid() {
   );
 }
 
-/**
- * A real client's audit: its key findings, then its return board, one card per
- * scenario (they stack on phones), the base case outlined in amber.
- */
-function SampleBoard() {
+/** The audit's key findings, from its one-page summary. */
+function FindingsPanel() {
   return (
-    <figure className="nwse-card mt-6 p-4 sm:mt-8 sm:p-6 lg:mt-10 lg:p-8" aria-labelledby="nwse-sample-caption">
-      <div className="flex flex-col gap-2 border-b pb-4 sm:pb-5 lg:flex-row lg:items-end lg:justify-between lg:gap-8" style={{ borderColor: 'var(--nw-mist-gray)' }}>
-        <div className="max-w-2xl">
-          <p className="nwse-type-label nwse-label">{auditSample.label}</p>
-          <h3 className="nwse-type-title-1 mt-1 text-[var(--nw-current-navy)]">{auditSample.business}</h3>
-          <p className="nwse-type-body-small mt-1 text-[var(--nw-slate)]">{auditSample.lever}</p>
-        </div>
-        <div className="lg:text-right">
-          <p className="nwse-type-display-2 text-[var(--nw-current-navy)]">{auditSample.demand.value}</p>
-          <p className="nwse-type-body-small text-[var(--nw-slate)]">{auditSample.demand.label}</p>
-        </div>
-      </div>
-      <ul className="mt-4 grid grid-cols-2 gap-x-4 gap-y-5 border-b pb-5 sm:mt-6 sm:pb-6 lg:grid-cols-4" style={{ borderColor: 'var(--nw-mist-gray)' }}>
+    <div>
+      <p className="nwse-type-body-small text-[var(--nw-slate)]">{auditSample.businessNote}</p>
+      <ul className="mt-5 grid grid-cols-2 gap-x-4 gap-y-6 sm:mt-6 lg:grid-cols-4" data-role="findings">
         {auditSample.findings.map((finding) => (
           <li key={finding.value + finding.label}>
-            <p className="nwse-type-title-1 tabular-nums text-[var(--nw-current-navy)]">{finding.value}</p>
+            <p className="nwse-type-display-2 tabular-nums text-[var(--nw-current-navy)]">{finding.value}</p>
             <p className="nwse-type-body-small mt-1 text-[var(--nw-slate)]">{finding.label}</p>
           </li>
         ))}
       </ul>
-      <ul className="mt-4 grid grid-cols-1 gap-3 sm:mt-6 md:grid-cols-3 md:gap-4">
+    </div>
+  );
+}
+
+/** The return board: one card per scenario (they stack on phones), the base case outlined in amber, then its stop-loss and sources. */
+function ReturnBoardPanel() {
+  return (
+    <div>
+      <p className="nwse-type-body-small text-[var(--nw-slate)]">{auditSample.lever}</p>
+      <ul className="mt-5 grid grid-cols-1 gap-3 sm:mt-6 md:grid-cols-3 md:gap-4" data-role="scenarios">
         {auditSample.scenarios.map((scenario) => {
           const highlighted = 'highlighted' in scenario && scenario.highlighted;
           return (
@@ -109,12 +191,11 @@ function SampleBoard() {
           );
         })}
       </ul>
-      <figcaption id="nwse-sample-caption" className="nwse-type-body-small mt-4 flex flex-col gap-2 text-[var(--nw-slate)] sm:mt-6">
-        <span>{auditSample.businessNote}</span>
-        <span>{auditSample.stopLoss}</span>
-        <span>{auditSample.footnote}</span>
-      </figcaption>
-    </figure>
+      <div className="nwse-type-body-small mt-5 flex flex-col gap-2 text-[var(--nw-slate)] sm:mt-6">
+        <p>{auditSample.stopLoss}</p>
+        <p>{auditSample.footnote}</p>
+      </div>
+    </div>
   );
 }
 
@@ -139,7 +220,7 @@ function AdPlanBoard() {
   const callClass = (r: PlanRow) =>
     r.recommendation === 'fund' ? 'text-[var(--nwse-lure-amber-deep)]' : r.recommendation === 'test' ? 'text-[var(--nw-tide-blue)]' : 'text-[var(--nw-slate)]';
   return (
-    <div className="nwse-card mt-6 overflow-hidden sm:mt-8 lg:mt-10">
+    <div className="nwse-card mt-5 overflow-hidden sm:mt-6">
       <table className="w-full text-left max-md:block">
         <thead className="max-md:hidden">
           <tr className="border-b" style={{ borderColor: 'var(--nw-mist-gray)' }}>
@@ -202,6 +283,19 @@ function AdPlanBoard() {
   );
 }
 
+/** The ad plan panel: its heading, intro, the board, and its footnote. */
+function AdPlanPanel() {
+  const c = auditContent.adPlan;
+  return (
+    <div>
+      <h3 className="nwse-type-title-1 text-[var(--nw-current-navy)]">{c.heading}</h3>
+      <p className="nwse-type-body-small mt-2 max-w-3xl text-[var(--nw-slate)]">{c.intro}</p>
+      <AdPlanBoard />
+      <p className="nwse-type-body-small mt-3 max-w-4xl text-[var(--nw-slate)]">{c.footnote}</p>
+    </div>
+  );
+}
+
 const PREVIEWS = [
   { platform: 'google_search', angle: 'events' },
   { platform: 'meta', angle: 'events' },
@@ -213,7 +307,7 @@ const PREVIEWS = [
 function TemplatePreviews() {
   const c = auditContent.adPlan;
   return (
-    <div className="mt-10 lg:mt-14">
+    <div>
       <h3 className="nwse-type-title-1 text-[var(--nw-current-navy)]">{c.templatesHeading}</h3>
       <p className="nwse-type-body-small mt-2 max-w-3xl text-[var(--nw-slate)]">{c.templatesIntro}</p>
       <ul className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
@@ -257,7 +351,7 @@ function backPerDollar(c: RankedChange) {
 function ChangeRanking() {
   const c = auditContent.changes;
   return (
-    <div className="nwse-card mt-6 overflow-hidden sm:mt-8 lg:mt-10">
+    <div className="nwse-card mt-5 overflow-hidden sm:mt-6">
       <table className="w-full text-left max-md:block">
         <thead className="max-md:hidden">
           <tr className="border-b" style={{ borderColor: 'var(--nw-mist-gray)' }}>
@@ -311,9 +405,9 @@ function TodayVsPlan() {
     </div>
   );
   return (
-    <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
+    <div className="mt-5 grid grid-cols-1 gap-3 sm:mt-6 md:grid-cols-2 md:gap-4">
       <div className="nwse-card p-4 sm:p-5 lg:p-6">
-        <h3 className="nwse-type-title-2 text-[var(--nw-current-navy)]">{c.todayHeading}</h3>
+        <h4 className="nwse-type-title-2 text-[var(--nw-current-navy)]">{c.todayHeading}</h4>
         <dl className="mt-3">
           {cell(c.labels.adSpend, UPB_BASELINE.monthly_ad_spend === null ? 'Not public' : dollars(UPB_BASELINE.monthly_ad_spend))}
           {cell(c.labels.customers, '0')}
@@ -322,7 +416,7 @@ function TodayVsPlan() {
         <p className="nwse-type-body-small mt-2 text-[var(--nw-slate)]">{UPB_BASELINE.ad_spend_basis}</p>
       </div>
       <div className="nwse-card p-4 sm:p-5 lg:p-6" style={{ borderColor: 'var(--nwse-lure-amber-deep)', borderWidth: 2 }}>
-        <h3 className="nwse-type-title-2 text-[var(--nw-current-navy)]">{c.planHeading}</h3>
+        <h4 className="nwse-type-title-2 text-[var(--nw-current-navy)]">{c.planHeading}</h4>
         <dl className="mt-3">
           {cell(c.labels.addedSpend, dollars(w.added_monthly_spend.medium))}
           {cell(c.labels.hours, String(Math.round(w.team_hours)))}
@@ -340,6 +434,73 @@ function TodayVsPlan() {
   );
 }
 
+/** Every change ranked: its heading, intro, today against the plan, the ranking, and its footnote. */
+function ChangesPanel() {
+  const c = auditContent.changes;
+  return (
+    <div>
+      <h3 className="nwse-type-title-1 text-[var(--nw-current-navy)]">{c.heading}</h3>
+      <p className="nwse-type-body-small mt-2 max-w-3xl text-[var(--nw-slate)]">{c.intro}</p>
+      <TodayVsPlan />
+      <ChangeRanking />
+      <p className="nwse-type-body-small mt-3 max-w-4xl text-[var(--nw-slate)]">{c.footnote}</p>
+    </div>
+  );
+}
+
+/**
+ * The worked example as one report viewer: a navy head with the business,
+ * the audit's date and its headline demand, and the parts of the audit as
+ * tabs; the chosen part in the white body below, with Back and Next to read
+ * it in order and the discovery call at the end.
+ */
+function SampleViewer() {
+  const c = auditContent.sample;
+  const items: TabItem[] = [
+    { id: 'findings', title: c.tabs.findings, panel: <FindingsPanel /> },
+    { id: 'board', title: c.tabs.board, panel: <ReturnBoardPanel /> },
+    { id: 'adplan', title: c.tabs.adPlan, panel: <AdPlanPanel /> },
+    { id: 'ads', title: c.tabs.ads, panel: <TemplatePreviews /> },
+    { id: 'changes', title: c.tabs.changes, panel: <ChangesPanel /> },
+  ];
+  return (
+    <div className="nwse-card mt-6 overflow-hidden sm:mt-8 lg:mt-10" data-role="sample-viewer">
+      <Tabs
+        items={items}
+        label={c.viewerLabel}
+        look="dark"
+        guided
+        nextLabel={auditContent.guide.next}
+        backLabel={auditContent.guide.back}
+        finish={<PrimaryCta tone="light" />}
+        headClassName="nwse-dark bg-[var(--nw-current-navy)] px-4 pt-4 sm:px-6 sm:pt-5"
+        bodyClassName="p-4 sm:p-6 lg:p-8"
+        header={
+          <div className="flex flex-col gap-3 pb-4 sm:flex-row sm:items-end sm:justify-between sm:gap-8 sm:pb-5">
+            <div className="max-w-2xl">
+              <p className="nwse-type-label" style={{ color: 'var(--nwse-lure-amber)' }}>
+                {auditSample.label}
+              </p>
+              <h3 className="nwse-type-title-1 mt-1 text-[var(--nw-cloud-white)]">{auditSample.business}</h3>
+            </div>
+            <div className="sm:text-right">
+              <p className="nwse-type-display-2 tabular-nums text-[var(--nw-cloud-white)]">{auditSample.demand.value}</p>
+              <p className="nwse-type-body-small text-[var(--nw-mist-gray)]">{auditSample.demand.label}</p>
+            </div>
+          </div>
+        }
+      />
+    </div>
+  );
+}
+
+/**
+ * The Croissance page: the audit explained one part at a time. Hero (with a
+ * second button straight to the example); the in-page links; the five steps
+ * as a stepper; the Currents as an explorer; the worked example as a report
+ * viewer, then the call to action; the three reports; how the audit grows;
+ * questions; the closing call. Bands alternate white and Cloud White.
+ */
 export default function SocialEngineeringCroissancePage() {
   useDivisionMeta(seo);
   const content = auditContent;
@@ -356,42 +517,41 @@ export default function SocialEngineeringCroissancePage() {
         kicker={content.kicker}
         headline={content.headline}
         summary={content.summary}
-        actions={<PrimaryCta />}
+        facts={content.facts}
+        actions={
+          <>
+            <PrimaryCta />
+            <a href="#sample" className="nwse-btn nwse-btn-ghost-dark">
+              {content.secondaryCta}
+            </a>
+          </>
+        }
       />
 
-      <Band labelledBy="nwse-audit-engine">
+      <Band tone="white" size="compact">
+        <JumpNav />
+      </Band>
+
+      <Band id="how-it-works" labelledBy="nwse-audit-process">
+        <SectionIntro kicker={content.process.kicker} title={content.process.heading} description={content.process.intro} id="nwse-audit-process" />
+        <ProcessStepper />
+      </Band>
+
+      <Band tone="white" id="currents" labelledBy="nwse-audit-engine">
         <SectionIntro kicker={content.engine.kicker} title={content.engine.heading} description={content.engine.intro} id="nwse-audit-engine" />
-        <ConnectorGrid />
+        <CurrentsExplorer />
         <CheckList items={content.rules} />
       </Band>
 
-      <Band tone="white" labelledBy="nwse-audit-process">
-        <SectionIntro kicker={content.process.kicker} title={content.process.heading} description={content.process.intro} id="nwse-audit-process" />
-        <StepList steps={content.process.steps} />
+      <Band id="sample" labelledBy="nwse-audit-sample">
+        <SectionIntro kicker={content.sample.kicker} title={content.sample.heading} description={content.sample.intro} id="nwse-audit-sample" />
+        <SampleViewer />
+        <CtaStrip heading={content.sample.cta.heading} body={content.sample.cta.body} />
       </Band>
 
-      <Band labelledBy="nwse-audit-reports">
+      <Band tone="white" id="reports" labelledBy="nwse-audit-reports">
         <SectionIntro kicker={content.reports.kicker} title={content.reports.heading} description={content.reports.intro} id="nwse-audit-reports" />
         <ReportGrid />
-      </Band>
-
-      <Band tone="white" labelledBy="nwse-audit-sample">
-        <SectionIntro kicker={content.sample.kicker} title={content.sample.heading} description={content.sample.intro} id="nwse-audit-sample" />
-        <SampleBoard />
-      </Band>
-
-      <Band labelledBy="nwse-audit-adplan">
-        <SectionIntro kicker={content.adPlan.kicker} title={content.adPlan.heading} description={content.adPlan.intro} id="nwse-audit-adplan" />
-        <AdPlanBoard />
-        <p className="nwse-type-body-small mt-3 max-w-4xl text-[var(--nw-slate)]">{content.adPlan.footnote}</p>
-        <TemplatePreviews />
-      </Band>
-
-      <Band tone="white" labelledBy="nwse-audit-changes">
-        <SectionIntro kicker={content.changes.kicker} title={content.changes.heading} description={content.changes.intro} id="nwse-audit-changes" />
-        <TodayVsPlan />
-        <ChangeRanking />
-        <p className="nwse-type-body-small mt-3 max-w-4xl text-[var(--nw-slate)]">{content.changes.footnote}</p>
       </Band>
 
       <Band labelledBy="nwse-audit-growth">
@@ -409,7 +569,7 @@ export default function SocialEngineeringCroissancePage() {
         </div>
       </Band>
 
-      <Band tone="white" labelledBy="nwse-audit-faq">
+      <Band tone="white" id="questions" labelledBy="nwse-audit-faq">
         <SectionIntro kicker="Questions" title="Common questions" id="nwse-audit-faq" />
         <FaqList faqs={content.faqs} />
       </Band>

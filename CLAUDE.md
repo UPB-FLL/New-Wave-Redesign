@@ -2,6 +2,30 @@
 
 ## Recent Changes
 
+### Croissance as a walkthrough; five-item rows centred (2026-10-21)
+
+- **Croissance** (`/social-engineering/croissance`) shows the audit one part
+  at a time instead of every table at once: the hero's facts line and a
+  second button to the example; an "On this page" row of pill links
+  (`nwse-chip`); the five steps as a guided stepper; the Currents as a chip
+  explorer, each with where it looks, what it brings back, and, where the
+  brewery's audit has a figure, `AuditConnector.example`; the worked example
+  as one report viewer (`data-role="sample-viewer"`: findings, return board,
+  ad plan, ready-to-run ads, what pays back first, with Back and Next and the
+  discovery call at the end) followed by a `CtaStrip`; then the reports,
+  growth, questions, and the closing call. New: `components/Tabs.tsx` (the
+  WAI-ARIA tabs pattern, three looks in `division.css`, inactive panels under
+  the hidden attribute), `CtaStrip` and `PrimaryCta tone="light"` in
+  `sections.tsx`, `.nwse-btn-ghost`, `.nwse-btn-navy`, `.nwse-chip`.
+  `pages.test.tsx` opens each part before reading it; `Tabs.test.tsx` covers
+  the pattern. Notes: "Layout: one part at a time" in
+  `docs/social-engineering-division.md`.
+- **Five-item grids** (the hub's data points and measures, every service's
+  scope) centre their second row under the first (`FIVE_CENTRED_LI`,
+  `FIVE_CENTRED_DIV`; `data-centred` on the list). The hub's journey scene
+  moved from that grid's sixth cell to beside the band's intro
+  (`SectionIntro scene`); `PointGrid` no longer takes a scene.
+
 ### Groundswell: the right tool for the job in Maps and the ad libraries (2026-10-21)
 
 The first benchmark run on the live engine showed two Currents relying on

@@ -223,7 +223,14 @@ division is a New Wave IT division, not a separate company.
     rail from 768px, with no card at all, so the steps read as one process.
     Capped cards (`RoadmapGrid`, the Croissance reports) wear a 6px bar of
     their role's colour along the top. Phones strip the soft tile's shadow
-    with the rest of the card chrome (`nwse-hairlines`).
+    with the rest of the card chrome (`nwse-hairlines`). A five-card grid
+    (the hub's data points and measures, each service's scope) centres its
+    second row under the first: six tracks from lg, each card spanning two,
+    the fourth starting at the second track, and four tracks on tablets with
+    the fifth card in the middle (`FIVE_CENTRED_LI` and `FIVE_CENTRED_DIV` in
+    `sections.tsx`; the lists carry `data-centred`). The hub's journey scene,
+    which used to fill that grid's sixth cell, sits beside the band's intro
+    from lg (`SectionIntro scene`).
   - **Icon tiles.** `.nwse-icon` stays amber unless a role class
     (`nwse-icon-cyan`, `-green`, `-tide`) sets its tint; `nwse-icon-on-dark`
     turns the strokes Cloud White on a dark band. The service cards, pillar
@@ -264,11 +271,47 @@ No percentages (rates and ROI are left out). Linked
 from the header (after Services on desktop; beside Overview in the phone
 sheet) and the footer's division column. On a 320x568 phone the sheet's top
 row now wraps to two lines: the discovery-call button still fits the first
-screen, and the endorsement at the foot needs a short scroll. The page uses
-the division's surfaces ("Surfaces and colour roles" under "Brand
-implementation"): the Currents are tinted panels with their icon tiles in
-the colour roles, the three reports are capped cards, and the growth groups
-are tinted panels.
+screen, and the endorsement at the foot needs a short scroll.
+
+### Layout: one part at a time (2026-10-21)
+
+The first version put every table on the page at once. The page now shows
+the audit one part at a time and asks for the call after each part that
+makes the case:
+
+- **Hero**: the audit's ground rules as the facts line
+  (`auditContent.facts`), the discovery call, and a second button, "See a
+  real audit", to `#sample`.
+- **On this page** (`auditContent.jump`): a compact white band of pill links
+  (`nwse-chip`) to the five sections, whose ids are the targets.
+- **How it works**: the five steps as a stepper (`Tabs look="steps"`,
+  guided): one step at a time with its icon, Back and Next under it, Next
+  naming the step it goes to, and the discovery call in Next's place on the
+  last step.
+- **The Currents**: an explorer (`Tabs look="chips"`): one chip per Current
+  with its icon tile, and a panel in its colour role's tint with where it
+  looks, what it brings back, and, where the brewery's audit has a figure
+  for it, `AuditConnector.example` in a soft tile. The ground rules follow.
+- **A real audit**: the worked example as one report viewer
+  (`data-role="sample-viewer"`): a Current Navy head with the business, the
+  audit's date and its headline demand, and the parts as tabs
+  (`Tabs look="dark"`, guided): Findings, Return board, Ad plan,
+  Ready-to-run ads, What pays back first (the last three are the boards
+  computed from `packages/groundswell`). Back and Next walk them and the last
+  ends on the discovery call. A `CtaStrip` ("Want this for your business?")
+  follows the viewer.
+- Then the three reports (capped cards), how the audit grows (tinted
+  panels), questions, and the closing call. Bands alternate Pure White and
+  Cloud White.
+
+`components/Tabs.tsx` is the tabs pattern (WAI-ARIA): one tablist of
+buttons with a roving tabindex, Left, Right, Home and End move and select,
+inactive panels keep the hidden attribute so their text stays in the DOM to
+search and print, and a panel fades in as it is shown (not under reduced
+motion). Its looks are in `division.css` (`.nwse-tab-*`); `.nwse-tablist`
+scrolls sideways where it does not fit, without a scrollbar. `Tabs.test.tsx`
+covers the pattern, and the page's tests in `pages.test.tsx` open each part
+before reading it.
 
 ### Partner portal (moved to `/groundswell`, 2026-10-21)
 
@@ -414,6 +457,9 @@ layouts; every small-screen rule is either a `max-width` media query in
     below 768px (where the 2-column grids begin); each service row is a single
     link (icon, title, arrow, summary).
   - `nwse-labelrows`: reporting labels as a grouped list below 1024px.
+  - `nwse-tablist` (every width): a tab row that scrolls sideways where it
+    does not fit, without a scrollbar; the stepper's row becomes one equal
+    column per step from 768px.
   - `nwse-hairlines`: "What we gather" / "What's included" as hairline rows
     below 768px.
   - `nwse-timeline`: steps as a timeline below 768px, with each step's marker

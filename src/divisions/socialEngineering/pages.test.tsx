@@ -428,60 +428,168 @@ describe('SocialEngineeringCroissancePage', () => {
     auditContent.faqs.forEach((faq) => expect(screen.getByText(faq.question)).toBeInTheDocument());
   });
 
-  it('names the engine, every connector, and all three reports', () => {
+  it('opens on the audit’s ground rules, a second button to the example, and in-page links to every part', () => {
+    renderAt(<SocialEngineeringCroissancePage />);
+    const hero = screen.getByRole('heading', { level: 1 }).closest('section')!;
+    expect(within(hero).getByText(auditContent.facts[0]).closest('[data-role="hero-facts"]')).not.toBeNull();
+    expect(within(hero).getByRole('link', { name: DIVISION_PRIMARY_CTA })).toHaveAttribute('href', DIVISION_CONTACT_PATH);
+    expect(within(hero).getByRole('link', { name: auditContent.secondaryCta })).toHaveAttribute('href', '#sample');
+    const jump = screen.getByRole('navigation', { name: auditContent.jump.label });
+    const links = within(jump).getAllByRole('link');
+    expect(links.map((link) => [link.textContent, link.getAttribute('href')])).toEqual(auditContent.jump.items.map((item) => [item.label, item.href]));
+    // Every link lands on a section of the page.
+    links.forEach((link) => expect(document.getElementById(link.getAttribute('href')!.slice(1)), link.textContent ?? '').not.toBeNull());
+  });
+
+  it('steps through the process one step at a time, Next naming the next step and the last step ending on the discovery call', () => {
+    renderAt(<SocialEngineeringCroissancePage />);
+    const band = screen.getByRole('region', { name: auditContent.process.heading });
+    const tabs = within(band).getAllByRole('tab');
+    expect(tabs.map((tab) => tab.textContent)).toEqual(auditContent.process.steps.map((step, index) => `${String(index + 1).padStart(2, '0')}${step.title}`));
+    const panel = () => within(band).getByRole('tabpanel');
+    expect(panel()).toHaveTextContent('Step 1 of 5');
+    expect(panel()).toHaveTextContent(auditContent.process.steps[0].detail);
+    expect(within(band).queryByRole('link', { name: DIVISION_PRIMARY_CTA })).toBeNull();
+    expect(within(band).getByRole('button', { name: /Back/ })).toBeDisabled();
+    const next = () => within(band).getByRole('button', { name: /^Next/ });
+    expect(next()).toHaveTextContent(`Next: ${auditContent.process.steps[1].title}`);
+    for (let step = 1; step < auditContent.process.steps.length; step += 1) fireEvent.click(next());
+    expect(panel()).toHaveTextContent(auditContent.process.steps[4].detail);
+    expect(within(band).queryByRole('button', { name: /^Next/ })).toBeNull();
+    expect(within(band).getByRole('link', { name: DIVISION_PRIMARY_CTA })).toHaveAttribute('href', DIVISION_CONTACT_PATH);
+  });
+
+  it('names the engine, every connector in its explorer, and all three reports', () => {
     renderAt(<SocialEngineeringCroissancePage />);
     const engine = screen.getByRole('region', { name: auditContent.engine.heading });
-    expect(within(engine).getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent)).toEqual(auditConnectors.map((c) => c.name));
+    const tabs = within(engine).getAllByRole('tab');
+    expect(tabs.map((tab) => tab.textContent)).toEqual(auditConnectors.map((c) => c.name));
+    auditConnectors.forEach((connector, index) => {
+      fireEvent.click(tabs[index]);
+      const panel = within(engine).getByRole('tabpanel');
+      expect(within(panel).getByRole('heading', { level: 3 })).toHaveTextContent(connector.name);
+      expect(panel).toHaveTextContent(connector.source);
+      expect(panel).toHaveTextContent(connector.gathers);
+      if (connector.example) {
+        expect(panel).toHaveTextContent(auditContent.engine.exampleLabel);
+        expect(panel).toHaveTextContent(connector.example);
+      } else {
+        expect(panel).not.toHaveTextContent(auditContent.engine.exampleLabel);
+      }
+    });
+    auditContent.rules.forEach((rule) => expect(within(engine).getByText(rule)).toBeInTheDocument());
     const reports = screen.getByRole('region', { name: auditContent.reports.heading });
     auditReports.forEach((report) => expect(within(reports).getByText(report.format)).toBeInTheDocument());
   });
 
-  it('shows Uncommon Path Brewing’s dated audit, with permission and sources, as the example', () => {
+  it('shows Uncommon Path Brewing’s dated audit, with permission and sources, as the example, one part at a time', () => {
     renderAt(<SocialEngineeringCroissancePage />);
     const sample = screen.getByRole('region', { name: auditContent.sample.heading });
-    expect(sample).toHaveTextContent('Uncommon Path Brewing');
-    expect(sample).toHaveTextContent(/shown with its permission/i);
-    expect(sample).toHaveTextContent('October 21, 2026');
-    expect(within(sample).getAllByRole('listitem')).toHaveLength(auditSample.findings.length + auditSample.scenarios.length);
+    const viewer = sample.querySelector('[data-role="sample-viewer"]')!;
+    expect(viewer).toHaveTextContent('Uncommon Path Brewing');
+    expect(viewer).toHaveTextContent('October 21, 2026');
+    expect(viewer).toHaveTextContent(auditSample.demand.value);
+    const tabs = within(viewer as HTMLElement).getAllByRole('tab');
+    expect(tabs.map((tab) => tab.textContent)).toEqual(Object.values(auditContent.sample.tabs));
+    // Findings first: the permission note and the four figures.
+    const panel = () => within(viewer as HTMLElement).getByRole('tabpanel');
+    expect(panel()).toHaveTextContent(/shown with its permission/i);
+    expect(within(panel()).getAllByRole('listitem')).toHaveLength(auditSample.findings.length);
+    // The return board: three scenarios, the base case highlighted, then its stop-loss and sources.
+    fireEvent.click(tabs[1]);
+    expect(within(panel()).getAllByRole('listitem')).toHaveLength(auditSample.scenarios.length);
     expect(auditSample.scenarios.filter((s) => 'highlighted' in s && s.highlighted).map((s) => s.name)).toEqual(['Base case']);
+    expect(panel()).toHaveTextContent(auditSample.stopLoss);
+    expect(panel()).toHaveTextContent(auditSample.footnote);
+    // The call to action follows the viewer.
+    const strip = sample.querySelector('[data-role="cta-strip"]')!;
+    expect(strip).toHaveTextContent(auditContent.sample.cta.heading);
+    expect(within(strip as HTMLElement).getByRole('link', { name: DIVISION_PRIMARY_CTA })).toHaveAttribute('href', DIVISION_CONTACT_PATH);
   });
 });
 
+/** The sample audit's viewer with one of its parts open. */
+const openSamplePart = (title: string) => {
+  renderAt(<SocialEngineeringCroissancePage />);
+  const viewer = screen.getByRole('region', { name: auditContent.sample.heading }).querySelector('[data-role="sample-viewer"]') as HTMLElement;
+  fireEvent.click(within(viewer).getByRole('tab', { name: title }));
+  return within(viewer).getByRole('tabpanel');
+};
+
 describe('Croissance ad plan', () => {
   it('shows the brewery’s plan from the model, funded rows first, with Reddit listed as not modeled', () => {
-    renderAt(<SocialEngineeringCroissancePage />);
-    const band = screen.getByRole('region', { name: auditContent.adPlan.heading });
-    const rows = within(band).getAllByRole('row').slice(1); // the header row first
+    const panel = openSamplePart(auditContent.sample.tabs.adPlan);
+    expect(within(panel).getByRole('heading', { name: auditContent.adPlan.heading })).toBeInTheDocument();
+    const rows = within(panel).getAllByRole('row').slice(1); // the header row first
     expect(within(rows[0]).getByRole('rowheader')).toHaveTextContent('Private events');
     expect(rows[0]).toHaveTextContent('Fund');
-    expect(band).toHaveTextContent(/Not modeled: No credible published Reddit cost per click/);
+    expect(panel).toHaveTextContent(/Not modeled: No credible published Reddit cost per click/);
     // Alcohol rules surface as reasons, not silently dropped rows.
-    expect(band).toHaveTextContent(/TikTok alcohol ads must be shown only to people 25 and older/);
-    expect(band.textContent).not.toMatch(/%/);
+    expect(panel).toHaveTextContent(/TikTok alcohol ads must be shown only to people 25 and older/);
+    expect(panel.textContent).not.toMatch(/%/);
   });
 
   it('previews ready-to-run ads for Google, Meta, Reddit and TikTok', () => {
-    renderAt(<SocialEngineeringCroissancePage />);
-    const band = screen.getByRole('region', { name: auditContent.adPlan.heading });
+    const panel = openSamplePart(auditContent.sample.tabs.ads);
     for (const label of ['Google Search · Responsive search ad', 'Meta (Facebook and Instagram) · Feed image ad', 'Reddit · Promoted post', 'TikTok · In-feed ad']) {
-      expect(within(band).getByText(label)).toBeInTheDocument();
+      expect(within(panel).getByText(label)).toBeInTheDocument();
     }
   });
 });
 
 describe('Croissance change ranking', () => {
   it('ranks every change with its area, hours and return, and compares today with the plan', () => {
-    renderAt(<SocialEngineeringCroissancePage />);
-    const band = screen.getByRole('region', { name: auditContent.changes.heading });
-    const rows = within(band).getAllByRole('row').slice(1);
+    const panel = openSamplePart(auditContent.sample.tabs.changes);
+    expect(within(panel).getByRole('heading', { name: auditContent.changes.heading })).toBeInTheDocument();
+    const rows = within(panel).getAllByRole('row').slice(1);
     expect(rows.length).toBeGreaterThanOrEqual(10);
     expect(within(rows[0]).getByRole('rowheader')).toHaveTextContent('Private events: Meta (Facebook and Instagram) ads');
     // Unmodeled changes say why instead of showing a number.
-    expect(band).toHaveTextContent(/No published study measures the lift/);
-    expect(within(band).getByRole('heading', { name: auditContent.changes.todayHeading })).toBeInTheDocument();
-    expect(within(band).getByRole('heading', { name: auditContent.changes.planHeading })).toBeInTheDocument();
-    expect(band).toHaveTextContent('Not public');
-    expect(band.textContent).not.toMatch(/%/);
+    expect(panel).toHaveTextContent(/No published study measures the lift/);
+    expect(within(panel).getByRole('heading', { name: auditContent.changes.todayHeading })).toBeInTheDocument();
+    expect(within(panel).getByRole('heading', { name: auditContent.changes.planHeading })).toBeInTheDocument();
+    expect(panel).toHaveTextContent('Not public');
+    expect(panel.textContent).not.toMatch(/%/);
+  });
+});
+
+describe('five-item grids', () => {
+  const classesOf = (element: Element) => (element.getAttribute('class') ?? '').split(/\s+/).filter(Boolean);
+
+  it('centre their second row under the first on the hub and the service pages', () => {
+    const hub = renderAt(<SocialEngineeringHubPage />);
+    const gather = hub.container.querySelector('[aria-labelledby="nwse-data"] ul.nwse-hairlines')!;
+    const metrics = hub.container.querySelector('[data-role="metric-tiles"]')!;
+    expect(gather.children).toHaveLength(5);
+    expect(metrics.children).toHaveLength(5);
+    [gather, metrics].forEach((grid) => {
+      expect(grid).toHaveAttribute('data-centred', 'true');
+      const child = grid === gather ? 'li' : 'div';
+      // Six tracks from lg, each card two wide, the fourth starting at the
+      // second track; four tracks on tablets with the fifth in the middle.
+      // (Assembled, not written as class names, so Tailwind's scanner does
+      // not pick the template up as a candidate.)
+      const rule = (prefix: string, selector: string, utility: string) => [prefix, ':[&>', child, selector, ']:', utility].join('');
+      expect(classesOf(grid)).toEqual(
+        expect.arrayContaining([
+          'lg:grid-cols-6',
+          rule('md', '', 'col-span-2'),
+          rule('lg', ':nth-child(4)', 'col-start-2'),
+          rule('lg', ':nth-child(5)', 'col-start-auto'),
+          'md:grid-cols-4',
+          rule('md', ':nth-child(5)', 'col-start-2'),
+        ]),
+      );
+      expect(classesOf(grid).some((name) => /grid-cols-3|col-span-2$/.test(name) && !name.includes('[&>'))).toBe(false);
+    });
+    hub.unmount();
+    divisionServices.forEach((service) => {
+      const { container, unmount } = renderAt(<SocialEngineeringServicePage slug={service.slug} />);
+      const scope = container.querySelector('[aria-labelledby="nwse-scope"] ul.nwse-hairlines')!;
+      expect(scope.children, service.slug).toHaveLength(5);
+      expect(scope, service.slug).toHaveAttribute('data-centred', 'true');
+      unmount();
+    });
   });
 });
 

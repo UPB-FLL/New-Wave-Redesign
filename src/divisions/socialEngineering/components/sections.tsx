@@ -284,12 +284,33 @@ export function DivisionHero({
   );
 }
 
-export function PrimaryCta({ children = DIVISION_PRIMARY_CTA }: { children?: ReactNode }) {
+/** The discovery-call button: Lure Amber on dark grounds (the default), Lure Amber Deep with white text on light ones. */
+export function PrimaryCta({ children = DIVISION_PRIMARY_CTA, tone = 'dark' }: { children?: ReactNode; tone?: SurfaceTone }) {
   return (
-    <Link to={DIVISION_CONTACT_PATH} className="nwse-btn nwse-btn-amber">
+    <Link to={DIVISION_CONTACT_PATH} className={`nwse-btn ${tone === 'dark' ? 'nwse-btn-amber' : 'nwse-btn-amber-deep'}`}>
       {children}
       <NwseIcon name="arrow-right" size={16} />
     </Link>
+  );
+}
+
+/**
+ * A call to action inside a light band, after a section that has made its
+ * case: an amber-tinted panel with a heading, one line, and the primary
+ * button (or `children` in its place). Phones stack the button full width.
+ */
+export function CtaStrip({ heading, body, children }: { heading: string; body: string; children?: ReactNode }) {
+  return (
+    <div
+      className="nwse-tint nwse-tint-amber nwse-actions mt-6 flex flex-col gap-4 p-5 sm:mt-8 sm:p-6 lg:mt-10 lg:flex-row lg:items-center lg:justify-between lg:gap-8 lg:p-7"
+      data-role="cta-strip"
+    >
+      <div className="max-w-2xl">
+        <h3 className="nwse-type-title-1 text-[var(--nw-current-navy)]">{heading}</h3>
+        <p className="nwse-type-body-small mt-1 text-[var(--nw-slate)]">{body}</p>
+      </div>
+      <div className="flex shrink-0 flex-wrap gap-3">{children ?? <PrimaryCta tone="light" />}</div>
+    </div>
   );
 }
 
@@ -300,6 +321,7 @@ export function SectionIntro({
   id,
   align = 'left',
   tone = 'light',
+  scene,
 }: {
   kicker: string;
   title: string;
@@ -308,8 +330,10 @@ export function SectionIntro({
   align?: 'left' | 'center';
   /** `dark` for a navy or Deep Current band: Lure Amber kicker, Cloud White title, Mist Gray description. */
   tone?: SurfaceTone;
+  /** A light-tone line-art scene beside the intro from lg (hidden below, where it would sit alone under the text). */
+  scene?: ScenePageKey;
 }) {
-  return (
+  const intro = (
     <div className={align === 'center' ? 'mx-auto max-w-3xl text-center' : 'max-w-3xl'}>
       <p className={`nwse-type-kicker ${tone === 'dark' ? 'nwse-kicker-on-dark' : 'nwse-kicker'}`}>{kicker}</p>
       {/* Balanced, so a two-line heading never strands its last word. */}
@@ -319,31 +343,45 @@ export function SectionIntro({
       {description ? <p className={`nwse-type-body mt-3 ${TEXT[tone].body} sm:mt-4`}>{description}</p> : null}
     </div>
   );
+  if (!scene) return intro;
+  return (
+    <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,18rem)] lg:items-center lg:gap-12">
+      {intro}
+      <PageScene page={scene} tone="light" className="hidden lg:block" />
+    </div>
+  );
 }
 
 /**
- * Cards for a list of points. `scene` (a light-tone line-art scene) fills the
- * empty last cell of a five-card, three-column grid from lg: the list's tracks
- * are a subgrid of one wrapper grid, so the scene sits exactly in that cell and
- * adds no height. Below lg there is no empty cell, so the decorative scene is
- * not shown (and its chunk never loads; see SceneSlot).
+ * Five cards in three columns: the second row sits centred under the first.
+ * From lg the grid has six tracks, each card spans two, and the fourth starts
+ * at the second track; on tablets, four tracks with the fifth card in the
+ * middle. Static class names, so Tailwind can see them.
+ */
+export const FIVE_CENTRED_LI =
+  'md:grid-cols-4 md:[&>li]:col-span-2 md:[&>li:nth-child(5)]:col-start-2 lg:grid-cols-6 lg:[&>li:nth-child(4)]:col-start-2 lg:[&>li:nth-child(5)]:col-start-auto';
+const FIVE_CENTRED_DIV =
+  'md:grid-cols-4 md:[&>div]:col-span-2 md:[&>div:nth-child(5)]:col-start-2 lg:grid-cols-6 lg:[&>div:nth-child(4)]:col-start-2 lg:[&>div:nth-child(5)]:col-start-auto';
+
+/**
+ * Cards for a list of points. A five-card, three-column grid centres its
+ * second row under the first (FIVE_CENTRED_LI); otherwise an odd last card
+ * spans the row on tablets.
  */
 export function PointGrid({
   points,
   columns = 3,
-  scene,
   variant = 'hairline',
   accents = 'amber',
 }: {
   points: readonly DivisionPoint[];
   columns?: 2 | 3;
-  scene?: ScenePageKey;
   /** `hairline`: the white card with a Mist Gray border; `soft`: a borderless white tile with a soft shadow (for Cloud White bands). */
   variant?: 'hairline' | 'soft';
   /** The short bar over each title: amber on every card, or the colour roles in rotation. */
   accents?: 'amber' | 'cycle';
 }) {
-  const withScene = scene !== undefined && columns === 3 && points.length === 5;
+  const centred = columns === 3 && points.length === 5;
   const items = points.map((point, index) => (
     <li key={point.title} className={`${variant === 'soft' ? 'nwse-soft' : 'nwse-card'} py-5 md:p-5 lg:p-6`}>
       <span
@@ -355,24 +393,13 @@ export function PointGrid({
       <p className="nwse-type-body-small mt-2 text-[var(--nw-slate)]">{point.detail}</p>
     </li>
   ));
-  if (!withScene) {
-    // Five cards in three columns: the last one takes the row's remaining
-    // two cells from lg, so the grid never ends on an empty cell.
-    return (
-      <ul
-        className={`nwse-hairlines mt-6 grid grid-cols-1 gap-0 sm:mt-8 md:gap-4 md:grid-cols-2 lg:mt-10 ${columns === 3 ? 'lg:grid-cols-3 lg:[&>li:last-child:nth-child(3n+2)]:col-span-2' : ''} ${ODD_ORPHAN_LI}`}
-      >
-        {items}
-      </ul>
-    );
-  }
   return (
-    <div className="mt-6 sm:mt-8 lg:mt-10 lg:grid lg:grid-cols-3 lg:gap-4">
-      <ul className={`nwse-hairlines grid grid-cols-1 gap-0 md:gap-4 md:grid-cols-2 lg:col-span-3 lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:grid-cols-subgrid lg:grid-rows-subgrid ${ODD_ORPHAN_LI}`}>
-        {items}
-      </ul>
-      <PageScene page={scene} tone="light" className="hidden lg:col-start-3 lg:row-start-2 lg:block lg:self-center" />
-    </div>
+    <ul
+      className={`nwse-hairlines mt-6 grid grid-cols-1 gap-0 sm:mt-8 md:gap-4 lg:mt-10 ${centred ? FIVE_CENTRED_LI : `md:grid-cols-2 ${columns === 3 ? 'lg:grid-cols-3' : ''} ${ODD_ORPHAN_LI}`}`}
+      data-centred={centred ? 'true' : undefined}
+    >
+      {items}
+    </ul>
   );
 }
 
@@ -867,12 +894,18 @@ export function CadenceRow({ cadence }: { cadence: readonly DivisionPoint[] }) {
 
 /**
  * What the work is measured against, on a dark band: glass tiles, each led by
- * its icon in a tile of the next colour role and a label in that colour.
- * Two columns from md (the fifth spanning the row), three from lg.
+ * its icon in a tile of the next colour role and a label in that colour. Five
+ * tiles centre their second row under the first (FIVE_CENTRED_DIV); any other
+ * count runs two columns from md and three from lg.
  */
 export function MetricTiles({ metrics }: { metrics: readonly DivisionPoint[] }) {
+  const centred = metrics.length === 5;
   return (
-    <dl className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 sm:gap-4 md:grid-cols-2 lg:mt-10 lg:grid-cols-3 md:max-lg:[&>div:last-child:nth-child(odd)]:col-span-2" data-role="metric-tiles">
+    <dl
+      className={`mt-6 grid grid-cols-1 gap-3 sm:mt-8 sm:gap-4 lg:mt-10 ${centred ? FIVE_CENTRED_DIV : 'md:grid-cols-2 lg:grid-cols-3 md:max-lg:[&>div:last-child:nth-child(odd)]:col-span-2'}`}
+      data-role="metric-tiles"
+      data-centred={centred ? 'true' : undefined}
+    >
       {metrics.map((metric, index) => {
         const color = accentAt(index);
         return (
