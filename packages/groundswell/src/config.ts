@@ -121,6 +121,8 @@ export interface VerificationRules {
   tolerance: number;
   /** Most rounds of review → re-interpret → re-run before an audit is flagged instead of delivered. */
   max_rounds: number;
+  /** Most of the write-up's sentences the reviewer may drop (0-1) before the audit is flagged for a person instead. */
+  max_review_drops: number;
 }
 
 /** Share of ad customers who would not have come anyway, by where the business already ranks organically. */
@@ -253,6 +255,7 @@ export function validateConfig(c: GroundswellConfig): GroundswellConfig {
   if (c.benchmark.press_domains.some((d) => c.benchmark.platform_hosts.includes(d))) problems.push('benchmark.press_domains may not list a platform host');
   if (!(c.verification.tolerance > 0 && c.verification.tolerance < 1)) problems.push('verification.tolerance must be between 0 and 1');
   if (!(c.verification.max_rounds >= 2)) problems.push('verification.max_rounds must be at least 2 (a first pass and a re-run)');
+  if (!(c.verification.max_review_drops > 0 && c.verification.max_review_drops < 1)) problems.push('verification.max_review_drops must be between 0 and 1');
   if (problems.length) throw new Error(`Groundswell setup file is invalid:\n- ${problems.join('\n- ')}`);
   return c;
 }

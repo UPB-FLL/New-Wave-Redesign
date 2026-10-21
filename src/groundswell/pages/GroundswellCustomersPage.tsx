@@ -42,6 +42,8 @@ const STATUS: Record<PartnerAudit['status'], { label: string; color: string }> =
   running: { label: 'In progress', color: 'var(--gs-accent-deep)' },
   done: { label: 'Reports ready', color: 'var(--gs-ok)' },
   failed: { label: 'Didn’t finish; we’ll follow up', color: 'var(--gs-bad)' },
+  // Held before delivery while a person checks the figures.
+  review: { label: 'In review', color: 'var(--gs-accent-deep)' },
 };
 
 function AddCustomerForm({ onQueued, onCancel }: { onQueued: () => void; onCancel?: () => void }) {

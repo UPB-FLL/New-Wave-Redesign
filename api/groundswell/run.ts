@@ -2,8 +2,9 @@ import { requireAdmin } from '../_lib/adminKey.js';
 import { runWorkerInBackground } from '../_lib/groundswell/background.js';
 import { isComposioConfigured } from '../_lib/groundswell/composio.js';
 import { startQueuedAudits } from '../_lib/groundswell/engine.js';
+import { answerReview, ReviewError } from '../_lib/groundswell/review.js';
 import { BENCHMARK_STEPS, STEPS } from '../_lib/groundswell/steps.js';
-import { methodGuard, type ApiRequest, type ApiResponse } from '../_lib/http.js';
+import { methodGuard, readJsonBody, type ApiRequest, type ApiResponse } from '../_lib/http.js';
 import { getSupabaseAdmin, isSupabaseConfigured } from '../_lib/supabaseAdmin.js';
 
 /**
@@ -11,6 +12,9 @@ import { getSupabaseAdmin, isSupabaseConfigured } from '../_lib/supabaseAdmin.js
  * (names only, never values), for the admin overview.
  *
  * POST /api/groundswell/run — the "Run queued audits now" button on /admin/groundswell/audits.
+ * With { action: 'deliver' | 'recheck', audit_id }, an admin's answer to an
+ * audit held in review instead (review.ts): deliver it as it stands, or run its
+ * checks again; either way the worker carries it on in the background.
  *
  * Starts up to MAX_AUDITS_PER_CLICK queued audits on Groundswell (gives each
  * its steps in marketing_audit_steps and marks it running), answers, and then
@@ -57,6 +61,19 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (missing.length) {
     console.error(`Groundswell is not configured: ${missing.join(', ')} missing.`);
     return res.status(503).json({ error: 'The audit engine is not set up yet.' });
+  }
+
+  const body = readJsonBody(req);
+  if (body.action !== undefined) {
+    try {
+      const action = await answerReview(getSupabaseAdmin(), body.audit_id, body.action);
+      runWorkerInBackground(startedAt);
+      return res.status(200).json({ action });
+    } catch (err) {
+      if (err instanceof ReviewError) return res.status(err.status).json({ error: err.message });
+      console.error(err);
+      return res.status(500).json({ error: 'Could not update the audit.' });
+    }
   }
 
   let started: string[];

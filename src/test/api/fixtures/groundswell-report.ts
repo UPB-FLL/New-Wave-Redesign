@@ -169,6 +169,7 @@ export function sampleAdplanOutput(): AdplanOutput {
     angles: planned.angles,
     fallback_angle: planned.fallback_angle,
     baseline,
+    fixes: planned.fixes,
     dropped: planned.dropped,
     ...planAudit({ angles: planned.angles, industry: planned.industry, positions: positionsFrom(facts), fixes: planned.fixes, baseline }, GROUNDSWELL_CONFIG),
   };

@@ -31,6 +31,8 @@ export interface StepContext {
   audit: AuditRow;
   /** Outputs of the audit's earlier finished steps, by step name. */
   outputs: Record<string, unknown>;
+  /** The names of all the audit's steps in order (the engine sets it; absent in older callers). */
+  steps?: string[];
   /** Epoch ms by which the step must return, so the function call is not cut off. */
   deadline: number;
   /** Attempt number for this step, starting at 1. */

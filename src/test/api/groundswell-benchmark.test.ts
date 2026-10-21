@@ -15,7 +15,9 @@ import { mediaList, runSocialDepth, toRawItem } from '../../../api/_lib/groundsw
 import { startQueuedAudits } from '../../../api/_lib/groundswell/engine';
 import { ALL_STEPS, BENCHMARK_STEPS, STEPS } from '../../../api/_lib/groundswell/steps';
 import { PermanentStepError } from '../../../api/_lib/groundswell/types';
+import { checkStep, readStep, runVerifyCheck, sentencesOf, type VerifyReadOutput } from '../../../api/_lib/groundswell/verify';
 import { buildAuditInsert, STEP_LABELS } from '../../../src/lib/groundswell';
+import { sampleAdplanOutput, sampleModelOutput, sampleOutputs } from './fixtures/groundswell-report';
 import {
   benchmarkAudit,
   benchmarkOutputs,
@@ -77,8 +79,14 @@ describe('the benchmark run', () => {
     expect(names.indexOf('deliver_benchmark')).toBeLessThan(names.indexOf('deliver_deck'));
     expect(names[names.length - 1]).toBe('deliver_finish');
     expect(BENCHMARK_STEPS.filter((s) => ['benchmark', 'deliver_benchmark'].includes(s.name)).every((s) => !s.optional)).toBe(true);
-    expect(ALL_STEPS).toBe(BENCHMARK_STEPS);
-    for (const s of BENCHMARK_STEPS) expect(STEP_LABELS[s.name], s.name).toBeTruthy();
+    // The checks come after the benchmark write-up (they review it too), before anything is delivered.
+    expect(names.slice(names.indexOf('benchmark') + 1, names.indexOf('deliver_prepare'))).toEqual(['verify_read_2', 'verify_check_2', 'verify_read_3', 'verify_check_3']);
+    // The worker knows every round it supports, so an audit started under a larger max_rounds still finishes.
+    const all = ALL_STEPS.map((s) => s.name);
+    expect(all.filter((n) => !n.startsWith('verify_'))).toEqual(names.filter((n) => !n.startsWith('verify_')));
+    expect(all).toContain('verify_check_5');
+    expect(all[all.length - 1]).toBe('deliver_finish');
+    for (const s of ALL_STEPS) expect(STEP_LABELS[s.name], s.name).toBeTruthy();
   });
 
   it('starts each audit with its kind’s steps, and falls back before the migration', async () => {
@@ -350,4 +358,38 @@ describe('the benchmark reports', () => {
     expect(benchPdf.pages).toBeGreaterThanOrEqual(11);
     expect(benchPdf.links).toEqual([]);
   }, 120_000);
+});
+
+describe('the checks on a benchmark', () => {
+  it('review the benchmark write-up too, and rebuild the scorecard on a later read that held up', async () => {
+    // Posts and reels were not read (the step is optional), so followers come from the Instagram profiles read again.
+    mocks.chatJson.mockResolvedValueOnce({ accounts: [] });
+    const outputs: Record<string, unknown> = { ...benchmarkOutputs(), model: sampleModelOutput(), adplan: sampleAdplanOutput() };
+    outputs.ads_library = await runAdsLibrary(ctx(outputs));
+    outputs.pricing = await runPricing(ctx(outputs));
+    outputs.authority = await runAuthority(ctx(outputs));
+    mocks.chatJson.mockResolvedValueOnce({ verdict: 'Bayside Garage has 5,400 followers. Harbor Auto Care has 1,250.' });
+    outputs.benchmark = await runBenchmark(ctx(outputs));
+    const followers = (o: { scorecard: { key: string; values: unknown[] }[] }) => o.scorecard.find((r) => r.key === 'followers')?.values[0];
+    expect(followers(outputs.benchmark as never)).toBe(1250);
+
+    const later = (round: number): VerifyReadOutput => {
+      const o = structuredClone(sampleOutputs());
+      (o.social as { business: { followers: number } }).business.followers = 2600;
+      return { round, fetched_at: '2026-10-21T13:00:00.000Z', reads: { maps: o.maps, search: o.search, keywords: o.keywords, social: o.social }, errors: {} };
+    };
+    const steps = [readStep(2), checkStep(2), readStep(3), checkStep(3)];
+    const two = await runVerifyCheck(2)({ ...ctx({ ...outputs, [readStep(2)]: later(2) }), steps });
+    expect(two.status).toBe('again');
+
+    const verdict = sentencesOf((outputs.benchmark as { writeup: unknown }).writeup, 'b').find((x) => x.text === 'Harbor Auto Care has 1,250.')!;
+    mocks.chatJson.mockResolvedValueOnce({ problems: [{ id: verdict.id, problem: 'The later read shows 2,600.', fix: 'Harbor Auto Care has 2,600.' }] });
+    const three = await runVerifyCheck(3)({ ...ctx({ ...outputs, [readStep(2)]: later(2), [checkStep(2)]: two, [readStep(3)]: later(3) }), steps });
+    expect(three).toMatchObject({ status: 'agreed', agreed_with: 2 });
+    const bench = three.outputs!.benchmark as { writeup: { verdict: string }; scorecard: { key: string; values: unknown[] }[] };
+    expect(followers(bench)).toBe(2600);
+    expect(bench.writeup.verdict).toBe('Bayside Garage has 5,400 followers. Harbor Auto Care has 2,600.');
+    // The reviewer saw the benchmark's tables, not only the audit's facts.
+    expect(mocks.chatJson.mock.calls[mocks.chatJson.mock.calls.length - 1][1]).toContain('"benchmark"');
+  });
 });

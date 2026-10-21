@@ -2,7 +2,8 @@
 // so the partner API (api/groundswell/partner-audits.ts) uses the same rules
 // as the admin screen.
 
-export type AuditStatus = 'queued' | 'running' | 'done' | 'failed';
+/** `review`: held before delivery for a person (the checks could not vouch for the figures). */
+export type AuditStatus = 'queued' | 'running' | 'done' | 'failed' | 'review';
 /** An audit, or a competitor benchmark (the audit plus a comparison with the top two competitors). */
 export type AuditKind = 'audit' | 'benchmark';
 /** Competitors a benchmark compares: the first ones entered, in order. */

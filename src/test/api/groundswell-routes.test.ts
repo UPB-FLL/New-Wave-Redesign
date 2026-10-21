@@ -5,6 +5,7 @@ const auth = vi.hoisted(() => ({ getUser: vi.fn() }));
 const db = vi.hoisted(() => ({ configured: true, started: [] as string[], error: null as Error | null }));
 const engine = vi.hoisted(() => ({ startQueuedAudits: vi.fn(), runWorker: vi.fn() }));
 const waitUntil = vi.hoisted(() => vi.fn());
+const review = vi.hoisted(() => ({ answerReview: vi.fn() }));
 
 vi.mock('../../../api/_lib/supabasePublic', () => ({
   isSupabasePublicConfigured: () => true,
@@ -17,11 +18,13 @@ vi.mock('../../../api/_lib/supabaseAdmin', () => ({
 }));
 vi.mock('../../../api/_lib/groundswell/engine', () => engine);
 vi.mock('@vercel/functions', () => ({ waitUntil }));
+vi.mock('../../../api/_lib/groundswell/review', async (original) => ({ ...(await original<object>()), answerReview: review.answerReview }));
 
 import handler, { MAX_AUDITS_PER_CLICK } from '../../../api/groundswell/run';
 import worker from '../../../api/groundswell/worker';
 import { FUNCTION_SECONDS } from '../../../api/_lib/groundswell/background';
 import { ALL_STEPS, BENCHMARK_STEPS, STEPS } from '../../../api/_lib/groundswell/steps';
+import { ReviewError } from '../../../api/_lib/groundswell/review';
 
 function makeRes() {
   return {
@@ -133,6 +136,29 @@ describe('POST /api/groundswell/run', () => {
     // The worker knows every step, so it can run either kind.
     expect(steps).toBe(ALL_STEPS);
     expect(deadline - Date.now()).toBeLessThanOrEqual(FUNCTION_SECONDS * 1000);
+  });
+
+  it('answers a held audit (deliver or check again) instead of starting the queue, and works on it after answering', async () => {
+    review.answerReview.mockResolvedValueOnce('recheck');
+    const res = makeRes();
+    await handler({ method: 'POST', headers: signedIn, body: { action: 'recheck', audit_id: 'a-1' } }, res);
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toEqual({ action: 'recheck' });
+    expect(review.answerReview).toHaveBeenCalledWith({ fake: 'db' }, 'a-1', 'recheck');
+    expect(engine.startQueuedAudits).not.toHaveBeenCalled();
+    expect(waitUntil).toHaveBeenCalledTimes(1);
+
+    review.answerReview.mockRejectedValueOnce(new ReviewError(409, 'This audit is not waiting for review.'));
+    const refused = makeRes();
+    await handler({ method: 'POST', headers: signedIn, body: JSON.stringify({ action: 'deliver', audit_id: 'a-1' }) }, refused);
+    expect(refused.statusCode).toBe(409);
+    expect(refused.body).toEqual({ error: 'This audit is not waiting for review.' });
+
+    review.answerReview.mockRejectedValueOnce(new Error('connection reset'));
+    const failed = makeRes();
+    await handler({ method: 'POST', headers: signedIn, body: { action: 'deliver', audit_id: 'a-1' } }, failed);
+    expect(failed.statusCode).toBe(500);
+    expect(failed.body).toEqual({ error: 'Could not update the audit.' });
   });
 
   it('reports a database failure', async () => {

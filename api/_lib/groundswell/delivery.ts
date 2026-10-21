@@ -1,7 +1,7 @@
 import { getSupabaseAdmin } from '../supabaseAdmin.js';
 import { isAdcopyOutput } from './adcopy.js';
 import { isAdplanOutput } from './adplan.js';
-import type { BenchmarkOutput } from './benchmark.js';
+import { isBenchmarkOutput } from './benchmark.js';
 import { withBrowser } from './browser.js';
 import { brandFrom } from './brand.js';
 import {
@@ -21,6 +21,7 @@ import { assertDriveOnly, renderPdf } from './render.js';
 import { buildAuditHtml, buildDeckHtml, buildSummaryHtml, formatDate, preparerFor, type ModelOutput, type ReportData } from './reports.js';
 import { buildBenchmarkHtml } from './reportsBenchmark.js';
 import { PermanentStepError, type StepContext } from './types.js';
+import { verifiedOutputs } from './verify.js';
 
 /**
  * Delivery Current. Drive ids only exist once a file is uploaded, so the
@@ -44,14 +45,16 @@ interface Uploaded {
   broken_images: number;
 }
 
-function reportData(ctx: StepContext): ReportData {
-  const model = ctx.outputs.model as ModelOutput | undefined;
+export function reportData(ctx: StepContext): ReportData {
+  // The checks' replacements (the reviewed write-up; a later read, when that is the one that held up).
+  const outputs = verifiedOutputs(ctx.outputs);
+  const model = outputs.model as ModelOutput | undefined;
   if (!model) throw new PermanentStepError('The write-up is missing, so the reports cannot be built.');
-  const facts = buildFacts(ctx.audit, ctx.outputs);
+  const facts = buildFacts(ctx.audit, outputs);
   // An audit started before the ad-plan step existed, or one whose step was skipped, has no plan.
-  const adplan = isAdplanOutput(ctx.outputs.adplan) ? ctx.outputs.adplan : null;
-  const adcopy = isAdcopyOutput(ctx.outputs.adcopy) ? ctx.outputs.adcopy : null;
-  const benchmark = isBenchmarkOutput(ctx.outputs.benchmark) ? ctx.outputs.benchmark : null;
+  const adplan = isAdplanOutput(outputs.adplan) ? outputs.adplan : null;
+  const adcopy = isAdcopyOutput(outputs.adcopy) ? outputs.adcopy : null;
+  const benchmark = isBenchmarkOutput(outputs.benchmark) ? outputs.benchmark : null;
   const branding = ctx.audit.branding;
   return {
     facts,
@@ -63,12 +66,6 @@ function reportData(ctx: StepContext): ReportData {
     preparer: preparerFor(branding),
     date: formatDate(new Date(model.generated_at)),
   };
-}
-
-/** True for a usable benchmark step output (only a competitor benchmark has one). */
-export function isBenchmarkOutput(x: unknown): x is BenchmarkOutput {
-  const o = x as Partial<BenchmarkOutput> | null | undefined;
-  return Boolean(o && Array.isArray(o.scorecard) && Array.isArray(o.accounts) && o.writeup);
 }
 
 const need = <T>(ctx: StepContext, step: string): T => {

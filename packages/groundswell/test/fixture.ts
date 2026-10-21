@@ -68,7 +68,7 @@ export const config: GroundswellConfig = validateConfig({
   tiers: { cpc: [1, 3], clicks: [20, 100], roi_strong: 1 },
   min_angle_searches: 100,
   unsupported_claims: ['best', '#1', 'number one'],
-  verification: { tolerance: 0.1, max_rounds: 2 },
+  verification: { tolerance: 0.1, max_rounds: 2, max_review_drops: 0.25 },
   benchmark: {
     accounts: 3,
     pricing_pages_per_account: 10,

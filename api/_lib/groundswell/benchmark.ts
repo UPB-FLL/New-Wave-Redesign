@@ -215,6 +215,22 @@ function problems(w: BenchmarkWriteup, allowed: Set<string>): string[] {
   return out;
 }
 
+/** True for a usable benchmark step output (only a competitor benchmark has one). */
+export function isBenchmarkOutput(x: unknown): x is BenchmarkOutput {
+  const o = x as Partial<BenchmarkOutput> | null | undefined;
+  return Boolean(o && Array.isArray(o.scorecard) && Array.isArray(o.accounts) && o.writeup);
+}
+
+/** The scorecard, gaps and engagement bands from the accounts' data: code only, no model call. */
+export function scoreTables(ctx: StepContext, accounts: BenchmarkAccount[]) {
+  const config = GROUNDSWELL_CONFIG;
+  const industry = benchmarkIndustry(ctx.outputs);
+  const scorecard = buildScorecard(accounts, industry, config);
+  const gaps = gapsFrom(scorecard, accounts);
+  const bands = accounts.map((a) => engagementBand(a.engagement?.engagement_rate_median ?? null, config));
+  return { industry, scorecard, gaps, bands };
+}
+
 export async function runBenchmark(ctx: StepContext): Promise<BenchmarkOutput> {
   const config = GROUNDSWELL_CONFIG;
   const { accounts, ads } = benchmarkAccountsFrom(ctx);
@@ -222,10 +238,7 @@ export async function runBenchmark(ctx: StepContext): Promise<BenchmarkOutput> {
   if (!['social_depth', 'ads_library', 'pricing', 'authority'].some((s) => ctx.outputs[s] !== undefined)) {
     throw new PermanentStepError('None of the benchmark data could be gathered (posts, ad libraries, prices, authority).');
   }
-  const industry = benchmarkIndustry(ctx.outputs);
-  const scorecard = buildScorecard(accounts, industry, config);
-  const gaps = gapsFrom(scorecard, accounts);
-  const bands = accounts.map((a) => engagementBand(a.engagement?.engagement_rate_median ?? null, config));
+  const { industry, scorecard, gaps, bands } = scoreTables(ctx, accounts);
   const rules = doNotCopyRules(industry, config);
   const facts = benchmarkFacts(accounts, ads, scorecard, gaps, bands);
   const allowed = allowedNumbers(facts, { do_not_copy_rules: rules });

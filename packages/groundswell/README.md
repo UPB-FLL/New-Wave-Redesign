@@ -39,12 +39,19 @@ decides the details, not the code.
    and to `templateProblems`. Written copy never makes a claim from
    `unsupported_claims`, even with proof; a hand-written template may, with
    the proof named.
-4. **Review, re-interpret, re-run** (planned). A reviewer pass checks every
-   first-round number against the raw data. Anything that does not hold up
-   is fetched again, the plan is re-run, and the audit counts as accurate
-   only when the two passes agree within the setup file's tolerance
-   (`verification`). An audit that still disagrees after
-   `verification.max_rounds` is flagged for a person, not delivered.
+4. **Review, re-interpret, re-run** (`src/verify.ts`). Each round after the
+   first reads again the sources the plan rests on and re-runs the plan on
+   that read, with the first pass's estimates and angles held fixed
+   (`refreshAngles`). A pass is judged on what a reader acts on
+   (`planFigures`: the figures the reports print, the plan's outcomes, and
+   its fund / test / skip calls), and the audit counts as accurate only when
+   a later read agrees with an earlier one within the setup file's tolerance
+   (`findAgreement`, `verification`). A reviewer then checks every sentence of
+   the write-up against the data delivered, correcting or dropping what
+   misstates it. An audit that still disagrees after
+   `verification.max_rounds`, or whose reviewer drops more than
+   `verification.max_review_drops` of it, is flagged for a person, not
+   delivered.
 5. **Deliver.** The reports, in the client's brand: a one-page summary, the
    slides, and the full audit.
 
@@ -239,7 +246,10 @@ a service (SaaS), with tools linked in as each client needs them. In order:
    and summary, and the `adcopy` step (`api/_lib/groundswell/adcopy.ts`): an
    ad for each funded or tested row, checked by `checkCopy`, in the full
    audit. Next: the use-case library.
-4. **Review, re-interpret, re-run** before an audit counts as accurate.
+4. **Review, re-interpret, re-run** (now, in New Wave's engine) before an
+   audit counts as accurate: a second read and the plan re-run on it, a
+   reviewer over the write-up, and a person for anything that does not hold
+   up.
 5. **The planner agent and connectors.** An agent picks the industry profile
    and the platforms to audit (LinkedIn for IT; Angi, Yelp and Reddit for
    home services), within the setup file's allowlist, and runs the flow.
@@ -264,7 +274,7 @@ a service (SaaS), with tools linked in as each client needs them. In order:
 | Ad copy for the rows the plan runs | Live: the `adcopy` step, `checkCopy` (`src/adcopy.ts`), and the full audit's "Ad copy, ready to paste". |
 | White-label for partners | Live in New Wave's engine (`api/_lib/groundswell/branding.ts`, `ownWording` in `reports.ts`); the partner's own Drive is next. |
 | Competitor benchmark | Here, tested (`src/benchmark/`); live as the `benchmark` audit kind. |
-| Review → re-interpret → re-run | Planned. |
+| Review → re-interpret → re-run | Here, tested (`src/verify.ts`); live in New Wave's engine (`api/_lib/groundswell/verify.ts`, the `verify_read_N` and `verify_check_N` steps). |
 | Planner agent and industry platforms | Planned: an agent picks the industry profile from the business's data, within the setup file's allowlist. |
 | SEO, website and Google Business Profile audits | Partly live (`api/_lib/groundswell/currents/`); being widened. |
 | Engine moved here behind adapters | Planned. |

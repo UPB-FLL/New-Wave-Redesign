@@ -26,6 +26,7 @@ beforeEach(() => {
     { id: 'a', status: 'queued', partner_id: 'p1' },
     { id: 'b', status: 'done', partner_id: null },
     { id: 'c', status: 'done', partner_id: 'p1' },
+    { id: 'd', status: 'review', partner_id: null },
   ]);
   lib.listPartners.mockResolvedValue([partner(), partner({ id: 'p2', company: 'Tide Co', status: 'invited', audit_count: 0 })]);
   lib.getSetupStatus.mockResolvedValue({
@@ -45,6 +46,7 @@ describe('Groundswell overview', () => {
     const counts = screen.getByRole('region', { name: 'Audits by status' });
     await waitFor(() => expect(within(counts).getByText('Done').previousSibling).toHaveTextContent('2'));
     expect(within(counts).getByText('Queued').previousSibling).toHaveTextContent('1');
+    expect(within(counts).getByText('Needs review').previousSibling).toHaveTextContent('1');
     expect(await screen.findByText(/Not ready/)).toBeInTheDocument();
     const checks = screen.getByRole('list', { name: 'Setup checks' });
     expect(within(checks).getAllByRole('listitem')).toHaveLength(3);

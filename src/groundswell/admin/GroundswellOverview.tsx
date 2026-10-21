@@ -54,11 +54,12 @@ export default function GroundswellOverview() {
         </div>
       )}
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5" aria-label="Audits by status">
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6" aria-label="Audits by status">
         {(
           [
             ['Queued', count('queued')],
             ['Running', count('running')],
+            ['Needs review', count('review')],
             ['Done', count('done')],
             ['Failed', count('failed')],
             ['Benchmarks', audits?.filter((a) => a.kind === 'benchmark').length ?? '–'],

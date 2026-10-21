@@ -45,6 +45,8 @@ export interface AdplanOutput {
   ranked: RankedChange[];
   comparison: Comparison;
   baseline: Baseline;
+  /** The write-up's fixes as the planner sorted them, so a verification pass can re-run the ranking; missing on audits before 2026-10-21. */
+  fixes?: SortedFix[];
   /** What the checks removed from the planner's answer. */
   dropped: { keywords: string[]; angles: string[]; fixes: string[] };
 }
@@ -269,6 +271,7 @@ export async function runAdplan(ctx: StepContext): Promise<AdplanOutput> {
     angles: planned.angles,
     fallback_angle: planned.fallback_angle,
     baseline,
+    fixes: planned.fixes,
     dropped: planned.dropped,
     ...result,
   };

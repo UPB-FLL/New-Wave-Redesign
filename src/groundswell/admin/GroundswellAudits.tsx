@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 import {
-  Plus, Trash2, RefreshCw, Loader2, ExternalLink, FolderOpen, Instagram, Globe, X, Clock, CheckCircle2, XCircle, Play,
+  Plus, Trash2, RefreshCw, Loader2, ExternalLink, FolderOpen, Instagram, Globe, X, Clock, CheckCircle2, XCircle, Play, AlertTriangle, Send,
 } from 'lucide-react';
 import {
   addCompetitor,
+  answerReview,
+  listHeldChecks,
+  type HeldCheck,
   BENCHMARK_COMPETITORS,
   deleteAudit,
   isDriveLink,
@@ -36,6 +39,7 @@ const STATUS = {
   running: { label: 'Running', color: 'var(--gs-accent-deep)', Icon: Loader2 },
   done: { label: 'Done', color: 'var(--gs-ok)', Icon: CheckCircle2 },
   failed: { label: 'Failed', color: 'var(--gs-bad)', Icon: XCircle },
+  review: { label: 'Needs review', color: 'var(--gs-accent-deep)', Icon: AlertTriangle },
 } as const;
 
 const STEP_COLORS: Record<AuditStep['status'], string> = {
@@ -64,6 +68,52 @@ function StepProgress({ steps }: { steps: AuditStep[] }) {
   );
 }
 
+const shown = (v: number | string | null) => (v === null ? 'not read' : typeof v === 'number' ? v.toLocaleString('en-US') : v);
+
+/**
+ * An audit held before delivery: what the checks found (each figure that moved
+ * between the first read and the latest, and what the reviewer changed), and
+ * the two ways on: deliver as it stands, or read the figures again.
+ */
+function ReviewPanel({ name, check, onAnswer }: { name: string; check: HeldCheck | undefined; onAnswer: (action: 'deliver' | 'recheck') => void }) {
+  const moved = check?.disagreements ?? [];
+  const listed = moved.slice(0, 8);
+  const review = check?.review;
+  return (
+    <div className="gs-notice space-y-3">
+      <p>Nothing has been delivered. Look at what the checks found, then deliver it as it stands or read the figures again.</p>
+      {listed.length > 0 && (
+        <ul className="space-y-1 gs-muted" aria-label={`What moved for ${name}`}>
+          {listed.map((d) => (
+            <li key={d.key}>
+              <span className="font-semibold" style={{ color: 'var(--nw-current-navy)' }}>{d.label}</span>:{' '}
+              {d.kind === 'unread' && d.later === null ? 'could not be read again' : `${shown(d.earlier)} on the first read, ${shown(d.later)} on the latest`}
+            </li>
+          ))}
+          {moved.length > listed.length && <li>and {moved.length - listed.length} more</li>}
+        </ul>
+      )}
+      {review && (review.corrected.length > 0 || review.dropped.length > 0) && (
+        <p className="gs-muted">
+          The reviewer checked {review.checked} sentences: corrected {review.corrected.length}, dropped {review.dropped.length}.
+        </p>
+      )}
+      <div className="flex flex-wrap gap-3">
+        <button
+          type="button"
+          onClick={() => window.confirm(`Deliver ${name} as it stands? The reports use the first read, with the reviewer's corrections.`) && onAnswer('deliver')}
+          className="gs-btn gs-btn-primary"
+        >
+          <Send size={14} /> Deliver anyway
+        </button>
+        <button type="button" onClick={() => onAnswer('recheck')} className="gs-btn gs-btn-secondary">
+          <RefreshCw size={14} /> Run the checks again
+        </button>
+      </div>
+    </div>
+  );
+}
+
 const input = 'input-light';
 
 export default function GroundswellAudits() {
@@ -76,6 +126,7 @@ export default function GroundswellAudits() {
   const [starting, setStarting] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [steps, setSteps] = useState<Record<string, AuditStep[]>>({});
+  const [held, setHeld] = useState<Record<string, HeldCheck>>({});
   const [partnerNames, setPartnerNames] = useState<Map<string, string>>(new Map());
 
   const refresh = async () => {
@@ -83,8 +134,10 @@ export default function GroundswellAudits() {
       const rows = await listAudits();
       setAudits(rows);
       // Progress is a nice-to-have: the list still shows if the steps can't be read.
-      const watched = rows.filter((a) => a.status === 'running' || a.status === 'failed').map((a) => a.id);
+      const watched = rows.filter((a) => a.status === 'running' || a.status === 'failed' || a.status === 'review').map((a) => a.id);
       setSteps(await listAuditSteps(watched).catch(() => ({})));
+      const inReview = rows.filter((a) => a.status === 'review').map((a) => a.id);
+      setHeld(await listHeldChecks(inReview).catch(() => ({})));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not load audits.');
     } finally {
@@ -328,7 +381,10 @@ export default function GroundswellAudits() {
                     </span>
                   </div>
                   {steps[a.id]?.length ? <StepProgress steps={steps[a.id]} /> : null}
-                  {a.error && <p className="text-xs" style={{ color: 'var(--gs-bad)' }}>{a.error}</p>}
+                  {a.error && <p className="text-xs" style={{ color: a.status === 'review' ? 'var(--gs-accent-deep)' : 'var(--gs-bad)' }}>{a.error}</p>}
+                  {a.status === 'review' && (
+                    <ReviewPanel name={a.business_name} check={held[a.id]} onAnswer={(action) => void act(() => answerReview(a.id, action))} />
+                  )}
                   {adding?.id === a.id && (
                     <form
                       className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto_auto] items-center"

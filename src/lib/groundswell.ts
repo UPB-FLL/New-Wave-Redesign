@@ -98,6 +98,13 @@ export const STEP_LABELS: Record<string, string> = {
   deliver_deck: 'Slides PDF',
   deliver_summary: 'Summary PDF',
   deliver_finish: 'Share and save links',
+  // The checks (api/_lib/groundswell/verify.ts), for every round the worker supports.
+  ...Object.fromEntries(
+    [2, 3, 4, 5].flatMap((r) => [
+      [`verify_read_${r}`, `Read again (round ${r})`],
+      [`verify_check_${r}`, `Compare and review (round ${r})`],
+    ])
+  ),
 };
 
 /** Each audit's steps in order, by audit id. Empty when there are none to show. */
@@ -122,6 +129,38 @@ async function adminApi<T>(path: string, init: RequestInit = {}): Promise<T> {
   const body = (await response.json().catch(() => ({}))) as T & { error?: string };
   if (!response.ok) throw new Error(body.error || 'Something went wrong; try again.');
   return body;
+}
+
+/** What the checks found on an audit held in review (api/_lib/groundswell/verify.ts). */
+export interface HeldCheck {
+  round: number;
+  hold: string | null;
+  disagreements: { key: string; label: string; earlier: number | string | null; later: number | string | null; change: number | null; kind: 'moved' | 'unread' | 'changed' }[];
+  missing_keywords: string[];
+  review: { checked: number; corrected: { from: string; to: string; problem: string }[]; dropped: { from: string; problem: string }[] } | null;
+}
+
+/** The latest held check of each audit, by audit id. */
+export async function listHeldChecks(auditIds: string[]): Promise<Record<string, HeldCheck>> {
+  if (!auditIds.length) return {};
+  const { data, error } = await supabase
+    .from('marketing_audit_steps')
+    .select('audit_id,step,output')
+    .in('audit_id', auditIds)
+    .like('step', 'verify_check_%');
+  if (error) throw new Error(error.message);
+  const out: Record<string, HeldCheck> = {};
+  for (const row of (data ?? []) as { audit_id: string; output: (HeldCheck & { status?: string }) | null }[]) {
+    const o = row.output;
+    if (o?.status !== 'held') continue;
+    if (!out[row.audit_id] || o.round > out[row.audit_id].round) out[row.audit_id] = o;
+  }
+  return out;
+}
+
+/** An admin's answer to a held audit: deliver it as it stands, or run its checks again. */
+export async function answerReview(id: string, action: 'deliver' | 'recheck'): Promise<void> {
+  await adminApi('/api/groundswell/run', { method: 'POST', body: JSON.stringify({ action, audit_id: id }) });
 }
 
 /** Starts up to three queued audits on Groundswell; returns how many started. */

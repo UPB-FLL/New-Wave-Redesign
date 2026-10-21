@@ -35,13 +35,37 @@ const steps = vi.hoisted(() => ({
   ],
 }));
 
+const held = vi.hoisted(() => ({
+  '4': {
+    round: 3,
+    hold: 'The figures did not agree after 3 reads.',
+    disagreements: [
+      { key: 'keyword:pizza near me:searches', label: '“pizza near me”: searches a month', earlier: 1300, later: 2600, change: 0.5, kind: 'moved' },
+      { key: 'source:maps', label: 'Google Maps was read', earlier: 1, later: null, change: null, kind: 'unread' },
+    ],
+    missing_keywords: [],
+    review: { checked: 40, corrected: [{ from: 'a', to: 'b', problem: 'p' }], dropped: [{ from: 'c', problem: 'p' }, { from: 'd', problem: 'p' }] },
+  },
+}));
+
 vi.mock('../../lib/groundswell', async (orig) => {
   const actual = await orig<typeof import('../../lib/groundswell')>();
-  return { ...actual, listAudits: vi.fn(async () => audits), queueAudit: vi.fn(), requeueAudit: vi.fn(), deleteAudit: vi.fn(), addCompetitor: vi.fn(async () => {}), startQueuedAudits: vi.fn(async () => 1), listAuditSteps: vi.fn(async () => steps) };
+  return {
+    ...actual,
+    listAudits: vi.fn(async () => audits),
+    queueAudit: vi.fn(),
+    requeueAudit: vi.fn(),
+    deleteAudit: vi.fn(),
+    addCompetitor: vi.fn(async () => {}),
+    startQueuedAudits: vi.fn(async () => 1),
+    listAuditSteps: vi.fn(async () => steps),
+    listHeldChecks: vi.fn(async () => held),
+    answerReview: vi.fn(async () => {}),
+  };
 });
 
 import GroundswellAudits from './GroundswellAudits';
-import { addCompetitor, listAudits, queueAudit, startQueuedAudits } from '../../lib/groundswell';
+import { addCompetitor, answerReview, listAudits, queueAudit, startQueuedAudits } from '../../lib/groundswell';
 
 describe('GroundswellAudits admin screen', () => {
   it('lists requests and shows only Google Drive links', async () => {
@@ -95,6 +119,31 @@ describe('GroundswellAudits admin screen', () => {
     render(<GroundswellAudits />);
     await waitFor(() => expect(screen.getByText('Windy City Auto')).toBeInTheDocument());
     expect(screen.getByRole('button', { name: /Run queued audits now/ })).toBeDisabled();
+  });
+
+  it('shows what the checks found on a held audit, and delivers it or runs the checks again', async () => {
+    const inReview = {
+      ...audits[2], id: '4', business_name: 'Reef Diner', status: 'review', error: 'The figures did not agree after 3 reads.',
+    };
+    vi.mocked(listAudits).mockImplementation(async () => [inReview] as never);
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    try {
+      render(<GroundswellAudits />);
+      expect(await screen.findByText('Needs review')).toBeInTheDocument();
+      expect(screen.getByText('The figures did not agree after 3 reads.')).toBeInTheDocument();
+      const moved = await screen.findByRole('list', { name: 'What moved for Reef Diner' });
+      expect(moved).toHaveTextContent('“pizza near me”: searches a month: 1,300 on the first read, 2,600 on the latest');
+      expect(moved).toHaveTextContent('Google Maps was read: could not be read again');
+      expect(screen.getByText('The reviewer checked 40 sentences: corrected 1, dropped 2.')).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: /Run the checks again/ }));
+      await waitFor(() => expect(answerReview).toHaveBeenCalledWith('4', 'recheck'));
+      fireEvent.click(screen.getByRole('button', { name: /Deliver anyway/ }));
+      await waitFor(() => expect(answerReview).toHaveBeenCalledWith('4', 'deliver'));
+      expect(confirm).toHaveBeenCalledTimes(1);
+    } finally {
+      confirm.mockRestore();
+      vi.mocked(listAudits).mockImplementation(async () => audits as never);
+    }
   });
 
   it('queues a competitor benchmark with two labelled competitor rows', async () => {
