@@ -5,6 +5,7 @@ import {
   DIVISION_BASE_PATH,
   DIVISION_CONTACT_PATH,
   DIVISION_CONTACT_US_PATH,
+  DIVISION_CROISSANCE_PATH,
   DIVISION_CUSTOMERS_PATH,
   DIVISION_ENDORSEMENT,
   DIVISION_PRIMARY_CTA,
@@ -35,6 +36,7 @@ const DESKTOP_NAV_QUERY = '(min-width: 64em)';
 
 /** Page links: after the Services menu on desktop, beside Overview in the phone and tablet sheet. */
 const pageLinks = [
+  { label: 'Croissance', path: DIVISION_CROISSANCE_PATH },
   { label: 'Customers', path: DIVISION_CUSTOMERS_PATH },
   { label: 'Contact us', path: DIVISION_CONTACT_US_PATH },
 ];
@@ -270,10 +272,10 @@ export function DivisionHeader() {
             style={{ borderColor: 'var(--nw-mist-gray)' }}
           >
             <div className="flex flex-col px-4 pb-4 pt-2 sm:px-6">
-              {/* Overview, Customers, and Contact us share the top row, so the sheet is
-                  no taller than it was with Overview alone: the discovery-call button
-                  and the endorsement at the foot both fit a 320x568 phone. The row
-                  measures 278px of 288px there; under larger text it wraps. */}
+              {/* Overview, Croissance, Customers, and Contact us share one wrapping
+                  row. On a 320x568 phone it takes two lines (88px): the discovery-call
+                  button still fits the first screen, and the endorsement at the foot
+                  sits just below it (the sheet scrolls). */}
               <div className="flex flex-wrap gap-x-5" data-role="menu-pages">
                 {[{ label: 'Overview', path: DIVISION_BASE_PATH }, ...pageLinks].map(({ label, path }) => (
                   <Link

@@ -10,6 +10,7 @@ import {
   DIVISION_CONTACT_PATH,
   DIVISION_CONTACT_US_PATH,
   DIVISION_CUSTOMERS_PATH,
+  DIVISION_CROISSANCE_PATH,
   DIVISION_PUBLISHED,
   DIVISION_SERVICE_SLUGS,
   RETIRED_SERVICE_SLUGS,
@@ -148,7 +149,7 @@ describe('index.html (the parent shell every New Wave IT URL is served)', () => 
 describe('division pages beyond the services', () => {
   // Listed by hand, so a page dropped from allDivisionPages() cannot quietly
   // take its sitemap entry, rewrite, and route with it.
-  const pages = [DIVISION_CUSTOMERS_PATH, DIVISION_CONTACT_US_PATH, DIVISION_CONTACT_PATH];
+  const pages = [DIVISION_CROISSANCE_PATH, DIVISION_CUSTOMERS_PATH, DIVISION_CONTACT_US_PATH, DIVISION_CONTACT_PATH];
   const sitemap = read('public/sitemap.xml');
   const rewrites = (JSON.parse(read('vercel.json')) as { rewrites: { source: string; destination: string }[] }).rewrites;
   const app = read('src/App.tsx');
@@ -164,6 +165,7 @@ describe('division pages beyond the services', () => {
   it('registers each page’s route behind DIVISION_PUBLISHED and loads it lazily', () => {
     const divisionRoutes = app.slice(app.indexOf('{DIVISION_PUBLISHED ? ('), app.indexOf(') : null}'));
     [
+      ['DIVISION_CROISSANCE_PATH', 'SocialEngineeringCroissanceRoute', 'SocialEngineeringCroissancePage'],
       ['DIVISION_CUSTOMERS_PATH', 'SocialEngineeringCustomersRoute', 'SocialEngineeringCustomersPage'],
       ['DIVISION_CONTACT_US_PATH', 'SocialEngineeringContactUsRoute', 'SocialEngineeringContactUsPage'],
       ['DIVISION_CONTACT_PATH', 'SocialEngineeringContactRoute', 'SocialEngineeringContactPage'],
