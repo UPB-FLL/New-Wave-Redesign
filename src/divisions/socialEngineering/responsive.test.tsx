@@ -466,10 +466,12 @@ describe('content hidden below a breakpoint', () => {
     });
     // The stepper's rail (.nwse-rail, an empty aria-hidden span) is out
     // below 768px, where the timeline draws its own, after the last step,
-    // and after a step that ends a row at that width.
+    // and after a step that ends a row at that width. A tab row scrolls
+    // sideways without a scrollbar, like the journey strip.
     expect(hiders.sort()).toEqual([
       '.nwse-faq summary::-webkit-details-marker',
       '.nwse-rail',
+      '.nwse-tablist::-webkit-scrollbar',
       '@media (forced-colors: active), print .nwse-root [data-page-scene]',
       '@media (max-width: 1023.98px) .nwse-journey::-webkit-scrollbar',
       "@media (min-width: 1024px) .nwse-stepper[data-columns-lg='3']:not([data-columns-xl]) > li:nth-child(3n) .nwse-rail",

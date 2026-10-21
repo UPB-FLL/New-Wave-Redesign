@@ -194,6 +194,181 @@
   color: var(--nwse-lure-amber);
 }
 
+/* Secondary buttons on light grounds (the tabs' Back and Next): a hairline
+   ghost and a Current Navy fill. Disabled ones fade and keep their place. */
+.nwse-btn-ghost {
+  border: 1px solid var(--nw-mist-gray);
+  color: var(--nw-current-navy);
+}
+
+.nwse-btn-ghost:hover:not(:disabled) {
+  border-color: var(--nw-tide-blue);
+}
+
+.nwse-btn-navy {
+  background: var(--nw-current-navy);
+  color: var(--nw-cloud-white);
+}
+
+.nwse-btn-navy:hover:not(:disabled) {
+  background: var(--nw-tide-blue);
+}
+
+.nwse-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* A pill: the jump links under the Croissance hero and the chip tabs. */
+.nwse-chip {
+  align-items: center;
+  background: var(--nw-pure-white);
+  border: 1px solid var(--nw-mist-gray);
+  border-radius: 9999px;
+  color: var(--nw-current-navy);
+  display: inline-flex;
+  flex: none;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.875rem;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+
+.nwse-chip:hover {
+  border-color: var(--nw-tide-blue);
+}
+
+/* Tabs (components/Tabs.tsx). The row scrolls sideways where it does not
+   fit; the chosen tab is Current Navy. Chips: pills, with their icon tile
+   turning translucent white when chosen. Steps: a tile and a label, the
+   chosen one on a white soft tile with a navy marker (one equal column per
+   step from 768px). Dark: text on a navy frame, the chosen one Cloud White
+   with a Lure Amber underline. Inactive panels carry the hidden attribute;
+   a panel fades in as it is shown, except under reduced motion. */
+.nwse-tablist {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.nwse-tablist::-webkit-scrollbar {
+  display: none;
+}
+
+.nwse-tab {
+  appearance: none;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.nwse-tab-chip {
+  padding-left: 0.5rem;
+}
+
+.nwse-tab-chip[aria-selected='true'] {
+  background: var(--nw-current-navy);
+  border-color: var(--nw-current-navy);
+  color: var(--nw-cloud-white);
+}
+
+.nwse-tab-chip[aria-selected='true'] .nwse-icon {
+  background: color-mix(in srgb, var(--nw-cloud-white) 16%, transparent);
+  color: var(--nw-cloud-white);
+}
+
+.nwse-tabs[data-look='steps'] .nwse-tablist {
+  gap: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .nwse-tabs[data-look='steps'] .nwse-tablist {
+    display: grid;
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+    overflow: visible;
+  }
+}
+
+.nwse-tab-steps {
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  color: var(--nw-slate);
+  display: flex;
+  flex: none;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.875rem 0.5rem 0.5rem;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.nwse-tab-steps:hover {
+  border-color: var(--nw-mist-gray);
+  color: var(--nw-current-navy);
+}
+
+.nwse-tab-steps[aria-selected='true'] {
+  background: var(--nw-pure-white);
+  border-color: var(--nw-mist-gray);
+  box-shadow: 0 1px 2px rgba(9, 19, 29, 0.05), 0 14px 32px -18px rgba(9, 19, 29, 0.25);
+  color: var(--nw-current-navy);
+}
+
+.nwse-tab-steps[aria-selected='true'] .nwse-icon {
+  background: var(--nw-current-navy);
+  color: var(--nw-cloud-white);
+}
+
+.nwse-tabs[data-look='dark'] .nwse-tablist {
+  border-bottom: 1px solid color-mix(in srgb, var(--nw-cloud-white) 14%, transparent);
+  gap: 0;
+}
+
+.nwse-tab-dark {
+  box-shadow: inset 0 -2px 0 transparent;
+  color: var(--nw-mist-gray);
+  flex: none;
+  padding: 0.875rem 1rem;
+  transition: color 0.2s, box-shadow 0.2s;
+  white-space: nowrap;
+}
+
+.nwse-tab-dark:hover {
+  color: var(--nw-cloud-white);
+}
+
+.nwse-tab-dark[aria-selected='true'] {
+  box-shadow: inset 0 -2px 0 var(--nwse-lure-amber);
+  color: var(--nw-cloud-white);
+}
+
+@keyframes nwse-tab-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.nwse-tabpanel:not([hidden]) {
+  animation: nwse-tab-in 220ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nwse-tabpanel:not([hidden]) {
+    animation: none;
+  }
+}
+
 .nwse-link {
   color: var(--nwse-lure-amber-deep);
   font-weight: 600;

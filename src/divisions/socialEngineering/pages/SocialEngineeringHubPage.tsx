@@ -167,15 +167,17 @@ export default function SocialEngineeringHubPage() {
       </Band>
 
       <Band labelledBy="nwse-data">
+        {/* The journey scene sits beside the intro from lg. */}
         <SectionIntro
           kicker="Discovery"
           title="Every touchpoint, mapped to the customer journey"
           description="Before anything is recommended, the audit and discovery put the whole business on one map: where demand is, how customers move, and what can be measured."
           id="nwse-data"
+          scene="hubSection"
         />
         <JourneyStrip stages={content.journey} />
-        {/* Soft tiles, coloured bars in rotation; the journey scene fills the grid's empty sixth cell from lg. */}
-        <PointGrid points={content.dataWeGather} scene="hubSection" variant="soft" accents="cycle" />
+        {/* Soft tiles, coloured bars in rotation; the five tiles centre their second row under the first. */}
+        <PointGrid points={content.dataWeGather} variant="soft" accents="cycle" />
       </Band>
 
       <Band tone="white" id="process" labelledBy="nwse-method">
