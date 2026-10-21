@@ -11,11 +11,9 @@ import type { DivisionIconName } from '../icons/iconData';
 // the skill: public data only, every number sourced and dated, three reports
 // in the client's brand, delivered as Google Drive links.
 //
-// The worked example is the skill's own made-up business (examples/sample,
-// "Harbor Auto Care"), with the figures roi_model.py prints for it, rounded to
-// the nearest $10 as the reports do. It is labelled as made up wherever it
-// appears; never replace it with a real client's numbers. No percentages
-// (seo.test.ts), so rates are left out and only counts and dollars shown.
+// The worked example is a real audit: Uncommon Path Brewing's, with the
+// owner's permission (see auditSample). No percentages (seo.test.ts), so rates
+// and ROI are left out and only counts and dollars shown.
 
 export const AUDIT_PRODUCT_NAME = 'Croissance';
 export const AUDIT_ENGINE_NAME = 'Groundswell';
@@ -105,46 +103,62 @@ export const auditReports: readonly AuditReport[] = [
   },
 ];
 
-/** The skill's made-up sample business, as roi_model.py models it (rounded to $10). */
+/**
+ * Uncommon Path Brewing's audit (marketing_audits a7a2482e…, run October 21,
+ * 2026), shown with the owner's permission: an exception, like the Customers
+ * page's apps band, to the rule against describing work for a customer. Every
+ * figure is copied from that audit's PDFs (Customers/Uncommon Path Brewing in
+ * Drive): the findings from its summary, the scenarios from its return board.
+ * Change them only from a newer audit of the same business.
+ */
 export const auditSample = {
-  label: 'Sample audit · made-up business',
-  business: 'Harbor Auto Care',
-  businessNote: 'An invented auto repair shop that the engine’s own test run uses. It is not a client, and these are not results.',
-  lever: 'Google Search ads: a call-first campaign on core repair keywords near the shop',
-  demand: { label: 'Searches per month in the campaign area', value: '1,800' },
+  label: 'Real audit · October 21, 2026',
+  business: 'Uncommon Path Brewing',
+  businessNote:
+    'A craft brewery and wood-fired pizza kitchen in Fort Lauderdale, and a New Wave: Social Engineering client, shown with its permission. Public data only.',
+  lever: 'Google Search ads for private events, built on the brewery’s published $1,000, $2,000, and $3,000 buyout packages',
+  demand: { label: 'Searches a month for 20 event-space terms in Broward County', value: '770' },
+  /** What the audit found, from its one-page summary. */
+  findings: [
+    { value: '4.8★', label: 'Google rating, from about 283 reviews; sixth in Maps for “brewery near Fort Lauderdale”' },
+    { value: '3', label: 'Pop-ups a phone visitor clears before the page: a 21+ gate, a cookie banner, and a promo' },
+    { value: '746', label: 'Of about 850 organic search visits a month come from searching the brewery’s name' },
+    { value: '0 of 2', label: 'City best-of lists that name it; both name all five nearby rivals' },
+  ],
   scenarios: [
     {
       name: 'Conservative',
       figures: [
-        { label: 'Ad spend per month', value: '$300' },
-        { label: 'Leads per month', value: '5' },
-        { label: 'Cost per lead', value: '$60' },
-        { label: '12-month net', value: '−$820' },
+        { label: 'Ad spend per month', value: '$80' },
+        { label: 'Inquiries per month', value: '0.6' },
+        { label: 'Revenue per month', value: '$80' },
+        { label: '12-month net', value: '−$680' },
       ],
     },
     {
       name: 'Base case',
       highlighted: true,
       figures: [
-        { label: 'Ad spend per month', value: '$420' },
-        { label: 'Leads per month', value: '10' },
-        { label: 'Cost per lead', value: '$40' },
-        { label: '12-month net', value: '$7,820' },
+        { label: 'Ad spend per month', value: '$100' },
+        { label: 'Inquiries per month', value: '1.4' },
+        { label: 'Revenue per month', value: '$400' },
+        { label: '12-month net', value: '+$470' },
       ],
     },
     {
       name: 'Upside',
       figures: [
-        { label: 'Ad spend per month', value: '$480' },
-        { label: 'Leads per month', value: '16' },
-        { label: 'Cost per lead', value: '$30' },
-        { label: '12-month net', value: '$31,600' },
+        { label: 'Ad spend per month', value: '$100' },
+        { label: 'Inquiries per month', value: '3.2' },
+        { label: 'Revenue per month', value: '$1,550' },
+        { label: '12-month net', value: '+$6,160' },
       ],
     },
   ] satisfies readonly AuditScenario[],
-  stopLoss: 'Conservative loses money, so the plan says so and pairs it with a stop-loss: if cost per lead stays above a set ceiling after 60 days, pull back.',
+  stopLoss:
+    'Demand is small, so the audit calls this a careful test, not a growth engine. Conservative loses money, so it comes with a stop-loss: if cost per inquiry is above $130 after 60 days, pause and fix the page before spending more.',
   footnote:
-    'Steady-state month after a two-month ramp. Net is gross profit minus ad spend. Our management fee replaces the one you already pay, so ad spend is the only new money.',
+    'Steady-state month after a two-month ramp; net is gross profit after food, drink, and labor, minus ad spend. Sources: Google Keyword Planner (demand), LocaliQ’s 2026 restaurant benchmarks (clicks and inquiries), the brewery’s own package prices (event value), and Restaurant365 (margins). As a current client, its only new money is ad spend.',
 } as const;
 
 export const auditContent = {
@@ -200,9 +214,9 @@ export const auditContent = {
     intro: 'Each report tells the same story at a different depth, so the owner, the team, and whoever does the work all read the same numbers.',
   },
   sample: {
-    kicker: 'Example data',
+    kicker: 'A real example',
     heading: 'What the numbers look like',
-    intro: 'This is the return board from a sample audit. Every audit shows three scenarios, highlights the base case, and names its sources under the table.',
+    intro: 'What one client’s audit found, and the return board it modeled. Every audit shows three scenarios, highlights the base case, and names its sources under the table.',
   },
   growth: {
     kicker: 'Built to grow',

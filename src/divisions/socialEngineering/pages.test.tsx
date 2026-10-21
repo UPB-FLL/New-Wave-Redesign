@@ -338,12 +338,13 @@ describe('SocialEngineeringCroissancePage', () => {
     auditReports.forEach((report) => expect(within(reports).getByText(report.format)).toBeInTheDocument());
   });
 
-  it('labels the example data as a made-up business wherever it appears', () => {
+  it('shows Uncommon Path Brewing’s dated audit, with permission and sources, as the example', () => {
     renderAt(<SocialEngineeringCroissancePage />);
     const sample = screen.getByRole('region', { name: auditContent.sample.heading });
-    expect(sample).toHaveTextContent(/made-up business/i);
-    expect(sample).toHaveTextContent(/not a client/i);
-    expect(within(sample).getAllByRole('listitem')).toHaveLength(auditSample.scenarios.length);
+    expect(sample).toHaveTextContent('Uncommon Path Brewing');
+    expect(sample).toHaveTextContent(/shown with its permission/i);
+    expect(sample).toHaveTextContent('October 21, 2026');
+    expect(within(sample).getAllByRole('listitem')).toHaveLength(auditSample.findings.length + auditSample.scenarios.length);
     expect(auditSample.scenarios.filter((s) => 'highlighted' in s && s.highlighted).map((s) => s.name)).toEqual(['Base case']);
   });
 });

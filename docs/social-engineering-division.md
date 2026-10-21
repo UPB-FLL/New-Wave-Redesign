@@ -151,8 +151,11 @@ Machine), Ads (Google Ads Transparency Center and site tags), and Delivery
 (no table, project, or tool names). Copy is in `content/croissance.ts`
 and must match `.claude/skills/marketing-audit` (public data only, sources
 and dates on every number, three reports in the client's brand, Drive links).
-The example board uses the skill's made-up sample business and
-`roi_model.py`'s output for it; no percentages (rates are left out). Linked
+The example board is Uncommon Path Brewing's real audit (October 21, 2026),
+shown with the owner's permission (an exception, like the Customers apps band,
+to the rule against describing work for a customer): four findings from its
+summary and its three-scenario return board, copied from the PDFs in Drive.
+No percentages (rates and ROI are left out). Linked
 from the header (after Services on desktop; beside Overview in the phone
 sheet) and the footer's division column. On a 320x568 phone the sheet's top
 row now wraps to two lines: the discovery-call button still fits the first

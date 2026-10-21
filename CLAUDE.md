@@ -12,9 +12,10 @@ the Currents and the audit's ground rules, the five steps (queue, research,
 model, build, deliver), the three reports, example data, how the audit grows
 with the client's business and team, FAQs. Copy:
 `content/croissance.ts`; keep it in step with
-`.claude/skills/marketing-audit`. The example data is the skill's made-up
-sample business (Harbor Auto Care) with `roi_model.py`'s figures, rounded to
-$10; it is labelled made up (a test checks), and must never be a real client.
+`.claude/skills/marketing-audit`. The example is Uncommon Path Brewing's real
+audit (October 21, 2026), shown with the owner's permission: its summary's
+findings and its return board, copied from the PDFs in Drive. Update it only
+from a newer audit of the same business.
 Linked from the division header (desktop row and phone sheet) and footer. Wired through every point of
 the division's "Adding a page" checklist. The admin queue, skill, and table
 keep the internal "marketing audit" name.
