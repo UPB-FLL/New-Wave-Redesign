@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { brandFrom, contrast, FALLBACK_PRIMARY } from '../../../api/_lib/groundswell/brand';
-import { buildAuditHtml, buildDeckHtml, buildSummaryHtml, money, SLIDE_IDS } from '../../../api/_lib/groundswell/reports';
+import { buildAuditHtml, buildDeckHtml, buildSummaryHtml, feeLine, money, SLIDE_IDS } from '../../../api/_lib/groundswell/reports';
 import { assertDriveOnly, countPdfPages, pdfLinks } from '../../../api/_lib/groundswell/render';
 import { sampleReportData } from './fixtures/groundswell-report';
 
@@ -29,6 +29,14 @@ describe('brandFrom', () => {
 
 describe('report HTML', () => {
   const data = sampleReportData();
+
+  it('picks the fee sentence: existing client, no marketer, or fee-neutral', () => {
+    const withEst = (e: Partial<typeof data.model.estimates>) => ({ ...data.model, estimates: { ...data.model.estimates, ...e } });
+    expect(feeLine(withEst({ is_nwse_client: true, has_current_marketer: true }))).toMatch(/already a New Wave: Social Engineering client/);
+    expect(feeLine(withEst({ is_nwse_client: null, has_current_marketer: false }))).toBe('These figures are before any management fee.');
+    expect(feeLine(withEst({ is_nwse_client: null, has_current_marketer: null }))).toMatch(/^Management is fee-neutral/);
+    expect(buildSummaryHtml({ ...data, model: withEst({ is_nwse_client: true }) }, { deck: DECK, audit: AUDIT, folder: FOLDER })).toContain('already a New Wave: Social Engineering client');
+  });
 
   it('rounds money to the nearest $10', () => {
     expect(money(1234.5)).toBe('$1,230');
