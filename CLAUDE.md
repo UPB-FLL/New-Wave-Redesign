@@ -2,6 +2,55 @@
 
 ## Recent Changes
 
+### Groundswell: audits run on the site, not a Claude routine (2026-10-21)
+
+The marketing audit now runs entirely on Vercel functions and Supabase.
+Code: `api/_lib/groundswell/`.
+
+- **Steps** (`steps.ts`), in order: site, maps, search, keywords, social,
+  ads (the Currents; all but site are optional), model, then five delivery
+  steps. Each audit gets one `marketing_audit_steps` row per step
+  (migration `20261021120000`; applied to production on 2026-10-21,
+  recorded there as version `20261021023209`).
+- **Engine** (`engine.ts`): `start_queued_audits` gives queued audits their
+  steps; `claim_next_audit_step` (SKIP LOCKED, 600 s lease) hands out the
+  next runnable step. A failed step retries up to 3 times; then an optional
+  one is skipped and a required one fails the audit. `PermanentStepError`
+  skips the retries (missing setup, bad input, a Google check page).
+- **Routes**: `api/audits/run.ts` (the admin button, `requireAdmin`) starts
+  up to 3 queued audits and runs the worker after answering (`waitUntil`).
+  `api/audits/worker.ts` is the heartbeat pg_cron posts to every minute while
+  an audit is running (Vault `blog_admin_api_key` as `x-admin-key`). Both
+  have `maxDuration: 300` (`FUNCTION_SECONDS`) and ship
+  `@sparticuz/chromium` and the Inter font via `includeFiles`.
+- **Currents**: Site fetches HTML (no browser); Maps scrapes the logged-out
+  Google Maps view with puppeteer-core and stops at any consent or traffic
+  check; Search (Ahrefs), Keywords (Keyword Planner), Social
+  (ScrapeCreators) and Ads (site tags + Ahrefs paid pages) go through the
+  Composio REST API (`composio.ts`).
+- **Model** (`model.ts`): one OpenAI JSON call (`GROUNDSWELL_OPENAI_MODEL`,
+  default `gpt-4o`) writes the findings. Any sentence quoting a number that
+  is not in the gathered data gets one repair call and is then dropped.
+  ROI (`roi.ts`, a tested port of `roi_model.py`): demand and CPC from
+  Keyword Planner, CTR/CVR from `BENCHMARKS` (LocaliQ 2025), ticket, close
+  rate and margin as labelled estimates.
+- **Delivery**: `reports.ts` builds the audit (Letter), 11 slides
+  (1920×1080) and a one-page summary in the client's colours and logo
+  (`brand.ts`), `render.ts` prints them (page count and links read back;
+  every link must be Google Drive), and `drive.ts` uploads them in link order
+  to `Customers/<Business>/` as `GROUNDSWELL_DRIVE_OWNER`
+  (josh@newwaveitfl.com), shares them anyone-with-the-link as viewer,
+  verifies, and writes the links back. File names carry the date.
+- **Admin**: `/admin/audits` shows each running or failed audit's steps.
+- **Setup** (Vercel): `COMPOSIO_API_KEY` from a Composio Platform project
+  with Google Drive, Google Ads, ScrapeCreators and Ahrefs connected under
+  `COMPOSIO_USER_ID` (default `groundswell`); `OPENAI_API_KEY` and the
+  Supabase service role as before. Optional: `GOOGLE_ADS_CUSTOMER_ID`,
+  `GROUNDSWELL_GEO_TARGETS`. Without the required ones the run route
+  answers 503. `AUDIT_ROUTINE_ID`/`AUDIT_ROUTINE_TOKEN` are no longer read.
+- **Tests**: `src/test/api/groundswell-*.test.ts` and `audit-run.test.ts`;
+  the printing test runs when Chromium is at `CHROMIUM_PATH` or
+  `/opt/pw-browsers/chromium`.
 ### Marketing audit fixes on the New Wave IT site (2026-10-21)
 
 From the New Wave IT marketing audit (Drive: Customers/New Wave IT).

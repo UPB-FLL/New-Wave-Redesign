@@ -18,11 +18,26 @@ const audits = vi.hoisted(() => [
     drive_folder_url: null, summary_pdf_url: null, deck_pdf_url: null, audit_pdf_url: null,
     created_at: '2026-10-20T02:00:00Z', completed_at: null,
   },
+  {
+    id: '3', business_name: 'Harbor Auto Care', city: null, website: 'https://harbor-auto.example', instagram: null,
+    competitors: [], notes: null, status: 'running', error: null,
+    drive_folder_url: null, summary_pdf_url: null, deck_pdf_url: null, audit_pdf_url: null,
+    created_at: '2026-10-21T02:00:00Z', completed_at: null,
+  },
 ]);
+
+const steps = vi.hoisted(() => ({
+  '3': [
+    { audit_id: '3', step: 'site', position: 1, status: 'done', error: null },
+    { audit_id: '3', step: 'maps', position: 2, status: 'skipped', error: 'Google Maps showed a consent page.' },
+    { audit_id: '3', step: 'search', position: 3, status: 'running', error: null },
+    { audit_id: '3', step: 'deliver_finish', position: 12, status: 'pending', error: null },
+  ],
+}));
 
 vi.mock('../../lib/marketingAudits', async (orig) => {
   const actual = await orig<typeof import('../../lib/marketingAudits')>();
-  return { ...actual, listAudits: vi.fn(async () => audits), queueAudit: vi.fn(), requeueAudit: vi.fn(), deleteAudit: vi.fn(), addCompetitor: vi.fn(async () => {}), startQueuedAudits: vi.fn(async () => 1) };
+  return { ...actual, listAudits: vi.fn(async () => audits), queueAudit: vi.fn(), requeueAudit: vi.fn(), deleteAudit: vi.fn(), addCompetitor: vi.fn(async () => {}), startQueuedAudits: vi.fn(async () => 1), listAuditSteps: vi.fn(async () => steps) };
 });
 
 import MarketingAudits from './MarketingAudits';
@@ -37,6 +52,16 @@ describe('MarketingAudits admin screen', () => {
     expect(screen.getByRole('link', { name: /Summary PDF/ })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /Slide deck/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /Full audit/ })).not.toBeInTheDocument();
+  });
+
+  it('shows Groundswell progress for a running audit', async () => {
+    render(<MarketingAudits />);
+    const progress = await screen.findByRole('list', { name: 'Audit progress' });
+    expect(progress).toHaveTextContent('Website: done');
+    expect(progress).toHaveTextContent('Google Maps: skipped');
+    expect(progress).toHaveTextContent('Search rankings: running');
+    expect(progress).toHaveTextContent('Share and save links: waiting');
+    expect(screen.getByText('Google Maps: skipped')).toHaveAttribute('title', 'Google Maps showed a consent page.');
   });
 
   it('has a labelled form for the business and its competitors', async () => {
@@ -62,7 +87,7 @@ describe('MarketingAudits admin screen', () => {
     await waitFor(() => expect(button).toBeEnabled());
     fireEvent.click(button);
     await waitFor(() => expect(startQueuedAudits).toHaveBeenCalledTimes(1));
-    expect(await screen.findByRole('status')).toHaveTextContent('Started 1 audit run.');
+    expect(await screen.findByRole('status')).toHaveTextContent('Started 1 audit.');
   });
 
   it('disables the run button when nothing is queued', async () => {
