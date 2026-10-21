@@ -136,12 +136,13 @@ null profile, not an error.
 
 What the session did: Facebook page lookup for the Ad Library status and page
 ID, then the page's ads by ID (active and inactive), then Google's Ads
-Transparency Center rendered headless, plus Ahrefs paid-search history.
+Transparency Center (the engine reads it by domain through ScrapeCreators;
+the session rendered it headless), plus Ahrefs paid-search history.
 
 **Calls**:
 1. `SCRAPECREATORS_GET_FACEBOOK_PROFILE` `{ url: <facebook link from site.social.facebook[0]>, cache_max_age: '7d' }` (1 credit). Read `adLibrary.pageId` and `adLibrary.adStatus` ("This Page isn't currently running ads." is a verified negative).
 2. `SCRAPECREATORS_LIST_FACEBOOK_COMPANY_ADS` `{ page_id, status: 'ALL', country: 'ALL', trim: true }` (1 credit). Only when a page ID was found. Searching by `company_name` or keyword matches other advertisers (the session's "Isabel Smith Nutrition" keyword search returned a different company's ads); never use it as evidence.
-3. Google Ads Transparency Center: `https://adstransparency.google.com/?region=US&domain=<domain>` in the engine's puppeteer-core browser (`browser.ts`), wait 8 s, read body text. "0 ads" with "Any time" is a verified negative. A consent or challenge page is "could not be determined", not a negative.
+3. `SCRAPECREATORS_LIST_GOOGLE_COMPANY_ADS` `{ domain, get_ad_details: false }` (1 credit; never `get_ad_details: true`, which costs 25). No date filter, so the first page covers the whole history: any item is "ads on record" (`total_estimate` is the count), an empty page with `has_more` false is a verified negative. Fallback when that call fails for anything but a refused key: `https://adstransparency.google.com/?region=US&domain=<domain>` in the engine's puppeteer-core browser (`browser.ts`), wait 8 s, read body text. "0 ads" with "Any time" is a verified negative. A consent or challenge page is "could not be determined", not a negative.
 4. Ahrefs `site-explorer-metrics-history` with `select: 'date,paid_traffic,paid_cost'`, `history_grouping: 'monthly'`, last 12 months, `mode: 'subdomains'`, `country: 'us'` (about 31 units per row; cap at 12 rows). The audit's `search` step may already hold the current month; this adds the history.
 
 **Output per account** (`AdLibraryEvidence`):
@@ -167,7 +168,7 @@ interface AdLibraryEvidence {
 almost never runs ads, so the write-up may say "no retargeting audience" when
 `pixels.meta` is false. Report dates and creative text, never a spend figure.
 
-**Budget**: up to 2 credits per account, one headless render per domain.
+**Budget**: up to 3 credits per account (Facebook page, its ads, Google ads by domain); a headless render only for a domain the Google ads call could not answer.
 
 ### 3.3 `pricing` (Site)
 
@@ -383,9 +384,9 @@ the summary gets one "Against your competitors" band when `kind = 'benchmark'`.
 
 | Resource | Per account | Per benchmark (3 accounts) | Ceiling |
 |---|---|---|---|
-| ScrapeCreators credits | 2 (posts, reels) + 2 (Facebook page, ads) | 12 | 15 |
+| ScrapeCreators credits | 2 (posts, reels) + 3 (Facebook page, ads, Google ads) | 15 | 18 |
 | Ahrefs units | about 700 (`authority`) + about 400 (`ads_library` history) | about 3,300 | audit total stays under 15,000 |
-| Headless renders | 1 (Transparency Center) + up to 10 (pricing pages) | about 33 pages | 60 s per account per step |
+| Headless renders | up to 10 (pricing pages), plus the Transparency Center only as a fallback | about 30 pages | 60 s per account per step |
 | OpenAI | one call (`benchmark`) | 1 | `GROUNDSWELL_OPENAI_MODEL` |
 
 Each step must return inside `ctx.deadline`. `pricing` is the long one:
@@ -455,4 +456,5 @@ Tool calls the session used, by slug, for the implementer:
 `site-explorer-domain-rating`, `site-explorer-backlinks-stats`,
 `site-explorer-referring-domains`, `site-explorer-top-pages`,
 `site-explorer-organic-keywords`, and headless Chromium for the websites,
-Stan store, Meta Ad Library UI and Google Ads Transparency Center.
+Stan store, Meta Ad Library UI and Google Ads Transparency Center (the
+engine reads the Transparency Center by domain through ScrapeCreators).

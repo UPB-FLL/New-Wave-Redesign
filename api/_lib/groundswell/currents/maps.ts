@@ -1,11 +1,21 @@
 import type { Page } from 'puppeteer-core';
 import { withBrowser } from '../browser.js';
+import { executeTool, findKey, isComposioConfigured } from '../composio.js';
 import { PermanentStepError, type StepContext } from '../types.js';
 
 /**
- * Maps Current: the business's Google Business Profile as Google Maps shows it
- * to a logged-out visitor, and nearby rivals in the same category. Ported from
- * the skill's gbp.cjs / maps.cjs. Only /maps/search/ URLs are loaded (allowed by
+ * Maps Current: the business's Google Business Profile and nearby rivals in
+ * the same category.
+ *
+ * First choice: the Google Places API (text search) through Composio, an
+ * official read with rating, review count, category, hours, phone and website.
+ * Its result order is relevance, not the Maps pack a searcher sees, and the
+ * source string says so.
+ *
+ * Fallback, when Composio is not set up or Places answers with anything but a
+ * refused API key (no connection, a daily quota, an outage): the logged-out
+ * Google Maps view in headless Chromium, ported from the skill's gbp.cjs /
+ * maps.cjs. Only /maps/search/ URLs are loaded (allowed by
  * google.com/robots.txt). If Google shows a consent or "unusual traffic" page,
  * the step stops: it never tries to get past a check. The step is optional,
  * so the audit continues without Maps data.
@@ -109,8 +119,98 @@ async function findBusiness(page: Page, name: string, city: string | null): Prom
   return (await page.$('h1.DUwDvf')) ? readPlace(page) : null;
 }
 
-export async function runMaps(ctx: StepContext) {
-  const { audit } = ctx;
+
+export interface MapsOutput {
+  fetched_at: string;
+  source: string;
+  business: MapsPlace | null;
+  nearby: MapsListing[];
+  note: string | null;
+}
+
+/** The fields one text search asks Places for (each field has a price; nothing more is read). */
+export const PLACE_FIELDS =
+  'places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.primaryTypeDisplayName,places.types,places.websiteUri,places.nationalPhoneNumber,places.regularOpeningHours,places.googleMapsUri,places.businessStatus';
+
+const PLACES_SOURCE = 'Google Places API text search (relevance order, not the Maps pack), via Composio';
+const NOT_FOUND = 'The business was not found on Google Maps under its name and city.';
+
+type PlaceRow = Record<string, unknown>;
+
+/** Places wraps display text as `{ text, languageCode }`. */
+const localized = (v: unknown): string | null =>
+  typeof v === 'string' ? v : v && typeof v === 'object' && typeof (v as { text?: unknown }).text === 'string' ? ((v as { text: string }).text) : null;
+const finite = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+const str = (v: unknown): string | null => (typeof v === 'string' && v.trim() ? v.trim() : null);
+
+/** The places in a GOOGLE_MAPS_TEXT_SEARCH response, whatever it nests them under. */
+export function placeRows(payload: unknown): PlaceRow[] {
+  const list = findKey<unknown[]>(payload, 'places') ?? [];
+  return (Array.isArray(list) ? list : []).filter((p): p is PlaceRow => Boolean(p) && typeof p === 'object');
+}
+
+/** One Places result in the shape the browser read produces, so nothing downstream changes. */
+export function toMapsPlace(p: PlaceRow): MapsPlace {
+  const hours = findKey<unknown[]>(p.regularOpeningHours, 'weekdayDescriptions') ?? [];
+  const types = Array.isArray(p.types) ? p.types.filter((t): t is string => typeof t === 'string') : [];
+  return {
+    name: localized(p.displayName),
+    rating: finite(p.rating),
+    reviews: finite(p.userRatingCount),
+    category: localized(p.primaryTypeDisplayName) ?? (types[0] ? types[0].replace(/_/g, ' ') : null),
+    address: str(p.formattedAddress),
+    phone: str(p.nationalPhoneNumber),
+    website: str(p.websiteUri),
+    hours: (Array.isArray(hours) ? hours : []).filter((h): h is string => typeof h === 'string'),
+    url: str(p.googleMapsUri),
+  };
+}
+
+export function toMapsListing(p: PlaceRow): MapsListing {
+  const place = toMapsPlace(p);
+  return {
+    name: place.name,
+    rating: place.rating,
+    reviews: place.reviews,
+    info: [place.category, place.address].filter(Boolean).join(' · '),
+    url: place.url,
+  };
+}
+
+/** The result that is the business: the first one whose name carries the business's first word. */
+export function matchBusiness(rows: PlaceRow[], name: string): PlaceRow | null {
+  const wanted = name.toLowerCase().split(/\s+/)[0];
+  return rows.find((r) => (localized(r.displayName) ?? '').toLowerCase().includes(wanted)) ?? null;
+}
+
+async function textSearch(textQuery: string, maxResultCount: number): Promise<PlaceRow[]> {
+  return placeRows(await executeTool('GOOGLE_MAPS_TEXT_SEARCH', { textQuery, maxResultCount, fieldMask: PLACE_FIELDS }));
+}
+
+/** Google Places through Composio: the business, then rivals in its category near its area. */
+export async function placesLookup(audit: StepContext['audit']): Promise<MapsOutput> {
+  const query = [audit.business_name, audit.city].filter(Boolean).join(' ');
+  const found = matchBusiness(await textSearch(query, 5), audit.business_name);
+  const business = found ? toMapsPlace(found) : null;
+  const area = audit.city || business?.address?.split(',').slice(-2, -1)[0]?.trim() || null;
+  let nearby: MapsListing[] = [];
+  if (business?.category && area) {
+    const self = (business.name || '').toLowerCase();
+    const id = typeof found?.id === 'string' ? found.id : null;
+    nearby = (await textSearch(`${business.category} near ${area}`, 10))
+      .filter((r) => (id ? r.id !== id : true) && (localized(r.displayName) ?? '').toLowerCase() !== self)
+      .map(toMapsListing)
+      .filter((l) => l.name)
+      .slice(0, 8);
+  }
+  return { fetched_at: new Date().toISOString(), source: PLACES_SOURCE, business, nearby, note: business ? null : NOT_FOUND };
+}
+
+/** True for the one Places failure the browser must not paper over: the Composio key itself. */
+const keyRefused = (err: unknown) => err instanceof PermanentStepError && /API key/i.test(err.message);
+
+/** The logged-out Maps view in headless Chromium (the fallback). */
+export async function browserLookup(audit: StepContext['audit'], note: string | null = null): Promise<MapsOutput> {
   return withBrowser(async (browser) => {
     const page = await browser.newPage();
     await page.setViewport({ width: 1280, height: 1000 });
@@ -129,7 +229,21 @@ export async function runMaps(ctx: StepContext) {
       source: 'Google Maps (logged-out view)',
       business,
       nearby,
-      note: business ? null : 'The business was not found on Google Maps under its name and city.',
+      note: [note, business ? null : NOT_FOUND].filter(Boolean).join(' ') || null,
     };
   });
+}
+
+export async function runMaps(ctx: StepContext): Promise<MapsOutput> {
+  const { audit } = ctx;
+  let why: string | null = null;
+  if (isComposioConfigured()) {
+    try {
+      return await placesLookup(audit);
+    } catch (err) {
+      if (keyRefused(err)) throw err;
+      why = `Google Places did not answer (${err instanceof Error ? err.message : String(err)}), so the logged-out Maps view was read instead.`;
+    }
+  }
+  return browserLookup(audit, why);
 }

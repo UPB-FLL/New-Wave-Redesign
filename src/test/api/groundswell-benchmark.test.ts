@@ -8,7 +8,7 @@ vi.mock('../../../api/_lib/groundswell/openai', () => ({ chatJson: mocks.chatJso
 
 import { benchAccounts } from '../../../api/_lib/groundswell/benchmarkAccounts';
 import { BENCHMARK_SYSTEM, normalizeBenchmarkWriteup, runBenchmark } from '../../../api/_lib/groundswell/benchmark';
-import { runAdsLibrary, toMetaAd } from '../../../api/_lib/groundswell/currents/adsLibrary';
+import { googleAdsFromList, runAdsLibrary, toMetaAd } from '../../../api/_lib/groundswell/currents/adsLibrary';
 import { benchmarkIndustry, runAuthority } from '../../../api/_lib/groundswell/currents/authority';
 import { runPricing } from '../../../api/_lib/groundswell/currents/pricing';
 import { mediaList, runSocialDepth, toRawItem } from '../../../api/_lib/groundswell/currents/socialDepth';
@@ -38,6 +38,12 @@ function composio(slug: string, args: Record<string, unknown>) {
       return Promise.resolve(facebookProfiles[args.url as string] ?? {});
     case 'SCRAPECREATORS_LIST_FACEBOOK_COMPANY_ADS':
       return Promise.resolve(facebookAds[args.page_id as string] ?? { results: [] });
+    case 'SCRAPECREATORS_LIST_GOOGLE_COMPANY_ADS':
+      return Promise.resolve(
+        args.domain === 'harbor-auto.example'
+          ? { items: [{ creative_id: 'CR1', format: 'text', first_shown: '2026-05-01T00:00:00Z' }, { creative_id: 'CR2', format: 'video' }], total_estimate: 2, has_more: false, success: true }
+          : { items: [], total_estimate: 0, has_more: false, success: true }
+      );
     case 'AHREFS_RETRIEVE_SITE_EXPLORER_METRICS_HISTORY':
       return Promise.resolve({ metrics: [{ date: '2026-09-01', paid_traffic: 0, paid_cost: 0 }] });
     case 'AHREFS_BACKLINKS_STATS_RETRIEVAL':
@@ -147,14 +153,28 @@ describe('ad libraries', () => {
     });
   });
 
-  it('records a verified negative by Page id, and leaves Google unknown when the page cannot be read', async () => {
-    const out = await runAdsLibrary(ctx(benchmarkOutputs()));
-    expect(out.business).toMatchObject({ facebook_page_id: '111', meta_ad_status: 'not_running', google_ads_status: 'unknown', pixels: { google_ads: true, meta: false } });
-    expect(out.competitors[0]).toMatchObject({ meta_ad_status: 'unknown', facebook_page_id: null });
-    expect(mocks.executeTool.mock.calls.some(([, args]) => 'company_name' in (args as object))).toBe(false);
+  it('reads the Transparency Center answer from a ScrapeCreators list by domain', () => {
+    expect(googleAdsFromList({ items: [{ creative_id: 'a' }], total_estimate: 20000, has_more: true })).toEqual({ status: 'ads_found', count: 20000 });
+    expect(googleAdsFromList({ data: { items: [{ creative_id: 'a' }, { creative_id: 'b' }], total_estimate: 1 } })).toEqual({ status: 'ads_found', count: 2 });
+    // An empty, complete first page over the whole history is a verified negative; an incomplete one is not.
+    expect(googleAdsFromList({ items: [], total_estimate: 0, has_more: false })).toEqual({ status: 'none', count: 0 });
+    expect(googleAdsFromList({ items: [], has_more: true })).toEqual({ status: 'unknown', count: null });
+    expect(googleAdsFromList({ success: false })).toEqual({ status: 'unknown', count: null });
   });
 
-  it('reads the Transparency Center through the browser', async () => {
+  it('records a verified negative by Page id and Google ads by domain, without the browser', async () => {
+    const out = await runAdsLibrary(ctx(benchmarkOutputs()));
+    expect(out.business).toMatchObject({ facebook_page_id: '111', meta_ad_status: 'not_running', google_ads_status: 'ads_found', google_ads_count: 2, pixels: { google_ads: true, meta: false } });
+    expect(out.competitors[0]).toMatchObject({ meta_ad_status: 'unknown', facebook_page_id: null, google_ads_status: 'none', google_ads_count: 0 });
+    expect(mocks.executeTool.mock.calls.some(([, args]) => 'company_name' in (args as object))).toBe(false);
+    expect(mocks.executeTool.mock.calls.filter(([slug]) => slug === 'SCRAPECREATORS_LIST_GOOGLE_COMPANY_ADS').every(([, args]) => (args as { get_ad_details: boolean }).get_ad_details === false)).toBe(true);
+    expect(mocks.withBrowser).not.toHaveBeenCalled();
+  });
+
+  it('falls back to the Transparency Center in the browser for a domain ScrapeCreators could not answer', async () => {
+    mocks.executeTool.mockImplementation((slug: string, args: Record<string, unknown>) =>
+      slug === 'SCRAPECREATORS_LIST_GOOGLE_COMPANY_ADS' ? Promise.reject(new Error('SCRAPECREATORS_LIST_GOOGLE_COMPANY_ADS failed (402): out of credits')) : composio(slug, args)
+    );
     const page = { goto: vi.fn(), evaluate: vi.fn().mockResolvedValue('Shown in the United States Any time 0 ads'), close: vi.fn() };
     mocks.withBrowser.mockImplementation(async (fn: (b: unknown) => unknown) => fn({ newPage: async () => page }));
     vi.useFakeTimers({ toFake: ['setTimeout'] });
@@ -163,6 +183,14 @@ describe('ad libraries', () => {
     const out = await run;
     vi.useRealTimers();
     expect(out.business.google_ads_status).toBe('none');
+    expect(out.business.error).toMatch(/Google Ads Transparency: .*out of credits/);
+  });
+
+  it('stops for good when Composio refuses the key on the Google ads call', async () => {
+    mocks.executeTool.mockImplementation((slug: string, args: Record<string, unknown>) =>
+      slug === 'SCRAPECREATORS_LIST_GOOGLE_COMPANY_ADS' ? Promise.reject(new PermanentStepError('Composio refused the API key (401).')) : composio(slug, args)
+    );
+    await expect(runAdsLibrary(ctx(benchmarkOutputs()))).rejects.toBeInstanceOf(PermanentStepError);
   });
 });
 

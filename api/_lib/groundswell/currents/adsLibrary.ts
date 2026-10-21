@@ -2,6 +2,7 @@ import {
   metaAdStatus,
   transparencyStatus,
   type AdLibraryEvidence,
+  type GoogleAdsStatus,
   type MetaAd,
 } from '../../../../packages/groundswell/src/benchmark/index.js';
 import { benchAccounts, type BenchAccount } from '../benchmarkAccounts.js';
@@ -12,8 +13,10 @@ import { PermanentStepError, type StepContext } from '../types.js';
 /**
  * Ads Current, from the ad libraries (benchmarks only): the Facebook Page's
  * Ad Library status and its ads by Page id (never a name search), Google's
- * Ads Transparency Center read in the headless browser, and Ahrefs' monthly
- * paid-search history. Presence, dates and creative only; no spend.
+ * Ads Transparency Center by domain through ScrapeCreators (one credit a
+ * domain; the headless render of the Transparency Center is the fallback when
+ * that call fails), and Ahrefs' monthly paid-search history. Presence, dates
+ * and creative only; no spend.
  */
 
 const str = (v: unknown, max = 200) => (typeof v === 'string' ? v.replace(/\s+/g, ' ').trim().slice(0, max) : null);
@@ -54,6 +57,25 @@ async function metaFor(a: BenchAccount) {
   return { pageId, statusText, ads: adRows(list).map(toMetaAd), note: null };
 }
 
+/**
+ * The Transparency Center's answer for a domain, from
+ * SCRAPECREATORS_LIST_GOOGLE_COMPANY_ADS with no date filter (so the whole
+ * history): ads on record, or a verified negative when the first page is
+ * empty and complete.
+ */
+export function googleAdsFromList(list: unknown): { status: GoogleAdsStatus; count: number | null } {
+  const items = findKey<unknown[]>(list, 'items');
+  if (!Array.isArray(items)) return { status: 'unknown', count: null };
+  const estimate = findKey<unknown>(list, 'total_estimate');
+  const count = typeof estimate === 'number' && Number.isFinite(estimate) && estimate >= items.length ? Math.round(estimate) : items.length;
+  if (count > 0) return { status: 'ads_found', count };
+  return findKey<unknown>(list, 'has_more') === true ? { status: 'unknown', count: null } : { status: 'none', count: 0 };
+}
+
+async function googleAdsFor(domain: string) {
+  return googleAdsFromList(await executeTool('SCRAPECREATORS_LIST_GOOGLE_COMPANY_ADS', { domain, get_ad_details: false }));
+}
+
 async function paidHistory(domain: string) {
   const to = new Date();
   const from = new Date(to);
@@ -92,6 +114,13 @@ export async function runAdsLibrary(ctx: StepContext) {
             return [];
           })
         : [];
+      const google = a.domain
+        ? await googleAdsFor(a.domain).catch((err) => {
+            if (err instanceof PermanentStepError && /API key/i.test(err.message)) throw err;
+            errors.push(`Google Ads Transparency: ${err instanceof Error ? err.message : String(err)}`);
+            return { status: 'unknown' as GoogleAdsStatus, count: null };
+          })
+        : { status: 'unknown' as GoogleAdsStatus, count: null };
       return {
         name: a.name,
         domain: a.domain,
@@ -99,8 +128,8 @@ export async function runAdsLibrary(ctx: StepContext) {
         meta_ad_status: metaAdStatus(meta.statusText, meta.ads, meta.pageId),
         meta_ads: meta.ads.slice(0, 10),
         meta_ads_inactive_n: meta.ads.filter((x) => !x.active).length,
-        google_ads_status: 'unknown',
-        google_ads_count: null,
+        google_ads_status: google.status,
+        google_ads_count: google.count,
         paid_search_history: history,
         pixels: {
           meta: Boolean(a.site?.tracking.meta_pixel),
@@ -112,8 +141,8 @@ export async function runAdsLibrary(ctx: StepContext) {
     })
   );
 
-  // Google's Transparency Center has no API; one headless read per domain, in one browser.
-  const domains = evidence.filter((e) => e.domain);
+  // Fallback for the domains ScrapeCreators could not answer: one headless read of the Transparency Center each, in one browser.
+  const domains = evidence.filter((e) => e.domain && e.google_ads_status === 'unknown');
   if (domains.length && ctx.deadline - Date.now() > 60_000) {
     await withBrowser(async (browser) => {
       for (const e of domains) {
@@ -136,7 +165,7 @@ export async function runAdsLibrary(ctx: StepContext) {
 
   const [business, ...competitors] = evidence;
   return {
-    source: 'Meta Ad Library (by Page id, via ScrapeCreators), Google Ads Transparency Center, Ahrefs paid-search history (US)',
+    source: 'Meta Ad Library (by Page id) and Google Ads Transparency Center (by domain), via ScrapeCreators; Ahrefs paid-search history (US)',
     fetched_at: new Date().toISOString(),
     business,
     competitors,

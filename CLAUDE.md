@@ -2,6 +2,35 @@
 
 ## Recent Changes
 
+### Groundswell: the right tool for the job in Maps and the ad libraries (2026-10-21)
+
+The first benchmark run on the live engine showed two Currents relying on
+headless-browser scraping where a connected tool now exists. Both keep the
+browser read as the fallback, and neither changes an output shape.
+
+- **Maps** (`currents/maps.ts`): `runMaps` asks the Google Places API (text
+  search, `GOOGLE_MAPS_TEXT_SEARCH` through Composio) for the business and
+  then for rivals in its category near its area (`placesLookup`,
+  `toMapsPlace`, `toMapsListing`, `matchBusiness`, `PLACE_FIELDS`). Result
+  order is relevance, not the Maps pack, and the `source` string says so.
+  When Composio is not set up or Places fails for any reason but a refused
+  key (no connection, the shared project's daily quota, an outage), the
+  logged-out Maps view is read in the browser as before (`browserLookup`),
+  with the reason in `note`. A refused key still stops the step.
+- **Ad libraries** (`currents/adsLibrary.ts`): Google's Transparency Center
+  is read by domain through `SCRAPECREATORS_LIST_GOOGLE_COMPANY_ADS` (one
+  credit, never `get_ad_details`), with no date filter so an empty, complete
+  first page is a verified negative and `total_estimate` is the count
+  (`googleAdsFromList`). The headless render runs only for domains that call
+  could not answer. The spec and the package README say the same.
+- **Tests**: `src/test/api/groundswell-maps.test.ts` (new) and the ad-library
+  cases in `groundswell-benchmark.test.ts`.
+- **Seen on the first live runs, parked**: the maps step's first attempt
+  hangs inside the run route's background worker until Vercel's 300 s limit,
+  and the 600 s step lease then idles until a cron-started worker reclaims
+  it, about ten minutes per audit. The browser path is now the fallback only,
+  which should avoid it; if not, shorten the lease or the Maps timeout.
+
 ### Groundswell: ad copy for the rows the ad plan runs (2026-10-21)
 
 - **Package** (`packages/groundswell/src/adcopy.ts`): `copyTargets` (one ad
@@ -259,11 +288,12 @@ Code: `api/_lib/groundswell/`.
   an audit is running (Vault `blog_admin_api_key` as `x-admin-key`). Both
   have `maxDuration: 300` (`FUNCTION_SECONDS`) and ship
   `@sparticuz/chromium` and the Inter font via `includeFiles`.
-- **Currents**: Site fetches HTML (no browser); Maps scrapes the logged-out
-  Google Maps view with puppeteer-core and stops at any consent or traffic
-  check; Search (Ahrefs), Keywords (Keyword Planner), Social
-  (ScrapeCreators) and Ads (site tags + Ahrefs paid pages) go through the
-  Composio REST API (`composio.ts`).
+- **Currents**: Site fetches HTML (no browser); Maps reads Google Places
+  through Composio and, when that fails, scrapes the logged-out Google Maps
+  view with puppeteer-core, stopping at any consent or traffic check (see
+  "Right tool for the job", 2026-10-21); Search (Ahrefs), Keywords (Keyword
+  Planner), Social (ScrapeCreators) and Ads (site tags + Ahrefs paid pages)
+  go through the Composio REST API (`composio.ts`).
 - **Model** (`model.ts`): one OpenAI JSON call (`GROUNDSWELL_OPENAI_MODEL`,
   default `gpt-4o`) writes the findings. Any sentence quoting a number that
   is not in the gathered data gets one repair call and is then dropped.
