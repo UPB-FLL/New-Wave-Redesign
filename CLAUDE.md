@@ -2,6 +2,36 @@
 
 ## Recent Changes
 
+### Admin panel rework, phase 1: one sidebar, organised by site page (2026-10-21)
+
+From the plan Josh approved on 2026-10-21 (Claude Doc "New Wave admin panel
+rework plan"). Phase 1 is navigation only; the page-first editors (collapsed
+block cards, list rows, every editor on `ContentManager`) and the "View on
+site" preview are phases 2 and 3.
+
+- **One admin, one sidebar** (`AdminLayout.tsx`, model in `adminNav.ts`):
+  Site pages (one collapsible row per public page, its block editors beneath
+  in page order, plus a "View on site" link), Blog, SEO, Groundswell
+  (unchanged; the partner portal thread owns it). A search box filters
+  entries by label, page, and `keywords` (field names); open rows are
+  remembered in localStorage (`nw_admin_open_pages`). The `PublishBar` now
+  lives in the layout, on every editor, shown only while something is
+  unsaved or a save is in flight, with Discard always available.
+- **Removed**: `UnifiedAdminDashboard`, `SidebarNavigation` (its groups,
+  the deleted Testimonials entry, and ten "not yet implemented" screens),
+  and the legacy `AdminDashboard`. `/admin/unified` redirects to
+  `/admin/blog`, `/admin/legacy` to `/admin`.
+- **New routes**: `/admin/blog` (`blog/BlogPage.tsx`: the post list, a
+  post's editor in place, Generate with an inline notice instead of
+  `alert`) and `/admin/blog/settings`. `/admin` is `AdminHome.tsx`: a card
+  per site page with its editors and the newest `site_content.updated_at`
+  (`adminHomeData.ts`), and the Groundswell queue count.
+- `ContentManager` no longer preloads `navbar` (nothing reads it).
+- **Tests**: `adminNav.test.ts` (every entry is an App.tsx route; every
+  section the public site reads has an editor; no placeholder screens),
+  `AdminLayout.test.tsx`, `AdminHome.test.tsx`. Adding an editor: see
+  "Adding an editor" in `docs/admin-guide.md`.
+
 ### Groundswell: ad copy for the rows the ad plan runs (2026-10-21)
 
 - **Package** (`packages/groundswell/src/adcopy.ts`): `copyTargets` (one ad
@@ -810,11 +840,9 @@ Implemented a unified admin dashboard with centralized content management:
   - Polling fallback (30s) for production environments
   - Integrated into useContent hook for automatic sync
 
-- **Unified Dashboard** (`/admin/unified`)
-  - Sidebar navigation with 5 section groups
-  - Integrated PublishBar for save actions
+- **Unified Dashboard** (`/admin/unified`; removed 2026-10-21, see the admin
+  panel rework entry above)
   - Hero and Services editors migrated
-  - Graceful fallback for unimplemented sections
 
 ## Content Structure
 
@@ -890,9 +918,9 @@ Located in `src/admin/editors/`:
 
 1. Create editor in `src/admin/editors/`
 2. Follow ContentManager pattern (see HeroEditor example)
-3. Add section to SidebarNavigation section groups
-4. Add route case in UnifiedAdminDashboard
-5. Test publish/discard functionality
+3. Add a `<Route>` under `/admin` in `src/App.tsx`
+4. Add the entry to `src/admin/adminNav.ts` under its site page
+5. Test publish/discard functionality (`adminNav.test.ts` checks the rest)
 
 ### Running the Project
 
