@@ -1,4 +1,4 @@
-import { SCENARIOS, type AdPlatformId, type GroundswellConfig, type Scenario, type Triple } from './config.js';
+import { SCENARIOS, benchmarksFor, type AdPlatformId, type GroundswellConfig, type IndustryProfile, type Scenario, type Triple } from './config.js';
 
 /**
  * The ad plan: every angle the business can win, on every platform its
@@ -115,6 +115,8 @@ export interface AdPlan {
   year_net: Record<Scenario, number>;
   /** Angles left out of search because their demand is below the setup file's minimum. */
   too_small: { angle: string; demand: number }[];
+  /** Angle-platform pairs with no row, and why (no published benchmark for the platform). */
+  unmodeled: { angle: string; platform: AdPlatformId; reason: string }[];
 }
 
 const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
@@ -154,12 +156,14 @@ function outcome(
   i: 0 | 1 | 2,
   cpc: number,
   clicks: number,
-  cvr: number,
-  ramp: number[]
+  cvr: number | null,
+  ramp: number[],
+  cpl: number | null = null
 ): ScenarioResult {
   const spend = clicks * cpc;
-  const leads = clicks * cvr;
-  if (!value) return { cpc, clicks, spend, leads, customers: 0, revenue: 0, net: -spend, year_net: -spend * 12, roi: null };
+  // A published cost per lead beats clicks × a lead-form conversion rate.
+  const leads = cpl ? spend / cpl : cvr === null ? 0 : clicks * cvr;
+  if (!value || (cvr === null && !cpl)) return { cpc, clicks, spend, leads, customers: 0, revenue: 0, net: -spend, year_net: -spend * 12, roi: null };
   const customers = leads * incrementality * value.close[i];
   const revenue = customers * value.per_customer[i];
   const net = revenue * value.gross_margin[i] - spend;
@@ -172,65 +176,78 @@ function stopLoss(value: AngleValue | null, incrementality: number): number | nu
   return value.per_customer[1] * value.close[1] * value.gross_margin[1] * incrementality;
 }
 
-export function buildAdPlan(angles: AngleInput[], allowed: AdPlatformId[], config: GroundswellConfig): AdPlan {
+export function buildAdPlan(angles: AngleInput[], industry: IndustryProfile, config: GroundswellConfig): AdPlan {
   const rows: PlanRow[] = [];
   const too_small: AdPlan['too_small'] = [];
+  const unmodeled: AdPlan['unmodeled'] = [];
   const { search, tiers } = config;
+  const allowed = industry.ad_platforms;
+  const noValue = 'No published price supports a value per customer, so the return is not modeled.';
 
   for (const angle of angles) {
     const demand = sum(angle.keywords.map((k) => k.monthly_searches));
     const platforms = (angle.platforms ?? allowed).filter((p) => allowed.includes(p));
-    const searchPlatforms = platforms.filter((p) => config.platforms[p].buying === 'search');
-    const socialPlatforms = platforms.filter((p) => config.platforms[p].buying === 'social');
-    const valueSource = angle.value ? angle.value.basis : 'No published price supports a value per customer, so the return is not modeled.';
+    const categories = [...new Set([...(industry.restricted ?? []), ...(angle.category ? [angle.category] : [])])];
+    const valueSource = angle.value ? angle.value.basis : noValue;
 
     // Search first: its medium spend sizes the social tests.
     let searchMediumSpend = 0;
-    for (const id of searchPlatforms) {
+    for (const id of platforms.filter((p) => config.platforms[p].buying === 'search')) {
       const p = config.platforms[id];
+      const b = benchmarksFor(p, industry);
+      if (!b || !b.ctr) {
+        unmodeled.push({ angle: angle.name, platform: id, reason: p.benchmarks_missing ?? `No published ${p.label} click-through rate.` });
+        continue;
+      }
       if (demand < config.min_angle_searches) {
         too_small.push({ angle: angle.name, demand });
         continue;
       }
-      const { cpc, from_bids } = searchCpc(angle.keywords, p.benchmarks.cpc);
+      const ctr = b.ctr;
+      const { cpc, from_bids } = searchCpc(angle.keywords, b.cpc);
       const scenarios = Object.fromEntries(
         SCENARIOS.map((s, i) => {
           const idx = i as 0 | 1 | 2;
-          const clicks = demand * search.impression_share[idx] * p.benchmarks.ctr[idx] * search.ctr_factor[idx];
-          return [s, outcome(angle.value, angle.incrementality, idx, cpc[idx], clicks, p.benchmarks.cvr[idx] * search.cvr_factor[idx], search.ramp)];
+          const clicks = demand * search.impression_share[idx] * ctr[idx] * search.ctr_factor[idx];
+          const cvr = b.cvr ? b.cvr[idx] * search.cvr_factor[idx] : null;
+          return [s, outcome(angle.value, angle.incrementality, idx, cpc[idx], clicks, cvr, search.ramp)];
         })
       ) as Record<Scenario, ScenarioResult>;
       searchMediumSpend += scenarios.medium.spend;
       rows.push(
-        finishRow(angle, p.id, p.label, 'search', demand, scenarios, config, [
+        finishRow(angle, p.id, p.label, 'search', demand, scenarios, categories, [
           `Demand: ${Math.round(demand).toLocaleString('en-US')} searches a month for ${angle.keywords.length} keyword${angle.keywords.length === 1 ? '' : 's'} (Keyword Planner).`,
           from_bids
             ? 'Cost per click: Keyword Planner top-of-page bids for these keywords.'
-            : `Cost per click: ${p.benchmarks.source} (${p.benchmarks.as_of}); Keyword Planner returned no bids.`,
-          `Click-through and conversion: ${p.benchmarks.source} (${p.benchmarks.as_of}), discounted for a new account.`,
+            : `Cost per click: ${b.source} (${b.as_of}); Keyword Planner returned no bids.`,
+          `Click-through and conversion: ${b.source} (${b.as_of}), discounted for a new account.`,
           `Incrementality: ${angle.incrementality_basis}`,
           `Value: ${valueSource}`,
         ])
       );
     }
 
-    for (const id of socialPlatforms) {
+    for (const id of platforms.filter((p) => config.platforms[p].buying === 'social')) {
       const p = config.platforms[id];
+      const b = benchmarksFor(p, industry);
+      if (!b) {
+        unmodeled.push({ angle: angle.name, platform: id, reason: p.benchmarks_missing ?? `No published ${p.label} cost per click.` });
+        continue;
+      }
       const tb = p.test_budget!;
       const spend = Math.max(tb.min_monthly, searchMediumSpend * tb.share_of_search_spend);
       const scenarios = Object.fromEntries(
         SCENARIOS.map((s, i) => {
           const idx = i as 0 | 1 | 2;
-          const cpc = p.benchmarks.cpc[idx];
           // Social spend is a fixed test; clicks are what it buys.
-          return [s, outcome(angle.value, 1, idx, cpc, spend / cpc, p.benchmarks.cvr[idx], search.ramp)];
+          return [s, outcome(angle.value, 1, idx, b.cpc[idx], spend / b.cpc[idx], b.cvr ? b.cvr[idx] : null, search.ramp, b.cpl ? b.cpl[idx] : null)];
         })
       ) as Record<Scenario, ScenarioResult>;
       rows.push(
-        finishRow(angle, p.id, p.label, 'social', demand, scenarios, config, [
+        finishRow(angle, p.id, p.label, 'social', demand, scenarios, categories, [
           `Budget: ${tb.basis}`,
-          `Cost per click and conversion: ${p.benchmarks.source} (${p.benchmarks.as_of}). Estimates: nobody searches for the angle on ${p.label}, so clicks are what the test budget buys.`,
-          `Value: ${valueSource}`,
+          `Cost per click${b.cpl ? ' and per lead' : b.cvr ? ' and conversion' : ''}: ${b.source} (${b.as_of})${b.note ? `; ${b.note}` : ''}. Estimates: nobody searches for the angle on ${p.label}, so clicks and leads are what the test budget buys.`,
+          b.cvr || b.cpl ? `Value: ${valueSource}` : `Value: no published ${p.label} conversion rate, so the return is not modeled.`,
         ])
       );
     }
@@ -253,6 +270,7 @@ export function buildAdPlan(angles: AngleInput[], allowed: AdPlatformId[], confi
     budget: Object.fromEntries(SCENARIOS.map((s) => [s, total(s, (r) => r.spend, live)])) as Record<Scenario, number>,
     year_net: Object.fromEntries(SCENARIOS.map((s) => [s, total(s, (r) => r.year_net, modeled)])) as Record<Scenario, number>,
     too_small,
+    unmodeled,
   };
 
   function finishRow(
@@ -262,9 +280,10 @@ export function buildAdPlan(angles: AngleInput[], allowed: AdPlatformId[], confi
     buying: 'search' | 'social',
     demand: number,
     scenarios: Record<Scenario, ScenarioResult>,
-    cfg: GroundswellConfig,
+    categories: string[],
     sources: string[]
   ): PlanRow {
+    const cfg = config;
     const m = scenarios.medium;
     const roi_tier: RoiTier = m.roi === null ? 'not modeled' : m.roi < 0 ? 'loses money' : m.roi >= tiers.roi_strong ? 'strong' : 'pays back';
     let recommendation: Recommendation;
@@ -285,8 +304,17 @@ export function buildAdPlan(angles: AngleInput[], allowed: AdPlatformId[], confi
       recommendation = 'skip';
       reason = 'Loses money in the medium scenario.';
     }
-    const restriction = cfgRestriction(cfg, platform, angle);
-    if (restriction && recommendation !== 'skip') reason += ` ${restriction}`;
+    // A platform rule for one of the business's categories either adds a condition or rules self-serve out.
+    for (const category of categories) {
+      const rule = cfg.platforms[platform].restricted_categories?.[category];
+      if (!rule) continue;
+      if (rule.blocks_self_serve) {
+        recommendation = 'skip';
+        reason = rule.rule;
+      } else if (recommendation !== 'skip') {
+        reason += ` ${rule.rule}`;
+      }
+    }
     return {
       angle_id: angle.id,
       angle: angle.name,
@@ -304,11 +332,4 @@ export function buildAdPlan(angles: AngleInput[], allowed: AdPlatformId[], confi
       sources,
     };
   }
-}
-
-/** A platform's restriction note for the angle's category, if the angle declares one (e.g. "alcohol"). */
-function cfgRestriction(cfg: GroundswellConfig, platform: AdPlatformId, angle: AngleInput): string | null {
-  const notes = cfg.platforms[platform].restricted_categories;
-  if (!notes || !angle.category) return null;
-  return notes[angle.category] ?? null;
 }

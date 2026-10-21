@@ -134,6 +134,42 @@ The remaining engine (the Currents, the step runner, delivery) moves in here
 behind small adapters for storage, documents and the language model as the
 work in "Status" lands.
 
+## Use cases
+
+`examples/` holds documented use cases: real audits, shown with the owner's
+permission, kept as inputs so every number comes from the model.
+`examples/uncommon-path-brewing.ts` is the first. Its plan (pinned by
+`test/upb-usecase.test.ts`) funds private events on Meta and Google Search,
+tests cheap happy-hour and brewery searches without modeling a return (no
+drink prices are published), shows pizza ads losing money at a $22 pie, and
+rules out TikTok and Reddit, whose alcohol rules require a sales team.
+
+## Roadmap
+
+Groundswell is being built as an agent and a process that can be resold as
+a service (SaaS), with tools linked in as each client needs them. In order:
+
+1. **Setup file, ad plan, templates, first use case** (this folder, now).
+2. **Every change ranked by return.** Not only ads: SEO, website, Google
+   Business Profile, reviews and listings changes each get a cost, a sourced
+   impact model (or "not modeled") and a low / medium / high return, in one
+   list with the highest return first. Each audit shows **the return as the
+   business is set up today against the return with the team's plan**, and
+   writes its top changes to a use-case library for later audits.
+3. **The ad plan in the live engine** (`api/_lib/groundswell`): an `adplan`
+   step, and a board and slide in the reports.
+4. **Review, re-interpret, re-run** before an audit counts as accurate.
+5. **The planner agent and connectors.** An agent picks the industry profile
+   and the platforms to audit (LinkedIn for IT; Angi, Yelp and Reddit for
+   home services), within the setup file's allowlist, and runs the flow.
+   Data sources plug in as connectors, so a reseller can link in the tools
+   they use.
+6. **White-label.** A partner (for example a marketing agency reselling
+   Croissance) sets its own branding, and its sub-clients' branding, from the
+   partner portal; reports say "Prepared by" the partner.
+7. **Standalone.** The rest of the engine moves here behind adapters for
+   storage, documents and the language model, ready for its own deployment.
+
 ## Status
 
 | Piece | State |

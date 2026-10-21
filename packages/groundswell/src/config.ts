@@ -38,10 +38,17 @@ export type BuyingModel = 'search' | 'social';
 export interface PlatformBenchmarks extends Sourced {
   /** Cost per click in USD: [low, medium, high] scenario values (the low scenario pays the most). */
   cpc: Triple;
-  /** Click-through rate, 0-1. Search platforms only use it to size clicks. */
-  ctr: Triple;
-  /** Share of clicks that become a lead or a visit intent (call, directions, form), 0-1. */
-  cvr: Triple;
+  /** Click-through rate, 0-1; search platforms need it to size clicks. null when no credible source publishes one. */
+  ctr: Triple | null;
+  /** Share of clicks that become a lead or a visit intent (call, directions, form), 0-1. null when unpublished: the return is then not modeled. */
+  cvr: Triple | null;
+  /**
+   * Cost per lead in USD (the low scenario pays the most). Social platforms use it ahead of the conversion rate when
+   * it is published, since their lead rate comes from lead-form campaigns that do not convert like ordinary clicks.
+   */
+  cpl?: Triple | null;
+  /** How the figures were read or derived, when not straight from the table (e.g. CPC from CPM ÷ CTR). */
+  note?: string;
 }
 
 /** Character limits for one ad format, from the platform's own help pages. */
@@ -54,12 +61,20 @@ export interface PlatformConfig {
   id: AdPlatformId;
   label: string;
   buying: BuyingModel;
-  benchmarks: PlatformBenchmarks;
+  /** All-industry figures; null when no credible source publishes this platform's costs (its rows are then not modeled). */
+  benchmarks: PlatformBenchmarks | null;
+  /** Why benchmarks is null, in one sentence. */
+  benchmarks_missing?: string;
+  /** Per-industry figures, keyed by an industry profile's benchmark_industry; preferred over the all-industry set. */
+  by_industry?: Record<string, PlatformBenchmarks>;
   template: TemplateSpec;
   /** Social only: the smallest monthly test worth running (USD), and the share of the angle's search spend to match. */
   test_budget?: { min_monthly: number; share_of_search_spend: number; basis: string };
-  /** Categories this platform will not advertise, or only with restrictions (e.g. alcohol). */
-  restricted_categories?: Record<string, string>;
+  /**
+   * Rules for restricted categories (e.g. alcohol): the rule in one sentence, and whether it rules out a
+   * small business buying on its own (e.g. a required sales representative or spend commitment).
+   */
+  restricted_categories?: Record<string, { rule: string; blocks_self_serve: boolean; source: string; url?: string }>;
 }
 
 /** Where to look and where to advertise for one kind of business. */
@@ -104,8 +119,16 @@ export interface VerificationRules {
   max_rounds: number;
 }
 
+/** Share of ad customers who would not have come anyway, by where the business already ranks organically. */
+export interface IncrementalityRules extends Sourced {
+  ranks_first: number;
+  ranks_2_to_4: number;
+  ranks_5_plus: number;
+}
+
 export interface GroundswellConfig {
   version: number;
+  incrementality: IncrementalityRules;
   platforms: Record<AdPlatformId, PlatformConfig>;
   industries: IndustryProfile[];
   search: SearchScenarioRules;
@@ -115,6 +138,12 @@ export interface GroundswellConfig {
   /** Words an ad may not claim without third-party proof shown with it. */
   unsupported_claims: string[];
   verification: VerificationRules;
+}
+
+/** The benchmarks a platform uses for an industry: its per-industry set when there is one, else the all-industry set. */
+export function benchmarksFor(p: PlatformConfig, industry?: IndustryProfile): PlatformBenchmarks | null {
+  const key = industry?.benchmark_industry;
+  return (key && p.by_industry?.[key]) || p.benchmarks;
 }
 
 export function scenarioIndex(s: Scenario): 0 | 1 | 2 {
@@ -132,11 +161,20 @@ export function validateConfig(c: GroundswellConfig): GroundswellConfig {
   };
   for (const [id, p] of Object.entries(c.platforms)) {
     if (p.id !== id) problems.push(`platforms.${id}.id must be "${id}"`);
-    if (!p.benchmarks.source || !p.benchmarks.as_of) problems.push(`platforms.${id}.benchmarks needs a source and as_of`);
-    // The low scenario pays the most per click and converts the least.
-    triple(`platforms.${id}.benchmarks.cpc`, p.benchmarks.cpc, { ascending: false });
-    triple(`platforms.${id}.benchmarks.ctr`, p.benchmarks.ctr, { unit: true, ascending: true });
-    triple(`platforms.${id}.benchmarks.cvr`, p.benchmarks.cvr, { unit: true, ascending: true });
+    if (!p.benchmarks && !p.benchmarks_missing) problems.push(`platforms.${id} has no benchmarks and no benchmarks_missing reason`);
+    const sets: [string, PlatformBenchmarks][] = [
+      ...(p.benchmarks ? ([[`platforms.${id}.benchmarks`, p.benchmarks]] as [string, PlatformBenchmarks][]) : []),
+      ...Object.entries(p.by_industry ?? {}).map(([k, b]): [string, PlatformBenchmarks] => [`platforms.${id}.by_industry.${k}`, b]),
+    ];
+    for (const [path, b] of sets) {
+      if (!b.source || !b.as_of) problems.push(`${path} needs a source and as_of`);
+      // The low scenario pays the most per click and converts the least.
+      triple(`${path}.cpc`, b.cpc, { ascending: false });
+      if (b.ctr) triple(`${path}.ctr`, b.ctr, { unit: true, ascending: true });
+      if (b.cvr) triple(`${path}.cvr`, b.cvr, { unit: true, ascending: true });
+      if (b.cpl) triple(`${path}.cpl`, b.cpl, { ascending: false });
+      if (p.buying === 'search' && !b.ctr) problems.push(`${path}.ctr is required for a search platform`);
+    }
     if (p.buying === 'social' && !p.test_budget) problems.push(`platforms.${id} is social and needs a test_budget`);
     if (!p.template.source || Object.keys(p.template.fields).length === 0) problems.push(`platforms.${id}.template needs a source and fields`);
   }
