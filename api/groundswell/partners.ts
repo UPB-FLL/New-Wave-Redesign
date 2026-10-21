@@ -20,25 +20,33 @@ import { getSupabaseAdmin, isSupabaseConfigured } from '../_lib/supabaseAdmin.js
  * PATCH { id, action }: resend (a new invite, or a reset link for an active
  *   account), disable (also signs the partner out), enable, or branding
  *   ({ display_name, logo_url }: what the partner's reports carry instead of
- *   New Wave's name; the partner can set it from the portal too).
+ *   New Wave's name; the partner can set it from the portal too), or limits
+ *   ({ daily_run_limit }: how many audits the partner may start a day, 0 to
+ *   50, or null for the default).
  * Password hashes never leave the server.
  */
 
 const BASE_COLUMNS = 'id,company,contact_name,email,status,notes,created_at,last_sign_in_at';
 /** Read only where the database has them (migration 20261023120000). */
 const BRANDING_COLUMNS = ',display_name,logo_url';
+/** Read only where the database has it (migration 20261025120000). */
+const LIMIT_COLUMNS = ',daily_run_limit';
 const missingColumn = (message: string | undefined) => /column .* does not exist|42703/i.test(message ?? '');
 
 type Result<T> = { data: T | null; error: { message: string; code?: string } | null };
 
 /**
- * Runs a query that returns partner rows with the branding columns, or again
- * without them where the database does not have them yet (a failed statement
- * changes nothing, so repeating it is safe).
+ * Runs a query that returns partner rows with the branding and limit columns,
+ * or again with fewer where the database does not have them yet (a failed
+ * statement changes nothing, so repeating it is safe).
  */
 async function withColumns<T>(run: (columns: string) => PromiseLike<Result<T>>): Promise<Result<T>> {
-  const first = await run(BASE_COLUMNS + BRANDING_COLUMNS);
-  return first.error && missingColumn(first.error.message) ? run(BASE_COLUMNS) : first;
+  let result = await run(BASE_COLUMNS + BRANDING_COLUMNS + LIMIT_COLUMNS);
+  for (const columns of [BASE_COLUMNS + BRANDING_COLUMNS, BASE_COLUMNS]) {
+    if (!(result.error && missingColumn(result.error.message))) break;
+    result = await run(columns);
+  }
+  return result;
 }
 
 type PartnerRow = {
@@ -52,6 +60,7 @@ type PartnerRow = {
   last_sign_in_at: string | null;
   display_name?: string | null;
   logo_url?: string | null;
+  daily_run_limit?: number | null;
 };
 
 async function auditCounts(ids: string[]): Promise<Map<string, number>> {
@@ -140,6 +149,17 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       if (error && missingColumn(error.message)) return res.status(503).json({ error: 'Branding needs the database update (migration 20261023120000).' });
       if (error || !data) return res.status(500).json({ error: 'Could not save the branding.' });
       return res.status(200).json({ partner: await withCount(data as unknown as PartnerRow) });
+    }
+    case 'limits': {
+      const raw = body.daily_run_limit;
+      const limit = raw === null || raw === '' || raw === undefined ? null : Number(raw);
+      if (limit !== null && !(Number.isInteger(limit) && limit >= 0 && limit <= 50)) {
+        return res.status(400).json({ error: 'Runs a day is a whole number from 0 to 50, or blank for the default.' });
+      }
+      const { data, error } = await withColumns((cols) => db.from('groundswell_partners').update({ daily_run_limit: limit }).eq('id', row.id).select(cols).single());
+      if (error && missingColumn(error.message)) return res.status(503).json({ error: 'Run limits need the database update (migration 20261025120000).' });
+      if (error || !data) return res.status(500).json({ error: 'Could not save the limit.' });
+      return res.status(200).json({ partner: await withCount(data as PartnerRow) });
     }
     case 'enable': {
       const status = password_hash ? 'active' : 'invited';

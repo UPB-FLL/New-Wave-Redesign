@@ -10,6 +10,7 @@ const api = vi.hoisted(() => ({
   getPartnerCustomer: vi.fn(),
   createPartnerCustomer: vi.fn(),
   updatePartnerCustomer: vi.fn(),
+  runPartnerAudit: vi.fn(),
   partnerSignOut: vi.fn(),
   setPartnerPassword: vi.fn(),
   getPartnerBranding: vi.fn(),
@@ -151,8 +152,9 @@ describe('partner customers page', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Add and queue the audit' }));
     await waitFor(() => expect(api.createPartnerCustomer).toHaveBeenCalledWith(expect.objectContaining({ business_name: 'Harbor Auto', website: 'harbor.example' })));
     expect(await screen.findByRole('heading', { level: 1, name: 'Harbor Auto' })).toBeInTheDocument();
-    expect(screen.getByRole('status')).toHaveTextContent('Queued');
+    expect(screen.getByRole('status')).toHaveTextContent('Added. Run the audit');
     expect(screen.getByText('Waiting to start')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Run audit' })).toBeInTheDocument();
   });
 
   it('sets the name and logo the reports carry, checking the logo link first', async () => {
@@ -237,6 +239,41 @@ describe('partner customer page', () => {
     await waitFor(() => expect(api.updatePartnerCustomer).toHaveBeenCalledWith('c1', expect.objectContaining({ city: 'Fort Lauderdale' })));
     expect(await screen.findByRole('status')).toHaveTextContent('Details saved.');
     expect(screen.getByText('Fort Lauderdale')).toBeInTheDocument();
+  });
+
+  it('runs the queued audit, then follows its steps by name and state only', async () => {
+    api.currentPartner.mockResolvedValue(partner);
+    const queued = { id: 'a1', business_name: 'Harbor Auto', city: 'Miami', website: 'https://harbor.example', instagram: null, competitors: [], status: 'queued', kind: 'benchmark', drive_folder_url: null, summary_pdf_url: null, deck_pdf_url: null, audit_pdf_url: null, created_at: '2026-10-21T00:00:00Z', completed_at: null, steps: [] };
+    api.getPartnerCustomer.mockResolvedValue({ customer: { ...harbor, latest: { id: 'a1', status: 'queued', kind: 'benchmark', created_at: '2026-10-21T00:00:00Z', completed_at: null }, last_reports_at: null, audit_count: 1 }, audits: [queued] });
+    const running = {
+      customer: { ...harbor, latest: { id: 'a1', status: 'running', kind: 'benchmark', created_at: '2026-10-21T00:00:00Z', completed_at: null }, last_reports_at: null, audit_count: 1 },
+      audits: [{ ...queued, status: 'running', steps: [{ step: 'site', status: 'done' }, { step: 'maps', status: 'running' }, { step: 'social_depth', status: 'pending' }] }],
+    };
+    api.runPartnerAudit.mockResolvedValue(running);
+    renderPortal(groundswellCustomerPath('c1'));
+    const button = await screen.findByRole('button', { name: 'Run audit with the benchmark' });
+    expect(screen.queryByLabelText(/benchmark against/)).not.toBeInTheDocument();
+    fireEvent.click(button);
+    await waitFor(() => expect(api.runPartnerAudit).toHaveBeenCalledWith('c1', {}));
+    expect(await screen.findByRole('status')).toHaveTextContent('Started.');
+    expect(screen.queryByRole('button', { name: /Run/ })).not.toBeInTheDocument();
+    const progress = screen.getByRole('list', { name: 'Audit progress' });
+    expect(within(progress).getAllByRole('listitem').map((li) => li.textContent)).toEqual(['Website: done', 'Google Maps: running', 'Instagram posts and reels: waiting']);
+    expect(screen.getByText('1 of 3 steps done')).toBeInTheDocument();
+  });
+
+  it('offers a new run once the last one finished, with the benchmark when there are two competitors, and explains a cap', async () => {
+    api.currentPartner.mockResolvedValue(partner);
+    const two = { ...harbor, competitors: [{ name: 'Dock' }, { name: 'Pier' }] };
+    api.getPartnerCustomer.mockResolvedValue({ customer: { ...two, latest: { id: 'a1', status: 'done', kind: 'audit', created_at: '2026-10-21T00:00:00Z', completed_at: '2026-10-21T01:00:00Z' }, last_reports_at: '2026-10-21T01:00:00Z', audit_count: 1 }, audits: [] });
+    api.runPartnerAudit.mockRejectedValue(new Error('You’ve used your 3 runs for today. The next one frees up in about 4 hours.'));
+    renderPortal(groundswellCustomerPath('c1'));
+    expect(await screen.findByRole('button', { name: 'Run again' })).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText(/benchmark against the first two competitors/));
+    fireEvent.click(screen.getByRole('button', { name: 'Run again with the benchmark' }));
+    await waitFor(() => expect(api.runPartnerAudit).toHaveBeenCalledWith('c1', { kind: 'benchmark' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('frees up in about 4 hours');
+    expect(screen.getByRole('button', { name: 'Run again with the benchmark' })).toBeEnabled();
   });
 
   it('says when a customer is not in the account', async () => {

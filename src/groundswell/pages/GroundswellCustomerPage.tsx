@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Pencil } from 'lucide-react';
-import { getPartnerCustomer, PartnerSignedOut, type PartnerAudit, type PartnerCustomer } from '../../lib/groundswellPartner';
+import { ArrowLeft, Pencil, Play } from 'lucide-react';
+import { getPartnerCustomer, PartnerSignedOut, runPartnerAudit, type PartnerAudit, type PartnerCustomer, type PartnerStep } from '../../lib/groundswellPartner';
+import { STEP_LABELS } from '../../lib/groundswellSteps';
 import { isDriveLink } from '../../lib/groundswellValidation';
 import { usePageMeta } from '../../lib/usePageMeta';
 import { PartnerApp } from '../PartnerApp';
@@ -10,13 +11,101 @@ import { CustomerForm } from './CustomerForm';
 import { AUDIT_STATUS, customerStatus } from './customerStatus';
 
 /**
- * One customer (noindex): its details with an Edit link, then every audit of
- * it, newest first, as a card with its status and Drive links. New Wave
- * starts queued audits from its own queue; a "Run audit" button for partners
- * is the next step of the plan.
+ * One customer (noindex): its details with an Edit link, the one primary
+ * action ("Run audit", or "Run again" once the last one finished; with the
+ * benchmark when the customer has two competitors), then every audit of it,
+ * newest first, as a card with its status and Drive links. A running audit
+ * shows its steps by name and state, read again every 15 seconds; partners
+ * never see error text. A cap (one running audit at a time, so many runs a
+ * day) is explained in place with when the next run frees up.
  */
 
 const when = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString('en-US') : null);
+/** How often the page re-reads a queued or running audit. */
+export const PROGRESS_INTERVAL_MS = 15_000;
+
+const STEP_STATE: Record<PartnerStep['status'], { text: string; color: string }> = {
+  pending: { text: 'waiting', color: 'var(--gs-wait)' },
+  running: { text: 'running', color: 'var(--gs-accent-deep)' },
+  done: { text: 'done', color: 'var(--gs-ok)' },
+  skipped: { text: 'skipped', color: 'var(--gs-accent-deep)' },
+  failed: { text: 'didn’t finish', color: 'var(--gs-bad)' },
+};
+
+/** A running audit's steps, by name and state only. */
+function StepList({ steps }: { steps: PartnerStep[] }) {
+  if (!steps.length) return <p className="mt-2 text-sm gs-muted">Starting…</p>;
+  const done = steps.filter((s) => s.status === 'done' || s.status === 'skipped').length;
+  return (
+    <div className="mt-3">
+      <p className="text-sm gs-muted">
+        {done} of {steps.length} steps done
+      </p>
+      <ol className="mt-2 flex flex-wrap gap-1.5" aria-label="Audit progress">
+        {steps.map((s) => {
+          const state = STEP_STATE[s.status] ?? STEP_STATE.pending;
+          return (
+            <li key={s.step} className="gs-chip font-medium" style={{ color: state.color }}>
+              {STEP_LABELS[s.step] ?? s.step}: {state.text}
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  );
+}
+
+/** The primary action: start the queued audit, or queue and start a fresh one. */
+function RunPanel({ customer, onRan }: { customer: PartnerCustomer; onRan: (result: { customer: PartnerCustomer; audits: PartnerAudit[] }) => void }) {
+  const latest = customer.latest;
+  const queued = latest?.status === 'queued';
+  const canBenchmark = customer.competitors.length >= 2;
+  const [benchmark, setBenchmark] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const withBenchmark = queued ? latest.kind === 'benchmark' : benchmark && canBenchmark;
+  const label = `${latest && !queued ? 'Run again' : 'Run audit'}${withBenchmark ? ' with the benchmark' : ''}`;
+
+  const run = async () => {
+    setError(null);
+    setBusy(true);
+    try {
+      onRan(await runPartnerAudit(customer.id, queued ? {} : { kind: withBenchmark ? 'benchmark' : 'audit' }));
+    } catch (err) {
+      if (err instanceof PartnerSignedOut) throw err;
+      setError(err instanceof Error ? err.message : 'Could not start the audit.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="gs-card mt-6 p-5 sm:p-6">
+      <p className="text-sm gs-muted">
+        {queued
+          ? `This ${latest.kind === 'benchmark' ? 'audit and benchmark' : 'audit'} is queued and hasn’t started. It starts as soon as you run it and takes about half an hour.`
+          : latest
+            ? 'A new run gathers everything again and delivers new reports. The old ones stay.'
+            : 'The audit gathers public data about the business, writes it up and delivers three reports to Google Drive.'}
+      </p>
+      {!queued && canBenchmark ? (
+        <label className="mt-3 flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={benchmark} onChange={(e) => setBenchmark(e.target.checked)} />
+          Also benchmark against the first two competitors
+        </label>
+      ) : null}
+      {error ? (
+        <p className="gs-alert mt-3" role="alert">
+          {error}
+        </p>
+      ) : null}
+      <button type="button" onClick={() => void run()} disabled={busy} className="gs-btn gs-btn-primary mt-4 disabled:opacity-60">
+        <Play size={14} aria-hidden="true" /> {busy ? 'Starting…' : label}
+      </button>
+    </div>
+  );
+}
 
 function Details({ customer, onEdit }: { customer: PartnerCustomer; onEdit: () => void }) {
   const rows: [string, string | null][] = [
@@ -76,6 +165,8 @@ function AuditCard({ audit }: { audit: PartnerAudit }) {
         </span>
       </div>
       {audit.status === 'failed' ? <p className="mt-2 text-sm gs-muted">This audit didn’t finish. We’ve been notified and will follow up.</p> : null}
+      {audit.status === 'running' ? <StepList steps={audit.steps ?? []} /> : null}
+      {audit.status === 'queued' ? <p className="mt-2 text-sm gs-muted">Waiting to start.</p> : null}
       {audit.status === 'done' && audit.completed_at ? <p className="mt-2 text-sm gs-muted">Reports delivered {when(audit.completed_at)}.</p> : null}
       {links.length ? (
         <p className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
@@ -96,7 +187,7 @@ function Customer({ id }: { id: string }) {
   const [data, setData] = useState<{ customer: PartnerCustomer; audits: PartnerAudit[] } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
-  const [notice, setNotice] = useState<string | null>(state?.queued ? 'Queued. We’ll start the audit shortly; its reports will appear here.' : null);
+  const [notice, setNotice] = useState<string | null>(state?.queued ? 'Added. Run the audit when you’re ready; its reports will appear here.' : null);
 
   const refresh = useCallback(async () => {
     try {
@@ -111,12 +202,12 @@ function Customer({ id }: { id: string }) {
     void refresh();
   }, [refresh]);
 
-  const active = data?.audits.some((a) => a.status === 'queued' || a.status === 'running') ?? false;
+  const running = data?.customer.latest?.status === 'running';
   useEffect(() => {
-    if (!active) return;
-    const timer = window.setInterval(() => void refresh(), 30_000);
+    if (!running) return;
+    const timer = window.setInterval(() => void refresh(), PROGRESS_INTERVAL_MS);
     return () => window.clearInterval(timer);
-  }, [active, refresh]);
+  }, [running, refresh]);
 
   const status = customerStatus(data?.customer.latest ?? null);
 
@@ -170,6 +261,15 @@ function Customer({ id }: { id: string }) {
               />
             )}
           </div>
+          {!running ? (
+            <RunPanel
+              customer={data.customer}
+              onRan={(result) => {
+                setData(result);
+                setNotice('Started. This page follows the audit; its reports appear here when it finishes.');
+              }}
+            />
+          ) : null}
           <section aria-labelledby="customer-audits-heading" className="mt-8">
             <h2 id="customer-audits-heading" className="text-xl font-bold">
               Audits

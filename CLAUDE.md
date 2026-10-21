@@ -133,6 +133,48 @@ front page) is now `previewUrl(url, anchor?)`: the public page with
 - **Tests**: `src/lib/preview.test.tsx` (URL, mode, overlay, the hook in
   and out of preview, the banner), new `ContentManager.test.ts` cases, and
   the pinned hrefs in the admin tests.
+
+### Groundswell: partners run audits themselves (2026-10-21)
+
+PR 3 of 4 of the portal plan. A partner presses "Run audit" on a customer
+and it starts at once, on the same engine and worker as the admin button
+(Josh's choice: runs start immediately, no staff approval).
+
+- **Migration** `20261025120000`: `groundswell_partners.daily_run_limit`
+  (null: the default, `DEFAULT_DAILY_RUNS` 3 in `engine.ts`) and
+  `start_audit(audit_id, partner_id, step_names, benchmark_step_names,
+  default_daily_limit)`, which starts one named queued audit of that partner
+  and holds both caps in one transaction (a per-partner advisory lock): one
+  running audit per partner at a time, and a rolling 24-hour count of
+  `started_at` against the cap, so no time zone is involved. It returns
+  `outcome` ('started', 'not_queued', 'another_running', 'daily_limit'), the
+  business still running, or when the oldest run leaves the window.
+  `start_queued_audits`, the admin button and the cron are untouched.
+- **Route** `api/groundswell/partner-run.ts` (POST `{ customer_id, kind?,
+  brand_logo_url?, brand_color? }`, `maxDuration` 300 like the run route):
+  the customer's newest audit decides: queued → started; running → 409;
+  finished, failed or none → a fresh audit from the customer's details with
+  the kind asked for, then started (a refused start removes it again; a
+  missing `start_audit` leaves it queued for staff, 503). Refusals say why
+  and when the next run frees up ("in about 4 hours", `untilText`). Started,
+  the worker runs after the answer and the team gets the "started" email
+  (`notifyNewPartnerAudit(…, 'started')`).
+- **Progress**: `GET partner-customers?id=` adds `steps` (name and state
+  only, never error text; `activeSteps`/`withSteps`) to queued and running
+  audits. The customer page shows the run panel ("Run audit", "Run again",
+  "… with the benchmark" via a checkbox when the customer has two
+  competitors) and, while running, the step chips (`STEP_LABELS`, moved to
+  `src/lib/groundswellSteps.ts` so partner pages need no Supabase client),
+  re-read every `PROGRESS_INTERVAL_MS` (15 s). Adding a customer still only
+  queues; the page says to run it.
+- **Staff**: "Runs a day" per partner on `/groundswell/admin/partners`
+  (PATCH `action: 'limits'`, `daily_run_limit` 0–50 or null; 503 before the
+  migration). There is no settings page; the default lives in code.
+- **Tests**: `src/test/api/groundswell-partner-run.test.ts` (the route, with
+  a JavaScript stand-in for `start_audit` on `fakeSupabase`, which now takes
+  `functions` for `rpc`), plus cases in `groundswell-partners.test.ts`,
+  `groundswell-routes.test.ts` (Vercel limits) and `portal.test.tsx`.
+
 ### Groundswell: customers (2026-10-21)
 
 PR 2 of the Groundswell portal plan. A customer is now a record of its own

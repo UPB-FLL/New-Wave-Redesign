@@ -15,7 +15,9 @@ import { PARTNER_DAILY_LIMIT } from './partner-audits.js';
  *   all of its audits (Drive links once done; never internal error text).
  * POST: add a customer (the same checks as an audit) and queue its first
  *   audit, as an audit or a benchmark, optionally with the business's logo and
- *   colour for its reports. It waits in the queue until an admin runs it.
+ *   colour for its reports. The partner starts it from the customer's page
+ *   (partner-run.ts), or an admin from the queue. A queued or running audit
+ *   carries its `steps` (name and state only).
  * PUT `?id=`: change a customer's details. Audits already queued keep the
  *   details they were queued with.
  *
@@ -23,23 +25,23 @@ import { PARTNER_DAILY_LIMIT } from './partner-audits.js';
  * migration not yet applied) the route answers 503.
  */
 
-const CUSTOMER_COLUMNS = 'id,business_name,city,website,instagram,competitors,notes,created_at,updated_at';
-const AUDIT_COLUMNS =
+export const CUSTOMER_COLUMNS = 'id,business_name,city,website,instagram,competitors,notes,created_at,updated_at';
+export const AUDIT_COLUMNS =
   'id,customer_id,business_name,city,website,instagram,competitors,status,drive_folder_url,summary_pdf_url,deck_pdf_url,audit_pdf_url,created_at,completed_at';
 /** Read only where the database has them (migration 20261022120000). */
-const BENCHMARK_COLUMNS = ',kind,benchmark_pdf_url';
+export const BENCHMARK_COLUMNS = ',kind,benchmark_pdf_url';
 
-const missingColumn = (message: string | undefined) => /column .* does not exist|42703/i.test(message ?? '');
-const missingTable = (message: string | undefined) => /relation .* does not exist|42P01/i.test(message ?? '');
-const NOT_READY = 'Customers are not available yet. Try again later.';
+export const missingColumn = (message: string | undefined) => /column .* does not exist|42703/i.test(message ?? '');
+export const missingTable = (message: string | undefined) => /relation .* does not exist|42P01/i.test(message ?? '');
+export const NOT_READY = 'Customers are not available yet. Try again later.';
 
-interface CustomerRow {
+export interface CustomerRow {
   id: string;
   updated_at: string;
   [key: string]: unknown;
 }
 
-interface AuditRow {
+export interface AuditRow {
   id: string;
   customer_id: string | null;
   status: AuditStatus;
@@ -49,7 +51,7 @@ interface AuditRow {
   [key: string]: unknown;
 }
 
-async function partnerAudits(db: SupabaseClient, partnerId: string, customerId?: string) {
+export async function partnerAudits(db: SupabaseClient, partnerId: string, customerId?: string) {
   const read = (columns: string) => {
     let q = db.from('marketing_audits').select(columns).eq('partner_id', partnerId);
     if (customerId) q = q.eq('customer_id', customerId);
@@ -63,7 +65,7 @@ async function partnerAudits(db: SupabaseClient, partnerId: string, customerId?:
 }
 
 /** A customer with what the list shows: its newest audit and when its last reports arrived. */
-function summarize(customer: CustomerRow, audits: AuditRow[]) {
+export function summarize(customer: CustomerRow, audits: AuditRow[]) {
   const own = audits.filter((a) => a.customer_id === customer.id);
   const latest = own[0] ?? null;
   const delivered = own.find((a) => a.status === 'done' && a.completed_at);
@@ -76,13 +78,43 @@ function summarize(customer: CustomerRow, audits: AuditRow[]) {
 }
 
 /** Audits as the partner sees them: no customer_id (the page knows it) and nothing internal. */
-function publicAudit(row: AuditRow) {
+export function publicAudit(row: AuditRow) {
   const audit: Record<string, unknown> = { ...row };
   delete audit.customer_id;
   return audit;
 }
 
-function draftFrom(body: Record<string, unknown>): AuditDraft {
+/** Partners see a running audit's steps by name and state only: never error text. */
+export interface PublicStep {
+  step: string;
+  status: 'pending' | 'running' | 'done' | 'skipped' | 'failed';
+}
+
+/** The steps of the audits that are queued or running, by audit id, in order. Empty when nothing is active. */
+export async function activeSteps(db: SupabaseClient, audits: AuditRow[]): Promise<Record<string, PublicStep[]>> {
+  const active = audits.filter((a) => a.status === 'queued' || a.status === 'running').map((a) => a.id);
+  if (!active.length) return {};
+  const { data, error } = await db.from('marketing_audit_steps').select('audit_id,step,position,status').in('audit_id', active).order('position', { ascending: true });
+  if (error) {
+    // Progress is a nice-to-have: the page still shows without it.
+    console.error('Partner audit steps read failed:', error.message);
+    return {};
+  }
+  const out: Record<string, (PublicStep & { position: number })[]> = {};
+  for (const row of (data ?? []) as { audit_id: string; step: string; position: number; status: PublicStep['status'] }[]) {
+    (out[row.audit_id] ??= []).push({ step: row.step, status: row.status, position: row.position });
+  }
+  return Object.fromEntries(Object.entries(out).map(([id, rows]) => [id, rows.sort((a, b) => a.position - b.position).map(({ step, status }) => ({ step, status }))]));
+}
+
+/** An audit with its steps while it is queued or running. */
+export function withSteps(audit: AuditRow, steps: Record<string, PublicStep[]>) {
+  const row = publicAudit(audit);
+  if (audit.status === 'queued' || audit.status === 'running') row.steps = steps[audit.id] ?? [];
+  return row;
+}
+
+export function draftFrom(body: Record<string, unknown>): AuditDraft {
   const str = (v: unknown) => (typeof v === 'string' ? v : '');
   const competitors = Array.isArray(body.competitors) ? body.competitors.slice(0, 6) : [];
   return {
@@ -125,7 +157,10 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       return res.status(500).json({ error: 'Could not load your customers.' });
     }
     const rows = (customers.data ?? []) as unknown as CustomerRow[];
-    if (id) return res.status(200).json({ customer: summarize(rows[0], audits.data ?? []), audits: (audits.data ?? []).map(publicAudit) });
+    if (id) {
+      const steps = await activeSteps(db, audits.data ?? []);
+      return res.status(200).json({ customer: summarize(rows[0], audits.data ?? []), audits: (audits.data ?? []).map((a) => withSteps(a, steps)) });
+    }
     const summaries = rows.map((c) => summarize(c, audits.data ?? []));
     // Most recent activity first: a new audit counts as activity on its customer.
     const activity = (c: ReturnType<typeof summarize>) => Math.max(Date.parse(c.updated_at), c.latest ? Date.parse(c.latest.created_at) : 0);
