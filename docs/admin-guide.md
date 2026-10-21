@@ -32,13 +32,35 @@ The old addresses still work: `/admin/unified` goes to the blog and
 
 ## Editing content
 
-1. Open the editor from the sidebar or the front page.
-2. Change any field.
-3. Save. Editors on the shared content manager (Hero, Service cards) show a
-   bar at the bottom of the screen with the number of unsaved changes, a
-   "Save changes" button, and "Discard"; the other editors have a "Save
-   Changes" button at the top of the form. (Moving every editor onto the
-   shared bar is the next phase of the rework.)
+Every site-page editor (`/admin/hero`, `/admin/pricing`, and the rest) is
+the same screen, `SectionPage`, drawn from the section's descriptor in
+`src/admin/sections/descriptors.ts`.
+
+1. Open the editor from the sidebar or the front page. The sidebar search
+   also finds single fields ("phone", "tagline") and opens the editor on
+   that field.
+2. The section is a column of **blocks** (Headline, Buttons and phone,
+   Feature cards), collapsed to a title, a one-line preview, and a field
+   count. Open one; opening another closes it unless you pin it open.
+3. Change any field. A block with unsaved edits shows an amber dot, and so
+   does the field.
+4. Lists (cards, tiers, services, threats) are **rows**: the title, a
+   second line, and buttons to move, duplicate, and delete. Click a row to
+   edit it in the side panel; Done or Escape closes it. Drag rows to
+   reorder. An empty list offers "Start from the site's defaults", the
+   built-in items the site shows when nothing is saved.
+5. Save. The bar at the bottom of the screen shows the number of unsaved
+   changes, "Save changes", and "Discard". It appears on every editor as
+   soon as something is unsaved.
+
+Edits survive a reload or a wrong click: they are kept in the browser
+(session storage) until saved or discarded, and leaving the admin with
+unsaved edits asks first. If someone else saved the same section after you
+opened it, saving warns before overwriting their change.
+
+If a stored list cannot be read (bad JSON written by hand), the editor shows
+the raw value and leaves it alone; "Replace it with an empty list" is the
+only way to clear it.
 
 ### Real-time updates
 
@@ -78,10 +100,24 @@ Content is stored in the Supabase `site_content` table:
 
 ## Adding an editor
 
-1. Create the editor in `src/admin/editors/`
-2. Add a `<Route>` under `/admin` in `src/App.tsx`
+Most new content needs no new screen: add the section (or the field) to
+`src/admin/sections/descriptors.ts` and `SectionPage` renders it.
+
+1. Describe the section: `blocks`, each with `fields`. A scalar field is
+   `text`, `textarea`, `number`, `color`, `select`, `checkbox`, or
+   `strings` (a list of plain strings, stored as JSON). A `list` field
+   holds items with their own fields, `titleKey` for the row, `newItem`,
+   and optional `defaults` (the site's built-in items). The stored shape
+   must match what the public component reads.
+2. Add a `<Route>` under `/admin` in `src/App.tsx`:
+   `<Route path="…" element={<SectionPage section="…" />} />`.
 3. Add an entry to `src/admin/adminNav.ts` under the site page it changes,
    with the `site_content` section it writes and the words someone would
-   search for
-4. `src/admin/adminNav.test.ts` fails until the route, the entry, and every
-   section the public site reads agree
+   search for.
+4. `src/admin/adminNav.test.ts` and `src/admin/sections/sections.test.ts`
+   fail until the route, the entry, the descriptor, and every key the public
+   site reads agree.
+
+An editor that is not a `site_content` section (the quote builder's units,
+the blog, SEO) is its own component under `src/admin/`; put it on the
+`ContentManager` only if it writes `site_content`.

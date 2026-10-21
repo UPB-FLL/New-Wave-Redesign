@@ -110,21 +110,11 @@ const AdminLayout = lazy(() => import('./admin/AdminLayout'));
 const AdminHome = lazy(() => import('./admin/AdminHome'));
 const AdminBlogPage = lazy(() => import('./admin/blog/BlogPage'));
 const AdminBlogSettings = lazy(() => import('./admin/blog/BlogSettings'));
-const HeroEditor = lazy(() => import('./admin/editors/HeroEditor'));
-const TrustBarEditor = lazy(() => import('./admin/editors/TrustBarEditor'));
-const ServicesEditor = lazy(() => import('./admin/editors/ServicesEditor'));
-const WhyUsEditor = lazy(() => import('./admin/editors/WhyUsEditor'));
-const AboutEditor = lazy(() => import('./admin/editors/AboutEditor'));
-const ContactEditor = lazy(() => import('./admin/editors/ContactEditor'));
-const FooterEditor = lazy(() => import('./admin/editors/FooterEditor'));
 const PricingUnitsEditor = lazy(() => import('./admin/editors/PricingUnitsEditor'));
-const PricingEditor = lazy(() => import('./admin/editors/PricingEditor'));
-const StatusEditor = lazy(() => import('./admin/editors/StatusEditor'));
+// Every other CMS section is edited by SectionPage from its descriptor (src/admin/sections).
+const SectionPage = lazy(() => import('./admin/SectionPage'));
 const SeoPortal = lazy(() => import('./admin/seo/SeoPortal'));
 const SeoPageEditor = lazy(() => import('./admin/seo/SeoPageEditor'));
-const ServicesDetailEditor = lazy(() => import('./admin/editors/ServicesDetailEditor'));
-const ThreatsDetailEditor = lazy(() => import('./admin/editors/ThreatsDetailEditor'));
-const ServicesCategoryEditor = lazy(() => import('./admin/editors/ServicesCategoryEditor'));
 
 function AdminFallback() {
   return <div className="min-h-screen" aria-busy="true" />;
@@ -236,19 +226,19 @@ export default function App() {
           <Route path="legacy" element={<Navigate to="/admin" replace />} />
           <Route path="blog" element={<AdminBlogPage />} />
           <Route path="blog/settings" element={<AdminBlogSettings />} />
-          <Route path="hero" element={<HeroEditor />} />
-          <Route path="trustbar" element={<TrustBarEditor />} />
-          <Route path="services" element={<ServicesEditor />} />
-          <Route path="whyus" element={<WhyUsEditor />} />
-          <Route path="about" element={<AboutEditor />} />
-          <Route path="contact" element={<ContactEditor />} />
-          <Route path="footer" element={<FooterEditor />} />
-          <Route path="pricing" element={<PricingEditor />} />
+          <Route path="hero" element={<SectionPage section="hero" />} />
+          <Route path="trustbar" element={<SectionPage section="trustbar" />} />
+          <Route path="services" element={<SectionPage section="services" />} />
+          <Route path="whyus" element={<SectionPage section="whyus" />} />
+          <Route path="about" element={<SectionPage section="about" />} />
+          <Route path="contact" element={<SectionPage section="contact" />} />
+          <Route path="footer" element={<SectionPage section="footer" />} />
+          <Route path="pricing" element={<SectionPage section="pricing" />} />
           <Route path="pricing-units" element={<PricingUnitsEditor />} />
-          <Route path="status" element={<StatusEditor />} />
-          <Route path="services-detail" element={<ServicesDetailEditor />} />
-          <Route path="service-categories" element={<ServicesCategoryEditor />} />
-          <Route path="threats-detail" element={<ThreatsDetailEditor />} />
+          <Route path="status" element={<SectionPage section="status" />} />
+          <Route path="services-detail" element={<SectionPage section="services-detail" />} />
+          <Route path="service-categories" element={<SectionPage section="services-categories" />} />
+          <Route path="threats-detail" element={<SectionPage section="threats-detail" />} />
           <Route path="seo" element={<SeoPortal />} />
           <Route path="seo/:id" element={<SeoPageEditor />} />
           {/* Groundswell moved to its own section (/groundswell/admin); its old addresses redirect there. */}

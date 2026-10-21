@@ -9,6 +9,8 @@ class TestContentManager {
     pendingChanges: {},
     publishStatus: 'idle',
     lastError: null,
+    staleSections: [],
+    loaded: {},
   };
 
   private listeners: Set<(state: ContentManagerState) => void> = new Set();

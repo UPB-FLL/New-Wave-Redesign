@@ -61,8 +61,10 @@ describe('AdminLayout sidebar', () => {
     const search = screen.getByRole('searchbox', { name: 'Search the admin' });
     fireEvent.change(search, { target: { value: 'phone' } });
     const results = screen.getByRole('group', { name: 'Search results' });
-    const links = within(results).getAllByRole('link');
+    const fieldLinks = within(within(results).getByRole('group', { name: 'Fields' })).getAllByRole('link');
+    const links = within(results).getAllByRole('link').filter((l) => !fieldLinks.includes(l));
     expect(links.map((l) => l.getAttribute('href'))).toEqual(['/admin/hero', '/admin/contact', '/admin/footer']);
+    expect(fieldLinks.map((l) => l.getAttribute('href'))).toContain('/admin/footer?field=phone');
     expect(within(results).getAllByText('Contact and footer')).toHaveLength(2);
     expect(screen.queryByText('SEO')).not.toBeInTheDocument();
     fireEvent.click(links[2]);
