@@ -37,8 +37,18 @@ interface ExecuteResponse {
 function describeError(err: unknown): string {
   if (!err) return 'unknown error';
   if (typeof err === 'string') return err;
-  if (typeof err === 'object' && err && 'message' in err) return String((err as { message: unknown }).message);
+  if (typeof err === 'object' && err && 'message' in err) {
+    const { message, suggested_fix } = err as { message: unknown; suggested_fix?: unknown };
+    return typeof suggested_fix === 'string' && suggested_fix ? `${String(message)} ${suggested_fix}` : String(message);
+  }
   return JSON.stringify(err).slice(0, 300);
+}
+
+/** What was sent, without the key itself: its length and whether it looks like a project key. */
+export function keyShape(key: string): string {
+  const trimmed = key.trim();
+  const note = trimmed.length !== key.length ? ', with surrounding whitespace' : '';
+  return `${key.length} characters, ${trimmed.startsWith('ak_') ? 'starts with ak_' : 'does not start with ak_'}${note}`;
 }
 
 /** Runs one Composio tool and returns its `data`. */
@@ -52,7 +62,8 @@ export async function executeTool(slug: string, args: Record<string, unknown>, t
   const body = (await response.json().catch(() => ({}))) as ExecuteResponse;
   const why = describeError(body.error);
   if (response.status === 401 || response.status === 403) {
-    throw new PermanentStepError(`Composio refused the API key (${response.status}).`);
+    // Composio's own reason (an unknown key, a key without tool-execution rights) and the key's shape, never the key.
+    throw new PermanentStepError(`Composio refused the API key (${response.status}): ${why.replace(/\.?$/, ".")} COMPOSIO_API_KEY as read: ${keyShape(apiKey())}.`);
   }
   if (!response.ok || body.successful === false) {
     if (/no (active )?connect|connected account|not connected/i.test(why)) {
