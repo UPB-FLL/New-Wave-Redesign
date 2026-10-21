@@ -7,10 +7,13 @@ import {
   deleteAudit,
   isDriveLink,
   listAudits,
+  listAuditSteps,
   queueAudit,
   requeueAudit,
   startQueuedAudits,
+  STEP_LABELS,
   type AuditDraft,
+  type AuditStep,
   type CompetitorDraft,
   type MarketingAudit,
 } from '../../lib/marketingAudits';
@@ -31,6 +34,32 @@ const STATUS = {
   failed: { label: 'Failed', color: '#FF7A7A', Icon: XCircle },
 } as const;
 
+const STEP_COLORS: Record<AuditStep['status'], string> = {
+  pending: 'rgba(255,255,255,0.35)',
+  running: '#39CCCC',
+  done: '#5CC77A',
+  skipped: '#F5C26B',
+  failed: '#FF7A7A',
+};
+
+/** Groundswell's progress through one audit: each step, in order, with its state. */
+function StepProgress({ steps }: { steps: AuditStep[] }) {
+  return (
+    <ol className="flex flex-wrap gap-1.5" aria-label="Audit progress">
+      {steps.map((s) => (
+        <li
+          key={s.step}
+          title={s.error ?? undefined}
+          className="text-[11px] rounded-full px-2 py-0.5"
+          style={{ color: STEP_COLORS[s.status], border: `1px solid ${STEP_COLORS[s.status]}` }}
+        >
+          {STEP_LABELS[s.step] ?? s.step}: {s.status === 'skipped' ? 'skipped' : s.status === 'pending' ? 'waiting' : s.status}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
 const input =
   'w-full rounded-lg px-3 py-2 text-sm text-white placeholder-white/30 bg-white/5 border border-white/10 focus:outline-none focus:border-[#39CCCC]';
 
@@ -43,10 +72,15 @@ export default function MarketingAudits() {
   const [adding, setAdding] = useState<{ id: string; competitor: CompetitorDraft } | null>(null);
   const [starting, setStarting] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [steps, setSteps] = useState<Record<string, AuditStep[]>>({});
 
   const refresh = async () => {
     try {
-      setAudits(await listAudits());
+      const rows = await listAudits();
+      setAudits(rows);
+      // Progress is a nice-to-have: the list still shows if the steps can't be read.
+      const watched = rows.filter((a) => a.status === 'running' || a.status === 'failed').map((a) => a.id);
+      setSteps(await listAuditSteps(watched).catch(() => ({})));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not load audits.');
     } finally {
@@ -60,13 +94,14 @@ export default function MarketingAudits() {
 
   const queued = audits.filter((a) => a.status === 'queued').length;
   const active = audits.some((a) => a.status === 'queued' || a.status === 'running');
+  const running = audits.some((a) => a.status === 'running');
 
-  // While audits are waiting or running, re-read the queue so status and Drive links appear on their own.
+  // While audits are waiting or running, re-read the queue so progress and Drive links appear on their own.
   useEffect(() => {
     if (!active) return;
-    const timer = window.setInterval(() => void refresh(), 30_000);
+    const timer = window.setInterval(() => void refresh(), running ? 15_000 : 30_000);
     return () => window.clearInterval(timer);
-  }, [active]);
+  }, [active, running]);
 
   const startRuns = async () => {
     setError(null);
@@ -75,7 +110,7 @@ export default function MarketingAudits() {
     try {
       const started = await startQueuedAudits();
       setNotice(
-        `Started ${started} audit run${started === 1 ? '' : 's'}. Each one takes a while; the Drive links appear here when it finishes.`
+        `Started ${started} audit${started === 1 ? '' : 's'}. Progress shows below; the Drive links appear when each one finishes.`
       );
       await refresh();
     } catch (err) {
@@ -121,9 +156,10 @@ export default function MarketingAudits() {
           <h1 className="text-2xl font-bold text-white">Marketing audits</h1>
           <p className="text-sm text-white/60 max-w-3xl">
             Add a business by its website or Instagram, with any competitors you want compared; adding a competitor
-            later queues the audit again. Queued audits run when you press <span className="text-white/80">Run queued audits now</span>:
-            each run builds the summary, slide deck and full audit and saves them to Google Drive under{' '}
-            <span className="text-white/80">Customers</span>, shared with anyone who has the link.
+            later queues the audit again. Queued audits run on Groundswell when you press{' '}
+            <span className="text-white/80">Run queued audits now</span>: it gathers each Current&rsquo;s data, writes the audit,
+            and saves the summary, slide deck and full audit to Google Drive under <span className="text-white/80">Customers</span>,
+            shared with anyone who has the link. You can leave this page; audits keep running.
           </p>
         </div>
         <button
@@ -243,6 +279,7 @@ export default function MarketingAudits() {
                       <s.Icon size={12} className={a.status === 'running' ? 'animate-spin' : ''} /> {s.label}
                     </span>
                   </div>
+                  {steps[a.id]?.length ? <StepProgress steps={steps[a.id]} /> : null}
                   {a.error && <p className="text-xs" style={{ color: '#FFB3B3' }}>{a.error}</p>}
                   {adding?.id === a.id && (
                     <form

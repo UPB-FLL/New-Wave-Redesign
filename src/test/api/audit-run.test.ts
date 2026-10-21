@@ -1,29 +1,27 @@
+import { readFileSync } from 'node:fs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const auth = vi.hoisted(() => ({ getUser: vi.fn() }));
-const db = vi.hoisted(() => ({ configured: true, count: 0 as number | null, error: null as { message: string } | null, eq: vi.fn() }));
+const db = vi.hoisted(() => ({ configured: true, started: [] as string[], error: null as Error | null }));
+const engine = vi.hoisted(() => ({ startQueuedAudits: vi.fn(), runWorker: vi.fn() }));
+const waitUntil = vi.hoisted(() => vi.fn());
 
 vi.mock('../../../api/_lib/supabasePublic', () => ({
   isSupabasePublicConfigured: () => true,
   missingSupabasePublicEnv: () => [],
   getSupabasePublic: () => ({ auth: { getUser: auth.getUser } }),
 }));
-
 vi.mock('../../../api/_lib/supabaseAdmin', () => ({
   isSupabaseConfigured: () => db.configured,
-  getSupabaseAdmin: () => ({
-    from: () => ({
-      select: () => ({
-        eq: (...args: unknown[]) => {
-          db.eq(...args);
-          return Promise.resolve({ count: db.count, error: db.error });
-        },
-      }),
-    }),
-  }),
+  getSupabaseAdmin: () => ({ fake: 'db' }),
 }));
+vi.mock('../../../api/_lib/groundswell/engine', () => engine);
+vi.mock('@vercel/functions', () => ({ waitUntil }));
 
-import handler, { MAX_RUNS_PER_CLICK } from '../../../api/audits/run';
+import handler, { MAX_AUDITS_PER_CLICK } from '../../../api/audits/run';
+import worker from '../../../api/audits/worker';
+import { FUNCTION_SECONDS } from '../../../api/_lib/groundswell/background';
+import { STEPS } from '../../../api/_lib/groundswell/steps';
 
 function makeRes() {
   return {
@@ -48,13 +46,11 @@ function makeRes() {
   };
 }
 
-const ROUTINE_ID = 'trig_01AuditRoutine';
 const signedIn = { authorization: 'Bearer good-session' };
-const fetchMock = vi.fn();
 
-async function call(headers: Record<string, string> = signedIn, method = 'POST') {
+async function call(route: typeof handler, headers: Record<string, string> = signedIn, method = 'POST') {
   const res = makeRes();
-  await handler({ method, headers }, res);
+  await route({ method, headers }, res);
   return res;
 }
 
@@ -64,95 +60,106 @@ beforeEach(() => {
     token === 'good-session' ? { data: { user: { id: 'admin' } }, error: null } : { data: { user: null }, error: { message: 'bad' } }
   );
   db.configured = true;
-  db.count = 2;
-  db.error = null;
-  db.eq.mockReset();
-  fetchMock.mockReset();
-  fetchMock.mockResolvedValue(new Response(JSON.stringify({ type: 'routine_fire' }), { status: 200 }));
-  vi.stubGlobal('fetch', fetchMock);
+  engine.startQueuedAudits.mockReset();
+  engine.startQueuedAudits.mockResolvedValue(['a1', 'a2']);
+  engine.runWorker.mockReset();
+  engine.runWorker.mockResolvedValue({ ran: [], finished: [] });
+  waitUntil.mockReset();
   vi.stubEnv('ADMIN_API_KEY', 'test-admin-key');
-  vi.stubEnv('AUDIT_ROUTINE_ID', ROUTINE_ID);
-  vi.stubEnv('AUDIT_ROUTINE_TOKEN', 'routine-token');
+  vi.stubEnv('COMPOSIO_API_KEY', 'ak_test');
+  vi.stubEnv('OPENAI_API_KEY', 'sk-test');
   vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
 afterEach(() => {
-  vi.unstubAllGlobals();
   vi.unstubAllEnvs();
   vi.restoreAllMocks();
 });
 
 describe('POST /api/audits/run', () => {
   it('accepts POST only', async () => {
-    const res = await call(signedIn, 'GET');
-    expect(res.statusCode).toBe(405);
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect((await call(handler, signedIn, 'GET')).statusCode).toBe(405);
+    expect(engine.startQueuedAudits).not.toHaveBeenCalled();
   });
 
   it('refuses callers who are not signed-in admins', async () => {
-    expect((await call({})).statusCode).toBe(401);
-    expect((await call({ authorization: 'Bearer expired' })).statusCode).toBe(401);
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect((await call(handler, {})).statusCode).toBe(401);
+    expect((await call(handler, { authorization: 'Bearer expired' })).statusCode).toBe(401);
+    expect(engine.startQueuedAudits).not.toHaveBeenCalled();
   });
 
-  it('answers 503 until the routine id and token are set, and checks the id shape', async () => {
-    vi.stubEnv('AUDIT_ROUTINE_TOKEN', '');
-    expect((await call()).statusCode).toBe(503);
-    vi.stubEnv('AUDIT_ROUTINE_TOKEN', 'routine-token');
-    vi.stubEnv('AUDIT_ROUTINE_ID', 'https://evil.example/');
-    expect((await call()).statusCode).toBe(503);
-    expect(fetchMock).not.toHaveBeenCalled();
+  it('answers 503 until Supabase, Composio and OpenAI are set up', async () => {
+    vi.stubEnv('COMPOSIO_API_KEY', '');
+    expect((await call(handler)).statusCode).toBe(503);
+    vi.stubEnv('COMPOSIO_API_KEY', 'ak_test');
+    vi.stubEnv('OPENAI_API_KEY', '');
+    expect((await call(handler)).statusCode).toBe(503);
+    vi.stubEnv('OPENAI_API_KEY', 'sk-test');
+    db.configured = false;
+    expect((await call(handler)).statusCode).toBe(503);
+    expect(engine.startQueuedAudits).not.toHaveBeenCalled();
   });
 
-  it('does not start a run when nothing is queued', async () => {
-    db.count = 0;
-    const res = await call();
+  it('says so when nothing is queued, without starting the worker', async () => {
+    engine.startQueuedAudits.mockResolvedValue([]);
+    const res = await call(handler);
     expect(res.statusCode).toBe(409);
-    expect(db.eq).toHaveBeenCalledWith('status', 'queued');
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(waitUntil).not.toHaveBeenCalled();
   });
 
-  it('fires the routine once per queued audit with the documented request', async () => {
-    const res = await call();
+  it(`starts up to ${MAX_AUDITS_PER_CLICK} queued audits with every step, then works on them after answering`, async () => {
+    const res = await call(handler);
     expect(res.statusCode).toBe(200);
-    expect(res.body).toEqual({ started: 2, queued: 2 });
-    expect(fetchMock).toHaveBeenCalledTimes(2);
-    const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toBe(`https://api.anthropic.com/v1/claude_code/routines/${ROUTINE_ID}/fire`);
-    expect(init.method).toBe('POST');
-    expect(init.headers).toMatchObject({
-      Authorization: 'Bearer routine-token',
-      'anthropic-version': '2023-06-01',
-      'Content-Type': 'application/json',
-    });
-    expect(JSON.parse(init.body).text).toMatch(/marketing-audit/);
+    expect(res.body).toEqual({ started: 2 });
+    expect(engine.startQueuedAudits).toHaveBeenCalledWith({ fake: 'db' }, STEPS, MAX_AUDITS_PER_CLICK);
+    expect(waitUntil).toHaveBeenCalledTimes(1);
+    await waitUntil.mock.calls[0][0];
+    const [, steps, { deadline }] = engine.runWorker.mock.calls[0];
+    expect(steps).toBe(STEPS);
+    expect(deadline - Date.now()).toBeLessThanOrEqual(FUNCTION_SECONDS * 1000);
   });
 
-  it(`caps one click at ${MAX_RUNS_PER_CLICK} runs`, async () => {
-    db.count = 10;
-    const res = await call();
-    expect(res.body).toEqual({ started: MAX_RUNS_PER_CLICK, queued: 10 });
-    expect(fetchMock).toHaveBeenCalledTimes(MAX_RUNS_PER_CLICK);
+  it('reports a database failure', async () => {
+    engine.startQueuedAudits.mockRejectedValue(new Error('rpc missing'));
+    expect((await call(handler)).statusCode).toBe(500);
+  });
+});
+
+describe('POST /api/audits/worker', () => {
+  it('takes the cron key, answers at once and keeps working in the background', async () => {
+    const res = await call(worker, { 'x-admin-key': 'test-admin-key' });
+    expect(res.statusCode).toBe(202);
+    expect(waitUntil).toHaveBeenCalledTimes(1);
   });
 
-  it('reports the hourly limit and other failures without leaking the upstream body', async () => {
-    fetchMock.mockResolvedValue(new Response('{"error":{"type":"rate_limit_error"}}', { status: 429 }));
-    let res = await call();
-    expect(res.statusCode).toBe(429);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+  it('refuses anyone else', async () => {
+    expect((await call(worker, { 'x-admin-key': 'wrong' })).statusCode).toBe(401);
+    expect((await call(worker, {}, 'POST')).statusCode).toBe(401);
+    expect(waitUntil).not.toHaveBeenCalled();
+  });
+});
 
-    fetchMock.mockReset();
-    fetchMock.mockRejectedValue(new Error('network down'));
-    res = await call();
-    expect(res.statusCode).toBe(502);
+describe('Groundswell steps and Vercel limits', () => {
+  it('lists unique step names and ends with delivery', () => {
+    const names = STEPS.map((s) => s.name);
+    expect(new Set(names).size).toBe(names.length);
+    expect(names[0]).toBe('site');
+    expect(names[names.length - 1]).toBe('deliver_finish');
+    expect(STEPS.filter((s) => s.current === 'Delivery').every((s) => !s.optional)).toBe(true);
   });
 
-  it('counts the runs that started before a failure', async () => {
-    fetchMock
-      .mockResolvedValueOnce(new Response('{}', { status: 200 }))
-      .mockResolvedValueOnce(new Response('{}', { status: 503 }));
-    const res = await call();
-    expect(res.statusCode).toBe(200);
-    expect(res.body).toEqual({ started: 1, queued: 2 });
+  it('gives both routes the time the worker plans for, and ships Chromium and the report font', () => {
+    const vercel = JSON.parse(readFileSync('vercel.json', 'utf8'));
+    for (const route of ['api/audits/run.ts', 'api/audits/worker.ts']) {
+      expect(vercel.functions[route].maxDuration).toBe(FUNCTION_SECONDS);
+      expect(vercel.functions[route].includeFiles).toContain('node_modules/@sparticuz/chromium/bin/**');
+      expect(vercel.functions[route].includeFiles).toContain('inter-latin-var.woff2');
+    }
+  });
+
+  it('the migration pings the worker route this file defines', () => {
+    const sql = readFileSync('supabase/migrations/20261021120000_groundswell_engine.sql', 'utf8');
+    expect(sql).toContain("'https://www.newwaveitfl.com/api/audits/worker'");
+    for (const fn of ['claim_next_audit_step', 'start_queued_audits']) expect(sql).toContain(`GRANT EXECUTE ON FUNCTION ${fn}`);
   });
 });

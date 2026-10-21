@@ -16,6 +16,14 @@
     },
     "api/blog/generate-post.ts": {
       "maxDuration": 120
+    },
+    "api/audits/run.ts": {
+      "maxDuration": 300,
+      "includeFiles": "{node_modules/@sparticuz/chromium/bin/**,public/brand/social-engineering/fonts/inter-latin-var.woff2}"
+    },
+    "api/audits/worker.ts": {
+      "maxDuration": 300,
+      "includeFiles": "{node_modules/@sparticuz/chromium/bin/**,public/brand/social-engineering/fonts/inter-latin-var.woff2}"
     }
   },
   "headers": [

@@ -3,10 +3,10 @@ import { adminAuthHeaders } from './adminAuth';
 
 /**
  * Marketing audit requests (NW Social Engineering). An admin queues a business,
- * by website and/or Instagram, with optional competitors, then starts the
- * marketing-audit routine from the same screen (POST /api/audits/run). Each run
- * executes the .claude/skills/marketing-audit skill on one queued row and
- * writes public Google Drive links back to it.
+ * by website and/or Instagram, with optional competitors, then starts the audits
+ * from the same screen (POST /api/audits/run). Groundswell, the engine in
+ * api/_lib/groundswell/, runs each audit's steps (marketing_audit_steps) and
+ * writes public Google Drive links back to the row.
  */
 
 export type AuditStatus = 'queued' | 'running' | 'done' | 'failed';
@@ -163,7 +163,47 @@ export async function deleteAudit(id: string): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
-/** Starts one routine run per queued audit (the server caps it); returns how many started. */
+export type StepStatus = 'pending' | 'running' | 'done' | 'skipped' | 'failed';
+
+export interface AuditStep {
+  audit_id: string;
+  step: string;
+  position: number;
+  status: StepStatus;
+  error: string | null;
+}
+
+/** Plain labels for Groundswell's steps (api/_lib/groundswell/steps.ts). */
+export const STEP_LABELS: Record<string, string> = {
+  site: 'Website',
+  maps: 'Google Maps',
+  search: 'Search rankings',
+  keywords: 'Keyword demand',
+  social: 'Instagram',
+  ads: 'Ads',
+  model: 'Write-up and ROI',
+  deliver_prepare: 'Drive folder',
+  deliver_audit: 'Full audit PDF',
+  deliver_deck: 'Slides PDF',
+  deliver_summary: 'Summary PDF',
+  deliver_finish: 'Share and save links',
+};
+
+/** Each audit's steps in order, by audit id. Empty when there are none to show. */
+export async function listAuditSteps(auditIds: string[]): Promise<Record<string, AuditStep[]>> {
+  if (!auditIds.length) return {};
+  const { data, error } = await supabase
+    .from('marketing_audit_steps')
+    .select('audit_id,step,position,status,error')
+    .in('audit_id', auditIds)
+    .order('position', { ascending: true });
+  if (error) throw new Error(error.message);
+  const out: Record<string, AuditStep[]> = {};
+  for (const row of (data ?? []) as AuditStep[]) (out[row.audit_id] ??= []).push(row);
+  return out;
+}
+
+/** Starts up to three queued audits on Groundswell; returns how many started. */
 export async function startQueuedAudits(): Promise<number> {
   const response = await fetch('/api/audits/run', {
     method: 'POST',
