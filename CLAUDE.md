@@ -2,6 +2,39 @@
 
 ## Recent Changes
 
+### Groundswell package: setup file, ad plan, templates (2026-10-21)
+
+Groundswell is the engine; Croissance is the data it produces. The part of
+the engine that does not depend on New Wave lives in `packages/groundswell/`
+(its README has the process, the model, and the roadmap), so it can become
+its own app.
+
+- **Setup file** `groundswell.config.ts`: every published figure with its
+  source, link and edition (LocaliQ 2026 Google and Meta benchmarks by
+  industry, Lebesgue 2026 TikTok, ZenABM 2026 LinkedIn; Reddit has no credible
+  benchmark and is "not modeled"), official ad-format limits, alcohol rules
+  (Reddit and TikTok need a sales team, so self-serve is ruled out), platform
+  minimum budgets, scenario rules, tiers, and verification tolerances.
+  `industries.ts` holds the industry profiles. `validateConfig` lists every
+  problem at once.
+- **Ad plan** (`src/adplan.ts`): every angle on every platform its industry
+  allows, low / medium / high, ranked by return, with cost-per-click, clicks
+  and return tiers, a fund / test / skip call, conditions, and a stop-loss.
+  Social leads use the published cost per lead. An angle without a published
+  price shows cost and clicks only ("not modeled"); a platform without a
+  benchmark is listed, never guessed.
+- **Templates** (`src/templates.ts`): field counts, character limits, and New
+  Wave's rule against unproven "best" / "#1" claims (stricter than Google's
+  current policy; matches TikTok's).
+- **Use case** `examples/uncommon-path-brewing.ts`: real Broward County
+  Keyword Planner demand and bids and published prices; its plan is pinned by
+  `test/upb-usecase.test.ts` and shown on Croissance ("Win the searches you
+  can own"), computed at build time, never typed into copy.
+- `tsconfig.app.json` type-checks `packages/`. Next (README roadmap): every
+  change ranked by return with today vs the team's plan, the `adplan` step in
+  the live engine, verification, the planner agent and connectors,
+  white-label branding for partners and their sub-clients.
+
 ### Groundswell section, internal rename, and the Croissance partner portal (2026-10-21)
 
 - **Rename**: everything internal is Groundswell. Admin:

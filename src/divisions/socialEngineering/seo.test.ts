@@ -151,6 +151,7 @@ describe('division copy follows the brand guidelines', () => {
       auditContent.reports.heading,
       auditContent.sample.heading,
       auditContent.growth.heading,
+      auditContent.adPlan.heading,
     ].forEach((headline) => {
       const words = headline.split(/\s+/).slice(1);
       // Croissance (the audit), Groundswell (its engine), and its Currents are product names.

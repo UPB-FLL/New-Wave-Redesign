@@ -350,6 +350,28 @@ describe('SocialEngineeringCroissancePage', () => {
   });
 });
 
+describe('Croissance ad plan', () => {
+  it('shows the brewery’s plan from the model, funded rows first, with Reddit listed as not modeled', () => {
+    renderAt(<SocialEngineeringCroissancePage />);
+    const band = screen.getByRole('region', { name: auditContent.adPlan.heading });
+    const rows = within(band).getAllByRole('row').slice(1); // the header row first
+    expect(within(rows[0]).getByRole('rowheader')).toHaveTextContent('Private events');
+    expect(rows[0]).toHaveTextContent('Fund');
+    expect(band).toHaveTextContent(/Not modeled: No credible published Reddit cost per click/);
+    // Alcohol rules surface as reasons, not silently dropped rows.
+    expect(band).toHaveTextContent(/TikTok alcohol ads must be shown only to people 25 and older/);
+    expect(band.textContent).not.toMatch(/%/);
+  });
+
+  it('previews ready-to-run ads for Google, Meta, Reddit and TikTok', () => {
+    renderAt(<SocialEngineeringCroissancePage />);
+    const band = screen.getByRole('region', { name: auditContent.adPlan.heading });
+    for (const label of ['Google Search · Responsive search ad', 'Meta (Facebook and Instagram) · Feed image ad', 'Reddit · Promoted post', 'TikTok · In-feed ad']) {
+      expect(within(band).getByText(label)).toBeInTheDocument();
+    }
+  });
+});
+
 describe('SocialEngineeringCustomersPage', () => {
   const customerList = () => screen.getByRole('region', { name: customersContent.listHeading });
 
