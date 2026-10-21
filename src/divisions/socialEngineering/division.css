@@ -289,25 +289,51 @@
   border-radius: 12px;
 }
 
-/* Steps from 768px: a stepper on a rail. Each marker tile sits on a hairline
-   that runs to the next step; the cards drop their chrome. Below 768px the
-   same list is the timeline (.nwse-timeline, further down). */
+/* Steps from 768px: a stepper on a rail. After each step's "Step 01" label a
+   hairline (.nwse-rail, a flex item in the label row; StepList in
+   sections.tsx) runs to the next step's tile, across the item's right
+   padding and the grid gap (md:pr-4 + md:gap-4 = 2rem); the cards drop their
+   chrome. The last step has no rail, and neither does a step that ends a
+   row: the list says how many columns it has per width (data-columns-md,
+   -lg, -xl). Below 768px the same list is the timeline (.nwse-timeline,
+   further down), which draws its own rail. */
+.nwse-rail {
+  display: none;
+}
+
 @media (min-width: 768px) {
-  .nwse-stepper > li:not(:last-child)::after {
+  .nwse-rail {
     background: var(--nw-mist-gray);
-    content: '';
+    display: block;
+    flex: 1 1 0;
     height: 1px;
-    left: 3.25rem;
-    position: absolute;
-    right: -1rem;
-    top: 1.25rem;
+    margin-right: -2rem;
+  }
+
+  .nwse-stepper > li:last-child .nwse-rail {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  .nwse-stepper[data-columns-md='2'] > li:nth-child(2n) .nwse-rail {
+    display: none;
   }
 }
 
 @media (min-width: 1024px) {
-  .nwse-stepper > li:not(:last-child)::after {
-    left: 3.75rem;
-    top: 1.5rem;
+  .nwse-stepper[data-columns-lg='3']:not([data-columns-xl]) > li:nth-child(3n) .nwse-rail {
+    display: none;
+  }
+
+  .nwse-stepper[data-columns-lg='4']:not([data-columns-xl]) > li:nth-child(4n) .nwse-rail {
+    display: none;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1279.98px) {
+  .nwse-stepper[data-columns-lg='3'][data-columns-xl] > li:nth-child(3n) .nwse-rail {
+    display: none;
   }
 }
 

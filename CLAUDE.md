@@ -42,7 +42,7 @@ and benchmarks both (the competitor pages are not re-read).
   before the migration), so nothing is delivered.
 - **Migration** `20261024120000`: `marketing_audits_status_check` gains
   `'review'`.
-- **Admin and partners**: `/admin/groundswell/audits` shows "Needs review"
+- **Admin and partners**: `/groundswell/admin/audits` shows "Needs review"
   with each figure that moved (first read against the latest) and what the
   reviewer changed, plus "Deliver anyway" (the first read, reviewed) and "Run
   the checks again" (`POST /api/groundswell/run` with `action`, handled by
@@ -54,6 +54,61 @@ and benchmarks both (the competitor pages are not re-read).
   cases in `groundswell-engine.test.ts`, a benchmark case in
   `groundswell-benchmark.test.ts`, and the route, admin, overview and
   partner screens.
+
+### Groundswell: the right tool for the job in Maps and the ad libraries (2026-10-21)
+
+The first benchmark run on the live engine showed two Currents relying on
+headless-browser scraping where a connected tool now exists. Both keep the
+browser read as the fallback, and neither changes an output shape.
+
+- **Maps** (`currents/maps.ts`): `runMaps` asks the Google Places API (text
+  search, `GOOGLE_MAPS_TEXT_SEARCH` through Composio) for the business and
+  then for rivals in its category near its area (`placesLookup`,
+  `toMapsPlace`, `toMapsListing`, `matchBusiness`, `PLACE_FIELDS`). Result
+  order is relevance, not the Maps pack, and the `source` string says so.
+  When Composio is not set up or Places fails for any reason but a refused
+  key (no connection, the shared project's daily quota, an outage), the
+  logged-out Maps view is read in the browser as before (`browserLookup`),
+  with the reason in `note`. A refused key still stops the step.
+- **Ad libraries** (`currents/adsLibrary.ts`): Google's Transparency Center
+  is read by domain through `SCRAPECREATORS_LIST_GOOGLE_COMPANY_ADS` (one
+  credit, never `get_ad_details`), with no date filter so an empty, complete
+  first page is a verified negative and `total_estimate` is the count
+  (`googleAdsFromList`). The headless render runs only for domains that call
+  could not answer. The spec and the package README say the same.
+- **Tests**: `src/test/api/groundswell-maps.test.ts` (new) and the ad-library
+  cases in `groundswell-benchmark.test.ts`.
+- **Seen on the first live runs, parked**: the maps step's first attempt
+  hangs inside the run route's background worker until Vercel's 300 s limit,
+  and the 600 s step lease then idles until a cron-started worker reclaims
+  it, about ten minutes per audit. The browser path is now the fallback only,
+  which should avoid it; if not, shorten the lease or the Maps timeout.
+
+### Admin panel rework, phase 3: "View on site" shows unsaved edits (2026-10-21)
+
+The last phase of the plan Josh approved on 2026-10-21. Every admin "View on
+site" link (editor header, the arrow on an open block, sidebar page rows, the
+front page) is now `previewUrl(url, anchor?)`: the public page with
+`?preview=1` and the block's anchor.
+
+- **`src/lib/preview.ts`**: the admin's `ContentManager` writes each
+  section's pending edits to `localStorage` (`nw_preview:<section>`) and a
+  BroadcastChannel (`newwave_preview`) whenever the draft moves (`writeDraft`
+  does both; a draft restored on load is previewed too; publish and discard
+  clear it). `isPreviewMode()` is true for a tab opened with `?preview=1`
+  (kept in `sessionStorage` as `nw_preview` until "Exit preview").
+- **`useContentWithStatus`**: in preview mode the overlay is laid over the
+  saved content and follows the channel; the cache and the CMS only ever
+  hold saved content, and a normal visitor's path is unchanged.
+- **`PreviewBanner`** (mounted in `App.tsx`): the amber bar with "Back to
+  the editor" and "Exit preview".
+- **Anchors**: `SectionBlock.anchor` names the public element id the block
+  renders in (`hero`, `trust-bar` and `footer` are new ids, the rest
+  existed); `sections.test.ts` checks every anchor is an `id="…"` in
+  `src/components` or `src/pages`.
+- **Tests**: `src/lib/preview.test.tsx` (URL, mode, overlay, the hook in
+  and out of preview, the banner), new `ContentManager.test.ts` cases, and
+  the pinned hrefs in the admin tests.
 
 ### Groundswell: white-label reports for partners (2026-10-21)
 
@@ -93,6 +148,83 @@ partner portal and by admins; logos are https links (no uploads).
   `groundswell-partners.test.ts`, `groundswell-benchmark.test.ts`,
   `partners.test.tsx` and `src/lib/groundswell.test.ts`;
   `fakeSupabase` can now simulate a column a migration has not added.
+
+### Groundswell portal at /groundswell (2026-10-21)
+
+Groundswell has its own address, newwaveitfl.com/groundswell, for partners
+and New Wave staff (plan: the "Groundswell portal design plan" doc; this is
+PR 1 of 4, the address and the shell; customers, partner-run audits and
+polish follow). Code: `src/groundswell/`.
+
+- **Pages**: `/groundswell` is the sign-in (partner email and password,
+  reset link, a "New Wave staff sign-in" link). It is a static New Wave IT
+  route (`IT_PAGE_META['/groundswell']`, prerendered, in the sitemap) whose
+  code loads on demand (`src/pages/GroundswellSignInPage.tsx` wraps the lazy
+  page). `/groundswell/customers` is the partner app (the old dashboard:
+  add a customer, see your own audits and Drive links), `/set-password` is
+  where invite and reset links land, and `/groundswell/admin` (+ `/audits`,
+  `/partners`) is the staff section behind the content admin's Supabase
+  sign-in (`AdminGuard` now takes `title`/`subtitle`). Everything but the
+  sign-in is noindex, outside the sitemap and the prerender.
+- **Shell** (`GroundswellShell.tsx`, `groundswell.css`, scoped to
+  `.gs-root`): top bar, left nav on desktop and tabs on phones, light
+  surfaces with the division's amber accent; `GroundswellFrame` wraps the
+  pages shown before sign-in. The three staff screens moved from
+  `src/admin/groundswell/` to `src/groundswell/admin/` and were restyled to
+  it; the content admin's sidebar keeps one "Open Groundswell" link.
+- **Old addresses**: `/social-engineering/croissance/partners{,/dashboard,
+  /set-password}` and `/admin/groundswell{,/*}` redirect permanently in
+  `vercel.json` (the query string, so an old invite token, is kept) and
+  client-side in `App.tsx`. Invite and reset emails now link to
+  `/groundswell/set-password` (`PARTNER_BASE_PATH` in
+  `api/_lib/groundswell/partners.ts`). The division lost its partner page,
+  content, SEO entry and preload mapping.
+- **Tests**: `src/groundswell/portal.test.tsx` (sign-in, customers, set
+  password, the shell, the redirects) and the moved admin tests; updated
+  pins in `it-prerender` (32 routes), `division-integration`,
+  `FormPrivacyNotice`, and the partner API test.
+
+### Admin panel rework, phase 2: one editor for every section (2026-10-21)
+
+Phase 2 of the plan Josh approved on 2026-10-21 (phase 1, the sidebar, is
+below). Every `site_content` editor is now one screen; the stored shapes
+are unchanged (`sections.test.ts` pins them), and the public site reads
+nothing new.
+
+- **Descriptors** (`src/admin/sections/descriptors.ts`, types in
+  `types.ts`): one `SectionDescriptor` per section (hero, trustbar,
+  services, whyus, about, contact, footer, pricing, status,
+  services-categories, services-detail, threats-detail): its public URL and
+  its blocks, each a list of fields. Scalar kinds: text, textarea, number,
+  color, select, checkbox, strings (JSON array of strings). `list` fields
+  hold items with their own fields, a `titleKey` for the row, `newItem`, and
+  `defaults` (the site's built-in items). The footer gained its three social
+  URL fields, which `Footer.tsx` already read.
+- **`SectionPage`** (`src/admin/SectionPage.tsx`) renders a descriptor:
+  `BlockCard`s (collapsed with a preview and a field count, one open at a
+  time unless pinned, an amber dot while unsaved), `FieldInput` (the one
+  field set), and `ListRows` (rows with move, duplicate, delete, drag; a
+  side-panel `ItemPanel` to edit one; "Start from the site's defaults" when
+  empty). A stored list that cannot be parsed is shown raw and left alone
+  (`parseList` in `sections/listValue.ts`). `?field=<key>` opens the block
+  and focuses the input; the sidebar search's "Fields" group
+  (`searchAdminFields` in `adminNav.ts`) links there.
+- **`ContentManager`**: `loadSection` records each section's newest
+  `updated_at`; `publishChanges` refuses with `StaleSectionError` when a
+  pending section's rows changed since (the layout confirms, then
+  `{ force: true }`), then writes the public cache and the
+  BroadcastChannel for each change, so the live site no longer waits for
+  the 30 s poll. Pending edits are kept in sessionStorage (`nw_admin_draft`)
+  and restored on load; the layout warns before unloading with unsaved
+  edits. State updates replace objects rather than mutate them.
+- **Removed**: the twelve editors in `src/admin/editors/` except
+  `PricingUnitsEditor`, plus `SectionEditor`, `FormSection`, and
+  `CardListEditor`. The routes in `App.tsx` point at `SectionPage`.
+- **Tests**: `sections.test.ts` (every key the public site reads has a
+  field; stored shapes; nav reachability; `parseList`; field search),
+  `ContentManager.test.ts` (draft, stale save, cache and channel),
+  `SectionPage.test.tsx`. Docs: `docs/admin-guide.md` ("Editing content",
+  "Adding an editor"); `docs/editor-migration-guide.md` is closed out.
 
 ### Admin panel rework, phase 1: one sidebar, organised by site page (2026-10-21)
 
@@ -396,11 +528,12 @@ Code: `api/_lib/groundswell/`.
   an audit is running (Vault `blog_admin_api_key` as `x-admin-key`). Both
   have `maxDuration: 300` (`FUNCTION_SECONDS`) and ship
   `@sparticuz/chromium` and the Inter font via `includeFiles`.
-- **Currents**: Site fetches HTML (no browser); Maps scrapes the logged-out
-  Google Maps view with puppeteer-core and stops at any consent or traffic
-  check; Search (Ahrefs), Keywords (Keyword Planner), Social
-  (ScrapeCreators) and Ads (site tags + Ahrefs paid pages) go through the
-  Composio REST API (`composio.ts`).
+- **Currents**: Site fetches HTML (no browser); Maps reads Google Places
+  through Composio and, when that fails, scrapes the logged-out Google Maps
+  view with puppeteer-core, stopping at any consent or traffic check (see
+  "Right tool for the job", 2026-10-21); Search (Ahrefs), Keywords (Keyword
+  Planner), Social (ScrapeCreators) and Ads (site tags + Ahrefs paid pages)
+  go through the Composio REST API (`composio.ts`).
 - **Model** (`model.ts`): one OpenAI JSON call (`GROUNDSWELL_OPENAI_MODEL`,
   default `gpt-4o`) writes the findings. Any sentence quoting a number that
   is not in the gathered data gets one repair call and is then dropped.
@@ -960,23 +1093,16 @@ Content is stored in Supabase `site_content` table:
 
 ## Admin Editors
 
-### Migrated Editors (Use ContentManager)
-- HeroEditor - `/src/admin/editors/HeroEditor.tsx`
-- ServicesEditor - `/src/admin/editors/ServicesEditor.tsx`
+### Section editors (one component)
+Every `site_content` section is edited by `src/admin/SectionPage.tsx`, drawn
+from its descriptor in `src/admin/sections/descriptors.ts` (see "Admin panel
+rework, phase 2" above). Pieces: `components/BlockCard.tsx`,
+`components/FieldInput.tsx`, `components/ListRows.tsx`.
 
-### Legacy Editors (To be migrated)
-Located in `src/admin/editors/`:
-- TrustBarEditor
-- WhyUsEditor
-- AboutEditor
-- ContactEditor
-- FooterEditor
-- PricingEditor
-- PricingUnitsEditor
-- StatusEditor
-- ServicesCategoryEditor
-- ServicesDetailEditor
-- ThreatsDetailEditor
+### Other editors
+- PricingUnitsEditor - `/src/admin/editors/PricingUnitsEditor.tsx` (the
+  `pricing_units` table)
+- Blog - `src/admin/blog/`
 
 ### SEO Editors
 - SeoPortal - `/src/admin/seo/SeoPortal.tsx`
@@ -1023,11 +1149,14 @@ Located in `src/admin/editors/`:
 
 ### Adding New Section Editors
 
-1. Create editor in `src/admin/editors/`
-2. Follow ContentManager pattern (see HeroEditor example)
-3. Add a `<Route>` under `/admin` in `src/App.tsx`
-4. Add the entry to `src/admin/adminNav.ts` under its site page
-5. Test publish/discard functionality (`adminNav.test.ts` checks the rest)
+1. Add the section's descriptor to `src/admin/sections/descriptors.ts`
+   (its blocks and fields; the stored shape must match what the public
+   component reads)
+2. Add `<Route path="…" element={<SectionPage section="…" />} />` under
+   `/admin` in `src/App.tsx`
+3. Add the entry to `src/admin/adminNav.ts` under its site page
+4. `adminNav.test.ts` and `sections/sections.test.ts` check the rest; see
+   "Adding an editor" in `docs/admin-guide.md`
 
 ### Running the Project
 
@@ -1050,11 +1179,9 @@ npm run build
 
 ## Next Steps
 
-1. Migrate remaining editors to ContentManager
-2. Implement live preview pane (iframe-based)
-3. Add version history support
-4. Implement concurrent edit detection
-5. Add keyboard shortcuts for common actions
+1. Implement live preview pane (iframe-based): phase 3 of the admin rework
+2. Add version history support
+3. Add keyboard shortcuts for common actions
 
 ## Architecture Notes
 

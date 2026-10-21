@@ -457,17 +457,26 @@ describe('content hidden below a breakpoint', () => {
     expect(footer.querySelector('[aria-label="New Wave: Social Engineering home"]')).not.toBeNull();
   });
 
-  it('hides nothing with display: none in division.css except scrollbar and disclosure-marker chrome, and scenes in forced colours and print', () => {
+  it('hides nothing with display: none in division.css except scrollbar, disclosure-marker, and stepper-rail chrome, and scenes in forced colours and print', () => {
     const hiders: string[] = [];
     divisionCss.walkDecls('display', (decl: Declaration) => {
       if (decl.value !== 'none') return;
       const media = decl.parent?.parent?.type === 'atrule' ? `@media ${(decl.parent.parent as AtRule).params} ` : '';
       hiders.push(`${media}${(decl.parent as Rule).selector}`);
     });
+    // The stepper's rail (.nwse-rail, an empty aria-hidden span) is out
+    // below 768px, where the timeline draws its own, after the last step,
+    // and after a step that ends a row at that width.
     expect(hiders.sort()).toEqual([
       '.nwse-faq summary::-webkit-details-marker',
+      '.nwse-rail',
       '@media (forced-colors: active), print .nwse-root [data-page-scene]',
       '@media (max-width: 1023.98px) .nwse-journey::-webkit-scrollbar',
+      "@media (min-width: 1024px) .nwse-stepper[data-columns-lg='3']:not([data-columns-xl]) > li:nth-child(3n) .nwse-rail",
+      "@media (min-width: 1024px) .nwse-stepper[data-columns-lg='4']:not([data-columns-xl]) > li:nth-child(4n) .nwse-rail",
+      "@media (min-width: 1024px) and (max-width: 1279.98px) .nwse-stepper[data-columns-lg='3'][data-columns-xl] > li:nth-child(3n) .nwse-rail",
+      '@media (min-width: 768px) .nwse-stepper > li:last-child .nwse-rail',
+      "@media (min-width: 768px) and (max-width: 1023.98px) .nwse-stepper[data-columns-md='2'] > li:nth-child(2n) .nwse-rail",
     ]);
   });
 
@@ -565,6 +574,9 @@ describe('step timeline markers', () => {
     const hubList = container.querySelector('.nwse-timeline')!;
     expect(hubList).toHaveAttribute('data-markers', 'icon');
     expect(hubList).toHaveClass('nwse-stepper');
+    // Three steps: one row of three from md.
+    expect(hubList).toHaveAttribute('data-columns-md', '3');
+    expect(hubList).toHaveAttribute('data-columns-lg', '3');
     unmount();
     const service = renderAt(<SocialEngineeringServicePage slug={divisionServices[0].slug} />);
     const list = service.container.querySelector('.nwse-timeline')!;
@@ -577,6 +589,53 @@ describe('step timeline markers', () => {
       expect(tile).not.toBeNull();
       expect(tile).toHaveTextContent(String(index + 1).padStart(2, '0'));
     });
+  });
+
+  it('runs the stepper’s rail from each label to the next tile, never through the label, and not after the last step', () => {
+    const { container } = renderAt(<SocialEngineeringServicePage slug={divisionServices[0].slug} />);
+    const list = container.querySelector('.nwse-stepper')!;
+    const steps = [...list.querySelectorAll(':scope > li')];
+    // Four steps: two columns on tablets, four from lg, so the list says
+    // where its rows end (division.css hides the rail after those steps).
+    expect(steps).toHaveLength(4);
+    expect(list).toHaveAttribute('data-columns-md', '2');
+    expect(list).toHaveAttribute('data-columns-lg', '4');
+    expect(list).not.toHaveAttribute('data-columns-xl');
+    steps.forEach((step, index) => {
+      const row = step.querySelector(':scope > .nwse-cardlabel')!;
+      const rail = row.querySelector(':scope > .nwse-rail');
+      if (index === steps.length - 1) {
+        expect(rail).toBeNull();
+        return;
+      }
+      // The rail is the label's next sibling in the flex row, so it starts
+      // after the text rather than under it.
+      expect(rail).not.toBeNull();
+      expect(rail).toHaveAttribute('aria-hidden', 'true');
+      expect(rail!.previousElementSibling).toHaveTextContent(`Step ${String(index + 1).padStart(2, '0')}`);
+      expect(rail!.nextElementSibling).toBeNull();
+    });
+    // Hidden below md (the timeline draws its own rail); from md it crosses
+    // the item's right padding and the grid gap to reach the next tile.
+    const railRules: Record<string, Record<string, string>> = {};
+    divisionCss.walkRules((rule: Rule) => {
+      if (rule.selector !== '.nwse-rail') return;
+      const decls: Record<string, string> = {};
+      rule.walkDecls((decl: Declaration) => {
+        decls[decl.prop] = decl.value;
+      });
+      railRules[mediaOf(rule)] = decls;
+    });
+    expect(railRules['']).toEqual({ display: 'none' });
+    expect(railRules['(min-width: 768px)']).toMatchObject({ display: 'block', height: '1px', 'margin-right': '-2rem' });
+    expect(classesOf(list)).toContain('md:gap-4');
+    steps.forEach((step) => expect(classesOf(step)).toContain('md:pr-4'));
+    // Nothing is left of the old rail, which was drawn from the tile's edge.
+    const afterRules: string[] = [];
+    divisionCss.walkRules(/nwse-stepper.*::after/, (rule: Rule) => {
+      afterRules.push(rule.selector);
+    });
+    expect(afterRules).toEqual([]);
   });
 });
 

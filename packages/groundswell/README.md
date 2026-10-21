@@ -180,9 +180,11 @@ are code here; the engine only fetches the data.
   anonymised, checks these rules
   (`src/test/api/fixtures/groundswell-benchmark/` in New Wave's repository).
 - **Ads** (`ads.ts`): the Meta Ad Library by the Page's own id and Google's Ads
-  Transparency Center. A verified negative ("isn't currently running ads", "0
-  ads, any time") is kept apart from "could not be determined". No spend,
-  ever: only presence, dates and creative are public.
+  Transparency Center by domain (the engine asks ScrapeCreators, and renders
+  the Center only when that call fails). A verified negative ("isn't currently
+  running ads", an empty, complete list over any time) is kept apart from
+  "could not be determined". No spend, ever: only presence, dates and creative
+  are public.
 - **Pricing** (`pricing.ts`): offer pages found, every price pulled with short
   context, and `checkLadder` holding a model's classification to the prices
   the pages show (an offer with no price is "not published", never a guess).

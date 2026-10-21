@@ -15,8 +15,8 @@ const BARE_ROUTES = ['/codenest'];
 
 function SiteChrome() {
   const { pathname } = useLocation();
-  // Division pages bring their own background and navigation.
-  if (BARE_ROUTES.includes(pathname) || isDivisionPath(pathname)) return null;
+  // Division and Groundswell pages bring their own background and navigation.
+  if (BARE_ROUTES.includes(pathname) || isDivisionPath(pathname) || isGroundswellPath(pathname)) return null;
   return (
     <>
       <WaveBackground />
@@ -26,6 +26,7 @@ function SiteChrome() {
 }
 import { Analytics } from '@vercel/analytics/react';
 import WaveBackground from './components/WaveBackground';
+import PreviewBanner from './components/PreviewBanner';
 import FloatingNav from './components/FloatingNav';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
@@ -63,6 +64,7 @@ import CodeNestPage from './pages/CodeNestPage';
 import BlogPage from './pages/BlogPage';
 import BlogPostPage from './pages/BlogPostPage';
 import NotFoundPage from './pages/NotFoundPage';
+import GroundswellSignInPage from './pages/GroundswellSignInPage';
 import { usePageMeta } from './lib/usePageMeta';
 import { HOME_PAGE_META } from './lib/routeMeta';
 import {
@@ -71,9 +73,6 @@ import {
   DIVISION_CONTACT_US_PATH,
   DIVISION_CUSTOMERS_PATH,
   DIVISION_CROISSANCE_PATH,
-  DIVISION_PARTNER_DASHBOARD_PATH,
-  DIVISION_PARTNER_SET_PASSWORD_PATH,
-  DIVISION_PARTNERS_PATH,
   DIVISION_PUBLISHED,
   DIVISION_SERVICE_SLUGS,
   divisionServicePath,
@@ -85,10 +84,25 @@ import {
   SocialEngineeringCustomersRoute,
   SocialEngineeringHubRoute,
   SocialEngineeringCroissanceRoute,
-  SocialEngineeringPartnerAppRoute,
-  SocialEngineeringPartnersRoute,
   SocialEngineeringServiceRoute,
 } from './divisions/socialEngineering/routes';
+import {
+  GROUNDSWELL_ADMIN_PATH,
+  GROUNDSWELL_CUSTOMERS_PATH,
+  GROUNDSWELL_SET_PASSWORD_PATH,
+  isGroundswellPath,
+  LEGACY_PARTNER_PATH,
+} from './groundswell/site';
+import {
+  GroundswellAdminAudits,
+  GroundswellAdminOverview,
+  GroundswellAdminPartners,
+  GroundswellAdminRoute,
+  GroundswellCustomersRoute,
+  GroundswellSetPasswordRoute,
+  LegacyAdminRedirect,
+  LegacyPartnerRedirect,
+} from './groundswell/routes';
 
 // The admin dashboard loads on demand: public visitors (and crawlers measuring
 // page speed) never download the editors.
@@ -97,24 +111,11 @@ const AdminLayout = lazy(() => import('./admin/AdminLayout'));
 const AdminHome = lazy(() => import('./admin/AdminHome'));
 const AdminBlogPage = lazy(() => import('./admin/blog/BlogPage'));
 const AdminBlogSettings = lazy(() => import('./admin/blog/BlogSettings'));
-const HeroEditor = lazy(() => import('./admin/editors/HeroEditor'));
-const TrustBarEditor = lazy(() => import('./admin/editors/TrustBarEditor'));
-const ServicesEditor = lazy(() => import('./admin/editors/ServicesEditor'));
-const WhyUsEditor = lazy(() => import('./admin/editors/WhyUsEditor'));
-const AboutEditor = lazy(() => import('./admin/editors/AboutEditor'));
-const ContactEditor = lazy(() => import('./admin/editors/ContactEditor'));
-const FooterEditor = lazy(() => import('./admin/editors/FooterEditor'));
 const PricingUnitsEditor = lazy(() => import('./admin/editors/PricingUnitsEditor'));
-const PricingEditor = lazy(() => import('./admin/editors/PricingEditor'));
-const StatusEditor = lazy(() => import('./admin/editors/StatusEditor'));
+// Every other CMS section is edited by SectionPage from its descriptor (src/admin/sections).
+const SectionPage = lazy(() => import('./admin/SectionPage'));
 const SeoPortal = lazy(() => import('./admin/seo/SeoPortal'));
 const SeoPageEditor = lazy(() => import('./admin/seo/SeoPageEditor'));
-const GroundswellAudits = lazy(() => import('./admin/groundswell/GroundswellAudits'));
-const GroundswellOverview = lazy(() => import('./admin/groundswell/GroundswellOverview'));
-const GroundswellPartners = lazy(() => import('./admin/groundswell/GroundswellPartners'));
-const ServicesDetailEditor = lazy(() => import('./admin/editors/ServicesDetailEditor'));
-const ThreatsDetailEditor = lazy(() => import('./admin/editors/ThreatsDetailEditor'));
-const ServicesCategoryEditor = lazy(() => import('./admin/editors/ServicesCategoryEditor'));
 
 function AdminFallback() {
   return <div className="min-h-screen" aria-busy="true" />;
@@ -152,6 +153,7 @@ export default function App() {
       <Analytics />
       <BrowserRouter>
         <ScrollToTop />
+        <PreviewBanner />
         <SiteChrome />
         <Routes>
         <Route path="/" element={<HomePage />} />
@@ -192,14 +194,24 @@ export default function App() {
               <Route key={slug} path={divisionServicePath(slug)} element={<SocialEngineeringServiceRoute slug={slug} />} />
             ))}
             <Route path={DIVISION_CROISSANCE_PATH} element={<SocialEngineeringCroissanceRoute />} />
-            <Route path={DIVISION_PARTNERS_PATH} element={<SocialEngineeringPartnersRoute />} />
-            <Route path={DIVISION_PARTNER_DASHBOARD_PATH} element={<SocialEngineeringPartnerAppRoute view="dashboard" />} />
-            <Route path={DIVISION_PARTNER_SET_PASSWORD_PATH} element={<SocialEngineeringPartnerAppRoute view="set-password" />} />
             <Route path={DIVISION_CUSTOMERS_PATH} element={<SocialEngineeringCustomersRoute />} />
             <Route path={DIVISION_CONTACT_US_PATH} element={<SocialEngineeringContactUsRoute />} />
             <Route path={DIVISION_CONTACT_PATH} element={<SocialEngineeringContactRoute />} />
           </>
         ) : null}
+        {/* Groundswell: the sign-in is a prerendered static route; the rest is noindex and loads on demand. */}
+        <Route path="/groundswell" element={<GroundswellSignInPage />} />
+        <Route path={GROUNDSWELL_SET_PASSWORD_PATH} element={<GroundswellSetPasswordRoute />} />
+        <Route path={GROUNDSWELL_CUSTOMERS_PATH} element={<GroundswellCustomersRoute />} />
+        <Route path={GROUNDSWELL_ADMIN_PATH} element={<GroundswellAdminRoute />}>
+          <Route index element={<GroundswellAdminOverview />} />
+          <Route path="audits" element={<GroundswellAdminAudits />} />
+          <Route path="partners" element={<GroundswellAdminPartners />} />
+        </Route>
+        {/* The partner portal's old addresses under Croissance. */}
+        <Route path={LEGACY_PARTNER_PATH} element={<LegacyPartnerRedirect to="sign-in" />} />
+        <Route path={`${LEGACY_PARTNER_PATH}/dashboard`} element={<LegacyPartnerRedirect to="customers" />} />
+        <Route path={`${LEGACY_PARTNER_PATH}/set-password`} element={<LegacyPartnerRedirect to="set-password" />} />
         <Route
           path="/admin"
           element={
@@ -216,26 +228,25 @@ export default function App() {
           <Route path="legacy" element={<Navigate to="/admin" replace />} />
           <Route path="blog" element={<AdminBlogPage />} />
           <Route path="blog/settings" element={<AdminBlogSettings />} />
-          <Route path="hero" element={<HeroEditor />} />
-          <Route path="trustbar" element={<TrustBarEditor />} />
-          <Route path="services" element={<ServicesEditor />} />
-          <Route path="whyus" element={<WhyUsEditor />} />
-          <Route path="about" element={<AboutEditor />} />
-          <Route path="contact" element={<ContactEditor />} />
-          <Route path="footer" element={<FooterEditor />} />
-          <Route path="pricing" element={<PricingEditor />} />
+          <Route path="hero" element={<SectionPage section="hero" />} />
+          <Route path="trustbar" element={<SectionPage section="trustbar" />} />
+          <Route path="services" element={<SectionPage section="services" />} />
+          <Route path="whyus" element={<SectionPage section="whyus" />} />
+          <Route path="about" element={<SectionPage section="about" />} />
+          <Route path="contact" element={<SectionPage section="contact" />} />
+          <Route path="footer" element={<SectionPage section="footer" />} />
+          <Route path="pricing" element={<SectionPage section="pricing" />} />
           <Route path="pricing-units" element={<PricingUnitsEditor />} />
-          <Route path="status" element={<StatusEditor />} />
-          <Route path="services-detail" element={<ServicesDetailEditor />} />
-          <Route path="service-categories" element={<ServicesCategoryEditor />} />
-          <Route path="threats-detail" element={<ThreatsDetailEditor />} />
+          <Route path="status" element={<SectionPage section="status" />} />
+          <Route path="services-detail" element={<SectionPage section="services-detail" />} />
+          <Route path="service-categories" element={<SectionPage section="services-categories" />} />
+          <Route path="threats-detail" element={<SectionPage section="threats-detail" />} />
           <Route path="seo" element={<SeoPortal />} />
           <Route path="seo/:id" element={<SeoPageEditor />} />
-          <Route path="groundswell" element={<GroundswellOverview />} />
-          <Route path="groundswell/audits" element={<GroundswellAudits />} />
-          <Route path="groundswell/partners" element={<GroundswellPartners />} />
-          {/* The queue's old address, from before Groundswell had its own section. */}
-          <Route path="audits" element={<Navigate to="/admin/groundswell/audits" replace />} />
+          {/* Groundswell moved to its own section (/groundswell/admin); its old addresses redirect there. */}
+          <Route path="groundswell" element={<LegacyAdminRedirect />} />
+          <Route path="groundswell/*" element={<LegacyAdminRedirect />} />
+          <Route path="audits" element={<Navigate to={`${GROUNDSWELL_ADMIN_PATH}/audits`} replace />} />
         </Route>
         {/* Anything unmatched, including unknown /social-engineering/* paths: a noindex page, not a blank one. */}
         <Route path="*" element={<NotFoundPage />} />

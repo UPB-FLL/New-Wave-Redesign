@@ -193,6 +193,13 @@ export const IT_PAGE_META = withBreadcrumbs({
     canonical: 'https://www.newwaveitfl.com/service-category/cellular-das-and-public-safety',
     crumb: 'Cellular DAS & Public Safety',
   },
+  '/groundswell': {
+    title: 'Groundswell — Partner & Staff Sign-In',
+    description: 'Sign in to Groundswell, New Wave IT’s audit portal, to submit businesses for a Croissance growth audit and download each one’s summary, slides, and full audit.',
+    keywords: 'groundswell portal, croissance partner portal, marketing audit partners, agency partners, growth audit reseller, new wave it',
+    canonical: 'https://www.newwaveitfl.com/groundswell',
+    crumb: 'Groundswell',
+  },
   '/privacy-policy': {
     title: 'Privacy Policy — New Wave IT',
     description: 'How New Wave IT LLC collects, uses, discloses, and protects personal information.',

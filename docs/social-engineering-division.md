@@ -84,7 +84,6 @@ national growth division for small businesses, built on three pillars.
 | Integrations & data (the `integration` slug) | `/social-engineering/integration` |
 | Analytics & oversight (the `digital-oversight` slug) | `/social-engineering/digital-oversight` |
 | Croissance (the audit, run by the Groundswell engine) | `/social-engineering/croissance` |
-| Croissance partner portal (sign-in) | `/social-engineering/croissance/partners` |
 | Customers | `/social-engineering/customers` |
 | Contact us (clients, questions, partnerships) | `/social-engineering/contact-us` |
 | Book a discovery call (new projects) | `/social-engineering/contact` |
@@ -271,17 +270,13 @@ implementation"): the Currents are tinted panels with their icon tiles in
 the colour roles, the three reports are capped cards, and the growth groups
 are tinted panels.
 
-### Partner portal (`/social-engineering/croissance/partners`)
+### Partner portal (moved to `/groundswell`, 2026-10-21)
 
-The sign-in page for partners (outside agencies and resellers), prerendered
-and in the sitemap, with a "Partner portal" link in the footer's division
-column. Accounts are by invitation from the admin portal's Groundswell
-section; "Ask about partnering" goes to Contact us. Signed in, partners use
-`/dashboard` (queue businesses, see their own audits and Drive links) and
-invite or reset links land on `/set-password`; both are noindex, not
-prerendered, and not in the sitemap. Copy: `content/partners.ts`. It never
-promises turnaround times or results. Partner sign-in is separate from admin
-sign-in (CLAUDE.md, "Groundswell section").
+The partner portal is no longer a division page. It lives at `/groundswell`
+(`src/groundswell/`, CLAUDE.md "Groundswell portal"), and the footer's
+"Partner portal" link points there. `/social-engineering/croissance/partners`,
+`/partners/dashboard` and `/partners/set-password` redirect permanently
+(`vercel.json`; `division-integration.test.ts` pins them).
 
 ## Customers and Contact us
 
@@ -425,7 +420,10 @@ layouts; every small-screen rule is either a `max-width` media query in
     tile (its icon, or its number: `data-markers="icon"` or `"number"`) on
     the rail. Its band has a plain ground there (see "Section grounds" under
     "Brand implementation"). From 768px the same list is the stepper
-    (`nwse-stepper`), the tiles joined by a hairline rail.
+    (`nwse-stepper`): after each step's label a hairline (`nwse-rail`) runs
+    to the next step's tile, left out after the last step and after a step
+    that ends a row (the list's `data-columns-md/-lg/-xl`). The first
+    version drew the rail from the tile's edge, through the label.
   - `nwse-roadmap`: compact phase cards below 768px, their items flowing in
     rows at natural width; on tablets the three cards share row tracks
     (subgrid), so their dividers line up when a title wraps.

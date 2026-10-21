@@ -326,7 +326,7 @@ export default function TrustBar() {
   ];
 
   return (
-    <section className="relative border-y bg-[var(--nw-pure-white)] py-10 sm:py-14" style={{ borderColor: 'var(--nw-mist-gray)', zIndex: 10 }}>
+    <section id="trust-bar" className="relative border-y bg-[var(--nw-pure-white)] py-10 sm:py-14" style={{ borderColor: 'var(--nw-mist-gray)', zIndex: 10 }}>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <FadeIn>
           <div

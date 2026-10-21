@@ -53,9 +53,9 @@ describe('admin navigation model', () => {
     expect(pageForPath('/admin/blog')).toBeUndefined();
   });
 
-  it('keeps the Groundswell group as it was (the partner portal owns it)', () => {
-    const group = ADMIN_NAV.find((g) => g.id === 'groundswell');
-    expect(group?.entries?.map((e) => e.path)).toEqual(['/admin/groundswell', '/admin/groundswell/audits', '/admin/groundswell/partners']);
+  it('has no Groundswell group: Groundswell is its own portal at /groundswell', () => {
+    expect(ADMIN_NAV.map((g) => g.id)).toEqual(['site', 'blog', 'seo']);
+    for (const entry of allNavEntries()) expect(entry.path).not.toContain('groundswell');
   });
 
   it('finds editors by label, field, or page', () => {

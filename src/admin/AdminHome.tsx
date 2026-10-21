@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ClipboardList, ExternalLink } from 'lucide-react';
 import { listAudits } from '../lib/groundswell';
+import { GROUNDSWELL_ADMIN_AUDITS_PATH } from '../groundswell/site';
 import { SITE_PAGES } from './adminNav';
 import { fetchSectionEdits, formatEdited } from './adminHomeData';
+import { previewUrl } from '../lib/preview';
 
 /**
  * The admin's front page: one card per public page with when its content
@@ -58,7 +60,7 @@ export default function AdminHome() {
                   <Link to={page.entries[0].path} className="font-semibold text-white text-sm hover:underline">{page.label}</Link>
                   <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>{page.description}</p>
                 </div>
-                <a href={page.url} target="_blank" rel="noreferrer" className="text-white/30 hover:text-white/70" aria-label={`View ${page.label} on the site`}>
+                <a href={previewUrl(page.url)} target="_blank" rel="noreferrer" className="text-white/30 hover:text-white/70" aria-label={`View ${page.label} on the site`}>
                   <ExternalLink size={14} />
                 </a>
               </div>
@@ -81,7 +83,7 @@ export default function AdminHome() {
 
       <section aria-labelledby="admin-home-groundswell">
         <h2 id="admin-home-groundswell" className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: 'rgba(255,255,255,0.35)' }}>Groundswell</h2>
-        <Link to="/admin/groundswell/audits" className="flex items-center gap-4 rounded-2xl p-5 max-w-md hover:bg-white/5 transition-colors" style={card}>
+        <Link to={GROUNDSWELL_ADMIN_AUDITS_PATH} className="flex items-center gap-4 rounded-2xl p-5 max-w-md hover:bg-white/5 transition-colors" style={card}>
           <div className="flex items-center justify-center w-10 h-10 rounded-xl" style={{ background: 'rgba(57,204,204,0.12)', border: '1px solid rgba(57,204,204,0.2)' }}>
             <ClipboardList size={18} style={{ color: '#39CCCC' }} />
           </div>

@@ -2,7 +2,13 @@
 
 ## Overview
 
-This guide explains how to migrate the remaining admin editors to use the new ContentManager system.
+**Done (2026-10-21).** Every `site_content` editor is now one component,
+`src/admin/SectionPage.tsx`, drawn from the descriptors in
+`src/admin/sections/descriptors.ts`, and every edit goes through the
+`ContentManager`. The hand-written editors this guide was for are deleted.
+To add or change an editor, see "Adding an editor" in `admin-guide.md`.
+
+The rest of this guide is kept as a record of the pattern.
 
 ## Migration Pattern
 
@@ -69,22 +75,13 @@ const handleSave = async () => {
 4. **Save Handler**: Use `contentManager.publishChanges()` instead of manual upsert
 5. **Optimistic Updates**: UI updates immediately, synced to server on publish
 
-## Remaining Editors to Migrate
+## Editors outside the ContentManager
 
-1. TrustBarEditor
-2. WhyUsEditor
-3. AboutEditor
-4. ContactEditor
-5. FooterEditor
-6. PricingEditor
-7. PricingUnitsEditor
-8. StatusEditor
-9. ServicesCategoryEditor
-10. ServicesDetailEditor
-11. ThreatsDetailEditor
-12. SeoPortal
-13. SeoPageEditor
-14. TestimonialsEditor
+These write their own tables, not `site_content`, and stay as they are:
+
+1. PricingUnitsEditor (`pricing_units`)
+2. SeoPortal and SeoPageEditor (the SEO tables, through `api/seo/*`)
+3. The blog screens (`blog_posts`, through Supabase with the signed-in session)
 
 ## Migration Steps
 
