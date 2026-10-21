@@ -61,6 +61,7 @@ export interface Estimates {
   gross_margin: number;
   basis: string;
   has_current_marketer: boolean | null;
+  is_nwse_client: boolean | null;
 }
 
 type SiteOut = { business: SiteScan | null; competitors: { name: string; site: SiteScan | null }[] };
@@ -253,6 +254,7 @@ export function normalizeEstimates(raw: unknown): Estimates {
     gross_margin: clamp(r.gross_margin, 0.1, 0.9, 0.5),
     basis: str(r.basis, 600) || 'Groundswell estimate for the category; no published prices were found.',
     has_current_marketer: typeof r.has_current_marketer === 'boolean' ? r.has_current_marketer : null,
+    is_nwse_client: typeof r.is_nwse_client === 'boolean' ? r.is_nwse_client : null,
   };
 }
 
@@ -350,7 +352,8 @@ Return JSON only with this shape:
    "close": [low, typical, high] share of leads that become paying jobs (0-1),
    "gross_margin": number (0-1),
    "basis": string (one sentence: what the estimates rest on; say they are estimates),
-   "has_current_marketer": boolean or null (true only if the notes say they pay a marketer)}}
+   "has_current_marketer": boolean or null (true only if the notes say they pay a marketer),
+   "is_nwse_client": boolean or null (true only if the notes say they are already a New Wave: Social Engineering client or customer)}}
 Keep each list item under 25 words and at most 4 items per list.`;
 
 export async function runModel(ctx: StepContext) {

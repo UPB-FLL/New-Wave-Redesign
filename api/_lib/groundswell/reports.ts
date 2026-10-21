@@ -139,7 +139,8 @@ function scenarioRows(m: ModelOutput) {
     .map((k) => ({ key: k, label: k[0].toUpperCase() + k.slice(1), r: s[k] as RoiScenarioResult }));
 }
 
-function feeLine(m: ModelOutput) {
+export function feeLine(m: ModelOutput) {
+  if (m.estimates.is_nwse_client === true) return 'You are already a New Wave: Social Engineering client, so the only new money is ad spend.';
   return m.estimates.has_current_marketer === false
     ? 'These figures are before any management fee.'
     : 'Management is fee-neutral: our fee replaces what you pay your current marketing company, so the only new money is ad spend.';

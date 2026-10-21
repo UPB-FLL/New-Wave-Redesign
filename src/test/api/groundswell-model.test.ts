@@ -51,6 +51,11 @@ describe('normalizing the model answer', () => {
     });
     expect(normalizeEstimates({ ticket: 'lots' }).ticket).toEqual([150, 250, 400]);
   });
+
+  it('keeps the client and marketer flags only when they are booleans', () => {
+    expect(normalizeEstimates({ is_nwse_client: true, has_current_marketer: false })).toMatchObject({ is_nwse_client: true, has_current_marketer: false });
+    expect(normalizeEstimates({ is_nwse_client: 'yes' })).toMatchObject({ is_nwse_client: null, has_current_marketer: null });
+  });
 });
 
 describe('ROI inputs', () => {
