@@ -3,8 +3,8 @@ import { supabase } from '../lib/supabase';
 import { Waves, Lock, Mail } from 'lucide-react';
 import { usePageMeta } from '../lib/usePageMeta';
 
-export default function AdminLogin() {
-  usePageMeta({ title: 'Admin Sign In' });
+export default function AdminLogin({ title = 'Admin Panel', subtitle = 'New Wave IT — Content Management' }: { title?: string; subtitle?: string }) {
+  usePageMeta({ title: `${title} Sign In` });
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -26,8 +26,8 @@ export default function AdminLogin() {
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-5" style={{ background: 'rgba(57,204,204,0.15)', border: '1px solid rgba(57,204,204,0.3)' }}>
             <Waves size={28} style={{ color: '#39CCCC' }} />
           </div>
-          <h1 className="text-2xl font-bold text-white mb-1">Admin Panel</h1>
-          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>New Wave IT — Content Management</p>
+          <h1 className="text-2xl font-bold text-white mb-1">{title}</h1>
+          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>{subtitle}</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">

@@ -12,13 +12,13 @@ import {
   DIVISION_DESCRIPTOR,
   DIVISION_LOGO_MIN_WIDTH,
   DIVISION_CROISSANCE_PATH,
-  DIVISION_PARTNERS_PATH,
   DIVISION_NAME,
   DIVISION_PRIMARY_CTA,
   DIVISION_SHORT_NAME,
   PARENT_NAME,
   divisionServicePath,
 } from '../site';
+import { GROUNDSWELL_PATH } from '../../../groundswell/site';
 
 import { DivisionCurrents } from './DivisionCurrents';
 import { DivisionLogo } from './DivisionLogo';
@@ -91,7 +91,7 @@ export function DivisionFooter() {
                 </Link>
               </li>
               <li>
-                <Link to={DIVISION_PARTNERS_PATH} className={linkClass}>
+                <Link to={GROUNDSWELL_PATH} className={linkClass}>
                   Partner portal
                 </Link>
               </li>

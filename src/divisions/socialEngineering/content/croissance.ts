@@ -5,7 +5,7 @@ import type { DivisionIconName } from '../icons/iconData';
 //
 // Croissance (French for "growth") is the public name of the audit the
 // division runs for prospects and clients: the groundswell skill
-// (.claude/skills/groundswell) and the queue at /admin/groundswell/audits, which keep
+// (.claude/skills/groundswell) and the queue at /groundswell/admin/audits, which keep
 // their internal "marketing audit" names. It runs on the Groundswell engine
 // and its Currents, one per kind of public data. Keep the process here in step with
 // the skill: public data only, every number sourced and dated, three reports

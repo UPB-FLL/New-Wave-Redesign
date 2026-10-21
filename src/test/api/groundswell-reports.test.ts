@@ -32,10 +32,10 @@ describe('report HTML', () => {
 
   it('picks the fee sentence: existing client, no marketer, or fee-neutral', () => {
     const withEst = (e: Partial<typeof data.model.estimates>) => ({ ...data.model, estimates: { ...data.model.estimates, ...e } });
-    expect(feeLine(withEst({ is_nwse_client: true, has_current_marketer: true }))).toMatch(/already a New Wave: Social Engineering client/);
+    expect(feeLine(withEst({ is_nwse_client: true, has_current_marketer: true }))).toMatch(/already a client of New Wave: Social Engineering/);
     expect(feeLine(withEst({ is_nwse_client: null, has_current_marketer: false }))).toBe('These figures are before any management fee.');
     expect(feeLine(withEst({ is_nwse_client: null, has_current_marketer: null }))).toMatch(/^Management is fee-neutral/);
-    expect(buildSummaryHtml({ ...data, model: withEst({ is_nwse_client: true }) }, { deck: DECK, audit: AUDIT, folder: FOLDER })).toContain('already a New Wave: Social Engineering client');
+    expect(buildSummaryHtml({ ...data, model: withEst({ is_nwse_client: true }) }, { deck: DECK, audit: AUDIT, folder: FOLDER })).toContain('already a client of New Wave: Social Engineering');
   });
 
   it('rounds money to the nearest $10', () => {

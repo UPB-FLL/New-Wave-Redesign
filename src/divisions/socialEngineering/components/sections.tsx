@@ -7,6 +7,16 @@ import { SceneSlot } from '../motion/scenes/SceneSlot';
 import { DIVISION_BASE_PATH, DIVISION_CONTACT_PATH, DIVISION_PRIMARY_CTA } from '../site';
 import type { DivisionFaq, DivisionGlance, DivisionPageSeo, DivisionPillar, DivisionPillarKey, DivisionPoint, DivisionRoadmapPhase } from '../types';
 import { DivisionCurrents } from './DivisionCurrents';
+import { PILLAR_STYLE, accentAt, type SurfaceColor } from './pillarStyle';
+
+/** A section's ground: light tones (Band) or dark (a navy or Deep Current band). */
+export type SurfaceTone = 'light' | 'dark';
+
+/** Text colours per ground, so a component reads the same way on either. */
+const TEXT = {
+  light: { heading: 'text-[var(--nw-current-navy)]', body: 'text-[var(--nw-slate)]', hairline: 'var(--nw-mist-gray)' },
+  dark: { heading: 'text-[var(--nw-cloud-white)]', body: 'text-[var(--nw-mist-gray)]', hairline: 'color-mix(in srgb, var(--nw-cloud-white) 14%, transparent)' },
+} as const;
 
 export function Breadcrumbs({ trail }: { trail: DivisionPageSeo['breadcrumbs'] }) {
   const items = [{ name: 'New Wave IT', path: '/' }, ...trail];
@@ -166,10 +176,11 @@ const HERO_SCENE_COLUMNS: Record<HeroSceneSize, string> = {
 
 /**
  * The hero's ground: Deep Current, with a soft Lure Amber glow rising from
- * the top right corner (behind the scene), so the dark band reads as lit
- * rather than flat. The currents (DarkCurrents) paint over it unchanged.
+ * the top right corner (behind the scene) and a cooler Signal Cyan one from
+ * the bottom left, so the dark band reads as lit rather than flat. The
+ * currents (DarkCurrents) paint over it unchanged.
  */
-const HERO_GROUND = `radial-gradient(48rem 26rem at 100% 0%, color-mix(in srgb, var(--nwse-lure-amber) 14%, transparent), transparent 70%), var(--nw-deep-current)`;
+const HERO_GROUND = `radial-gradient(48rem 26rem at 100% 0%, color-mix(in srgb, var(--nwse-lure-amber) 14%, transparent), transparent 70%), radial-gradient(40rem 22rem at 0% 100%, color-mix(in srgb, var(--nw-signal-cyan) 12%, transparent), transparent 70%), var(--nw-deep-current)`;
 
 export function DivisionHero({
   kicker,
@@ -288,21 +299,24 @@ export function SectionIntro({
   description,
   id,
   align = 'left',
+  tone = 'light',
 }: {
   kicker: string;
   title: string;
   description?: string;
   id?: string;
   align?: 'left' | 'center';
+  /** `dark` for a navy or Deep Current band: Lure Amber kicker, Cloud White title, Mist Gray description. */
+  tone?: SurfaceTone;
 }) {
   return (
     <div className={align === 'center' ? 'mx-auto max-w-3xl text-center' : 'max-w-3xl'}>
-      <p className="nwse-type-kicker nwse-kicker">{kicker}</p>
+      <p className={`nwse-type-kicker ${tone === 'dark' ? 'nwse-kicker-on-dark' : 'nwse-kicker'}`}>{kicker}</p>
       {/* Balanced, so a two-line heading never strands its last word. */}
-      <h2 id={id} className="nwse-type-display-2 mt-2 text-balance text-[var(--nw-current-navy)] sm:mt-3">
+      <h2 id={id} className={`nwse-type-display-2 mt-2 text-balance ${TEXT[tone].heading} sm:mt-3`}>
         {title}
       </h2>
-      {description ? <p className="nwse-type-body mt-3 text-[var(--nw-slate)] sm:mt-4">{description}</p> : null}
+      {description ? <p className={`nwse-type-body mt-3 ${TEXT[tone].body} sm:mt-4`}>{description}</p> : null}
     </div>
   );
 }
@@ -318,15 +332,25 @@ export function PointGrid({
   points,
   columns = 3,
   scene,
+  variant = 'hairline',
+  accents = 'amber',
 }: {
   points: readonly DivisionPoint[];
   columns?: 2 | 3;
   scene?: ScenePageKey;
+  /** `hairline`: the white card with a Mist Gray border; `soft`: a borderless white tile with a soft shadow (for Cloud White bands). */
+  variant?: 'hairline' | 'soft';
+  /** The short bar over each title: amber on every card, or the colour roles in rotation. */
+  accents?: 'amber' | 'cycle';
 }) {
   const withScene = scene !== undefined && columns === 3 && points.length === 5;
-  const items = points.map((point) => (
-    <li key={point.title} className="nwse-card py-5 md:p-5 lg:p-6">
-      <span className="block h-[3px] w-6 rounded-full md:h-1 md:w-10" style={{ background: 'var(--nwse-lure-amber)' }} aria-hidden="true" />
+  const items = points.map((point, index) => (
+    <li key={point.title} className={`${variant === 'soft' ? 'nwse-soft' : 'nwse-card'} py-5 md:p-5 lg:p-6`}>
+      <span
+        className="block h-[3px] w-6 rounded-full md:h-1 md:w-10"
+        style={{ background: accents === 'cycle' ? accentAt(index).accent : 'var(--nwse-lure-amber)' }}
+        aria-hidden="true"
+      />
       <h3 className="nwse-type-title-2 mt-3 text-[var(--nw-current-navy)] md:mt-4 lg:mt-5">{point.title}</h3>
       <p className="nwse-type-body-small mt-2 text-[var(--nw-slate)]">{point.detail}</p>
     </li>
@@ -353,19 +377,26 @@ export function PointGrid({
 }
 
 /**
- * A card's Plex Mono label ("Step 01", "Phase 01"), led by its icon tile when
- * it has one: a 24px icon in a 48px tile, one step up from the 20px service
- * icons in their 44px tiles.
+ * A card's Plex Mono label ("Step 01", "Phase 01"), led by its marker tile: a
+ * 24px icon in a 48px tile (one step up from the 20px service icons in their
+ * 44px tiles), or, with `number`, the step's number in the same tile. The
+ * tile takes a colour role (`color.tile`); the label stays Tide Blue.
  */
-function CardLabel({ icon, children }: { icon?: DivisionIconName; children: ReactNode }) {
+function CardLabel({ icon, number, color, children }: { icon?: DivisionIconName; number?: number; color?: SurfaceColor; children: ReactNode }) {
   const label = <p className="nwse-type-label nwse-label">{children}</p>;
-  if (!icon) return label;
+  if (!icon && number === undefined) return label;
   // Below lg: a 40px tile with a 20px icon. Below md division.css pins the
   // tile to the timeline rail (StepList) or beside the title (RoadmapGrid).
   return (
     <div className="nwse-cardlabel flex items-center gap-4">
-      <span className="nwse-icon h-10 w-10 shrink-0 lg:h-12 lg:w-12">
-        <NwseIcon name={icon} size={24} className="max-lg:h-5 max-lg:w-5" />
+      <span className={`nwse-icon ${color?.tile ?? ''} h-10 w-10 shrink-0 lg:h-12 lg:w-12`}>
+        {icon ? (
+          <NwseIcon name={icon} size={24} className="max-lg:h-5 max-lg:w-5" />
+        ) : (
+          <span className="nwse-type-label nwse-type-numeric font-semibold text-[var(--nw-current-navy)]" aria-hidden="true">
+            {String(number).padStart(2, '0')}
+          </span>
+        )}
       </span>
       {label}
     </div>
@@ -387,18 +418,26 @@ const STEP_GRID: Record<number, string> = {
 };
 const STEP_GRID_FALLBACK = `md:grid-cols-2 lg:grid-cols-4 ${ODD_ORPHAN_LI}`;
 
-/** Cards from md; below it, a timeline (.nwse-timeline in division.css). */
+/**
+ * The steps as a stepper from md: each marker tile (the step's icon, or its
+ * number) sits on a hairline rail that runs to the next step (.nwse-stepper
+ * in division.css), with no card chrome, so the row reads as one process
+ * rather than three more boxes. Below md the same list is a timeline
+ * (.nwse-timeline). The tiles take the colour roles in rotation.
+ */
 export function StepList({ steps }: { steps: readonly DivisionPoint[] }) {
-  const markers = steps.every((step) => step.icon) ? 'icon' : 'node';
+  const markers = steps.every((step) => step.icon) ? 'icon' : 'number';
   return (
     <ol
-      className={`nwse-timeline mt-6 grid grid-cols-1 gap-0 sm:mt-8 md:gap-4 lg:mt-10 ${STEP_GRID[steps.length] ?? STEP_GRID_FALLBACK}`}
+      className={`nwse-timeline nwse-stepper mt-6 grid grid-cols-1 gap-0 sm:mt-8 md:gap-4 lg:mt-10 ${STEP_GRID[steps.length] ?? STEP_GRID_FALLBACK}`}
       data-markers={markers}
     >
       {steps.map((step, index) => (
-        <li key={step.title} className="nwse-card relative md:p-5 lg:p-6">
-          <CardLabel icon={step.icon}>Step {String(index + 1).padStart(2, '0')}</CardLabel>
-          <h3 className={`nwse-type-title-2 mt-1 ${step.icon ? 'md:mt-4' : 'md:mt-3'} text-[var(--nw-current-navy)]`}>{step.title}</h3>
+        <li key={step.title} className="relative md:pr-4">
+          <CardLabel icon={step.icon} number={step.icon ? undefined : index + 1} color={accentAt(index)}>
+            Step {String(index + 1).padStart(2, '0')}
+          </CardLabel>
+          <h3 className="nwse-type-title-2 mt-1 text-[var(--nw-current-navy)] md:mt-4">{step.title}</h3>
           <p className="nwse-type-body-small mt-2 text-[var(--nw-slate)]">{step.detail}</p>
         </li>
       ))}
@@ -463,35 +502,43 @@ export function JourneyStrip({ stages }: { stages: readonly string[] }) {
 export function RoadmapGrid({ phases }: { phases: readonly DivisionRoadmapPhase[] }) {
   return (
     <ol className="nwse-roadmap mt-6 grid grid-cols-1 gap-3 sm:mt-8 sm:gap-4 md:grid-cols-3 lg:mt-10 md:max-lg:grid-rows-[auto_auto_1fr] md:max-lg:gap-y-0">
-      {phases.map((phase) => (
-        <li key={phase.phase} className="nwse-card relative p-4 md:p-5 lg:p-6 md:max-lg:row-span-3 md:max-lg:grid md:max-lg:grid-rows-subgrid">
-          <CardLabel icon={phase.icon}>{phase.phase}</CardLabel>
-          <h3 className={`nwse-type-title-1 ${phase.icon ? 'mt-0.5 md:mt-4' : 'mt-3'} text-[var(--nw-current-navy)]`}>{phase.title}</h3>
-          {/* Below md the items flow in rows at their natural width, in reading
-              order, so none breaks mid-item; from md, one column. */}
-          <ul
-            className="mt-3 flex flex-wrap gap-x-5 gap-y-2 border-t pt-3 md:mt-4 md:flex-col md:flex-nowrap md:gap-2 md:pt-4"
-            style={{ borderColor: 'var(--nw-mist-gray)' }}
-          >
-            {phase.items.map((item) => (
-              <li key={item} className="flex items-center gap-2 text-sm text-[var(--nw-current-navy)]">
-                <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: 'var(--nwse-lure-amber)' }} aria-hidden="true" />
-                {item}
-              </li>
-            ))}
-          </ul>
-        </li>
-      ))}
+      {phases.map((phase, index) => {
+        // Capped cards: each phase wears the next colour role (cyan, green,
+        // amber) as a tinted header, so the three read as a progression.
+        const color = accentAt(index);
+        return (
+          <li key={phase.phase} className="nwse-card relative overflow-hidden p-4 md:p-5 lg:p-6 md:max-lg:row-span-3 md:max-lg:grid md:max-lg:grid-rows-subgrid">
+            <span className="absolute inset-x-0 top-0 h-1.5" style={{ background: color.accent }} aria-hidden="true" />
+            <CardLabel icon={phase.icon} color={color}>
+              {phase.phase}
+            </CardLabel>
+            <h3 className={`nwse-type-title-1 ${phase.icon ? 'mt-0.5 md:mt-4' : 'mt-3'} text-[var(--nw-current-navy)]`}>{phase.title}</h3>
+            {/* Below md the items flow in rows at their natural width, in reading
+                order, so none breaks mid-item; from md, one column. */}
+            <ul
+              className="mt-3 flex flex-wrap gap-x-5 gap-y-2 border-t pt-3 md:mt-4 md:flex-col md:flex-nowrap md:gap-2 md:pt-4"
+              style={{ borderColor: 'var(--nw-mist-gray)' }}
+            >
+              {phase.items.map((item) => (
+                <li key={item} className="flex items-center gap-2 text-sm text-[var(--nw-current-navy)]">
+                  <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: color.accent }} aria-hidden="true" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </li>
+        );
+      })}
     </ol>
   );
 }
 
-export function CheckList({ items }: { items: readonly string[] }) {
+export function CheckList({ items, tone = 'light', color }: { items: readonly string[]; tone?: SurfaceTone; color?: SurfaceColor }) {
   return (
     <ul className="mt-4 flex flex-col gap-3 sm:mt-6">
       {items.map((item) => (
-        <li key={item} className="nwse-type-body-small flex items-start gap-3 text-[var(--nw-current-navy)]">
-          <span className="nwse-icon mt-0.5 h-5 w-5 shrink-0">
+        <li key={item} className={`nwse-type-body-small flex items-start gap-3 ${tone === 'dark' ? 'text-[var(--nw-cloud-white)]' : 'text-[var(--nw-current-navy)]'}`}>
+          <span className={`nwse-icon ${color?.tile ?? ''} ${tone === 'dark' ? 'nwse-icon-on-dark' : ''} mt-0.5 h-5 w-5 shrink-0`}>
             <NwseIcon name="check" size={15} />
           </span>
           {item}
@@ -535,9 +582,12 @@ export function FaqList({ faqs }: { faqs: readonly DivisionFaq[] }) {
   );
 }
 
+/** The closing band's ground: Current Navy warmed toward Tide Blue on the right, under its own stronger currents. */
+const CTA_GROUND = 'linear-gradient(110deg, var(--nw-current-navy) 35%, color-mix(in srgb, var(--nw-tide-blue) 38%, var(--nw-current-navy)) 100%)';
+
 export function CtaBand({ heading, body }: { heading: string; body: string }) {
   return (
-    <section className="nwse-dark relative overflow-hidden" style={{ background: 'var(--nw-current-navy)' }}>
+    <section className="nwse-dark relative overflow-hidden" style={{ background: CTA_GROUND }}>
       <DivisionCurrents className="pointer-events-none absolute inset-0 h-full w-full" opacity={0.3} />
       <div className="nwse-actions relative mx-auto flex max-w-7xl flex-col items-start gap-5 px-4 py-10 sm:gap-6 sm:px-6 sm:py-14 lg:flex-row lg:items-center lg:justify-between lg:px-8">
         <div className="max-w-2xl">
@@ -557,10 +607,18 @@ const BAND_PADDING = {
   compact: 'py-6 sm:py-8 lg:py-10',
 } as const;
 
+/** The dark bands' grounds: Deep Current (the hero's) or Current Navy (a step lighter, for a band between light ones). */
+const DARK_GROUNDS = {
+  dark: 'var(--nw-deep-current)',
+  navy: 'var(--nw-current-navy)',
+} as const;
+
 /**
- * A light section: Cloud White (`light`) or Pure White (`white`), with the
- * division's currents faintly behind it (.nwse-band in division.css; mirrored
- * and fainter on Cloud White, keyed on `data-tone`).
+ * A section. Light tones, Cloud White (`light`) or Pure White (`white`), carry
+ * the division's currents faintly behind them (.nwse-band in division.css;
+ * mirrored and fainter on Cloud White, keyed on `data-tone`). Dark tones,
+ * `dark` (Deep Current) and `navy` (Current Navy), carry the hero's currents
+ * (DarkCurrents) as every dark section does.
  */
 export function Band({
   children,
@@ -570,11 +628,25 @@ export function Band({
   labelledBy,
 }: {
   children: ReactNode;
-  tone?: 'light' | 'white';
+  tone?: 'light' | 'white' | keyof typeof DARK_GROUNDS;
   size?: keyof typeof BAND_PADDING;
   id?: string;
   labelledBy?: string;
 }) {
+  if (tone === 'dark' || tone === 'navy') {
+    return (
+      <section
+        id={id}
+        aria-labelledby={labelledBy}
+        data-tone={tone}
+        className={`nwse-dark relative overflow-hidden ${BAND_PADDING[size]}`}
+        style={{ background: DARK_GROUNDS[tone] }}
+      >
+        <DarkCurrents />
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">{children}</div>
+      </section>
+    );
+  }
   return (
     <section
       id={id}
@@ -593,29 +665,41 @@ export function Band({
 // ---------------------------------------------------------------------------
 
 /**
- * The hub's three pillars: one card each, with a 56px icon tile, the promise,
- * and the work inside it as a check list. One column on phones, three from lg;
- * on tablets the third card spans the row rather than standing alone.
+ * The hub's three pillars, each in its own colour role (cyan, green, amber):
+ * on a dark band (`tone="dark"`, the hub), glass tiles with a coloured cap,
+ * a coloured icon tile, and the index in the role's colour; on a light band,
+ * the same card washed in the role's tint. One column on phones, three from
+ * lg; on tablets the third card spans the row rather than standing alone.
  */
-export function PillarCards({ pillars }: { pillars: readonly DivisionPillar[] }) {
+export function PillarCards({ pillars, tone = 'light' }: { pillars: readonly DivisionPillar[]; tone?: SurfaceTone }) {
+  const dark = tone === 'dark';
   return (
     <ol className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 sm:gap-4 md:grid-cols-2 lg:mt-10 lg:grid-cols-3 md:max-lg:[&>li:last-child:nth-child(odd)]:col-span-2" data-role="pillars">
-      {pillars.map((pillar, index) => (
-        <li key={pillar.key} id={`pillar-${pillar.key}`} className="nwse-card relative flex flex-col overflow-hidden p-5 sm:p-6 lg:p-7">
-          <span className="absolute inset-x-0 top-0 h-1" style={{ background: 'var(--nwse-lure-amber)' }} aria-hidden="true" />
-          <div className="flex items-center justify-between gap-4">
-            <span className="nwse-icon h-14 w-14 shrink-0">
-              <NwseIcon name={pillar.icon} size={28} />
-            </span>
-            <span className="nwse-type-label nwse-label">{String(index + 1).padStart(2, '0')}</span>
-          </div>
-          <h3 className="nwse-type-title-1 mt-5 text-[var(--nw-current-navy)]">{pillar.title}</h3>
-          <p className="nwse-type-body mt-2 text-[var(--nw-slate)]">{pillar.summary}</p>
-          <div className="mt-4 border-t pt-4" style={{ borderColor: 'var(--nw-mist-gray)' }}>
-            <CheckList items={pillar.items} />
-          </div>
-        </li>
-      ))}
+      {pillars.map((pillar, index) => {
+        const color = PILLAR_STYLE[pillar.key];
+        return (
+          <li
+            key={pillar.key}
+            id={`pillar-${pillar.key}`}
+            className={`${dark ? 'nwse-glass' : `nwse-tint ${color.tint}`} relative flex flex-col overflow-hidden p-5 sm:p-6 lg:p-7`}
+          >
+            <span className="absolute inset-x-0 top-0 h-1.5" style={{ background: color.accent }} aria-hidden="true" />
+            <div className="flex items-center justify-between gap-4">
+              <span className={`nwse-icon ${color.tile} ${dark ? 'nwse-icon-on-dark' : ''} h-14 w-14 shrink-0`}>
+                <NwseIcon name={pillar.icon} size={28} />
+              </span>
+              <span className="nwse-type-label" style={{ color: dark ? color.onDark : color.deep }}>
+                {String(index + 1).padStart(2, '0')}
+              </span>
+            </div>
+            <h3 className={`nwse-type-title-1 mt-5 ${TEXT[tone].heading}`}>{pillar.title}</h3>
+            <p className={`nwse-type-body mt-2 ${TEXT[tone].body}`}>{pillar.summary}</p>
+            <div className="mt-4 border-t pt-4" style={{ borderColor: dark ? TEXT.dark.hairline : color.accent }}>
+              <CheckList items={pillar.items} tone={tone} color={color} />
+            </div>
+          </li>
+        );
+      })}
     </ol>
   );
 }
@@ -623,23 +707,28 @@ export function PillarCards({ pillars }: { pillars: readonly DivisionPillar[] })
 /**
  * A service page's "At a glance": four label/value pairs in one row from lg
  * (two by two on tablets, stacked on phones), each with a hairline to its left
- * from the second column on.
+ * from the second column on. On a dark band (the navy strip under a service
+ * hero) the labels are Lure Amber and the values Cloud White.
  */
-export function GlanceStrip({ items, labelledBy }: { items: readonly DivisionGlance[]; labelledBy: string }) {
+export function GlanceStrip({ items, labelledBy, tone = 'light' }: { items: readonly DivisionGlance[]; labelledBy: string; tone?: SurfaceTone }) {
+  const dark = tone === 'dark';
+  const hairline = TEXT[tone].hairline;
   return (
     <dl
       aria-labelledby={labelledBy}
       data-role="glance"
-      className="nwse-card grid grid-cols-1 divide-y divide-[color:var(--nw-mist-gray)] sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4"
+      className={`${dark ? 'nwse-glass' : 'nwse-card'} grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`}
     >
       {items.map((item, index) => (
         <div
           key={item.label}
-          className={`flex flex-col gap-1.5 px-5 py-4 sm:py-5 lg:px-6 ${index % 2 === 1 ? 'sm:border-l' : ''} ${index >= 2 ? 'sm:border-t lg:border-t-0' : ''} ${index > 0 ? 'lg:border-l' : ''}`}
-          style={{ borderColor: 'var(--nw-mist-gray)' }}
+          className={`flex flex-col gap-1.5 px-5 py-4 sm:py-5 lg:px-6 ${index > 0 ? 'max-sm:border-t' : ''} ${index % 2 === 1 ? 'sm:border-l' : ''} ${index >= 2 ? 'sm:border-t lg:border-t-0' : ''} ${index > 0 ? 'lg:border-l' : ''}`}
+          style={{ borderColor: hairline }}
         >
-          <dt className="nwse-type-label nwse-label">{item.label}</dt>
-          <dd className="nwse-type-body-small font-medium text-[var(--nw-current-navy)]">{item.value}</dd>
+          <dt className={`nwse-type-label ${dark ? '' : 'nwse-label'}`} style={dark ? { color: 'var(--nwse-lure-amber)' } : undefined}>
+            {item.label}
+          </dt>
+          <dd className={`nwse-type-body-small font-medium ${TEXT[tone].heading}`}>{item.value}</dd>
         </div>
       ))}
     </dl>
@@ -647,28 +736,36 @@ export function GlanceStrip({ items, labelledBy }: { items: readonly DivisionGla
 }
 
 /**
- * What changes for the business: three statements, each led by a large amber
- * numeral. One grouped list on phones (.nwse-rowlist), three cards from md.
+ * What changes for the business: three statements, each a panel washed in
+ * the next colour role (cyan, green, amber) with a large numeral in the
+ * role's text colour. One grouped list on phones (.nwse-rowlist), three
+ * panels from md.
  */
 export function OutcomeList({ outcomes }: { outcomes: readonly string[] }) {
   return (
     <ol className="nwse-rowlist mt-6 grid grid-cols-1 gap-0 sm:mt-8 md:grid-cols-3 md:gap-4 lg:mt-10" data-role="outcomes">
-      {outcomes.map((outcome, index) => (
-        <li key={outcome} className="nwse-card flex flex-col gap-3 p-5 sm:p-6 lg:p-7">
-          <span className="nwse-type-display-2 nwse-type-numeric text-[var(--nwse-lure-amber-deep)]" aria-hidden="true">
-            {String(index + 1).padStart(2, '0')}
-          </span>
-          <p className="nwse-type-body text-[var(--nw-current-navy)]">{outcome}</p>
-        </li>
-      ))}
+      {outcomes.map((outcome, index) => {
+        const color = accentAt(index);
+        return (
+          <li key={outcome} className={`nwse-tint ${color.tint} flex flex-col gap-3 p-5 sm:p-6 lg:p-7`}>
+            <span className="flex items-center gap-3" aria-hidden="true">
+              <span className="nwse-type-display-2 nwse-type-numeric" style={{ color: color.deep }}>
+                {String(index + 1).padStart(2, '0')}
+              </span>
+              <span className="h-1 w-8 rounded-full" style={{ background: color.accent }} />
+            </span>
+            <p className="nwse-type-body text-[var(--nw-current-navy)]">{outcome}</p>
+          </li>
+        );
+      })}
     </ol>
   );
 }
 
 /**
- * Where a service sits in the system: the three pillars as a row, the one the
- * service serves first outlined in amber and tagged, then a link to the hub's
- * pillars. Stacked on phones, three across from md.
+ * Where a service sits in the system: the three pillars as a row, each in its
+ * tint, the one the service serves first outlined in its colour and tagged,
+ * then a link to the hub's pillars. Stacked on phones, three across from md.
  */
 export function PillarStrip({ pillars, active }: { pillars: readonly DivisionPillar[]; active: DivisionPillarKey }) {
   return (
@@ -676,18 +773,21 @@ export function PillarStrip({ pillars, active }: { pillars: readonly DivisionPil
       <ol className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 md:grid-cols-3 md:gap-4 lg:mt-10" data-role="pillar-strip" data-active={active}>
         {pillars.map((pillar) => {
           const current = pillar.key === active;
+          const color = PILLAR_STYLE[pillar.key];
           return (
             <li
               key={pillar.key}
               aria-current={current ? 'true' : undefined}
-              className="nwse-card flex items-start gap-4 p-4 sm:p-5"
-              style={current ? { borderColor: 'var(--nwse-lure-amber-deep)', borderWidth: 2 } : undefined}
+              className={`nwse-tint ${color.tint} flex items-start gap-4 border-2 p-4 sm:p-5`}
+              style={{ borderColor: current ? color.accent : 'transparent' }}
             >
-              <span className="nwse-icon h-11 w-11 shrink-0">
+              <span className={`nwse-icon ${color.tile} h-11 w-11 shrink-0`}>
                 <NwseIcon name={pillar.icon} size={22} />
               </span>
               <div className="min-w-0">
-                <p className="nwse-type-label nwse-label">{current ? 'This service, first' : 'Supports'}</p>
+                <p className="nwse-type-label" style={{ color: current ? color.deep : 'var(--nw-slate)' }}>
+                  {current ? 'This service, first' : 'Supports'}
+                </p>
                 <h3 className="nwse-type-title-2 mt-0.5 text-[var(--nw-current-navy)]">{pillar.title}</h3>
                 <p className="nwse-type-body-small mt-1 text-[var(--nw-slate)]">{pillar.summary}</p>
               </div>
@@ -703,16 +803,17 @@ export function PillarStrip({ pillars, active }: { pillars: readonly DivisionPil
   );
 }
 
-/** Short labels as wrapping chips (kinds of business, for example). */
+/** Short labels as wrapping chips (kinds of business, for example), each with a dot in the next colour role. */
 export function ChipList({ items, label }: { items: readonly string[]; label: string }) {
   return (
     <ul className="mt-6 flex flex-wrap gap-2 sm:mt-8" aria-label={label}>
-      {items.map((item) => (
+      {items.map((item, index) => (
         <li
           key={item}
-          className="nwse-type-body-small rounded-full border px-3.5 py-1.5 font-medium text-[var(--nw-current-navy)]"
+          className="nwse-type-body-small flex items-center gap-2 rounded-full border px-3.5 py-1.5 font-medium text-[var(--nw-current-navy)]"
           style={{ borderColor: 'var(--nw-mist-gray)', background: 'var(--nw-pure-white)' }}
         >
+          <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: accentAt(index).accent }} aria-hidden="true" />
           {item}
         </li>
       ))}
@@ -720,16 +821,49 @@ export function ChipList({ items, label }: { items: readonly string[]; label: st
   );
 }
 
-/** The working rhythm after launch (weekly, monthly, quarterly): three columns under a hairline. */
+/** The working rhythm after launch (weekly, monthly, quarterly): three columns under a hairline, each led by a coloured dot. */
 export function CadenceRow({ cadence }: { cadence: readonly DivisionPoint[] }) {
   return (
     <dl className="mt-8 grid grid-cols-1 gap-6 border-t pt-6 sm:mt-10 sm:pt-8 md:grid-cols-3 md:gap-8" style={{ borderColor: 'var(--nw-mist-gray)' }} data-role="cadence">
-      {cadence.map((item) => (
+      {cadence.map((item, index) => (
         <div key={item.title}>
-          <dt className="nwse-type-label nwse-label">{item.title}</dt>
+          <dt className="nwse-type-label nwse-label flex items-center gap-2">
+            <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: accentAt(index).accent }} aria-hidden="true" />
+            {item.title}
+          </dt>
           <dd className="nwse-type-body-small mt-1.5 text-[var(--nw-slate)]">{item.detail}</dd>
         </div>
       ))}
+    </dl>
+  );
+}
+
+/**
+ * What the work is measured against, on a dark band: glass tiles, each led by
+ * its icon in a tile of the next colour role and a label in that colour.
+ * Two columns from md (the fifth spanning the row), three from lg.
+ */
+export function MetricTiles({ metrics }: { metrics: readonly DivisionPoint[] }) {
+  return (
+    <dl className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 sm:gap-4 md:grid-cols-2 lg:mt-10 lg:grid-cols-3 md:max-lg:[&>div:last-child:nth-child(odd)]:col-span-2" data-role="metric-tiles">
+      {metrics.map((metric, index) => {
+        const color = accentAt(index);
+        return (
+          <div key={metric.title} className="nwse-glass p-5 lg:p-6">
+            <dt className="flex items-center gap-3">
+              {metric.icon ? (
+                <span className={`nwse-icon ${color.tile} nwse-icon-on-dark h-11 w-11 shrink-0`}>
+                  <NwseIcon name={metric.icon} size={24} className="max-sm:h-5 max-sm:w-5" />
+                </span>
+              ) : null}
+              <span className="nwse-type-label" style={{ color: color.onDark }}>
+                {metric.title}
+              </span>
+            </dt>
+            <dd className="nwse-type-body-small mt-3 text-[var(--nw-mist-gray)]">{metric.detail}</dd>
+          </div>
+        );
+      })}
     </dl>
   );
 }

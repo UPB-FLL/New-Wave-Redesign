@@ -46,26 +46,28 @@ national growth division for small businesses, built on three pillars.
   `glance` (four "At a glance" facts: best for, engagement, measured by,
   works with; no numbers) and `outcomes` (three statements of what changes
   for the business; no numbers), rendered under the hero (`GlanceStrip`, a
-  compact white band) and as the first section (`OutcomeList`).
+  compact Current Navy band with the four facts in one glass tile) and as the
+  first section (`OutcomeList`, three tinted panels).
 - **Hub** (`SocialEngineeringHubPage`), in order: hero (with a facts line:
   nationwide, remote-first, reported against revenue; a `<p>`, never a list,
   each fact carrying its own trailing dot so a wrapped line ends on one), the
-  opportunity with the growth loop, the three pillars, the six
-  services, discovery (the journey strip and the five data points, with the
-  journey scene), how we work (three steps with the method icons), the first
-  90 days (three phases and the weekly/monthly/quarterly `CadenceRow`), who
-  we work with (`ChipList` of business types, with the remote-first note),
-  what we measure (dark), part of New Wave IT, FAQ, and the call to the
-  audit. Dark sections stay at three (hero, metrics, closing CTA), as
-  `grounds.test.tsx` expects.
+  opportunity with the growth loop (in a Current Navy panel), the three
+  pillars (a Current Navy band), the six services, discovery (the journey
+  strip and the five data points, with the journey scene), how we work (three
+  steps with the method icons), the first 90 days (three phases and the
+  weekly/monthly/quarterly `CadenceRow`), what we measure (Deep Current),
+  who we work with (`ChipList` of business types, with the remote-first
+  note), part of New Wave IT, FAQ, and the call to the audit. Dark sections
+  are four (hero, pillars, metrics, closing CTA), as `grounds.test.tsx`
+  expects; see "Surfaces and colour roles" under "Brand implementation".
 - **Structured data**: `areaServed` is the United States (`Country`), the
   Organization description names the three pillars, and `knowsAbout` lists
   the growth work. Titles lead with small-business growth terms (growth
   marketing, paid search and social, integrations and tracking, analytics and
   oversight) and name no market.
 - **Hero ground**: Deep Current with a soft Lure Amber glow from the top
-  right corner (`HERO_GROUND` in `sections.tsx`), under the unchanged
-  currents.
+  right corner and a fainter Signal Cyan one from the bottom left
+  (`HERO_GROUND` in `sections.tsx`), under the unchanged currents.
 - **Tests**: `pages.test.tsx` ("division positioning" and "the growth
   system"), `icons.test.ts` (the pillar icons to spec), and the pinned
   expectations in `responsive.test.tsx` and `motion.test.tsx`.
@@ -82,7 +84,6 @@ national growth division for small businesses, built on three pillars.
 | Integrations & data (the `integration` slug) | `/social-engineering/integration` |
 | Analytics & oversight (the `digital-oversight` slug) | `/social-engineering/digital-oversight` |
 | Croissance (the audit, run by the Groundswell engine) | `/social-engineering/croissance` |
-| Croissance partner portal (sign-in) | `/social-engineering/croissance/partners` |
 | Customers | `/social-engineering/customers` |
 | Contact us (clients, questions, partnerships) | `/social-engineering/contact-us` |
 | Book a discovery call (new projects) | `/social-engineering/contact` |
@@ -193,9 +194,54 @@ division is a New Wave IT division, not a separate company.
   - **Forced colours and print.** Forced colours drop the currents
     (`content: none`). Print leaves them out unless the reader prints
     backgrounds.
-  - **Dark sections.** The hero and the hub's metrics band share the hero's
-    currents (`DarkCurrents` in `sections.tsx`); the closing CTA band keeps its
-    own, stronger ones.
+  - **Dark sections.** Every dark `Band` (`tone="dark"`, Deep Current, or
+    `tone="navy"`, Current Navy) carries the hero's currents (`DarkCurrents`
+    in `sections.tsx`): the hub's pillars and metrics bands and the service
+    pages' glance strip. The closing CTA band keeps its own, stronger ones
+    on a navy-to-Tide Blue gradient (`CTA_GROUND`).
+- Surfaces and colour roles (2026-10-21): the pages used one box, the white
+  hairline card, with one accent, amber, so every band looked alike. Now
+  each of the three pillars has a colour role, and the pages draw on five
+  surfaces. `components/pillarStyle.ts` holds the roles; the CSS is in
+  `division.css` under "Panel tints" and "Surfaces".
+  - **Roles.** Signal Cyan is data, Continuity Green is integrations, Lure
+    Amber is smart advertising; Tide Blue is the fourth colour for anything
+    that is not a pillar (`TIDE_STYLE`). Lists that are not pillars take the
+    roles in rotation (`accentAt(index)`: cyan, green, amber, tide), so a row
+    of three reads as a progression rather than three copies.
+  - **Surfaces.** The hairline card (`nwse-card`, white with a Mist Gray
+    border) stays for the service cards, the roadmap's capped cards, and the
+    FAQ. The tinted panel (`nwse-tint` plus `nwse-tint-cyan`, `-green`,
+    `-amber`, or `-tide`: the role's colour mixed into Pure White at 10%, 12%,
+    12%, and 8%, no border) carries the outcomes, the pillar strip, the
+    Croissance connectors and growth groups, and the pillar cards on a light
+    band. The soft tile (`nwse-soft`, white with a soft shadow, no border)
+    carries grids on Cloud White bands: "What we gather" and each service's
+    scope. The glass tile (`nwse-glass`, 6% Cloud White with a 14% border)
+    is for dark bands: the pillar cards, the metric tiles, and the glance
+    strip. The stepper (`nwse-stepper`) sets the method steps on a hairline
+    rail from 768px, with no card at all, so the steps read as one process.
+    Capped cards (`RoadmapGrid`, the Croissance reports) wear a 6px bar of
+    their role's colour along the top. Phones strip the soft tile's shadow
+    with the rest of the card chrome (`nwse-hairlines`).
+  - **Icon tiles.** `.nwse-icon` stays amber unless a role class
+    (`nwse-icon-cyan`, `-green`, `-tide`) sets its tint; `nwse-icon-on-dark`
+    turns the strokes Cloud White on a dark band. The service cards, pillar
+    cards, pillar strips, related-service tiles, and the Croissance
+    connectors wear their pillar's tile; the step and metric tiles cycle.
+  - **Text on tints and on dark.** Text on a tint is Current Navy, Slate, or
+    Lure Amber Deep (4.59:1 to 4.71:1 across the tints), never Tide Blue
+    (4.33:1 to 4.44:1). On a dark band, labels are Lure Amber, Signal Cyan,
+    or Continuity Green (each at least 7.2:1 on Current Navy and Deep
+    Current), never Tide Blue (3.5:1 on Current Navy); kickers use
+    `nwse-kicker-on-dark`.
+  - **Bands.** The hub alternates Pure White, Cloud White, Current Navy, and
+    Deep Current so no two neighbours share a ground; its order is in the
+    page's header comment. Service pages open on the navy glance strip, and
+    their deliverables sit in a Current Navy panel inside a light band
+    (`CheckList tone="dark"`). The growth loop (`GrowthLoop tone="dark"`)
+    sits in the same kind of panel on the hub, with its four steps named
+    beside it.
 
 ## Croissance (`/social-engineering/croissance`)
 
@@ -218,19 +264,19 @@ No percentages (rates and ROI are left out). Linked
 from the header (after Services on desktop; beside Overview in the phone
 sheet) and the footer's division column. On a 320x568 phone the sheet's top
 row now wraps to two lines: the discovery-call button still fits the first
-screen, and the endorsement at the foot needs a short scroll.
+screen, and the endorsement at the foot needs a short scroll. The page uses
+the division's surfaces ("Surfaces and colour roles" under "Brand
+implementation"): the Currents are tinted panels with their icon tiles in
+the colour roles, the three reports are capped cards, and the growth groups
+are tinted panels.
 
-### Partner portal (`/social-engineering/croissance/partners`)
+### Partner portal (moved to `/groundswell`, 2026-10-21)
 
-The sign-in page for partners (outside agencies and resellers), prerendered
-and in the sitemap, with a "Partner portal" link in the footer's division
-column. Accounts are by invitation from the admin portal's Groundswell
-section; "Ask about partnering" goes to Contact us. Signed in, partners use
-`/dashboard` (queue businesses, see their own audits and Drive links) and
-invite or reset links land on `/set-password`; both are noindex, not
-prerendered, and not in the sitemap. Copy: `content/partners.ts`. It never
-promises turnaround times or results. Partner sign-in is separate from admin
-sign-in (CLAUDE.md, "Groundswell section").
+The partner portal is no longer a division page. It lives at `/groundswell`
+(`src/groundswell/`, CLAUDE.md "Groundswell portal"), and the footer's
+"Partner portal" link points there. `/social-engineering/croissance/partners`,
+`/partners/dashboard` and `/partners/set-password` redirect permanently
+(`vercel.json`; `division-integration.test.ts` pins them).
 
 ## Customers and Contact us
 
@@ -370,9 +416,11 @@ layouts; every small-screen rule is either a `max-width` media query in
   - `nwse-labelrows`: reporting labels as a grouped list below 1024px.
   - `nwse-hairlines`: "What we gather" / "What's included" as hairline rows
     below 768px.
-  - `nwse-timeline`: steps as a timeline below 768px, with the icon tile or an
-    amber node (`data-markers`) on the rail. Its band has a plain ground there
-    (see "Section grounds" under "Brand implementation").
+  - `nwse-timeline`: steps as a timeline below 768px, with each step's marker
+    tile (its icon, or its number: `data-markers="icon"` or `"number"`) on
+    the rail. Its band has a plain ground there (see "Section grounds" under
+    "Brand implementation"). From 768px the same list is the stepper
+    (`nwse-stepper`), the tiles joined by a hairline rail.
   - `nwse-roadmap`: compact phase cards below 768px, their items flowing in
     rows at natural width; on tablets the three cards share row tracks
     (subgrid), so their dividers line up when a title wraps.
@@ -689,9 +737,10 @@ The division draws with its own 38-icon set. New Wave IT pages keep Lucide.
 | Customers page | `map-pin` (location, 16px, Tide Blue), `arrow-up-right` (external links, 16px), `arrow-right` (the in-app New Wave IT link) |
 
 - `DivisionPoint.icon` and `DivisionRoadmapPhase.icon` are optional.
-  `StepList` and `RoadmapGrid` show the tile only when an item has one, so the
-  service pages' process steps keep their numbered cards from 768px up; below
-  768px they are a timeline with amber nodes (`data-markers="node"`).
+  `StepList` shows the icon in the marker tile when every step has one (the
+  hub) and the step's number in the same tile otherwise (the service pages);
+  the tiles take the colour roles in rotation. `RoadmapGrid` shows the tile
+  only when a phase has an icon.
 - The journey strip has no icons. At chip size (16px) the ticket and the
   two-person icons turn muddy and the accent waves shrink to amber specks next
   to the step numbers. The chips would also get wider, which only lengthens

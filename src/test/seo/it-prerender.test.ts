@@ -38,7 +38,7 @@ describe('prerendered New Wave IT routes', () => {
     expect(paths).not.toContain('/');
     Object.keys(IT_PAGE_META).forEach((p) => expect(paths).toContain(p));
     Object.keys(SERVICE_GUIDE_SUMMARIES).forEach((slug) => expect(paths).toContain(`/l/${slug}`));
-    expect(paths).toHaveLength(31);
+    expect(paths).toHaveLength(32);
   });
 
   it.each(routes.map((route) => [route.path, route] as const))('%s describes itself in raw HTML', (routePath, route) => {

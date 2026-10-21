@@ -11,9 +11,6 @@ import {
   DIVISION_CONTACT_US_PATH,
   DIVISION_CUSTOMERS_PATH,
   DIVISION_CROISSANCE_PATH,
-  DIVISION_PARTNERS_PATH,
-  DIVISION_PARTNER_DASHBOARD_PATH,
-  DIVISION_PARTNER_SET_PASSWORD_PATH,
   DIVISION_PUBLISHED,
   DIVISION_SERVICE_SLUGS,
   RETIRED_SERVICE_SLUGS,
@@ -21,6 +18,7 @@ import {
   divisionServicePath,
 } from '../../divisions/socialEngineering/site';
 import { prerenderedItRoutes } from '../../lib/routeMeta';
+import { GROUNDSWELL_CUSTOMERS_PATH, GROUNDSWELL_PATH, GROUNDSWELL_SET_PASSWORD_PATH, LEGACY_PARTNER_PATH } from '../../groundswell/site';
 
 const root = path.resolve(__dirname, '../../..');
 const read = (file: string) => readFileSync(path.join(root, file), 'utf8');
@@ -37,6 +35,8 @@ const PARENT_SITEMAP_PATHS = [
   '/cookie-policy',
   // Local landing pages added 2026-10-21 (marketing audit).
   '/it-support-fort-lauderdale', '/managed-it-services-fort-lauderdale',
+  // Groundswell's sign-in (2026-10-21): the partner portal, moved out of the division.
+  '/groundswell',
 ];
 
 // While the division is unpublished, none of its URLs may be listed or served.
@@ -70,7 +70,8 @@ describe('division visibility', () => {
   const config = JSON.parse(read('vercel.json')) as { redirects?: { source: string; destination: string; permanent: boolean }[] };
 
   it(DIVISION_PUBLISHED ? 'publishes the division (no redirect away)' : 'temporarily redirects every division URL to the home page', () => {
-    const redirects = (config.redirects ?? []).filter((rule) => rule.source.startsWith('/social-engineering'));
+    // The partner portal's move to /groundswell has its own redirects (tested below).
+    const redirects = (config.redirects ?? []).filter((rule) => rule.source.startsWith('/social-engineering') && !rule.source.startsWith(LEGACY_PARTNER_PATH));
     if (DIVISION_PUBLISHED) {
       // Only the retired first-launch service URLs redirect, permanently, to the hub. Vercel
       // matches sources exactly, so each needs its trailing-slash form too (without it,
@@ -156,7 +157,7 @@ describe('index.html (the parent shell every New Wave IT URL is served)', () => 
 describe('division pages beyond the services', () => {
   // Listed by hand, so a page dropped from allDivisionPages() cannot quietly
   // take its sitemap entry, rewrite, and route with it.
-  const pages = [DIVISION_CROISSANCE_PATH, DIVISION_PARTNERS_PATH, DIVISION_CUSTOMERS_PATH, DIVISION_CONTACT_US_PATH, DIVISION_CONTACT_PATH];
+  const pages = [DIVISION_CROISSANCE_PATH, DIVISION_CUSTOMERS_PATH, DIVISION_CONTACT_US_PATH, DIVISION_CONTACT_PATH];
   const sitemap = read('public/sitemap.xml');
   const rewrites = (JSON.parse(read('vercel.json')) as { rewrites: { source: string; destination: string }[] }).rewrites;
   const app = read('src/App.tsx');
@@ -173,7 +174,6 @@ describe('division pages beyond the services', () => {
     const divisionRoutes = app.slice(app.indexOf('{DIVISION_PUBLISHED ? ('), app.indexOf(') : null}'));
     [
       ['DIVISION_CROISSANCE_PATH', 'SocialEngineeringCroissanceRoute', 'SocialEngineeringCroissancePage'],
-      ['DIVISION_PARTNERS_PATH', 'SocialEngineeringPartnersRoute', 'SocialEngineeringPartnersPage'],
       ['DIVISION_CUSTOMERS_PATH', 'SocialEngineeringCustomersRoute', 'SocialEngineeringCustomersPage'],
       ['DIVISION_CONTACT_US_PATH', 'SocialEngineeringContactUsRoute', 'SocialEngineeringContactUsPage'],
       ['DIVISION_CONTACT_PATH', 'SocialEngineeringContactRoute', 'SocialEngineeringContactPage'],
@@ -183,11 +183,17 @@ describe('division pages beyond the services', () => {
     });
   });
 
-  it('keeps the partner portal’s signed-in pages out of the sitemap and the prerender', () => {
-    for (const pagePath of [DIVISION_PARTNER_DASHBOARD_PATH, DIVISION_PARTNER_SET_PASSWORD_PATH]) {
-      expect(divisionPaths).not.toContain(pagePath);
-      expect(sitemap).not.toContain(`<loc>${SITE_URL}${pagePath}</loc>`);
-      expect(rewrites.map((rule) => rule.source)).not.toContain(pagePath);
+  it('no longer serves the partner portal under Croissance: its old addresses redirect to /groundswell', () => {
+    const redirects = (JSON.parse(read('vercel.json')) as { redirects: { source: string; destination: string; permanent: boolean }[] }).redirects;
+    for (const [from, to] of [
+      [LEGACY_PARTNER_PATH, GROUNDSWELL_PATH],
+      [`${LEGACY_PARTNER_PATH}/dashboard`, GROUNDSWELL_CUSTOMERS_PATH],
+      [`${LEGACY_PARTNER_PATH}/set-password`, GROUNDSWELL_SET_PASSWORD_PATH],
+    ]) {
+      expect(divisionPaths).not.toContain(from);
+      expect(sitemap).not.toContain(`<loc>${SITE_URL}${from}</loc>`);
+      expect(rewrites.map((rule) => rule.source)).not.toContain(from);
+      expect(redirects).toContainEqual({ source: from, destination: to, permanent: true });
     }
   });
 });

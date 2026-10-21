@@ -2,7 +2,7 @@
 // shared by the runtime meta hook and the build-time prerenderer so the two can
 // never disagree about a page's title, canonical, or structured data.
 
-import { auditContent, partnersContent, contactContent, contactUsContent, customersContent, divisionApps, divisionCustomers, divisionServices, hubContent } from './content';
+import { auditContent, contactContent, contactUsContent, customersContent, divisionApps, divisionCustomers, divisionServices, hubContent } from './content';
 import {
   DIVISION_ASSETS,
   DIVISION_BASE_PATH,
@@ -10,7 +10,6 @@ import {
   DIVISION_CONTACT_US_PATH,
   DIVISION_CUSTOMERS_PATH,
   DIVISION_CROISSANCE_PATH,
-  DIVISION_PARTNERS_PATH,
   DIVISION_NAME,
   DIVISION_ORGANIZATION_ID,
   DIVISION_SERVICE_AREA,
@@ -256,24 +255,6 @@ export function croissancePageSeo(): DivisionPageSeo {
   };
 }
 
-/** The partner portal's sign-in page, under Croissance in the breadcrumbs. Its signed-in pages are noindex and not listed here. */
-export function partnersPageSeo(): DivisionPageSeo {
-  const path = DIVISION_PARTNERS_PATH;
-  const breadcrumbs = [HUB_CRUMB, { name: auditContent.navLabel, path: DIVISION_CROISSANCE_PATH }, { name: partnersContent.navLabel, path }];
-  return {
-    path,
-    title: partnersContent.metaTitle,
-    description: partnersContent.metaDescription,
-    keywords: partnersContent.keywords,
-    h1: partnersContent.headline,
-    breadcrumbs,
-    jsonLd: [
-      divisionOrganizationNode(),
-      webPageNode(path, partnersContent.metaTitle, partnersContent.metaDescription),
-      breadcrumbNode(path, breadcrumbs),
-    ],
-  };
-}
 
 export function contactUsPageSeo(): DivisionPageSeo {
   const path = DIVISION_CONTACT_US_PATH;
@@ -315,9 +296,9 @@ export function contactPageSeo(): DivisionPageSeo {
   };
 }
 
-/** Every indexable division URL, in sitemap order (the header's order: overview, services, then Croissance and its partner portal, customers, contact us, discovery call). */
+/** Every indexable division URL, in sitemap order (the header's order: overview, services, then Croissance, customers, contact us, discovery call). */
 export function allDivisionPages(): DivisionPageSeo[] {
-  return [hubPageSeo(), ...divisionServices.map(servicePageSeo), croissancePageSeo(), partnersPageSeo(), customersPageSeo(), contactUsPageSeo(), contactPageSeo()];
+  return [hubPageSeo(), ...divisionServices.map(servicePageSeo), croissancePageSeo(), customersPageSeo(), contactUsPageSeo(), contactPageSeo()];
 }
 
 /** Serialises a page's nodes into one JSON-LD document. */

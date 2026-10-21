@@ -1,8 +1,7 @@
-import type { AuditDraft, AuditStatus } from './groundswellValidation';
+import type { AuditDraft, AuditStatus, PartnerBranding } from './groundswellValidation';
 
 /**
- * Browser client for the Croissance partner portal
- * (/social-engineering/croissance/partners). Partners are not Supabase users;
+ * Browser client for Groundswell's partner app (/groundswell). Partners are not Supabase users;
  * they hold an opaque session token from /api/groundswell/partner-auth. It lives
  * in sessionStorage, like the support portal's, so it ends with the tab.
  */
@@ -121,4 +120,21 @@ export async function listPartnerAudits(): Promise<PartnerAudit[]> {
 
 export async function submitPartnerAudit(draft: AuditDraft): Promise<PartnerAudit> {
   return (await call<{ audit: PartnerAudit }>(AUDITS, { method: 'POST', body: JSON.stringify(draft) })).audit;
+}
+
+const BRANDING = '/api/groundswell/partner-branding';
+
+/** What a partner's reports carry instead of New Wave's name; `available` is false until the database supports it. */
+export interface PartnerBrandingState {
+  company: string;
+  branding: PartnerBranding;
+  available: boolean;
+}
+
+export async function getPartnerBranding(): Promise<PartnerBrandingState> {
+  return call<PartnerBrandingState>(BRANDING);
+}
+
+export async function savePartnerBranding(branding: { display_name: string; logo_url: string }): Promise<PartnerBrandingState> {
+  return call<PartnerBrandingState>(BRANDING, { method: 'PUT', body: JSON.stringify(branding) });
 }

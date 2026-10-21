@@ -11,8 +11,8 @@ const PUBLIC_FORMS = [
   'src/components/support/SupportChatCard.tsx',
   'src/components/support/SupportEmailCard.tsx',
   'src/components/support/CustomerPortalCard.tsx',
-  'src/divisions/socialEngineering/pages/SocialEngineeringPartnersPage.tsx',
-  'src/divisions/socialEngineering/pages/SocialEngineeringPartnerAppPage.tsx',
+  'src/groundswell/pages/GroundswellSignInPage.tsx',
+  'src/groundswell/pages/GroundswellCustomersPage.tsx',
 ];
 
 describe('FormPrivacyNotice', () => {

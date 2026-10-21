@@ -110,6 +110,31 @@
       "source": "/social-engineering/security-awareness-training/",
       "destination": "/social-engineering",
       "permanent": true
+    },
+    {
+      "source": "/social-engineering/croissance/partners",
+      "destination": "/groundswell",
+      "permanent": true
+    },
+    {
+      "source": "/social-engineering/croissance/partners/dashboard",
+      "destination": "/groundswell/customers",
+      "permanent": true
+    },
+    {
+      "source": "/social-engineering/croissance/partners/set-password",
+      "destination": "/groundswell/set-password",
+      "permanent": true
+    },
+    {
+      "source": "/admin/groundswell",
+      "destination": "/groundswell/admin",
+      "permanent": true
+    },
+    {
+      "source": "/admin/groundswell/:path*",
+      "destination": "/groundswell/admin/:path*",
+      "permanent": true
     }
   ],
   "rewrites": [
@@ -294,10 +319,6 @@
       "destination": "/social-engineering/croissance/index.html"
     },
     {
-      "source": "/social-engineering/croissance/partners",
-      "destination": "/social-engineering/croissance/partners/index.html"
-    },
-    {
       "source": "/social-engineering/customers",
       "destination": "/social-engineering/customers/index.html"
     },
@@ -308,6 +329,10 @@
     {
       "source": "/social-engineering/contact",
       "destination": "/social-engineering/contact/index.html"
+    },
+    {
+      "source": "/groundswell",
+      "destination": "/groundswell/index.html"
     },
     {
       "source": "/(.*)",

@@ -311,6 +311,19 @@ describe('the benchmark reports', () => {
     expect(html).toContain('hidden');
   });
 
+  it('a partner\'s benchmark PDF names the partner, never New Wave', async () => {
+    const { buildBenchmarkHtml } = await import('../../../api/_lib/groundswell/reportsBenchmark');
+    const { sampleReportData } = await import('./fixtures/groundswell-report');
+    const d = sampleReportData();
+    const preparer = { name: 'Reef Growth Co', logo: 'https://reef.example/logo.png', whiteLabel: true };
+    const html = buildBenchmarkHtml({ facts: d.facts, brand: d.brand, date: d.date, benchmark: await benchmarkOutput(), preparer });
+    expect(html.match(/New Wave|NW Social Engineering|Groundswell|Croissance/i)?.[0]).toBeUndefined();
+    expect(html).toContain('Prepared by Reef Growth Co');
+    expect(html).toContain('class="preparer"');
+    // The setup file's engagement bands are New Wave's working bands: in a partner's report, "our".
+    expect(html).toContain('our working bands');
+  });
+
   it('the slides gain two benchmark slides and the summary a competitor band, still one page', async () => {
     const reports = await import('../../../api/_lib/groundswell/reports');
     const { sampleReportData } = await import('./fixtures/groundswell-report');

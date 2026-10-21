@@ -1,57 +1,167 @@
-import { Suspense, useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { Suspense, useEffect, useMemo, useState } from 'react';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import {
-  LayoutDashboard, Star, Layers, HelpCircle, Info, Mail, AlignLeft, LogOut, Menu, X, Waves, Search, ShieldCheck, Activity, FileText, ClipboardList, Gauge, Handshake,
+  LayoutDashboard, LogOut, Menu, X, Waves, Search, ChevronRight, ExternalLink,
+  Home, Layers, DollarSign, Info, Mail, Activity, FileText, Settings, Globe, Gauge,
+  type LucideIcon,
 } from 'lucide-react';
+import { GROUNDSWELL_ADMIN_PATH } from '../groundswell/site';
 import { usePageMeta } from '../lib/usePageMeta';
+import { ADMIN_NAV, pageForPath, searchAdminFields, searchAdminNav, type AdminNavEntry, type AdminNavPage } from './adminNav';
+import { contentManager, StaleSectionError, type ContentManagerState } from './ContentManager';
+import PublishBar from './components/PublishBar';
 
-const navItems = [
-  { label: 'Dashboard', path: '/admin', icon: LayoutDashboard, end: true },
-  { label: 'Hero', path: '/admin/hero', icon: Star },
-  { label: 'Trust Bar', path: '/admin/trustbar', icon: ShieldCheck },
-  { label: 'Services', path: '/admin/services', icon: Layers },
-  { label: 'Why Us', path: '/admin/whyus', icon: HelpCircle },
-  { label: 'About', path: '/admin/about', icon: Info },
-  { label: 'Contact', path: '/admin/contact', icon: Mail },
-  { label: 'Pricing', path: '/admin/pricing', icon: Star },
-  { label: 'Pricing Units', path: '/admin/pricing-units', icon: Layers },
-  { label: 'Status Page', path: '/admin/status', icon: Activity },
-  { label: 'Footer', path: '/admin/footer', icon: AlignLeft },
-  { label: 'Blog', path: '/admin/unified', icon: FileText },
-  { label: 'SEO Portal', path: '/admin/seo', icon: Search },
-];
+/**
+ * One sidebar for the whole admin: Site pages (one row per public page, its
+ * block editors beneath), Blog, and SEO, with a link to Groundswell's own
+ * portal (/groundswell/admin) at its foot. A search box at the top
+ * filters the entries by label, page, and the words in `adminNav.ts`. The
+ * publish bar lives here so it is on every editor, and shows only while
+ * something is unsaved or a save is in flight.
+ */
 
-/** Groundswell, the Croissance audit engine, has its own section of the portal. */
-const groundswellItems = [
-  { label: 'Overview', path: '/admin/groundswell', icon: Gauge, end: true },
-  { label: 'Audits', path: '/admin/groundswell/audits', icon: ClipboardList },
-  { label: 'Partners', path: '/admin/groundswell/partners', icon: Handshake },
-];
+const PAGE_ICONS: Record<string, LucideIcon> = {
+  home: Home, services: Layers, pricing: DollarSign, about: Info, contact: Mail, status: Activity,
+};
+const ENTRY_ICONS: Record<string, LucideIcon> = {
+  '/admin/blog': FileText, '/admin/blog/settings': Settings, '/admin/seo': Globe,
+};
+
+const OPEN_PAGES_KEY = 'nw_admin_open_pages';
+const SECTION_TITLES: Record<string, string> = Object.fromEntries(ADMIN_NAV.flatMap((g) => g.pages ?? []).flatMap((p) => p.entries).filter((e) => e.section).map((e) => [e.section as string, e.label]));
+
+function readOpenPages(): Set<string> {
+  try {
+    const raw = localStorage.getItem(OPEN_PAGES_KEY);
+    if (raw) return new Set(JSON.parse(raw) as string[]);
+  } catch { /* private mode or bad value: start closed */ }
+  return new Set();
+}
+
+const linkClass = ({ isActive }: { isActive: boolean }) =>
+  `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-150 ${
+    isActive ? 'text-white' : 'text-white/55 hover:text-white/85 hover:bg-white/5'
+  }`;
+const activeStyle = { background: 'rgba(57,204,204,0.15)', color: '#39CCCC' };
+const groupLabelClass = 'px-3 pb-1 pt-4 text-[11px] font-semibold uppercase tracking-wider';
+const groupLabelStyle = { color: 'rgba(255,255,255,0.35)' };
+
+function EntryLink({ entry, icon: Icon, indent, onPick }: { entry: AdminNavEntry; icon?: LucideIcon; indent?: boolean; onPick: () => void }) {
+  return (
+    <NavLink
+      to={entry.path}
+      end={entry.end}
+      className={linkClass}
+      style={({ isActive }) => ({ ...(isActive ? activeStyle : {}), ...(indent ? { paddingLeft: '2.25rem' } : {}) })}
+      onClick={onPick}
+    >
+      {Icon ? <Icon size={16} /> : null}
+      {entry.label}
+    </NavLink>
+  );
+}
+
+function PageRow({ page, open, active, onToggle, onPick }: { page: AdminNavPage; open: boolean; active: boolean; onToggle: () => void; onPick: () => void }) {
+  const Icon = PAGE_ICONS[page.id] ?? Home;
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        aria-controls={`admin-page-${page.id}`}
+        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${active ? 'text-white' : 'text-white/70 hover:text-white hover:bg-white/5'}`}
+      >
+        <Icon size={16} style={active ? { color: '#39CCCC' } : undefined} />
+        <span className="flex-1 text-left">{page.label}</span>
+        <ChevronRight size={14} className={`transition-transform ${open ? 'rotate-90' : ''}`} style={{ color: 'rgba(255,255,255,0.3)' }} />
+      </button>
+      {open && (
+        <div id={`admin-page-${page.id}`} className="space-y-0.5 pb-1">
+          {page.entries.map((entry) => <EntryLink key={entry.path} entry={entry} indent onPick={onPick} />)}
+          <a
+            href={page.url}
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-2 text-xs pl-9 pr-3 py-1.5 text-white/35 hover:text-white/70"
+          >
+            <ExternalLink size={12} /> View {page.label === 'Home' ? 'home page' : 'on site'}
+          </a>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function AdminLayout() {
   usePageMeta({ title: 'Admin' });
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [openPages, setOpenPages] = useState<Set<string>>(readOpenPages);
+  const [content, setContent] = useState<ContentManagerState>(() => contentManager.getState());
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  useEffect(() => contentManager.subscribe(setContent), []);
+
+  // The page holding the current editor is always open, so the active link is visible.
+  const currentPage = pageForPath(pathname);
+  useEffect(() => {
+    if (currentPage && !openPages.has(currentPage.id)) {
+      setOpenPages((prev) => new Set(prev).add(currentPage.id));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage?.id]);
+
+  const togglePage = (id: string) => {
+    setOpenPages((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      try { localStorage.setItem(OPEN_PAGES_KEY, JSON.stringify([...next])); } catch { /* ignore */ }
+      return next;
+    });
+  };
+
+  const results = useMemo(() => (query.trim() ? searchAdminNav(query) : null), [query]);
+  const fieldHits = useMemo(() => (query.trim() ? searchAdminFields(query) : []), [query]);
+  const closeSidebar = () => setSidebarOpen(false);
+
+  // Unsaved edits survive a reload (sessionStorage), but not leaving the site: ask first.
+  const pendingCount = contentManager.getPendingChangesCount();
+  useEffect(() => {
+    if (pendingCount === 0) return;
+    const warn = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ''; };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [pendingCount]);
+
+  /** Save; if another tab or person saved the section meanwhile, ask before overwriting. */
+  const publish = async () => {
+    try {
+      await contentManager.publishChanges();
+    } catch (err) {
+      if (err instanceof StaleSectionError) {
+        const names = err.sections.map((s) => SECTION_TITLES[s] ?? s).join(', ');
+        if (window.confirm(`${names} changed elsewhere since you opened it (another tab, or someone else). Save anyway and overwrite those changes?`)) {
+          await contentManager.publishChanges({ force: true }).catch(() => { /* the bar shows the error */ });
+        }
+      }
+      /* any other error: the bar shows it */
+    }
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate('/admin');
   };
 
-  const linkClass = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
-      isActive
-        ? 'text-white'
-        : 'text-white/50 hover:text-white/80 hover:bg-white/5'
-    }`;
-
-  const activeStyle = { background: 'rgba(57,204,204,0.15)', color: '#39CCCC' };
+  const showPublishBar = pendingCount > 0 || content.publishStatus !== 'idle';
 
   return (
     <div className="min-h-screen flex" style={{ background: '#0f1923' }}>
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-60 flex flex-col transition-transform duration-300 lg:translate-x-0 lg:static lg:flex ${
+        className={`fixed inset-y-0 left-0 z-40 w-64 flex flex-col transition-transform duration-300 lg:translate-x-0 lg:static lg:flex ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         style={{ background: '#111c27', borderRight: '1px solid rgba(255,255,255,0.06)' }}
@@ -62,74 +172,128 @@ export default function AdminLayout() {
           </div>
           <div>
             <div className="text-sm font-bold text-white leading-tight">New Wave IT</div>
-            <div className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>Admin Panel</div>
+            <div className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>Admin</div>
           </div>
         </div>
 
-        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              end={item.end}
-              className={linkClass}
-              style={({ isActive }) => isActive ? activeStyle : {}}
-              onClick={() => setSidebarOpen(false)}
-            >
-              <item.icon size={16} />
-              {item.label}
-            </NavLink>
-          ))}
-          <div role="group" aria-labelledby="admin-nav-groundswell" className="pt-4">
-            <div id="admin-nav-groundswell" className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.35)' }}>
-              Groundswell
+        <div className="px-3 pt-3">
+          <label className="relative block">
+            <span className="sr-only">Search the admin</span>
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'rgba(255,255,255,0.35)' }} />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Find a section or field…"
+              className="w-full pl-9 pr-3 py-2 rounded-lg text-sm text-white placeholder-white/30 outline-none"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
+            />
+          </label>
+        </div>
+
+        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto" aria-label="Admin">
+          {results ? (
+            <div role="group" aria-label="Search results">
+              {results.length === 0 && fieldHits.length === 0 && (
+                <p className="px-3 py-2 text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>Nothing matches "{query.trim()}".</p>
+              )}
+              {results.map((entry) => {
+                const page = pageForPath(entry.path);
+                return (
+                  <NavLink key={entry.path} to={entry.path} end={entry.end} className={linkClass} style={({ isActive }) => isActive ? activeStyle : {}} onClick={() => { setQuery(''); closeSidebar(); }}>
+                    <span className="flex flex-col">
+                      <span>{entry.label}</span>
+                      {page && <span className="text-[11px] font-normal" style={{ color: 'rgba(255,255,255,0.35)' }}>{page.label}</span>}
+                    </span>
+                  </NavLink>
+                );
+              })}
+              {fieldHits.length > 0 && (
+                <div role="group" aria-label="Fields">
+                  <div className={groupLabelClass} style={groupLabelStyle}>Fields</div>
+                  {fieldHits.slice(0, 12).map((hit) => (
+                    <NavLink key={hit.href} to={hit.href} className={linkClass} onClick={() => { setQuery(''); closeSidebar(); }}>
+                      <span className="flex flex-col">
+                        <span>{hit.label}</span>
+                        <span className="text-[11px] font-normal" style={{ color: 'rgba(255,255,255,0.35)' }}>{hit.entry.label} › {hit.block}</span>
+                      </span>
+                    </NavLink>
+                  ))}
+                </div>
+              )}
             </div>
-            {groundswellItems.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                end={item.end}
-                className={linkClass}
-                style={({ isActive }) => isActive ? activeStyle : {}}
-                onClick={() => setSidebarOpen(false)}
-              >
-                <item.icon size={16} />
-                {item.label}
+          ) : (
+            <>
+              <NavLink to="/admin" end className={linkClass} style={({ isActive }) => isActive ? activeStyle : {}} onClick={closeSidebar}>
+                <LayoutDashboard size={16} />
+                Overview
               </NavLink>
-            ))}
-          </div>
+              {ADMIN_NAV.map((group) => (
+                <div key={group.id} role="group" aria-labelledby={`admin-nav-${group.id}`}>
+                  <div id={`admin-nav-${group.id}`} className={groupLabelClass} style={groupLabelStyle}>{group.label}</div>
+                  {group.pages?.map((page) => (
+                    <PageRow
+                      key={page.id}
+                      page={page}
+                      open={openPages.has(page.id)}
+                      active={currentPage?.id === page.id}
+                      onToggle={() => togglePage(page.id)}
+                      onPick={closeSidebar}
+                    />
+                  ))}
+                  {group.entries?.map((entry) => (
+                    <EntryLink key={entry.path} entry={entry} icon={ENTRY_ICONS[entry.path]} onPick={closeSidebar} />
+                  ))}
+                </div>
+              ))}
+            </>
+          )}
         </nav>
 
-        <div className="p-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <div className="p-3 space-y-0.5" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+          <NavLink to={GROUNDSWELL_ADMIN_PATH} className={linkClass} onClick={closeSidebar}>
+            <Gauge size={16} />
+            Open Groundswell
+          </NavLink>
           <button
             onClick={handleLogout}
             className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all hover:bg-white/5"
             style={{ color: 'rgba(255,255,255,0.4)' }}
           >
             <LogOut size={16} />
-            Sign Out
+            Sign out
           </button>
         </div>
       </aside>
 
       {sidebarOpen && (
-        <div className="fixed inset-0 z-30 bg-black/50 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-0 z-30 bg-black/50 lg:hidden" onClick={closeSidebar} />
       )}
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 flex items-center px-6 lg:hidden" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: '#111c27' }}>
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-white/50 hover:text-white">
+        <header className="h-16 flex items-center gap-3 px-6 lg:hidden" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: '#111c27' }}>
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-white/50 hover:text-white" aria-label={sidebarOpen ? 'Close menu' : 'Open menu'}>
             {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
+          <span className="text-sm font-semibold text-white">{currentPage?.label ?? 'Admin'}</span>
         </header>
 
-        <main className="flex-1 p-6 lg:p-8 overflow-y-auto">
+        <main className={`flex-1 p-6 lg:p-8 overflow-y-auto ${showPublishBar ? 'pb-28' : ''}`}>
           {/* Editors are lazy chunks (App.tsx); the sidebar stays put while one loads. */}
           <Suspense fallback={<div aria-busy="true" />}>
             <Outlet />
           </Suspense>
         </main>
       </div>
+
+      {showPublishBar && (
+        <PublishBar
+          state={content}
+          onPublish={publish}
+          onDiscard={() => contentManager.discardChanges()}
+          className="lg:left-64"
+        />
+      )}
     </div>
   );
 }

@@ -31,6 +31,152 @@ browser read as the fallback, and neither changes an output shape.
   it, about ten minutes per audit. The browser path is now the fallback only,
   which should avoid it; if not, shorten the lease or the Maps timeout.
 
+### Groundswell: white-label reports for partners (2026-10-21)
+
+Owner's choices: full white-label; the client keeps its colours and logo, the
+partner's logo and name sit with "Prepared by"; branding is set in the
+partner portal and by admins; logos are https links (no uploads).
+
+- **Migration** `20261023120000` (additive, nullable):
+  `groundswell_partners.display_name` / `logo_url` (the name and logo a
+  partner's reports carry; the company when unset), and
+  `marketing_audits.brand_logo_url` / `brand_color` (a business's own logo
+  and colour, when its website's are wrong). Code reads them only where they
+  exist (42703 fallbacks), so it runs before or after the migration.
+- **Engine**: `loadBranding` (`api/_lib/groundswell/branding.ts`) reads an
+  audit's partner and overrides when a step is claimed (`AuditRow.branding`).
+  Only a missing column falls back; any other read error fails the step, so a
+  partner's report is never printed as New Wave's.
+- **Reports**: `preparerFor` / `Preparer` ("Prepared by <partner>", its logo
+  on every cover) in all four PDFs, and `ownWording`, a last pass over a
+  partner's HTML: "New Wave's estimate" becomes "our estimate", any other
+  New Wave, Groundswell or Croissance name becomes the partner's. A test
+  renders every report for a partner and fails on any of those names.
+  `brandFrom` takes the queued colour and logo first (the colour still has
+  to carry text at 4.5:1).
+- **Drive**: a partner's audits go to `Partners/<company> (<id>)/<Business>`,
+  never a link-shared business folder a same-named New Wave customer (or
+  another partner's client) might have. Drive still shows the owner's account
+  to viewers.
+- **Portal and admin**: "Your branding" on the partner dashboard
+  (`api/groundswell/partner-branding.ts`, GET/PUT), a Branding editor per
+  partner at `/admin/groundswell/partners` (PATCH `action: 'branding'`), and
+  an optional logo and colour on both queue forms. Shared checks:
+  `normalizeLogoUrl` (https, public host, ≤ 500), `normalizeBrandColor`,
+  `buildPartnerBranding` (`src/lib/groundswellValidation.ts`).
+- **Tests**: `src/test/api/groundswell-white-label.test.ts` (wording, every
+  report, overrides, loading, Drive folder, printing), plus branding cases in
+  `groundswell-partners.test.ts`, `groundswell-benchmark.test.ts`,
+  `partners.test.tsx` and `src/lib/groundswell.test.ts`;
+  `fakeSupabase` can now simulate a column a migration has not added.
+
+### Groundswell portal at /groundswell (2026-10-21)
+
+Groundswell has its own address, newwaveitfl.com/groundswell, for partners
+and New Wave staff (plan: the "Groundswell portal design plan" doc; this is
+PR 1 of 4, the address and the shell; customers, partner-run audits and
+polish follow). Code: `src/groundswell/`.
+
+- **Pages**: `/groundswell` is the sign-in (partner email and password,
+  reset link, a "New Wave staff sign-in" link). It is a static New Wave IT
+  route (`IT_PAGE_META['/groundswell']`, prerendered, in the sitemap) whose
+  code loads on demand (`src/pages/GroundswellSignInPage.tsx` wraps the lazy
+  page). `/groundswell/customers` is the partner app (the old dashboard:
+  add a customer, see your own audits and Drive links), `/set-password` is
+  where invite and reset links land, and `/groundswell/admin` (+ `/audits`,
+  `/partners`) is the staff section behind the content admin's Supabase
+  sign-in (`AdminGuard` now takes `title`/`subtitle`). Everything but the
+  sign-in is noindex, outside the sitemap and the prerender.
+- **Shell** (`GroundswellShell.tsx`, `groundswell.css`, scoped to
+  `.gs-root`): top bar, left nav on desktop and tabs on phones, light
+  surfaces with the division's amber accent; `GroundswellFrame` wraps the
+  pages shown before sign-in. The three staff screens moved from
+  `src/admin/groundswell/` to `src/groundswell/admin/` and were restyled to
+  it; the content admin's sidebar keeps one "Open Groundswell" link.
+- **Old addresses**: `/social-engineering/croissance/partners{,/dashboard,
+  /set-password}` and `/admin/groundswell{,/*}` redirect permanently in
+  `vercel.json` (the query string, so an old invite token, is kept) and
+  client-side in `App.tsx`. Invite and reset emails now link to
+  `/groundswell/set-password` (`PARTNER_BASE_PATH` in
+  `api/_lib/groundswell/partners.ts`). The division lost its partner page,
+  content, SEO entry and preload mapping.
+- **Tests**: `src/groundswell/portal.test.tsx` (sign-in, customers, set
+  password, the shell, the redirects) and the moved admin tests; updated
+  pins in `it-prerender` (32 routes), `division-integration`,
+  `FormPrivacyNotice`, and the partner API test.
+
+### Admin panel rework, phase 2: one editor for every section (2026-10-21)
+
+Phase 2 of the plan Josh approved on 2026-10-21 (phase 1, the sidebar, is
+below). Every `site_content` editor is now one screen; the stored shapes
+are unchanged (`sections.test.ts` pins them), and the public site reads
+nothing new.
+
+- **Descriptors** (`src/admin/sections/descriptors.ts`, types in
+  `types.ts`): one `SectionDescriptor` per section (hero, trustbar,
+  services, whyus, about, contact, footer, pricing, status,
+  services-categories, services-detail, threats-detail): its public URL and
+  its blocks, each a list of fields. Scalar kinds: text, textarea, number,
+  color, select, checkbox, strings (JSON array of strings). `list` fields
+  hold items with their own fields, a `titleKey` for the row, `newItem`, and
+  `defaults` (the site's built-in items). The footer gained its three social
+  URL fields, which `Footer.tsx` already read.
+- **`SectionPage`** (`src/admin/SectionPage.tsx`) renders a descriptor:
+  `BlockCard`s (collapsed with a preview and a field count, one open at a
+  time unless pinned, an amber dot while unsaved), `FieldInput` (the one
+  field set), and `ListRows` (rows with move, duplicate, delete, drag; a
+  side-panel `ItemPanel` to edit one; "Start from the site's defaults" when
+  empty). A stored list that cannot be parsed is shown raw and left alone
+  (`parseList` in `sections/listValue.ts`). `?field=<key>` opens the block
+  and focuses the input; the sidebar search's "Fields" group
+  (`searchAdminFields` in `adminNav.ts`) links there.
+- **`ContentManager`**: `loadSection` records each section's newest
+  `updated_at`; `publishChanges` refuses with `StaleSectionError` when a
+  pending section's rows changed since (the layout confirms, then
+  `{ force: true }`), then writes the public cache and the
+  BroadcastChannel for each change, so the live site no longer waits for
+  the 30 s poll. Pending edits are kept in sessionStorage (`nw_admin_draft`)
+  and restored on load; the layout warns before unloading with unsaved
+  edits. State updates replace objects rather than mutate them.
+- **Removed**: the twelve editors in `src/admin/editors/` except
+  `PricingUnitsEditor`, plus `SectionEditor`, `FormSection`, and
+  `CardListEditor`. The routes in `App.tsx` point at `SectionPage`.
+- **Tests**: `sections.test.ts` (every key the public site reads has a
+  field; stored shapes; nav reachability; `parseList`; field search),
+  `ContentManager.test.ts` (draft, stale save, cache and channel),
+  `SectionPage.test.tsx`. Docs: `docs/admin-guide.md` ("Editing content",
+  "Adding an editor"); `docs/editor-migration-guide.md` is closed out.
+
+### Admin panel rework, phase 1: one sidebar, organised by site page (2026-10-21)
+
+From the plan Josh approved on 2026-10-21 (Claude Doc "New Wave admin panel
+rework plan"). Phase 1 is navigation only; the page-first editors (collapsed
+block cards, list rows, every editor on `ContentManager`) and the "View on
+site" preview are phases 2 and 3.
+
+- **One admin, one sidebar** (`AdminLayout.tsx`, model in `adminNav.ts`):
+  Site pages (one collapsible row per public page, its block editors beneath
+  in page order, plus a "View on site" link), Blog, SEO, Groundswell
+  (unchanged; the partner portal thread owns it). A search box filters
+  entries by label, page, and `keywords` (field names); open rows are
+  remembered in localStorage (`nw_admin_open_pages`). The `PublishBar` now
+  lives in the layout, on every editor, shown only while something is
+  unsaved or a save is in flight, with Discard always available.
+- **Removed**: `UnifiedAdminDashboard`, `SidebarNavigation` (its groups,
+  the deleted Testimonials entry, and ten "not yet implemented" screens),
+  and the legacy `AdminDashboard`. `/admin/unified` redirects to
+  `/admin/blog`, `/admin/legacy` to `/admin`.
+- **New routes**: `/admin/blog` (`blog/BlogPage.tsx`: the post list, a
+  post's editor in place, Generate with an inline notice instead of
+  `alert`) and `/admin/blog/settings`. `/admin` is `AdminHome.tsx`: a card
+  per site page with its editors and the newest `site_content.updated_at`
+  (`adminHomeData.ts`), and the Groundswell queue count.
+- `ContentManager` no longer preloads `navbar` (nothing reads it).
+- **Tests**: `adminNav.test.ts` (every entry is an App.tsx route; every
+  section the public site reads has an editor; no placeholder screens),
+  `AdminLayout.test.tsx`, `AdminHome.test.tsx`. Adding an editor: see
+  "Adding an editor" in `docs/admin-guide.md`.
+
 ### Groundswell: ad copy for the rows the ad plan runs (2026-10-21)
 
 - **Package** (`packages/groundswell/src/adcopy.ts`): `copyTargets` (one ad
@@ -102,6 +248,21 @@ Full notes: "Positioning (2026-10-21)" in `docs/social-engineering-division.md`.
   decorative SVG) in place of the brand mark; service pages open with the
   glance strip, then outcomes, scope, steps, deliverables, where it fits,
   FAQ, related, CTA.
+- **Surfaces and colour roles** (same day, design pass): each pillar has a
+  colour (`components/pillarStyle.ts`: Signal Cyan data, Continuity Green
+  integrations, Lure Amber smart advertising; Tide Blue for the rest, and
+  `accentAt(index)` cycles them), and the pages use five surfaces beside the
+  hairline card: tinted panels (`nwse-tint nwse-tint-*`), soft tiles
+  (`nwse-soft`, on Cloud White bands), glass tiles (`nwse-glass`, on dark
+  bands), the stepper rail (`nwse-stepper`, steps without cards from 768px),
+  and capped cards. `Band` takes `tone="dark" | "navy"` and renders
+  `DarkCurrents` itself; the hub has four dark sections (hero, pillars,
+  metrics, CTA) and the service pages open on a navy glance strip. Icon
+  tiles take `nwse-icon-cyan|green|tide` and `nwse-icon-on-dark`. Text on a
+  tint is navy, slate, or amber-deep, never Tide Blue; labels on dark are
+  amber, cyan, or green. The `data-markers="node"` timeline rules are gone
+  (steps always have a marker tile). Full notes: "Surfaces and colour roles"
+  in `docs/social-engineering-division.md`.
 - **Icons**: three `pillar-*` icons in a new `pillars` group (38 icons; the
   kit's SVG files are still to be added by its owner).
 - **Tests**: new cases in `pages.test.tsx` and `icons.test.ts`; updated
@@ -840,11 +1001,9 @@ Implemented a unified admin dashboard with centralized content management:
   - Polling fallback (30s) for production environments
   - Integrated into useContent hook for automatic sync
 
-- **Unified Dashboard** (`/admin/unified`)
-  - Sidebar navigation with 5 section groups
-  - Integrated PublishBar for save actions
+- **Unified Dashboard** (`/admin/unified`; removed 2026-10-21, see the admin
+  panel rework entry above)
   - Hero and Services editors migrated
-  - Graceful fallback for unimplemented sections
 
 ## Content Structure
 
@@ -855,23 +1014,16 @@ Content is stored in Supabase `site_content` table:
 
 ## Admin Editors
 
-### Migrated Editors (Use ContentManager)
-- HeroEditor - `/src/admin/editors/HeroEditor.tsx`
-- ServicesEditor - `/src/admin/editors/ServicesEditor.tsx`
+### Section editors (one component)
+Every `site_content` section is edited by `src/admin/SectionPage.tsx`, drawn
+from its descriptor in `src/admin/sections/descriptors.ts` (see "Admin panel
+rework, phase 2" above). Pieces: `components/BlockCard.tsx`,
+`components/FieldInput.tsx`, `components/ListRows.tsx`.
 
-### Legacy Editors (To be migrated)
-Located in `src/admin/editors/`:
-- TrustBarEditor
-- WhyUsEditor
-- AboutEditor
-- ContactEditor
-- FooterEditor
-- PricingEditor
-- PricingUnitsEditor
-- StatusEditor
-- ServicesCategoryEditor
-- ServicesDetailEditor
-- ThreatsDetailEditor
+### Other editors
+- PricingUnitsEditor - `/src/admin/editors/PricingUnitsEditor.tsx` (the
+  `pricing_units` table)
+- Blog - `src/admin/blog/`
 
 ### SEO Editors
 - SeoPortal - `/src/admin/seo/SeoPortal.tsx`
@@ -918,11 +1070,14 @@ Located in `src/admin/editors/`:
 
 ### Adding New Section Editors
 
-1. Create editor in `src/admin/editors/`
-2. Follow ContentManager pattern (see HeroEditor example)
-3. Add section to SidebarNavigation section groups
-4. Add route case in UnifiedAdminDashboard
-5. Test publish/discard functionality
+1. Add the section's descriptor to `src/admin/sections/descriptors.ts`
+   (its blocks and fields; the stored shape must match what the public
+   component reads)
+2. Add `<Route path="…" element={<SectionPage section="…" />} />` under
+   `/admin` in `src/App.tsx`
+3. Add the entry to `src/admin/adminNav.ts` under its site page
+4. `adminNav.test.ts` and `sections/sections.test.ts` check the rest; see
+   "Adding an editor" in `docs/admin-guide.md`
 
 ### Running the Project
 
@@ -945,11 +1100,9 @@ npm run build
 
 ## Next Steps
 
-1. Migrate remaining editors to ContentManager
-2. Implement live preview pane (iframe-based)
-3. Add version history support
-4. Implement concurrent edit detection
-5. Add keyboard shortcuts for common actions
+1. Implement live preview pane (iframe-based): phase 3 of the admin rework
+2. Add version history support
+3. Add keyboard shortcuts for common actions
 
 ## Architecture Notes
 
