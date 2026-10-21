@@ -4,24 +4,21 @@
 
 ### Groundswell: `social_depth` current for the competitor benchmark (2026-10-21)
 
-First step of the benchmark workflow in `docs/groundswell-competitor-benchmark.md`.
+First step of the benchmark workflow in `docs/groundswell-competitor-benchmark.md`
+(#114). Merged into the competitor benchmark below: the rules live once, in
+`packages/groundswell/src/benchmark/engagement.ts`, and
+`api/_lib/groundswell/currents/socialDepth.ts` is the step that fetches the
+pages and maps them (`mediaList`, `toRawItem`).
 
-- **Module** `api/_lib/groundswell/currents/socialDepth.ts`: `engagementItems`
-  (one page of posts and one of reels, deduped on date + caption, the copy
-  with plays kept; pinned feed items flagged; per-item type, counts, CTA
-  keyword, emoji-free hook), `markHiddenLikes` (both passes of the
-  hidden-likes rule), `engagementProfile` (engagement-rate, likes and
-  comments medians, cadence over 14 days, reels per week over the page's
-  span, format mix, CTA vs non-CTA comment means, best item), and
-  `runSocialDepth` (2 ScrapeCreators credits per account that `social`
-  found; a Composio connection error stops the step, a scrape error is
-  recorded on the account).
-- **Not in `STEPS` yet**: it runs only for benchmark audits, which need the
-  `kind` column (spec §2 and §4). Wire it in with that migration.
-- **Tests** `src/test/api/groundswell-social-depth.test.ts`, pinned to the
-  anonymised fixtures in `src/test/api/fixtures/groundswell-benchmark/`
-  (`expected.json` now records the rules as implemented: 14-day cadence,
-  span-based reels per week, pinned by feed order).
+- **Rules** (the spec as #114 updated it): dedupe on time + caption, the copy
+  with plays kept; a feed post with a newer one after it is pinned and left
+  out of cadence; both passes of the hidden-likes rule (the median over
+  likes above 5); cadence over items under 14 days old; reels per week over
+  the days the reels page spans (at least 7); plays for reels and videos only.
+- **Tests** `src/test/api/groundswell-social-depth.test.ts` (ported to the
+  package), pinned to the anonymised fixtures in
+  `src/test/api/fixtures/groundswell-benchmark/` (`expected.json` records the
+  rules as implemented).
 
 ### Social Engineering repositioned as a national growth division (2026-10-21)
 
@@ -57,6 +54,52 @@ Full notes: "Positioning (2026-10-21)" in `docs/social-engineering-division.md`.
 - **Tests**: new cases in `pages.test.tsx` and `icons.test.ts`; updated
   pins in `responsive.test.tsx`, `motion.test.tsx`, and the discovery-call
   description in `pages.test.tsx`.
+
+### Groundswell: competitor benchmark (2026-10-22)
+
+From the spec in PR #110 (`docs/groundswell-competitor-benchmark.md`). A
+second audit kind, `benchmark`: the audit plus a comparison with the first
+two competitors entered, and a fourth PDF.
+
+- **Package** (`packages/groundswell/src/benchmark/`, the resellable part):
+  engagement (dedupe, pinned, hidden likes, comment-to-DM prompts), ad
+  evidence (verified negative vs unknown, never spend), pricing extraction and
+  `checkLadder`, authority (press list, owned channels, credentials by the
+  industry's licence words), and the scorecard with gaps and levers. Setup
+  file: a `benchmark` section; industry profiles gain `licences` and
+  `do_not_copy`.
+- **Engine** (`BENCHMARK_STEPS` in `steps.ts`): after `adplan` (they read its
+  industry profile), `social_depth`, `ads_library`, `pricing` and
+  `authority` (optional), then `benchmark` (scorecard in code, one guarded
+  write-up call; the industry's do-not-copy rules always included) and
+  `deliver_benchmark` before the slides. Audits keep `STEPS` unchanged; the
+  worker knows every step (`ALL_STEPS`). Pricing makes one extra model call to
+  sort offers, held to the prices found. Accounts: `benchmarkAccounts.ts`.
+- **Reports**: `reportsBenchmark.ts` (Letter, no links: scorecard,
+  engagement, ads, pricing, differences, do not copy, plan and targets, three
+  appendices); the slides gain `benchmark_scorecard` and `benchmark_plan`; the
+  summary an "Against your competitors" band. `deliver_finish` shares and
+  saves `benchmark_pdf_url` only when that file exists.
+- **Migration** `20261022120000`: `kind` ('audit' | 'benchmark', two
+  competitors required), `benchmark_pdf_url` (Drive only, null on admin
+  inserts), and `start_queued_audits(step_names, max_audits,
+  benchmark_step_names DEFAULT NULL)` replacing the two-argument function, so
+  old two-argument calls still work. The code reads and writes the new columns
+  only where they exist, and `startQueuedAudits` falls back to the old call.
+- **Admin and partners**: a "Benchmark against the top 2 competitors" switch
+  on both queue forms (`buildAuditInsert` needs two competitors and sends
+  `kind` only for a benchmark), a Benchmark badge and link, and a benchmark
+  count on the overview.
+- **Tests**: `packages/groundswell/test/benchmark.test.ts`,
+  `src/test/api/groundswell-benchmark.test.ts` (made-up accounts; prints the
+  PDF, 13 slides, one-page summary), plus partner, admin and route cases.
+- **Real-session fixtures** (`src/test/api/fixtures/groundswell-benchmark/`,
+  anonymised: two fictional accounts, every date, count and price kept;
+  `groundswell-benchmark-fixtures.test.ts`): the rules reproduce that by-hand
+  session's figures, ad statuses, prices and leaders, except where its own
+  numbers do not follow from its data (the test's `DIFFERS` and
+  `LEADERS_DIFFER` say why). Engagement matches it exactly under the spec's
+  rules as #114 updated them (see the `social_depth` entry above).
 
 ### Groundswell: the ad plan and change ranking in the live audits (2026-10-21)
 

@@ -55,13 +55,14 @@ export default function GroundswellOverview() {
         </div>
       )}
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-label="Audits by status">
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5" aria-label="Audits by status">
         {(
           [
             ['Queued', count('queued')],
             ['Running', count('running')],
             ['Done', count('done')],
             ['Failed', count('failed')],
+            ['Benchmarks', audits?.filter((a) => a.kind === 'benchmark').length ?? '–'],
           ] as const
         ).map(([label, value]) => (
           <div key={label} className="rounded-2xl p-5" style={card}>

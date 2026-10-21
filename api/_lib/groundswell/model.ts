@@ -166,7 +166,7 @@ export function unsupportedNumbers(text: string, allowed: Set<string>): string[]
 }
 
 // A sentence ends at . ! or ?, but not at the point inside a number like 4.6.
-const SENTENCE = /(?:[^.!?]|[.!?](?=\d))+(?:[.!?]+|$)/g;
+export const SENTENCE = /(?:[^.!?]|[.!?](?=\d))+(?:[.!?]+|$)/g;
 
 /** Removes sentences that quote an unsupported number; returns what it removed. */
 export function scrubText(text: string, allowed: Set<string>): { text: string; removed: string[] } {
@@ -179,8 +179,8 @@ export function scrubText(text: string, allowed: Set<string>): { text: string; r
   return { text: kept.join('').trim(), removed };
 }
 
-/** Applies `fn` to every string in the write-up. */
-function mapStrings<T>(value: T, fn: (s: string) => string): T {
+/** Applies `fn` to every string in a write-up (empty strings drop out of lists). */
+export function mapStrings<T>(value: T, fn: (s: string) => string): T {
   if (typeof value === 'string') return fn(value) as T;
   if (Array.isArray(value)) return value.map((v) => mapStrings(v, fn)).filter((v) => v !== '') as T;
   if (value && typeof value === 'object') {

@@ -55,7 +55,15 @@ function SubmitForm({ onQueued }: { onQueued: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
-  const set = (key: keyof Omit<AuditDraft, 'competitors'>, value: string) => setDraft((d) => ({ ...d, [key]: value }));
+  const set = (key: keyof Omit<AuditDraft, 'competitors' | 'kind'>, value: string) => setDraft((d) => ({ ...d, [key]: value }));
+  const benchmark = draft.kind === 'benchmark';
+  // A benchmark compares the first two competitors, so the form shows two rows for them.
+  const setBenchmark = (on: boolean) =>
+    setDraft((d) => ({
+      ...d,
+      kind: on ? 'benchmark' : 'audit',
+      competitors: on && d.competitors.length < 2 ? [...d.competitors, { name: '', website: '', instagram: '' }] : d.competitors,
+    }));
   const setCompetitor = (i: number, key: 'name' | 'website' | 'instagram', value: string) =>
     setDraft((d) => ({ ...d, competitors: d.competitors.map((c, j) => (j === i ? { ...c, [key]: value } : c)) }));
 
@@ -114,8 +122,19 @@ function SubmitForm({ onQueued }: { onQueued: () => void }) {
           <input id="pa-instagram" value={draft.instagram} placeholder="@handle" onChange={(e) => set('instagram', e.target.value)} className={field} />
         </div>
       </div>
+      <label className="mt-5 flex items-start gap-3 text-sm text-[var(--nw-current-navy)]">
+        <input type="checkbox" className="mt-1" checked={benchmark} onChange={(e) => setBenchmark(e.target.checked)} />
+        <span>
+          Add a competitive benchmark against the top two competitors
+          <span className="nwse-type-body-small block text-[var(--nw-slate)]">
+            A fourth report: engagement per post, ads on record, published prices and authority, with a plan to close the gap.
+          </span>
+        </span>
+      </label>
       <fieldset className="mt-5">
-        <legend className={label}>Competitors (optional, up to {MAX_COMPETITORS})</legend>
+        <legend className={label}>
+          {benchmark ? `Competitors (the first two are compared; up to ${MAX_COMPETITORS})` : `Competitors (optional, up to ${MAX_COMPETITORS})`}
+        </legend>
         <div className="space-y-3">
           {draft.competitors.map((c, i) => (
             <div key={i} className="grid gap-2 sm:grid-cols-3">
@@ -159,7 +178,7 @@ function SubmitForm({ onQueued }: { onQueued: () => void }) {
         </p>
       ) : null}
       <button type="submit" disabled={busy} className="nwse-btn nwse-btn-amber-deep mt-5 disabled:opacity-60">
-        Queue the audit
+        {benchmark ? 'Queue the audit and benchmark' : 'Queue the audit'}
       </button>
       <FormPrivacyNotice action="Queuing an audit" />
     </form>
@@ -178,6 +197,7 @@ function AuditList({ audits }: { audits: PartnerAudit[] }) {
           ['Summary', a.summary_pdf_url],
           ['Slides', a.deck_pdf_url],
           ['Full audit', a.audit_pdf_url],
+          ['Competitive benchmark', a.benchmark_pdf_url ?? null],
           ['All files', a.drive_folder_url],
         ].filter((pair): pair is [string, string] => isDriveLink(pair[1]));
         return (

@@ -20,6 +20,8 @@ export interface InstagramSnapshot {
   posts_last_30_days: number | null;
   avg_likes_recent: number | null;
   avg_comments_recent: number | null;
+  /** Links in the bio (link-in-bio pages, stores, podcasts); missing on audits before 2026-10-22. */
+  bio_links?: string[];
   error: string | null;
 }
 
@@ -34,6 +36,14 @@ function postTime(p: Record<string, unknown>): number | null {
     return Number.isNaN(t) ? null : t;
   }
   return null;
+}
+
+/** URLs in an Instagram bio: the bio_links list and the external link. */
+export function bioLinks(profile: unknown): string[] {
+  const list = findKey<unknown[]>(profile, 'bio_links') ?? [];
+  const urls = list.map((l) => (typeof l === 'string' ? l : (l as Record<string, unknown>)?.url)).filter((u): u is string => typeof u === 'string');
+  const external = findKey<unknown>(profile, 'external_url');
+  return [...new Set([...urls, ...(typeof external === 'string' && external ? [external] : [])])];
 }
 
 export function summarizeInstagram(handle: string, profile: unknown, posts: unknown, now = Date.now()): InstagramSnapshot {
@@ -61,6 +71,7 @@ export function summarizeInstagram(handle: string, profile: unknown, posts: unkn
     posts_last_30_days: items.length ? times.filter((t) => now - t <= 30 * 86_400_000).length : null,
     avg_likes_recent: avg(recent.map((p) => n(p.like_count) ?? n(findKey(p.edge_liked_by ?? p.edge_media_preview_like, 'count')))),
     avg_comments_recent: avg(recent.map((p) => n(p.comment_count) ?? n(findKey(p.edge_media_to_comment, 'count')))),
+    bio_links: bioLinks(profile),
     error: null,
   };
 }

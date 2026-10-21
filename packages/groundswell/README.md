@@ -156,6 +156,40 @@ now to `impact.seo_target`, unless it already ranks there. Findings of a type
 those already cover are left out, so nothing is ranked twice; the rest are
 listed as not modeled, cheapest first.
 
+## Competitor benchmark (`src/benchmark/`)
+
+The business against its top two competitors, for any industry. The rules
+are code here; the engine only fetches the data.
+
+- **Engagement** (`engagement.ts`): one page of posts and one of reels per
+  account, deduped (the reels page repeats posts), pinned posts (a feed post
+  with a newer one after it) left out of cadence, hidden likes detected (an
+  account that hides likes reads as a small placeholder), comment-to-DM
+  prompts ("comment GUIDE") counted, and reels per week over the days the
+  reels page spans (a page is a sample). A real by-hand benchmark,
+  anonymised, checks these rules
+  (`src/test/api/fixtures/groundswell-benchmark/` in New Wave's repository).
+- **Ads** (`ads.ts`): the Meta Ad Library by the Page's own id and Google's Ads
+  Transparency Center. A verified negative ("isn't currently running ads", "0
+  ads, any time") is kept apart from "could not be determined". No spend,
+  ever: only presence, dates and creative are public.
+- **Pricing** (`pricing.ts`): offer pages found, every price pulled with short
+  context, and `checkLadder` holding a model's classification to the prices
+  the pages show (an offer with no price is "not published", never a guess).
+- **Authority** (`authority.ts`): press from the setup file's list of media
+  domains (never a hosting platform), owned channels, content depth, and the
+  credentials an About page states, read against the industry profile's
+  licence words.
+- **Scorecard** (`scorecard.ts`): one row per dimension with a leader by a
+  fixed rule, and a gap (with its lever) wherever a competitor leads. Unknown
+  values call no leader.
+
+The setup file's `benchmark` section holds the account cap, pages read per
+account, the entry-product price line, the engagement bands (an assumption
+until a cited report replaces them), the press and platform lists, and the
+"do not copy" rules every benchmark carries; each industry profile adds its
+own `licences` and `do_not_copy`.
+
 ## Every change, ranked (`src/changes.ts`)
 
 Ads are one kind of change. Every change an audit recommends gets a cost
@@ -218,6 +252,7 @@ a service (SaaS), with tools linked in as each client needs them. In order:
 | Setup file, ad plan, templates | Here, tested (`test/`). |
 | Every change ranked by return; today against the plan | Here, tested; shown on Croissance for the brewery. |
 | Ad plan and ranking in the live audits and reports | Live: the `adplan` step and `planAudit` (`src/audit.ts`). Ad copy in the reports is next. |
+| Competitor benchmark | Here, tested (`src/benchmark/`); live as the `benchmark` audit kind. |
 | Review → re-interpret → re-run | Planned. |
 | Planner agent and industry platforms | Planned: an agent picks the industry profile from the business's data, within the setup file's allowlist. |
 | SEO, website and Google Business Profile audits | Partly live (`api/_lib/groundswell/currents/`); being widened. |

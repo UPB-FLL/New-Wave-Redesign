@@ -22,7 +22,10 @@ nothing in it may be quoted as a fact about any real business.
 | `pricing/<handle>.prices.json` | every dollar match with 120 characters of context, per offer page, plus policy flags per page and per account | `pricing` |
 | `expected.json` | the figures and classifications the rules in the spec must reproduce from these files, and the rules themselves | `social_depth`, `ads_library`, `pricing`, `authority`, `benchmark` |
 
-`docs/benchmark-session-scripts/verify_fixtures.cjs` recomputes the
+In this repository, `src/test/api/groundswell-benchmark-fixtures.test.ts` runs
+the engine's own rules on these files against `expected.json` and lists, with
+reasons, where they give a different answer. The session's own checker,
+`docs/benchmark-session-scripts/verify_fixtures.cjs`, recomputes the
 `social_depth` figures from these files and exits non-zero on any mismatch
 with `expected.json`:
 

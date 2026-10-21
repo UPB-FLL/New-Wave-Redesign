@@ -27,6 +27,9 @@ export interface PartnerAudit {
   summary_pdf_url: string | null;
   deck_pdf_url: string | null;
   audit_pdf_url: string | null;
+  /** Missing until the benchmark migration (20261022120000) is applied. */
+  kind?: 'audit' | 'benchmark';
+  benchmark_pdf_url?: string | null;
   created_at: string;
   completed_at: string | null;
 }

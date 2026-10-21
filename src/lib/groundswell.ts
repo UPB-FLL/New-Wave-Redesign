@@ -24,13 +24,16 @@ export * from './groundswellValidation';
 const COLUMNS =
   'id,business_name,city,website,instagram,competitors,notes,status,error,drive_folder_url,summary_pdf_url,deck_pdf_url,audit_pdf_url,partner_id,created_at,completed_at';
 
+/** The benchmark columns (migration 20261022120000); read only where the database has them. */
+const BENCHMARK_COLUMNS = ',kind,benchmark_pdf_url';
+export const missingColumn = (message: string) => /column .* does not exist|42703/i.test(message);
+
 export async function listAudits(): Promise<GroundswellAudit[]> {
-  const { data, error } = await supabase
-    .from('marketing_audits')
-    .select(COLUMNS)
-    .order('created_at', { ascending: false });
+  const read = (columns: string) => supabase.from('marketing_audits').select(columns).order('created_at', { ascending: false });
+  let { data, error } = await read(COLUMNS + BENCHMARK_COLUMNS);
+  if (error && missingColumn(error.message)) ({ data, error } = await read(COLUMNS));
   if (error) throw new Error(error.message);
-  return (data ?? []) as GroundswellAudit[];
+  return (data ?? []) as unknown as GroundswellAudit[];
 }
 
 export async function queueAudit(draft: AuditDraft): Promise<void> {
@@ -83,6 +86,12 @@ export const STEP_LABELS: Record<string, string> = {
   ads: 'Ads',
   model: 'Write-up and ROI',
   adplan: 'Ad plan and change ranking',
+  social_depth: 'Instagram posts and reels',
+  ads_library: 'Ad libraries',
+  pricing: 'Offers and prices',
+  authority: 'Authority',
+  benchmark: 'Scorecard and plan',
+  deliver_benchmark: 'Benchmark PDF',
   deliver_prepare: 'Drive folder',
   deliver_audit: 'Full audit PDF',
   deliver_deck: 'Slides PDF',

@@ -254,6 +254,16 @@ describe('partner audits', () => {
     expect(mail.send).toHaveBeenCalledWith(expect.objectContaining({ to: 'contact@newwaveitfl.com' }));
   });
 
+  it('queues a competitor benchmark, which needs two competitors', async () => {
+    const base = { business_name: 'Bench Shop', website: 'bench.example', kind: 'benchmark' };
+    const one = await call(partnerAudits, 'POST', { ...base, competitors: [{ name: 'A', website: 'a.example' }] }, await partnerHeaders());
+    expect(one.statusCode).toBe(400);
+    expect(one.body.error).toMatch(/two competitors/);
+    const two = await call(partnerAudits, 'POST', { ...base, competitors: [{ name: 'A', website: 'a.example' }, { name: 'B', instagram: 'b_shop' }] }, await partnerHeaders());
+    expect(two.statusCode).toBe(201);
+    expect(db.current!.tables.marketing_audits.find((a) => a.business_name === 'Bench Shop')).toMatchObject({ kind: 'benchmark', partner_id: 'p-active' });
+  });
+
   it('rejects a business with neither website nor Instagram', async () => {
     const res = await call(partnerAudits, 'POST', { business_name: 'Nothing' }, await partnerHeaders());
     expect(res.statusCode).toBe(400);
