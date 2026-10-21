@@ -118,13 +118,13 @@ export default async function handler(req: any, res: any) {
 
           <div style="background-color: #e8f5f4; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #39CCCC;">
             <p style="color: #152232; font-size: 14px; margin: 0;">
-              <strong>Need Immediate Help?</strong> Call us at (954) 555-0100 for urgent support.
+              <strong>Need Immediate Help?</strong> Call us at (561) 564-1846 for urgent support.
             </p>
           </div>
 
           <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0; font-size: 12px; color: #999;">
             <p>Best regards,<br><strong>New Wave IT Support Team</strong></p>
-            <p>newwaveitfl.com | (954) 555-0100</p>
+            <p>newwaveitfl.com | (561) 564-1846</p>
           </div>
         </div>
       `,

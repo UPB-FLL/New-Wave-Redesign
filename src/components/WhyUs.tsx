@@ -18,7 +18,7 @@ const defaultProofPoints = [
 
 const defaultCards: FeatureCard[] = [
   { title: '24/7 Service & Monitoring', desc: 'Round-the-clock monitoring and support so issues are identified early and handled with care.' },
-  { title: 'Industry-Certified Engineers', desc: 'Microsoft, Cisco, and CompTIA certified engineers with deep expertise across platforms.' },
+  { title: 'Partner-Backed Engineers', desc: 'New Wave IT is a Microsoft, Cisco, and Huntress partner.' },
   { title: 'Dedicated Project Managers', desc: 'Every engagement comes with a dedicated contact keeping timelines and deliverables clear.' },
   { title: 'Strategic Tech Advisors', desc: 'We align technology investments with your business goals for long-term progress.' },
   { title: 'Security & Compliance', desc: 'HIPAA, SOC 2, and industry-specific expertise to help keep data protected and audit-ready.' },

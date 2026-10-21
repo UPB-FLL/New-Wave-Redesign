@@ -19,8 +19,8 @@ export default function About({ headlineAs: Heading = 'h2' }: { headlineAs?: 'h1
       description: content.approach_point2_desc || 'Your dedicated project manager keeps communication clear across every engagement.',
     },
     {
-      title: content.approach_point3_title || 'Certified',
-      description: content.approach_point3_desc || 'Microsoft, Cisco, and CompTIA certified engineers support every engagement.',
+      title: content.approach_point3_title || 'Partner-Backed',
+      description: content.approach_point3_desc || 'New Wave IT is a Microsoft, Cisco, and Huntress partner.',
     },
     {
       title: content.approach_point4_title || 'Responsive',

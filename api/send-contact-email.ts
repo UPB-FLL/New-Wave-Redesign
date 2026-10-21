@@ -144,7 +144,7 @@ export default async function handler(req: any, res: any) {
 
           <p style="color: #555; font-size: 16px; line-height: 1.6;">
             A member of our team will review your inquiry and get back to you within one business day.
-            For urgent matters, feel free to call us directly at (954) 555-0100.
+            For urgent matters, feel free to call us directly at (561) 564-1846.
           </p>
 
           <div style="background-color: #f8fafb; padding: 15px; border-radius: 8px; margin: 20px 0;">
@@ -154,7 +154,7 @@ export default async function handler(req: any, res: any) {
 
           <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0; font-size: 12px; color: #999;">
             <p>Best regards,<br><strong>New Wave IT Support Team</strong></p>
-            <p>newwaveitfl.com | (954) 555-0100</p>
+            <p>newwaveitfl.com | (561) 564-1846</p>
           </div>
         </div>
       `,

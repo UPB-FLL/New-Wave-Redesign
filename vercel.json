@@ -48,7 +48,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://vitals.vercel-insights.com; media-src 'self' blob: https://videos.pexels.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://vitals.vercel-insights.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://www.google.com https://googleads.g.doubleclick.net; media-src 'self' blob: https://videos.pexels.com; frame-src https://td.doubleclick.net https://www.googletagmanager.com; object-src 'none'; base-uri 'self'; form-action 'self'"
         }
       ]
     },
@@ -132,6 +132,14 @@
     {
       "source": "/why-us",
       "destination": "/why-us/index.html"
+    },
+    {
+      "source": "/it-support-fort-lauderdale",
+      "destination": "/it-support-fort-lauderdale/index.html"
+    },
+    {
+      "source": "/managed-it-services-fort-lauderdale",
+      "destination": "/managed-it-services-fort-lauderdale/index.html"
     },
     {
       "source": "/about",

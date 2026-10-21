@@ -2,6 +2,46 @@
 
 ## Recent Changes
 
+### Marketing audit fixes on the New Wave IT site (2026-10-21)
+
+From the New Wave IT marketing audit (Drive: Customers/New Wave IT).
+
+- **Phone**: the real number is (561) 564-1846 (the Google Business Profile's).
+  Production CMS rows `contact.phone`, `footer.phone`, and `hero.phone`
+  (`+15615641846`) were updated directly; code fallbacks in `Footer`/`Contact`,
+  the `index.html` LocalBusiness `telephone`, and the three email templates in
+  `api/` now use it. Form input placeholders keep the fictional 555 sample.
+- **Badges**: only documented partnerships are claimed: Huntress, Microsoft,
+  and Cisco partner (no SOC 2 Type II, "Microsoft Gold", "Cisco Premier",
+  CompTIA, or "HIPAA Compliant"). CMS `trustbar.items` and
+  `whyus.feature_cards` were updated to match the code defaults. The
+  cybersecurity hero lists compliance work ("HIPAA readiness", "SOC 2 audit
+  prep"), not certifications.
+- **Landing pages**: `/it-support-fort-lauderdale` and
+  `/managed-it-services-fort-lauderdale` (`ITSupportFortLauderdalePage`,
+  `ManagedITFortLauderdalePage`, built on `ServiceCategoryPage`), in
+  `IT_PAGE_META`, `vercel.json`, the sitemap, and the footer. They state only
+  claims the site already makes (published prices, address, partners). The
+  `/service-category/managed-it-services` title no longer repeats "Fort
+  Lauderdale" so the two pages do not compete.
+- **Luxury and Cellular DAS**: off the home page and the Navbar's industry
+  menu; still live, listed under "Other specialties" on `/services` only
+  (`Services showOtherSpecialties`).
+- **Tracking** (`src/lib/analytics.ts`): GA4 and Google Ads conversion tags
+  load only when `VITE_GA4_ID` / `VITE_GADS_ID` are set at build time, and
+  never in a browser sending Global Privacy Control or Do Not Track. Leads
+  (`generate_lead`, plus an Ads conversion with `VITE_GADS_LEAD_LABEL`) fire on
+  contact, quote, and pricing form success and on any `tel:` link tap. The CSP
+  allows Google's tag hosts (`frame-src` now `td.doubleclick.net` and
+  `www.googletagmanager.com` instead of `'none'`). The Cookie and Privacy
+  Policies read the same flags, so without IDs they still say there is no
+  analytics cookie; with IDs they list `_ga`/`_gcl_*` and the GPC/DNT
+  behavior (`LegalPagesTracking.test.tsx`). Re-scan the live site and update
+  `COOKIE_INVENTORY_REVIEWED` after setting the IDs.
+- **Pending**: the home page's client count, years, endpoints, and response
+  time figures contradict each other; they stay until the owner gives the
+  real ones.
+
 ### Marketing audit queue and skill (2026-10-20)
 
 NW Social Engineering prospect audits, queued from the admin site and run on

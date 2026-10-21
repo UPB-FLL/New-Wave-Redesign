@@ -130,8 +130,22 @@ export const IT_PAGE_META = withBreadcrumbs({
     canonical: 'https://www.newwaveitfl.com/service-category/it-repair-upgrades',
     crumb: 'IT Repair & Upgrades',
   },
+  '/it-support-fort-lauderdale': {
+    title: 'IT Support Fort Lauderdale — Local Help Desk & On-Site',
+    description: 'IT support for Fort Lauderdale businesses: 24/7 help desk, remote and on-site support, and flat per-device pricing from a local team. No long-term contracts.',
+    keywords: 'IT support Fort Lauderdale, Fort Lauderdale IT support, IT help desk Fort Lauderdale, on-site IT support Broward, small business IT support Fort Lauderdale',
+    canonical: 'https://www.newwaveitfl.com/it-support-fort-lauderdale',
+    crumb: 'IT Support Fort Lauderdale',
+  },
+  '/managed-it-services-fort-lauderdale': {
+    title: 'Managed IT Services Fort Lauderdale — Flat-Rate MSP',
+    description: 'Managed IT services in Fort Lauderdale: monitoring, patching, backup, security, and help desk for one flat per-device monthly rate. No long-term contracts.',
+    keywords: 'managed IT services Fort Lauderdale, managed service provider Fort Lauderdale, MSP Fort Lauderdale, managed IT Broward, outsourced IT Fort Lauderdale',
+    canonical: 'https://www.newwaveitfl.com/managed-it-services-fort-lauderdale',
+    crumb: 'Managed IT Services Fort Lauderdale',
+  },
   '/service-category/managed-it-services': {
-    title: 'Managed IT Services Fort Lauderdale — MSP South Florida',
+    title: 'Managed IT Services — Monitoring, Patching & Backup',
     description: 'Fully managed IT for Fort Lauderdale businesses: flat-rate pricing, 24/7 monitoring, patching, and backup & disaster recovery. No long-term contracts.',
     keywords: 'managed IT services Fort Lauderdale, MSP South Florida, IT outsourcing Fort Lauderdale, managed services provider Florida, proactive IT monitoring, flat-rate IT support, IT management South Florida, outsourced IT department',
     canonical: 'https://www.newwaveitfl.com/service-category/managed-it-services',

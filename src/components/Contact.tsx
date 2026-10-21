@@ -3,6 +3,7 @@ import { CheckCircle, Mail, MapPin, Phone, Send } from 'lucide-react';
 import { useContent } from '../lib/useContent';
 import { FadeIn } from './ui/fade-in';
 import FormPrivacyNotice from './legal/FormPrivacyNotice';
+import { trackLead } from '../lib/analytics';
 
 interface FormData {
   name: string;
@@ -140,6 +141,7 @@ export default function Contact({
       }
 
       setSubmitted(true);
+      trackLead('contact_form');
       setForm(initialForm);
     } catch (requestError) {
       setError(
@@ -152,7 +154,7 @@ export default function Contact({
     }
   };
 
-  const phone = details ? details.phone : content.phone || '(954) 555-0100';
+  const phone = details ? details.phone : content.phone || '(561) 564-1846';
   const email = details ? details.email : content.email || 'support@newwaveitfl.com';
   const address = details
     ? details.address
