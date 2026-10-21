@@ -77,6 +77,16 @@ describe('section descriptors', () => {
     }
   });
 
+  it('point every block anchor at an element id on the public site', () => {
+    const ids = new Set<string>();
+    for (const file of [...walk(join(src, 'components')), ...walk(join(src, 'pages'))]) {
+      for (const m of readFileSync(file, 'utf8').matchAll(/\bid="([a-z0-9-]+)"/g)) ids.add(m[1]);
+    }
+    const anchors = Object.values(SECTIONS).flatMap((d) => d.blocks.map((b) => b.anchor).filter((a): a is string => Boolean(a)));
+    expect(anchors.length).toBeGreaterThan(10);
+    for (const anchor of anchors) expect(ids, anchor).toContain(anchor);
+  });
+
   it('keep the stored shapes the old editors wrote', () => {
     const list = (section: string, key: string) => {
       const f = SECTIONS[section].blocks.flatMap((b) => b.fields).find((x) => x.key === key);

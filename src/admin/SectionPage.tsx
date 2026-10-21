@@ -9,6 +9,7 @@ import FieldInput, { type FieldValue } from './components/FieldInput';
 import ListRows, { type ListItem } from './components/ListRows';
 import { pageForPath } from './adminNav';
 import { FIELD_PARAM, fieldInputId, parseList } from './sections/listValue';
+import { previewUrl } from '../lib/preview';
 
 /**
  * The editor for every `site_content` section, rendered from its
@@ -112,7 +113,14 @@ export default function SectionPage({ section }: { section: string }) {
           <h1 className="text-2xl font-bold text-white">{descriptor.title}</h1>
           <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>{descriptor.description}</p>
         </div>
-        <a href={descriptor.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg text-white/70 hover:text-white flex-shrink-0" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+        <a
+          href={previewUrl(descriptor.url)}
+          target="_blank"
+          rel="noreferrer"
+          title="Opens the page showing your unsaved edits; nothing is live until you save"
+          className="inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg text-white/70 hover:text-white flex-shrink-0"
+          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+        >
           <ExternalLink size={12} /> View on site
         </a>
       </header>
@@ -134,6 +142,7 @@ export default function SectionPage({ section }: { section: string }) {
             edited={keys.some((k) => pending[k] !== undefined)}
             open={isOpen(block.id)}
             pinned={pinned.has(block.id)}
+            viewHref={block.anchor ? previewUrl(descriptor.url, block.anchor) : undefined}
             onToggle={() => toggle(block.id)}
             onPin={() => pin(block.id)}
           >

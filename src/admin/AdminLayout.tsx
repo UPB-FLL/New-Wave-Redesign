@@ -7,6 +7,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { GROUNDSWELL_ADMIN_PATH } from '../groundswell/site';
+import { previewUrl } from '../lib/preview';
 import { usePageMeta } from '../lib/usePageMeta';
 import { ADMIN_NAV, pageForPath, searchAdminFields, searchAdminNav, type AdminNavEntry, type AdminNavPage } from './adminNav';
 import { contentManager, StaleSectionError, type ContentManagerState } from './ContentManager';
@@ -81,9 +82,10 @@ function PageRow({ page, open, active, onToggle, onPick }: { page: AdminNavPage;
         <div id={`admin-page-${page.id}`} className="space-y-0.5 pb-1">
           {page.entries.map((entry) => <EntryLink key={entry.path} entry={entry} indent onPick={onPick} />)}
           <a
-            href={page.url}
+            href={previewUrl(page.url)}
             target="_blank"
             rel="noreferrer"
+            title="Opens the page showing your unsaved edits"
             className="flex items-center gap-2 text-xs pl-9 pr-3 py-1.5 text-white/35 hover:text-white/70"
           >
             <ExternalLink size={12} /> View {page.label === 'Home' ? 'home page' : 'on site'}

@@ -31,12 +31,14 @@ const cache = vi.hoisted(() => ({ writeContentCache: vi.fn(), broadcastContentCh
 vi.mock('../lib/content', () => cache);
 
 import { ContentManager, DRAFT_KEY, StaleSectionError } from './ContentManager';
+import { PREVIEW_PREFIX } from '../lib/preview';
 
 beforeEach(() => {
   db.rows.length = 0;
   db.rows.push({ section: 'hero', key: 'badge', value: 'Old badge', updated_at: '2026-10-21T10:00:00Z' });
   db.rows.push({ section: 'hero', key: 'phone', value: '+1', updated_at: '2026-10-21T09:00:00Z' });
   sessionStorage.clear();
+  localStorage.clear();
   cache.writeContentCache.mockReset();
   cache.broadcastContentChange.mockReset();
 });
@@ -90,6 +92,24 @@ describe('ContentManager', () => {
     // After a save the section counts as fresh again.
     cm.updateField('hero', 'badge', 'Mine 2');
     await expect(cm.publishChanges()).resolves.toBeUndefined();
+  });
+
+  it('keeps the preview overlay in step with the pending edits', async () => {
+    const cm = new ContentManager();
+    await cm.loadSection('hero');
+    cm.updateField('hero', 'badge', 'Mine');
+    expect(JSON.parse(localStorage.getItem(PREVIEW_PREFIX + 'hero') ?? 'null')).toEqual({ badge: 'Mine' });
+    await cm.publishChanges();
+    expect(localStorage.getItem(PREVIEW_PREFIX + 'hero')).toBeNull();
+    cm.updateField('hero', 'badge', 'Again');
+    cm.discardChanges();
+    expect(localStorage.getItem(PREVIEW_PREFIX + 'hero')).toBeNull();
+  });
+
+  it('previews a draft restored from the last page load', () => {
+    sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ hero: { badge: 'Draft badge' } }));
+    new ContentManager();
+    expect(JSON.parse(localStorage.getItem(PREVIEW_PREFIX + 'hero') ?? 'null')).toEqual({ badge: 'Draft badge' });
   });
 
   it('discards edits and the draft', async () => {

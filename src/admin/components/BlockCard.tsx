@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { ChevronRight, Pin } from 'lucide-react';
+import { ChevronRight, ExternalLink, Pin } from 'lucide-react';
 
 /**
  * One block of a section (Headline, Buttons, Feature cards), collapsed by
@@ -16,12 +16,14 @@ interface BlockCardProps {
   edited: boolean;
   open: boolean;
   pinned: boolean;
+  /** A preview link to where this block renders on the site, shown while the block is open. */
+  viewHref?: string;
   onToggle: () => void;
   onPin: () => void;
   children: ReactNode;
 }
 
-export default function BlockCard({ id, title, description, preview, fieldCount, edited, open, pinned, onToggle, onPin, children }: BlockCardProps) {
+export default function BlockCard({ id, title, description, preview, fieldCount, edited, open, pinned, viewHref, onToggle, onPin, children }: BlockCardProps) {
   const bodyId = `block-${id}`;
   return (
     <section
@@ -50,6 +52,18 @@ export default function BlockCard({ id, title, description, preview, fieldCount,
             {open && description && <span className="block text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.45)' }}>{description}</span>}
           </span>
         </button>
+        {open && viewHref && (
+          <a
+            href={viewHref}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={`View ${title} on the site`}
+            title="Opens the page at this block, showing your unsaved edits"
+            className="p-1.5 rounded text-white/30 hover:text-white hover:bg-white/10"
+          >
+            <ExternalLink size={14} />
+          </a>
+        )}
         {open && (
           <button
             type="button"

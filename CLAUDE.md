@@ -31,6 +31,32 @@ browser read as the fallback, and neither changes an output shape.
   it, about ten minutes per audit. The browser path is now the fallback only,
   which should avoid it; if not, shorten the lease or the Maps timeout.
 
+### Admin panel rework, phase 3: "View on site" shows unsaved edits (2026-10-21)
+
+The last phase of the plan Josh approved on 2026-10-21. Every admin "View on
+site" link (editor header, the arrow on an open block, sidebar page rows, the
+front page) is now `previewUrl(url, anchor?)`: the public page with
+`?preview=1` and the block's anchor.
+
+- **`src/lib/preview.ts`**: the admin's `ContentManager` writes each
+  section's pending edits to `localStorage` (`nw_preview:<section>`) and a
+  BroadcastChannel (`newwave_preview`) whenever the draft moves (`writeDraft`
+  does both; a draft restored on load is previewed too; publish and discard
+  clear it). `isPreviewMode()` is true for a tab opened with `?preview=1`
+  (kept in `sessionStorage` as `nw_preview` until "Exit preview").
+- **`useContentWithStatus`**: in preview mode the overlay is laid over the
+  saved content and follows the channel; the cache and the CMS only ever
+  hold saved content, and a normal visitor's path is unchanged.
+- **`PreviewBanner`** (mounted in `App.tsx`): the amber bar with "Back to
+  the editor" and "Exit preview".
+- **Anchors**: `SectionBlock.anchor` names the public element id the block
+  renders in (`hero`, `trust-bar` and `footer` are new ids, the rest
+  existed); `sections.test.ts` checks every anchor is an `id="…"` in
+  `src/components` or `src/pages`.
+- **Tests**: `src/lib/preview.test.tsx` (URL, mode, overlay, the hook in
+  and out of preview, the banner), new `ContentManager.test.ts` cases, and
+  the pinned hrefs in the admin tests.
+
 ### Groundswell: white-label reports for partners (2026-10-21)
 
 Owner's choices: full white-label; the client keeps its colours and logo, the

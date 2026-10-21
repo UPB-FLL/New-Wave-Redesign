@@ -62,6 +62,18 @@ If a stored list cannot be read (bad JSON written by hand), the editor shows
 the raw value and leaves it alone; "Replace it with an empty list" is the
 only way to clear it.
 
+### Previewing before you save
+
+Every "View on site" link in the admin (the editor's header, the arrow on an
+open block, the sidebar's page rows, the front page) opens the public page in
+a new tab **showing your unsaved edits**. The tab carries an amber bar at the
+top saying so, with "Back to the editor" and "Exit preview". The block's
+arrow lands the page on that block. Keep the tab open: as you type in the
+editor, the preview changes with you. Nothing is live until you save; the
+preview is only in your browser (it reads the draft from this browser's
+storage), so a visitor never sees it, and a preview link pasted to someone
+else shows them the saved site.
+
 ### Real-time updates
 
 - Changes appear on the live site within 30 seconds of saving

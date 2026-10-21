@@ -26,6 +26,7 @@ function SiteChrome() {
 }
 import { Analytics } from '@vercel/analytics/react';
 import WaveBackground from './components/WaveBackground';
+import PreviewBanner from './components/PreviewBanner';
 import FloatingNav from './components/FloatingNav';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
@@ -152,6 +153,7 @@ export default function App() {
       <Analytics />
       <BrowserRouter>
         <ScrollToTop />
+        <PreviewBanner />
         <SiteChrome />
         <Routes>
         <Route path="/" element={<HomePage />} />
