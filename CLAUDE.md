@@ -363,7 +363,8 @@ No New Wave IT URL, title, canonical, or structured data changed. Full notes:
   `SceneSlot` reserves the 3:2 box and loads a scene only near the viewport.
   Placed by `DivisionHero` (`scene`, `sceneOnPhones`, `sceneSize`) on the hub,
   the six service pages, `/contact`, and Contact us, and by `PointGrid` in the
-  hub's "What we gather" band. Scenes play once, hold the final frame, and
+  hub's "What we gather" band. Croissance and Customers reuse registered
+  scenes in their heroes (`hub`; `hubSection`, beside the text only). Scenes play once, hold the final frame, and
   render it statically under reduced motion (read live); they are
   `aria-hidden`, and left out in forced colours and print. A scene that fails
   to load leaves its empty box (`SceneSlot`'s own error boundary, fresh for

@@ -496,9 +496,12 @@ describe('content hidden below a breakpoint', () => {
     expect(isDecorativeScene(hidden[0])).toBe(true);
   });
 
-  it('on customers, hides nothing below a breakpoint', () => {
+  it('on customers, hides nothing below a breakpoint but its decorative scene', () => {
     const { container } = renderAt(<SocialEngineeringCustomersPage />);
-    expect(hiddenOnPhones(container)).toEqual([]);
+    const hidden = hiddenOnPhones(container);
+    // The hero has no actions, so the scene shows only beside the text (from 64em).
+    expect(hidden.map((element) => element.getAttribute('data-page-scene'))).toEqual(['hubSection']);
+    expect(isDecorativeScene(hidden[0])).toBe(true);
   });
 
   it('on contact-us, hides nothing below a breakpoint but its decorative scene', () => {

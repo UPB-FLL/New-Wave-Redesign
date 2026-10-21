@@ -96,7 +96,18 @@ export default function SocialEngineeringCustomersPage() {
 
   return (
     <DivisionLayout>
-      <DivisionHero breadcrumbs={seo.breadcrumbs} kicker={content.kicker} headline={content.headline} summary={content.summary} />
+      <DivisionHero
+        breadcrumbs={seo.breadcrumbs}
+        // The hub band's book, return, refer flywheel, drawn on the dark hero.
+        // Like the contact page, the hero has no actions, so the scene shows
+        // only beside the text (from 64em), in the compact column.
+        scene="hubSection"
+        sceneOnPhones="hide"
+        sceneSize="compact"
+        kicker={content.kicker}
+        headline={content.headline}
+        summary={content.summary}
+      />
 
       <Band labelledBy="nwse-customers">
         <h2 id="nwse-customers" className="sr-only">

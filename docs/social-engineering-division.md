@@ -689,6 +689,10 @@ All under `src/divisions/socialEngineering/motion/`:
 Placement lives in `components/sections.tsx`: `DivisionHero` takes `scene`,
 `sceneOnPhones`, and `sceneSize`, `PointGrid` takes `scene`, and both wrap the
 slot in `PageScene` (`aria-hidden="true"`, `data-page-scene="<key>"`).
+A page may reuse a registered scene instead of adding one: Croissance's hero
+shows `hub` (from 375px), and Customers' hero shows `hubSection` on the dark
+ground, beside the text only (`sceneOnPhones="hide"`, compact), since that
+hero has no actions.
 
 ### The contract, in short
 
@@ -849,10 +853,9 @@ once, and turning it off again keeps that frame (a scene never replays).
    `sceneSize="compact"`; a service sets `heroSceneSize` in its content
    file), or a slot in a section. Then update the tests that pin placement:
    add the page to `PAGES_WITH_SCENES` in `scenes.test.tsx` (and to the
-   compact-column case if it is compact), remove it from the "has no scene"
-   cases there if it had none, and update its expected hidden scenes in
+   compact-column case if it is compact), and update its expected hidden scenes in
    `responsive.test.tsx` (hub `['hub', 'hubSection']`, each service
-   `[slug]`, Contact us `['contactUs']`, Customers "hides nothing").
+   `[slug]`, Contact us `['contactUs']`, Customers `['hubSection']`).
 4. Check it at 320, 390, 768, 844 × 390, 1024, and 1440px, with reduced motion
    on, and confirm the IT pages request no new chunk.
 

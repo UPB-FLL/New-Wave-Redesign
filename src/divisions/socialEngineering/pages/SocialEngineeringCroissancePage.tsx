@@ -104,6 +104,11 @@ export default function SocialEngineeringCroissancePage() {
     <DivisionLayout>
       <DivisionHero
         breadcrumbs={seo.breadcrumbs}
+        // The hub's scene (guesswork straightening into a rising trend): the
+        // audit's story too. From 375px, like the service pages: the summary
+        // runs long on the smallest phones.
+        scene="hub"
+        sceneOnPhones="wide"
         kicker={content.kicker}
         headline={content.headline}
         summary={content.summary}
