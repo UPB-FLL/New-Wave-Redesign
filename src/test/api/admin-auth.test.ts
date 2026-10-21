@@ -135,7 +135,7 @@ describe('browser code', () => {
     });
 
   /** Values that are public by design. Vite copies every VITE_ variable the code reads into the bundle. */
-  const PUBLIC_VITE_VARS = ['VITE_SUPABASE_URL', 'VITE_SUPABASE_ANON_KEY', 'VITE_SUPEROPS_PORTAL_URL'];
+  const PUBLIC_VITE_VARS = ['VITE_SUPABASE_URL', 'VITE_SUPABASE_ANON_KEY', 'VITE_SUPEROPS_PORTAL_URL', 'VITE_GA4_ID', 'VITE_GADS_ID', 'VITE_GADS_LEAD_LABEL'];
 
   it('reads only public VITE_ variables, so no secret can be compiled into the site', () => {
     const used = new Map<string, string[]>();

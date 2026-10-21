@@ -2,7 +2,7 @@ import { ArrowRight, Lock, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { CurrentField } from '../brand/CurrentField';
 
-const credentials = ['SOC 2 Type II', 'ISO 27001', 'HIPAA', 'PCI-DSS'];
+const credentials = ['HIPAA readiness', 'PCI-DSS readiness', 'SOC 2 audit prep', 'ISO 27001 alignment'];
 
 export default function CybersecurityHero() {
   const navigate = useNavigate();

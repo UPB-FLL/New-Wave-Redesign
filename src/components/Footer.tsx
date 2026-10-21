@@ -12,6 +12,8 @@ const serviceLinks = [
   { label: 'Managed IT Services', href: '/service-category/managed-it-services' },
   { label: 'Cloud Solutions', href: '/service-category/cloud-solutions' },
   { label: 'Network Infrastructure', href: '/service-category/network-infrastructure' },
+  { label: 'IT Support Fort Lauderdale', href: '/it-support-fort-lauderdale' },
+  { label: 'Managed IT Fort Lauderdale', href: '/managed-it-services-fort-lauderdale' },
   // Division: New Wave: Social Engineering (listed only while it's published).
   ...(DIVISION_PUBLISHED ? [{ label: 'Social Media & Marketing', href: '/social-engineering' }] : []),
 ];
@@ -29,7 +31,7 @@ const sectionHeadingClass = 'mb-5 text-sm font-semibold uppercase text-[var(--nw
 
 export default function Footer() {
   const content = useContent('footer');
-  const phone = content.phone || '(954) 555-0100';
+  const phone = content.phone || '(561) 564-1846';
   const email = content.email || 'support@newwaveitfl.com';
   const address = content.address || '710 NW 5th Ave, Suite 1072, Fort Lauderdale, FL 33311';
 

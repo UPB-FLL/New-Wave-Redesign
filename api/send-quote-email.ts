@@ -197,12 +197,12 @@ export default async function handler(req: any, res: any) {
 
           <div style="background-color: rgba(57, 204, 204, 0.08); padding: 15px; border-radius: 8px; border: 1px solid rgba(57, 204, 204, 0.2); margin: 20px 0;">
             <p style="color: #152232; font-weight: bold; margin: 0 0 10px 0;">Need Immediate Assistance?</p>
-            <p style="color: #555; margin: 0;">Call us anytime at <strong>(954) 555-0100</strong><br>We're available 24/7 for urgent matters.</p>
+            <p style="color: #555; margin: 0;">Call us anytime at <strong>(561) 564-1846</strong><br>We're available 24/7 for urgent matters.</p>
           </div>
 
           <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0; font-size: 12px; color: #999;">
             <p>Best regards,<br><strong>New Wave IT Sales Team</strong></p>
-            <p>newwaveitfl.com | (954) 555-0100</p>
+            <p>newwaveitfl.com | (561) 564-1846</p>
           </div>
         </div>
       `,

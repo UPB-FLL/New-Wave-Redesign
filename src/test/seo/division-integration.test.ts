@@ -32,6 +32,8 @@ const PARENT_SITEMAP_PATHS = [
   '/l/cybersecurity-guide', '/l/it-support-guide', '/l/it-repair-guide', '/l/managed-it-guide',
   '/l/cloud-solutions-guide', '/l/network-infrastructure-guide', '/privacy-policy', '/terms-and-conditions',
   '/cookie-policy',
+  // Local landing pages added 2026-10-21 (marketing audit).
+  '/it-support-fort-lauderdale', '/managed-it-services-fort-lauderdale',
 ];
 
 // While the division is unpublished, none of its URLs may be listed or served.

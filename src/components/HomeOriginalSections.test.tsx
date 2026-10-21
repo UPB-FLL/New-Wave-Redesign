@@ -2,7 +2,6 @@ import { render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import Services from './Services';
-import Stats from './Stats';
 
 vi.mock('../lib/useContent', () => ({ useContent: vi.fn() }));
 
@@ -22,18 +21,7 @@ afterEach(() => {
 });
 
 describe('original home-page sections', () => {
-  it('keeps the compact four-metric proof strip', () => {
-    render(<Stats />);
-
-    const strip = screen.getByRole('region', { name: 'Operational proof points' });
-    expect(strip.querySelectorAll('[data-role="proof-point"]')).toHaveLength(4);
-    expect(screen.getByText('Avg Response Time')).toBeInTheDocument();
-    expect(screen.getByText('Endpoints Managed')).toBeInTheDocument();
-    expect(screen.getByText('Uptime Guarantee')).toBeInTheDocument();
-    expect(screen.getByText('Years Serving South Florida')).toBeInTheDocument();
-  });
-
-  it('keeps the original animated Cybersecurity bento and four-card industry row', () => {
+  it('keeps the original animated Cybersecurity bento and a two-card industry row', () => {
     render(
       <MemoryRouter>
         <Services />
@@ -50,17 +38,34 @@ describe('original home-page sections', () => {
     expect(within(cyberCard).getByText('Your Business')).toBeInTheDocument();
     expect(within(cyberCard).getByText('New Wave SOC')).toBeInTheDocument();
     expect(within(cyberCard).getByText('Managed EDR & Antivirus')).toBeInTheDocument();
-    expect(within(cyberCard).getByText('99.9%')).toBeInTheDocument();
+    expect(within(cyberCard).getByText('24/7')).toBeInTheDocument();
+    expect(cyberCard).not.toHaveTextContent(/500\+|99\.9%/);
     expect(within(cyberCard).getByTestId('cybersecurity-beam')).toHaveAttribute('data-motion', 'animated');
 
     expect(screen.getAllByTestId('supporting-service-card')).toHaveLength(5);
     expect(screen.getByRole('heading', { name: /Industry-specific solutions/i })).toBeInTheDocument();
     const industryGrid = screen.getByTestId('industry-service-grid');
-    expect(industryGrid).toHaveClass('lg:grid-cols-4', 'items-stretch');
-    expect(screen.getAllByTestId('industry-service-card')).toHaveLength(4);
+    expect(industryGrid).toHaveClass('md:grid-cols-2', 'items-stretch');
+    expect(screen.getAllByTestId('industry-service-card')).toHaveLength(2);
+    expect(screen.queryByTestId('other-specialties')).toBeNull();
+    expect(screen.queryByRole('link', { name: /Luxury|Cellular DAS/i })).toBeNull();
     screen.getAllByTestId('industry-service-card').forEach((card) => {
       expect(within(card).getByRole('link')).toHaveClass('h-full', 'min-h-[16rem]', 'sm:min-h-[17.25rem]');
     });
     expect(screen.getAllByRole('link', { name: /Family Offices/i })[0]).toHaveAttribute('href', '/service-category/family-offices');
+  });
+
+  it('lists Luxury and Cellular DAS as other specialties on the services page only', () => {
+    render(
+      <MemoryRouter>
+        <Services showOtherSpecialties />
+      </MemoryRouter>,
+    );
+    const other = screen.getByTestId('other-specialties');
+    expect(within(other).getByRole('link', { name: 'Luxury' })).toHaveAttribute('href', '/service-category/luxury');
+    expect(within(other).getByRole('link', { name: 'Cellular DAS & Public Safety' })).toHaveAttribute(
+      'href',
+      '/service-category/cellular-das-and-public-safety',
+    );
   });
 });

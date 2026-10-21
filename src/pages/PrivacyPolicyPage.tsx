@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import LegalPageLayout from '../components/legal/LegalPageLayout';
 import { IT_PAGE_META } from '../lib/routeMeta';
 import { usePageMeta } from '../lib/usePageMeta';
+import { ADS_ACTIVE, ANALYTICS_ACTIVE } from '../lib/analytics';
 
 const SECTION_CLASS = 'space-y-3';
 const HEADING_CLASS = 'text-2xl font-semibold tracking-tight text-slate-900';
@@ -110,16 +111,28 @@ export default function PrivacyPolicyPage() {
 
       <section className={SECTION_CLASS} aria-labelledby="sale-sharing-and-targeted-advertising">
         <h2 id="sale-sharing-and-targeted-advertising" className={HEADING_CLASS}>Sale, Sharing, and Targeted Advertising</h2>
-        <p>
-          New Wave IT LLC does not sell personal information for money or other consideration, does not
-          sell sensitive personal data, and does not use or share personal information for targeted or
-          cross-context behavioral advertising. Embedded and analytics providers may nevertheless receive
-          technical usage data when their tools operate on the website, and we do not authorize any
-          third party to use the website to track you across other websites over time. Where an
-          applicable privacy law gives you a right to opt out of a covered sale, sharing, or targeted
-          advertising activity, email <a className={LINK_CLASS} href="mailto:support@newwaveitfl.com">support@newwaveitfl.com</a>
-          {' '}to submit the request.
-        </p>
+        {ADS_ACTIVE ? (
+          <p>
+            New Wave IT LLC does not sell personal information for money or other consideration and does
+            not sell sensitive personal data. When you visit from one of our Google ads, Google Ads
+            conversion tracking shares the visit and any later contact request with Google so we can
+            measure our ads; some state laws treat this as targeted advertising or sharing. The tag does
+            not load if your browser sends a Global Privacy Control or Do Not Track signal, and you may
+            also opt out by emailing <a className={LINK_CLASS} href="mailto:support@newwaveitfl.com">support@newwaveitfl.com</a>.
+          </p>
+        ) : null}
+        {!ADS_ACTIVE && (
+          <p>
+            New Wave IT LLC does not sell personal information for money or other consideration, does not
+            sell sensitive personal data, and does not use or share personal information for targeted or
+            cross-context behavioral advertising. Embedded and analytics providers may nevertheless receive
+            technical usage data when their tools operate on the website, and we do not authorize any
+            third party to use the website to track you across other websites over time. Where an
+            applicable privacy law gives you a right to opt out of a covered sale, sharing, or targeted
+            advertising activity, email <a className={LINK_CLASS} href="mailto:support@newwaveitfl.com">support@newwaveitfl.com</a>
+            {' '}to submit the request.
+          </p>
+        )}
       </section>
 
       <section className={SECTION_CLASS} aria-labelledby="cookies-and-similar-technologies">
@@ -131,8 +144,10 @@ export default function PrivacyPolicyPage() {
           no cookies of its own and uses browser storage only to cache page content and hold a support
           session you start; Vercel Analytics measures page views without cookies or a persistent
           identifier; and the homepage video is loaded from Pexels, whose content-delivery provider
-          sets two bot-protection cookies. We do not use a chat widget. Google Analytics is planned but
-          remains disabled.
+          sets two bot-protection cookies. We do not use a chat widget.{' '}
+          {ANALYTICS_ACTIVE
+            ? `Google Analytics${ADS_ACTIVE ? ' and Google Ads conversion tracking' : ''} set first-party cookies, except in browsers that send a Global Privacy Control or Do Not Track signal.`
+            : 'Google Analytics is planned but remains disabled.'}
         </p>
       </section>
 
@@ -192,15 +207,25 @@ export default function PrivacyPolicyPage() {
 
       <section className={SECTION_CLASS} aria-labelledby="global-privacy-control">
         <h2 id="global-privacy-control" className={HEADING_CLASS}>Do Not Track and Global Privacy Control</h2>
-        <p>
-          Our current practices described in this Policy do not involve the sale or sharing of personal
-          information for cross-context behavioral advertising, so a Global Privacy Control signal does not
-          presently change how this website behaves. For the same reason, the website does not respond to
-          browser Do Not Track signals: there is no cross-site tracking on it for such a signal to limit. If those practices change, New Wave IT LLC will implement
-          controls required by applicable law and update this Policy before that change. You may continue to
-          submit applicable privacy-rights requests through the process described above or by emailing{' '}
-          <a className={LINK_CLASS} href="mailto:support@newwaveitfl.com">support@newwaveitfl.com</a>.
-        </p>
+        {ANALYTICS_ACTIVE ? (
+          <p>
+            New Wave IT LLC honors Global Privacy Control and browser Do Not Track signals: when either
+            is on, the website does not load Google Analytics{ADS_ACTIVE ? ' or Google Ads' : ''} tags. You
+            may also submit privacy-rights requests by emailing{' '}
+            <a className={LINK_CLASS} href="mailto:support@newwaveitfl.com">support@newwaveitfl.com</a>.
+          </p>
+        ) : null}
+        {!ANALYTICS_ACTIVE && (
+          <p>
+            Our current practices described in this Policy do not involve the sale or sharing of personal
+            information for cross-context behavioral advertising, so a Global Privacy Control signal does not
+            presently change how this website behaves. For the same reason, the website does not respond to
+            browser Do Not Track signals: there is no cross-site tracking on it for such a signal to limit. If those practices change, New Wave IT LLC will implement
+            controls required by applicable law and update this Policy before that change. You may continue to
+            submit applicable privacy-rights requests through the process described above or by emailing{' '}
+            <a className={LINK_CLASS} href="mailto:support@newwaveitfl.com">support@newwaveitfl.com</a>.
+          </p>
+        )}
       </section>
 
       <section className={SECTION_CLASS} aria-labelledby="childrens-privacy">

@@ -11,7 +11,7 @@ export default function ServicesPage() {
     <div className="min-h-screen bg-[var(--nw-cloud-white)]">
       <Navbar />
       <div className="pt-20">
-        <Services headlineAs="h1" />
+        <Services headlineAs="h1" showOtherSpecialties />
       </div>
       <Contact />
       <Footer />

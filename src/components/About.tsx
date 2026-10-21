@@ -19,8 +19,8 @@ export default function About({ headlineAs: Heading = 'h2' }: { headlineAs?: 'h1
       description: content.approach_point2_desc || 'Your dedicated project manager keeps communication clear across every engagement.',
     },
     {
-      title: content.approach_point3_title || 'Certified',
-      description: content.approach_point3_desc || 'Microsoft, Cisco, and CompTIA certified engineers support every engagement.',
+      title: content.approach_point3_title || 'Partner-Backed',
+      description: content.approach_point3_desc || 'New Wave IT is a Microsoft, Cisco, and Huntress partner.',
     },
     {
       title: content.approach_point4_title || 'Responsive',
@@ -51,9 +51,9 @@ export default function About({ headlineAs: Heading = 'h2' }: { headlineAs?: 'h1
             <div className="relative flex h-full flex-col justify-between">
               <div>
                 <p className="nw-kicker text-[var(--nw-signal-cyan)]">New Wave IT</p>
-                <p className="nw-display mt-5 text-6xl text-[var(--nw-cloud-white)] sm:text-7xl">{content.years_badge || '15+'}</p>
+                <p className="nw-display mt-5 text-6xl text-[var(--nw-cloud-white)] sm:text-7xl">{content.years_badge || 'Local'}</p>
                 <p className="mt-3 max-w-[14rem] whitespace-pre-line text-lg leading-relaxed text-[var(--nw-mist-gray)]">
-                  {content.years_label || 'Years serving\nSouth Florida'}
+                  {content.years_label || 'IT for Fort Lauderdale\nand South Florida'}
                 </p>
               </div>
               <div className="border-t pt-5" style={{ borderColor: 'var(--nw-tide-blue)' }}>

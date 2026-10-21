@@ -30,7 +30,6 @@ import FloatingNav from './components/FloatingNav';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import TrustBar from './components/TrustBar';
-import Stats from './components/Stats';
 import Services from './components/Services';
 import WhyUs from './components/WhyUs';
 import Footer from './components/Footer';
@@ -56,6 +55,8 @@ import NetworkInfrastructureServicePage from './pages/NetworkInfrastructureServi
 import FamilyOfficesServicePage from './pages/FamilyOfficesServicePage';
 import HealthcareServicePage from './pages/HealthcareServicePage';
 import LuxuryServicePage from './pages/LuxuryServicePage';
+import ITSupportFortLauderdalePage from './pages/ITSupportFortLauderdalePage';
+import ManagedITFortLauderdalePage from './pages/ManagedITFortLauderdalePage';
 import CellularDASPublicSafetyServicePage from './pages/CellularDASPublicSafetyServicePage';
 import ServiceGuidePage from './pages/ServiceGuidePage';
 import CodeNestPage from './pages/CodeNestPage';
@@ -130,7 +131,6 @@ function HomePage() {
       <Navbar />
       <Hero />
       <TrustBar />
-      <Stats />
       <Services />
       <WhyUs />
       <Footer />
@@ -170,6 +170,8 @@ export default function App() {
         <Route path="/service-category/network-infrastructure" element={<NetworkInfrastructureServicePage />} />
         <Route path="/service-category/family-offices" element={<FamilyOfficesServicePage />} />
         <Route path="/service-category/healthcare" element={<HealthcareServicePage />} />
+        <Route path="/it-support-fort-lauderdale" element={<ITSupportFortLauderdalePage />} />
+        <Route path="/managed-it-services-fort-lauderdale" element={<ManagedITFortLauderdalePage />} />
         <Route path="/service-category/luxury" element={<LuxuryServicePage />} />
         <Route path="/service-category/cellular-das-and-public-safety" element={<CellularDASPublicSafetyServicePage />} />
         <Route path="/threat/:slug" element={<ThreatDetailPage />} />

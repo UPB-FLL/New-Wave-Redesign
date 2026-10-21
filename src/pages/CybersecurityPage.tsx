@@ -1,6 +1,5 @@
 import Navbar from '../components/Navbar';
 import CybersecurityHero from '../components/cybersecurity/CybersecurityHero';
-import SecurityStats from '../components/cybersecurity/SecurityStats';
 import CybersecurityServices from '../components/cybersecurity/CybersecurityServices';
 import ThreatProtection from '../components/cybersecurity/ThreatProtection';
 import SecurityProcess from '../components/cybersecurity/SecurityProcess';
@@ -16,7 +15,6 @@ export default function CybersecurityPage() {
     <div className="min-h-screen bg-[var(--nw-cloud-white)]">
       <Navbar />
       <CybersecurityHero />
-      <SecurityStats />
       <CybersecurityServices />
       <ThreatProtection />
       <SecurityProcess />
