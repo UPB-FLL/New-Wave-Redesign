@@ -209,15 +209,20 @@ describe('section grounds', () => {
     expect(declsOf('.nwse-root [data-contact-section]::before').filter((decls) => decls['@media'] === '(forced-colors: active)')).toEqual(forced);
   });
 
-  it('gives the hub’s metrics band the hero’s currents', () => {
+  it('gives the hub’s pillars and metrics bands the hero’s currents', () => {
     const { container } = renderAt(<SocialEngineeringHubPage />);
     const dark = [...container.querySelectorAll('main > section.nwse-dark')];
-    // Hero, metrics, and the closing call to action.
-    expect(dark).toHaveLength(3);
-    const [hero, metrics] = dark.map((section) => section.querySelector(':scope > svg[data-role="division-currents"]')!);
-    expect(metrics.outerHTML).toBe(hero.outerHTML);
-    expect(dark[1]).toHaveClass('relative');
-    // The content sits above the currents.
-    expect(dark[1].querySelector(':scope > div')).toHaveClass('relative');
+    // Hero, the pillars (Current Navy), the measures (Deep Current), and the closing call to action.
+    expect(dark).toHaveLength(4);
+    expect(dark[1]).toHaveAttribute('id', 'pillars');
+    expect(dark[2]).toHaveAttribute('aria-labelledby', 'nwse-metrics');
+    const currents = dark.map((section) => section.querySelector(':scope > svg[data-role="division-currents"]')!);
+    expect(currents[1].outerHTML).toBe(currents[0].outerHTML);
+    expect(currents[2].outerHTML).toBe(currents[0].outerHTML);
+    [dark[1], dark[2]].forEach((section) => {
+      expect(section).toHaveClass('relative');
+      // The content sits above the currents.
+      expect(section.querySelector(':scope > div')).toHaveClass('relative');
+    });
   });
 });
