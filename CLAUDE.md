@@ -73,6 +73,21 @@ Full notes: "Positioning (2026-10-21)" in `docs/social-engineering-division.md`.
   decorative SVG) in place of the brand mark; service pages open with the
   glance strip, then outcomes, scope, steps, deliverables, where it fits,
   FAQ, related, CTA.
+- **Surfaces and colour roles** (same day, design pass): each pillar has a
+  colour (`components/pillarStyle.ts`: Signal Cyan data, Continuity Green
+  integrations, Lure Amber smart advertising; Tide Blue for the rest, and
+  `accentAt(index)` cycles them), and the pages use five surfaces beside the
+  hairline card: tinted panels (`nwse-tint nwse-tint-*`), soft tiles
+  (`nwse-soft`, on Cloud White bands), glass tiles (`nwse-glass`, on dark
+  bands), the stepper rail (`nwse-stepper`, steps without cards from 768px),
+  and capped cards. `Band` takes `tone="dark" | "navy"` and renders
+  `DarkCurrents` itself; the hub has four dark sections (hero, pillars,
+  metrics, CTA) and the service pages open on a navy glance strip. Icon
+  tiles take `nwse-icon-cyan|green|tide` and `nwse-icon-on-dark`. Text on a
+  tint is navy, slate, or amber-deep, never Tide Blue; labels on dark are
+  amber, cyan, or green. The `data-markers="node"` timeline rules are gone
+  (steps always have a marker tile). Full notes: "Surfaces and colour roles"
+  in `docs/social-engineering-division.md`.
 - **Icons**: three `pillar-*` icons in a new `pillars` group (38 icons; the
   kit's SVG files are still to be added by its owner).
 - **Tests**: new cases in `pages.test.tsx` and `icons.test.ts`; updated

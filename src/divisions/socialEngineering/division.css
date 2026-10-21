@@ -41,6 +41,16 @@
   /* The brand-wave accent in NwseIcon (icons/NwseIcon.tsx). Base strokes use
      currentColor; set this on an element to recolour the accent beneath it. */
   --nwse-icon-accent: var(--nwse-lure-amber);
+  /* Panel tints (components/pillarStyle.ts gives each pillar its role: Signal
+     Cyan for data, Continuity Green for integrations, Lure Amber for smart
+     advertising; Tide Blue for the rest). Mixed over Pure White, so text on
+     them stays Current Navy, Slate, or Lure Amber Deep (4.59:1 to 4.71:1
+     across the tints); Tide Blue would fall to 4.33:1 to 4.44:1, so it is
+     never text on a tint. */
+  --nwse-tint-cyan: color-mix(in srgb, var(--nw-signal-cyan) 10%, var(--nw-pure-white));
+  --nwse-tint-green: color-mix(in srgb, var(--nw-continuity-green) 12%, var(--nw-pure-white));
+  --nwse-tint-amber: color-mix(in srgb, var(--nwse-lure-amber) 12%, var(--nw-pure-white));
+  --nwse-tint-tide: color-mix(in srgb, var(--nw-tide-blue) 8%, var(--nw-pure-white));
 }
 
 /* Anything scrolled into view (in-page anchors such as #services and #faq, and
@@ -210,13 +220,95 @@
 
 .nwse-icon {
   align-items: center;
-  background: color-mix(in srgb, var(--nwse-lure-amber) 16%, transparent);
+  /* The tile's tint: amber unless a .nwse-icon-* role class sets another. */
+  background: var(--nwse-tile-tint, color-mix(in srgb, var(--nwse-lure-amber) 16%, transparent));
   border-radius: var(--nw-radius-control);
   /* Navy base with the Lure Amber wave, as in the brand kit; an amber-deep base
      left the amber wave at 1.86:1 against it on the tile. */
   color: var(--nw-current-navy);
   display: inline-flex;
   justify-content: center;
+}
+
+/* Tile colour roles (pillarStyle.ts). Over a dark ground the same mixes read
+   as deep teal, green, and amber tiles; .nwse-icon-on-dark turns the strokes
+   Cloud White there. */
+.nwse-icon-cyan {
+  --nwse-tile-tint: color-mix(in srgb, var(--nw-signal-cyan) 18%, transparent);
+}
+
+.nwse-icon-green {
+  --nwse-tile-tint: color-mix(in srgb, var(--nw-continuity-green) 20%, transparent);
+}
+
+.nwse-icon-tide {
+  --nwse-tile-tint: color-mix(in srgb, var(--nw-tide-blue) 14%, transparent);
+}
+
+.nwse-icon-on-dark {
+  color: var(--nw-cloud-white);
+}
+
+/* Surfaces beyond the hairline card (components/sections.tsx):
+   - .nwse-tint: a panel washed in one of the tints (nwse-tint-cyan, -green,
+     -amber, -tide pick which), no border;
+   - .nwse-soft: a white tile with a soft shadow and no border, for grids on
+     Cloud White;
+   - .nwse-glass: a translucent tile on a dark band.
+   Phones strip the shadow with the rest of the chrome (.nwse-hairlines). */
+.nwse-tint {
+  background: var(--nwse-tint, var(--nwse-tint-amber));
+  border-radius: 12px;
+}
+
+.nwse-tint-cyan {
+  --nwse-tint: var(--nwse-tint-cyan);
+}
+
+.nwse-tint-green {
+  --nwse-tint: var(--nwse-tint-green);
+}
+
+.nwse-tint-amber {
+  --nwse-tint: var(--nwse-tint-amber);
+}
+
+.nwse-tint-tide {
+  --nwse-tint: var(--nwse-tint-tide);
+}
+
+.nwse-soft {
+  background: var(--nw-pure-white);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(9, 19, 29, 0.05), 0 14px 32px -18px rgba(9, 19, 29, 0.25);
+}
+
+.nwse-glass {
+  background: color-mix(in srgb, var(--nw-cloud-white) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nw-cloud-white) 14%, transparent);
+  border-radius: 12px;
+}
+
+/* Steps from 768px: a stepper on a rail. Each marker tile sits on a hairline
+   that runs to the next step; the cards drop their chrome. Below 768px the
+   same list is the timeline (.nwse-timeline, further down). */
+@media (min-width: 768px) {
+  .nwse-stepper > li:not(:last-child)::after {
+    background: var(--nw-mist-gray);
+    content: '';
+    height: 1px;
+    left: 3.25rem;
+    position: absolute;
+    right: -1rem;
+    top: 1.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .nwse-stepper > li:not(:last-child)::after {
+    left: 3.75rem;
+    top: 1.5rem;
+  }
 }
 
 .nwse-faq summary {
@@ -334,10 +426,11 @@
     background: none;
     border-radius: 0;
     border-width: 0 0 1px;
+    box-shadow: none;
   }
 
-  /* Steps: a timeline instead of cards. Each step's marker (its icon tile, or
-     an amber node when it has none) sits on a rail at the left edge. */
+  /* Steps: a timeline instead of a stepper. Each step's marker (its icon tile,
+     or its numbered disc when it has no icon) sits on a rail at the left edge. */
   .nwse-timeline > li {
     background: none;
     border: 0;
@@ -363,28 +456,6 @@
     left: 0;
     position: absolute;
     top: 0;
-  }
-
-  .nwse-timeline[data-markers='node'] > li {
-    padding-left: 1.75rem;
-  }
-
-  /* Centred on the Plex Mono label's 18px line. */
-  .nwse-timeline[data-markers='node'] > li::before {
-    border: 2px solid var(--nwse-lure-amber);
-    border-radius: 999px;
-    content: '';
-    height: 12px;
-    left: 0;
-    position: absolute;
-    top: 3px;
-    width: 12px;
-  }
-
-  .nwse-timeline[data-markers='node'] > li:not(:last-child)::after {
-    bottom: 3px;
-    left: 5.5px;
-    top: 21px;
   }
 
   /* The timeline's Tide Blue labels sit on the band's own ground here (4.57:1
