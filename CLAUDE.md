@@ -2,6 +2,31 @@
 
 ## Recent Changes
 
+### Groundswell: `ads_library` current for the competitor benchmark (2026-10-21)
+
+Second step of the benchmark workflow in `docs/groundswell-competitor-benchmark.md`.
+
+- **Module** `api/_lib/groundswell/currents/adsLibrary.ts`: per account, the
+  Facebook page's Ad Library status and page ID (`readFacebookPage`), its
+  ads by page ID, active and inactive, reduced to dates, platforms, title,
+  a 240-character body excerpt, CTA and landing page (`readCompanyAds`),
+  the Google Ads Transparency Center page for the domain rendered headless
+  and read as a verified negative, a count, or "could not be determined"
+  on a consent or challenge page (`readTransparency`), twelve months of
+  Ahrefs paid-search history in dollars (`readPaidHistory`, cents in), and
+  the pixels from the Site current (`pixelsOf`). `adLibraryEvidence` puts
+  them together with a `notes` list naming every gap and a fixed
+  `spend_note`: no spend figure is ever reported. `runAdsLibrary` uses one
+  browser for every render, keeps going without one, skips a render when
+  the step is nearly out of time, records a scrape failure on the account,
+  and stops on a Composio connection error. It never searches the Ad
+  Library by name or keyword (that matches other advertisers).
+- **Not in `STEPS` yet**: like `social_depth`, it runs only for benchmark
+  audits, which need the `kind` column (spec §2 and §4).
+- **Tests** `src/test/api/groundswell-ads-library.test.ts`, pinned to the
+  `ads/` fixtures in `src/test/api/fixtures/groundswell-benchmark/` and
+  `expected.json`, with the browser and Composio mocked for the runner.
+
 ### Groundswell: `social_depth` current for the competitor benchmark (2026-10-21)
 
 First step of the benchmark workflow in `docs/groundswell-competitor-benchmark.md`.
