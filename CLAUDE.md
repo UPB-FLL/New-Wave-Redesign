@@ -2,6 +2,24 @@
 
 ## Recent Changes
 
+### Groundswell: `social_depth` current for the competitor benchmark (2026-10-21)
+
+First step of the benchmark workflow in `docs/groundswell-competitor-benchmark.md`
+(#114). Merged into the competitor benchmark below: the rules live once, in
+`packages/groundswell/src/benchmark/engagement.ts`, and
+`api/_lib/groundswell/currents/socialDepth.ts` is the step that fetches the
+pages and maps them (`mediaList`, `toRawItem`).
+
+- **Rules** (the spec as #114 updated it): dedupe on time + caption, the copy
+  with plays kept; a feed post with a newer one after it is pinned and left
+  out of cadence; both passes of the hidden-likes rule (the median over
+  likes above 5); cadence over items under 14 days old; reels per week over
+  the days the reels page spans (at least 7); plays for reels and videos only.
+- **Tests** `src/test/api/groundswell-social-depth.test.ts` (ported to the
+  package), pinned to the anonymised fixtures in
+  `src/test/api/fixtures/groundswell-benchmark/` (`expected.json` records the
+  rules as implemented).
+
 ### Social Engineering repositioned as a national growth division (2026-10-21)
 
 Every `/social-engineering` page now describes what the business is: a
@@ -80,9 +98,8 @@ two competitors entered, and a fourth PDF.
   `groundswell-benchmark-fixtures.test.ts`): the rules reproduce that by-hand
   session's figures, ad statuses, prices and leaders, except where its own
   numbers do not follow from its data (the test's `DIFFERS` and
-  `LEADERS_DIFFER` say why). Two spec rules changed on that data: pinned posts
-  are the leading posts (at most three) older than a post after them, and
-  reels per week divide by the weeks a cut-short reels page covers (`has_more`).
+  `LEADERS_DIFFER` say why). Engagement matches it exactly under the spec's
+  rules as #114 updated them (see the `social_depth` entry above).
 
 ### Groundswell: the ad plan and change ranking in the live audits (2026-10-21)
 

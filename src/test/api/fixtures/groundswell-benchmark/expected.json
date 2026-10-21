@@ -5,8 +5,9 @@
     "hidden_likes": "like_count <= 5 && comment_count >= 8, plus like_count === 3 when the visible median is above 100",
     "cta": "/\\b[Cc]omment\\s+[\"“]?([A-Z]{3,}(?:\\s[A-Z]{3,})?)/ (keyword case-sensitive)",
     "engagement_rate": "median of (like_count + comment_count) / followers over items with visible likes",
-    "cadence_window": "unique non-pinned items in the 14 days ending 2026-10-20, ÷ 2",
-    "pinned": "a feed item dated more than 30 days before the item after it"
+    "cadence_window": "unique non-pinned items with age_days < 14 at the fetch time (2026-10-21T00:00Z), ÷ 2",
+    "pinned": "a feed item with a newer item somewhere after it in feed order (Instagram pins up to 3; more means a non-chronological head); excluded from cadence only",
+    "reels_per_week": "reels on the page ÷ the days the page spans (oldest reel age + 1, at least 7), × 7"
   },
   "accounts": {
     "harborlightnutrition": {
@@ -41,7 +42,8 @@
       "reel_age_days_range": [
         1,
         14
-      ]
+      ],
+      "reel_age_days_median": 7.5
     },
     "fernandfield": {
       "handle": "fernandfield",
@@ -58,11 +60,10 @@
       "reel_plays_median": 8335.5,
       "reel_plays_max": 13798,
       "carousel_slides_mean": 8.8,
-      "cadence_per_week": 2,
-      "cadence_items_in_window": 6,
-      "cadence_window": "2026-09-29 to 2026-10-19 feed posts ÷ 3",
-      "reels_per_week": 0.25,
-      "pinned_n": 0,
+      "cadence_per_week": 1.5,
+      "cadence_items_in_window": 3,
+      "reels_per_week": 0.17,
+      "pinned_n": 6,
       "format_mix_feed": {
         "carousel": 12
       },
@@ -74,7 +75,9 @@
       "reel_age_days_range": [
         41,
         481
-      ]
+      ],
+      "reel_age_days_median": 335,
+      "notes": "cadence by the 14-day rule is 1.5 (3 feed posts, Oct 14 to 19); the by-hand session quoted 2.0 over a 3-week window. Six feed items sit ahead of newer ones, so pinned_n is 6 by the rule even though Instagram pins at most three."
     }
   },
   "ads": {

@@ -28,8 +28,9 @@ import {
  * The benchmark rules against a real by-hand benchmark session (2026-10-21),
  * anonymised: two fictional accounts with every date, count and price kept
  * (fixtures/groundswell-benchmark/README.md). `expected.json` is what that
- * session found. Where the rules here give a different answer, DIFFERS says
- * what they give and why; everything else must match.
+ * session found, with its engagement rules updated to the spec as merged in
+ * #114. Engagement must match it exactly; where prices or leaders differ,
+ * the test says what the rules give and why.
  */
 
 const DIR = path.resolve(__dirname, 'fixtures/groundswell-benchmark');
@@ -89,8 +90,7 @@ function profileOf(handle: string): EngagementProfile {
     user.follower_count,
     mediaList(json<unknown>(`${handle}.posts.json`)).map((r) => toRawItem(r, 'post')),
     mediaList(reels).map((r) => toRawItem(r, 'reel')),
-    NOW,
-    findKey(reels, 'has_more') === true
+    NOW
   );
 }
 
@@ -123,7 +123,7 @@ function figures(handle: string, p: EngagementProfile) {
     carousel_slides_mean: round(p.carousel_slides_mean, 1),
     cadence_per_week: p.cadence_per_week,
     cadence_items_in_window: p.cadence_per_week * 2,
-    reels_per_week: p.reels_per_week,
+    reels_per_week: round(p.reels_per_week, 2),
     pinned_n: p.items.filter((i) => i.pinned).length,
     format_mix_feed: feedMix,
     best_item: best && {
@@ -133,44 +133,29 @@ function figures(handle: string, p: EngagementProfile) {
       ...(best.plays !== null ? { plays: best.plays } : {}),
     },
     reel_age_days_range: [Math.min(...reels), Math.max(...reels)],
+    reel_age_days_median: p.reel_age_days_median,
   };
 }
-
-/** Where these rules and the session part ways: our value, and why. */
-const DIFFERS: Record<string, Record<string, { ours: unknown; why: string }>> = {
-  [COMPETITOR]: {
-    cadence_per_week: { ours: 1.5, why: 'The spec counts 14 days ÷ 2 (three posts); the session used 3 weeks for this account (six posts ÷ 3).' },
-    cadence_items_in_window: { ours: 3, why: 'As above: 14 days, not 3 weeks.' },
-    cadence_window: { ours: undefined, why: 'The session’s note on its 3-week window; there is no such figure here.' },
-    reels_per_week: { ours: 0, why: 'No reel is within 28 days (the newest is 41 days old), so nothing in the data gives 0.25.' },
-    pinned_n: {
-      ours: 3,
-      why: 'The fixture’s feed opens with six posts from June to August before October’s; Instagram pins at most three, so the first three are pinned. The session’s 0 does not follow from this order under either rule.',
-    },
-  },
-};
 
 describe('engagement: the real session’s figures', () => {
   for (const handle of HANDLES) {
     it(`reproduces ${handle}`, () => {
       const ours = figures(handle, profileOf(handle)) as Record<string, unknown>;
       for (const [key, theirs] of Object.entries(expected.accounts[handle])) {
-        const differs = DIFFERS[handle]?.[key];
-        expect(ours[key], `${handle}.${key}${differs ? ` (${differs.why})` : ''}`).toEqual(differs ? differs.ours : theirs);
+        if (key === 'notes') continue;
+        expect(ours[key], `${handle}.${key}`).toEqual(theirs);
       }
     });
   }
 
-  it('finds the business’s three pinned posts, which the spec’s 30-day rule called one', () => {
+  it('finds the business’s three pinned posts, which the old 30-day rule called one', () => {
     const p = profileOf(BUSINESS);
     expect(p.items.filter((i) => i.pinned).map((i) => i.date.slice(0, 10))).toEqual(['2026-09-21', '2026-09-10', '2026-06-11']);
   });
 
-  it('divides reels by the two weeks a cut-short page covers, not four', () => {
-    expect(profileOf(BUSINESS).reels_per_week).toBe(6); // 12 reels from 7 to 20 October
-    const user = json<Profile>(`${BUSINESS}.profile.json`).data.user;
-    const reels = mediaList(json<unknown>(`${BUSINESS}.reels.json`)).map((r) => toRawItem(r, 'reel'));
-    expect(engagementProfile(BUSINESS, user.follower_count, [], reels, NOW, false).reels_per_week).toBe(3); // the spec's ÷ 4
+  it('reads reels per week over the days each reels page spans', () => {
+    expect(profileOf(BUSINESS).reels_per_week).toBe(6); // 12 reels over 14 days
+    expect(profileOf(COMPETITOR).reels_per_week).toBeCloseTo((12 / 481) * 7); // 12 reels over 481 days
   });
 });
 

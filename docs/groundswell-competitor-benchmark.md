@@ -66,7 +66,7 @@ then per-item metrics.
 - `SCRAPECREATORS_LIST_INSTAGRAM_USER_POSTS` `{ handle, trim: true }` (1 credit)
 - `SCRAPECREATORS_LIST_INSTAGRAM_USER_REELS` `{ user_id | handle, trim: true }` (1 credit; `user_id` comes from the `social` step's profile call, `id` field)
 
-One page each. Do not paginate; the second page adds little and doubles cost.
+One page each. Do not paginate; the second page adds little and doubles cost. A page is a sample: `reels_per_week` is read over the days the page spans, because a 28-day window would count only the reels that happen to be on the page.
 
 **Per-item record** (`EngagementItem`):
 
@@ -95,7 +95,7 @@ interface EngagementItem {
   2. compute the median `like_count` of the remaining items with `like_count > 5`; when it is above 100, every remaining item with `like_count === 3` is hidden too.
   The first pass alone is wrong: on the fixture competitor it leaves four placeholder items (3 likes, 2 to 6 comments, thousands of plays) counted as 3 real likes, which drags the likes median from 347 to 282 and the engagement rate with it. Hidden items are excluded from like and engagement-rate medians and counted in `likes_hidden_n`.
 - **Dedupe**: the reels page repeats items that are also in the posts page. Key on `date + first 60 characters of caption`; keep the copy that has `plays`.
-- **Pinned posts**: the feed lists pinned items first and out of order. An item whose date is more than 30 days older than the item after it is pinned; flag it and exclude it from cadence.
+- **Pinned posts**: the feed lists pinned items first and out of order. A feed item with a newer item somewhere after it is pinned; flag it and exclude it from cadence (it still counts for engagement). Instagram pins at most three; the fixture competitor's feed has six such items, which the rule also keeps out of cadence. The earlier "more than 30 days older than the next item" rule missed two of the business fixture's three pinned posts.
 - **CTA detection**: `/\b[Cc]omment\s+["“]?([A-Z]{3,}(?:\s[A-Z]{3,})?)/` on the caption; store the keyword. The verb may be capitalised, the keyword must be: with the `i` flag the capture swallows the next word (`Comment HEAL and I'll send` yields `HEAL and`), and a caption such as "comment below" is not a CTA.
 
 **Per-account summary** (`EngagementProfile`):
@@ -112,8 +112,8 @@ interface EngagementProfile {
   engagement_rate_median: number | null;  // median of (likes+comments)/followers over visible items, as a fraction
   engagement_rate_best: number | null;
   best_item: EngagementItem | null;       // highest likes+comments
-  cadence_per_week: number;         // unique, non-pinned items in the last 14 days ÷ 2
-  reels_per_week: number;           // reels in the last 28 days ÷ 4
+  cadence_per_week: number;         // unique, non-pinned items with age_days < 14 ÷ 2
+  reels_per_week: number;           // reels on the page ÷ the days it spans (oldest reel's age + 1, at least 7), × 7
   format_mix: { carousel: number; image: number; reel: number; video: number };
   carousel_slides_mean: number | null;
   reel_plays_median: number | null;
