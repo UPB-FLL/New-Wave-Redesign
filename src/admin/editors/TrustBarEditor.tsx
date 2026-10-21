@@ -9,7 +9,7 @@ type TrustItem = { icon: string; label: string; sub: string };
 
 const defaultItem: TrustItem = { icon: 'Shield', label: '', sub: '' };
 
-const defaultHeading = 'Trusted by 500+ businesses across South Florida';
+const defaultHeading = 'Trusted by businesses across South Florida';
 
 const defaultItems: TrustItem[] = [
   { icon: 'Shield', label: 'Huntress Partner', sub: 'Managed threat detection' },
@@ -71,7 +71,7 @@ export default function TrustBarEditor() {
           label="Heading Text"
           value={content.heading ?? ''}
           onChange={(v) => set('heading', v)}
-          hint="e.g. Trusted by 500+ businesses across South Florida"
+          hint="e.g. Trusted by businesses across South Florida"
         />
       </FormSection>
 

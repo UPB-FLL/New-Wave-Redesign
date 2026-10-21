@@ -59,7 +59,7 @@ export default function LiveITSupportServicePage() {
       '@type': 'Service',
       provider: { '@id': 'https://www.newwaveitfl.com/#business' },
       name: '24/7 Live IT Support',
-      description: 'Round-the-clock technical support for South Florida businesses with response times under 1 hour via phone, remote access, and on-site visits.',
+      description: 'Round-the-clock technical support for South Florida businesses by phone, remote access, and on-site visits.',
       areaServed: { '@type': 'City', name: 'Fort Lauderdale' },
       serviceType: 'IT Support',
       url: 'https://www.newwaveitfl.com/service-category/live-it-support',

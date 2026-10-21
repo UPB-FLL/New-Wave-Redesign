@@ -11,7 +11,6 @@ const defaultProofPoints = [
   'No long-term contracts required',
   'Flat-rate transparent pricing',
   'Local Fort Lauderdale team',
-  'Average ticket resolution under 1 hour',
   'Dedicated account manager for every client',
   'Proactive support before issues become disruptions',
 ];

@@ -2,7 +2,6 @@ import { render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import Services from './Services';
-import Stats from './Stats';
 
 vi.mock('../lib/useContent', () => ({ useContent: vi.fn() }));
 
@@ -22,17 +21,6 @@ afterEach(() => {
 });
 
 describe('original home-page sections', () => {
-  it('keeps the compact four-metric proof strip', () => {
-    render(<Stats />);
-
-    const strip = screen.getByRole('region', { name: 'Operational proof points' });
-    expect(strip.querySelectorAll('[data-role="proof-point"]')).toHaveLength(4);
-    expect(screen.getByText('Avg Response Time')).toBeInTheDocument();
-    expect(screen.getByText('Endpoints Managed')).toBeInTheDocument();
-    expect(screen.getByText('Uptime Guarantee')).toBeInTheDocument();
-    expect(screen.getByText('Years Serving South Florida')).toBeInTheDocument();
-  });
-
   it('keeps the original animated Cybersecurity bento and a two-card industry row', () => {
     render(
       <MemoryRouter>
@@ -50,7 +38,8 @@ describe('original home-page sections', () => {
     expect(within(cyberCard).getByText('Your Business')).toBeInTheDocument();
     expect(within(cyberCard).getByText('New Wave SOC')).toBeInTheDocument();
     expect(within(cyberCard).getByText('Managed EDR & Antivirus')).toBeInTheDocument();
-    expect(within(cyberCard).getByText('99.9%')).toBeInTheDocument();
+    expect(within(cyberCard).getByText('24/7')).toBeInTheDocument();
+    expect(cyberCard).not.toHaveTextContent(/500\+|99\.9%/);
     expect(within(cyberCard).getByTestId('cybersecurity-beam')).toHaveAttribute('data-motion', 'animated');
 
     expect(screen.getAllByTestId('supporting-service-card')).toHaveLength(5);

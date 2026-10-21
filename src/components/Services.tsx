@@ -49,8 +49,8 @@ const cyberFeatures = [
 
 const cyberStats = [
   { value: '24/7', label: 'SOC monitoring' },
-  { value: '500+', label: 'businesses protected' },
-  { value: '99.9%', label: 'uptime maintained' },
+  { value: 'EDR', label: 'on every endpoint' },
+  { value: 'Huntress', label: 'partner' },
 ];
 
 function BeamConnection() {

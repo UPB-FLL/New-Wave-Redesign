@@ -30,7 +30,6 @@ import FloatingNav from './components/FloatingNav';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import TrustBar from './components/TrustBar';
-import Stats from './components/Stats';
 import Services from './components/Services';
 import WhyUs from './components/WhyUs';
 import Footer from './components/Footer';
@@ -130,7 +129,6 @@ function HomePage() {
       <Navbar />
       <Hero />
       <TrustBar />
-      <Stats />
       <Services />
       <WhyUs />
       <Footer />

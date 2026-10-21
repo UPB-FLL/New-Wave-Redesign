@@ -63,14 +63,14 @@ export const IT_PAGE_META = withBreadcrumbs({
   },
   '/why-us': {
     title: 'Why Choose New Wave IT — Trusted MSP in Fort Lauderdale',
-    description: 'Flat-rate pricing, no long-term contracts, 24/7 monitoring, sub-1-hour average response. See why South Florida businesses choose New Wave IT.',
+    description: 'Flat-rate pricing, no long-term contracts, 24/7 monitoring, and a local Fort Lauderdale team. See why South Florida businesses choose New Wave IT.',
     keywords: 'best MSP Fort Lauderdale, why choose New Wave IT, IT provider comparison South Florida, flat-rate IT services',
     canonical: 'https://www.newwaveitfl.com/why-us',
     crumb: 'Why Us',
   },
   '/about': {
     title: 'About New Wave IT — Fort Lauderdale Managed IT Services',
-    description: 'Meet New Wave IT: certified engineers, project managers, and technology advisors serving Fort Lauderdale and South Florida businesses since 2009.',
+    description: 'Meet New Wave IT: certified engineers, project managers, and technology advisors serving Fort Lauderdale and South Florida businesses.',
     keywords: 'about New Wave IT, IT company Fort Lauderdale, managed service provider South Florida, IT team Fort Lauderdale',
     canonical: 'https://www.newwaveitfl.com/about',
     crumb: 'About',
@@ -118,7 +118,7 @@ export const IT_PAGE_META = withBreadcrumbs({
   },
   '/service-category/live-it-support': {
     title: '24/7 IT Support & Help Desk in Fort Lauderdale',
-    description: 'Round-the-clock IT support for Fort Lauderdale businesses. Response times under 1 hour — phone, remote, and on-site. Real technicians, real fast. New Wave IT.',
+    description: 'Round-the-clock IT support for Fort Lauderdale businesses by phone, remote access, and on-site visits. Real technicians from a local team. New Wave IT.',
     keywords: 'IT support Fort Lauderdale, 24/7 IT help desk South Florida, technical support Fort Lauderdale, managed help desk, remote IT support, on-site IT support South Florida, IT support company Fort Lauderdale',
     canonical: 'https://www.newwaveitfl.com/service-category/live-it-support',
     crumb: '24/7 IT Support',

@@ -38,9 +38,13 @@ From the New Wave IT marketing audit (Drive: Customers/New Wave IT).
   analytics cookie; with IDs they list `_ga`/`_gcl_*` and the GPC/DNT
   behavior (`LegalPagesTracking.test.tsx`). Re-scan the live site and update
   `COOKIE_INVENTORY_REVIEWED` after setting the IDs.
-- **Pending**: the home page's client count, years, endpoints, and response
-  time figures contradict each other; they stay until the owner gives the
-  real ones.
+- **No unverified figures** (owner's call, until real numbers exist): the
+  home stats band (`Stats.tsx`) and the cybersecurity "By the Numbers" section
+  (`SecurityStats.tsx`) are deleted; the hero's stats are word-based (24/7,
+  Local, Flat-rate) in code and CMS `hero.stats`; the cybersecurity card, About
+  badge, footer tagline, trust bar heading, Why Us proof points, and the
+  `/why-us`, `/about`, and live-support descriptions no longer state client
+  counts, years, endpoints, uptime, or response times. Prices and "24/7" stay.
 
 ### Marketing audit queue and skill (2026-10-20)
 

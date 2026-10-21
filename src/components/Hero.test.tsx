@@ -65,8 +65,8 @@ describe('Hero', () => {
     expect(secondary).toBeInTheDocument();
     expect(screen.getByText('24/7')).toBeInTheDocument();
     expect(screen.getByText('Service and monitoring')).toBeInTheDocument();
-    expect(screen.getByText('Certified')).toBeInTheDocument();
-    expect(screen.getByText('Dedicated')).toBeInTheDocument();
+    expect(screen.getByText('Local')).toBeInTheDocument();
+    expect(screen.getByText('Flat-rate')).toBeInTheDocument();
 
     const section = screen.getByRole('heading', { level: 1 }).closest('section');
     expect(section).toHaveClass('min-h-[640px]', 'pb-16', 'pt-28', 'sm:min-h-[82vh]', 'sm:pb-20', 'sm:pt-32');
@@ -190,7 +190,7 @@ describe('Hero', () => {
 
     expect(screen.getByText('24/7')).toBeInTheDocument();
     expect(screen.getByText('Service and monitoring')).toBeInTheDocument();
-    expect(screen.getByText('Certified')).toBeInTheDocument();
-    expect(screen.getByText('Dedicated')).toBeInTheDocument();
+    expect(screen.getByText('Local')).toBeInTheDocument();
+    expect(screen.getByText('Flat-rate')).toBeInTheDocument();
   });
 });
