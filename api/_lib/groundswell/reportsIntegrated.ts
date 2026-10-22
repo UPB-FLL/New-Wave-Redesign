@@ -103,8 +103,8 @@ ${t.wasted.length ? `<h3>Searches that spent without converting</h3>${table(['Se
         'Ad sets, re-priced',
         `${x.repricing.notes.length ? `<ul>${x.repricing.notes.map((n) => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}
 ${table(
-  ['Budget', 'Monthly spend', 'Daily', 'Monthly net (modeled sets)', '12-month net', 'ROI'],
-  SCENARIOS.map((sc) => [sc, money(s.totals[sc].monthly), money(s.totals[sc].daily), money(s.totals[sc].net), money(s.totals[sc].year_net), s.totals[sc].roi === null ? 'not modeled' : `${Math.round(s.totals[sc].roi! * 100)}%`])
+  ['Budget', 'Monthly spend', 'Daily', 'Monthly net (modeled sets)', '12-month net', 'ROI on that spend'],
+  SCENARIOS.map((sc) => [`${sc[0].toUpperCase()}${sc.slice(1)} budget`, money(s.totals[sc].monthly), `$${s.totals[sc].daily.toFixed(2)}`, money(s.totals[sc].net), money(s.totals[sc].year_net), s.totals[sc].roi === null ? 'not modeled' : `${Math.round(s.totals[sc].roi! * 100)}%`])
 )}
 <p class="note">Every set, its ads, keywords and import files are in the Ad sets report and downloads.</p>`
       )

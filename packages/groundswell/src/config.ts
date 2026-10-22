@@ -178,6 +178,9 @@ export interface AdSetRules {
   negatives_basis: string;
   /** The organic carousel for the engagement set: slides and the caption's limit. */
   carousel: { max_slides: number; caption_max_chars: number; source: string; as_of: string };
+  /** The three budgets each set is priced at: multiples of the plan's base-case spend (low, medium, high). */
+  budget_multipliers: Triple;
+  budget_basis: string;
   /** Phase 3: the account's own cost per click (and Meta's cost per lead) replaces the published one past these counts. */
   actuals: { min_clicks: number; min_leads: number; basis: string };
 }
@@ -283,6 +286,8 @@ export function validateConfig(c: GroundswellConfig): GroundswellConfig {
   if (!(a.rankings_positions[0] >= 2 && a.rankings_positions[0] <= a.rankings_positions[1])) problems.push('adsets.rankings_positions must be [best, worst], best at least 2');
   if (!(a.keywords_per_group >= 1)) problems.push('adsets.keywords_per_group must be at least 1');
   if (!(a.carousel.max_slides >= 2 && a.carousel.caption_max_chars > 0)) problems.push('adsets.carousel needs at least 2 slides and a caption limit');
+  triple('adsets.budget_multipliers', a.budget_multipliers, { ascending: true });
+  if (!(a.budget_multipliers[0] > 0 && a.budget_multipliers[1] === 1)) problems.push('adsets.budget_multipliers must be above 0, the medium budget 1 (the plan’s own)');
   if (!(a.actuals.min_clicks >= 1 && a.actuals.min_leads >= 1) || !a.actuals.basis) problems.push('adsets.actuals needs counts of at least 1 and a basis');
   if (problems.length) throw new Error(`Groundswell setup file is invalid:\n- ${problems.join('\n- ')}`);
   return c;

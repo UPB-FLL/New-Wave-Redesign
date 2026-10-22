@@ -135,6 +135,11 @@ export function fakeSupabase(seed: Record<string, Row[]> = {}, missing: Record<s
         if ((missing.storage ?? []).includes(bucket)) return { data: null, error: { message: 'Bucket not found' } };
         return { data: [...(objects[bucket]?.keys() ?? [])].filter((k) => k.startsWith(prefix)).map((name) => ({ name })), error: null };
       },
+      async download(path: string) {
+        const bytes = objects[bucket]?.get(path);
+        if (!bytes) return { data: null, error: { message: 'Object not found' } };
+        return { data: { arrayBuffer: async () => bytes.slice().buffer }, error: null };
+      },
       async createSignedUrl(path: string, seconds: number) {
         if (!objects[bucket]?.has(path)) return { data: null, error: { message: 'Object not found' } };
         return { data: { signedUrl: `https://storage.example/sign/${bucket}/${path}?expires=${seconds}` }, error: null };

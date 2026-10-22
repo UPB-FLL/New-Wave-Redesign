@@ -25,6 +25,12 @@ import { benchmarksFor, SCENARIOS, type GroundswellConfig, type IndustryProfile,
 
 export type AdSetGoal = 'engagement' | 'rankings' | 'leads';
 
+/**
+ * One budget's forecast. The three budgets (low, medium, high) are spend
+ * levels: the plan's base-case spend times the setup file's multipliers,
+ * priced at the base case's own cost per click, lead rate, close rate and
+ * value, so the return is the return on that spend.
+ */
 export interface TierForecast {
   /** Monthly spend at full speed (USD). */
   monthly: number;
@@ -39,6 +45,15 @@ export interface TierForecast {
   year_net: number;
   /** net ÷ spend; null when the return is not modeled. */
   roi: number | null;
+  /** True when the area's searches cannot supply the clicks this budget would buy: the spend stops there. */
+  capped?: boolean;
+}
+
+/** The plan's conservative, base and upside cases at the medium budget: how far the return can move. */
+export interface OutcomeRange {
+  conservative: { net: number; year_net: number; roi: number | null };
+  base: { net: number; year_net: number; roi: number | null };
+  upside: { net: number; year_net: number; roi: number | null };
 }
 
 /** One of the business's own images, stored by the creative step. */
@@ -85,6 +100,8 @@ export interface MetaAdSet {
   audience: { location: string; radius_miles: number; age_min: number; age_max: number; interests: string[] };
   placements: string[];
   tiers: Record<Scenario, TierForecast>;
+  /** The conservative to upside range at the medium budget; null when the return is not modeled. */
+  range: OutcomeRange | null;
   modeled: boolean;
   stop_loss: string | null;
   ads: MetaAd[];
@@ -117,6 +134,7 @@ export interface GoogleAdGroup {
   path1: string;
   path2: string;
   tiers: Record<Scenario, TierForecast>;
+  range: OutcomeRange | null;
   modeled: boolean;
   stop_loss: string | null;
   sources: string[];
@@ -149,6 +167,8 @@ export interface AdSetsWriting {
   engagement_ads: { primary_text: string; headline: string; image_headline: string }[];
   /** The words on the image for each angle's Meta ad, by angle id. */
   image_headlines: Record<string, string>;
+  /** A Meta ad for each angle, used where the copy step wrote none (it is optional), by angle id. */
+  meta_ads?: Record<string, { primary_text: string; headline: string; description: string; call_to_action: string }>;
   carousel: Carousel | null;
   /** Searches the business does not serve (other services, other places, job seekers). */
   negatives: { text: string; reason: string }[];
@@ -204,21 +224,64 @@ const slug = (s: string) =>
     .replace(/^-|-$/g, '')
     .slice(0, 28);
 
-function tier(r: ScenarioResult): TierForecast {
-  return {
-    monthly: round2(r.spend),
-    daily: round2(r.spend / DAYS_PER_MONTH),
-    clicks: Math.round(r.clicks),
-    leads: round2(r.leads),
-    customers: round2(r.customers),
-    revenue: round2(r.revenue),
-    net: round2(r.net),
-    year_net: round2(r.year_net),
-    roi: r.roi === null ? null : Math.round(r.roi * 100) / 100,
-  };
+const roi2 = (x: number | null) => (x === null ? null : Math.round(x * 100) / 100);
+
+/** Net over the first 12 months at a monthly net: spend runs from month one, results ramp up (the plan's own rule). */
+function yearNet(net: number, spend: number, ramp: number[]): number {
+  const gross = net + spend;
+  let total = 0;
+  for (let m = 0; m < 12; m++) total += gross * (m < ramp.length ? ramp[m] : 1) - spend;
+  return total;
 }
 
-const tiersOf = (row: PlanRow) => Object.fromEntries(SCENARIOS.map((s) => [s, tier(row.scenarios[s])])) as Record<Scenario, TierForecast>;
+/**
+ * A row priced at the setup file's three budgets: the base case's spend times
+ * each multiplier, at the base case's own rates. Search buys no more clicks
+ * than the plan's upside case finds in the area (its most impression share).
+ */
+export function budgetTiers(row: PlanRow, config: GroundswellConfig): Record<Scenario, TierForecast> {
+  const m = row.scenarios.medium;
+  const modeled = row.roi_tier !== 'not modeled';
+  const cpc = m.clicks > 0 ? m.spend / m.clicks : m.cpc;
+  const leadsPerClick = m.clicks > 0 ? m.leads / m.clicks : 0;
+  const customersPerLead = m.leads > 0 ? m.customers / m.leads : 0;
+  const valuePerCustomer = m.customers > 0 ? m.revenue / m.customers : 0;
+  const margin = m.revenue > 0 ? (m.net + m.spend) / m.revenue : 0;
+  const cap = row.buying === 'search' ? Math.max(m.clicks, row.scenarios.high.clicks) : Infinity;
+  return Object.fromEntries(
+    SCENARIOS.map((s, i) => {
+      const wanted = m.spend * config.adsets.budget_multipliers[i];
+      const clicks = Math.min(cpc > 0 ? wanted / cpc : 0, cap);
+      const spend = clicks * cpc;
+      const leads = clicks * leadsPerClick;
+      const customers = leads * customersPerLead;
+      const revenue = customers * valuePerCustomer;
+      const net = modeled ? revenue * margin - spend : -spend;
+      return [
+        s,
+        {
+          monthly: round2(spend),
+          daily: round2(spend / DAYS_PER_MONTH),
+          clicks: Math.round(clicks),
+          leads: round2(leads),
+          customers: round2(customers),
+          revenue: round2(revenue),
+          net: round2(net),
+          year_net: round2(modeled ? yearNet(net, spend, config.search.ramp) : -spend * 12),
+          roi: modeled && spend > 0 ? roi2(net / spend) : null,
+          ...(spend < wanted - 0.005 ? { capped: true } : {}),
+        },
+      ];
+    })
+  ) as Record<Scenario, TierForecast>;
+}
+
+/** The plan's conservative, base and upside cases for a row (at its base-case budget). */
+export function outcomeRange(row: PlanRow): OutcomeRange | null {
+  if (row.roi_tier === 'not modeled') return null;
+  const pick = (r: ScenarioResult) => ({ net: round2(r.net), year_net: round2(r.year_net), roi: roi2(r.roi) });
+  return { conservative: pick(row.scenarios.low), base: pick(row.scenarios.medium), upside: pick(row.scenarios.high) };
+}
 
 /** Adds UTM tags to a landing page. */
 export function withUtm(url: string, tags: Record<string, string>): string {
@@ -344,7 +407,24 @@ export function buildAdSets(input: AdSetsInput, config: GroundswellConfig): AdSe
   const leadsCampaign = `${code}_LEADS_${input.meta_pixel ? 'LEADS' : 'TRAFFIC'}_${input.month}`;
   for (const row of live.filter((r) => r.platform === 'meta')) {
     const angle = angleById.get(row.angle_id);
-    const ad = copyFor(row);
+    const written = input.writing?.meta_ads?.[row.angle_id];
+    // The copy step's ad first (held to each field's limit); the writer's when the copy step wrote none.
+    const ad: CheckedAd | undefined =
+      copyFor(row) ??
+      (written
+        ? {
+            platform: 'meta',
+            angle_id: row.angle_id,
+            angle: row.angle,
+            platform_label: row.platform_label,
+            recommendation: row.recommendation as 'fund' | 'test',
+            format: config.platforms.meta.template.format,
+            limits_source: config.platforms.meta.template.source,
+            fields: { primary_text: written.primary_text, headline: written.headline, description: written.description },
+            targeting: '',
+            call_to_action: written.call_to_action,
+          }
+        : undefined);
     const name = `${code}_${slug(row.angle)}_${slug(area.split(',')[0])}_${input.month}`;
     const adName = `IMG_${slug(row.angle)}_V1`;
     meta.push({
@@ -361,7 +441,8 @@ export function buildAdSets(input: AdSetsInput, config: GroundswellConfig): AdSe
       kpi: KPI.leadsMeta,
       audience: { location: area, radius_miles: 15, age_min: ageMin(row.conditions), age_max: 65, interests: input.writing?.interests ?? [] },
       placements: ['Facebook feed', 'Instagram feed', 'Instagram stories', 'Instagram reels'],
-      tiers: tiersOf(row),
+      tiers: budgetTiers(row, config),
+      range: outcomeRange(row),
       modeled: row.roi_tier !== 'not modeled',
       stop_loss: stopLossLine(row),
       ads: ad
@@ -383,6 +464,10 @@ export function buildAdSets(input: AdSetsInput, config: GroundswellConfig): AdSe
     });
     if (!ad) notes.push(`The ${row.angle} set on Meta has no ad yet: the copy step did not write one.`);
   }
+  const metaMin = config.platforms.meta.test_budget?.min_monthly ?? 0;
+  if (meta.some((m) => m.tiers.low.monthly < metaMin)) {
+    notes.push(`On Meta the low budget is under New Wave’s smallest useful test ($${metaMin} a month): it learns slowly, so judge it on cost per lead after 60 days, not 30.`);
+  }
   if (!input.meta_pixel && meta.length) {
     notes.push('No Meta pixel was found on the site, so the leads sets start as traffic campaigns. Switch them to Leads once the pixel records Lead events; the forecasts use Meta’s published cost per lead either way.');
   }
@@ -392,10 +477,11 @@ export function buildAdSets(input: AdSetsInput, config: GroundswellConfig): AdSe
   const engagementAds = input.writing?.engagement_ads ?? [];
   if (allowsMeta && metaBench && config.platforms.meta.test_budget) {
     const min = config.platforms.meta.test_budget.min_monthly;
+    const base = Math.max(min, plan.budget.medium * config.adsets.engagement_share[1]);
     const tiers = Object.fromEntries(
       SCENARIOS.map((s, i) => {
-        const monthly = Math.max(min, plan.budget[s] * config.adsets.engagement_share[i]);
-        const clicks = monthly / metaBench.cpc[i];
+        const monthly = Math.max(i === 0 ? min / 2 : min, base * config.adsets.budget_multipliers[i]);
+        const clicks = monthly / metaBench.cpc[1];
         return [s, { monthly: round2(monthly), daily: round2(monthly / DAYS_PER_MONTH), clicks: Math.round(clicks), leads: 0, customers: 0, revenue: 0, net: round2(-monthly), year_net: round2(-monthly * 12), roi: null }];
       })
     ) as Record<Scenario, TierForecast>;
@@ -416,6 +502,7 @@ export function buildAdSets(input: AdSetsInput, config: GroundswellConfig): AdSe
       audience: { location: area, radius_miles: 15, age_min: restricted ? 21 : 18, age_max: 65, interests: input.writing?.interests ?? [] },
       placements: ['Instagram feed', 'Instagram reels', 'Facebook feed'],
       tiers,
+      range: null,
       modeled: false,
       stop_loss: 'Pause any ad whose saves and shares stay below the account’s organic posts after two weeks.',
       ads: engagementAds.map((e, i) => {
@@ -432,7 +519,7 @@ export function buildAdSets(input: AdSetsInput, config: GroundswellConfig): AdSe
           display_link: hostOf(landing),
         };
       }),
-      sources: [`Budget: ${config.adsets.engagement_basis}`, `Visits estimated at Meta’s traffic cost per click: ${metaBench.source} (${metaBench.as_of}). Return not modeled: engagement is not a sale.`],
+      sources: [`Budget: ${config.adsets.engagement_basis} The low and high budgets follow the same multipliers as every set.`, `Visits estimated at Meta’s traffic cost per click: ${metaBench.source} (${metaBench.as_of}). Return not modeled: engagement is not a sale.`],
     });
     if (!engagementAds.length) notes.push('The engagement set has no ads written yet; use the carousel as its first post.');
   }
@@ -462,7 +549,8 @@ export function buildAdSets(input: AdSetsInput, config: GroundswellConfig): AdSe
       descriptions: field(ad, 'descriptions'),
       path1: field(ad, 'path1')[0] ?? '',
       path2: field(ad, 'path2')[0] ?? '',
-      tiers: tiersOf(row),
+      tiers: budgetTiers(row, config),
+      range: outcomeRange(row),
       modeled: row.roi_tier !== 'not modeled',
       stop_loss: stopLossLine(row),
       sources: row.sources,
@@ -491,7 +579,8 @@ export function buildAdSets(input: AdSetsInput, config: GroundswellConfig): AdSe
         descriptions: borrowed?.descriptions ?? [],
         path1: borrowed?.path1 ?? '',
         path2: borrowed?.path2 ?? '',
-        tiers: tiersOf(priced),
+        tiers: budgetTiers(priced, config),
+        range: outcomeRange(priced),
         modeled: priced.roi_tier !== 'not modeled',
         stop_loss: stopLossLine(priced),
         sources: priced.sources,

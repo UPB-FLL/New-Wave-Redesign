@@ -5,7 +5,8 @@ import { isSupabaseConfigured } from '../_lib/supabaseAdmin.js';
 
 /**
  * POST /api/groundswell/worker — Groundswell's heartbeat. pg_cron calls it every
- * minute while an audit is running (x-admin-key, migration 20261021120000),
+ * minute while a run is running or queued (x-admin-key, migrations 20261021120000
+ * and 20261029120000); it starts queued runs too (background.ts),
  * and the admin page may call it too. It answers at once and keeps working
  * after the response: each call runs runnable audit steps until its time is
  * nearly up (api/_lib/groundswell/engine.ts).

@@ -3,7 +3,7 @@ import { GROUNDSWELL_CONFIG } from '../groundswell.config';
 import { UPB_ANGLES, UPB_INDUSTRY, UPB_TEMPLATES } from '../examples/uncommon-path-brewing';
 import { buildAdPlan } from '../src/adplan';
 import type { CheckedAd } from '../src/adcopy';
-import { buildAdSets, businessCode, metaCta, withUtm, type AdSetsInput } from '../src/adsets';
+import { budgetTiers, buildAdSets, businessCode, metaCta, withUtm, type AdSetsInput } from '../src/adsets';
 import { SCENARIOS } from '../src/config';
 
 // The brewery's documented plan, turned into ad sets through the real setup file.
@@ -56,20 +56,43 @@ function input(over: Partial<AdSetsInput> = {}): AdSetsInput {
 describe('ad sets from the plan', () => {
   const sets = buildAdSets(input(), config);
 
-  it('turns every funded or tested row into a Meta ad set or Google ad group with the row\'s own tiers', () => {
+  it('turns every funded or tested row into a Meta ad set or Google ad group, priced at three budgets', () => {
     const live = plan.rows.filter((r) => r.recommendation !== 'skip');
     const metaRows = live.filter((r) => r.platform === 'meta');
     const leadsMeta = sets.meta.filter((m) => m.goal === 'leads');
     expect(leadsMeta.map((m) => m.angle)).toEqual(metaRows.map((r) => r.angle));
     const events = leadsMeta.find((m) => m.id === 'meta-events')!;
     const row = plan.rows.find((r) => r.angle_id === 'events' && r.platform === 'meta')!;
-    for (const s of SCENARIOS) {
-      expect(events.tiers[s].monthly).toBeCloseTo(row.scenarios[s].spend, 2);
-      expect(events.tiers[s].roi).toBeCloseTo(row.scenarios[s].roi!, 2);
-      expect(events.tiers[s].daily).toBeCloseTo(row.scenarios[s].spend / 30.4, 2);
-    }
+    // Low is half the plan's base-case spend, high double it; each at the base case's rates, so Meta's return per dollar holds.
+    SCENARIOS.forEach((s, i) => {
+      expect(events.tiers[s].monthly).toBeCloseTo(row.scenarios.medium.spend * config.adsets.budget_multipliers[i], 2);
+      expect(events.tiers[s].daily).toBeCloseTo((row.scenarios.medium.spend * config.adsets.budget_multipliers[i]) / 30.4, 2);
+      expect(events.tiers[s].roi).toBeCloseTo(row.scenarios.medium.roi!, 2);
+      expect(events.tiers[s].leads).toBeCloseTo(row.scenarios.medium.leads * config.adsets.budget_multipliers[i], 2);
+    });
+    expect(events.tiers.medium.net).toBeCloseTo(row.scenarios.medium.net, 2);
+    expect(events.tiers.medium.year_net).toBeCloseTo(row.scenarios.medium.year_net, 2);
+    // How far the medium budget's return can move: the plan's conservative to upside cases.
+    expect(events.range).toEqual({
+      conservative: { net: Math.round(row.scenarios.low.net * 100) / 100, year_net: Math.round(row.scenarios.low.year_net * 100) / 100, roi: Math.round(row.scenarios.low.roi! * 100) / 100 },
+      base: { net: Math.round(row.scenarios.medium.net * 100) / 100, year_net: Math.round(row.scenarios.medium.year_net * 100) / 100, roi: Math.round(row.scenarios.medium.roi! * 100) / 100 },
+      upside: { net: Math.round(row.scenarios.high.net * 100) / 100, year_net: Math.round(row.scenarios.high.year_net * 100) / 100, roi: Math.round(row.scenarios.high.roi! * 100) / 100 },
+    });
     const googleRows = live.filter((r) => r.platform === 'google_search');
     expect(sets.google!.ad_groups.filter((g) => g.goal === 'leads').map((g) => g.angle)).toEqual(googleRows.map((r) => r.angle));
+  });
+
+  it('stops search spend at the clicks the area’s searches can supply', () => {
+    const row = plan.rows.find((r) => r.angle_id === 'events' && r.platform === 'google_search')!;
+    const t = budgetTiers(row, config);
+    const cpc = row.scenarios.medium.spend / row.scenarios.medium.clicks;
+    // Double the base budget would buy more clicks than the upside case finds.
+    expect(row.scenarios.medium.clicks * 2).toBeGreaterThan(row.scenarios.high.clicks);
+    expect(t.high.capped).toBe(true);
+    expect(t.high.clicks).toBe(Math.round(row.scenarios.high.clicks));
+    expect(t.high.monthly).toBeCloseTo(row.scenarios.high.clicks * cpc, 2);
+    expect(t.low.capped).toBeUndefined();
+    expect(t.low.monthly).toBeCloseTo(row.scenarios.medium.spend / 2, 2);
   });
 
   it('writes Meta ads from the checked copy, with the business\'s own image and UTM-tagged link', () => {
@@ -85,15 +108,26 @@ describe('ad sets from the plan', () => {
     expect(buildAdSets(input({ meta_pixel: true }), config).meta.find((m) => m.id === 'meta-events')).toMatchObject({ objective: 'OUTCOME_LEADS' });
   });
 
-  it('adds an engagement set sized by the setup file\'s share, never under Meta\'s test minimum, with its return not modeled', () => {
+  it('adds an engagement set sized by the setup file\'s share, never under Meta\'s test minimum at the medium budget, with its return not modeled', () => {
     const e = sets.meta.find((m) => m.goal === 'engagement')!;
-    expect(e).toMatchObject({ objective: 'OUTCOME_ENGAGEMENT', optimization_goal: 'POST_ENGAGEMENT', modeled: false, audience: { age_min: 21 } });
-    SCENARIOS.forEach((s, i) => {
-      expect(e.tiers[s].monthly).toBeCloseTo(Math.max(config.platforms.meta.test_budget!.min_monthly, plan.budget[s] * config.adsets.engagement_share[i]), 2);
-      expect(e.tiers[s].roi).toBeNull();
-    });
+    expect(e).toMatchObject({ objective: 'OUTCOME_ENGAGEMENT', optimization_goal: 'POST_ENGAGEMENT', modeled: false, range: null, audience: { age_min: 21 } });
+    const min = config.platforms.meta.test_budget!.min_monthly;
+    const base = Math.max(min, plan.budget.medium * config.adsets.engagement_share[1]);
+    expect(e.tiers.medium.monthly).toBeCloseTo(base, 2);
+    expect(e.tiers.low.monthly).toBeCloseTo(Math.max(min / 2, base / 2), 2);
+    expect(e.tiers.high.monthly).toBeCloseTo(base * 2, 2);
+    for (const s of SCENARIOS) expect(e.tiers[s].roi).toBeNull();
     expect(e.ads[0]).toMatchObject({ name: 'IMG_ENGAGE_V1', image_headline: 'Brewed on NW 5th Ave' });
     expect(e.mechanism).toMatch(/saves, shares and follows/);
+    expect(sets.notes.join(' ')).toMatch(/On Meta the low budget is under New Wave’s smallest useful test/);
+  });
+
+  it('uses the writer’s Meta ad where the copy step wrote none', () => {
+    const noCopy = buildAdSets(
+      input({ copy: copy.filter((c) => c.platform !== 'meta'), writing: { ...input().writing!, meta_ads: { events: { primary_text: 'Book the taproom for your group.', headline: 'Private events', description: 'Flagler Village', call_to_action: 'Check dates and book' } } } }),
+      config
+    );
+    expect(noCopy.meta.find((m) => m.id === 'meta-events')!.ads[0]).toMatchObject({ primary_text: 'Book the taproom for your group.', headline: 'Private events', call_to_action: 'BOOK_NOW' });
   });
 
   it('prices a rankings ad group on the searches the site ranks 4 to 20 for, and says ads do not move rankings', () => {

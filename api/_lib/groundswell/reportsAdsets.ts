@@ -1,5 +1,6 @@
+import { GROUNDSWELL_CONFIG } from '../../../packages/groundswell/groundswell.config.js';
 import { SCENARIOS, type Scenario } from '../../../packages/groundswell/src/config.js';
-import type { GoogleAdGroup, MetaAdSet, TierForecast } from '../../../packages/groundswell/src/adsets.js';
+import type { GoogleAdGroup, MetaAdSet, OutcomeRange, TierForecast } from '../../../packages/groundswell/src/adsets.js';
 import type { RankedChange } from '../../../packages/groundswell/src/changes.js';
 import { escapeHtml as esc } from '../http.js';
 import type { AdsetsOutput } from './adsets.js';
@@ -119,11 +120,25 @@ export function metaSetupRows(out: AdsetsOutput): Cell[][] {
 
 /** Spend and return per set and budget, for anyone checking the arithmetic. */
 export function forecastRows(out: AdsetsOutput): Cell[][] {
-  const rows: Cell[][] = [['Platform', 'Set', 'Goal', 'Budget', 'Monthly spend', 'Daily budget', 'Clicks', 'Leads', 'Customers', 'Monthly net', '12-month net', 'ROI']];
+  const rows: Cell[][] = [['Platform', 'Set', 'Goal', 'Budget', 'Monthly spend', 'Daily budget', 'Clicks', 'Leads', 'Customers', 'Monthly net', '12-month net', 'ROI', 'Note']];
   const add = (platform: string, name: string, goal: string, tiers: Record<Scenario, TierForecast>, modeled: boolean) => {
     for (const s of SCENARIOS) {
       const t = tiers[s];
-      rows.push([platform, name, goal, s, t.monthly, t.daily, t.clicks, modeled ? t.leads : '', modeled ? t.customers : '', modeled ? t.net : '', modeled ? t.year_net : '', modeled && t.roi !== null ? t.roi : 'not modeled']);
+      rows.push([
+        platform,
+        name,
+        goal,
+        s,
+        t.monthly,
+        t.daily,
+        t.clicks,
+        modeled ? t.leads : '',
+        modeled ? t.customers : '',
+        modeled ? t.net : '',
+        modeled ? t.year_net : '',
+        modeled && t.roi !== null ? t.roi : 'not modeled',
+        t.capped ? 'stops at the clicks the area’s searches supply' : '',
+      ]);
     }
   };
   for (const m of out.sets.meta) add('Meta', m.name, m.goal, m.tiers, m.modeled);
@@ -194,8 +209,33 @@ export interface AdsetsReportData {
 }
 
 const GOAL_WORDS: Record<string, string> = { leads: 'Leads', engagement: 'Engagement', rankings: 'Rankings' };
+const BUDGET_WORDS: Record<Scenario, string> = { low: 'Low budget', medium: 'Medium budget', high: 'High budget' };
 const roiText = (t: TierForecast, modeled: boolean) => (modeled && t.roi !== null ? `${Math.round(t.roi * 100)}% ROI` : 'return not modeled');
-const tierCell = (t: TierForecast, modeled: boolean) => `${money(t.daily)}/day · ${money(t.monthly)}/mo · ${roiText(t, modeled)}`;
+const dollars = (x: number) => `$${x.toFixed(2)}`;
+const tierCell = (t: TierForecast, modeled: boolean) => `${dollars(t.daily)}/day · ${money(t.monthly)}/mo · ${roiText(t, modeled)}${t.capped ? ' (search-limited)' : ''}`;
+
+function budgetTable(tiers: Record<Scenario, TierForecast>, modeled: boolean) {
+  return table(
+    ['Budget', 'Daily', 'Monthly', 'Clicks', modeled ? 'Leads' : 'Visits', 'Monthly net', 'ROI on that spend'],
+    SCENARIOS.map((s) => {
+      const t = tiers[s];
+      return [
+        `${BUDGET_WORDS[s]}${t.capped ? ' (stops at demand)' : ''}`,
+        dollars(t.daily),
+        money(t.monthly),
+        num(t.clicks),
+        modeled ? num(t.leads, 1) : num(t.clicks),
+        modeled ? money(t.net) : '–',
+        roiText(t, modeled),
+      ];
+    })
+  );
+}
+
+function rangeLine(r: OutcomeRange | null) {
+  if (!r) return '';
+  return `<p class="note">At the medium budget the 12-month net runs from ${money(r.conservative.year_net)} in the conservative case to ${money(r.upside.year_net)} in the upside case (${money(r.base.year_net)} in the base case).</p>`;
+}
 
 function metaCard(m: MetaAdSet, images: Record<string, string>) {
   const ads = m.ads
@@ -209,7 +249,7 @@ function metaCard(m: MetaAdSet, images: Record<string, string>) {
   return `<div class="card" data-goal="${m.goal}"><div class="kicker">Meta · ${esc(GOAL_WORDS[m.goal])} · ${esc(m.recommendation)}</div><h3>${esc(m.name)}</h3>
 <p class="note">Campaign ${esc(m.campaign)} · ${esc(m.objective)} · optimised for ${esc(m.optimization_goal.toLowerCase().replace(/_/g, ' '))}</p>
 <p>${esc(m.why)}</p><p><b>How it works.</b> ${esc(m.mechanism)}</p><p><b>What to watch.</b> ${esc(m.kpi)}</p>
-${table(['Budget', 'Daily', 'Monthly', 'Clicks', 'Return'], SCENARIOS.map((s) => [s, money(m.tiers[s].daily), money(m.tiers[s].monthly), num(m.tiers[s].clicks), roiText(m.tiers[s], m.modeled)]))}
+${budgetTable(m.tiers, m.modeled)}${rangeLine(m.range)}
 <p class="note">Audience: ${esc(m.audience.location)}, ${m.audience.radius_miles} miles, ages ${m.audience.age_min} to ${m.audience.age_max}${m.audience.interests.length ? `; ${esc(m.audience.interests.join(', '))}` : ''}. Placements: ${esc(m.placements.join(', '))}.</p>
 ${m.stop_loss ? `<p class="note">Stop-loss: ${esc(m.stop_loss)}</p>` : ''}${ads}</div>`;
 }
@@ -217,7 +257,7 @@ ${m.stop_loss ? `<p class="note">Stop-loss: ${esc(m.stop_loss)}</p>` : ''}${ads}
 function googleCard(g: GoogleAdGroup) {
   return `<div class="card" data-goal="${g.goal}"><div class="kicker">Google Search · ${esc(GOAL_WORDS[g.goal])} · ${esc(g.recommendation)}</div><h3>${esc(g.name)}</h3>
 <p>${esc(g.why)}</p><p><b>How it works.</b> ${esc(g.mechanism)}</p><p><b>What to watch.</b> ${esc(g.kpi)}</p>
-${table(['Budget', 'Daily', 'Monthly', 'Clicks', 'Return'], SCENARIOS.map((s) => [s, money(g.tiers[s].daily), money(g.tiers[s].monthly), num(g.tiers[s].clicks), roiText(g.tiers[s], g.modeled)]))}
+${budgetTable(g.tiers, g.modeled)}${rangeLine(g.range)}
 ${table(
   ['Keyword', 'Match', 'Searches / mo', 'Top-of-page bid', 'Site ranks'],
   g.keywords.map((k) => [k.match === 'exact' ? `[${k.text}]` : `"${k.text}"`, k.match, num(k.monthly_searches), k.low_bid_usd !== null && k.high_bid_usd !== null ? `$${k.low_bid_usd.toFixed(2)} – ${k.high_bid_usd.toFixed(2)}` : '–', k.position ? `#${k.position}` : '–'])
@@ -237,20 +277,20 @@ export function buildAdsetsHtml(d: AdsetsReportData): string {
   const t = s.totals;
   const tiles = [
     { v: `${money(t.low.monthly)} – ${money(t.high.monthly)}`, l: 'Monthly ad spend, low to high budget' },
-    { v: money(t.medium.monthly), l: `Medium budget (${money(t.medium.daily)} a day)` },
+    { v: money(t.medium.monthly), l: `Medium budget (${dollars(t.medium.daily)} a day)` },
     { v: t.medium.roi === null ? 'not modeled' : `${Math.round(t.medium.roi * 100)}%`, l: 'Return on the modeled spend, medium budget' },
     { v: money(t.medium.year_net), l: '12-month net of the modeled sets, medium budget' },
   ];
   const cover = `<section class="page cover"><div class="band">${logoImg(b, '')}<h1>${esc(d.business)}</h1>
 <div class="muted">Ad sets · ${esc(phaseWords)} · ${preparedBy(who)}${preparerLogo(who)} · ${esc(d.date)}</div></div>
-<div class="inner"><p>${s.goals.leads} set${s.goals.leads === 1 ? '' : 's'} for leads, ${s.goals.engagement} for engagement and ${s.goals.rankings} for rankings, every one paused until someone turns it on. Spend and return come from the plan’s low, medium and high cases; engagement is not a sale, so its return is not modeled.</p>
+<div class="inner"><p>${s.goals.leads} set${s.goals.leads === 1 ? '' : 's'} for leads, ${s.goals.engagement} for engagement and ${s.goals.rankings} for rankings, every one paused until someone turns it on. Each is priced at three budgets with the return on that spend: the medium budget is the plan’s base case, the low half of it and the high double. Engagement is not a sale, so its return is not modeled.</p>
 <div class="kpis">${tiles.map((x) => `<div class="kpi"><div class="v">${esc(x.v)}</div><div class="l">${esc(x.l)}</div></div>`).join('')}</div>
 ${table(
-  ['Platform', 'Set', 'Goal', 'Low', 'Medium', 'High'],
+  ['Set', 'Goal', 'Low budget', 'Medium budget', 'High budget'],
   [
-    ...s.meta.map((m) => ['Meta', m.name, GOAL_WORDS[m.goal], tierCell(m.tiers.low, m.modeled), tierCell(m.tiers.medium, m.modeled), tierCell(m.tiers.high, m.modeled)]),
-    ...(s.google?.ad_groups ?? []).map((g) => ['Google', g.name, GOAL_WORDS[g.goal], tierCell(g.tiers.low, g.modeled), tierCell(g.tiers.medium, g.modeled), tierCell(g.tiers.high, g.modeled)]),
-    ['', 'All sets', '', `${money(t.low.monthly)}/mo`, `${money(t.medium.monthly)}/mo`, `${money(t.high.monthly)}/mo`],
+    ...s.meta.map((m) => [`Meta · ${m.name}`, GOAL_WORDS[m.goal], tierCell(m.tiers.low, m.modeled), tierCell(m.tiers.medium, m.modeled), tierCell(m.tiers.high, m.modeled)]),
+    ...(s.google?.ad_groups ?? []).map((g) => [`Google · ${g.name}`, GOAL_WORDS[g.goal], tierCell(g.tiers.low, g.modeled), tierCell(g.tiers.medium, g.modeled), tierCell(g.tiers.high, g.modeled)]),
+    ['All sets', '', `${money(t.low.monthly)}/mo`, `${money(t.medium.monthly)}/mo`, `${money(t.high.monthly)}/mo`],
   ]
 )}</div><div class="foot">${footer}</div></section>`;
 
@@ -285,15 +325,15 @@ ${table(
     'Hand-over',
     'How to import',
     `<h3>Meta (Ads Manager)</h3><ol>
-<li>Create each campaign and ad set from the “Ad sets” sheet of the Meta file (objective, budget, audience, placements); the daily budgets for the low, medium and high cases are side by side.</li>
+<li>Create each campaign and ad set from the “Ad sets” sheet of the Meta file (objective, budget, audience, placements); the daily figures for the low, medium and high budgets are side by side.</li>
 <li>Upload the ad images from the images download to the ad account’s media library. If the import asks for an image hash, copy each one into the Image Hash column.</li>
 <li>Fill the Page (Link Object ID) and Instagram account on the “Ads” sheet if they are blank, then import it with Ads Manager’s Import ads in bulk. Every ad arrives paused.</li></ol>
 <h3>Google Ads (Google Ads Editor)</h3><ol>
 <li>In Google Ads Editor, open the account and import the CSV (Account › Import › From file). Editor shows every change before anything is posted.</li>
-<li>The campaign comes in paused at the medium budget; set the low or high figure from this report before posting if that is the case being run.</li>
+<li>The campaign comes in paused at the medium budget; set the low or high budget from this report before posting if that is the one being run.</li>
 <li>Set the location to ${esc(s.google?.location ?? 'the business’s area')} and turn on call tracking before the campaign goes live.</li></ol>
 ${s.notes.length ? `<h3>Notes</h3><ul>${s.notes.map((n) => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}
-<h3>Where the numbers come from</h3><ul>${[...new Set([...s.meta.flatMap((m) => m.sources), ...(s.google?.ad_groups ?? []).flatMap((g) => g.sources)])].map((x) => `<li class="note">${esc(x)}</li>`).join('')}</ul>`
+<h3>Where the numbers come from</h3><ul><li class="note">${esc(GROUNDSWELL_CONFIG.adsets.budget_basis)}</li>${[...new Set([...s.meta.flatMap((m) => m.sources), ...(s.google?.ad_groups ?? []).flatMap((g) => g.sources)])].map((x) => `<li class="note">${esc(x)}</li>`).join('')}</ul>`
   );
 
   return ownWording(

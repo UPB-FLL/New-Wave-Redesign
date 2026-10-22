@@ -2,10 +2,10 @@ import { reportAdminEmails, requireAdmin } from '../_lib/adminKey.js';
 import { runWorkerInBackground } from '../_lib/groundswell/background.js';
 import { isComposioConfigured, isSharedLookupConfigured } from '../_lib/groundswell/composio.js';
 import { isConsumerConfigured } from '../_lib/groundswell/composioConsumer.js';
-import { startQueuedAudits } from '../_lib/groundswell/engine.js';
+import { startQueuedRuns } from '../_lib/groundswell/engine.js';
 import { readinessChecks, readinessSummary } from '../_lib/groundswell/readiness.js';
 import { answerReview, ReviewError } from '../_lib/groundswell/review.js';
-import { BENCHMARK_STEPS, STEPS } from '../_lib/groundswell/steps.js';
+import { PHASE_STEPS } from '../_lib/groundswell/steps.js';
 import { methodGuard, readJsonBody, type ApiRequest, type ApiResponse } from '../_lib/http.js';
 import { getSupabaseAdmin, isSupabaseConfigured } from '../_lib/supabaseAdmin.js';
 
@@ -19,10 +19,11 @@ import { getSupabaseAdmin, isSupabaseConfigured } from '../_lib/supabaseAdmin.js
  * audit held in review instead (review.ts): deliver it as it stands, or run its
  * checks again; either way the worker carries it on in the background.
  *
- * Starts up to MAX_AUDITS_PER_CLICK queued audits on Groundswell (gives each
- * its steps in marketing_audit_steps and marks it running), answers, and then
- * starts working on them in the background. pg_cron's minute ping to
- * /api/groundswell/worker carries them the rest of the way.
+ * Starts up to MAX_AUDITS_PER_CLICK queued runs on Groundswell (gives each
+ * its phase's steps in marketing_audit_steps and marks it running), answers,
+ * and then starts working on them in the background. pg_cron's minute ping to
+ * /api/groundswell/worker carries them the rest of the way, and starts queued
+ * runs itself unless GROUNDSWELL_AUTO_START is off.
  */
 
 export const MAX_AUDITS_PER_CLICK = 3;
@@ -97,7 +98,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
 
   let started: string[];
   try {
-    started = await startQueuedAudits(getSupabaseAdmin(), STEPS, MAX_AUDITS_PER_CLICK, BENCHMARK_STEPS);
+    started = await startQueuedRuns(getSupabaseAdmin(), PHASE_STEPS, MAX_AUDITS_PER_CLICK);
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: 'Could not start the queued audits.' });

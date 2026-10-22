@@ -1,7 +1,7 @@
 import { waitUntil } from '@vercel/functions';
 import { getSupabaseAdmin } from '../supabaseAdmin.js';
-import { runWorker } from './engine.js';
-import { ALL_STEPS } from './steps.js';
+import { autoStartEnabled, runWorker, startWithinCapacity } from './engine.js';
+import { ALL_STEPS, PHASE_STEPS } from './steps.js';
 
 /**
  * Runs the worker after the response is sent (Vercel keeps the function alive
@@ -11,10 +11,18 @@ import { ALL_STEPS } from './steps.js';
  */
 export const FUNCTION_SECONDS = 300;
 
+/**
+ * Full auto (the owner's choice, 2026-10-22): the heartbeat also starts queued
+ * runs, up to MAX_RUNNING at once, so a partner's new customer and the phase
+ * a delivery queued go on without anyone pressing a button.
+ * GROUNDSWELL_AUTO_START=off leaves queued runs for the admin button.
+ */
 export function runWorkerInBackground(startedAt: number): void {
   const deadline = startedAt + FUNCTION_SECONDS * 1000 - 10_000;
+  const db = getSupabaseAdmin();
+  const startQueued = autoStartEnabled() ? () => startWithinCapacity(db, PHASE_STEPS) : undefined;
   waitUntil(
-    runWorker(getSupabaseAdmin(), ALL_STEPS, { deadline })
+    runWorker(db, ALL_STEPS, { deadline, startQueued })
       .then((report) => {
         if (report.ran.length) console.log('Groundswell worker:', JSON.stringify(report));
       })

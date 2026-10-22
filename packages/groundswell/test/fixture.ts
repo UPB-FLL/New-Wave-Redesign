@@ -78,6 +78,8 @@ export const config: GroundswellConfig = validateConfig({
     default_negatives: ['jobs', 'diy'],
     negatives_basis: 'test',
     carousel: { max_slides: 6, caption_max_chars: 2200, source: 'test', as_of: '2026' },
+    budget_multipliers: [0.5, 1, 2],
+    budget_basis: 'test',
     actuals: { min_clicks: 50, min_leads: 5, basis: 'test' },
   },
   benchmark: {

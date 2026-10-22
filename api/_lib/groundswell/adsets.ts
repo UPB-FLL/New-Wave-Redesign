@@ -64,6 +64,7 @@ You get the business's own public facts, the angles its ad plan runs, the keywor
 Return JSON only:
 {"engagement_ads": up to 3 of {"primary_text": at most 125 characters, "headline": at most 27 characters, "image_headline": at most 60 characters, the words set on the business's own photo},
  "image_headlines": {"<angle_id>": at most 60 characters, the words on the photo for that angle's Meta ad; only for angles with "meta": true},
+ "meta_ads": {"<angle_id>": {"primary_text": at most 125 characters, "headline": at most 27, "description": at most 25, "call_to_action": a few words}; only for angles with "meta": true},
  "carousel": {"title": at most 60 characters, "slides": 4 to carousel_slides of {"headline": at most 90 characters, "body": at most 220 characters}, "caption": at most 1500 characters, ending with one question that invites a comment},
  "negatives": up to 15 of {"text": 1 to 3 words, a search the business does not serve, "reason": one short sentence},
  "interests": up to 6 Meta interest names that fit the business's customers}
@@ -106,6 +107,12 @@ export function checkWriting(raw: Record<string, unknown>, allowed: Set<string>,
     if (ok(text, `Image words for ${id}`)) image_headlines[id] = text;
   }
 
+  const meta_ads: NonNullable<AdSetsWriting['meta_ads']> = {};
+  for (const [id, v] of Object.entries((raw.meta_ads ?? {}) as Record<string, Record<string, unknown>>)) {
+    const ad = { primary_text: str(v?.primary_text, 125), headline: str(v?.headline, 40), description: str(v?.description, 25), call_to_action: str(v?.call_to_action, 30) };
+    if (ok(ad.primary_text, `Meta ad for ${id}`) && ok(ad.headline, `Meta ad for ${id} headline`) && (!ad.description || ok(ad.description, `Meta ad for ${id} description`))) meta_ads[id] = ad;
+  }
+
   let carousel: AdSetsWriting['carousel'] = null;
   const c = (raw.carousel ?? null) as Record<string, unknown> | null;
   if (c && Array.isArray(c.slides)) {
@@ -141,7 +148,7 @@ export function checkWriting(raw: Record<string, unknown>, allowed: Set<string>,
     .filter((i) => i && ok(i, 'Interest'))
     .slice(0, 6);
 
-  return { writing: { engagement_ads, image_headlines, carousel, negatives, interests }, dropped };
+  return { writing: { engagement_ads, image_headlines, meta_ads, carousel, negatives, interests }, dropped };
 }
 
 const MONTH = () => new Date().toISOString().slice(0, 7);

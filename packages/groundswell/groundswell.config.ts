@@ -349,13 +349,16 @@ export const GROUNDSWELL_CONFIG: GroundswellConfig = validateConfig({
   adsets: {
     engagement_share: [0.15, 0.2, 0.25],
     engagement_basis:
-      'New Wave’s rule: about a fifth of the plan’s monthly spend (never less than Meta’s smallest useful test) puts the business’s best posts in front of the people the leads sets retarget. Not a published benchmark.',
+      'New Wave’s rule: at the medium budget, about a fifth of the plan’s monthly spend (never less than Meta’s smallest useful test) puts the business’s best posts in front of the people the leads sets retarget. Not a published benchmark.',
     rankings_positions: [4, 20],
     rankings_min_searches: 30,
     keywords_per_group: 12,
     default_negatives: ['jobs', 'job', 'careers', 'career', 'salary', 'hiring', 'diy', 'how to', 'youtube', 'reddit'],
     negatives_basis: 'New Wave’s starting list for a local business’s search campaign; the plan adds the business’s own.',
     carousel: { max_slides: 8, caption_max_chars: 2200, source: 'Instagram Help Center: captions (2,200 characters); slides are New Wave’s rule', as_of: '2026' },
+    budget_multipliers: [0.5, 1, 2],
+    budget_basis:
+      'New Wave’s rule: the low budget is half the plan’s base-case spend and the high budget double it, each priced at the base case’s cost per click and conversion; search spend stops at the clicks the area’s searches can supply.',
     actuals: {
       min_clicks: 50,
       min_leads: 5,

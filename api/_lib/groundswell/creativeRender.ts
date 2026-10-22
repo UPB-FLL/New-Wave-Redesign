@@ -6,9 +6,11 @@ import { baseCss } from './reports.js';
 /**
  * The ad images and the carousel, as HTML printed to images in headless
  * Chromium: 1080 × 1350 (Meta's 4:5 feed size), like the hand-made sets New
- * Wave runs. An ad image is the business's own photo with a dark tint, the
- * words for the ad and its Instagram handle; without a photo, the business's
- * colour carries the words. A carousel slide is type on the business's tint.
+ * Wave runs. An ad image is the business's own photo above a band of its
+ * colour carrying the ad's words and its Instagram handle: a business's
+ * posts often have words of their own baked in, so the ad's words never sit
+ * on the photo. Without a photo, the colour carries the words alone. A
+ * carousel slide is type on the business's tint.
  */
 
 export const IMAGE_WIDTH = 1080;
@@ -23,9 +25,10 @@ ${extra}
 /** An image as a data URI, for a page that loads nothing from the network. */
 export const dataUri = (bytes: Uint8Array, type: string) => `data:${type};base64,${Buffer.from(bytes).toString('base64')}`;
 
-/** Font size that keeps a headline on about three lines at this width. */
-export function headlineSize(text: string): number {
+/** Font size that keeps a headline on about three lines at this width (the band's is smaller: it holds two or three). */
+export function headlineSize(text: string, band = false): number {
   const n = text.length;
+  if (band) return n <= 28 ? 76 : n <= 44 ? 64 : n <= 60 ? 56 : 48;
   return n <= 28 ? 104 : n <= 44 ? 88 : n <= 60 ? 74 : 62;
 }
 
@@ -41,15 +44,16 @@ export function adImageHtml(b: Brand, opts: { headline: string; handle: string |
 .handle{margin-top:48px;font-size:34px;letter-spacing:0.12em;opacity:.9}`
     );
   }
+  const band = headlineSize(opts.headline, true);
   return page(
     b,
-    `<main class="photo"><img src="${opts.photo}" alt=""><div class="tint"></div><div class="words"><h1>${esc(opts.headline)}</h1>${handle}</div></main>`,
-    `.photo{position:relative;width:100%;height:100%;overflow:hidden;background:#111}
-.photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.tint{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.18) 0%,rgba(0,0,0,.42) 45%,rgba(0,0,0,.55) 100%)}
-.words{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:110px;text-align:center;color:#fff}
-.words h1{color:#fff;font-size:${size}px;font-weight:800;letter-spacing:-0.02em;line-height:1.08;text-shadow:0 2px 24px rgba(0,0,0,.35)}
-.handle{margin-top:44px;font-size:34px;letter-spacing:0.12em;color:#fff}`
+    `<main class="photo"><div class="frame"><img src="${opts.photo}" alt=""></div><div class="band"><h1>${esc(opts.headline)}</h1>${handle}</div></main>`,
+    `.photo{width:100%;height:100%;display:flex;flex-direction:column;background:${b.primary}}
+.frame{position:relative;height:70%;overflow:hidden;background:#111}
+.frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.band{flex:1;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:44px 80px;color:${b.onPrimary}}
+.band h1{color:${b.onPrimary};font-size:${band}px;font-weight:800;letter-spacing:-0.02em;line-height:1.08}
+.handle{margin-top:22px;font-size:28px;letter-spacing:0.12em;opacity:.9}`
   );
 }
 
