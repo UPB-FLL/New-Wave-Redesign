@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { ArrowUpRight, ChevronRight, ClipboardList, Gauge, Handshake, LogOut, Menu, Users, X } from 'lucide-react';
-import { GROUNDSWELL_BRAND } from './brand';
+import { GROUNDSWELL_BRAND } from '../brand';
 import {
   GROUNDSWELL_ADMIN_AUDITS_PATH,
   GROUNDSWELL_ADMIN_CUSTOMERS_PATH,
@@ -27,7 +27,7 @@ export function GroundswellAdminShell({ onSignOut, children }: { onSignOut: () =
   const isCustomer = pathname.startsWith(`${GROUNDSWELL_ADMIN_CUSTOMERS_PATH}/`);
 
   return (
-    <div className="gs-root gs-admin-branding gs-admin">
+    <div className="gs-root gs-branding gs-admin">
       <a href="#gs-admin-main" className="gs-admin-skip">
         Skip to content
       </a>

@@ -1,0 +1,205 @@
+/* The partner workspace uses the same supplied GroundSwell v2 identity as staff. */
+.gs-portal { min-height: 100dvh; display: flex; flex-direction: column; -webkit-font-smoothing: antialiased; font-size: 15px; line-height: 1.6; }
+.gs-portal *, .gs-portal *::before, .gs-portal *::after { box-sizing: border-box; }
+.gs-portal :is(h1,h2,h3) { letter-spacing: -.025em; line-height: 1.25; font-weight: 700; }
+.gs-portal h1 { font-size: clamp(30px,3vw,40px); text-wrap: balance; }
+.gs-portal h2 { font-size: 20px; }
+.gs-portal h3 { font-size: 17px; }
+.gs-portal :is(a,button,input,textarea,select,summary,[tabindex]):focus-visible { outline: 3px solid var(--gs-navy); outline-offset: 4px; }
+.gs-portal :is(button,a,summary) { -webkit-tap-highlight-color: transparent; }
+.gs-portal .gs-card { min-width: 0; border-radius: 10px; box-shadow: none; }
+.gs-portal .gs-btn { min-height: 44px; border-radius: 7px; padding: 11px 18px; font-size: 14px; font-weight: 600; }
+.gs-portal .gs-btn-primary { background: var(--gs-amber); color: var(--gs-navy); }
+.gs-portal .gs-btn-primary:not(:disabled):hover { background: var(--gs-navy); color: var(--gs-white); }
+.gs-portal .gs-btn-secondary { border-color: #d2dfe4; }
+.gs-portal .gs-btn-secondary:not(:disabled):hover { background: var(--gs-foam); border-color: var(--gs-tide); }
+.gs-portal .gs-link { color: var(--gs-tide); }
+.gs-portal .gs-chip { border: 0; border-radius: 5px; padding: 4px 9px; background: var(--gs-white); font-size: 12px; font-weight: 600; }
+.gs-portal .gs-label { font-size: 13px; font-weight: 600; }
+.gs-portal .input-light { width: 100%; min-height: 46px; border: 1px solid #cad9df; border-radius: 6px; padding: 11px 13px; color: var(--gs-navy); background: #fff; font-family: var(--nw-font-body); font-size: 15px; line-height: 1.5; box-shadow: none; }
+.gs-portal .input-light::placeholder { color: var(--gs-slate); opacity: .85; }
+.gs-portal textarea.input-light { resize: vertical; }
+.gs-portal .gs-alert, .gs-portal .gs-notice { border-radius: 8px; overflow-wrap: anywhere; }
+.gs-portal .gs-portal-skip { position: fixed; z-index: 100; top: -100px; left: 16px; padding: 12px 20px; color: var(--gs-navy); background: #fff; border: 2px solid var(--gs-navy); border-radius: 6px; }
+.gs-portal .gs-portal-skip:focus { top: 12px; }
+.gs-portal :is(.gs-portal-main,.gs-portal-entry-main):focus { outline: none; }
+.gs-portal .gs-portal-brand { display: block; flex: none; padding: 16px 0; }
+.gs-portal .gs-portal-brand img { display: block; width: 220px; height: auto; max-width: none; }
+.gs-portal .gs-portal-brand > span { display: block; margin-top: 16px; font-family: var(--nw-font-technical); font-size: 11px; color: var(--gs-slate); }
+.gs-portal .gs-portal-header { border-bottom: 1px solid var(--gs-mist); background: #fff; }
+.gs-portal .gs-portal-header-inner, .gs-portal .gs-portal-nav-row { max-width: 1440px; margin: 0 auto; padding: 8px 40px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.gs-portal .gs-portal-account { display: flex; align-items: center; gap: 24px; min-width: 0; }
+.gs-portal .gs-portal-account > div { min-width: 0; text-align: right; }
+.gs-portal .gs-portal-account strong { display: block; font-size: 14px; overflow-wrap: anywhere; }
+.gs-portal .gs-portal-account > div > span { display: block; color: var(--gs-slate); font-size: 12px; }
+.gs-portal .gs-portal-account button { flex-shrink: 0; }
+.gs-portal .gs-portal-nav-row { padding-top: 0; padding-bottom: 0; }
+.gs-portal .gs-portal-nav-row ul { display: flex; gap: 24px; }
+.gs-portal .gs-portal-nav-link { display: flex; align-items: center; gap: 9px; min-height: 56px; padding: 12px 4px; border-bottom: 3px solid transparent; color: var(--gs-slate); font-size: 14px; font-weight: 500; }
+.gs-portal .gs-portal-nav-link:hover { color: var(--gs-navy); }
+.gs-portal .gs-portal-nav-link[aria-current='page'] { color: var(--gs-navy); border-color: var(--gs-cyan); font-weight: 600; }
+.gs-portal .gs-portal-nav-note, .gs-portal .gs-portal-eyebrow { font-family: var(--nw-font-technical); font-size: 11px; line-height: 1.6; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--gs-slate); }
+.gs-portal .gs-portal-nav-note { letter-spacing: 0; text-transform: none; }
+.gs-portal .gs-portal-main { flex: 1; width: 100%; max-width: 1440px; margin: 0 auto; padding: 28px 40px 64px; }
+.gs-portal .gs-portal-company { margin-bottom: 24px; overflow-wrap: anywhere; }
+.gs-portal .gs-portal-company > span { margin: 0 10px; }
+.gs-portal .gs-portal-footer { display: flex; justify-content: space-between; gap: 20px; max-width: 1440px; width: 100%; margin: 0 auto; padding: 20px 40px; font-size: 11px; color: var(--gs-slate); }
+.gs-portal .gs-portal-footer > span:first-child { color: var(--gs-navy); font-weight: 600; }
+.gs-portal .gs-portal-footer > span > span { margin-left: 8px; color: var(--gs-slate); font-weight: 400; }
+.gs-portal .gs-portal-page { display: grid; grid-template-columns: minmax(0,1fr); gap: 28px; }
+.gs-portal .gs-portal-page-heading { display: flex; justify-content: space-between; align-items: center; gap: 24px; }
+.gs-portal .gs-portal-page-heading > div { max-width: 740px; }
+.gs-portal .gs-portal-page-heading p { margin-top: 10px; color: var(--gs-slate); font-size: 14px; }
+.gs-portal .gs-portal-page-heading > button { flex: none; }
+.gs-portal .gs-portal-stats { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); padding: 24px 0; border-top: 1px solid var(--gs-mist); border-bottom: 1px solid var(--gs-mist); }
+.gs-portal .gs-portal-stats > div { padding: 0 28px; border-right: 1px solid var(--gs-mist); }
+.gs-portal .gs-portal-stats > div:first-child { padding-left: 0; }
+.gs-portal .gs-portal-stats > div:last-child { border-right: 0; }
+.gs-portal .gs-portal-stats dt { color: var(--gs-slate); font-size: 12px; }
+.gs-portal .gs-portal-stats dd { margin-top: 8px; font-family: var(--nw-font-technical); font-size: 30px; line-height: 1.3; font-weight: 500; font-variant-numeric: tabular-nums; }
+.gs-portal .gs-portal-directory-error { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.gs-portal .gs-portal-directory-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px; padding: 24px; }
+.gs-portal .gs-portal-fine-print { margin-top: 5px; font-size: 12px; color: var(--gs-slate); }
+.gs-portal .gs-portal-search { position: relative; width: min(100%,300px); }
+.gs-portal .gs-portal-search > svg { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--gs-slate); pointer-events: none; }
+.gs-portal .gs-portal-search input { padding-left: 40px; }
+.gs-portal .gs-portal-table-scroll { position: relative; min-width: 0; overflow-x: auto; border-radius: 0 0 10px 10px; }
+.gs-portal .gs-portal-table { min-width: 620px; border-collapse: collapse; }
+.gs-portal .gs-portal-table th { padding: 14px 24px; font-family: var(--nw-font-technical); font-size: 11px; font-weight: 500; letter-spacing: .06em; color: var(--gs-slate); background: var(--gs-white); }
+.gs-portal .gs-portal-table td { padding: 20px 24px; font-size: 13px; }
+.gs-portal .gs-portal-table tbody tr:hover { background: var(--gs-white); }
+.gs-portal .gs-portal-business { display: flex; align-items: center; gap: 12px; }
+.gs-portal .gs-portal-business-avatar { display: grid; place-items: center; flex: none; width: 38px; height: 40px; border-radius: 7px; background: var(--gs-foam); color: var(--gs-tide); font-size: 12px; font-weight: 600; }
+.gs-portal .gs-portal-business-name { display: inline-flex; align-items: center; gap: 12px; font-weight: 600; color: var(--gs-navy); }
+.gs-portal .gs-portal-business-name:hover { color: var(--gs-tide); text-decoration: underline; text-underline-offset: 3px; }
+.gs-portal .gs-portal-business-name > svg { flex: none; }
+.gs-portal .gs-portal-business-meta { display: block; margin-top: 3px; font-size: 12px; color: var(--gs-slate); overflow-wrap: anywhere; }
+.gs-portal .gs-portal-empty { display: flex; flex-direction: column; align-items: center; gap: 10px; min-height: 230px; padding: 32px 24px; border-top: 1px solid var(--gs-mist); text-align: center; }
+.gs-portal .gs-portal-empty > svg { color: var(--gs-tide); margin-bottom: 6px; }
+.gs-portal .gs-portal-empty > p { max-width: 480px; color: var(--gs-slate); font-size: 14px; }
+.gs-portal .gs-portal-empty > button { min-height: 44px; }
+.gs-portal .gs-portal-loading { padding: 28px 24px; color: var(--gs-slate); font-size: 14px; }
+.gs-portal .gs-portal-branding { display: grid; grid-template-columns: minmax(0,.8fr) minmax(0,1.2fr); gap: 40px; padding: 28px; }
+.gs-portal .gs-portal-settings-intro h2 { margin: 12px 0; }
+.gs-portal .gs-portal-settings-intro p:last-child { max-width: 420px; line-height: 1.7; }
+.gs-portal .gs-portal-settings-fields > div:first-of-type { margin-top: 0; }
+.gs-portal .gs-portal-customer-heading { padding-bottom: 24px; border-bottom: 1px solid var(--gs-mist); }
+.gs-portal .gs-portal-customer-heading > button { margin-left: auto; }
+.gs-portal .gs-portal-workspace-grid { display: grid; grid-template-columns: minmax(0,1fr) 340px; gap: 28px; margin-top: 28px; align-items: start; }
+.gs-portal .gs-portal-workspace-grid > * { min-width: 0; }
+.gs-portal .gs-portal-customer-work > section:first-child { margin-top: 0; }
+.gs-portal .gs-portal-customer-sidebar { display: grid; grid-template-columns: minmax(0,1fr); gap: 24px; }
+.gs-portal .gs-portal-customer-sidebar > * { margin-top: 0; }
+.gs-portal .gs-portal-customer-sidebar dl { grid-template-columns: minmax(0,1fr); gap: 6px; }
+.gs-portal .gs-portal-customer-sidebar dl dd { margin-bottom: 12px; overflow-wrap: anywhere; }
+.gs-portal .gs-portal-customer-sidebar dl dt { font-family: var(--nw-font-technical); font-size: 11px; font-weight: 500; }
+.gs-portal .gs-portal-customer-sidebar .gs-portal-customer-form .grid { grid-template-columns: minmax(0,1fr); }
+.gs-portal .gs-portal-customer-form fieldset { min-width: 0; }
+.gs-portal .gs-portal-customer-form fieldset legend { max-width: 100%; }
+.gs-portal .gs-portal-accounts li > div { flex: 1 1 180px; }
+.gs-portal .gs-phases { gap: 12px; }
+.gs-portal .gs-phase { min-width: 0; padding: 18px 16px; box-shadow: none; border-radius: 8px; }
+.gs-portal .gs-phase[aria-pressed='true'] { border-color: var(--gs-tide); background: var(--gs-foam); box-shadow: inset 0 3px 0 var(--gs-cyan); }
+.gs-portal .gs-phase-num { font-family: var(--nw-font-technical); background: var(--gs-mist); }
+.gs-portal .gs-panel { background: var(--gs-white); border-radius: 7px; }
+.gs-portal #gs-phase-panel { padding: 28px; }
+.gs-portal .gs-portal-aside { margin-top: 36px; padding-top: 24px; border-top: 1px solid var(--gs-mist); }
+.gs-portal .gs-portal-entry-header, .gs-portal .gs-portal-entry-footer { display: flex; align-items: center; justify-content: space-between; gap: 24px; max-width: 1280px; margin: 0 auto; width: 100%; padding: 12px 40px; }
+.gs-portal .gs-portal-entry-main { flex: 1; width: 100%; max-width: 1280px; margin: 0 auto; padding: 24px 40px 64px; }
+.gs-portal .gs-portal-entry-grid { display: grid; grid-template-columns: minmax(0,1.1fr) minmax(0,1fr); gap: 0 64px; align-items: start; }
+.gs-portal .gs-portal-intro { grid-column: 1; grid-row: 1; position: relative; overflow: hidden; border-radius: 12px 12px 0 0; padding: 44px 40px 0; color: var(--gs-white); background: var(--gs-navy); }
+.gs-portal .gs-portal-intro::before { content: ''; position: absolute; pointer-events: none; inset: 0; opacity: .13; background: url('/brand/social-engineering/02_Graphics/GroundSwell_Contours_Dark.svg') bottom right / auto 85% no-repeat; }
+.gs-portal .gs-portal-intro > * { position: relative; }
+.gs-portal .gs-portal-intro > .gs-portal-eyebrow { color: var(--gs-cyan); }
+.gs-portal .gs-portal-intro h1 { max-width: 420px; margin-top: 24px; font-size: clamp(38px,4vw,54px); line-height: 1.12; }
+.gs-portal .gs-portal-intro-summary { margin-top: 24px; max-width: 450px; font-size: 16px; line-height: 1.8; color: var(--gs-mist); }
+.gs-portal .gs-portal-intro > a { margin-top: 24px; }
+.gs-portal .gs-portal-intro .gs-btn-primary:not(:disabled):hover { background: var(--gs-white); color: var(--gs-navy); }
+.gs-portal .gs-portal-intro :is(a,button):focus-visible { outline-color: var(--gs-cyan); }
+.gs-portal .gs-portal-entry-steps { display: grid; gap: 24px; margin-top: 48px; }
+.gs-portal .gs-portal-entry-steps > li { display: flex; align-items: start; gap: 18px; }
+.gs-portal .gs-portal-entry-steps > li > span { margin-top: 2px; font-family: var(--nw-font-technical); font-size: 12px; color: var(--gs-cyan); }
+.gs-portal .gs-portal-entry-steps h2 { font-size: 15px; font-family: var(--nw-font-body); font-weight: 600; }
+.gs-portal .gs-portal-entry-steps p { margin-top: 6px; max-width: 350px; font-size: 13px; line-height: 1.7; color: var(--gs-mist); }
+.gs-portal .gs-portal-how { grid-row: 2; border-radius: 0 0 12px 12px; padding: 0 40px 44px; }
+.gs-portal .gs-portal-entry-forms { grid-column: 2; grid-row: 1 / 3; min-width: 0; padding-top: 12px; }
+.gs-portal .gs-portal-sign-in { padding: 32px; }
+.gs-portal .gs-portal-sign-in > h2 { margin-top: 12px; font-size: 25px; }
+.gs-portal .gs-portal-sign-in > .gs-btn { margin-top: 24px; }
+.gs-portal .gs-portal-invitation { margin: 28px 0 0; padding: 0 24px; }
+.gs-portal .gs-portal-invitation h2 { font-size: 17px; }
+.gs-portal .gs-portal-invitation p { margin: 12px 0; color: var(--gs-slate); font-size: 14px; }
+.gs-portal .gs-portal-invitation a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 14px; }
+.gs-portal .gs-portal-entry-footer { padding-top: 20px; padding-bottom: 20px; color: var(--gs-slate); font-size: 12px; }
+.gs-portal .gs-portal-entry-footer > a { display: inline-flex; align-items: center; gap: 6px; }
+.gs-portal .gs-portal-entry-footer > div { display: flex; flex-wrap: wrap; gap: 12px 24px; }
+.gs-portal .gs-portal-entry-footer a:hover { color: var(--gs-navy); text-decoration: underline; }
+.gs-portal .gs-portal-password { max-width: 520px; margin: 32px auto 64px; }
+.gs-portal .gs-portal-password > h1 { margin-top: 12px; }
+@media(min-width: 1001px) and (max-width: 1300px) { .gs-portal .gs-phases { grid-template-columns: minmax(0,1fr); } }
+@media(max-width: 1000px) {
+  .gs-portal .gs-portal-workspace-grid { grid-template-columns: minmax(0,1fr); }
+  .gs-portal .gs-portal-customer-sidebar { grid-template-columns: repeat(2,minmax(0,1fr)); align-items: start; }
+  .gs-portal .gs-portal-entry-grid { column-gap: 32px; }
+  .gs-portal .gs-portal-intro { padding: 36px 28px 0; }
+  .gs-portal .gs-portal-how { padding: 0 28px 36px; }
+  .gs-portal .gs-portal-sign-in { padding: 28px 24px; }
+}
+@media(max-width: 760px) {
+  .gs-portal .gs-portal-header-inner, .gs-portal .gs-portal-nav-row { padding-left: 24px; padding-right: 24px; }
+  .gs-portal .gs-portal-main { padding: 24px 24px 48px; }
+  .gs-portal .gs-portal-account { gap: 12px; }
+  .gs-portal .gs-portal-account > div, .gs-portal .gs-portal-account button > span, .gs-portal .gs-portal-nav-note { display: none; }
+  .gs-portal .gs-portal-account button { width: 44px; padding: 10px; }
+  .gs-portal .gs-portal-branding { grid-template-columns: minmax(0,1fr); gap: 24px; padding: 24px; }
+  .gs-portal .gs-portal-entry-grid { grid-template-columns: minmax(0,1fr); row-gap: 24px; }
+  .gs-portal .gs-portal-entry-grid > * { grid-column: 1; grid-row: auto; }
+  .gs-portal .gs-portal-intro { border-radius: 12px; padding: 32px 28px; }
+  .gs-portal .gs-portal-how .gs-portal-entry-steps { margin-top: 0; }
+  .gs-portal .gs-portal-entry-header, .gs-portal .gs-portal-entry-footer { padding-left: 24px; padding-right: 24px; }
+  .gs-portal .gs-portal-entry-main { padding: 16px 24px 40px; }
+  .gs-portal .gs-portal-entry-forms { padding-top: 0; }
+  .gs-portal .gs-portal-intro h1 { max-width: 420px; }
+  .gs-portal .gs-portal-entry-steps { margin-top: 32px; }
+  .gs-portal .gs-portal-entry-header > .gs-portal-eyebrow { display: none; }
+}
+@media(max-width: 600px) {
+  .gs-portal .gs-portal-header-inner { gap: 16px; padding: 8px 16px; }
+  .gs-portal .gs-portal-nav-row { padding: 0 16px; }
+  .gs-portal .gs-portal-main { padding: 24px 16px 40px; }
+  .gs-portal .gs-portal-company { margin-bottom: 20px; font-size: 10px; }
+  .gs-portal .gs-portal-page { gap: 24px; }
+  .gs-portal .gs-portal-page-heading { align-items: flex-start; flex-direction: column; gap: 16px; }
+  .gs-portal .gs-portal-page-heading p { font-size: 14px; }
+  .gs-portal .gs-portal-stats > div { padding: 0 12px; }
+  .gs-portal .gs-portal-stats dt { font-size: 11px; }
+  .gs-portal .gs-portal-stats dd { font-size: 27px; }
+  .gs-portal .gs-portal-directory-toolbar { padding: 20px 16px; }
+  .gs-portal .gs-portal-search { width: 100%; }
+  .gs-portal .gs-portal-table { min-width: 450px; }
+  .gs-portal .gs-portal-table td, .gs-portal .gs-portal-table th { padding-left: 16px; padding-right: 16px; }
+  .gs-portal .gs-portal-table td.max-sm\:hidden, .gs-portal .gs-portal-table th.max-sm\:hidden { display: table-cell; }
+  .gs-portal .gs-portal-table th { white-space: nowrap; }
+  .gs-portal .gs-portal-table td:first-child { min-width: 210px; }
+  .gs-portal .gs-portal-branding { padding: 24px 16px; }
+  .gs-portal .gs-portal-customer-heading > button { margin-left: 0; }
+  .gs-portal .gs-portal-customer-sidebar { grid-template-columns: minmax(0,1fr); }
+  .gs-portal .gs-phase { padding: 18px 14px; }
+  .gs-portal #gs-phase-panel { padding: 24px 16px; }
+  .gs-portal .gs-portal-footer { padding: 20px 16px; flex-wrap: wrap; font-size: 10px; }
+  .gs-portal .gs-portal-footer > span > span { display: block; margin-left: 0; }
+  .gs-portal :is(.input-light,input[type=password]) { font-size: 16px; }
+  .gs-portal .gs-portal-entry-header, .gs-portal .gs-portal-entry-footer { padding-left: 16px; padding-right: 16px; }
+  .gs-portal .gs-portal-entry-main { padding: 12px 16px 32px; }
+  .gs-portal .gs-portal-entry-grid { gap: 24px; }
+  .gs-portal .gs-portal-intro { padding: 32px 24px; }
+  .gs-portal .gs-portal-intro h1 { font-size: 38px; }
+  .gs-portal .gs-portal-entry-steps { gap: 20px; }
+  .gs-portal .gs-portal-entry-steps > li { gap: 12px; }
+  .gs-portal .gs-portal-sign-in { padding: 28px 20px; }
+  .gs-portal .gs-portal-invitation { padding: 0 8px; }
+  .gs-portal .gs-portal-entry-footer { align-items: flex-start; flex-direction: column; gap: 12px; }
+  .gs-portal .gs-portal-password { margin: 16px auto 48px; }
+}
+@media(prefers-reduced-motion: reduce) { .gs-portal *, .gs-portal *::before, .gs-portal *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+@media print { .gs-portal .gs-portal-main { max-width: none; padding: 0; } .gs-portal .gs-portal-workspace-grid { display: block; } .gs-portal .gs-portal-table-scroll { overflow: visible; } }

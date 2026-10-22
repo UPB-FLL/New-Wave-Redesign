@@ -5,8 +5,8 @@ import { supabase } from '../../lib/supabase';
 import { usePageMeta } from '../../lib/usePageMeta';
 import { GroundswellAdminShell } from './GroundswellAdminShell';
 import { GROUNDSWELL_ADMIN_PATH } from '../site';
-import { GROUNDSWELL_BRAND } from './brand';
-import { useGroundswellBrand } from './useGroundswellBrand';
+import { GROUNDSWELL_BRAND } from '../brand';
+import { useGroundswellBrand } from '../useGroundswellBrand';
 
 /**
  * The staff side of Groundswell (/groundswell/admin): the same Supabase
@@ -30,7 +30,7 @@ export default function GroundswellAdminLayout() {
       title={GROUNDSWELL_BRAND.name}
       subtitle="New Wave staff sign-in"
       loginBrand={{
-        className: 'gs-admin-branding gs-admin-login',
+        className: 'gs-branding gs-admin-login',
         logo: <img src={GROUNDSWELL_BRAND.logoReverse} alt="GroundSwell" width={220} height={31.125} />,
       }}
     >

@@ -1,10 +1,10 @@
+@import './brand.css';
+
 /* Groundswell's app shell: the parent's --nw-* tokens (styles/brand.css) plus
    the division's amber accent, on light surfaces. Scoped to .gs-root so no
    New Wave IT or division page picks it up. Amber text on white uses the deep
    shade (5.09:1, AA). */
 .gs-root {
-  --gs-accent: #F2A33A;
-  --gs-accent-deep: #A65B0B;
   --gs-ok: #1f7a3a;
   --gs-bad: #b42318;
   --gs-wait: #526271;

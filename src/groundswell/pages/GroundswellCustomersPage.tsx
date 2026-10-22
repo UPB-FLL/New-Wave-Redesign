@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Search } from 'lucide-react';
+import { ArrowUpRight, Building2, Plus, Search, SearchX } from 'lucide-react';
 import {
   getPartnerBranding,
   listPartnerCustomers,
@@ -30,7 +30,7 @@ import { customerStatus } from './customerStatus';
 const STAGE_COPY: Record<CustomerStage, { title: string; intro: string; add: string; list: string; empty: string; none: string }> = {
   prospect: {
     title: 'Prospects',
-    intro: 'Businesses you are pitching. Groundswell reads their public data and builds the reports; there is nothing to connect.',
+    intro: 'Businesses you are pitching. GroundSwell builds their reports from public data. No account connections needed.',
     add: 'Add a prospect',
     list: 'Your prospects',
     empty: 'No prospects yet. Add your first one above.',
@@ -98,57 +98,70 @@ function BrandingPanel() {
 
   const shown = name.trim() || state?.company || '';
   return (
-    <form onSubmit={save} className="gs-card mt-8 p-5 sm:p-6" aria-labelledby="partner-branding-heading">
-      <h2 id="partner-branding-heading" className="text-xl font-bold">
-        Your branding
-      </h2>
-      <p className="mt-1 text-sm gs-muted">Your reports say “Prepared by” your name, with your logo beside it. Each business keeps its own colours and logo.</p>
-      {state && !state.available ? (
-        <p className="gs-notice mt-3" role="status">
-          Branding isn’t switched on yet. Until it is, reports carry your company name.
+    <form onSubmit={save} className="gs-card gs-portal-branding" aria-labelledby="partner-branding-heading">
+      <div className="gs-portal-settings-intro">
+        <p className="gs-portal-eyebrow">Report identity</p>
+        <h2 id="partner-branding-heading" className="text-xl font-bold">
+          Your branding
+        </h2>
+        <p className="mt-1 text-sm gs-muted">
+          Your reports say “Prepared by” your name, with your logo beside it. Each business keeps its own colours and logo.
         </p>
-      ) : null}
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        <div>
-          <label htmlFor="pb-name" className="gs-label">
-            Name on your reports
-          </label>
-          <input id="pb-name" value={name} placeholder={state?.company ?? ''} onChange={(e) => setName(e.target.value)} className={field} />
-        </div>
-        <div>
-          <label htmlFor="pb-logo" className="gs-label">
-            Logo link
-          </label>
-          <input id="pb-logo" value={logo} placeholder="https://…/logo.png" onChange={(e) => setLogo(e.target.value)} className={field} />
-        </div>
       </div>
-      {shown ? (
-        <p className="mt-4 flex items-center gap-2 text-sm gs-muted">
-          Preview: Prepared by {shown}
-          {/^https:\/\//.test(logo.trim()) ? <img src={logo.trim()} alt="" className="h-6 max-w-[9rem] object-contain" /> : null}
-        </p>
-      ) : null}
-      {error ? (
-        <p className="gs-alert mt-3" role="alert">
-          {error}
-        </p>
-      ) : null}
-      {notice ? (
-        <p className="gs-notice mt-3" role="status">
-          {notice}
-        </p>
-      ) : null}
-      <button type="submit" disabled={busy || !state?.available} className="gs-btn gs-btn-primary mt-5 disabled:opacity-60">
-        Save branding
-      </button>
+      <div className="gs-portal-settings-fields">
+        {state && !state.available ? (
+          <p className="gs-notice mt-3" role="status">
+            Branding isn’t switched on yet. Until it is, reports carry your company name.
+          </p>
+        ) : null}
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div>
+            <label htmlFor="pb-name" className="gs-label">
+              Name on your reports
+            </label>
+            <input
+              id="pb-name"
+              value={name}
+              placeholder={state?.company ?? ''}
+              onChange={(e) => setName(e.target.value)}
+              className={field}
+            />
+          </div>
+          <div>
+            <label htmlFor="pb-logo" className="gs-label">
+              Logo link
+            </label>
+            <input id="pb-logo" value={logo} placeholder="https://…/logo.png" onChange={(e) => setLogo(e.target.value)} className={field} />
+          </div>
+        </div>
+        {shown ? (
+          <p className="mt-4 flex items-center gap-2 text-sm gs-muted">
+            Preview: Prepared by {shown}
+            {/^https:\/\//.test(logo.trim()) ? <img src={logo.trim()} alt="" className="h-6 max-w-[9rem] object-contain" /> : null}
+          </p>
+        ) : null}
+        {error ? (
+          <p className="gs-alert mt-3" role="alert">
+            {error}
+          </p>
+        ) : null}
+        {notice ? (
+          <p className="gs-notice mt-3" role="status">
+            {notice}
+          </p>
+        ) : null}
+        <button type="submit" disabled={busy || !state?.available} className="gs-btn gs-btn-primary mt-5 disabled:opacity-60">
+          {busy ? 'Saving…' : 'Save branding'}
+        </button>
+      </div>
     </form>
   );
 }
 
 function CustomerTable({ customers, label }: { customers: PartnerCustomer[]; label: string }) {
   return (
-    <div className="gs-card mt-4 overflow-x-auto">
-      <table className="w-full text-sm" aria-label={label}>
+    <div className="gs-portal-table-scroll" role="region" aria-label={`${label} table, scroll for more columns`} tabIndex={0}>
+      <table className="gs-portal-table w-full text-sm" aria-label={label}>
         <thead>
           <tr className="text-left">
             <th scope="col" className={th}>
@@ -171,10 +184,25 @@ function CustomerTable({ customers, label }: { customers: PartnerCustomer[]; lab
             return (
               <tr key={c.id} className="border-t border-[var(--nw-mist-gray)]">
                 <td className="px-4 py-3">
-                  <Link to={groundswellCustomerPath(c.id)} className="gs-link font-semibold">
-                    {c.business_name}
-                  </Link>
-                  <span className="block text-xs gs-muted sm:hidden">{c.city ?? ''}</span>
+                  <div className="gs-portal-business">
+                    <span className="gs-portal-business-avatar" aria-hidden="true">
+                      {c.business_name
+                        .split(/\s+/)
+                        .slice(0, 2)
+                        .map((word) => word[0])
+                        .join('')}
+                    </span>
+                    <div>
+                      <Link to={groundswellCustomerPath(c.id)} className="gs-portal-business-name">
+                        {c.business_name}
+                        <ArrowUpRight size={13} aria-hidden="true" />
+                      </Link>
+                      <span className="gs-portal-business-meta">
+                        {c.website?.replace(/^https?:\/\//, '').replace(/\/$/, '') ||
+                          (c.instagram ? `@${c.instagram}` : (c.city ?? 'Business profile'))}
+                      </span>
+                    </div>
+                  </div>
                 </td>
                 <td className="px-4 py-3 gs-muted max-sm:hidden">{c.city ?? '—'}</td>
                 <td className="px-4 py-3">
@@ -203,6 +231,7 @@ function Customers({ stage }: { stage: CustomerStage }) {
   const refresh = useCallback(async () => {
     try {
       setCustomers(await listPartnerCustomers(stage));
+      setError(null);
     } catch (err) {
       if (err instanceof PartnerSignedOut) navigate(GROUNDSWELL_PATH, { replace: true });
       else setError(err instanceof Error ? err.message : `Could not load your ${copy.title.toLowerCase()}.`);
@@ -231,70 +260,109 @@ function Customers({ stage }: { stage: CustomerStage }) {
   // A first prospect gets the form straight away; the clients list waits for the button (most clients were prospects first).
   const showForm = adding || (stage === 'prospect' && customers?.length === 0);
 
+  const inProgress = customers?.filter((c) => c.latest && ['queued', 'running', 'review'].includes(c.latest.status)).length;
+  const ready = customers?.filter((c) => c.latest?.status === 'done').length;
+
   return (
-    <>
-      <div className="flex flex-wrap items-start justify-between gap-4">
+    <div className="gs-portal-page">
+      <div className="gs-portal-page-heading">
         <div>
-          <h1 className="text-2xl font-bold">{copy.title}</h1>
-          <p className="mt-1 text-sm gs-muted">{copy.intro}</p>
+          <h1>{copy.title}</h1>
+          <p>{copy.intro}</p>
         </div>
         {!showForm ? (
           <button type="button" onClick={() => setAdding(true)} className="gs-btn gs-btn-primary">
-            <Plus size={16} aria-hidden="true" /> {copy.add}
+            <Plus size={17} aria-hidden="true" />
+            {copy.add}
           </button>
         ) : null}
       </div>
+      <dl className="gs-portal-stats" aria-label={`${copy.title} overview`}>
+        {[
+          [copy.title, customers?.length],
+          ['In progress', inProgress],
+          ['Reports ready', ready],
+        ].map(([label, value]) => (
+          <div key={label}>
+            <dt>{label}</dt>
+            <dd>{value ?? '—'}</dd>
+          </div>
+        ))}
+      </dl>
       {error ? (
-        <p className="gs-alert mt-4" role="alert">
-          {error}
-        </p>
+        <div className="gs-alert gs-portal-directory-error" role="alert">
+          <p>{error}</p>
+          <button type="button" className="gs-btn gs-btn-secondary" onClick={() => void refresh()}>
+            Try again
+          </button>
+        </div>
       ) : null}
       {showForm ? (
-        <div className="mt-6">
-          <CustomerForm
-            mode="add"
-            stage={stage}
-            onSaved={({ customer }) => navigate(groundswellCustomerPath(customer.id), { state: { queued: true } })}
-            onCancel={customers?.length || stage === 'client' ? () => setAdding(false) : undefined}
-          />
-        </div>
+        <CustomerForm
+          mode="add"
+          stage={stage}
+          onSaved={({ customer }) => navigate(groundswellCustomerPath(customer.id), { state: { queued: true } })}
+          onCancel={customers?.length || stage === 'client' ? () => setAdding(false) : undefined}
+        />
       ) : null}
-      <section aria-labelledby="partner-customers-heading" className="mt-8">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 id="partner-customers-heading" className="text-xl font-bold">
-            {copy.list}
-          </h2>
-          {customers && customers.length > 3 ? (
-            <label className="relative block w-full sm:w-64">
-              <span className="sr-only">Search {copy.title.toLowerCase()}</span>
-              <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 gs-muted" aria-hidden="true" />
-              <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={`Find a ${stage}…`} className={`${field} pl-9`} />
-            </label>
-          ) : null}
+      <section aria-labelledby="partner-customers-heading" className="gs-card gs-portal-directory">
+        <div className="gs-portal-directory-toolbar">
+          <div>
+            <h2 id="partner-customers-heading">{copy.list}</h2>
+            <p className="gs-portal-fine-print">
+              {customers ? `${shown?.length ?? 0} of ${customers.length} businesses` : 'Your customer directory'}
+            </p>
+          </div>
+          <label className="gs-portal-search">
+            <span className="sr-only">Search {copy.title.toLowerCase()}</span>
+            <Search size={16} aria-hidden="true" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={`Find a ${stage}…`}
+              className={field}
+            />
+          </label>
         </div>
         {!shown ? (
-          <p aria-busy="true" className="mt-4 text-sm gs-muted">
-            Loading…
-          </p>
+          !error ? (
+            <p aria-busy="true" className="gs-portal-loading">
+              Loading…
+            </p>
+          ) : (
+            <p className="gs-portal-loading">Your directory could not be loaded. Try again above.</p>
+          )
         ) : customers?.length === 0 ? (
-          <p className="mt-4 text-sm gs-muted">{showForm ? copy.empty : copy.none}</p>
+          <div className="gs-portal-empty">
+            <Building2 size={28} aria-hidden="true" />
+            <h3>{stage === 'client' ? 'Build your client list' : 'Start your first prospect'}</h3>
+            <p>{showForm ? copy.empty : copy.none}</p>
+          </div>
         ) : shown.length === 0 ? (
-          <p className="mt-4 text-sm gs-muted">Nothing matches “{query.trim()}”.</p>
+          <div className="gs-portal-empty">
+            <SearchX size={28} aria-hidden="true" />
+            <h3>No matching businesses</h3>
+            <p>Nothing matches “{query.trim()}”.</p>
+            <button type="button" className="gs-link" onClick={() => setQuery('')}>
+              Clear search
+            </button>
+          </div>
         ) : (
           <CustomerTable customers={shown} label={copy.list} />
         )}
       </section>
       {stage === 'prospect' ? <BrandingPanel /> : null}
-    </>
+    </div>
   );
 }
 
 export function GroundswellProspectsPage() {
   usePageMeta({ title: `Prospects | ${GROUNDSWELL_NAME}`, includeSiteName: false, noindex: true });
-  return <PartnerApp>{() => <Customers stage="prospect" />}</PartnerApp>;
+  return <PartnerApp>{() => <Customers key="prospect" stage="prospect" />}</PartnerApp>;
 }
 
 export function GroundswellClientsPage() {
   usePageMeta({ title: `Clients | ${GROUNDSWELL_NAME}`, includeSiteName: false, noindex: true });
-  return <PartnerApp>{() => <Customers stage="client" />}</PartnerApp>;
+  return <PartnerApp>{() => <Customers key="client" stage="client" />}</PartnerApp>;
 }

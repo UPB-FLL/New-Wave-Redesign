@@ -37,5 +37,5 @@ export const LEGACY_ADMIN_PATH = '/admin/groundswell';
 export const isGroundswellPath = (pathname: string) => pathname === GROUNDSWELL_PATH || pathname.startsWith(`${GROUNDSWELL_PATH}/`);
 
 /** The product name on its own pages; the audit it runs is Croissance. */
-export const GROUNDSWELL_NAME = 'Groundswell';
+export const GROUNDSWELL_NAME = 'GroundSwell';
 export const AUDIT_NAME = 'Croissance';

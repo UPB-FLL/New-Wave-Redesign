@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { GROUNDSWELL_BRAND } from './brand';
 
-/** Staff routes own their browser identity only while the layout is mounted. */
+/** GroundSwell routes own their browser identity only while the layout is mounted. */
 export function useGroundswellBrand() {
   useEffect(() => {
     const previous = [

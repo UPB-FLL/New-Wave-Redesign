@@ -88,7 +88,7 @@ export function CustomerForm(props: Props) {
   const noun = props.mode === 'add' ? props.stage : props.customer.stage;
   const heading = adding ? `Add a ${noun}` : `Edit ${noun}`;
   return (
-    <form onSubmit={submit} className="gs-card p-5 sm:p-6" aria-labelledby="customer-form-heading">
+    <form onSubmit={submit} className="gs-card gs-portal-customer-form p-5 sm:p-6" aria-labelledby="customer-form-heading">
       <h2 id="customer-form-heading" className="text-xl font-bold">
         {heading}
       </h2>
@@ -132,7 +132,7 @@ export function CustomerForm(props: Props) {
       ) : null}
       <fieldset className="mt-5">
         <legend className="gs-label">
-          {benchmark ? `Competitors (the first two are compared; leave a slot blank and Groundswell picks it from Google Places, one local and one country-wide; up to ${MAX_COMPETITORS})` : `Competitors (optional, up to ${MAX_COMPETITORS})`}
+          {benchmark ? `Competitors (the first two are compared; leave a slot blank and GroundSwell picks it from Google Places, one local and one country-wide; up to ${MAX_COMPETITORS})` : `Competitors (optional, up to ${MAX_COMPETITORS})`}
         </legend>
         <div className="space-y-3">
           {draft.competitors.map((c, i) => (
