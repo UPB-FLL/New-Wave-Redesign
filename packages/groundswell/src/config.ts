@@ -162,6 +162,29 @@ export interface ImpactRules {
   seo_target: { positions: Triple; basis: string };
 }
 
+/** The ad sets built from the plan (src/adsets.ts): the rules that are New Wave's, not a platform's. */
+export interface AdSetRules {
+  /** Share of the plan's monthly spend for the engagement ad set, per scenario (at least the Meta test minimum). */
+  engagement_share: Triple;
+  engagement_basis: string;
+  /** Organic positions that count as close to page one for the rankings ad group: [best, worst]. */
+  rankings_positions: [number, number];
+  /** A ranking keyword needs at least this many monthly searches to join the rankings ad group. */
+  rankings_min_searches: number;
+  /** At most this many keywords in one ad group. */
+  keywords_per_group: number;
+  /** Phrase negatives every search campaign starts with; the plan adds the business's own. */
+  default_negatives: string[];
+  negatives_basis: string;
+  /** The organic carousel for the engagement set: slides and the caption's limit. */
+  carousel: { max_slides: number; caption_max_chars: number; source: string; as_of: string };
+  /** The three budgets each set is priced at: multiples of the plan's base-case spend (low, medium, high). */
+  budget_multipliers: Triple;
+  budget_basis: string;
+  /** Phase 3: the account's own cost per click (and Meta's cost per lead) replaces the published one past these counts. */
+  actuals: { min_clicks: number; min_leads: number; basis: string };
+}
+
 export interface GroundswellConfig {
   version: number;
   /** What an hour of the team's time costs: the cost side of every non-ad change. */
@@ -180,6 +203,7 @@ export interface GroundswellConfig {
   unsupported_claims: string[];
   verification: VerificationRules;
   benchmark: BenchmarkRules;
+  adsets: AdSetRules;
 }
 
 /** The benchmarks a platform uses for an industry: its per-industry set when there is one, else the all-industry set. */
@@ -256,6 +280,15 @@ export function validateConfig(c: GroundswellConfig): GroundswellConfig {
   if (!(c.verification.tolerance > 0 && c.verification.tolerance < 1)) problems.push('verification.tolerance must be between 0 and 1');
   if (!(c.verification.max_rounds >= 2)) problems.push('verification.max_rounds must be at least 2 (a first pass and a re-run)');
   if (!(c.verification.max_review_drops > 0 && c.verification.max_review_drops < 1)) problems.push('verification.max_review_drops must be between 0 and 1');
+  const a = c.adsets;
+  triple('adsets.engagement_share', a.engagement_share, { unit: true, ascending: true });
+  if (!a.engagement_basis) problems.push('adsets.engagement_basis must say where the share comes from');
+  if (!(a.rankings_positions[0] >= 2 && a.rankings_positions[0] <= a.rankings_positions[1])) problems.push('adsets.rankings_positions must be [best, worst], best at least 2');
+  if (!(a.keywords_per_group >= 1)) problems.push('adsets.keywords_per_group must be at least 1');
+  if (!(a.carousel.max_slides >= 2 && a.carousel.caption_max_chars > 0)) problems.push('adsets.carousel needs at least 2 slides and a caption limit');
+  triple('adsets.budget_multipliers', a.budget_multipliers, { ascending: true });
+  if (!(a.budget_multipliers[0] > 0 && a.budget_multipliers[1] === 1)) problems.push('adsets.budget_multipliers must be above 0, the medium budget 1 (the plan’s own)');
+  if (!(a.actuals.min_clicks >= 1 && a.actuals.min_leads >= 1) || !a.actuals.basis) problems.push('adsets.actuals needs counts of at least 1 and a basis');
   if (problems.length) throw new Error(`Groundswell setup file is invalid:\n- ${problems.join('\n- ')}`);
   return c;
 }

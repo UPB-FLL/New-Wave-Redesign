@@ -1,11 +1,11 @@
 import { Suspense } from 'react';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
-import { ClipboardList, Gauge, Handshake } from 'lucide-react';
+import { ClipboardList, Gauge, Handshake, Users } from 'lucide-react';
 import AdminGuard from '../../admin/AdminGuard';
 import { supabase } from '../../lib/supabase';
 import { usePageMeta } from '../../lib/usePageMeta';
 import { GroundswellShell, type ShellNavItem } from '../GroundswellShell';
-import { GROUNDSWELL_ADMIN_AUDITS_PATH, GROUNDSWELL_ADMIN_PARTNERS_PATH, GROUNDSWELL_ADMIN_PATH, GROUNDSWELL_NAME } from '../site';
+import { GROUNDSWELL_ADMIN_AUDITS_PATH, GROUNDSWELL_ADMIN_CUSTOMERS_PATH, GROUNDSWELL_ADMIN_PARTNERS_PATH, GROUNDSWELL_ADMIN_PATH, GROUNDSWELL_NAME } from '../site';
 
 /**
  * The staff side of Groundswell (/groundswell/admin): the same Supabase
@@ -16,7 +16,8 @@ import { GROUNDSWELL_ADMIN_AUDITS_PATH, GROUNDSWELL_ADMIN_PARTNERS_PATH, GROUNDS
 
 const ADMIN_NAV: ShellNavItem[] = [
   { label: 'Overview', path: GROUNDSWELL_ADMIN_PATH, icon: Gauge, end: true },
-  { label: 'Audits', path: GROUNDSWELL_ADMIN_AUDITS_PATH, icon: ClipboardList },
+  { label: 'Customers', path: GROUNDSWELL_ADMIN_CUSTOMERS_PATH, icon: Users },
+  { label: 'Run queue', path: GROUNDSWELL_ADMIN_AUDITS_PATH, icon: ClipboardList },
   { label: 'Partners', path: GROUNDSWELL_ADMIN_PARTNERS_PATH, icon: Handshake },
 ];
 

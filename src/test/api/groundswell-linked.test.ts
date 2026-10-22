@@ -24,7 +24,7 @@ vi.mock('../../../api/_lib/groundswell/composio', async (original) => ({
 
 import { findKey, loadLinkedAccounts, readWindow, runLinked, WINDOW_DAYS, type GaData, type GoogleAdsData, type GscData, type InstagramData, type MetaAdsData } from '../../../api/_lib/groundswell/currents/linked';
 import { allowedNumbers, buildFacts, factsForPrompt } from '../../../api/_lib/groundswell/model';
-import { STEPS } from '../../../api/_lib/groundswell/steps';
+import { ALL_STEPS, INTEGRATED_STEPS, STEPS } from '../../../api/_lib/groundswell/steps';
 import { STEP_LABELS } from '../../../src/lib/groundswell';
 import { CLIENT_SERVICES } from '../../../src/lib/groundswellValidation';
 
@@ -150,11 +150,11 @@ beforeEach(() => {
 });
 
 describe('the linked step is registered', () => {
-  it('runs after the public data and before the write-up, optional, with a label', () => {
-    const names = STEPS.map((s) => s.name);
-    expect(names.indexOf('linked')).toBe(names.indexOf('ads') + 1);
-    expect(names.indexOf('linked')).toBe(names.indexOf('model') - 1);
-    expect(STEPS.find((s) => s.name === 'linked')).toMatchObject({ optional: true, current: 'Accounts' });
+  it('opens phase 3, optional, with a label; phase 1 reads public data only', () => {
+    expect(STEPS.map((s) => s.name)).not.toContain('linked');
+    expect(INTEGRATED_STEPS[0]).toMatchObject({ name: 'linked', optional: true, current: 'Accounts' });
+    // Runs started before the phases still carry it, so the worker keeps it.
+    expect(ALL_STEPS.some((s) => s.name === 'linked')).toBe(true);
     expect(STEP_LABELS.linked).toBe('Linked accounts');
   });
 });

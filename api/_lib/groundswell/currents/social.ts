@@ -22,7 +22,65 @@ export interface InstagramSnapshot {
   avg_comments_recent: number | null;
   /** Links in the bio (link-in-bio pages, stores, podcasts); missing on audits before 2026-10-22. */
   bio_links?: string[];
+  /** The business's recent posts with their images (the ad sets' creative); never kept for a competitor. Missing before phases. */
+  media?: InstagramMedia[];
   error: string | null;
+}
+
+export interface InstagramMedia {
+  code: string | null;
+  /** The post on Instagram. */
+  permalink: string | null;
+  /** The original image (a video's or carousel's cover); Instagram's links expire within days. */
+  image_url: string;
+  type: 'image' | 'video' | 'carousel';
+  likes: number | null;
+  comments: number | null;
+  plays: number | null;
+  taken_at: string | null;
+  caption: string | null;
+}
+
+/** The largest image of a post: the original candidate first, then the display copy. */
+function imageOf(p: Record<string, unknown>): string | null {
+  const first = (p.carousel_media as Record<string, unknown>[] | undefined)?.[0];
+  for (const item of [p, ...(first ? [first] : [])]) {
+    const candidates = (item.image_versions2 as { candidates?: { url?: unknown }[] } | undefined)?.candidates ?? [];
+    const original = candidates.find((c) => typeof c?.url === 'string')?.url;
+    const url = original ?? item.display_uri ?? item.display_url ?? item.displayUrl ?? item.thumbnail_src ?? item.thumbnail_url ?? (item.images as unknown[] | undefined)?.[0];
+    if (typeof url === 'string' && /^https:\/\//.test(url)) return url;
+  }
+  return null;
+}
+
+/** The posts a page lists, with what the ad sets need: image, type, counts, caption. */
+export function mediaFrom(posts: unknown): InstagramMedia[] {
+  // ScrapeCreators lists `items` (or `posts` / `edges`); Apify's scraper answers with an array of posts.
+  const list = Array.isArray(posts)
+    ? posts
+    : findKey<unknown[]>(posts, 'items') ?? findKey<unknown[]>(posts, 'posts') ?? findKey<unknown[]>(posts, 'edges') ?? (Array.isArray(findKey(posts, 'data')) ? findKey<unknown[]>(posts, 'data') : null) ?? [];
+  const items = list.filter((i) => i && typeof i === 'object').map((i) => ((i as Record<string, unknown>).node ?? i) as Record<string, unknown>);
+  const out: InstagramMedia[] = [];
+  for (const p of items) {
+    const image_url = imageOf(p);
+    if (!image_url) continue;
+    const kind = n(p.media_type) ?? (p.type === 'Video' ? 2 : p.type === 'Sidecar' ? 8 : p.type === 'Image' ? 1 : null);
+    const caption = typeof p.caption === 'string' ? p.caption : typeof (p.caption as { text?: unknown })?.text === 'string' ? (p.caption as { text: string }).text : null;
+    const time = postTime(p);
+    const code = typeof p.code === 'string' ? p.code : typeof p.shortcode === 'string' ? p.shortcode : typeof p.shortCode === 'string' ? p.shortCode : null;
+    out.push({
+      code,
+      permalink: typeof p.url === 'string' ? p.url : code ? `https://www.instagram.com/p/${code}/` : null,
+      image_url,
+      type: kind === 2 || p.product_type === 'clips' ? 'video' : kind === 8 || (Array.isArray(p.carousel_media) && p.carousel_media.length) ? 'carousel' : 'image',
+      likes: n(p.like_count) ?? n(p.likesCount) ?? n(findKey(p.edge_liked_by ?? p.edge_media_preview_like, 'count')),
+      comments: n(p.comment_count) ?? n(p.commentsCount) ?? n(findKey(p.edge_media_to_comment, 'count')),
+      plays: n(p.play_count) ?? n(p.ig_play_count) ?? n(p.videoPlayCount) ?? n(p.videoViewCount),
+      taken_at: time ? new Date(time).toISOString() : null,
+      caption: caption ? caption.slice(0, 400) : null,
+    });
+  }
+  return out.slice(0, 12);
 }
 
 const n = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
@@ -72,6 +130,7 @@ export function summarizeInstagram(handle: string, profile: unknown, posts: unkn
     avg_likes_recent: avg(recent.map((p) => n(p.like_count) ?? n(findKey(p.edge_liked_by ?? p.edge_media_preview_like, 'count')))),
     avg_comments_recent: avg(recent.map((p) => n(p.comment_count) ?? n(findKey(p.edge_media_to_comment, 'count')))),
     bio_links: bioLinks(profile),
+    media: mediaFrom(posts),
     error: null,
   };
 }
@@ -112,7 +171,8 @@ export async function runSocial(ctx: StepContext, pauseMs = BLOCKED_RETRY_MS) {
     .slice(0, 6);
   const business = own ? await instagram(own, pauseMs) : null;
   if (business?.error && /refused|not connected|no active connection|not set up/i.test(business.error)) throw new Error(business.error);
-  const competitors = await Promise.all(rivals.map(async (c) => ({ name: c.name, ...(await instagram(c.handle, pauseMs)) })));
+  // A competitor's posts are never anyone's creative: only the business keeps its media.
+  const competitors = await Promise.all(rivals.map(async (c) => ({ name: c.name, ...(await instagram(c.handle, pauseMs)), media: [] })));
   return {
     source: 'Instagram public profiles, via ScrapeCreators through Composio',
     fetched_at: new Date().toISOString(),

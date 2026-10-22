@@ -3,7 +3,7 @@ import { CLIENT_SERVICES, type ClientService, type CustomerStage } from '../../.
 import { getSupabaseAdmin } from '../../supabaseAdmin.js';
 import type { ClientAccountRow } from '../clientAccounts.js';
 import { executeToolAs, isComposioConfigured } from '../composio.js';
-import type { StepContext } from '../types.js';
+import { PermanentStepError, type StepContext } from '../types.js';
 
 /**
  * The Accounts Current: a client's own accounts, read through the connections
@@ -479,6 +479,87 @@ const sourceOf = (service: ClientService, data: LinkedData, w: LinkedWindow): st
 
 /** A refused or stale connection: the account has to be linked again. */
 const LINK_BROKEN = /expired|revoked|invalid_grant|not active|no (active )?connect|connected account|unauthori[sz]ed|\(401\)|\(403\)|permission/i;
+
+export interface SearchTerm {
+  term: string;
+  campaign: string | null;
+  ad_group: string | null;
+  impressions: number;
+  clicks: number;
+  cost: number;
+  conversions: number;
+}
+
+export interface SearchTermsData {
+  account: string;
+  window_days: number;
+  terms: SearchTerm[];
+  totals: { clicks: number; cost: number; conversions: number };
+}
+
+const GAQL_SEARCH_TERMS =
+  'SELECT search_term_view.search_term, campaign.name, ad_group.name, metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions FROM search_term_view WHERE segments.date DURING LAST_30_DAYS ORDER BY metrics.cost_micros DESC LIMIT 200';
+
+/** What people searched before the client's Google ads showed (the first account that answers; a manager answers none). */
+export async function readSearchTerms(run: Run): Promise<SearchTermsData> {
+  const names = findKey(await run('GOOGLEADS_LIST_ACCESSIBLE_CUSTOMERS', {}), 'resourceNames');
+  const ids = (Array.isArray(names) ? names : []).map((r) => String(r).replace(/^customers\//, '')).filter((id) => /^\d+$/.test(id));
+  if (!ids.length) throw new LinkedProblem('The linked Google account has no Google Ads account to read.');
+  let lastError: unknown = null;
+  for (const customer_id of ids.slice(0, 3)) {
+    let results: Obj[];
+    try {
+      results = list(await run('GOOGLEADS_SEARCH_STREAM_GAQL', { customer_id, query: GAQL_SEARCH_TERMS }), 'results');
+    } catch (err) {
+      lastError = err;
+      continue;
+    }
+    const terms = results
+      .map((r) => {
+        const v = isObj(r.searchTermView) ? r.searchTermView : isObj(r.search_term_view) ? r.search_term_view : {};
+        const c = isObj(r.campaign) ? r.campaign : {};
+        const g = isObj(r.adGroup) ? r.adGroup : isObj(r.ad_group) ? r.ad_group : {};
+        const m = isObj(r.metrics) ? r.metrics : {};
+        return {
+          term: str(v.searchTerm ?? v.search_term) ?? '',
+          campaign: str(c.name),
+          ad_group: str(g.name),
+          impressions: n0(m.impressions),
+          clicks: n0(m.clicks),
+          cost: Math.round(n0(m.costMicros ?? m.cost_micros) / 10_000) / 100,
+          conversions: round(n0(m.conversions), 1) ?? 0,
+        };
+      })
+      .filter((t) => t.term);
+    return {
+      account: customer_id,
+      window_days: WINDOW_DAYS,
+      terms,
+      totals: { clicks: sum(terms.map((t) => t.clicks)), cost: Math.round(sum(terms.map((t) => t.cost)) * 100) / 100, conversions: round(sum(terms.map((t) => t.conversions)), 1) ?? 0 },
+    };
+  }
+  throw lastError ?? new LinkedProblem('The linked Google Ads account answered no search terms.');
+}
+
+/**
+ * Search-terms step (phase 3): the searches behind the client's own Google
+ * ads over the last WINDOW_DAYS, read as its linked Google Ads account (the
+ * Composio project, never the shared lookup). Optional: a client without a
+ * linked Google Ads account, or one that answers nothing, goes on without it.
+ */
+export async function runSearchTerms(ctx: StepContext): Promise<SearchTermsData> {
+  const accounts = await loadLinkedAccounts(getSupabaseAdmin(), ctx.audit.id);
+  const row = accounts.rows.find((r) => r.service === 'googleads');
+  if (!row) throw new PermanentStepError('No Google Ads account is linked for this client, so its search terms were not read.');
+  if (!isComposioConfigured()) throw new PermanentStepError('The linked accounts cannot be read: the Composio project is not set up.');
+  const timeoutMs = Math.max(10_000, Math.min(60_000, ctx.deadline - Date.now() - 10_000));
+  try {
+    return await readSearchTerms((slug, args) => executeToolAs(slug, args, { id: row.composio_account_id, user_id: row.user_id }, timeoutMs));
+  } catch (err) {
+    if (err instanceof LinkedProblem) throw new PermanentStepError(err.message);
+    throw err;
+  }
+}
 
 function problemFor(err: unknown, label: string): string {
   if (err instanceof LinkedProblem) return err.message;

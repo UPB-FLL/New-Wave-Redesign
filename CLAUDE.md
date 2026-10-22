@@ -2,6 +2,89 @@
 
 ## Recent Changes
 
+### Groundswell: three phases, ad sets, and a workspace per customer (2026-10-22)
+
+Owner's choices: the runs through the Composio project were poor, while the
+same tools under a consumer account (outside a project, with its own linked
+accounts) ran well. So phases 1 and 2 run on the consumer account and only
+phase 3 uses the project (the client's linked accounts). Each phase starts
+the next on its own; no button, no prompt.
+
+- **Consumer account** (`composioConsumer.ts`): Composio Connect's MCP
+  endpoint (`COMPOSIO_CONSUMER_API_KEY`, the `ck_…` key from Composio's For
+  You page; optional `COMPOSIO_CONSUMER_MCP_URL`), called as
+  `COMPOSIO_MULTI_EXECUTE_TOOL`. Large answers are saved in Composio's
+  sandbox and read back pruned (`prunerCode`). With the key set, `executeTool`
+  (`composio.ts`) goes there; the project key stays for client accounts.
+  Readiness checks the consumer's toolkits (`checkConsumer`); with it, the
+  project key is no longer required. Keyword Planner retries without
+  `customer_id` there.
+- **Phases** (`phases.ts`, `PHASE_INFO` in `groundswellValidation.ts`): each
+  is its own `marketing_audits` row (`phase` audit | competitors |
+  integrated, `source_audit_id`); the engine reads the source chain's outputs
+  first (`StepContext.inherited`). 1 Audit (`STEPS`), 2 Plan against
+  competitors (`COMPETITOR_STEPS`: the benchmark data reused from phase 1
+  when it read them, `creative`, `adsets`, the benchmark and ad-set PDFs), 3
+  Integrated plan (`INTEGRATED_STEPS`: `linked`, `search_terms`, the required
+  `integrated` step, `adsets` again). `deliver_finish` queues the next phase
+  (`queueNextPhase`, never twice); phase 3 only for a client with an active
+  linked account.
+- **Starting runs** (`startQueuedRuns` in `engine.ts`): the app gives each
+  queued run its phase's steps. It claims a run by setting `started_at`
+  while it is still queued (queueing and requeue leave it empty; a claim
+  older than `START_LEASE_MS` is taken over), replaces its old steps, then
+  moves it to running only while `started_at` still holds its claim. Without
+  the `phase` column it is `start_queued_audits` as before. Full auto: the
+  heartbeat starts queued runs up to `MAX_RUNNING` (3);
+  `GROUNDSWELL_AUTO_START=off` turns that off.
+- **Ad sets** (`packages/groundswell/src/adsets.ts`, step `adsets`): from the
+  ad plan, Meta and Google sets for three goals, each with its mechanism and
+  KPI: leads, engagement (`engagement_share` of the spend boosting the
+  business's best posts) and rankings (searches where Ahrefs has it at
+  positions 4–20). Each set is priced at low / medium / high
+  (`budget_multipliers` [0.5, 1, 2] × the plan's base case; search spend
+  stops at the clicks the area supplies) with clicks, leads, revenue and
+  return, and a conservative–upside range at the medium budget. Setup file
+  section `adsets` (New Wave's rules, each with its basis).
+- **Images** (`creative.ts`): the business's own Instagram posts (phase 1's
+  media, ScrapeCreators, Apify, then the site's og:image), at least 500 px.
+  `creativeRender.ts` renders 1080×1350 ads (the photo above, the words on a
+  band of the brand colour) and carousel slides with a caption.
+- **Exports** (`reportsAdsets.ts`, `files.ts`): a Meta bulk-import workbook
+  (Ads in the example's 18 columns, paused; Ad sets; Forecast), a Google Ads
+  Editor CSV, the ad images and carousel as zips, and the "Ad Sets" PDF.
+  Stored in the private `groundswell-assets` bucket (`assetStore.ts`,
+  `groundswell_assets` rows).
+- **Phase 3** (`integrated.ts`, `packages/groundswell/src/actuals.ts`): the
+  account's own cost per click (from 50 clicks) and cost per lead (from 5
+  leads) replace the published ones within ±15%; the published Google
+  conversion rate stays (an account counts whatever it counts). The write-up
+  is held to the account's figures; "Integrated Plan" PDF.
+- **Workspace** (`api/groundswell/workspace.ts`, `workspace.ts`, `viewer.ts`;
+  files through `api/groundswell/asset.ts`, only paths recorded for the run):
+  a partner sees only its own customers and their runs, never error text;
+  staff on `GROUNDSWELL_ADMIN_EMAILS` see everything. Screens:
+  `CustomerWorkspace` (one card per phase, Start or Run again or why not,
+  progress, reports, downloads, ad images, carousel, photos, data panels,
+  earlier runs; it polls while a run waits or runs) on the partner's
+  customer page (Drive-era audits listed below it) and on the new staff
+  pages `/groundswell/admin/customers` (`GroundswellCustomers`: search,
+  partner and stage filters, each phase's state) and `…/customers/:id`. The
+  staff nav's "Audits" is now "Run queue".
+- **Migration** `20261029120000`: the two columns, the wider report kinds,
+  `groundswell_assets` (RLS on, no access for anon or authenticated), the
+  bucket, and the worker cron firing while a run is queued too. Applied to
+  production on 2026-10-22 in three parts (`groundswell_phases_columns_assets`,
+  `…_report_kinds`, `…_worker_cron`). Every statement can run again.
+- **Tests**: `groundswell-composio-consumer`, `-phases`, `-adsets` (prints
+  the PDF and renders the images when Chromium is there), `-integrated`,
+  `-workspace` in `src/test/api/`; `packages/groundswell/test/adsets.test.ts`
+  and `actuals.test.ts`; `src/groundswell/workspace/CustomerWorkspace.test.tsx`
+  and the workspace cases in `portal.test.tsx`.
+- **Not yet**: the Meta workbook and Google CSV follow the example and the
+  importers' documented columns, not a live import; Keyword Planner on the
+  consumer account needs a Google Ads customer id it can read.
+
 ### Groundswell: a client's runs read its linked accounts (2026-10-22)
 
 PR 4 of the prospect/client plan. The same audit and the same four reports

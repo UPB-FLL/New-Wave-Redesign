@@ -21,7 +21,16 @@ const api = vi.hoisted(() => ({
   partnerReportUrl: vi.fn(),
 }));
 
+const ws = vi.hoisted(() => ({
+  getWorkspace: vi.fn(),
+  startPhase: vi.fn(),
+  runFiles: vi.fn(),
+  reportUrl: vi.fn(),
+  listStaffCustomers: vi.fn(),
+}));
+
 vi.mock('../lib/groundswellPartner', async (orig) => ({ ...(await orig<typeof import('../lib/groundswellPartner')>()), ...api }));
+vi.mock('../lib/groundswellWorkspace', async (orig) => ({ ...(await orig<typeof import('../lib/groundswellWorkspace')>()), ...ws }));
 
 import GroundswellCustomerPage, { AccountsCard } from './pages/GroundswellCustomerPage';
 import { GroundswellClientsPage, GroundswellProspectsPage } from './pages/GroundswellCustomersPage';
@@ -68,8 +77,26 @@ const harbor = {
   created_at: '2026-10-20T00:00:00Z', updated_at: '2026-10-20T00:00:00Z', stage: 'prospect' as const, became_client_at: null,
 };
 
+const phasesOf = (runs: Partial<Record<'audit' | 'competitors' | 'integrated', unknown[]>> = {}, start: Partial<Record<string, { allowed: boolean; reason: string }>> = {}) => ({
+  customer: { id: 'c1', business_name: 'Harbor Auto', city: 'Miami', website: 'https://harbor.example', instagram: null, partner_id: 'p1' },
+  phases_available: true,
+  phases: (
+    [
+      ['audit', 1, 'The audit'],
+      ['competitors', 2, 'The plan against competitors'],
+      ['integrated', 3, 'The integrated plan'],
+    ] as const
+  ).map(([phase, number, title]) => ({
+    phase, number, title, source: 'Public data', brings: `${title} brings this.`, runs: runs[phase] ?? [],
+    start: start[phase] ?? { allowed: false, reason: 'Waiting on the phase before it.', builds_on: null },
+  })),
+});
+
 beforeEach(() => {
   Object.values(api).forEach((fn) => fn.mockReset());
+  Object.values(ws).forEach((fn) => fn.mockReset());
+  ws.getWorkspace.mockResolvedValue(phasesOf());
+  ws.runFiles.mockResolvedValue([]);
   api.currentPartner.mockResolvedValue(null);
   api.getPartnerBranding.mockResolvedValue({ company: 'Reef Agency', branding: { display_name: null, logo_url: null }, available: true });
   api.listClientAccounts.mockResolvedValue({ accounts: accountsOf(), available: true });
@@ -218,7 +245,7 @@ describe('partner prospects page', () => {
 });
 
 describe('partner customer page', () => {
-  it('shows the customer’s details and each audit with its reports (Drive links only for audits delivered there)', async () => {
+  it('shows the customer’s details, its three phases with their reports, and only Drive-era audits below', async () => {
     api.currentPartner.mockResolvedValue(partner);
     api.getPartnerCustomer.mockResolvedValue({
       customer: { ...harbor, latest: { id: 'a1', status: 'done', kind: 'benchmark', created_at: '2026-10-21T00:00:00Z', completed_at: '2026-10-21T01:00:00Z' }, last_reports_at: '2026-10-21T01:00:00Z', audit_count: 2 },
@@ -236,40 +263,68 @@ describe('partner customer page', () => {
         },
       ],
     });
-    api.partnerReportUrl.mockResolvedValue('https://storage.example/signed/a2/deck');
+    const delivered = {
+      id: 'a2', status: 'done', kind: 'audit', created_at: '2026-10-22T00:00:00Z', started_at: '2026-10-22T00:00:00Z', completed_at: '2026-10-22T01:00:00Z',
+      steps: [{ step: 'site', status: 'done' }, { step: 'deliver_finish', status: 'done' }],
+      reports: [{ kind: 'summary', name: 's.pdf', pages: 1 }, { kind: 'deck', name: 'd.pdf', pages: 12 }, { kind: 'audit', name: 'a.pdf', pages: 20 }],
+      files: [],
+    };
+    ws.getWorkspace.mockResolvedValue(phasesOf({ audit: [delivered] }, { competitors: { allowed: true, reason: 'Builds on the audit of Oct 22.' } }));
+    ws.reportUrl.mockResolvedValue('https://storage.example/signed/a2/deck');
     const opened = vi.spyOn(window, 'open').mockImplementation(() => null);
     renderPortal(groundswellCustomerPath('c1'));
     expect(await screen.findByRole('heading', { level: 1, name: 'Harbor Auto' })).toBeInTheDocument();
     expect(robots()).toBe('noindex, nofollow');
     expect(screen.getByText('Miami')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'harbor.example' })).toHaveAttribute('href', 'https://harbor.example');
-    const audits = within(screen.getByRole('list', { name: 'Audits of this customer' })).getAllByRole('listitem');
-    expect(audits).toHaveLength(3);
-    const stored = audits.find((li) => within(li).queryByRole('button', { name: /Slides \(PDF\)/ }))!;
-    expect(within(stored).getAllByRole('button').map((b) => b.textContent)).toEqual(['Summary (PDF)', 'Slides (PDF)', 'Full audit (PDF)']);
-    expect(within(stored).queryByRole('link')).not.toBeInTheDocument();
-    fireEvent.click(within(stored).getByRole('button', { name: /Slides \(PDF\)/ }));
+    expect(screen.getByRole('heading', { level: 2, name: 'Phases' })).toBeInTheDocument();
+    const cards = within(await screen.findByRole('list', { name: 'Phases' })).getAllByRole('button');
+    expect(cards.map((b) => b.getAttribute('data-phase'))).toEqual(['audit', 'competitors', 'integrated']);
+    expect(ws.getWorkspace).toHaveBeenCalledWith('partner', 'c1');
+    // The furthest phase with a run is open: phase 1, delivered, with its reports.
+    expect(cards[0]).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('heading', { level: 3, name: 'Phase 1 · The audit' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Slides \(PDF\)/ }));
     await waitFor(() => expect(opened).toHaveBeenCalledWith('https://storage.example/signed/a2/deck', '_blank', 'noopener'));
-    expect(api.partnerReportUrl).toHaveBeenCalledWith('a2', 'deck');
+    expect(ws.reportUrl).toHaveBeenCalledWith('partner', 'a2', 'deck');
     opened.mockRestore();
-    const legacy = audits.find((li) => within(li).queryAllByRole('link', { name: /Google Drive/ }).length)!;
-    expect(within(legacy).getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual([
+    // Phase 2 can start; phase 3 says why it cannot.
+    fireEvent.click(cards[1]);
+    expect(screen.getByRole('button', { name: /Start phase 2/ })).toBeInTheDocument();
+    fireEvent.click(cards[2]);
+    expect(screen.queryByRole('button', { name: /Start phase 3/ })).not.toBeInTheDocument();
+    expect(screen.getByText('Waiting on the phase before it.')).toBeInTheDocument();
+    // Only the audit delivered to Drive is listed below, with its Drive links only.
+    expect(screen.getByRole('heading', { level: 2, name: 'Earlier audits (Google Drive)' })).toBeInTheDocument();
+    const legacy = within(screen.getByRole('list', { name: 'Earlier audits of this customer' })).getAllByRole('listitem');
+    expect(legacy).toHaveLength(1);
+    expect(within(legacy[0]).getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual([
       'https://drive.google.com/file/d/S/view',
       'https://drive.google.com/file/d/B/view',
       'https://drive.google.com/drive/folders/F',
     ]);
-    const failed = audits.find((li) => within(li).queryByText(/didn’t finish/))!;
-    expect(within(failed).queryByRole('link')).not.toBeInTheDocument();
-    expect(within(failed).queryByRole('button')).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: /All prospects/ })).toHaveAttribute('href', GROUNDSWELL_PROSPECTS_PATH);
     expect(screen.getByText('Prospect')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 2, name: 'Audits from public data' })).toBeInTheDocument();
   });
 
-  it('"Became a client" moves the record over, keeping its audits, and the way back is one click', async () => {
+  it('starts a phase from its card and says it starts on its own', async () => {
+    api.currentPartner.mockResolvedValue(partner);
+    api.getPartnerCustomer.mockResolvedValue({ customer: { ...harbor, latest: null, last_reports_at: null, audit_count: 0 }, audits: [] });
+    ws.getWorkspace.mockResolvedValue(phasesOf({}, { audit: { allowed: true, reason: 'Reads the business’s public data.' } }));
+    ws.startPhase.mockResolvedValue({ queued: 'a9', reason: 'Phase 1 is queued.' });
+    renderPortal(groundswellCustomerPath('c1'));
+    fireEvent.click(await screen.findByRole('button', { name: /Start phase 1/ }));
+    await waitFor(() => expect(ws.startPhase).toHaveBeenCalledWith('partner', 'c1', 'audit'));
+    expect(await screen.findByRole('status')).toHaveTextContent('Phase 1 is queued. It starts on its own within a minute');
+    expect(ws.getWorkspace).toHaveBeenCalledTimes(2);
+  });
+
+  it('"Became a client" moves the record over, keeping its phases, and the way back is one click', async () => {
     api.currentPartner.mockResolvedValue(partner);
     const audits = [{ id: 'a1', business_name: 'Harbor Auto', city: 'Miami', website: 'https://harbor.example', instagram: null, competitors: [], status: 'done', kind: 'audit', drive_folder_url: null, summary_pdf_url: null, deck_pdf_url: null, audit_pdf_url: null, created_at: '2026-10-21T00:00:00Z', completed_at: '2026-10-21T01:00:00Z', reports: [{ kind: 'audit', name: 'a.pdf', pages: 20 }] }];
     api.getPartnerCustomer.mockResolvedValue({ customer: { ...harbor, latest: null, last_reports_at: null, audit_count: 1 }, audits, stages_available: true });
+    const run = { id: 'a1', status: 'done', kind: 'audit', created_at: '2026-10-21T00:00:00Z', started_at: null, completed_at: '2026-10-21T01:00:00Z', steps: [], reports: [{ kind: 'audit', name: 'a.pdf', pages: 20 }], files: [] };
+    ws.getWorkspace.mockResolvedValue(phasesOf({ audit: [run] }));
     api.setPartnerCustomerStage.mockImplementation(async (_id: string, stage: 'prospect' | 'client') => ({ ...harbor, stage, became_client_at: stage === 'client' ? '2026-10-22T00:00:00Z' : null, latest: null, last_reports_at: null, audit_count: 1 }));
     renderPortal(groundswellCustomerPath('c1'));
     fireEvent.click(await screen.findByRole('button', { name: 'Became a client' }));
@@ -277,8 +332,11 @@ describe('partner customer page', () => {
     expect(await screen.findByRole('status')).toHaveTextContent('Now a client. Everything gathered as a prospect stays here.');
     expect(screen.getByText('Client')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /All clients/ })).toHaveAttribute('href', GROUNDSWELL_CLIENTS_PATH);
-    // The scraped audit is still on the page.
-    expect(within(screen.getByRole('list', { name: 'Audits of this customer' })).getAllByRole('listitem')).toHaveLength(1);
+    // The scraped audit is still on the page, as phase 1.
+    expect(await screen.findByRole('heading', { level: 3, name: 'Phase 1 · The audit' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Full audit \(PDF\)/ })).toBeInTheDocument();
+    // No Drive-era audits, so no list of them.
+    expect(screen.queryByRole('list', { name: 'Earlier audits of this customer' })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Move back to prospects' }));
     await waitFor(() => expect(api.setPartnerCustomerStage).toHaveBeenLastCalledWith('c1', 'prospect'));
     expect(await screen.findByRole('button', { name: 'Became a client' })).toBeInTheDocument();

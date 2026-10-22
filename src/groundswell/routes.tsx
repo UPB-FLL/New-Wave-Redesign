@@ -11,6 +11,8 @@ const AdminLayout = lazy(() => import('./admin/GroundswellAdminLayout'));
 const AdminOverview = lazy(() => import('./admin/GroundswellOverview'));
 const AdminAudits = lazy(() => import('./admin/GroundswellAudits'));
 const AdminPartners = lazy(() => import('./admin/GroundswellPartners'));
+const AdminCustomers = lazy(() => import('./admin/GroundswellCustomers'));
+const AdminCustomer = lazy(() => import('./admin/GroundswellCustomer'));
 
 /** If a chunk still fails to load (main.tsx already reloads once for stale deploys), offer a way forward. */
 class ChunkErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
@@ -82,7 +84,13 @@ export function GroundswellAdminRoute() {
   );
 }
 
-export { AdminOverview as GroundswellAdminOverview, AdminAudits as GroundswellAdminAudits, AdminPartners as GroundswellAdminPartners };
+export {
+  AdminOverview as GroundswellAdminOverview,
+  AdminAudits as GroundswellAdminAudits,
+  AdminPartners as GroundswellAdminPartners,
+  AdminCustomers as GroundswellAdminCustomers,
+  AdminCustomer as GroundswellAdminCustomer,
+};
 
 /**
  * Client-side redirects from the old addresses (vercel.json redirects them

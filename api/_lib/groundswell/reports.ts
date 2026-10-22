@@ -481,7 +481,7 @@ export function linkedLine(f: Facts): string | null {
 
 const pc = (x: number | null | undefined) => (x === null || x === undefined ? NOT_CHECKED : `${num(x, 1)}%`);
 
-function linkedTables(l: LinkedOutput): string {
+export function linkedTables(l: LinkedOutput): string {
   return l.services
     .filter((s) => s.ok && s.data)
     .map((s) => {

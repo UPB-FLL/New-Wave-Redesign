@@ -104,7 +104,7 @@ describe('GroundswellAudits admin screen', () => {
     expect(progress).toHaveTextContent('Website: done');
     expect(progress).toHaveTextContent('Google Maps: skipped');
     expect(progress).toHaveTextContent('Search rankings: running');
-    expect(progress).toHaveTextContent('Share and save links: waiting');
+    expect(progress).toHaveTextContent('Finish and queue the next phase: waiting');
     expect(screen.getByText('Google Maps: skipped')).toHaveAttribute('title', 'Google Maps showed a consent page.');
   });
 

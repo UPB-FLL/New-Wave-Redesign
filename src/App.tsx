@@ -97,6 +97,8 @@ import {
 } from './groundswell/site';
 import {
   GroundswellAdminAudits,
+  GroundswellAdminCustomer,
+  GroundswellAdminCustomers,
   GroundswellAdminOverview,
   GroundswellAdminPartners,
   GroundswellAdminRoute,
@@ -212,6 +214,8 @@ export default function App() {
         <Route path={`${GROUNDSWELL_CUSTOMERS_PATH}/:id`} element={<GroundswellCustomerRoute />} />
         <Route path={GROUNDSWELL_ADMIN_PATH} element={<GroundswellAdminRoute />}>
           <Route index element={<GroundswellAdminOverview />} />
+          <Route path="customers" element={<GroundswellAdminCustomers />} />
+          <Route path="customers/:id" element={<GroundswellAdminCustomer />} />
           <Route path="audits" element={<GroundswellAdminAudits />} />
           <Route path="partners" element={<GroundswellAdminPartners />} />
         </Route>

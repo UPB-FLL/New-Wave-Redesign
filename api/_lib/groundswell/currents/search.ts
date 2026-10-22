@@ -1,4 +1,5 @@
 import { executeTool, findKey } from '../composio.js';
+import { isConsumerConfigured } from '../composioConsumer.js';
 import type { StepContext } from '../types.js';
 import type { SiteScan } from './site.js';
 
@@ -147,7 +148,17 @@ export async function runKeywords(ctx: StepContext) {
   else if (url) args.url_seed = { url };
   else args.keyword_seed = { keywords: seeds };
 
-  const ideas = parseKeywordIdeas(await executeTool('GOOGLEADS_GENERATE_KEYWORD_IDEAS', args))
+  let payload: unknown;
+  try {
+    payload = await executeTool('GOOGLEADS_GENERATE_KEYWORD_IDEAS', args);
+  } catch (err) {
+    // The consumer account's Google Ads login may not reach the project's customer id; its own default customer can still plan.
+    if (!(args.customer_id && isConsumerConfigured())) throw err;
+    const { customer_id: _unused, ...rest } = args;
+    void _unused;
+    payload = await executeTool('GOOGLEADS_GENERATE_KEYWORD_IDEAS', rest);
+  }
+  const ideas = parseKeywordIdeas(payload)
     .sort((a, b) => (b.monthly_searches ?? 0) - (a.monthly_searches ?? 0))
     .slice(0, 50);
   return {

@@ -29,7 +29,7 @@ describe('report store', () => {
     const byAudit = await reportsFor(client as never, ['a1', 'a2']);
     expect(byAudit.get('a1')?.map((r) => r.kind)).toEqual(['summary', 'deck', 'audit']);
     expect(byAudit.get('a2')).toBeUndefined();
-    expect(REPORT_KINDS).toEqual(['summary', 'deck', 'audit', 'benchmark']);
+    expect(REPORT_KINDS).toEqual(['summary', 'deck', 'audit', 'benchmark', 'adsets', 'integrated']);
     await expect(signedReportUrl(client as never, 'a1/deck/deck.pdf')).resolves.toMatch(/\/sign\/groundswell-reports\/a1\/deck\/deck\.pdf\?expires=120$/);
     await expect(signedReportUrl(client as never, 'a1/deck/missing.pdf')).rejects.toThrow(/Could not sign/);
   });
