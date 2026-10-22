@@ -1,4 +1,4 @@
-import type { AuditStatus } from '../../lib/groundswellValidation';
+import type { AuditStatus, CustomerStage } from '../../lib/groundswellValidation';
 
 /**
  * How a customer's newest audit reads to a partner: a plain label and the
@@ -20,3 +20,9 @@ export const NOT_STARTED = { label: 'Not started', color: 'var(--nw-slate)' };
 export function customerStatus(latest: { status: AuditStatus } | null) {
   return latest ? (AUDIT_STATUS[latest.status] ?? NOT_STARTED) : NOT_STARTED;
 }
+
+/** The stage chip on a customer's page. */
+export const STAGE_LABELS: Record<CustomerStage, { label: string; color: string }> = {
+  prospect: { label: 'Prospect', color: 'var(--gs-wait)' },
+  client: { label: 'Client', color: 'var(--gs-ok)' },
+};

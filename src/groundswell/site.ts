@@ -8,8 +8,14 @@
 export const GROUNDSWELL_PATH = '/groundswell';
 /** Invite and password-reset links land here (api/_lib/groundswell/partners.ts builds them). */
 export const GROUNDSWELL_SET_PASSWORD_PATH = `${GROUNDSWELL_PATH}/set-password`;
-/** The partner app: a partner's own customers and their audits. */
+/** The partner app: a partner's own customers and their audits. The bare path sends to the prospects. */
 export const GROUNDSWELL_CUSTOMERS_PATH = `${GROUNDSWELL_PATH}/customers`;
+/** Prospects: leads whose public data Groundswell reads. */
+export const GROUNDSWELL_PROSPECTS_PATH = `${GROUNDSWELL_PATH}/prospects`;
+/** Clients: businesses the partner works for ("Became a client" moves a prospect here, with everything gathered). */
+export const GROUNDSWELL_CLIENTS_PATH = `${GROUNDSWELL_PATH}/clients`;
+/** The list a customer belongs to. */
+export const groundswellStagePath = (stage: 'prospect' | 'client') => (stage === 'client' ? GROUNDSWELL_CLIENTS_PATH : GROUNDSWELL_PROSPECTS_PATH);
 /** One customer: its details and every audit of it. */
 export const groundswellCustomerPath = (id: string) => `${GROUNDSWELL_CUSTOMERS_PATH}/${encodeURIComponent(id)}`;
 /** The staff admin (Supabase sign-in): overview, the audit queue, partners. */

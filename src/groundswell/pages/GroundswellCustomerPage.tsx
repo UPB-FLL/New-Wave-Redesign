@@ -1,21 +1,32 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Pencil } from 'lucide-react';
-import { getPartnerCustomer, partnerReportUrl, PartnerSignedOut, REPORT_LABELS, type PartnerAudit, type PartnerCustomer, type ReportKind } from '../../lib/groundswellPartner';
+import { ArrowLeft, ArrowRightLeft, Pencil } from 'lucide-react';
+import {
+  getPartnerCustomer,
+  partnerReportUrl,
+  PartnerSignedOut,
+  REPORT_LABELS,
+  setPartnerCustomerStage,
+  type PartnerAudit,
+  type PartnerCustomer,
+  type PartnerCustomerDetail,
+  type ReportKind,
+} from '../../lib/groundswellPartner';
 import { isDriveLink } from '../../lib/groundswellValidation';
 import { usePageMeta } from '../../lib/usePageMeta';
 import { PartnerApp } from '../PartnerApp';
-import { GROUNDSWELL_CUSTOMERS_PATH, GROUNDSWELL_NAME, GROUNDSWELL_PATH } from '../site';
+import { GROUNDSWELL_NAME, GROUNDSWELL_PATH, groundswellStagePath } from '../site';
 import { CustomerForm } from './CustomerForm';
-import { AUDIT_STATUS, customerStatus } from './customerStatus';
+import { AUDIT_STATUS, customerStatus, STAGE_LABELS } from './customerStatus';
 
 /**
- * One customer (noindex): its details with an Edit link, then every audit of
- * it, newest first, as a card with its status and its reports (opened through
+ * One customer (noindex), a prospect or a client: its stage, its details with
+ * an Edit link, "Became a client" (or the way back), then every audit of it,
+ * newest first, as a card with its status and its reports (opened through
  * short-lived links from /api/groundswell/report; Drive links for audits
- * delivered before reports moved into the app). New Wave
- * starts queued audits from its own queue; a "Run audit" button for partners
- * is the next step of the plan.
+ * delivered before reports moved into the app). Everything gathered as a
+ * prospect stays on the page when it becomes a client. New Wave starts queued
+ * audits from its own queue.
  */
 
 const when = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString('en-US') : null);
@@ -128,9 +139,10 @@ function AuditCard({ audit }: { audit: PartnerAudit }) {
 function Customer({ id }: { id: string }) {
   const navigate = useNavigate();
   const { state } = useLocation() as { state?: { queued?: boolean } };
-  const [data, setData] = useState<{ customer: PartnerCustomer; audits: PartnerAudit[] } | null>(null);
+  const [data, setData] = useState<PartnerCustomerDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
+  const [moving, setMoving] = useState(false);
   const [notice, setNotice] = useState<string | null>(state?.queued ? 'Queued. We’ll start the audit shortly; its reports will appear here.' : null);
 
   const refresh = useCallback(async () => {
@@ -154,11 +166,30 @@ function Customer({ id }: { id: string }) {
   }, [active, refresh]);
 
   const status = customerStatus(data?.customer.latest ?? null);
+  const stage = data?.customer.stage ?? 'prospect';
+  const stageLabel = STAGE_LABELS[stage];
+
+  const move = async () => {
+    if (!data) return;
+    const next = stage === 'client' ? 'prospect' : 'client';
+    setMoving(true);
+    setError(null);
+    try {
+      const customer = await setPartnerCustomerStage(data.customer.id, next);
+      setData((d) => (d ? { ...d, customer } : d));
+      setNotice(next === 'client' ? 'Now a client. Everything gathered as a prospect stays here.' : 'Back with the prospects.');
+    } catch (err) {
+      if (err instanceof PartnerSignedOut) navigate(GROUNDSWELL_PATH, { replace: true });
+      else setError(err instanceof Error ? err.message : 'Could not move this customer.');
+    } finally {
+      setMoving(false);
+    }
+  };
 
   return (
     <>
-      <Link to={GROUNDSWELL_CUSTOMERS_PATH} className="gs-link inline-flex items-center gap-1 text-sm">
-        <ArrowLeft size={14} aria-hidden="true" /> All customers
+      <Link to={groundswellStagePath(stage)} className="gs-link inline-flex items-center gap-1 text-sm">
+        <ArrowLeft size={14} aria-hidden="true" /> {stage === 'client' ? 'All clients' : 'All prospects'}
       </Link>
       {error ? (
         <p className="gs-alert mt-4" role="alert">
@@ -174,9 +205,17 @@ function Customer({ id }: { id: string }) {
         <>
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <h1 className="text-2xl font-bold">{data.customer.business_name}</h1>
+            <span className="gs-chip" style={{ color: stageLabel.color }} data-stage={stage}>
+              {stageLabel.label}
+            </span>
             <span className="gs-chip" style={{ color: status.color }}>
               {status.label}
             </span>
+            {data.stages_available !== false ? (
+              <button type="button" onClick={() => void move()} disabled={moving} className={stage === 'client' ? 'gs-btn gs-btn-ghost' : 'gs-btn gs-btn-secondary'}>
+                <ArrowRightLeft size={14} aria-hidden="true" /> {stage === 'client' ? 'Move back to prospects' : 'Became a client'}
+              </button>
+            ) : null}
           </div>
           {notice ? (
             <p className="gs-notice mt-4" role="status">
@@ -207,8 +246,13 @@ function Customer({ id }: { id: string }) {
           </div>
           <section aria-labelledby="customer-audits-heading" className="mt-8">
             <h2 id="customer-audits-heading" className="text-xl font-bold">
-              Audits
+              Audits from public data
             </h2>
+            <p className="mt-1 text-sm gs-muted">
+              {stage === 'client'
+                ? 'What Groundswell gathered from the web, as a prospect and since. It stays here for as long as the client does.'
+                : 'What Groundswell gathers from the web: the business’s site, Google listing, Instagram, search rankings and ads.'}
+            </p>
             {data.audits.length ? (
               <ul className="mt-4 space-y-3" aria-label="Audits of this customer">
                 {data.audits.map((a) => (

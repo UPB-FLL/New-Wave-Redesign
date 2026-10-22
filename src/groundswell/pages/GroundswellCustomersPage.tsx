@@ -9,7 +9,7 @@ import {
   type PartnerBrandingState,
   type PartnerCustomer,
 } from '../../lib/groundswellPartner';
-import { buildPartnerBranding } from '../../lib/groundswellValidation';
+import { buildPartnerBranding, type CustomerStage } from '../../lib/groundswellValidation';
 import { usePageMeta } from '../../lib/usePageMeta';
 import { PartnerApp } from '../PartnerApp';
 import { GROUNDSWELL_NAME, GROUNDSWELL_PATH, groundswellCustomerPath } from '../site';
@@ -17,12 +17,34 @@ import { CustomerForm } from './CustomerForm';
 import { customerStatus } from './customerStatus';
 
 /**
- * A partner's customers (noindex): every business it has had audited, most
- * recent activity first, with the newest audit's status and the date of the
- * last reports. "Add a customer" is the one primary action; it queues the
- * business's first Croissance audit and opens its page. Below the list, the
- * partner sets the name and logo its reports carry (they never name New Wave).
+ * A partner's customers (noindex), one list per stage: Prospects (leads whose
+ * public data Groundswell reads) and Clients (businesses the partner works
+ * for; "Became a client" on a prospect's page moves it here with everything
+ * gathered). Each list shows the newest audit's status and the date of the
+ * last reports, most recent activity first. "Add a prospect" / "Add a client"
+ * is the one primary action; it queues the business's first Croissance audit
+ * and opens its page. Below the prospects, the partner sets the name and logo
+ * its reports carry (they never name New Wave).
  */
+
+const STAGE_COPY: Record<CustomerStage, { title: string; intro: string; add: string; list: string; empty: string; none: string }> = {
+  prospect: {
+    title: 'Prospects',
+    intro: 'Businesses you are pitching. Groundswell reads their public data and builds the reports; there is nothing to connect.',
+    add: 'Add a prospect',
+    list: 'Your prospects',
+    empty: 'No prospects yet. Add your first one above.',
+    none: 'No prospects yet.',
+  },
+  client: {
+    title: 'Clients',
+    intro: 'Businesses you work for. A client’s page keeps everything gathered while it was a prospect.',
+    add: 'Add a client',
+    list: 'Your clients',
+    empty: 'No clients yet. Open a prospect and choose “Became a client”, or add one above.',
+    none: 'No clients yet. Open a prospect and choose “Became a client”.',
+  },
+};
 
 const field = 'input-light';
 const th = 'px-4 py-3 text-xs font-semibold uppercase tracking-wide gs-muted';
@@ -123,10 +145,10 @@ function BrandingPanel() {
   );
 }
 
-function CustomerTable({ customers }: { customers: PartnerCustomer[] }) {
+function CustomerTable({ customers, label }: { customers: PartnerCustomer[]; label: string }) {
   return (
     <div className="gs-card mt-4 overflow-x-auto">
-      <table className="w-full text-sm" aria-label="Your customers">
+      <table className="w-full text-sm" aria-label={label}>
         <thead>
           <tr className="text-left">
             <th scope="col" className={th}>
@@ -170,7 +192,8 @@ function CustomerTable({ customers }: { customers: PartnerCustomer[] }) {
   );
 }
 
-function Customers() {
+function Customers({ stage }: { stage: CustomerStage }) {
+  const copy = STAGE_COPY[stage];
   const navigate = useNavigate();
   const [customers, setCustomers] = useState<PartnerCustomer[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -179,12 +202,12 @@ function Customers() {
 
   const refresh = useCallback(async () => {
     try {
-      setCustomers(await listPartnerCustomers());
+      setCustomers(await listPartnerCustomers(stage));
     } catch (err) {
       if (err instanceof PartnerSignedOut) navigate(GROUNDSWELL_PATH, { replace: true });
-      else setError(err instanceof Error ? err.message : 'Could not load your customers.');
+      else setError(err instanceof Error ? err.message : `Could not load your ${copy.title.toLowerCase()}.`);
     }
-  }, [navigate]);
+  }, [navigate, stage, copy.title]);
 
   useEffect(() => {
     void refresh();
@@ -205,18 +228,19 @@ function Customers() {
     return customers.filter((c) => [c.business_name, c.city, c.website, c.instagram].some((v) => v?.toLowerCase().includes(q)));
   }, [customers, query]);
 
-  const showForm = adding || customers?.length === 0;
+  // A first prospect gets the form straight away; the clients list waits for the button (most clients were prospects first).
+  const showForm = adding || (stage === 'prospect' && customers?.length === 0);
 
   return (
     <>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Customers</h1>
-          <p className="mt-1 text-sm gs-muted">Every business you’ve had audited, with its reports once they are ready.</p>
+          <h1 className="text-2xl font-bold">{copy.title}</h1>
+          <p className="mt-1 text-sm gs-muted">{copy.intro}</p>
         </div>
         {!showForm ? (
           <button type="button" onClick={() => setAdding(true)} className="gs-btn gs-btn-primary">
-            <Plus size={16} aria-hidden="true" /> Add a customer
+            <Plus size={16} aria-hidden="true" /> {copy.add}
           </button>
         ) : null}
       </div>
@@ -229,21 +253,22 @@ function Customers() {
         <div className="mt-6">
           <CustomerForm
             mode="add"
+            stage={stage}
             onSaved={({ customer }) => navigate(groundswellCustomerPath(customer.id), { state: { queued: true } })}
-            onCancel={customers?.length ? () => setAdding(false) : undefined}
+            onCancel={customers?.length || stage === 'client' ? () => setAdding(false) : undefined}
           />
         </div>
       ) : null}
       <section aria-labelledby="partner-customers-heading" className="mt-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 id="partner-customers-heading" className="text-xl font-bold">
-            Your customers
+            {copy.list}
           </h2>
           {customers && customers.length > 3 ? (
             <label className="relative block w-full sm:w-64">
-              <span className="sr-only">Search customers</span>
+              <span className="sr-only">Search {copy.title.toLowerCase()}</span>
               <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 gs-muted" aria-hidden="true" />
-              <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Find a customer…" className={`${field} pl-9`} />
+              <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={`Find a ${stage}…`} className={`${field} pl-9`} />
             </label>
           ) : null}
         </div>
@@ -252,19 +277,24 @@ function Customers() {
             Loading…
           </p>
         ) : customers?.length === 0 ? (
-          <p className="mt-4 text-sm gs-muted">No customers yet. Add your first one above.</p>
+          <p className="mt-4 text-sm gs-muted">{showForm ? copy.empty : copy.none}</p>
         ) : shown.length === 0 ? (
           <p className="mt-4 text-sm gs-muted">Nothing matches “{query.trim()}”.</p>
         ) : (
-          <CustomerTable customers={shown} />
+          <CustomerTable customers={shown} label={copy.list} />
         )}
       </section>
-      <BrandingPanel />
+      {stage === 'prospect' ? <BrandingPanel /> : null}
     </>
   );
 }
 
-export default function GroundswellCustomersPage() {
-  usePageMeta({ title: `Customers | ${GROUNDSWELL_NAME}`, includeSiteName: false, noindex: true });
-  return <PartnerApp>{() => <Customers />}</PartnerApp>;
+export function GroundswellProspectsPage() {
+  usePageMeta({ title: `Prospects | ${GROUNDSWELL_NAME}`, includeSiteName: false, noindex: true });
+  return <PartnerApp>{() => <Customers stage="prospect" />}</PartnerApp>;
+}
+
+export function GroundswellClientsPage() {
+  usePageMeta({ title: `Clients | ${GROUNDSWELL_NAME}`, includeSiteName: false, noindex: true });
+  return <PartnerApp>{() => <Customers stage="client" />}</PartnerApp>;
 }

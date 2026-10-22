@@ -2,6 +2,38 @@
 
 ## Recent Changes
 
+### Groundswell: prospects and clients (2026-10-22)
+
+Owner's choices: a prospect (a lead) is entered and its public data is read;
+a client is a business the partner works for, whose own accounts get linked
+(Google Business Profile, GA4 + Search Console, Google Ads, Meta: the next
+PR); one record with two stages, so "Became a client" moves it over and
+everything gathered as a prospect stays on its page; the same reports for
+both, one from linked data and one from public data (the PR after).
+
+- **Migration** `20261027120000`: `groundswell_customers.stage`
+  ('prospect' | 'client', default prospect) and `became_client_at`. The
+  customers migration is now `20261024130000`: it shared its version with
+  the review-status migration, and Supabase's preview branch refused the
+  duplicate on every PR that added a migration.
+  Additive: the route reads them only where they exist (42703 fallback:
+  every customer is a prospect; moving one answers 503).
+- **Route** `partner-customers.ts`: `?stage=` filters the list; `?id=`
+  adds `stages_available`; POST takes `stage: 'client'`; PATCH `?id=`
+  with `{ stage }` moves a record (`became_client_at` set or cleared).
+  `CUSTOMER_STAGES` / `isCustomerStage` in `groundswellValidation.ts`.
+- **Portal**: `/groundswell/prospects` and `/groundswell/clients`
+  (`GroundswellProspectsPage`, `GroundswellClientsPage` in
+  `GroundswellCustomersPage.tsx`, one `Customers stage=` list; the branding
+  panel stays with the prospects); `/groundswell/customers` redirects to
+  the prospects; the record page keeps `/groundswell/customers/:id` and
+  shows the stage chip, "Became a client" / "Move back to prospects"
+  (`setPartnerCustomerStage`), a back link to its stage's list, and its
+  audits under "Audits from public data". `CustomerForm mode="add"` takes
+  `stage`. The partner navigation is Prospects, Clients.
+- **Tests**: the stage cases in `groundswell-customers.test.ts` and
+  `portal.test.tsx`.
+
 ### Groundswell: partner-ready prospect runs (2026-10-22)
 
 Owner's choices: partners link nothing for a prospect's audit (New Wave's
@@ -262,7 +294,9 @@ PR 2 of the Groundswell portal plan. A customer is now a record of its own
 customer list and customer page are built on it. Partners still cannot start
 runs (PR 3).
 
-- **Migration** `20261024120000`: `groundswell_customers` (partner_id, null
+- **Migration** `20261024130000` (renamed from `20261024120000` on 2026-10-22,
+  which the review-status migration also carried; Supabase's preview branch
+  refused the duplicate): `groundswell_customers` (partner_id, null
   for New Wave's own prospects; name, city, website, Instagram, competitors,
   notes; RLS on, no policies) and `marketing_audits.customer_id`. A `BEFORE
   INSERT` trigger (`groundswell_link_audit_customer`, SECURITY DEFINER)
