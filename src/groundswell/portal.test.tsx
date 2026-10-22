@@ -14,6 +14,7 @@ const api = vi.hoisted(() => ({
   setPartnerPassword: vi.fn(),
   getPartnerBranding: vi.fn(),
   savePartnerBranding: vi.fn(),
+  partnerReportUrl: vi.fn(),
 }));
 
 vi.mock('../lib/groundswellPartner', async (orig) => ({ ...(await orig<typeof import('../lib/groundswellPartner')>()), ...api }));
@@ -195,7 +196,7 @@ describe('partner customers page', () => {
 });
 
 describe('partner customer page', () => {
-  it('shows the customer’s details and each audit with Drive links only', async () => {
+  it('shows the customer’s details and each audit with its reports (Drive links only for audits delivered there)', async () => {
     api.currentPartner.mockResolvedValue(partner);
     api.getPartnerCustomer.mockResolvedValue({
       customer: { ...harbor, latest: { id: 'a1', status: 'done', kind: 'benchmark', created_at: '2026-10-21T00:00:00Z', completed_at: '2026-10-21T01:00:00Z' }, last_reports_at: '2026-10-21T01:00:00Z', audit_count: 2 },
@@ -206,22 +207,38 @@ describe('partner customer page', () => {
           deck_pdf_url: 'https://example.com/not-drive', audit_pdf_url: null, created_at: '2026-10-21T00:00:00Z', completed_at: '2026-10-21T01:00:00Z',
         },
         { id: 'a0', business_name: 'Harbor Auto', city: 'Miami', website: 'https://harbor.example', instagram: null, competitors: [], status: 'failed', drive_folder_url: null, summary_pdf_url: null, deck_pdf_url: null, audit_pdf_url: null, created_at: '2026-10-01T00:00:00Z', completed_at: null },
+        {
+          id: 'a2', business_name: 'Harbor Auto', city: 'Miami', website: 'https://harbor.example', instagram: null, competitors: [], status: 'done', kind: 'audit',
+          drive_folder_url: null, summary_pdf_url: null, deck_pdf_url: null, audit_pdf_url: null, created_at: '2026-10-22T00:00:00Z', completed_at: '2026-10-22T01:00:00Z',
+          reports: [{ kind: 'summary', name: 's.pdf', pages: 1 }, { kind: 'deck', name: 'd.pdf', pages: 12 }, { kind: 'audit', name: 'a.pdf', pages: 20 }],
+        },
       ],
     });
+    api.partnerReportUrl.mockResolvedValue('https://storage.example/signed/a2/deck');
+    const opened = vi.spyOn(window, 'open').mockImplementation(() => null);
     renderPortal(groundswellCustomerPath('c1'));
     expect(await screen.findByRole('heading', { level: 1, name: 'Harbor Auto' })).toBeInTheDocument();
     expect(robots()).toBe('noindex, nofollow');
     expect(screen.getByText('Miami')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'harbor.example' })).toHaveAttribute('href', 'https://harbor.example');
     const audits = within(screen.getByRole('list', { name: 'Audits of this customer' })).getAllByRole('listitem');
-    expect(audits).toHaveLength(2);
-    expect(within(audits[0]).getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual([
+    expect(audits).toHaveLength(3);
+    const stored = audits.find((li) => within(li).queryByRole('button', { name: /Slides \(PDF\)/ }))!;
+    expect(within(stored).getAllByRole('button').map((b) => b.textContent)).toEqual(['Summary (PDF)', 'Slides (PDF)', 'Full audit (PDF)']);
+    expect(within(stored).queryByRole('link')).not.toBeInTheDocument();
+    fireEvent.click(within(stored).getByRole('button', { name: /Slides \(PDF\)/ }));
+    await waitFor(() => expect(opened).toHaveBeenCalledWith('https://storage.example/signed/a2/deck', '_blank', 'noopener'));
+    expect(api.partnerReportUrl).toHaveBeenCalledWith('a2', 'deck');
+    opened.mockRestore();
+    const legacy = audits.find((li) => within(li).queryAllByRole('link', { name: /Google Drive/ }).length)!;
+    expect(within(legacy).getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual([
       'https://drive.google.com/file/d/S/view',
       'https://drive.google.com/file/d/B/view',
       'https://drive.google.com/drive/folders/F',
     ]);
-    expect(within(audits[1]).getByText(/didn’t finish/)).toBeInTheDocument();
-    expect(within(audits[1]).queryByRole('link')).not.toBeInTheDocument();
+    const failed = audits.find((li) => within(li).queryByText(/didn’t finish/))!;
+    expect(within(failed).queryByRole('link')).not.toBeInTheDocument();
+    expect(within(failed).queryByRole('button')).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: /All customers/ })).toHaveAttribute('href', GROUNDSWELL_CUSTOMERS_PATH);
   });
 

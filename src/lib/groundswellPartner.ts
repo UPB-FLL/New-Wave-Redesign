@@ -29,8 +29,19 @@ export interface PartnerAudit {
   /** Missing until the benchmark migration (20261022120000) is applied. */
   kind?: 'audit' | 'benchmark';
   benchmark_pdf_url?: string | null;
+  /** The reports stored for this audit (migration 20261026120000); opened through openPartnerReport. */
+  reports?: { kind: ReportKind; name: string; pages: number }[];
   created_at: string;
   completed_at: string | null;
+}
+
+export type ReportKind = 'summary' | 'deck' | 'audit' | 'benchmark';
+export const REPORT_LABELS: Record<ReportKind, string> = { summary: 'Summary', deck: 'Slides', audit: 'Full audit', benchmark: 'Competitive benchmark' };
+const REPORT = '/api/groundswell/report';
+
+/** A short-lived link to one of the partner's own reports. */
+export async function partnerReportUrl(auditId: string, kind: ReportKind): Promise<string> {
+  return (await call<{ url: string }>(`${REPORT}?audit=${encodeURIComponent(auditId)}&kind=${kind}`)).url;
 }
 
 export function getPartnerToken(): string | null {

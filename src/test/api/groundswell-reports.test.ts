@@ -2,12 +2,12 @@ import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { brandFrom, contrast, FALLBACK_PRIMARY } from '../../../api/_lib/groundswell/brand';
 import { AD_PLAN_SLIDE_ID, buildAuditHtml, buildDeckHtml, buildSummaryHtml, feeLine, money, SLIDE_IDS } from '../../../api/_lib/groundswell/reports';
-import { assertDriveOnly, countPdfPages, pdfLinks } from '../../../api/_lib/groundswell/render';
+import { assertPortalOnly, countPdfPages, pdfLinks } from '../../../api/_lib/groundswell/render';
 import { sampleReportData, sampleReportDataWithPlan } from './fixtures/groundswell-report';
 
-const AUDIT = 'https://drive.google.com/file/d/AUDIT_ID/view?usp=sharing';
-const DECK = 'https://drive.google.com/file/d/DECK_ID/view?usp=sharing';
-const FOLDER = 'https://drive.google.com/drive/folders/FOLDER_ID?usp=sharing';
+const AUDIT = 'https://www.newwaveitfl.com/groundswell';
+const DECK = 'https://www.newwaveitfl.com/groundswell';
+const FOLDER = 'https://www.newwaveitfl.com/groundswell';
 
 const hrefs = (html: string) => [...html.matchAll(/href="([^"]*)"/g)].map((m) => m[1].replace(/&amp;/g, '&'));
 
@@ -62,9 +62,9 @@ describe('report HTML', () => {
     expect(new Set(hrefs(html))).toEqual(new Set([DECK, AUDIT, FOLDER]));
   });
 
-  it('refuses a link outside Google Drive', () => {
-    expect(() => buildDeckHtml(data, { audit: 'https://claude.ai/x' })).toThrow(/Google Drive/);
-    expect(() => buildSummaryHtml(data, { deck: DECK, audit: AUDIT, folder: 'https://example.com/' })).toThrow(/Google Drive/);
+  it('refuses a link outside the Groundswell portal', () => {
+    expect(() => buildDeckHtml(data, { audit: 'https://claude.ai/x' })).toThrow(/Groundswell portal/);
+    expect(() => buildSummaryHtml(data, { deck: DECK, audit: AUDIT, folder: 'https://drive.google.com/drive/folders/F' })).toThrow(/Groundswell portal/);
   });
 });
 
@@ -124,7 +124,8 @@ describe('PDF checks', () => {
     );
     expect(countPdfPages(pdf)).toBe(2);
     expect(pdfLinks(pdf)).toEqual(['https://drive.google.com/file/d/a(1)/view']);
-    expect(() => assertDriveOnly('x.pdf', ['https://drive.google.com/a', 'https://example.com'])).toThrow(/example\.com/);
+    expect(() => assertPortalOnly('x.pdf', ['https://www.newwaveitfl.com/groundswell', 'https://example.com'])).toThrow(/example\.com/);
+    expect(() => assertPortalOnly('x.pdf', ['https://www.newwaveitfl.com/groundswell/customers'])).not.toThrow();
   });
 });
 

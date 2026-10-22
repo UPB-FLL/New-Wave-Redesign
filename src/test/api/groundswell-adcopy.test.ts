@@ -14,9 +14,9 @@ import { GROUNDSWELL_CONFIG } from '../../../packages/groundswell/groundswell.co
 import { copyTargets, type CopyTarget } from '../../../packages/groundswell/src/adcopy';
 import { sampleAdplanOutput, sampleAudit, sampleModelOutput, sampleOutputs, sampleReportDataWithPlan } from './fixtures/groundswell-report';
 
-const AUDIT = 'https://drive.google.com/file/d/AUDIT_ID/view?usp=sharing';
-const DECK = 'https://drive.google.com/file/d/DECK_ID/view?usp=sharing';
-const FOLDER = 'https://drive.google.com/drive/folders/FOLDER_ID?usp=sharing';
+const AUDIT = 'https://www.newwaveitfl.com/groundswell';
+const DECK = 'https://www.newwaveitfl.com/groundswell';
+const FOLDER = 'https://www.newwaveitfl.com/groundswell';
 
 const plan = sampleAdplanOutput();
 const targets = copyTargets(plan.plan, plan.angles);

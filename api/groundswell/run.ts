@@ -1,4 +1,4 @@
-import { requireAdmin } from '../_lib/adminKey.js';
+import { reportAdminEmails, requireAdmin } from '../_lib/adminKey.js';
 import { runWorkerInBackground } from '../_lib/groundswell/background.js';
 import { isComposioConfigured } from '../_lib/groundswell/composio.js';
 import { startQueuedAudits } from '../_lib/groundswell/engine.js';
@@ -28,7 +28,7 @@ export const MAX_AUDITS_PER_CLICK = 3;
 export function setupChecks() {
   return [
     { key: 'SUPABASE_SERVICE_ROLE_KEY', label: 'Supabase service role', ok: isSupabaseConfigured(), required: true },
-    { key: 'COMPOSIO_API_KEY', label: 'Composio (Drive, Ahrefs, Keyword Planner, Instagram)', ok: isComposioConfigured(), required: true },
+    { key: 'COMPOSIO_API_KEY', label: 'Composio (Ahrefs, Keyword Planner, Instagram, Places)', ok: isComposioConfigured(), required: true },
     { key: 'OPENAI_API_KEY', label: 'OpenAI (the write-up)', ok: Boolean(process.env.OPENAI_API_KEY), required: true },
     { key: 'RESEND_API_KEY', label: 'Resend (partner invites and resets)', ok: Boolean(process.env.RESEND_API_KEY), required: false },
     { key: 'GOOGLE_ADS_CUSTOMER_ID', label: 'Google Ads customer id (Keyword Planner)', ok: Boolean(process.env.GOOGLE_ADS_CUSTOMER_ID), required: false },
@@ -53,7 +53,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     return res.status(200).json({
       ready: checks.every((c) => c.ok || !c.required),
       checks,
-      drive_owner: process.env.GROUNDSWELL_DRIVE_OWNER || 'josh@newwaveitfl.com',
+      report_admins: reportAdminEmails(),
     });
   }
 

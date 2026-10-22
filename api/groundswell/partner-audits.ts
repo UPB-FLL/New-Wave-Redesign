@@ -2,6 +2,7 @@ import { buildAuditInsert, type AuditDraft } from '../../src/lib/groundswellVali
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { methodGuard, readJsonBody, rateLimit, type ApiRequest, type ApiResponse } from '../_lib/http.js';
 import { notifyNewPartnerAudit, requirePartner } from '../_lib/groundswell/partners.js';
+import { reportsFor } from '../_lib/groundswell/reportStore.js';
 import { getSupabaseAdmin, isSupabaseConfigured } from '../_lib/supabaseAdmin.js';
 
 /**
@@ -21,6 +22,12 @@ const PARTNER_COLUMNS =
   'id,business_name,city,website,instagram,competitors,status,drive_folder_url,summary_pdf_url,deck_pdf_url,audit_pdf_url,created_at,completed_at';
 /** Read only where the database has them (migration 20261022120000). */
 const BENCHMARK_COLUMNS = ',kind,benchmark_pdf_url';
+
+/** Each audit with the reports stored for it (kind, name, pages), opened through /api/groundswell/report. */
+export async function withReports<T extends { id: string }>(db: SupabaseClient, audits: T[]) {
+  const reports = await reportsFor(db, audits.map((a) => a.id));
+  return audits.map((a) => ({ ...a, reports: (reports.get(a.id) ?? []).map((r) => ({ kind: r.kind, name: r.name, pages: r.pages })) }));
+}
 const missingColumn = (message: string | undefined) => /column .* does not exist|42703/i.test(message ?? '');
 
 async function partnerAudits(db: SupabaseClient, partnerId: string) {
@@ -61,7 +68,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       console.error('Partner audits read failed:', error.message);
       return res.status(500).json({ error: 'Could not load your audits.' });
     }
-    return res.status(200).json({ audits: data ?? [] });
+    return res.status(200).json({ audits: await withReports(db, (data ?? []) as unknown as { id: string }[]) });
   }
 
   if (!rateLimit(`gs-partner-submit:${partner.id}`, PARTNER_DAILY_LIMIT, 24 * 60 * 60_000)) {

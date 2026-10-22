@@ -9,7 +9,7 @@ import type { DivisionIconName } from '../icons/iconData';
 // their internal "marketing audit" names. It runs on the Groundswell engine
 // and its Currents, one per kind of public data. Keep the process here in step with
 // the skill: public data only, every number sourced and dated, three reports
-// in the client's brand, delivered as Google Drive links.
+// in the client's brand, delivered in the private Groundswell portal.
 //
 // The worked example is a real audit: Uncommon Path Brewing's, with the
 // owner's permission (see auditSample). No percentages (seo.test.ts), so rates
@@ -84,9 +84,9 @@ export const auditConnectors: readonly AuditConnector[] = [
   {
     name: 'Delivery Current',
     icon: 'send',
-    source: 'A Google Drive folder named for your business',
-    gathers: 'The three finished reports, each a view-only link you can forward to anyone on your team.',
-    example: 'Three view-only links in a Drive folder named for the brewery.',
+    source: 'Your private Groundswell portal',
+    gathers: 'The three finished reports, stored privately and opened from your portal sign-in; only your account and New Wave can see them.',
+    example: 'Three PDFs waiting under the brewery in its portal.',
   },
 ];
 
@@ -233,7 +233,7 @@ export const auditContent = {
       },
       {
         title: 'Deliver',
-        detail: 'The reports land in a Google Drive folder named for your business, shared as view-only links you can forward.',
+        detail: 'The reports land in your private Groundswell portal, under your business, where only your sign-in and New Wave can open them.',
         icon: 'send',
       },
     ] satisfies DivisionPoint[],
@@ -323,7 +323,7 @@ export const auditContent = {
     'Public data only: no logins, no sign-ups, and no one contacts your business or customers.',
     'Every number carries its source and date. Anything unknown is marked unknown, never guessed.',
     'Ranges, not promises: three scenarios, including the one that loses money.',
-    'Reports link only to their own Google Drive files.',
+    'Reports link only to the Groundswell portal, never to an outside site.',
   ],
   faqs: [
     {
@@ -342,7 +342,7 @@ export const auditContent = {
     },
     {
       question: 'Who can see the reports?',
-      answer: 'Anyone you send the links to. The files sit in a Google Drive folder named for your business and are shared view-only.',
+      answer: 'You and New Wave. The files are stored privately and opened from your Groundswell sign-in; a partner sees only the businesses it queued.',
     },
     {
       question: 'Can we run it again later?',

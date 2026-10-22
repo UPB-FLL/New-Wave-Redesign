@@ -72,8 +72,8 @@ export async function renderPdf(browser: Browser, html: string): Promise<Rendere
   }
 }
 
-/** Throws unless every link in the PDF is a Google Drive link. */
-export function assertDriveOnly(name: string, links: string[]) {
-  const bad = links.filter((l) => !/^https:\/\/drive\.google\.com\//.test(l));
-  if (bad.length) throw new Error(`${name} links outside Google Drive: ${bad.join(', ')}`);
+/** Throws unless every link in the PDF points at the Groundswell portal. */
+export function assertPortalOnly(name: string, links: string[]) {
+  const bad = links.filter((l) => !/^https:\/\/www\.newwaveitfl\.com\/groundswell(\/|$)/.test(l));
+  if (bad.length) throw new Error(`${name} links outside the Groundswell portal: ${bad.join(', ')}`);
 }

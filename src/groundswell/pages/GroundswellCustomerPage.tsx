@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Pencil } from 'lucide-react';
-import { getPartnerCustomer, PartnerSignedOut, type PartnerAudit, type PartnerCustomer } from '../../lib/groundswellPartner';
+import { getPartnerCustomer, partnerReportUrl, PartnerSignedOut, REPORT_LABELS, type PartnerAudit, type PartnerCustomer, type ReportKind } from '../../lib/groundswellPartner';
 import { isDriveLink } from '../../lib/groundswellValidation';
 import { usePageMeta } from '../../lib/usePageMeta';
 import { PartnerApp } from '../PartnerApp';
@@ -11,7 +11,9 @@ import { AUDIT_STATUS, customerStatus } from './customerStatus';
 
 /**
  * One customer (noindex): its details with an Edit link, then every audit of
- * it, newest first, as a card with its status and Drive links. New Wave
+ * it, newest first, as a card with its status and its reports (opened through
+ * short-lived links from /api/groundswell/report; Drive links for audits
+ * delivered before reports moved into the app). New Wave
  * starts queued audits from its own queue; a "Run audit" button for partners
  * is the next step of the plan.
  */
@@ -56,15 +58,47 @@ function Details({ customer, onEdit }: { customer: PartnerCustomer; onEdit: () =
   );
 }
 
+/** Opens one stored report in a new tab through a short-lived link. */
+export function ReportButtons({ reports, open }: { reports: { kind: ReportKind; name: string }[]; open: (kind: ReportKind) => Promise<string> }) {
+  const [busy, setBusy] = useState<ReportKind | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const show = async (kind: ReportKind) => {
+    setBusy(kind);
+    setError(null);
+    try {
+      const url = await open(kind);
+      window.open(url, '_blank', 'noopener');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not open that report.');
+    } finally {
+      setBusy(null);
+    }
+  };
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+      {reports.map((r) => (
+        <button key={r.kind} type="button" className="gs-link text-sm" disabled={busy !== null} onClick={() => void show(r.kind)}>
+          {REPORT_LABELS[r.kind]} (PDF){busy === r.kind ? '…' : ''}
+        </button>
+      ))}
+      {error ? <span className="text-sm text-red-700">{error}</span> : null}
+    </div>
+  );
+}
+
 function AuditCard({ audit }: { audit: PartnerAudit }) {
   const status = AUDIT_STATUS[audit.status] ?? AUDIT_STATUS.queued;
-  const links = [
-    ['Summary', audit.summary_pdf_url],
-    ['Slides', audit.deck_pdf_url],
-    ['Full audit', audit.audit_pdf_url],
-    ['Competitive benchmark', audit.benchmark_pdf_url ?? null],
-    ['All files', audit.drive_folder_url],
-  ].filter((pair): pair is [string, string] => isDriveLink(pair[1]));
+  const reports = audit.reports ?? [];
+  // Audits delivered before reports moved into the app still carry Drive links.
+  const legacy = reports.length
+    ? []
+    : [
+        ['Summary', audit.summary_pdf_url],
+        ['Slides', audit.deck_pdf_url],
+        ['Full audit', audit.audit_pdf_url],
+        ['Competitive benchmark', audit.benchmark_pdf_url ?? null],
+        ['All files', audit.drive_folder_url],
+      ].filter((pair): pair is [string, string] => isDriveLink(pair[1]));
   return (
     <li className="gs-card p-4 sm:p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -77,9 +111,10 @@ function AuditCard({ audit }: { audit: PartnerAudit }) {
       </div>
       {audit.status === 'failed' ? <p className="mt-2 text-sm gs-muted">This audit didn’t finish. We’ve been notified and will follow up.</p> : null}
       {audit.status === 'done' && audit.completed_at ? <p className="mt-2 text-sm gs-muted">Reports delivered {when(audit.completed_at)}.</p> : null}
-      {links.length ? (
+      {reports.length ? <ReportButtons reports={reports} open={(kind) => partnerReportUrl(audit.id, kind)} /> : null}
+      {legacy.length ? (
         <p className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
-          {links.map(([name, url]) => (
+          {legacy.map(([name, url]) => (
             <a key={name} href={url} target="_blank" rel="noreferrer" className="gs-link text-sm">
               {name} (Google Drive)
             </a>

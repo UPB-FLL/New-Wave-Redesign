@@ -57,6 +57,20 @@ export function fakeSupabase(seed: Record<string, Row[]> = {}, missing: Record<s
         payload = row;
         return chain;
       },
+      /** Insert, or update the row that matches the conflict columns. */
+      upsert(row: Row, options?: { onConflict?: string }) {
+        const keys = (options?.onConflict ?? 'id').split(',').map((k) => k.trim());
+        const existing = tables[table].find((r) => keys.every((k) => r[k] === row[k]));
+        if (existing) {
+          op = 'update';
+          payload = row;
+          filters.push((r) => r === existing);
+        } else {
+          op = 'insert';
+          payload = row;
+        }
+        return chain;
+      },
       update(patch: Row) {
         op = 'update';
         payload = patch;
@@ -108,5 +122,25 @@ export function fakeSupabase(seed: Record<string, Row[]> = {}, missing: Record<s
     return chain;
   };
 
-  return { client: { from }, tables };
+  /** A stand-in for Supabase Storage: objects by bucket and path, signed links that name the path. */
+  const objects: Record<string, Map<string, Uint8Array>> = {};
+  const storage = {
+    from: (bucket: string) => ({
+      async upload(path: string, bytes: Uint8Array) {
+        if ((missing.storage ?? []).includes(bucket)) return { data: null, error: { message: 'Bucket not found' } };
+        (objects[bucket] ??= new Map()).set(path, bytes);
+        return { data: { path }, error: null };
+      },
+      async list(prefix: string) {
+        if ((missing.storage ?? []).includes(bucket)) return { data: null, error: { message: 'Bucket not found' } };
+        return { data: [...(objects[bucket]?.keys() ?? [])].filter((k) => k.startsWith(prefix)).map((name) => ({ name })), error: null };
+      },
+      async createSignedUrl(path: string, seconds: number) {
+        if (!objects[bucket]?.has(path)) return { data: null, error: { message: 'Object not found' } };
+        return { data: { signedUrl: `https://storage.example/sign/${bucket}/${path}?expires=${seconds}` }, error: null };
+      },
+    }),
+  };
+
+  return { client: { from, storage }, tables, objects };
 }

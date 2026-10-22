@@ -97,7 +97,7 @@ export default function GroundswellOverview() {
                   </li>
                 ))}
               </ul>
-              <p className="text-xs gs-muted">Reports go to Google Drive as {setup.drive_owner}, under Customers/&lt;Business&gt;.</p>
+              <p className="text-xs gs-muted">Reports are stored privately in the app. Partners open their own; {setup.report_admins.join(', ')} can open all.</p>
             </>
           )}
         </div>
