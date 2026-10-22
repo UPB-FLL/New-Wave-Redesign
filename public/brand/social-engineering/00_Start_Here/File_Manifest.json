@@ -1,0 +1,1168 @@
+{
+  "package": "GroundSwell Brand Package",
+  "version": "2.0",
+  "revision": "GS monogram integration",
+  "date": "2026-10-22",
+  "files": [
+    {
+      "path": "00_Start_Here/Brand_Voice_and_Copy.md",
+      "bytes": 1709,
+      "sha256": "82e7f6bc05de5c05f87e0ceab6fd754978f39c3f0ca01a99cd42e3d278abbc31"
+    },
+    {
+      "path": "00_Start_Here/GroundSwell_Applications_Overview.png",
+      "bytes": 335554,
+      "sha256": "e79f24165dd3f4063d2c0ee7fa82b85d70f9cc0201165ba5acf531bc2e9545b5"
+    },
+    {
+      "path": "00_Start_Here/GroundSwell_Applications_Overview.svg",
+      "bytes": 333948,
+      "sha256": "f537fa1f2e81bd3ff69c8287ef7dc4c4e737df665dfa75ffd8912d08e45accfe"
+    },
+    {
+      "path": "00_Start_Here/GroundSwell_Brand_Guide.pdf",
+      "bytes": 1188952,
+      "sha256": "30c041b5f34f11583dfc4b7fced322c40e4febffff9e85194db51e757187dd60"
+    },
+    {
+      "path": "00_Start_Here/GroundSwell_GS_Identity_Update.png",
+      "bytes": 173217,
+      "sha256": "bcf338a358013544d76905aa31b18d1e104dbd6751559a42f2d6fc927e286642"
+    },
+    {
+      "path": "00_Start_Here/GroundSwell_GS_Identity_Update.svg",
+      "bytes": 125588,
+      "sha256": "02206e84cf2dbd21caf9647f443ab04906c39a136412450948c7279b0a3a3aaf"
+    },
+    {
+      "path": "00_Start_Here/GroundSwell_Identity_Overview.png",
+      "bytes": 334344,
+      "sha256": "6080cf8172ed14a853f00fb7f14ca1b7469d6cf2f7cdf8950982e07ee16edb06"
+    },
+    {
+      "path": "00_Start_Here/GroundSwell_Identity_Overview.svg",
+      "bytes": 310300,
+      "sha256": "98f1c8498d10b810a6965dcd0a89466704e1404c1f131feb4d5284d10fee8439"
+    },
+    {
+      "path": "00_Start_Here/README.md",
+      "bytes": 4073,
+      "sha256": "80a3e13efc842b077543c3c75552ef515679fa6ef249bf63a7a9af0f840c505f"
+    },
+    {
+      "path": "01_Logos/Editable_Text/GroundSwell_Primary_Color_Live_Text.svg",
+      "bytes": 4174,
+      "sha256": "cdd24065dc869ea798d12141e9de5deb7ad1c7cfb48e445cf4083c0a980e0d7c"
+    },
+    {
+      "path": "01_Logos/Editable_Text/GroundSwell_Primary_Reverse_Live_Text.svg",
+      "bytes": 4174,
+      "sha256": "04799db90e6ed93ecb108b3d70197535101a0810c50d5cf0986af8d89161aeae"
+    },
+    {
+      "path": "01_Logos/PNG/GroundSwell_Compact_Color.png",
+      "bytes": 9023,
+      "sha256": "b5d74b95d67d5e634a02d585d0ac222a0970531ebd023dfb942843006ba084fd"
+    },
+    {
+      "path": "01_Logos/PNG/GroundSwell_Compact_Navy.png",
+      "bytes": 6299,
+      "sha256": "1112e1e9d860de27283e37e53b72c04f517d374d95faacc43628ccbb3f3712c5"
+    },
+    {
+      "path": "01_Logos/PNG/GroundSwell_Compact_Reverse.png",
+      "bytes": 8933,
+      "sha256": "1195353a0fa283ac97ed6ef1052062f3efa525fe6a6d5a05ff883eaa616a584a"
+    },
+    {
+      "path": "01_Logos/PNG/GroundSwell_Compact_White.png",
+      "bytes": 6221,
+      "sha256": "6e76d8e61796e0aff8d1106b6858cb653b3142fa1ec001d77b7f9be4309d67a5"
+    },
+    {
+      "path": "01_Logos/PNG/GroundSwell_Endorsed_Color.png",
+      "bytes": 63238,
+      "sha256": "130f8ea2ddb2e40ea6a4c537122187257c1506341d552280db7a8b1f38515af2"
+    },
+    {
+      "path": "01_Logos/PNG/GroundSwell_Endorsed_Navy.png",
+      "bytes": 57541,
+      "sha256": "449398b48fb235e995605b83a848f0f0cbaaf3ecf19ccb0ec5d096ac6b1fa1d1"
+    },
+    {
+      "path": "01_Logos/PNG/GroundSwell_Endorsed_Reverse.png",
+      "bytes": 62287,
+      "sha256": "82dc95ddfe68047a55a2f959e3be9f4730b48d4720d1ef3030e4a51025a71a12"
+    },
+    {
+      "path": "01_Logos/PNG/GroundSwell_Endorsed_White.png",
+      "bytes": 56613,
+      "sha256": "3575bfd7d147049d59af869f5c58b68d8e6595a61ef0aeb20aa75e636ffd4039"
+    },
+    {
+      "path": "01_Logos/PNG/GroundSwell_GS_Color.png",
+      "bytes": 45889,
+      "sha256": "2a5324e8c50157d8ac77d875172b120980301792868ece5acb34dbc06dc6bddb"
+    },
+    {
+      "path": "01_Logos/PNG/GroundSwell_GS_Navy.png",
+      "bytes": 33442,
+      "sha256": "98270cbb983be4b30515f3ec858ad086b9bc06bd5e84027c2b46cbfcad162fad"
+    },
+    {
+      "path": "01_Logos/PNG/GroundSwell_GS_Reverse.png",
+      "bytes": 45126,
+      "sha256": "d0cb2e040672c88223c395044e90cb6039b8302d180b4c1d2ccc59d41868d038"
+    },
+    {
+      "path": "01_Logos/PNG/GroundSwell_GS_White.png",
+      "bytes": 32710,
+      "sha256": "08736259ea794886788903d14eead19011fdb94c2f1b121f82b11401bebb7433"
+    },
+    {
+      "path": "01_Logos/PNG/GroundSwell_Mark_Color.png",
+      "bytes": 45054,
+      "sha256": "872e90c2307482fb30422cb8af0dfbd2e54330cf86fa03f0dac1b5c35c63baee"
+    },
+    {
+      "path": "01_Logos/PNG/GroundSwell_Mark_Navy.png",
+      "bytes": 33412,
+      "sha256": "fb4a18fea2f81feb7a224b4ee133bcdd1f08f56379752aa4debfc9eedf3f1e38"
+    },
+    {
+      "path": "01_Logos/PNG/GroundSwell_Mark_Reverse.png",
+      "bytes": 44346,
+      "sha256": "2beb23d7d271ffc664c23354f8fa6cdc22568d258ebab814ab570f9275a2eecd"
+    },
+    {
+      "path": "01_Logos/PNG/GroundSwell_Mark_White.png",
+      "bytes": 32772,
+      "sha256": "eb7486fba6be6e6ec083acb9018b344989308fccea7512ea1ef7f76ea7892781"
+    },
+    {
+      "path": "01_Logos/PNG/GroundSwell_Micro_Color.png",
+      "bytes": 6022,
+      "sha256": "5ad5f5655f0743432d21a6759494b34c9d944bc950c63e6a2da5f9340c0a3310"
+    },
+    {
+      "path": "01_Logos/PNG/GroundSwell_Micro_Navy.png",
+      "bytes": 6022,
+      "sha256": "5ad5f5655f0743432d21a6759494b34c9d944bc950c63e6a2da5f9340c0a3310"
+    },
+    {
+      "path": "01_Logos/PNG/GroundSwell_Micro_Reverse.png",
+      "bytes": 5924,
+      "sha256": "0be4907d0df4f5c6b1fe5588426bc10536c4796122b7ca9550ff782a7580dcfb"
+    },
+    {
+      "path": "01_Logos/PNG/GroundSwell_Micro_White.png",
+      "bytes": 5924,
+      "sha256": "0be4907d0df4f5c6b1fe5588426bc10536c4796122b7ca9550ff782a7580dcfb"
+    },
+    {
+      "path": "01_Logos/PNG/GroundSwell_Primary_Color.png",
+      "bytes": 56595,
+      "sha256": "0f9af6f7588f98f5414ea4daebe4d8c91559b5c87557ca4bb4b7df10196aae6f"
+    },
+    {
+      "path": "01_Logos/PNG/GroundSwell_Primary_Navy.png",
+      "bytes": 50962,
+      "sha256": "cd1e2a0440e63b2c196043426688cb844d9c89ca8bd0aa891d5befa6962c2f87"
+    },
+    {
+      "path": "01_Logos/PNG/GroundSwell_Primary_Reverse.png",
+      "bytes": 55624,
+      "sha256": "bc413917d0eb5d445699dc4d7ba154c3bf6ea70d45aced735654d80910949fdf"
+    },
+    {
+      "path": "01_Logos/PNG/GroundSwell_Primary_White.png",
+      "bytes": 49997,
+      "sha256": "a95fda2110a542d7e965872b0cb2f24e7eb93e4aa79792f1c90ca2f53977f19a"
+    },
+    {
+      "path": "01_Logos/PNG/GroundSwell_Stacked_Color.png",
+      "bytes": 95868,
+      "sha256": "ee4b02be10bc9618f58790aed4f7928de7dc46d3725353c3a35568a6d0758700"
+    },
+    {
+      "path": "01_Logos/PNG/GroundSwell_Stacked_Navy.png",
+      "bytes": 83967,
+      "sha256": "e7d5578ec1c820dd7fe1c5bd41c3c4abb359e9f39a99adf6496728d4deb7950a"
+    },
+    {
+      "path": "01_Logos/PNG/GroundSwell_Stacked_Reverse.png",
+      "bytes": 94135,
+      "sha256": "b4b214eee8163144665b7eba8c5b2a657434192ad0f21c6c32ddf1ff0bbe8778"
+    },
+    {
+      "path": "01_Logos/PNG/GroundSwell_Stacked_White.png",
+      "bytes": 82204,
+      "sha256": "cdf14a911b41ae164e0d00ee3ae04668db355691acd6c85a00799e5595ba32c7"
+    },
+    {
+      "path": "01_Logos/PNG/GroundSwell_Wordmark_Color.png",
+      "bytes": 52143,
+      "sha256": "5a58055fcaff470fc4f83dbd1bf9360eeb06bf20c03379c12cd7f4614eb38fc2"
+    },
+    {
+      "path": "01_Logos/PNG/GroundSwell_Wordmark_Navy.png",
+      "bytes": 52143,
+      "sha256": "5a58055fcaff470fc4f83dbd1bf9360eeb06bf20c03379c12cd7f4614eb38fc2"
+    },
+    {
+      "path": "01_Logos/PNG/GroundSwell_Wordmark_Reverse.png",
+      "bytes": 51141,
+      "sha256": "f220b6b3ad7bf5e5af19a06506446e58b1bcd33b0210a33156f3c8a4536867a0"
+    },
+    {
+      "path": "01_Logos/PNG/GroundSwell_Wordmark_White.png",
+      "bytes": 51141,
+      "sha256": "f220b6b3ad7bf5e5af19a06506446e58b1bcd33b0210a33156f3c8a4536867a0"
+    },
+    {
+      "path": "01_Logos/README.md",
+      "bytes": 1865,
+      "sha256": "8040cc740b0cd33567f10103b825492d46e580d542e3d15c53c3c5400fc3612a"
+    },
+    {
+      "path": "01_Logos/SVG/GroundSwell_Compact_Color.svg",
+      "bytes": 3685,
+      "sha256": "0406a18769f216e47323a045ef3f93f8a25ba81dfba00e120a53bbaee60e6a2e"
+    },
+    {
+      "path": "01_Logos/SVG/GroundSwell_Compact_Navy.svg",
+      "bytes": 3497,
+      "sha256": "42b5af379bc807283499a0c42666765dc554398cac73d37ddfb59dabdbe88433"
+    },
+    {
+      "path": "01_Logos/SVG/GroundSwell_Compact_Reverse.svg",
+      "bytes": 3687,
+      "sha256": "f7a49dbdd3167b4e4c4d15282f8fc4c28721ffbadb7ac777eb61a061826d551f"
+    },
+    {
+      "path": "01_Logos/SVG/GroundSwell_Compact_White.svg",
+      "bytes": 3498,
+      "sha256": "6515e2ea45e45346eb410b10c15309afc45a947ef7c6d44c613abb281a35bf6e"
+    },
+    {
+      "path": "01_Logos/SVG/GroundSwell_Endorsed_Color.svg",
+      "bytes": 12157,
+      "sha256": "b1e4dbb5c56aacaba6b3a34ccaf4cae28b38c5cb0448b3766948dafc8a180bd2"
+    },
+    {
+      "path": "01_Logos/SVG/GroundSwell_Endorsed_Navy.svg",
+      "bytes": 11969,
+      "sha256": "47a8f7451bb9da52482099cdaa14ea048bee52c14b2ed7a85e755bfa3db875c7"
+    },
+    {
+      "path": "01_Logos/SVG/GroundSwell_Endorsed_Reverse.svg",
+      "bytes": 12159,
+      "sha256": "3d4e407e76be29945393f060105380b739d82bfc4bb119238c206900698115bc"
+    },
+    {
+      "path": "01_Logos/SVG/GroundSwell_Endorsed_White.svg",
+      "bytes": 11970,
+      "sha256": "d045e6ca38734d17f1bc642615635c9173cb1ee2a6d94baddc549d88e5a88528"
+    },
+    {
+      "path": "01_Logos/SVG/GroundSwell_GS_Color.svg",
+      "bytes": 3676,
+      "sha256": "33e8a977f2d00b1c36877f3da099e72a6e6388825b77e284da42092ca679bfcb"
+    },
+    {
+      "path": "01_Logos/SVG/GroundSwell_GS_Navy.svg",
+      "bytes": 3488,
+      "sha256": "207f13ebc2792d6c7417f31e812ddd7902b2b0e18caea0ba6b2275bbfac82f65"
+    },
+    {
+      "path": "01_Logos/SVG/GroundSwell_GS_Reverse.svg",
+      "bytes": 3678,
+      "sha256": "402b12328d3c24c98ff8e0e3aa3a3ec68ff2f4fdb09639e07a47963b2a84f91a"
+    },
+    {
+      "path": "01_Logos/SVG/GroundSwell_GS_White.svg",
+      "bytes": 3489,
+      "sha256": "d9241bcfb0fd0042c45e5d696805f4e7261bb8bbb98b8f28170ead6326ea041b"
+    },
+    {
+      "path": "01_Logos/SVG/GroundSwell_Mark_Color.svg",
+      "bytes": 3681,
+      "sha256": "3a57b74eed9f58d748e3e955d8c8b7e40b45a6f482205164e9389b3c0b76f0e8"
+    },
+    {
+      "path": "01_Logos/SVG/GroundSwell_Mark_Navy.svg",
+      "bytes": 3493,
+      "sha256": "66d7c9d46349466bbf228e8e4de290e048f7128e85421761b743753ea6d64ca3"
+    },
+    {
+      "path": "01_Logos/SVG/GroundSwell_Mark_Reverse.svg",
+      "bytes": 3683,
+      "sha256": "4f11a7411b01185a8e86d42eff1732b6ae0a57bdab91b2fe3673a43000cecc9d"
+    },
+    {
+      "path": "01_Logos/SVG/GroundSwell_Mark_White.svg",
+      "bytes": 3494,
+      "sha256": "5e62f4c6facf9301a8ff1ae93deb592dce54c0c489bcdc47025df18c70a30a13"
+    },
+    {
+      "path": "01_Logos/SVG/GroundSwell_Micro_Color.svg",
+      "bytes": 3137,
+      "sha256": "b46dd20942afebb9319bec50713a83b2bb301ad8d92035e75f2caa060dc5eceb"
+    },
+    {
+      "path": "01_Logos/SVG/GroundSwell_Micro_Navy.svg",
+      "bytes": 3136,
+      "sha256": "b34c67c8c328deb1a9e71143475ddbf14138cabcbbcfc027242b219f089229a6"
+    },
+    {
+      "path": "01_Logos/SVG/GroundSwell_Micro_Reverse.svg",
+      "bytes": 3139,
+      "sha256": "c29bbd6b040f8350a69644646a96ac69fbe24dd76cec1e0869340263c4ff75c3"
+    },
+    {
+      "path": "01_Logos/SVG/GroundSwell_Micro_White.svg",
+      "bytes": 3137,
+      "sha256": "615055061c2655a83ccbe0236f8fa951010db3bbbe6862f03a334a131f57083a"
+    },
+    {
+      "path": "01_Logos/SVG/GroundSwell_Primary_Color.svg",
+      "bytes": 10405,
+      "sha256": "bc80069b33eabd303317ba865fef50dd5111abe79710b0094f85dfe9a8d7d39c"
+    },
+    {
+      "path": "01_Logos/SVG/GroundSwell_Primary_Navy.svg",
+      "bytes": 10217,
+      "sha256": "b4d57b32adb489abc8920580d9b316bc20dd782af150ff97d7b0155d8f5d2c9d"
+    },
+    {
+      "path": "01_Logos/SVG/GroundSwell_Primary_Reverse.svg",
+      "bytes": 10407,
+      "sha256": "616a4e4080b1083238037c64e9cf93eb2851f0749eecbad46d41615cfe2aa642"
+    },
+    {
+      "path": "01_Logos/SVG/GroundSwell_Primary_White.svg",
+      "bytes": 10218,
+      "sha256": "db76ffeb892ba3487c3630140d4df032b4d64fdcfc6e6265e7cb8bcb6c5fa8b1"
+    },
+    {
+      "path": "01_Logos/SVG/GroundSwell_Stacked_Color.svg",
+      "bytes": 11256,
+      "sha256": "b724706091a0ee46a2657724e85583ebe78587a4b0ad6d002799506b5fb15fea"
+    },
+    {
+      "path": "01_Logos/SVG/GroundSwell_Stacked_Navy.svg",
+      "bytes": 11070,
+      "sha256": "57904f7d8dafcca4fdbbb45dd62f8150ba1e57b815f008ef6ee8dc65c4f68498"
+    },
+    {
+      "path": "01_Logos/SVG/GroundSwell_Stacked_Reverse.svg",
+      "bytes": 11260,
+      "sha256": "89e93e4fea78bdd7c3521a3cb5d313591bf6fb0e24371b046b319ddd2c66fdca"
+    },
+    {
+      "path": "01_Logos/SVG/GroundSwell_Stacked_White.svg",
+      "bytes": 11071,
+      "sha256": "c4bc8e7546fd2ce701e94f33f38f7ca707acfa59a9d3dd5f8890a8ecb05b1ae5"
+    },
+    {
+      "path": "01_Logos/SVG/GroundSwell_Wordmark_Color.svg",
+      "bytes": 7533,
+      "sha256": "a758aeb75cafce650e2d12882cbf6c2405c4f3545bba4be6198690847c8f2efc"
+    },
+    {
+      "path": "01_Logos/SVG/GroundSwell_Wordmark_Navy.svg",
+      "bytes": 7532,
+      "sha256": "d542316ad22d5c70e9079242762c3e7903c2166378ca0479d9794ade57a2eda9"
+    },
+    {
+      "path": "01_Logos/SVG/GroundSwell_Wordmark_Reverse.svg",
+      "bytes": 7535,
+      "sha256": "01586257ae8e2d6fa3a039293e01eccd7fa53c866332903917642f28fec760e3"
+    },
+    {
+      "path": "01_Logos/SVG/GroundSwell_Wordmark_White.svg",
+      "bytes": 7533,
+      "sha256": "b64013f9d68a3e15cab34478066ac480ec1e2811713c14b7800768a9da31f012"
+    },
+    {
+      "path": "02_Graphics/GroundSwell_Contours_Dark.png",
+      "bytes": 144553,
+      "sha256": "c3950ce2e44ce291879138870580b36c29385b68b6d3a05dbce6a8cec91d22b9"
+    },
+    {
+      "path": "02_Graphics/GroundSwell_Contours_Dark.svg",
+      "bytes": 2808,
+      "sha256": "9b2bd038d1f62d9b1c4b121541db88b8397b4debbb34f69545f67cc01b6cb51c"
+    },
+    {
+      "path": "02_Graphics/GroundSwell_Contours_Dark_Transparent.png",
+      "bytes": 132205,
+      "sha256": "5d7deb54723601072b762e51dabdaa566f548f51320bb3d511d3dd7fe4a76e00"
+    },
+    {
+      "path": "02_Graphics/GroundSwell_Contours_Dark_Transparent.svg",
+      "bytes": 2686,
+      "sha256": "bda0b27ad0474389ff4e9e86c7cddfd76a7e6a2c1e72e8af8a6bf676781d79b3"
+    },
+    {
+      "path": "02_Graphics/GroundSwell_Contours_Light.png",
+      "bytes": 143074,
+      "sha256": "fcb41eae2853558cfd5e2ab05d65e566c2132263b06ef1502ebf8f66175998d2"
+    },
+    {
+      "path": "02_Graphics/GroundSwell_Contours_Light.svg",
+      "bytes": 2808,
+      "sha256": "ec93e01469377b0487c0d91a781e98824a164ba1d844691a939143fd50c2d189"
+    },
+    {
+      "path": "02_Graphics/GroundSwell_Contours_Light_Transparent.png",
+      "bytes": 130178,
+      "sha256": "06876667a46799603da4ac826d21eb2279ec7675e9099ee5bd9f24dd8917db01"
+    },
+    {
+      "path": "02_Graphics/GroundSwell_Contours_Light_Transparent.svg",
+      "bytes": 2686,
+      "sha256": "c2fa80ce21cb68a5ddea7a5c15d3d410aa3c91d1f0611696cbe0d07a042bb351"
+    },
+    {
+      "path": "02_Graphics/GroundSwell_Current_Pattern.png",
+      "bytes": 23350,
+      "sha256": "7642acb3e982b1788b5dd7ef3d7a0d43858e8fb8c087dc0e6d3e8c35897b6a15"
+    },
+    {
+      "path": "02_Graphics/GroundSwell_Current_Pattern.svg",
+      "bytes": 17406,
+      "sha256": "f6ea1acfe42e847167e95ddf8f5cac17d9f0c3b20f08b2a0cf69b18327ffa6bd"
+    },
+    {
+      "path": "02_Graphics/GroundSwell_GS_Pattern_Dark.png",
+      "bytes": 56493,
+      "sha256": "21e1d92d703eaf90a2d1981e081fde4558e9ad7a221cee361796b75244fc95cf"
+    },
+    {
+      "path": "02_Graphics/GroundSwell_GS_Pattern_Dark.svg",
+      "bytes": 97203,
+      "sha256": "bb0141f67672832672c7b6f28983b8c57976b470d4467590285dff96f7bd35ec"
+    },
+    {
+      "path": "02_Graphics/GroundSwell_GS_Pattern_Light.png",
+      "bytes": 55993,
+      "sha256": "1f637018e53834e57398800be12e2b59f130a81962f1f93529ec4f25ae6da9fa"
+    },
+    {
+      "path": "02_Graphics/GroundSwell_GS_Pattern_Light.svg",
+      "bytes": 97203,
+      "sha256": "c37fcc3be47d4182cc4cf94b8158b7773b54e0fa4df3d265a0ef5c74b7295822"
+    },
+    {
+      "path": "02_Graphics/GroundSwell_Heritage_Wave_Color.png",
+      "bytes": 4183,
+      "sha256": "d7fb1ddbb88ef853356f72fc078c152b83ba3cf10ff693685a5ea9c6b9f2637b"
+    },
+    {
+      "path": "02_Graphics/GroundSwell_Heritage_Wave_Color.svg",
+      "bytes": 850,
+      "sha256": "8773841417a3bffd8b538032b020d35b7fb965488cc023833494694e7cba5f3e"
+    },
+    {
+      "path": "03_Icons/GroundSwell_Icon_Contact_Sheet.png",
+      "bytes": 135228,
+      "sha256": "517d1af75024287e238f776779c66b0ef4aea5f85b24bccf13b02b9bb725c5e8"
+    },
+    {
+      "path": "03_Icons/GroundSwell_Icon_Contact_Sheet.svg",
+      "bytes": 170310,
+      "sha256": "7680556379ba440c07d39c21d2b2067fcb612238fad74bd479151009fa06b536"
+    },
+    {
+      "path": "03_Icons/PNG_256/color/groundswell-icon-analytics-color.png",
+      "bytes": 3846,
+      "sha256": "96bde92e518369d3c699519496172baa2d416a3abf2e533c283ba845d187aa41"
+    },
+    {
+      "path": "03_Icons/PNG_256/color/groundswell-icon-audience-insight-color.png",
+      "bytes": 6971,
+      "sha256": "d9b6a44ac2d1661962eaf7308e7417eb374d1efabd542653aa186d2fe16dbce5"
+    },
+    {
+      "path": "03_Icons/PNG_256/color/groundswell-icon-automation-color.png",
+      "bytes": 6238,
+      "sha256": "bd050c2792230e904de8c410362fe7b40db5ec42d10de61981f233fa931d6343"
+    },
+    {
+      "path": "03_Icons/PNG_256/color/groundswell-icon-brand-identity-color.png",
+      "bytes": 6410,
+      "sha256": "c90b7d79205892e5c2df882d17ae34d2d2fc6da55c8304df5e641493655ca0df"
+    },
+    {
+      "path": "03_Icons/PNG_256/color/groundswell-icon-campaigns-color.png",
+      "bytes": 6366,
+      "sha256": "f16bb5435de197e16774be5c884efd5a094019c75399226668566f76f106780d"
+    },
+    {
+      "path": "03_Icons/PNG_256/color/groundswell-icon-community-color.png",
+      "bytes": 6984,
+      "sha256": "836d5517f7d001bc0bb38481b7c89b641906d90ce58de6e4ee165cadf97ff8aa"
+    },
+    {
+      "path": "03_Icons/PNG_256/color/groundswell-icon-content-color.png",
+      "bytes": 4652,
+      "sha256": "d788ac2fd8c40050f4c37b3a731cdec461892da7a5934e8e50c54e29db1f5fac"
+    },
+    {
+      "path": "03_Icons/PNG_256/color/groundswell-icon-integrations-color.png",
+      "bytes": 5966,
+      "sha256": "c834ac4defe7805c79a97ad905b52154db64b47a339cce3eff29324c4e03fe7e"
+    },
+    {
+      "path": "03_Icons/PNG_256/color/groundswell-icon-momentum-color.png",
+      "bytes": 6271,
+      "sha256": "b4f0f8cf373c8acf515266fa07f98623e63f202ee11c1b1d823aa18ec51f0fd1"
+    },
+    {
+      "path": "03_Icons/PNG_256/color/groundswell-icon-social-media-color.png",
+      "bytes": 7084,
+      "sha256": "dedb1216d92eabc9c8fea0709d7051a1e8e3e9f5ce1ad8d065f112d7b0cd93c7"
+    },
+    {
+      "path": "03_Icons/PNG_256/color/groundswell-icon-strategy-color.png",
+      "bytes": 4937,
+      "sha256": "361f28c9cce8ac2a66b7b5824039bcb64d27f5a43eaad92cf52238434f15dc15"
+    },
+    {
+      "path": "03_Icons/PNG_256/color/groundswell-icon-web-design-color.png",
+      "bytes": 5112,
+      "sha256": "8f23ce3a6ae1b5e12524903da6d30b4ece3b3d1b7c4f70262e2dcc6f8455c114"
+    },
+    {
+      "path": "03_Icons/PNG_256/navy/groundswell-icon-analytics-navy.png",
+      "bytes": 3463,
+      "sha256": "22f8d0ad7b4b504d4eb90f0a0542c0d60dcabf1b454df5de029fd97adf46e264"
+    },
+    {
+      "path": "03_Icons/PNG_256/navy/groundswell-icon-audience-insight-navy.png",
+      "bytes": 6340,
+      "sha256": "80162033f6df35764c6af4e124478d811dce049f21630916ff6a70c8bd171d10"
+    },
+    {
+      "path": "03_Icons/PNG_256/navy/groundswell-icon-automation-navy.png",
+      "bytes": 5157,
+      "sha256": "00852c31330fbfb22a2cb0d7e267f8e5c89b44f01005ab6ea200ec8504ce40ae"
+    },
+    {
+      "path": "03_Icons/PNG_256/navy/groundswell-icon-brand-identity-navy.png",
+      "bytes": 5775,
+      "sha256": "0b6ffe3792e0379140f8928519ec308df75eed18574311790e937fd6fbceab61"
+    },
+    {
+      "path": "03_Icons/PNG_256/navy/groundswell-icon-campaigns-navy.png",
+      "bytes": 5603,
+      "sha256": "6bce937bb7bde5df6d718e2141af84c33d9ce36681b98d964c9af4735d72248f"
+    },
+    {
+      "path": "03_Icons/PNG_256/navy/groundswell-icon-community-navy.png",
+      "bytes": 6188,
+      "sha256": "62ec0c87a6a3dc95824c1d3a0703a6a991c04e50292defc7c7c6860007b5f072"
+    },
+    {
+      "path": "03_Icons/PNG_256/navy/groundswell-icon-content-navy.png",
+      "bytes": 4153,
+      "sha256": "e8b8591e6e81309b43b06c9758bd8c18efdb35005aea577cf78a2c2498899a13"
+    },
+    {
+      "path": "03_Icons/PNG_256/navy/groundswell-icon-integrations-navy.png",
+      "bytes": 5123,
+      "sha256": "9c257dce7cfd02e90e27b6a3e36c2add4a379d398cbb4f1b7670e257f8f3475d"
+    },
+    {
+      "path": "03_Icons/PNG_256/navy/groundswell-icon-momentum-navy.png",
+      "bytes": 5463,
+      "sha256": "fb0e4e1c9110eb7f5fbe10dbfa409c0fa6745ba8dfd25e50a1ae3b96080189eb"
+    },
+    {
+      "path": "03_Icons/PNG_256/navy/groundswell-icon-social-media-navy.png",
+      "bytes": 6174,
+      "sha256": "8957986da2efeeb0add1eea1741d9307028e1bce531cad949f65b013f0562bd4"
+    },
+    {
+      "path": "03_Icons/PNG_256/navy/groundswell-icon-strategy-navy.png",
+      "bytes": 4317,
+      "sha256": "026b041f926bbdd2c384fd63c72485d30dbf9a86af15a3122ab7f5a4c77f4ae2"
+    },
+    {
+      "path": "03_Icons/PNG_256/navy/groundswell-icon-web-design-navy.png",
+      "bytes": 4560,
+      "sha256": "40922b5846b803187fb176ad7657c4fc10cf9121100d419f803e34cb96d2501c"
+    },
+    {
+      "path": "03_Icons/PNG_256/white/groundswell-icon-analytics-white.png",
+      "bytes": 2866,
+      "sha256": "6458b3cf0029ebedc67e7603063864d78397b10281b69688046374e75244d71c"
+    },
+    {
+      "path": "03_Icons/PNG_256/white/groundswell-icon-audience-insight-white.png",
+      "bytes": 5191,
+      "sha256": "d5db4fd11f69398b604a0cfb2568a6967e5f113b1a63a1cf256d3f1987a2971a"
+    },
+    {
+      "path": "03_Icons/PNG_256/white/groundswell-icon-automation-white.png",
+      "bytes": 4169,
+      "sha256": "de855562b17592ae4d08c88576a7fc762116663b479f53cd2c92e8303831077a"
+    },
+    {
+      "path": "03_Icons/PNG_256/white/groundswell-icon-brand-identity-white.png",
+      "bytes": 4690,
+      "sha256": "47745358737a47c0134b8552f21e0973e249d0a05c5a956d4110eac7d1c9395d"
+    },
+    {
+      "path": "03_Icons/PNG_256/white/groundswell-icon-campaigns-white.png",
+      "bytes": 4669,
+      "sha256": "857dfd33dcb02d42cf3d2628287f69ad5fa1b92341f05e930f28e484e2f4aa19"
+    },
+    {
+      "path": "03_Icons/PNG_256/white/groundswell-icon-community-white.png",
+      "bytes": 5113,
+      "sha256": "3653967c77823e2cd5febbef02f7850b67b9a7d88e0b8cea92e0fb76534b6e4f"
+    },
+    {
+      "path": "03_Icons/PNG_256/white/groundswell-icon-content-white.png",
+      "bytes": 3539,
+      "sha256": "466d7a7ae835639b7a6c2e828f6b8f5b6f92c417311f3f1ec4dd6d2a9568e011"
+    },
+    {
+      "path": "03_Icons/PNG_256/white/groundswell-icon-integrations-white.png",
+      "bytes": 4158,
+      "sha256": "89fd5075a5f65377f315b6a94b561d7e414321ee86c126cbbee98faa7a4de25f"
+    },
+    {
+      "path": "03_Icons/PNG_256/white/groundswell-icon-momentum-white.png",
+      "bytes": 4498,
+      "sha256": "20a45807464f2585c320b78106f27094dfeb5853298335b2b83c23422f0975ed"
+    },
+    {
+      "path": "03_Icons/PNG_256/white/groundswell-icon-social-media-white.png",
+      "bytes": 5156,
+      "sha256": "ed75ba0656f290e4879e7010534e1da699311bc59fd92f69db04d3a3828c7caa"
+    },
+    {
+      "path": "03_Icons/PNG_256/white/groundswell-icon-strategy-white.png",
+      "bytes": 3423,
+      "sha256": "51a4fe6407d4f303143e01635575a0c8ba7af0f75d05ef4f7a54c183ed4384a7"
+    },
+    {
+      "path": "03_Icons/PNG_256/white/groundswell-icon-web-design-white.png",
+      "bytes": 3694,
+      "sha256": "2a14426a1d0d25889fd7f56f026219a356c8169f9aec058c757b90115dc11f7a"
+    },
+    {
+      "path": "03_Icons/README.md",
+      "bytes": 1569,
+      "sha256": "58cfc39a39d075e9844da2e1ff8c98faedb063dd43349c7a0a2c228c07566c61"
+    },
+    {
+      "path": "03_Icons/SVG/color/groundswell-icon-analytics-color.svg",
+      "bytes": 481,
+      "sha256": "de84be1bb71e8f6cfb1b5db4da3501e186271871f8a2534031f10cbbf0b3fcde"
+    },
+    {
+      "path": "03_Icons/SVG/color/groundswell-icon-audience-insight-color.svg",
+      "bytes": 551,
+      "sha256": "75028a617820e6e5f851657ea3b9dab79b646caea7983d99470fe64374be0c5e"
+    },
+    {
+      "path": "03_Icons/SVG/color/groundswell-icon-automation-color.svg",
+      "bytes": 683,
+      "sha256": "4c5d1962431f0756971673107cfc1ee46aca9ad35d00e21a71b6586ed681039d"
+    },
+    {
+      "path": "03_Icons/SVG/color/groundswell-icon-brand-identity-color.svg",
+      "bytes": 612,
+      "sha256": "b71430e22b82e49a107c12835b2c8c4838bf4d4481ad457ab751b68238c83c43"
+    },
+    {
+      "path": "03_Icons/SVG/color/groundswell-icon-campaigns-color.svg",
+      "bytes": 574,
+      "sha256": "33e202a6e43d2489287d639680dc6a0ab1e0714556723924f601ef14ff811c76"
+    },
+    {
+      "path": "03_Icons/SVG/color/groundswell-icon-community-color.svg",
+      "bytes": 627,
+      "sha256": "02c7bd264749f366418f526aaa341763c5c8489dba89ca78aea948c9e23b84da"
+    },
+    {
+      "path": "03_Icons/SVG/color/groundswell-icon-content-color.svg",
+      "bytes": 547,
+      "sha256": "ae079688b075de289fac5bb5180ea61cac3d61e45c4564ccf863a5e780103cb9"
+    },
+    {
+      "path": "03_Icons/SVG/color/groundswell-icon-integrations-color.svg",
+      "bytes": 609,
+      "sha256": "97021e3b7e74fb830ac18492304a5c5889c018448f6a3e4180f3ec5b1b92e03a"
+    },
+    {
+      "path": "03_Icons/SVG/color/groundswell-icon-momentum-color.svg",
+      "bytes": 502,
+      "sha256": "e086bc6dd8614b9ccc28599dfbf578345b39f765a5a47cce3b5f8c401a1f8cdd"
+    },
+    {
+      "path": "03_Icons/SVG/color/groundswell-icon-social-media-color.svg",
+      "bytes": 673,
+      "sha256": "416a6fd47def96dc659f91975dc34bb1ce074a591d517e9f37bb5c0c88ed67ea"
+    },
+    {
+      "path": "03_Icons/SVG/color/groundswell-icon-strategy-color.svg",
+      "bytes": 542,
+      "sha256": "19c66ca2af25a89da3be4f14a9c50e3769cb850ea9668748ebd3eb71fdcc038d"
+    },
+    {
+      "path": "03_Icons/SVG/color/groundswell-icon-web-design-color.svg",
+      "bytes": 628,
+      "sha256": "8fe2955e9f733c97cadc151ad46a1692ea674034ff9e9890fdf9c748c08897d7"
+    },
+    {
+      "path": "03_Icons/SVG/navy/groundswell-icon-analytics-navy.svg",
+      "bytes": 481,
+      "sha256": "ae9629e59babfe0ce639e6a881e9603b87f9043fb286aca84b01b91a32fb4722"
+    },
+    {
+      "path": "03_Icons/SVG/navy/groundswell-icon-audience-insight-navy.svg",
+      "bytes": 551,
+      "sha256": "3b9da4868b9d7755e0b53e876cf37f0d60f60b3a9e01e62f5406e99b7f601d33"
+    },
+    {
+      "path": "03_Icons/SVG/navy/groundswell-icon-automation-navy.svg",
+      "bytes": 683,
+      "sha256": "50060cd2ac273b0406a08c493f3f69cba96431a9bd7a76bb01c0b67371d43754"
+    },
+    {
+      "path": "03_Icons/SVG/navy/groundswell-icon-brand-identity-navy.svg",
+      "bytes": 612,
+      "sha256": "cd2405dedce6e79dbe1d8b053ba49ea0dbca31d5ba17ed388b1c16b4266c4f84"
+    },
+    {
+      "path": "03_Icons/SVG/navy/groundswell-icon-campaigns-navy.svg",
+      "bytes": 574,
+      "sha256": "d669a5e7a31854d63d85ef09c1909ebd305e3cf83d0aaed12bea32954096882f"
+    },
+    {
+      "path": "03_Icons/SVG/navy/groundswell-icon-community-navy.svg",
+      "bytes": 627,
+      "sha256": "2d5b19d150a6999d00f09b78f2fa93dbeff5e7c59e0a5a17c71cbd7a9592109a"
+    },
+    {
+      "path": "03_Icons/SVG/navy/groundswell-icon-content-navy.svg",
+      "bytes": 547,
+      "sha256": "ed058089e7763b83a03a4f616d3d0f363447ab8f63a39ab259dbca6c0e283dad"
+    },
+    {
+      "path": "03_Icons/SVG/navy/groundswell-icon-integrations-navy.svg",
+      "bytes": 609,
+      "sha256": "3a45f8987cf2a80284dc22241ec19ff9036af57a21ecef6a7b8fe2fd3eacc10b"
+    },
+    {
+      "path": "03_Icons/SVG/navy/groundswell-icon-momentum-navy.svg",
+      "bytes": 502,
+      "sha256": "9a6fa964988250d6a44d82c1a7fca3e24f32d3fcc633e215c9fe143fb879ec2b"
+    },
+    {
+      "path": "03_Icons/SVG/navy/groundswell-icon-social-media-navy.svg",
+      "bytes": 673,
+      "sha256": "0e7c43639fb3d19327a1565a3188af225ca0df5b1d2add6a3ecc736766240683"
+    },
+    {
+      "path": "03_Icons/SVG/navy/groundswell-icon-strategy-navy.svg",
+      "bytes": 542,
+      "sha256": "406438c308fef7871633c216e41f17b6197e1525d84a3ac77a8dff6d746756fe"
+    },
+    {
+      "path": "03_Icons/SVG/navy/groundswell-icon-web-design-navy.svg",
+      "bytes": 628,
+      "sha256": "e7ea0ed4aef69269aaf5eac22b3b6bf8b93464427597ddb11690fb98e80b041b"
+    },
+    {
+      "path": "03_Icons/SVG/white/groundswell-icon-analytics-white.svg",
+      "bytes": 481,
+      "sha256": "a3e3e755952e0b28f7d24531e77953aac93213edb14755eb0949a531be15d738"
+    },
+    {
+      "path": "03_Icons/SVG/white/groundswell-icon-audience-insight-white.svg",
+      "bytes": 551,
+      "sha256": "2f4bbd5bb43ae96adfb904321a699153e2c28312ab78c826643a8d465036a306"
+    },
+    {
+      "path": "03_Icons/SVG/white/groundswell-icon-automation-white.svg",
+      "bytes": 683,
+      "sha256": "1423db883367cd97c115e9d929cb7b503fe0aad5e859af54d195c4da0a52018e"
+    },
+    {
+      "path": "03_Icons/SVG/white/groundswell-icon-brand-identity-white.svg",
+      "bytes": 612,
+      "sha256": "2abfa2f3c6f5d1e153abe7ce0e26fb916c2a72a97851a15bed070b04f0d75004"
+    },
+    {
+      "path": "03_Icons/SVG/white/groundswell-icon-campaigns-white.svg",
+      "bytes": 574,
+      "sha256": "37936cd65420eeeb00bcd2c1efcd5585f3a9384ecde2cdbc8571f308b26dfa30"
+    },
+    {
+      "path": "03_Icons/SVG/white/groundswell-icon-community-white.svg",
+      "bytes": 627,
+      "sha256": "7364b7ad8890905b30815b2b0d2e74a4bd200d28365b112aaad5cc1d312bcdec"
+    },
+    {
+      "path": "03_Icons/SVG/white/groundswell-icon-content-white.svg",
+      "bytes": 547,
+      "sha256": "285dd70aed8f4edbf9d3d37bd210939035d36aed6d650478243c7585c23a2102"
+    },
+    {
+      "path": "03_Icons/SVG/white/groundswell-icon-integrations-white.svg",
+      "bytes": 609,
+      "sha256": "6c74fc33ad819b1d9b54b38c67829348805289f3a006c0d8beb97665f7cd6051"
+    },
+    {
+      "path": "03_Icons/SVG/white/groundswell-icon-momentum-white.svg",
+      "bytes": 502,
+      "sha256": "ab9c14cdafa385a6b4aa47824ad1f126e535a045afa68817ce67e8dd537a202a"
+    },
+    {
+      "path": "03_Icons/SVG/white/groundswell-icon-social-media-white.svg",
+      "bytes": 673,
+      "sha256": "412ac1e62eb26aa438465b2df2403ad277dae796cfbf7f8a4d9a9fddd9cc7234"
+    },
+    {
+      "path": "03_Icons/SVG/white/groundswell-icon-strategy-white.svg",
+      "bytes": 542,
+      "sha256": "640630aca9f24f1dec45c9f66ac6908db60941c42542ab80e37f14ab78117368"
+    },
+    {
+      "path": "03_Icons/SVG/white/groundswell-icon-web-design-white.svg",
+      "bytes": 628,
+      "sha256": "3e0938bdd88d87f891949648e4fcb3fedc8ff45222b15f531eae13db345a2ef1"
+    },
+    {
+      "path": "03_Icons/groundswell-icons-sprite.svg",
+      "bytes": 6325,
+      "sha256": "413c598596ac05de67f26dcc896ca089762ce11270c9956e89635cbcf9c413d6"
+    },
+    {
+      "path": "03_Icons/icon-manifest.json",
+      "bytes": 1096,
+      "sha256": "b8a26ef450945932cd95b1fbfda69838e9658738c566c091df77353aa0670b7a"
+    },
+    {
+      "path": "04_Fonts/README.md",
+      "bytes": 2501,
+      "sha256": "f43abc8bdf49b796774a1928338d7ee91c997428c55d66882951c0720dcd1dd5"
+    },
+    {
+      "path": "04_Fonts/fonts.css",
+      "bytes": 1656,
+      "sha256": "68d3d32feeeb7f50b72513a8b17c4a929c7c3ac6b3074bc78087c3240e8db8d9"
+    },
+    {
+      "path": "04_Fonts/ibm-plex-mono/IBMPlexMono-400-Latin.woff2",
+      "bytes": 14708,
+      "sha256": "08949f728dc52d528e69b1667d15c89a5686a4ee9a296ff90983985f99c380f7"
+    },
+    {
+      "path": "04_Fonts/ibm-plex-mono/IBMPlexMono-500-Latin.woff2",
+      "bytes": 14888,
+      "sha256": "01d285447409c8a588692162439a038b8cbd7871309ee20267b0d2d91c6e8e22"
+    },
+    {
+      "path": "04_Fonts/ibm-plex-mono/IBMPlexMono-Medium.ttf",
+      "bytes": 136704,
+      "sha256": "a9b4c49bb299e05b5f6c481e7fb5e78943d2793249a0c8874ab574a2d1ea6755"
+    },
+    {
+      "path": "04_Fonts/ibm-plex-mono/IBMPlexMono-Regular.ttf",
+      "bytes": 135580,
+      "sha256": "6a3412f058c7d8dfd9170c41e85ade48e5156ecb89356110ca57a0a27734af46"
+    },
+    {
+      "path": "04_Fonts/ibm-plex-mono/OFL.txt",
+      "bytes": 4456,
+      "sha256": "7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da"
+    },
+    {
+      "path": "04_Fonts/inter/Inter-Italic-Variable.ttf",
+      "bytes": 906596,
+      "sha256": "acd98e64795781b2058f07b18475e0ecee2a0fe2b42a49e2f9e37d0d6bf66ce6"
+    },
+    {
+      "path": "04_Fonts/inter/Inter-Variable-Latin.woff2",
+      "bytes": 72920,
+      "sha256": "2c295d99e26dcf357d4d01bcf270fd6924b600c9a13dd8c363ef114f4c6976fa"
+    },
+    {
+      "path": "04_Fonts/inter/Inter-Variable.ttf",
+      "bytes": 876576,
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "path": "04_Fonts/inter/OFL.txt",
+      "bytes": 4377,
+      "sha256": "5b9321a4298cfeb6b34354164a1c3afc3db114569984c502b9b35d988fd58c57"
+    },
+    {
+      "path": "04_Fonts/plus-jakarta-sans/OFL.txt",
+      "bytes": 4402,
+      "sha256": "995c7199cab65954f545996326755daee7b63cc6b42b06c13da1f9502ab08a99"
+    },
+    {
+      "path": "04_Fonts/plus-jakarta-sans/PlusJakartaSans-Italic-Variable.ttf",
+      "bytes": 183188,
+      "sha256": "9529eb888668b6a3c6dd75b6341a2fc5263fb6c9e788822e6117c29dd9e8b115"
+    },
+    {
+      "path": "04_Fonts/plus-jakarta-sans/PlusJakartaSans-Variable-Latin.woff2",
+      "bytes": 27348,
+      "sha256": "153fc85b70298beeb1d61a5f723331649e7f23bb77302a66e61cb3e2fbdb5e79"
+    },
+    {
+      "path": "04_Fonts/plus-jakarta-sans/PlusJakartaSans-Variable.ttf",
+      "bytes": 176288,
+      "sha256": "89b3fb38aa0d275d7a731d0d817a4f1622b316b4d7fbdedcf02ee9099ff68bc8"
+    },
+    {
+      "path": "04_Fonts/sources.json",
+      "bytes": 4164,
+      "sha256": "6a69ace62fd9dd47e7581fcfd93a6be8714365d0b7aa02721c023f133475b507"
+    },
+    {
+      "path": "05_Templates/Social/GroundSwell_Avatar_1080.png",
+      "bytes": 59927,
+      "sha256": "9b677f397bf4aaccbd373d7f6f0bceedca8c3fb70e7a053bff700cc03c8c5b40"
+    },
+    {
+      "path": "05_Templates/Social/GroundSwell_Avatar_1080.svg",
+      "bytes": 3742,
+      "sha256": "5b604b12d96f4e31708cde05e50fbc1df6fa6555fe4a3555d17c4c44af1d2e82"
+    },
+    {
+      "path": "05_Templates/Social/GroundSwell_Banner_1600x400.png",
+      "bytes": 80305,
+      "sha256": "d990668973220306a693eedddf1528154d9367f43b73227387a492786849e725"
+    },
+    {
+      "path": "05_Templates/Social/GroundSwell_Banner_1600x400.svg",
+      "bytes": 34722,
+      "sha256": "b1a026dcdca1fc44d47f74812ee97af9240200a17e7c7421808824ccc060c296"
+    },
+    {
+      "path": "05_Templates/Social/GroundSwell_Portrait_1080x1350.png",
+      "bytes": 139931,
+      "sha256": "3a6644e19d426ab5c0dcb46c70d630c237f31805108b9c36e52a4304924dbc75"
+    },
+    {
+      "path": "05_Templates/Social/GroundSwell_Portrait_1080x1350.svg",
+      "bytes": 58095,
+      "sha256": "2e9ef77a864fdfa20ffd60526d5565580af0a3e032230e8df4ba4346b9d7a184"
+    },
+    {
+      "path": "05_Templates/Social/GroundSwell_Square_1080.png",
+      "bytes": 114036,
+      "sha256": "b8afb435b1e0a9bce39f79402b661653dfb5e71b89b0ea0bd970464626f08a0a"
+    },
+    {
+      "path": "05_Templates/Social/GroundSwell_Square_1080.svg",
+      "bytes": 54879,
+      "sha256": "522b58ac4c4f303fb7246d552e39a0fd25dde892e25bfcecd9a1ffaef3fe822a"
+    },
+    {
+      "path": "05_Templates/Social/GroundSwell_Story_1080x1920.png",
+      "bytes": 161637,
+      "sha256": "f2a23cf2d531b3179b6c102c41acc558eeabc7d89e426d7ac88605bb8bf6b125"
+    },
+    {
+      "path": "05_Templates/Social/GroundSwell_Story_1080x1920.svg",
+      "bytes": 55062,
+      "sha256": "1fd6cf837bc8c32fa8edc743b030f268089ef02baa340b3d77c88adbf5b6beb3"
+    },
+    {
+      "path": "05_Templates/Stationery/GroundSwell_Business_Card_Back.png",
+      "bytes": 41410,
+      "sha256": "e9472ffad8e3f3de4ce8a110b638063211d21f52735bb662e60357c47f9b37c8"
+    },
+    {
+      "path": "05_Templates/Stationery/GroundSwell_Business_Card_Back.svg",
+      "bytes": 14794,
+      "sha256": "7a76a6c62e8eb82bb5cdbb87434a543aba73a4711061e20eef1579b5f1dfc182"
+    },
+    {
+      "path": "05_Templates/Stationery/GroundSwell_Business_Card_Front.png",
+      "bytes": 22969,
+      "sha256": "01b85a98ded2ad02649aaed6722ecbdddbfef00cb461bcc3af1ac53768aa36db"
+    },
+    {
+      "path": "05_Templates/Stationery/GroundSwell_Business_Card_Front.svg",
+      "bytes": 66922,
+      "sha256": "03c976546d1e35aa4083cb4a12a2893bed257371874f30f766fd4a8ee46dda82"
+    },
+    {
+      "path": "05_Templates/Stationery/GroundSwell_Letterhead_US_Letter.png",
+      "bytes": 75791,
+      "sha256": "942a8f27ffc66f3c1e5b943dc546bd79f981ba6a7a357da43d4c436ce3c79271"
+    },
+    {
+      "path": "05_Templates/Stationery/GroundSwell_Letterhead_US_Letter.svg",
+      "bytes": 54797,
+      "sha256": "15313db3725a33ed6930775eb50d9543c997f37350ef0139fde6b407b55a6825"
+    },
+    {
+      "path": "05_Templates/Stationery/GroundSwell_Proposal_Cover.png",
+      "bytes": 154900,
+      "sha256": "5907ebdbe254e8da161e759e29971ef0b36f735111b3d2b8bd55be1b70031931"
+    },
+    {
+      "path": "05_Templates/Stationery/GroundSwell_Proposal_Cover.svg",
+      "bytes": 54730,
+      "sha256": "b2a5f7d38126ef20474261920780ec6dc1cce466e32c5b16f57f0f4560dda39f"
+    },
+    {
+      "path": "05_Templates/Stationery/Print_Preparation.md",
+      "bytes": 778,
+      "sha256": "8fac16bd2c3e04584510301a8a1c5664dd3301d876faa83b00dca16c57b488fc"
+    },
+    {
+      "path": "06_Digital/GroundSwell_Brand_Tokens.json",
+      "bytes": 1467,
+      "sha256": "27184152428ea9ff1789881db789f2e52fc0124c7f94aa7a30c0917e62b2aa9d"
+    },
+    {
+      "path": "06_Digital/GroundSwell_Favicon_16.png",
+      "bytes": 461,
+      "sha256": "b04d0eb3f801645fac4c235d3cb265eb535321b03444ad7e8cc01a29bc69d505"
+    },
+    {
+      "path": "06_Digital/GroundSwell_Favicon_180.png",
+      "bytes": 5721,
+      "sha256": "9a8e21f974f4fc0b4d91d138812902dd42813974d6827b30f6603435ca9e0659"
+    },
+    {
+      "path": "06_Digital/GroundSwell_Favicon_192.png",
+      "bytes": 6127,
+      "sha256": "f412159c68a82e11d6ef74ffc7c50e316203d3f7c7cd34e9f9588dda578fb238"
+    },
+    {
+      "path": "06_Digital/GroundSwell_Favicon_24.png",
+      "bytes": 838,
+      "sha256": "934c5fc2e3afa09543c07991f33e6c6b7fe7fade0ef17ea3fa893be219aaf5c3"
+    },
+    {
+      "path": "06_Digital/GroundSwell_Favicon_32.png",
+      "bytes": 1106,
+      "sha256": "c7b14764e361b468192f4a2929a3d76e5c076cfd2bfc72927a31ffd1fb8e2440"
+    },
+    {
+      "path": "06_Digital/GroundSwell_Favicon_48.png",
+      "bytes": 1515,
+      "sha256": "b6daf52712e7882c0c1b449ac3a2742d9f86d981452ac735cd0ee1cfb301dad3"
+    },
+    {
+      "path": "06_Digital/GroundSwell_Favicon_512.png",
+      "bytes": 19238,
+      "sha256": "2191425d29e8a76af2a05b78adfe97441fb53dcb04774ef4b21006b4b0043c0b"
+    },
+    {
+      "path": "06_Digital/GroundSwell_Favicon_64.png",
+      "bytes": 2047,
+      "sha256": "424929cd7b13894293fb548bd2a78b52ceb9fa35e6ecbd82ab47bf971d4e8500"
+    },
+    {
+      "path": "06_Digital/GroundSwell_Logo_Reveal.mp4",
+      "bytes": 201365,
+      "sha256": "20a9c2ae28a6558e893fd57e77b4b7a8ed1b3e88a6c619add9534465beac9798"
+    },
+    {
+      "path": "06_Digital/GroundSwell_Motion_Reveal.svg",
+      "bytes": 35754,
+      "sha256": "b32241241320080265e7bd0dc4c0ce9a7a55e6fadbc9a0de9910bfbb20a88e1f"
+    },
+    {
+      "path": "06_Digital/GroundSwell_Tokens.css",
+      "bytes": 824,
+      "sha256": "d997eaeb8dcb42164bef382432f14bdea6aa0954e23e5a7a24f08046c21c9f05"
+    },
+    {
+      "path": "06_Digital/Motion_Preview.html",
+      "bytes": 842,
+      "sha256": "865f046d860983678c3442cf8c51b32df06434a42638f1e0b73af2ddf867298a"
+    },
+    {
+      "path": "06_Digital/favicon.ico",
+      "bytes": 6053,
+      "sha256": "294439d3e9a14a1417ecc8819cc99f64bbfa92ac719d73208109483bd14f3d69"
+    },
+    {
+      "path": "06_Digital/site.webmanifest",
+      "bytes": 354,
+      "sha256": "e7ce25d8a858a4991d8a8ed1c45ab26e10c5ac47df2abc7e76b4c6a811b3ae35"
+    },
+    {
+      "path": "07_Source_References/favicon.svg",
+      "bytes": 806,
+      "sha256": "4cbc5876ffdfe288afe68a02e3c0737fe0e4375ab9a20c99858097574bad517c"
+    },
+    {
+      "path": "07_Source_References/new-wave-it-horizontal-on-light.svg",
+      "bytes": 1534,
+      "sha256": "1bbbe295216aa25b5833edbba44ab51151ccbf8a931ed4042a5ee98a4c324756"
+    },
+    {
+      "path": "07_Source_References/nwse-logo-primary_fullcolor-light.svg",
+      "bytes": 5861,
+      "sha256": "f7edfcd0b62016e2290a04d0bac77dce1bb3577d166649b048d8b72ec93bb571"
+    },
+    {
+      "path": "07_Source_References/nwse-mark-micro_fullcolor-light.svg",
+      "bytes": 495,
+      "sha256": "cba3bf9dc6a42c6a091428e92a48f5b52c909d9c2ce1a714ee564062f591b6e8"
+    },
+    {
+      "path": "07_Source_References/nwse-mark_fullcolor-light.svg",
+      "bytes": 582,
+      "sha256": "7812da60dc17f8fd54afd097798e7d30aef561b2e2b474283645e7a19b540feb"
+    },
+    {
+      "path": "07_Source_References/source-provenance.json",
+      "bytes": 2392,
+      "sha256": "581ac368b08215bf5d1f95863ed96614e56e6e2c6991e0fc5609a376692831b7"
+    },
+    {
+      "path": "08_Editable_Source/Construction_Notes.json",
+      "bytes": 1769,
+      "sha256": "e92334ac1e321ec4a2577aad9cae8a83db6c18cb1df8cf47489cada7f76da221"
+    },
+    {
+      "path": "08_Editable_Source/GS_Construction_Compact.svg",
+      "bytes": 3582,
+      "sha256": "d2872e143539dbad8a3cb5e075ee1c016b94e2600a1c088ebc7e94c5d274117c"
+    },
+    {
+      "path": "08_Editable_Source/GS_Construction_Micro.svg",
+      "bytes": 3008,
+      "sha256": "4f075d2b20ec4dfa84729392f575770cd723ff899704c2b6062465421de6a5aa"
+    },
+    {
+      "path": "08_Editable_Source/GS_Construction_Standard.svg",
+      "bytes": 3418,
+      "sha256": "4b182daff122c7453ac1c115874021a5a6842591b2b2a14754609555791dc6f5"
+    },
+    {
+      "path": "08_Editable_Source/README.md",
+      "bytes": 844,
+      "sha256": "e8f1005d8a5198cf2e330ced148a2ec45f36f8e936b8f5822c99e195da26bae6"
+    },
+    {
+      "path": "08_Editable_Source/build_guide.py",
+      "bytes": 25153,
+      "sha256": "da0dd0c1814178b78cdddc4c353635f880fa7cacc807afdad3a162e5ba9bc86b"
+    },
+    {
+      "path": "Brand_Overview.html",
+      "bytes": 22063,
+      "sha256": "406f7800a218a8bb2c302064e69e0fcf64099dc3389e014ae6ba4c7ec05e29b2"
+    }
+  ]
+}

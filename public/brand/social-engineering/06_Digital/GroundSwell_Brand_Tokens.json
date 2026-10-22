@@ -1,0 +1,62 @@
+{
+  "name": "GroundSwell",
+  "version": "2.0",
+  "status": "GS identity revision",
+  "brandArchitecture": "GroundSwell, by New Wave",
+  "tagline": "Built to move people.",
+  "descriptor": "Brand. Social. Digital.",
+  "colors": {
+    "navy": "#09131D",
+    "navy2": "#101E2D",
+    "cyan": "#31C6CF",
+    "tide": "#317B92",
+    "amber": "#F2A33A",
+    "white": "#F7FAFB",
+    "mist": "#E8EFF1",
+    "slate": "#526271",
+    "foam": "#E7F5F5"
+  },
+  "typography": {
+    "display": {
+      "family": "Plus Jakarta Sans",
+      "weights": [
+        600,
+        700,
+        800
+      ]
+    },
+    "body": {
+      "family": "Inter",
+      "weights": [
+        400,
+        500,
+        600
+      ]
+    },
+    "utility": {
+      "family": "IBM Plex Mono",
+      "weights": [
+        400,
+        500
+      ]
+    }
+  },
+  "logo": {
+    "primary_min_width_px": 220,
+    "endorsed_min_width_px": 300,
+    "standard_GS_min_width_px": 32,
+    "compact_GS_width_range_px": [
+      24,
+      32
+    ],
+    "micro_GS_min_width_px": 16,
+    "minimum_clear_space": "One half of the visible GS monogram height on all sides of a complete lockup.",
+    "micro_treatment": "Solid GS letterforms at 16 px; optical compact GS for 24\u201332 px."
+  },
+  "motion": {
+    "duration_ms": 2800,
+    "easing": "cubic-bezier(0.2, 0.7, 0.2, 1)",
+    "reduced_motion": "static final frame"
+  },
+  "source": "https://www.newwaveitfl.com/brand/social-engineering/logos/nwse-mark_fullcolor-light.svg"
+}

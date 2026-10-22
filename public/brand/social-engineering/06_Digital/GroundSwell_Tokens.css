@@ -1,0 +1,20 @@
+:root {
+  --gs-navy: #09131D;
+  --gs-navy2: #101E2D;
+  --gs-cyan: #31C6CF;
+  --gs-tide: #317B92;
+  --gs-amber: #F2A33A;
+  --gs-white: #F7FAFB;
+  --gs-mist: #E8EFF1;
+  --gs-slate: #526271;
+  --gs-foam: #E7F5F5;
+  --gs-font-display: "Plus Jakarta Sans", sans-serif;
+  --gs-font-body: "Inter", sans-serif;
+  --gs-font-mono: "IBM Plex Mono", monospace;
+  --gs-space-unit: 8px;
+}
+body { font-family: var(--gs-font-body); color: var(--gs-navy); background: var(--gs-white); }
+h1,h2,h3 {font-family:var(--gs-font-display);letter-spacing:-0.025em;}
+.gs-eyebrow{font-family:var(--gs-font-mono);letter-spacing:0.08em;text-transform:uppercase;}
+.gs-button{background:var(--gs-amber);color:var(--gs-navy);border:0;padding:0.875rem 1.25rem;font-weight:600;}
+.gs-button:focus-visible{outline:3px solid var(--gs-navy);outline-offset:4px;}

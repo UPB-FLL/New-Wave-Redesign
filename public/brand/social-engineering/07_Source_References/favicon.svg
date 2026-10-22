@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img">
+  <title>New Wave IT standard icon</title>
+  <desc>Three current strokes moving forward from left to right.</desc>
+  <g data-role="three-current-mark">
+    <path d="M 8 18 C 17 8 29 8 39 18 S 51 28 56 16" data-role="current-stroke" fill="none" stroke="#31C6CF" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"/>
+    <path d="M 8 31 C 17 21 29 21 39 31 S 51 41 56 29" data-role="current-stroke" fill="none" stroke="#62BE68" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"/>
+    <path d="M 8 44 C 17 34 29 34 39 44 S 51 54 56 42" data-role="current-stroke" fill="none" stroke="#317B92" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"/>
+  </g>
+</svg>

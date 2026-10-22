@@ -1,0 +1,62 @@
+{
+  "wordmark": {
+    "name": "GroundSwell",
+    "foundation": "Plus Jakarta Sans 700",
+    "master_font_size": 120,
+    "tracking_em": -0.018,
+    "pair_adjustments_em": {
+      "Gr": -0.003,
+      "dS": 0.024,
+      "Sw": -0.004,
+      "ll": 0.006
+    },
+    "glyph_placement": "Native kerning + tracking + cumulative pair adjustments",
+    "production": "Use outlined SVG masters; live-text files retain absolute glyph positions."
+  },
+  "symbol": {
+    "name": "GS Current Cut",
+    "foundation": "Plus Jakarta Sans 800, outlined GS letterforms",
+    "wave_source": "../07_Source_References/nwse-mark_fullcolor-light.svg",
+    "treatment": "Exact original upper-crest path, uniformly scaled and translated through both GS letterforms. Transparent masks cut a clear channel around the cyan current.",
+    "single_color": "Use the supplied navy or white masters; the crest is expressed as transparent negative space.",
+    "optical_versions": {
+      "standard": "GS and Mark files, 32 px or larger",
+      "compact": "Compact files, 24\u201332 px; stronger current and S shifted 8 source units",
+      "micro": "Micro files, 16 px; solid initials with the same optical spacing"
+    }
+  },
+  "swell": {
+    "source": "Upper wave path from the inherited division mark",
+    "construction": "Repeated uniformly scaled instances with progressive translations; the core logo remains a separate complete lockup."
+  },
+  "artboards": {
+    "square": [
+      1080,
+      1080
+    ],
+    "portrait": [
+      1080,
+      1350
+    ],
+    "story": [
+      1080,
+      1920
+    ],
+    "banner": [
+      1600,
+      400
+    ],
+    "avatar": [
+      1080,
+      1080
+    ],
+    "card_with_bleed": [
+      675,
+      405
+    ],
+    "letterhead": [
+      1224,
+      1584
+    ]
+  }
+}

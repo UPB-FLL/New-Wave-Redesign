@@ -1,0 +1,81 @@
+{
+  "retrieved": "2026-10-22",
+  "source": "https://www.newwaveitfl.com",
+  "files": {
+    "favicon.svg": {
+      "sha256": "4cbc5876ffdfe288afe68a02e3c0737fe0e4375ab9a20c99858097574bad517c",
+      "viewBox": "0 0 64 64",
+      "colors": [
+        "#317B92",
+        "#31C6CF",
+        "#62BE68"
+      ]
+    },
+    "new-wave-it-horizontal-on-light.svg": {
+      "sha256": "1bbbe295216aa25b5833edbba44ab51151ccbf8a931ed4042a5ee98a4c324756",
+      "viewBox": "0 0 360 120",
+      "colors": [
+        "#101E2D",
+        "#317B92",
+        "#31C6CF",
+        "#62BE68"
+      ]
+    },
+    "nwse-logo-inline_fullcolor-light.svg": {
+      "sha256": "4ab3710dfd6555afdc996ea961653e2dc8e85aa0dcfbbe111cfd28cda1caba4d",
+      "viewBox": "0 0 629.71 59.68",
+      "colors": [
+        "#101E2D",
+        "#317B92",
+        "#31C6CF",
+        "#526271",
+        "#F2A33A"
+      ]
+    },
+    "nwse-logo-primary-endorsed_fullcolor-light.svg": {
+      "sha256": "efc7de7351063e3cb5f65a06d719c768105ce10625dda4747895310340985323",
+      "viewBox": "0 0 310.65 85.20",
+      "colors": [
+        "#101E2D",
+        "#317B92",
+        "#31C6CF",
+        "#526271",
+        "#A65B0B",
+        "#F2A33A"
+      ]
+    },
+    "nwse-logo-primary_fullcolor-light.svg": {
+      "sha256": "f7edfcd0b62016e2290a04d0bac77dce1bb3577d166649b048d8b72ec93bb571",
+      "viewBox": "0 0 310.65 63.52",
+      "colors": [
+        "#101E2D",
+        "#317B92",
+        "#31C6CF",
+        "#A65B0B",
+        "#F2A33A"
+      ]
+    },
+    "nwse-mark-micro_fullcolor-light.svg": {
+      "sha256": "cba3bf9dc6a42c6a091428e92a48f5b52c909d9c2ce1a714ee564062f591b6e8",
+      "viewBox": "0 0 56.00 49.00",
+      "colors": [
+        "#31C6CF",
+        "#F2A33A"
+      ]
+    },
+    "nwse-mark_fullcolor-light.svg": {
+      "sha256": "7812da60dc17f8fd54afd097798e7d30aef561b2e2b474283645e7a19b540feb",
+      "viewBox": "0 0 56.00 57.00",
+      "colors": [
+        "#317B92",
+        "#31C6CF",
+        "#F2A33A"
+      ]
+    }
+  },
+  "parent_logo_url": "https://www.newwaveitfl.com/brand/logos/new-wave-it-horizontal-on-light.svg",
+  "parent_mark_url": "https://www.newwaveitfl.com/favicon.svg",
+  "social_division_url": "https://www.newwaveitfl.com/social-engineering",
+  "social_division_asset_base": "https://www.newwaveitfl.com/brand/social-engineering/logos/",
+  "method": "Exact public source bytes downloaded; SVG geometry not redrawn."
+}
