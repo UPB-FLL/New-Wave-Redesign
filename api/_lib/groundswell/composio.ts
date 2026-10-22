@@ -7,7 +7,11 @@ import { PermanentStepError } from './types.js';
  * own Composio Platform project.
  *
  * - COMPOSIO_API_KEY: that project's API key (`ak_…`), sent as `x-api-key`.
- * - COMPOSIO_USER_ID: the user id the connections were made under (default "groundswell").
+ * - COMPOSIO_USER_ID: the user id to prefer when a toolkit has connections
+ *   under several (default "groundswell"). Not required: before each call the
+ *   client lists the project's active connections for the tool's toolkit and
+ *   names one (`connected_account_id`), preferring that user id and otherwise
+ *   the newest, so the tag a connection was made under never matters.
  *
  * Connections made through Composio's MCP in Claude live in a separate consumer
  * project that this key cannot reach; they have to be connected again in the
@@ -51,12 +55,66 @@ export function keyShape(key: string): string {
   return `${key.length} characters, ${trimmed.startsWith('ak_') ? 'starts with ak_' : 'does not start with ak_'}${note}`;
 }
 
+/** Toolkits whose slug carries an underscore, so the tool slug's prefix is read against them first. */
+const TOOLKITS = ['google_maps', 'google_analytics', 'google_search_console'];
+
+/** The toolkit a tool slug belongs to: `GOOGLE_MAPS_TEXT_SEARCH` → `google_maps`, `AHREFS_…` → `ahrefs`. */
+export function toolkitOf(slug: string): string {
+  const upper = slug.toUpperCase();
+  return TOOLKITS.find((t) => upper.startsWith(`${t.toUpperCase()}_`)) ?? slug.split('_')[0].toLowerCase();
+}
+
+interface ConnectedAccount {
+  id: string;
+  status?: string;
+  user_id?: string;
+  created_at?: string;
+  toolkit?: { slug?: string };
+}
+
+/** The connection to use for each toolkit, looked up once per function instance; `null` means none is active. */
+const connections = new Map<string, Promise<ConnectedAccount | null>>();
+export const forgetConnections = () => connections.clear();
+
+/** Lists the project's active connections for a toolkit and picks one: the preferred user id's, else the newest. */
+async function lookupConnection(toolkit: string): Promise<ConnectedAccount | null> {
+  const url = `${BASE}/connected_accounts?toolkit_slugs=${encodeURIComponent(toolkit)}&statuses=ACTIVE&limit=50`;
+  const response = await fetch(url, { headers: { 'x-api-key': apiKey() }, signal: AbortSignal.timeout(30_000) });
+  if (response.status === 401 || response.status === 403) {
+    const body = (await response.json().catch(() => ({}))) as ExecuteResponse;
+    throw new PermanentStepError(`Composio refused the API key (${response.status}): ${describeError(body.error).replace(/\.?$/, '.')} COMPOSIO_API_KEY as read: ${keyShape(apiKey())}.`);
+  }
+  if (!response.ok) throw new Error(`Composio could not list the ${toolkit} connections (${response.status}).`);
+  const body = (await response.json().catch(() => ({}))) as { items?: ConnectedAccount[] };
+  const active = (body.items ?? []).filter((a) => a.id && (a.status ?? 'ACTIVE') === 'ACTIVE' && (a.toolkit?.slug ?? toolkit) === toolkit);
+  const preferred = active.filter((a) => a.user_id === userId());
+  const pool = preferred.length ? preferred : active;
+  pool.sort((a, b) => (b.created_at ?? '').localeCompare(a.created_at ?? ''));
+  return pool[0] ?? null;
+}
+
+/** The connected account a tool runs as, cached per toolkit; a failed lookup is not cached. */
+export async function connectionFor(slug: string): Promise<ConnectedAccount | null> {
+  const toolkit = toolkitOf(slug);
+  let pending = connections.get(toolkit);
+  if (!pending) {
+    pending = lookupConnection(toolkit);
+    connections.set(toolkit, pending);
+    pending.catch(() => connections.delete(toolkit));
+  }
+  return pending;
+}
+
 /** Runs one Composio tool and returns its `data`. */
 export async function executeTool(slug: string, args: Record<string, unknown>, timeoutMs = 60_000): Promise<unknown> {
+  const account = await connectionFor(slug);
+  if (!account) {
+    throw new PermanentStepError(`Composio has no active connection for ${toolkitOf(slug)} in this project (any user id). Connect it under Auth Configs in the Composio project COMPOSIO_API_KEY belongs to.`);
+  }
   const response = await fetch(`${BASE}/tools/execute/${encodeURIComponent(slug)}`, {
     method: 'POST',
     headers: { 'x-api-key': apiKey(), 'Content-Type': 'application/json' },
-    body: JSON.stringify({ arguments: args, user_id: userId(), version: 'latest' }),
+    body: JSON.stringify({ arguments: args, connected_account_id: account.id, user_id: account.user_id ?? userId(), version: 'latest' }),
     signal: AbortSignal.timeout(timeoutMs),
   });
   const body = (await response.json().catch(() => ({}))) as ExecuteResponse;
