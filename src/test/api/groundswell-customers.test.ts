@@ -3,7 +3,7 @@ import { fakeSupabase } from './fixtures/fakeSupabase';
 
 /**
  * /api/groundswell/partner-customers: a partner's customers (groundswell_customers,
- * migration 20261024120000), each with its audits as history. Every read and
+ * migration 20261024130000), each with its audits as history. Every read and
  * write is scoped to the signed-in partner.
  */
 

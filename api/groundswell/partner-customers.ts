@@ -7,7 +7,7 @@ import { PARTNER_DAILY_LIMIT, withReports } from './partner-audits.js';
 
 /**
  * /api/groundswell/partner-customers — a signed-in partner's customers
- * (groundswell_customers, migration 20261024120000): the businesses it has
+ * (groundswell_customers, migration 20261024130000): the businesses it has
  * had audited, each with its audits as history.
  *
  * A customer is a prospect (a lead: its data entered, its public data read)

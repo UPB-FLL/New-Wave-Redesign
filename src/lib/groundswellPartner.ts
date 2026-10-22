@@ -134,7 +134,7 @@ export async function submitPartnerAudit(draft: AuditDraft): Promise<PartnerAudi
 }
 
 // ---------------------------------------------------------------------------
-// Customers (migration 20261024120000): a business the partner audits, with its audits as history.
+// Customers (migration 20261024130000): a business the partner audits, with its audits as history.
 // A customer is a prospect (a lead read from public data) or a client (migration 20261027120000).
 
 const CUSTOMERS = '/api/groundswell/partner-customers';
