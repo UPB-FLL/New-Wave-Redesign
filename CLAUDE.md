@@ -2,6 +2,74 @@
 
 ## Recent Changes
 
+### Groundswell: prospects and clients (2026-10-22)
+
+Owner's choices: a prospect (a lead) is entered and its public data is read;
+a client is a business the partner works for, whose own accounts get linked
+(Google Business Profile, GA4 + Search Console, Google Ads, Meta: the next
+PR); one record with two stages, so "Became a client" moves it over and
+everything gathered as a prospect stays on its page; the same reports for
+both, one from linked data and one from public data (the PR after).
+
+- **Migration** `20261027120000`: `groundswell_customers.stage`
+  ('prospect' | 'client', default prospect) and `became_client_at`. The
+  customers migration is now `20261024130000`: it shared its version with
+  the review-status migration, and Supabase's preview branch refused the
+  duplicate on every PR that added a migration.
+  Additive: the route reads them only where they exist (42703 fallback:
+  every customer is a prospect; moving one answers 503).
+- **Route** `partner-customers.ts`: `?stage=` filters the list; `?id=`
+  adds `stages_available`; POST takes `stage: 'client'`; PATCH `?id=`
+  with `{ stage }` moves a record (`became_client_at` set or cleared).
+  `CUSTOMER_STAGES` / `isCustomerStage` in `groundswellValidation.ts`.
+- **Portal**: `/groundswell/prospects` and `/groundswell/clients`
+  (`GroundswellProspectsPage`, `GroundswellClientsPage` in
+  `GroundswellCustomersPage.tsx`, one `Customers stage=` list; the branding
+  panel stays with the prospects); `/groundswell/customers` redirects to
+  the prospects; the record page keeps `/groundswell/customers/:id` and
+  shows the stage chip, "Became a client" / "Move back to prospects"
+  (`setPartnerCustomerStage`), a back link to its stage's list, and its
+  audits under "Audits from public data". `CustomerForm mode="add"` takes
+  `stage`. The partner navigation is Prospects, Clients.
+- **Tests**: the stage cases in `groundswell-customers.test.ts` and
+  `portal.test.tsx`.
+
+### Groundswell: partner-ready prospect runs (2026-10-22)
+
+Owner's choices: partners link nothing for a prospect's audit (New Wave's
+shared Composio project runs every scrape); a data source that is missing
+mid-run never stops the audit: the reports deliver and name the gap. (Clients
+with linked accounts are the next step; see the Groundswell portal plan.)
+
+- **Readiness** (`api/_lib/groundswell/readiness.ts`): `readinessChecks`
+  asks every service to answer: the reports bucket, OpenAI (`GET /v1/models`),
+  the Composio key, and one check per toolkit the Currents read
+  (`TOOLKIT_CHECKS`: ahrefs, scrapecreators, google_maps, googleads, through
+  `activeConnection` in `composio.ts`), plus Resend and the Google Ads
+  customer id. Details are words for staff, never a value. `readinessSummary`
+  gives the verdict (`ready`: every required check; `complete`: every data
+  source too). `GET /api/groundswell/run?check=live` returns them; the plain
+  GET still only reads the environment. The overview's "Check connections"
+  button (`getSetupStatus(true)`) shows each detail and the verdict.
+- **Degrade, never fail**: `benchmark` and `deliver_benchmark` are optional
+  (no benchmark data at all means three reports and a named gap); the site
+  step retries an unreachable website on the first `SITE_ATTEMPTS` calls and
+  then goes on with the scan's error recorded; a blocked Instagram profile is
+  read once more after `BLOCKED_RETRY_MS`. The maps step keeps Places'
+  failure in `detail` (for the admin screen) and the reports carry only
+  `PLACES_FALLBACK_NOTE`, so no tool name or quota message is printed.
+- **Gaps named** (`gaps.ts`): `gapsFor(outputs, steps)` turns every data
+  step without an output into a plain sentence; `reportData` passes them as
+  `ReportData.gaps` and the full audit's "Not available this time" lists
+  them (`gapsFromMissing` for callers without the step list).
+- Step label `deliver_prepare` is "Reports storage" (it was "Drive folder").
+- **Tests**: `groundswell-readiness.test.ts`, `groundswell-social.test.ts`,
+  the site retry in `groundswell-currents.test.ts`, the gap and partner-safe
+  cases in `groundswell-reports.test.ts`, the live route case, the step pins,
+  and the overview button. Note for test authors: a function returned from
+  `beforeEach` is a cleanup hook to vitest (`beforeEach(() => mock.mockReset())`
+  calls the mock after every test).
+
 ### Groundswell: Composio connections found by toolkit, not by user id (2026-10-22)
 
 Every Composio step had failed with "no active connection for X under
@@ -229,7 +297,9 @@ PR 2 of the Groundswell portal plan. A customer is now a record of its own
 customer list and customer page are built on it. Partners still cannot start
 runs (PR 3).
 
-- **Migration** `20261024120000`: `groundswell_customers` (partner_id, null
+- **Migration** `20261024130000` (renamed from `20261024120000` on 2026-10-22,
+  which the review-status migration also carried; Supabase's preview branch
+  refused the duplicate): `groundswell_customers` (partner_id, null
   for New Wave's own prospects; name, city, website, Instagram, competitors,
   notes; RLS on, no policies) and `marketing_audits.customer_id`. A `BEFORE
   INSERT` trigger (`groundswell_link_audit_customer`, SECURITY DEFINER)

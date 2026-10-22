@@ -48,9 +48,9 @@ const GATHER_AND_MODEL: StepDefinition[] = [
 ];
 
 const deliver = {
-  prepare: { name: 'deliver_prepare', current: 'Delivery', label: 'Drive folder', optional: false, run: runDeliverPrepare },
+  prepare: { name: 'deliver_prepare', current: 'Delivery', label: 'Reports storage', optional: false, run: runDeliverPrepare },
   audit: { name: 'deliver_audit', current: 'Delivery', label: 'Full audit PDF', optional: false, run: runDeliverAudit },
-  benchmark: { name: 'deliver_benchmark', current: 'Delivery', label: 'Benchmark PDF', optional: false, run: runDeliverBenchmark },
+  benchmark: { name: 'deliver_benchmark', current: 'Delivery', label: 'Benchmark PDF', optional: true, run: runDeliverBenchmark },
   deck: { name: 'deliver_deck', current: 'Delivery', label: 'Slides PDF', optional: false, run: runDeliverDeck },
   summary: { name: 'deliver_summary', current: 'Delivery', label: 'Summary PDF', optional: false, run: runDeliverSummary },
   finish: { name: 'deliver_finish', current: 'Delivery', label: 'Share and save links', optional: false, run: runDeliverFinish },
@@ -82,7 +82,7 @@ function benchmarkSteps(rounds: number): StepDefinition[] {
     { name: 'ads_library', current: 'Ads', label: 'Meta Ad Library and Google Ads Transparency', optional: true, run: runAdsLibrary },
     { name: 'pricing', current: 'Site', label: 'Offers and prices', optional: true, run: runPricing },
     { name: 'authority', current: 'Search', label: 'Domain authority, press, owned channels', optional: true, run: runAuthority },
-    { name: 'benchmark', current: 'Model', label: 'Scorecard, gaps and plan', optional: false, run: runBenchmark },
+    { name: 'benchmark', current: 'Model', label: 'Scorecard, gaps and plan', optional: true, run: runBenchmark },
     ...verifySteps(rounds),
     deliver.prepare,
     deliver.audit,

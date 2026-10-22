@@ -2,6 +2,7 @@ import { reportAdminEmails, requireAdmin } from '../_lib/adminKey.js';
 import { runWorkerInBackground } from '../_lib/groundswell/background.js';
 import { isComposioConfigured } from '../_lib/groundswell/composio.js';
 import { startQueuedAudits } from '../_lib/groundswell/engine.js';
+import { readinessChecks, readinessSummary } from '../_lib/groundswell/readiness.js';
 import { answerReview, ReviewError } from '../_lib/groundswell/review.js';
 import { BENCHMARK_STEPS, STEPS } from '../_lib/groundswell/steps.js';
 import { methodGuard, readJsonBody, type ApiRequest, type ApiResponse } from '../_lib/http.js';
@@ -9,7 +10,8 @@ import { getSupabaseAdmin, isSupabaseConfigured } from '../_lib/supabaseAdmin.js
 
 /**
  * GET /api/groundswell/run — which services Groundswell needs are set up
- * (names only, never values), for the admin overview.
+ * (names only, never values), for the admin overview; with ?check=live, each
+ * service is asked to answer (readiness.ts).
  *
  * POST /api/groundswell/run — the "Run queued audits now" button on /admin/groundswell/audits.
  * With { action: 'deliver' | 'recheck', audit_id }, an admin's answer to an
@@ -49,6 +51,11 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (!(await requireAdmin(req, res))) return;
 
   if (req.method === 'GET') {
+    // ?check=live asks every service to answer (readiness.ts); the plain GET only reads the environment.
+    if (req.query?.check === 'live') {
+      const checks = await readinessChecks();
+      return res.status(200).json({ ...readinessSummary(checks), checks, report_admins: reportAdminEmails(), live: true });
+    }
     const checks = setupChecks();
     return res.status(200).json({
       ready: checks.every((c) => c.ok || !c.required),

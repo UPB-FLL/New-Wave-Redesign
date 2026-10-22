@@ -88,7 +88,9 @@ import {
 } from './divisions/socialEngineering/routes';
 import {
   GROUNDSWELL_ADMIN_PATH,
+  GROUNDSWELL_CLIENTS_PATH,
   GROUNDSWELL_CUSTOMERS_PATH,
+  GROUNDSWELL_PROSPECTS_PATH,
   GROUNDSWELL_SET_PASSWORD_PATH,
   isGroundswellPath,
   LEGACY_PARTNER_PATH,
@@ -98,8 +100,9 @@ import {
   GroundswellAdminOverview,
   GroundswellAdminPartners,
   GroundswellAdminRoute,
+  GroundswellClientsRoute,
   GroundswellCustomerRoute,
-  GroundswellCustomersRoute,
+  GroundswellProspectsRoute,
   GroundswellSetPasswordRoute,
   LegacyAdminRedirect,
   LegacyPartnerRedirect,
@@ -203,7 +206,9 @@ export default function App() {
         {/* Groundswell: the sign-in is a prerendered static route; the rest is noindex and loads on demand. */}
         <Route path="/groundswell" element={<GroundswellSignInPage />} />
         <Route path={GROUNDSWELL_SET_PASSWORD_PATH} element={<GroundswellSetPasswordRoute />} />
-        <Route path={GROUNDSWELL_CUSTOMERS_PATH} element={<GroundswellCustomersRoute />} />
+        <Route path={GROUNDSWELL_PROSPECTS_PATH} element={<GroundswellProspectsRoute />} />
+        <Route path={GROUNDSWELL_CLIENTS_PATH} element={<GroundswellClientsRoute />} />
+        <Route path={GROUNDSWELL_CUSTOMERS_PATH} element={<Navigate to={GROUNDSWELL_PROSPECTS_PATH} replace />} />
         <Route path={`${GROUNDSWELL_CUSTOMERS_PATH}/:id`} element={<GroundswellCustomerRoute />} />
         <Route path={GROUNDSWELL_ADMIN_PATH} element={<GroundswellAdminRoute />}>
           <Route index element={<GroundswellAdminOverview />} />

@@ -94,7 +94,7 @@ export const STEP_LABELS: Record<string, string> = {
   authority: 'Authority',
   benchmark: 'Scorecard and plan',
   deliver_benchmark: 'Benchmark PDF',
-  deliver_prepare: 'Drive folder',
+  deliver_prepare: 'Reports storage',
   deliver_audit: 'Full audit PDF',
   deliver_deck: 'Slides PDF',
   deliver_summary: 'Summary PDF',
@@ -173,9 +173,14 @@ export async function startQueuedAudits(): Promise<number> {
 /** Which of Groundswell's services are set up in Vercel (names only, never values). */
 export interface SetupStatus {
   ready: boolean;
-  checks: { key: string; label: string; ok: boolean; required: boolean }[];
+  /** Live checks only: what each service answered, in words; never a value. */
+  checks: { key: string; label: string; ok: boolean; required: boolean; detail?: string }[];
   /** Who may open every report (GROUNDSWELL_ADMIN_EMAILS). */
   report_admins: string[];
+  /** Live checks only (`getSetupStatus(true)`): every check ok, and the one-line verdict. */
+  live?: boolean;
+  complete?: boolean;
+  summary?: string;
 }
 
 export type ReportKind = 'summary' | 'deck' | 'audit' | 'benchmark';
@@ -186,8 +191,9 @@ export async function adminReportUrl(auditId: string, kind: ReportKind): Promise
   return (await adminApi<{ url: string }>(`/api/groundswell/report?audit=${encodeURIComponent(auditId)}&kind=${kind}`)).url;
 }
 
-export function getSetupStatus(): Promise<SetupStatus> {
-  return adminApi<SetupStatus>('/api/groundswell/run');
+/** Which services are set up; with `live`, each one is asked to answer (slower; the "Check connections" button). */
+export function getSetupStatus(live = false): Promise<SetupStatus> {
+  return adminApi<SetupStatus>(live ? '/api/groundswell/run?check=live' : '/api/groundswell/run');
 }
 
 export type PartnerStatus = 'invited' | 'active' | 'disabled';

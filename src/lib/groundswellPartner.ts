@@ -1,4 +1,4 @@
-import type { AuditCompetitor, AuditDraft, AuditKind, AuditStatus, CustomerDraft, PartnerBranding } from './groundswellValidation';
+import type { AuditCompetitor, AuditDraft, AuditKind, AuditStatus, CustomerDraft, CustomerStage, PartnerBranding } from './groundswellValidation';
 
 /**
  * Browser client for Groundswell's partner app (/groundswell). Partners are not Supabase users;
@@ -134,7 +134,8 @@ export async function submitPartnerAudit(draft: AuditDraft): Promise<PartnerAudi
 }
 
 // ---------------------------------------------------------------------------
-// Customers (migration 20261024120000): a business the partner audits, with its audits as history.
+// Customers (migration 20261024130000): a business the partner audits, with its audits as history.
+// A customer is a prospect (a lead read from public data) or a client (migration 20261027120000).
 
 const CUSTOMERS = '/api/groundswell/partner-customers';
 
@@ -148,6 +149,9 @@ export interface PartnerCustomer {
   notes: string | null;
   created_at: string;
   updated_at: string;
+  /** Prospect (its public data is read) or client (the partner works for it); every customer is a prospect before the stage migration. */
+  stage: CustomerStage;
+  became_client_at: string | null;
   /** The newest audit, or null before the first one is queued. */
   latest: { id: string; status: AuditStatus; kind: AuditKind; created_at: string; completed_at: string | null } | null;
   /** When the newest finished audit's reports were delivered. */
@@ -155,15 +159,28 @@ export interface PartnerCustomer {
   audit_count: number;
 }
 
-/** The first audit queued with a new customer: an audit or a benchmark, with optional look overrides. */
-export type NewCustomerDraft = CustomerDraft & Pick<AuditDraft, 'kind' | 'brand_logo_url' | 'brand_color'>;
+/** The first audit queued with a new customer: an audit or a benchmark, with optional look overrides; `stage: 'client'` adds a client. */
+export type NewCustomerDraft = CustomerDraft & Pick<AuditDraft, 'kind' | 'brand_logo_url' | 'brand_color'> & { stage?: CustomerStage };
 
-export async function listPartnerCustomers(): Promise<PartnerCustomer[]> {
-  return (await call<{ customers: PartnerCustomer[] }>(CUSTOMERS)).customers;
+/** The partner's customers, most recent activity first; with a stage, only that stage's. */
+export async function listPartnerCustomers(stage?: CustomerStage): Promise<PartnerCustomer[]> {
+  return (await call<{ customers: PartnerCustomer[] }>(stage ? `${CUSTOMERS}?stage=${stage}` : CUSTOMERS)).customers;
 }
 
-export async function getPartnerCustomer(id: string): Promise<{ customer: PartnerCustomer; audits: PartnerAudit[] }> {
-  return call<{ customer: PartnerCustomer; audits: PartnerAudit[] }>(`${CUSTOMERS}?id=${encodeURIComponent(id)}`);
+export interface PartnerCustomerDetail {
+  customer: PartnerCustomer;
+  audits: PartnerAudit[];
+  /** False until the stage migration is applied (no "Became a client" then). */
+  stages_available?: boolean;
+}
+
+export async function getPartnerCustomer(id: string): Promise<PartnerCustomerDetail> {
+  return call<PartnerCustomerDetail>(`${CUSTOMERS}?id=${encodeURIComponent(id)}`);
+}
+
+/** Moves a prospect to the clients, or a client back; the record and everything gathered stay. */
+export async function setPartnerCustomerStage(id: string, stage: CustomerStage): Promise<PartnerCustomer> {
+  return (await call<{ customer: PartnerCustomer }>(`${CUSTOMERS}?id=${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ stage }) })).customer;
 }
 
 /** Adds a customer and queues its first audit. */

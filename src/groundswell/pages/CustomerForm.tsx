@@ -1,13 +1,14 @@
 import { useState, type FormEvent } from 'react';
 import FormPrivacyNotice from '../../components/legal/FormPrivacyNotice';
 import { createPartnerCustomer, updatePartnerCustomer, type NewCustomerDraft, type PartnerAudit, type PartnerCustomer } from '../../lib/groundswellPartner';
-import { buildAuditInsert, buildCustomerInsert } from '../../lib/groundswellValidation';
+import { buildAuditInsert, buildCustomerInsert, type CustomerStage } from '../../lib/groundswellValidation';
 import { AUDIT_NAME } from '../site';
 
 /**
- * The customer form, in two uses: adding a customer (which also queues its
- * first Croissance audit, as an audit or a benchmark, with optional logo and
- * colour overrides for the reports) and editing a customer's details. The
+ * The customer form, in two uses: adding a customer as a prospect or a client
+ * (which also queues its first Croissance audit, as an audit or a benchmark,
+ * with optional logo and colour overrides for the reports) and editing a
+ * customer's details. The
  * checks are the shared ones from groundswellValidation, run before the call
  * so a mistake is explained inline.
  */
@@ -43,7 +44,7 @@ function draftOf(customer: PartnerCustomer): NewCustomerDraft {
 }
 
 type Props =
-  | { mode: 'add'; onSaved: (result: { customer: PartnerCustomer; audit: PartnerAudit }) => void; onCancel?: () => void }
+  | { mode: 'add'; stage: CustomerStage; onSaved: (result: { customer: PartnerCustomer; audit: PartnerAudit }) => void; onCancel?: () => void }
   | { mode: 'edit'; customer: PartnerCustomer; onSaved: (customer: PartnerCustomer) => void; onCancel: () => void };
 
 export function CustomerForm(props: Props) {
@@ -76,7 +77,7 @@ export function CustomerForm(props: Props) {
     }
     setBusy(true);
     try {
-      if (props.mode === 'add') props.onSaved(await createPartnerCustomer(draft));
+      if (props.mode === 'add') props.onSaved(await createPartnerCustomer({ ...draft, stage: props.stage }));
       else props.onSaved(await updatePartnerCustomer(props.customer.id, draft));
     } catch (err) {
       setError(err instanceof Error ? err.message : adding ? 'Could not add the customer.' : 'Could not save the details.');
@@ -84,7 +85,8 @@ export function CustomerForm(props: Props) {
     }
   };
 
-  const heading = adding ? 'Add a customer' : 'Edit customer';
+  const noun = props.mode === 'add' ? props.stage : props.customer.stage;
+  const heading = adding ? `Add a ${noun}` : `Edit ${noun}`;
   return (
     <form onSubmit={submit} className="gs-card p-5 sm:p-6" aria-labelledby="customer-form-heading">
       <h2 id="customer-form-heading" className="text-xl font-bold">

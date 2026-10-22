@@ -4,7 +4,7 @@ import FormPrivacyNotice from '../../components/legal/FormPrivacyNotice';
 import { currentPartner, partnerSignIn, requestPartnerReset } from '../../lib/groundswellPartner';
 import { GroundswellFrame } from '../GroundswellShell';
 import { signInContent } from '../content';
-import { GROUNDSWELL_ADMIN_PATH, GROUNDSWELL_CUSTOMERS_PATH } from '../site';
+import { GROUNDSWELL_ADMIN_PATH, GROUNDSWELL_PROSPECTS_PATH } from '../site';
 
 /**
  * Groundswell's front door (/groundswell): partner email and password, a
@@ -34,7 +34,7 @@ function SignInCard() {
     try {
       if (mode === 'sign-in') {
         await partnerSignIn(email, password);
-        navigate(GROUNDSWELL_CUSTOMERS_PATH);
+        navigate(GROUNDSWELL_PROSPECTS_PATH);
       } else {
         setNotice(await requestPartnerReset(email));
       }
@@ -121,7 +121,7 @@ export default function GroundswellSignInPage() {
         <h1 className="mt-2 text-3xl font-bold sm:text-4xl">{content.headline}</h1>
         <p className="mt-3 text-base gs-muted sm:text-lg">{content.summary}</p>
         {signedIn ? (
-          <Link to={GROUNDSWELL_CUSTOMERS_PATH} className="gs-btn gs-btn-primary mt-5">
+          <Link to={GROUNDSWELL_PROSPECTS_PATH} className="gs-btn gs-btn-primary mt-5">
             Open {signedIn}’s customers
           </Link>
         ) : null}

@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { brandFrom, contrast, FALLBACK_PRIMARY } from '../../../api/_lib/groundswell/brand';
 import { AD_PLAN_SLIDE_ID, buildAuditHtml, buildDeckHtml, buildSummaryHtml, feeLine, money, SLIDE_IDS } from '../../../api/_lib/groundswell/reports';
 import { assertPortalOnly, countPdfPages, pdfLinks } from '../../../api/_lib/groundswell/render';
+import { gapsFor, gapsFromMissing } from '../../../api/_lib/groundswell/gaps';
+import { PLACES_FALLBACK_NOTE } from '../../../api/_lib/groundswell/currents/maps';
 import { sampleReportData, sampleReportDataWithPlan } from './fixtures/groundswell-report';
 
 const AUDIT = 'https://www.newwaveitfl.com/groundswell';
@@ -168,4 +170,47 @@ describe.skipIf(!hasChromium)('printing (headless Chromium)', () => {
     expect(deck.pages).toBe(12);
     expect(summary.pages).toBe(1);
   }, 120_000);
+});
+
+describe('what a run could not read', () => {
+  const plain = (html: string) => html.replace(/<[^>]+>/g, ' ');
+  const benchmarkSteps = ['competitors', 'site', 'maps', 'search', 'keywords', 'social', 'ads', 'model', 'adplan', 'adcopy', 'social_depth', 'ads_library', 'pricing', 'authority', 'benchmark', 'deliver_prepare'];
+
+  it('names each skipped data step in plain words, once, and folds the ad plan into the keywords line', () => {
+    const outputs = { site: {}, maps: {}, search: {}, social: {}, ads: {}, model: {}, social_depth: {} };
+    expect(gapsFor(outputs, benchmarkSteps)).toEqual([
+      'Keyword demand (Google Keyword Planner) was not available for this audit, so the ad plan and the ad copy are not included.',
+      'The Meta Ad Library and Google Ads Transparency Center could not be read for this audit.',
+      'Offers and prices could not be read from the websites.',
+      'Domain authority, press and owned channels could not be read for this audit.',
+      'The competitive benchmark could not be built from the data available, so this audit has no benchmark report.',
+    ]);
+    // Keyword demand was read but no plan came of it: that is its own line.
+    expect(gapsFor({ ...outputs, keywords: {}, adplan: undefined }, ['keywords', 'adplan', 'adcopy'])).toEqual([
+      'No ad plan was built from the keyword demand found, so the ad plan and the ad copy are not included.',
+    ]);
+    expect(gapsFor({ ...outputs, keywords: {}, adplan: {}, adcopy: {} }, ['keywords', 'adplan', 'adcopy'])).toEqual([]);
+    // Without the step list (older callers), the facts' missing list is the source.
+    expect(gapsFromMissing(['maps', 'ads'])).toEqual(['Google Maps could not be read for this audit.', 'Ad tags and paid search pages could not be checked for this audit.']);
+  });
+
+  it('the full audit lists the gaps under "Not available this time", and no gap line names a tool, a key or a step', () => {
+    const gaps = gapsFor({ site: {}, model: {} }, benchmarkSteps);
+    const html = plain(buildAuditHtml({ ...sampleReportData(), gaps }));
+    expect(html).toContain('Not available this time');
+    for (const g of gaps) expect(html).toContain(g);
+    expect(gaps.join(' ')).not.toMatch(/Composio|ScrapeCreators|Ahrefs \(|SCRAPE|GOOGLE_|quota|API key|_/);
+  });
+
+  it('the reason Places did not answer never reaches a report, only its plain note', () => {
+    const d = sampleReportData();
+    const detail = 'GOOGLE_MAPS_TEXT_SEARCH failed (200): {"error":{"code":429,"message":"Quota exceeded for consumer project_number:511566560828"}}';
+    const data = { ...d, facts: { ...d.facts, maps: { ...d.facts.maps!, business: null, nearby: [], note: PLACES_FALLBACK_NOTE, detail } } };
+    for (const html of [buildAuditHtml(data), buildDeckHtml(data, { audit: AUDIT }), buildSummaryHtml(data, { deck: DECK, audit: AUDIT, folder: FOLDER })]) {
+      expect(html).not.toContain('GOOGLE_MAPS');
+      expect(html).not.toContain('511566560828');
+      expect(html).not.toMatch(/failed \(|RESOURCE_EXHAUSTED/);
+    }
+    expect(plain(buildAuditHtml(data))).toContain(PLACES_FALLBACK_NOTE);
+  });
 });
