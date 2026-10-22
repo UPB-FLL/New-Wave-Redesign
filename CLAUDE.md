@@ -83,6 +83,9 @@ Composio's dashboard assigned (`pg-test-…`), not `groundswell`.
   function instance), and runs the tool with `connected_account_id`. No
   active account stops the step for good, naming the toolkit and the
   project. `COMPOSIO_USER_ID` is a preference now, not a requirement.
+- The preferred user id defaults to that dashboard id
+  (`DEFAULT_COMPOSIO_USER_ID`, `pg-test-0ff14d6b-e58a-45f1-a053-db132130d54f`,
+  owner's request); `COMPOSIO_USER_ID` in Vercel still overrides it.
 - Tests: `src/test/api/groundswell-composio.test.ts`.
 
 ### Groundswell: reports stored in the app, visible to their partner and the admin (2026-10-22)
