@@ -1,4 +1,4 @@
-import type { DivisionFaq, DivisionPoint } from '../types';
+import type { DivisionFaq } from '../types';
 import type { DivisionIconName } from '../icons/iconData';
 
 // GroundSwell is the public app and the engine behind its audit phases.
@@ -198,36 +198,51 @@ export const auditContent = {
   },
   process: {
     kicker: 'How it works',
-    heading: 'From a website to three reports in five steps',
-    intro: 'You give us a website, an Instagram handle, or both, and any competitors you watch. The rest runs on its own. Step through it.',
+    heading: 'From your website to a clear plan',
+    intro: 'Start with your website or Instagram handle. Follow the work from the first look at your business to the reports in your portal.',
     stepsLabel: 'The five steps',
     steps: [
       {
         title: 'Queue',
-        detail: 'We add your business and the competitors you name. Name another later and the audit runs again with it included.',
+        heading: 'Start with what you know.',
+        detail: 'Share your website, Instagram handle, and the competitors you watch. We add the business to GroundSwell. You can add another competitor and run it again later.',
+        outcome: 'A business profile to build the audit around.',
+        caption: '01 / The business brief',
         icon: 'method-discover',
       },
       {
         title: 'Research',
+        heading: 'See the whole picture.',
         detail: 'The Currents gather your Google, social, website, ads, and keyword data, and the same for four to six nearby rivals.',
+        outcome: 'A sourced view of where you stand and who you’re up against.',
+        caption: '02 / The evidence',
         icon: 'metric-search',
       },
       {
         title: 'Model',
-        detail: 'Every change is costed and ranked by return: an ad plan for each angle on every platform your industry allows, plus search, website and listing changes, in three scenarios from cited benchmarks.',
+        heading: 'Work out what’s worth doing.',
+        detail: 'GroundSwell costs and ranks the changes: ads, search, your website, and listings. Published benchmarks shape three scenarios, so you can compare the cost and possible return before committing.',
+        outcome: 'A ranked plan with its assumptions in view.',
+        caption: '03 / Scenario comparison · illustrative',
         icon: 'method-prioritize',
       },
       {
         title: 'Build',
-        detail: 'Three reports are built in your colors, fonts, and logo, and checked for overflow and broken links before printing.',
+        heading: 'Make the findings useful.',
+        detail: 'The same findings become a one-page summary, a slide deck, and the full audit. Each uses your brand and is checked for layout problems and broken links before printing.',
+        outcome: 'Three reports for the owner, the meeting, and the work ahead.',
+        caption: '04 / The report set',
         icon: 'method-build',
       },
       {
         title: 'Deliver',
-        detail: 'The reports land in your private GroundSwell portal, under your business, where only your sign-in and New Wave can open them.',
+        heading: 'Keep it all in one place.',
+        detail: 'The reports land under your business in the private GroundSwell portal. Sign in to open the findings and download the PDFs when you need them.',
+        outcome: 'Your reports, ready for the next conversation.',
+        caption: '05 / Private delivery',
         icon: 'send',
       },
-    ] satisfies DivisionPoint[],
+    ],
   },
   reports: {
     kicker: 'The reports',

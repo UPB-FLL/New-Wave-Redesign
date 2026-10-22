@@ -1,5 +1,6 @@
 import { GroundswellMarketingLayout } from '../components/GroundswellMarketingLayout';
 import { GroundswellHero } from '../components/GroundswellHero';
+import { GroundswellProcess } from '../components/GroundswellProcess';
 import { accentAt } from '../components/pillarStyle';
 import { Band, CheckList, CtaBand, CtaStrip, FaqList, PrimaryCta, SectionIntro } from '../components/sections';
 import { Tabs, type TabItem } from '../components/Tabs';
@@ -20,8 +21,6 @@ import { compareWithToday, rankChanges, type RankedChange } from '../../../../pa
 
 const seo = groundswellPageSeo();
 
-const pad = (n: number) => String(n).padStart(2, '0');
-
 /** The row of in-page links under the hero: one pill per section, so a reader can go straight to the part they came for. */
 function JumpNav() {
   const c = auditContent.jump;
@@ -34,55 +33,6 @@ function JumpNav() {
         </a>
       ))}
     </nav>
-  );
-}
-
-/**
- * The five steps as a stepper: one step at a time, each tab its numbered
- * tile and name, Back and Next under the panel, and the discovery call in
- * Next's place on the last step.
- */
-function ProcessStepper() {
-  const c = auditContent.process;
-  const items: TabItem[] = c.steps.map((step, index) => {
-    const color = accentAt(index);
-    return {
-      id: `step-${index + 1}`,
-      title: step.title,
-      label: (
-        <>
-          <span className={`nwse-icon ${color.tile} h-9 w-9 shrink-0`} aria-hidden="true">
-            <span className="nwse-type-label nwse-type-numeric font-semibold">{pad(index + 1)}</span>
-          </span>
-          <span className="font-semibold">{step.title}</span>
-        </>
-      ),
-      panel: (
-        <div className="nwse-card grid gap-5 p-5 sm:p-6 md:grid-cols-[auto_minmax(0,1fr)] md:gap-6 lg:p-8">
-          <span className={`nwse-icon ${color.tile} h-14 w-14`}>{step.icon ? <NwseIcon name={step.icon} size={28} /> : null}</span>
-          <div>
-            <p className="nwse-type-label nwse-label">
-              Step {index + 1} of {c.steps.length}
-            </p>
-            <h3 className="nwse-type-title-1 mt-1 text-[var(--nw-current-navy)]">{step.title}</h3>
-            <p className="nwse-type-body mt-2 max-w-3xl text-[var(--nw-slate)]">{step.detail}</p>
-          </div>
-        </div>
-      ),
-    };
-  });
-  return (
-    <Tabs
-      items={items}
-      label={c.stepsLabel}
-      look="steps"
-      guided
-      nextLabel={auditContent.guide.next}
-      backLabel={auditContent.guide.back}
-      finish={<PrimaryCta tone="light" />}
-      className="mt-6 sm:mt-8 lg:mt-10"
-      bodyClassName="mt-4 sm:mt-5"
-    />
   );
 }
 
@@ -564,7 +514,7 @@ export default function SocialEngineeringGroundswellPage() {
           description={content.process.intro}
           id="nwse-audit-process"
         />
-        <ProcessStepper />
+        <GroundswellProcess />
       </Band>
 
       <Band tone="white" id="currents" labelledBy="nwse-audit-engine">
