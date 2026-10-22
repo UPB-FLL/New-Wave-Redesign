@@ -12,8 +12,13 @@
 -- the start of its own. Phase 1 queues phase 2 when it delivers, and phase 2
 -- queues phase 3 for a client with a linked account.
 --
--- Additive: the code reads the new columns only where they exist and falls
--- back to start_queued_audits without start_queued_runs.
+-- The app starts each queued run itself with its phase's steps
+-- (startQueuedRuns in api/_lib/groundswell/engine.ts), so no new function is
+-- needed. Additive: the code reads the new columns only where they exist, and
+-- without them starts runs through start_queued_audits as before. Every
+-- statement can run again. Applied to production on 2026-10-22 in three parts
+-- (recorded there as groundswell_phases_columns_assets,
+-- groundswell_phases_report_kinds and groundswell_phases_worker_cron).
 
 ALTER TABLE marketing_audits ADD COLUMN IF NOT EXISTS phase text NOT NULL DEFAULT 'audit';
 DO $$
@@ -68,45 +73,6 @@ VALUES (
   ]
 )
 ON CONFLICT (id) DO NOTHING;
-
--- Starts queued runs, giving each the step list for its phase (for phase 1,
--- its kind: an older benchmark run keeps its own list). step_lists maps
--- 'audit', 'benchmark', 'competitors' and 'integrated' to step names.
-CREATE OR REPLACE FUNCTION start_queued_runs(step_lists jsonb, max_audits int DEFAULT 3)
-RETURNS SETOF uuid
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  started uuid;
-  started_kind text;
-  started_phase text;
-  names jsonb;
-BEGIN
-  FOR started, started_kind, started_phase IN
-    UPDATE marketing_audits SET status = 'running', started_at = now(), completed_at = NULL, error = NULL
-     WHERE id IN (SELECT id FROM marketing_audits WHERE status = 'queued' ORDER BY created_at LIMIT max_audits FOR UPDATE SKIP LOCKED)
-    RETURNING id, kind, phase
-  LOOP
-    names := CASE
-      WHEN started_phase <> 'audit' AND step_lists ? started_phase THEN step_lists -> started_phase
-      WHEN started_kind = 'benchmark' AND step_lists ? 'benchmark' THEN step_lists -> 'benchmark'
-      ELSE step_lists -> 'audit'
-    END;
-    IF names IS NULL OR jsonb_typeof(names) <> 'array' OR jsonb_array_length(names) = 0 THEN
-      RAISE EXCEPTION 'start_queued_runs: no step list for phase % (kind %)', started_phase, started_kind;
-    END IF;
-    DELETE FROM marketing_audit_steps WHERE audit_id = started;
-    INSERT INTO marketing_audit_steps (audit_id, step, position)
-      SELECT started, t.name, t.ord
-        FROM jsonb_array_elements_text(names) WITH ORDINALITY AS t(name, ord);
-    RETURN NEXT started;
-  END LOOP;
-END;
-$$;
-REVOKE ALL ON FUNCTION start_queued_runs(jsonb, int) FROM public, anon, authenticated;
-GRANT EXECUTE ON FUNCTION start_queued_runs(jsonb, int) TO service_role;
 
 -- Full auto: the heartbeat also fires while a run waits in the queue, and
 -- the worker starts it (GROUNDSWELL_AUTO_START=off in Vercel turns that off).

@@ -62,22 +62,60 @@ export async function startQueuedAudits(
 /** The step lists the queue starts runs with: by phase, and by kind for phase 1 (an older benchmark run). */
 export type StepLists = Record<'audit' | 'benchmark' | 'competitors' | 'integrated', StepDefinition[]>;
 
-const missingFunction = (error: { message: string; code?: string }) =>
-  /could not find the function|function .* does not exist|PGRST202/i.test(`${error.message} ${error.code ?? ''}`);
 const missingColumn = (message: string | undefined) => /column .* does not exist|42703/i.test(message ?? '');
-const ids = (data: unknown) => ((data ?? []) as unknown[]).map((v) => (typeof v === 'string' ? v : Object.values(v as Record<string, string>)[0]));
+
+/** A run another worker claimed to start but never moved to running is free again after this. */
+export const START_LEASE_MS = 120_000;
+
+type QueuedRun = { id: string; kind?: string | null; phase?: string | null; started_at?: string | null };
+
+const listFor = (run: QueuedRun, lists: StepLists) =>
+  run.phase && run.phase !== 'audit' && run.phase in lists ? lists[run.phase as keyof StepLists] : run.kind === 'benchmark' ? lists.benchmark : lists.audit;
 
 /**
- * Starts queued runs, giving each the step list for its phase (start_queued_runs,
- * migration 20261029120000). Before that migration every run is phase 1 and
- * start_queued_audits gives it its kind's list.
+ * Starts queued runs, oldest first, giving each the step list for its phase
+ * (for phase 1, its kind's). A queued run's started_at is empty (queueing and
+ * requeue_marketing_audit both clear it), so a worker claims a run by setting
+ * it while the run is still queued; the run stays queued, so
+ * claim_next_audit_step hands out none of its steps, while its old steps are
+ * replaced. It moves to running (started_at is when it was claimed) only
+ * while started_at still holds that worker's value, so two workers never both
+ * start one. A claim older than START_LEASE_MS (a worker that died mid-start)
+ * is taken over. Before the phases migration (no phase column) every run is
+ * phase 1, and start_queued_audits starts it by kind.
  */
 export async function startQueuedRuns(db: SupabaseClient, lists: StepLists, max = 3): Promise<string[]> {
-  const step_lists = Object.fromEntries(Object.entries(lists).map(([key, steps]) => [key, steps.map((s) => s.name)]));
-  const { data, error } = await db.rpc('start_queued_runs', { step_lists, max_audits: max });
-  if (error && missingFunction(error)) return startQueuedAudits(db, lists.audit, max, lists.benchmark);
-  if (error) throw new Error(`Could not start queued runs: ${error.message}`);
-  return ids(data);
+  const queued = await db.from('marketing_audits').select('id,kind,phase,started_at').eq('status', 'queued').order('created_at', { ascending: true }).limit(max * 3);
+  if (queued.error && missingColumn(queued.error.message)) return startQueuedAudits(db, lists.audit, max, lists.benchmark);
+  if (queued.error) throw new Error(`Could not read the queue: ${queued.error.message}`);
+  const started: string[] = [];
+  for (const run of (queued.data ?? []) as QueuedRun[]) {
+    if (started.length >= max) break;
+    const stale = new Date(Date.now() - START_LEASE_MS).toISOString();
+    if (run.started_at && Date.parse(run.started_at) >= Date.parse(stale)) continue;
+    const token = new Date().toISOString();
+    const claim = db.from('marketing_audits').update({ started_at: token }).eq('id', run.id).eq('status', 'queued');
+    const claimed = await (run.started_at ? claim.lt('started_at', stale) : claim.is('started_at', null)).select('id');
+    if (claimed.error) throw new Error(`Could not start a queued run: ${claimed.error.message}`);
+    if (!(claimed.data ?? []).length) continue;
+    const cleared = await db.from('marketing_audit_steps').delete().eq('audit_id', run.id);
+    if (cleared.error) throw new Error(`Could not clear a run's old steps: ${cleared.error.message}`);
+    const rows = listFor(run, lists).map((s, i) => ({ audit_id: run.id, step: s.name, position: i + 1 }));
+    const added = await db.from('marketing_audit_steps').insert(rows);
+    // A requeue while this worker was starting the run let another worker take it over.
+    if (added.error && /duplicate key|23505/i.test(`${added.error.message} ${(added.error as { code?: string }).code ?? ''}`)) continue;
+    if (added.error) throw new Error(`Could not give a run its steps: ${added.error.message}`);
+    const moved = await db
+      .from('marketing_audits')
+      .update({ status: 'running', completed_at: null, error: null })
+      .eq('id', run.id)
+      .eq('status', 'queued')
+      .eq('started_at', token)
+      .select('id');
+    if (moved.error) throw new Error(`Could not start a queued run: ${moved.error.message}`);
+    if ((moved.data ?? []).length) started.push(run.id);
+  }
+  return started;
 }
 
 /** How many runs go at once: the shared accounts' rate limits and credits come first. */

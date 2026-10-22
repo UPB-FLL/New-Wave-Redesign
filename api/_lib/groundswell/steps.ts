@@ -161,7 +161,7 @@ export const INTEGRATED_STEPS: StepDefinition[] = [
   deliver.finish,
 ];
 
-/** The step list each queued run starts with (start_queued_runs). */
+/** The step list each queued run starts with (startQueuedRuns in engine.ts). */
 export const PHASE_STEPS: StepLists = { audit: STEPS, benchmark: BENCHMARK_STEPS, competitors: COMPETITOR_STEPS, integrated: INTEGRATED_STEPS };
 
 /**

@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { describe, expect, it, vi } from 'vitest';
-import { runWorker, startQueuedRuns, startWithinCapacity, type StepLists } from '../../../api/_lib/groundswell/engine';
+import { runWorker, START_LEASE_MS, startQueuedRuns, startWithinCapacity, type StepLists } from '../../../api/_lib/groundswell/engine';
 import { integratedReady, queueNextPhase, queuePhase } from '../../../api/_lib/groundswell/phases';
 import { ALL_STEPS, COMPETITOR_STEPS, INTEGRATED_STEPS, PHASE_STEPS, STEPS } from '../../../api/_lib/groundswell/steps';
 import type { StepContext, StepDefinition } from '../../../api/_lib/groundswell/types';
@@ -10,7 +10,7 @@ import { fakeSupabase } from './fixtures/fakeSupabase';
 /**
  * Groundswell's three phases: each its own run, starting from the outputs of
  * the run it builds on, queued one after another without anyone pressing a
- * button (migration 20261029120000).
+ * button (migration 20261029120000; the app starts each run, startQueuedRuns).
  */
 
 type Row = Record<string, unknown>;
@@ -29,41 +29,45 @@ function engineDb(audits: Row[], steps: Row[]) {
     runnable.attempts = ((runnable.attempts as number) ?? 0) + 1;
     return [{ ...runnable }];
   };
-  const rpc = vi.fn(async (name: string, args: Record<string, unknown>) => {
+  const rpc = vi.fn(async (name: string) => {
     if (name === 'claim_next_audit_step') return { data: claim(), error: null };
-    if (name === 'start_queued_runs') {
-      const started: string[] = [];
-      for (const a of audits.filter((x) => x.status === 'queued').slice(0, args.max_audits as number)) {
-        a.status = 'running';
-        const lists = args.step_lists as Record<string, string[]>;
-        const names = a.phase !== 'audit' ? lists[a.phase as string] : lists.audit;
-        names.forEach((step, i) => steps.push({ id: `${a.id}-${step}`, audit_id: a.id, step, position: i + 1, status: 'pending', attempts: 0, output: null }));
-        started.push(a.id as string);
-      }
-      return { data: started, error: null };
-    }
     throw new Error(name);
   });
   const from = (table: string) => {
-    const filters: [string, unknown][] = [];
+    const filters: ((r: Row) => boolean)[] = [];
     let patch: Row | null = null;
-    const rows = () => (table === 'marketing_audits' ? audits : steps).filter((r) => filters.every(([k, v]) => r[k] === v));
+    let insert: Row[] | null = null;
+    let remove = false;
+    let limit = Infinity;
+    const all = () => (table === 'marketing_audits' ? audits : steps);
+    const rows = () => all().filter((r) => filters.every((f) => f(r)));
+    const run = () => {
+      if (insert) {
+        const clash = insert.find((n) => steps.some((s) => s.audit_id === n.audit_id && (s.step === n.step || s.position === n.position)));
+        if (clash) return { data: null, error: { message: 'duplicate key value violates unique constraint', code: '23505' } };
+        insert.forEach((n) => steps.push({ id: `${n.audit_id}-${n.step}`, status: 'pending', attempts: 0, output: null, ...n }));
+        return { data: insert, error: null };
+      }
+      const hit = rows();
+      if (remove) {
+        hit.forEach((r) => all().splice(all().indexOf(r), 1));
+        return { data: hit, error: null };
+      }
+      if (patch) hit.forEach((r) => Object.assign(r, patch));
+      return { data: hit.slice(0, limit), error: null };
+    };
     const chain = {
       select: () => chain,
-      update: (p: Row) => {
-        patch = p;
-        return chain;
-      },
-      eq: (k: string, v: unknown) => {
-        filters.push([k, v]);
-        return chain;
-      },
-      limit: () => chain,
+      update: (p: Row) => ((patch = p), chain),
+      insert: (r: Row[]) => ((insert = r), chain),
+      delete: () => ((remove = true), chain),
+      eq: (k: string, v: unknown) => (filters.push((r) => r[k] === v), chain),
+      is: (k: string, v: unknown) => (filters.push((r) => (r[k] ?? null) === v), chain),
+      lt: (k: string, v: string) => (filters.push((r) => typeof r[k] === 'string' && Date.parse(r[k] as string) < Date.parse(v)), chain),
+      order: () => chain,
+      limit: (n: number) => ((limit = n), chain),
       single: async () => ({ data: rows()[0] ?? null, error: rows()[0] ? null : { message: 'not found' } }),
-      then: (resolve: (v: unknown) => void) => {
-        if (patch) rows().forEach((r) => Object.assign(r, patch));
-        resolve({ data: rows(), error: null });
-      },
+      then: (resolve: (v: unknown) => void) => resolve(run()),
     };
     return chain;
   };
@@ -112,26 +116,58 @@ describe('a phase starts from the runs it builds on', () => {
 describe('starting queued runs', () => {
   const lists = PHASE_STEPS as StepLists;
 
-  it('gives each run its phase\'s steps', async () => {
-    const audits = [audit('q1', { status: 'queued' }), audit('q2', { status: 'queued', phase: 'competitors', source_audit_id: 'x' })];
+  it('gives each run its phase\'s steps, and a benchmark from before the phases its own', async () => {
+    const audits = [audit('q1', { status: 'queued', started_at: null }), audit('q2', { status: 'queued', phase: 'competitors', source_audit_id: 'x', started_at: null }), audit('q3', { status: 'queued', kind: 'benchmark', started_at: null })];
     const steps: Row[] = [];
-    const { db, rpc } = engineDb(audits, steps);
-    expect(await startQueuedRuns(db, lists, 3)).toEqual(['q1', 'q2']);
-    expect(rpc.mock.calls[0][1].step_lists).toEqual({
-      audit: STEPS.map((s) => s.name),
-      benchmark: PHASE_STEPS.benchmark.map((s) => s.name),
-      competitors: COMPETITOR_STEPS.map((s) => s.name),
-      integrated: INTEGRATED_STEPS.map((s) => s.name),
-    });
-    expect(steps.filter((s) => s.audit_id === 'q2').map((s) => s.step)).toEqual(COMPETITOR_STEPS.map((s) => s.name));
+    const { db } = engineDb(audits, steps);
+    expect(await startQueuedRuns(db, lists, 3)).toEqual(['q1', 'q2', 'q3']);
+    const of = (id: string) => steps.filter((s) => s.audit_id === id).sort((a, b) => (a.position as number) - (b.position as number)).map((s) => s.step);
+    expect(of('q1')).toEqual(STEPS.map((s) => s.name));
+    expect(of('q2')).toEqual(COMPETITOR_STEPS.map((s) => s.name));
+    expect(of('q3')).toEqual(PHASE_STEPS.benchmark.map((s) => s.name));
+    expect(audits.map((a) => a.status)).toEqual(['running', 'running', 'running']);
+    expect(audits.every((a) => typeof a.started_at === 'string')).toBe(true);
+  });
+
+  it('clears a re-queued run\'s old steps before it starts again', async () => {
+    const audits = [audit('q1', { status: 'queued', started_at: null, error: 'Step maps failed' })];
+    const steps: Row[] = [done('q1', 'site', 1, { old: true }), { id: 'q1-old', audit_id: 'q1', step: 'retired', position: 2, status: 'pending', attempts: 0, output: null }];
+    const { db } = engineDb(audits, steps);
+    expect(await startQueuedRuns(db, { ...lists, audit: [def('site', async () => ({})), def('model', async () => ({}))] }, 3)).toEqual(['q1']);
+    expect(steps.map((s) => [s.step, s.status, s.output])).toEqual([
+      ['site', 'pending', null],
+      ['model', 'pending', null],
+    ]);
+    expect(audits[0]).toMatchObject({ status: 'running', error: null });
+  });
+
+  it('leaves a run another worker is starting to it, and takes over one whose start died', async () => {
+    const audits = [
+      audit('busy', { status: 'queued', started_at: new Date(Date.now() - 10_000).toISOString() }),
+      audit('dead', { status: 'queued', started_at: new Date(Date.now() - START_LEASE_MS - 60_000).toISOString() }),
+    ];
+    const steps: Row[] = [];
+    const { db } = engineDb(audits, steps);
+    expect(await startQueuedRuns(db, lists, 3)).toEqual(['dead']);
+    expect(audits.map((a) => a.status)).toEqual(['queued', 'running']);
+    expect(steps.some((s) => s.audit_id === 'busy')).toBe(false);
+  });
+
+  it('starts at most the number asked for', async () => {
+    const audits = [audit('q1', { status: 'queued', started_at: null }), audit('q2', { status: 'queued', started_at: null })];
+    const { db } = engineDb(audits, []);
+    expect(await startQueuedRuns(db, lists, 1)).toEqual(['q1']);
+    expect(audits[1].status).toBe('queued');
   });
 
   it('falls back to the kind-based start before the phases migration', async () => {
-    const rpc = vi.fn(async (name: string) =>
-      name === 'start_queued_runs' ? { data: null, error: { message: 'Could not find the function public.start_queued_runs(max_audits, step_lists)', code: 'PGRST202' } } : { data: ['a1'], error: null }
-    );
-    expect(await startQueuedRuns({ rpc } as unknown as SupabaseClient, lists, 2)).toEqual(['a1']);
-    expect(rpc.mock.calls[1]).toEqual(['start_queued_audits', { step_names: STEPS.map((s) => s.name), max_audits: 2, benchmark_step_names: PHASE_STEPS.benchmark.map((s) => s.name) }]);
+    const rpc = vi.fn(async () => ({ data: ['a1'], error: null }));
+    const chain: Record<string, unknown> = {};
+    for (const k of ['select', 'eq', 'order', 'limit']) chain[k] = () => chain;
+    chain.then = (resolve: (v: unknown) => void) => resolve({ data: null, error: { message: 'column marketing_audits.phase does not exist', code: '42703' } });
+    const db = { rpc, from: () => chain } as unknown as SupabaseClient;
+    expect(await startQueuedRuns(db, lists, 2)).toEqual(['a1']);
+    expect(rpc.mock.calls[0]).toEqual(['start_queued_audits', { step_names: STEPS.map((s) => s.name), max_audits: 2, benchmark_step_names: PHASE_STEPS.benchmark.map((s) => s.name) }]);
   });
 
   it('keeps no more than three running at once', async () => {
