@@ -141,7 +141,7 @@ describe('readiness checks', () => {
   it('with a consumer key, phases 1 and 2 are checked in the consumer account and the project key only serves clients', async () => {
     vi.stubEnv('COMPOSIO_CONSUMER_API_KEY', 'ck_consumer_secret');
     mocks.consumerConnections.mockImplementation(async (toolkits: string[]) =>
-      toolkits.map((toolkit) => ({ toolkit, state: toolkit === 'ahrefs' ? 'instant' : toolkit === 'googleads' ? 'active' : toolkit === 'google_maps' ? 'active' : 'missing', accounts: toolkit === 'ahrefs' ? 0 : 1 }))
+      toolkits.map((toolkit) => ({ toolkit, state: toolkit === 'ahrefs' ? 'instant' : toolkit === 'scrapecreators' ? 'missing' : 'active', accounts: toolkit === 'ahrefs' ? 0 : 1 }))
     );
     const checks = await readinessChecks(openai(200));
     expect(checks.map((c) => c.key)).toEqual([
@@ -159,6 +159,7 @@ describe('readiness checks', () => {
     expect(checks.find((c) => c.key === 'composio:ahrefs')?.detail).toMatch(/instant account, billed per call/);
     expect(checks.find((c) => c.key === 'composio:scrapecreators')).toMatchObject({ ok: false });
     expect(checks.find((c) => c.key === 'composio:scrapecreators')?.detail).toMatch(/For You dashboard/);
+    expect(checks.find((c) => c.key === 'composio:apify')).toMatchObject({ ok: true });
     expect(checks.find((c) => c.key === 'COMPOSIO_API_KEY')).toMatchObject({ ok: true, required: false });
     // The project's own connections are not asked about: nothing reads them for a prospect.
     expect(mocks.activeConnection).not.toHaveBeenCalled();

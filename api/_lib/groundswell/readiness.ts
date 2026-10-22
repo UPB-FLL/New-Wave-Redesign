@@ -27,7 +27,8 @@ export interface ReadinessCheck {
 /** The Composio toolkits the Currents read, and what a prospect's audit loses without each. */
 export const TOOLKIT_CHECKS = [
   { toolkit: 'ahrefs', label: 'Ahrefs (search rankings, paid pages, authority)', without: 'search rankings, paid pages and domain authority are left out of the reports' },
-  { toolkit: 'scrapecreators', label: 'ScrapeCreators (Instagram, ad libraries)', without: 'Instagram and the ad libraries are left out of the reports' },
+  { toolkit: 'scrapecreators', label: 'ScrapeCreators (Instagram, Facebook, ad libraries)', without: 'Instagram, Facebook and the ad libraries are left out of the reports' },
+  { toolkit: 'apify', label: 'Apify (Instagram profiles shown only to signed-in adults, extra images)', without: 'an Instagram profile that hides from logged-out readers stays unread, and the ad images come from fewer posts' },
   { toolkit: 'google_maps', label: 'Google Places (Maps listing, competitor picks)', without: 'Maps is read from its public view and no competitors are picked' },
   { toolkit: 'googleads', label: 'Google Ads (Keyword Planner)', without: 'keyword demand, the ad plan and the ad copy are left out of the reports' },
 ] as const;

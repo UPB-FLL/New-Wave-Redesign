@@ -156,8 +156,16 @@ const ACCOUNT_STATUS: Record<ClientAccount['status'], { label: string; color: st
 const PENDING_POLL_MS = 5_000;
 const PENDING_POLLS = 24;
 
+/** The calls the card makes: the partner portal's by default, the staff route's on the staff customer page. */
+export interface AccountsApi {
+  list: (customerId: string) => Promise<{ accounts: ClientAccount[]; available: boolean }>;
+  link: (customerId: string, service: ClientService) => Promise<{ redirect_url: string; accounts: ClientAccount[] }>;
+  unlink: (customerId: string, service: ClientService) => Promise<ClientAccount[]>;
+}
+const PARTNER_ACCOUNTS: AccountsApi = { list: listClientAccounts, link: linkClientAccount, unlink: unlinkClientAccount };
+
 /** A client's accounts: one row per service with its state and a Link / Unlink button. */
-export function AccountsCard({ customerId, poll = PENDING_POLL_MS }: { customerId: string; poll?: number }) {
+export function AccountsCard({ customerId, poll = PENDING_POLL_MS, api = PARTNER_ACCOUNTS }: { customerId: string; poll?: number; api?: AccountsApi }) {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const [accounts, setAccounts] = useState<ClientAccount[] | null>(null);
@@ -169,7 +177,7 @@ export function AccountsCard({ customerId, poll = PENDING_POLL_MS }: { customerI
 
   const refresh = useCallback(async () => {
     try {
-      const result = await listClientAccounts(customerId);
+      const result = await api.list(customerId);
       setAccounts(result.accounts);
       setAvailable(result.available);
       return result.accounts;
@@ -178,7 +186,7 @@ export function AccountsCard({ customerId, poll = PENDING_POLL_MS }: { customerI
       else setError(err instanceof Error ? err.message : 'Could not load the linked accounts.');
       return null;
     }
-  }, [customerId, navigate]);
+  }, [customerId, navigate, api]);
 
   useEffect(() => {
     void refresh();
@@ -211,7 +219,7 @@ export function AccountsCard({ customerId, poll = PENDING_POLL_MS }: { customerI
     setBusy(service);
     setError(null);
     try {
-      const { redirect_url } = await linkClientAccount(customerId, service);
+      const { redirect_url } = await api.link(customerId, service);
       window.location.assign(redirect_url);
     } catch (err) {
       if (err instanceof PartnerSignedOut) navigate(GROUNDSWELL_PATH, { replace: true });
@@ -224,7 +232,7 @@ export function AccountsCard({ customerId, poll = PENDING_POLL_MS }: { customerI
     setBusy(service);
     setError(null);
     try {
-      setAccounts(await unlinkClientAccount(customerId, service));
+      setAccounts(await api.unlink(customerId, service));
       setNotice('Unlinked.');
     } catch (err) {
       if (err instanceof PartnerSignedOut) navigate(GROUNDSWELL_PATH, { replace: true });

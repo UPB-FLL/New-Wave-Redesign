@@ -48,7 +48,8 @@ export function adRows(list: unknown): Record<string, unknown>[] {
 
 async function metaFor(a: BenchAccount) {
   if (!a.facebook) return { pageId: null, statusText: null, ads: [] as MetaAd[], note: 'No Facebook Page is linked from the website.' };
-  const profile = await executeTool('SCRAPECREATORS_GET_FACEBOOK_PROFILE', { url: a.facebook, cache_max_age: '7d' });
+  // Gated Pages (shown only to signed-in adults, as alcohol brands' are) still answer with their Ad Library id.
+  const profile = await executeTool('SCRAPECREATORS_GET_FACEBOOK_PROFILE', { url: a.facebook, include_gated_profile: true, cache_max_age: '7d' });
   const lib = findKey<Record<string, unknown>>(profile, 'adLibrary');
   const pageId = lib?.pageId ? String(lib.pageId) : null;
   const statusText = typeof lib?.adStatus === 'string' ? lib.adStatus : null;

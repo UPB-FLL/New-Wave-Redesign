@@ -2,6 +2,68 @@
 
 ## Recent Changes
 
+### Groundswell: age-gated Instagram profiles, the Facebook Page, and the public-sources plan (2026-10-22)
+
+Uncommon Path's two live runs read nothing from Instagram: ScrapeCreators
+answered "Instagram blocked access to this public profile" while the two
+competitors read fine, and Instagram's own logged-out page for the handle is
+an error page where a public profile redirects to sign-in. The account is
+shown only to signed-in adults (Instagram's minimum-age control, which
+alcohol brands set), so no logged-out scraper sees it; the Facebook Page is
+gated the same way (hence "no Ad Library id" for every brewery).
+
+- **Social step** (`currents/social.ts`): a profile blocked twice falls
+  back to Apify (`APIFY_SCRAPE_INSTAGRAM_PROFILES`, `…_POSTS`, capped);
+  `summarizeInstagram` reads Apify's field names; snapshots carry
+  `read_via`, `restricted` and a `note` (`RESTRICTED_NOTE`) the full audit
+  prints and the write-up prompt is told about. The business's Facebook
+  Page (the site's link, `include_gated_profile: true`) is read with one
+  page of posts, each competitor's without (`SocialOutput.facebook`,
+  `facebook_competitors`; `summarizeFacebook` looks figures up by their
+  usual names, the answer shape being unread yet). The audit's social
+  section gains the Facebook table; `creative.ts` takes the Facebook posts'
+  images before the website's share image (`origin: 'facebook'`); the
+  ads-library step passes `include_gated_profile`. Readiness gains an Apify
+  row; the step label is "Instagram and Facebook".
+- **Plan** `docs/groundswell-public-sources-plan.md`: the diagnosis, what
+  shipped, and the steps to come on the public scrape tools (Facebook in
+  depth, Yelp and Untappd reviews, Reddit mentions and flair tags, Ahrefs
+  Brand Radar AI visibility), how each feeds the plan, the ad sets and new
+  posts, and the posting hooks the owner connects later (Meta Ads and
+  Instagram publishing as a client's own account, from an approval).
+- **Tests**: the Apify fallback, the note, the Facebook cases in
+  `groundswell-social.test.ts`; the social section in
+  `groundswell-reports.test.ts`; the Facebook images in
+  `groundswell-adsets.test.ts`; the Apify row in the readiness test.
+- **Field names** come from ScrapeCreators' documentation (the plan doc
+  lists them): Facebook `followerCount`, `likeCount`, `rating`,
+  `ratingCount`, `pageIntro`, `adLibrary.pageId`; posts `text`, `url`,
+  `reactionCount`, `commentCount`, `publishTime`, `videoDetails.thumbnailUrl`.
+  `refusal()` tells Instagram's refusals apart ("Profile is age restricted",
+  "…restricted", "…private", Composio's "blocked access"): age and
+  restricted go to Apify, private gets `PRIVATE_NOTE` and no paid read.
+- **The owner's choice for the age gate: link the account.** Staff can now
+  mark any customer a client and link its accounts (New Wave's own customers
+  had no way): `api/groundswell/accounts.ts` (Groundswell admins via
+  `resolveViewer`; GET/POST/DELETE as the partner route, PATCH `{ stage }`;
+  the sign-in returns to `/groundswell/admin/customers/:id`; rows carry
+  `linked_by: staff:<email>`), its answers shared with the partner route in
+  `api/_lib/groundswell/accountLinking.ts`; `staffAccountsApi` and
+  `setStaffCustomerStage` in `groundswellWorkspace.ts`; the staff customer
+  page (`GroundswellCustomer.tsx`) shows the stage button and the
+  `AccountsCard` (which takes an `api` prop now). The `social` step reads a
+  linked client's Instagram first in every phase (`linkedInstagram`,
+  `summarizeLinkedInstagram`, `mediaFromGraph`, `LINKED_MEDIA_FIELDS`;
+  `read_via: 'linked'`, `SocialOutput.linked_note` for staff), the public
+  reads being the fallback. Tests: `groundswell-accounts.test.ts`, the
+  linked cases in `groundswell-social.test.ts` and the staff page cases in
+  `CustomerWorkspace.test.tsx`.
+- **Not verified live**: Composio's consumer executor refused every call on
+  2026-10-22 ("SSRF guard blocked request"), so whether Apify reads a gated
+  profile waits for the next run. A signed-in Chromium reader for gated
+  profiles was not built (the permission classifier refused it; see the
+  plan doc).
+
 ### Groundswell: three phases, ad sets, and a workspace per customer (2026-10-22)
 
 Owner's choices: the runs through the Composio project were poor, while the
