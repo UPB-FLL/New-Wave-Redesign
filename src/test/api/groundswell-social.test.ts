@@ -1,9 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const mocks = vi.hoisted(() => ({ executeTool: vi.fn() }));
-vi.mock('../../../api/_lib/groundswell/composio', async (original) => ({ ...(await original<object>()), executeTool: mocks.executeTool }));
+const mocks = vi.hoisted(() => ({ executeTool: vi.fn(), executeToolAs: vi.fn(), composioConfigured: false, loadLinkedAccounts: vi.fn() }));
+vi.mock('../../../api/_lib/groundswell/composio', async (original) => ({
+  ...(await original<object>()),
+  executeTool: mocks.executeTool,
+  executeToolAs: mocks.executeToolAs,
+  isComposioConfigured: () => mocks.composioConfigured,
+}));
+vi.mock('../../../api/_lib/supabaseAdmin', () => ({ getSupabaseAdmin: () => ({}), isSupabaseConfigured: () => true }));
+vi.mock('../../../api/_lib/groundswell/currents/linked', async (original) => ({ ...(await original<object>()), loadLinkedAccounts: mocks.loadLinkedAccounts }));
 
-import { facebookPageUrl, PRIVATE_NOTE, refusal, RESTRICTED_NOTE, runSocial, summarizeFacebook, summarizeInstagram } from '../../../api/_lib/groundswell/currents/social';
+import { facebookPageUrl, LINKED_MEDIA_FIELDS, mediaFromGraph, PRIVATE_NOTE, refusal, RESTRICTED_NOTE, runSocial, summarizeFacebook, summarizeInstagram } from '../../../api/_lib/groundswell/currents/social';
 
 /** The Social Current when Instagram turns the scraper away: one more try, then the gap is recorded, never a failed audit. */
 
@@ -22,6 +29,9 @@ const apifyPosts = [
 // A function returned from beforeEach is a cleanup hook to vitest, so the reset stays inside braces.
 beforeEach(() => {
   mocks.executeTool.mockReset();
+  mocks.executeToolAs.mockReset();
+  mocks.composioConfigured = false;
+  mocks.loadLinkedAccounts.mockReset().mockResolvedValue({ customer_id: null, stage: null, rows: [], note: 'not a client' });
 });
 
 describe('Social Current: blocked profiles', () => {
@@ -162,5 +172,76 @@ describe('Social Current: Facebook Pages', () => {
     expect(facebookPageUrl(null)).toBeNull();
     expect(summarizeFacebook('https://www.facebook.com/x', { isPrivate: true, followerCount: 10 }, null)).toMatchObject({ restricted: true, followers: 10, exists: true });
     expect(summarizeInstagram('x', null, null)).toMatchObject({ exists: false, read_via: 'scrapecreators', restricted: false, note: null });
+  });
+});
+
+describe('Social Current: a client’s own Instagram account', () => {
+  const row = { id: 'r1', customer_id: 'c1', service: 'instagram', composio_account_id: 'ca_ig', auth_config_id: 'ac', user_id: 'client:c1', status: 'active', status_reason: null, linked_by: 'staff:josh@newwaveitfl.com', linked_at: '2026-10-22T00:00:00Z', checked_at: null, created_at: '', updated_at: '' };
+  /** What Composio's Instagram toolkit (the Graph API) answers. */
+  const info = { data: { id: '17841400000000000', username: 'harborautocare', name: 'Harbor Auto Care', followers_count: 2450, follows_count: 180, media_count: 512 } };
+  const media = {
+    data: {
+      data: [
+        { id: '1', shortcode: 'G1', caption: 'Brakes done same day.', media_type: 'IMAGE', media_product_type: 'FEED', media_url: 'https://scontent.example/1.jpg', permalink: 'https://www.instagram.com/p/G1/', timestamp: '2026-10-20T15:00:00+0000', like_count: 60, comments_count: 4 },
+        { id: '2', shortcode: 'G2', caption: 'Shop tour', media_type: 'VIDEO', media_product_type: 'REELS', media_url: 'https://scontent.example/2.mp4', thumbnail_url: 'https://scontent.example/2.jpg', permalink: 'https://www.instagram.com/reel/G2/', timestamp: '2026-10-18T15:00:00+0000', like_count: 20, comments_count: 2, view_count: 1500 },
+        { id: '3', shortcode: 'G3', media_type: 'CAROUSEL_ALBUM', media_url: 'https://scontent.example/3.jpg', permalink: 'https://www.instagram.com/p/G3/', timestamp: '2025-01-01T15:00:00+0000', like_count: 10, comments_count: 0 },
+      ],
+      paging: { cursors: { after: 'x' } },
+    },
+  };
+
+  it('reads the linked account first (no public read of the business), with its images, and the competitors from public data', async () => {
+    mocks.composioConfigured = true;
+    mocks.loadLinkedAccounts.mockResolvedValue({ customer_id: 'c1', stage: 'client', rows: [row], note: null });
+    mocks.executeToolAs.mockImplementation(async (slug: string) => (slug === 'INSTAGRAM_GET_USER_INFO' ? info : media));
+    mocks.executeTool.mockImplementation(async (slug: string, args: Record<string, unknown>) => {
+      if (args.handle === 'harborautocare') throw new Error('Profile is age restricted');
+      return slug === 'SCRAPECREATORS_GET_INSTAGRAM_PROFILE' ? profile(500) : posts;
+    });
+    const out = await runSocial(ctx, 0);
+    expect(out.business).toMatchObject({ handle: 'harborautocare', exists: true, followers: 2450, following: 180, posts: 512, is_business: true, read_via: 'linked', restricted: false, note: null, error: null, avg_likes_recent: 30, avg_comments_recent: 2, last_post_at: '2026-10-20T15:00:00.000Z' });
+    expect(out.business?.media?.map((m) => [m.code, m.type, m.image_url, m.plays])).toEqual([
+      ['G1', 'image', 'https://scontent.example/1.jpg', null],
+      ['G2', 'video', 'https://scontent.example/2.jpg', 1500],
+      ['G3', 'carousel', 'https://scontent.example/3.jpg', null],
+    ]);
+    expect(out.competitors[0]).toMatchObject({ name: 'Bayside', followers: 500, read_via: 'scrapecreators' });
+    expect(out.source).toMatch(/own Instagram account \(Graph API\)/);
+    expect(out.linked_note).toBeNull();
+    // The account is read as itself (executeToolAs with its connected account), never through the shared lookup.
+    expect(mocks.executeToolAs.mock.calls.map(([slug, args, account]) => [slug, (args as { ig_user_id: string }).ig_user_id, (account as { id: string }).id])).toEqual([
+      ['INSTAGRAM_GET_USER_INFO', 'me', 'ca_ig'],
+      ['INSTAGRAM_GET_IG_USER_MEDIA', 'me', 'ca_ig'],
+    ]);
+    expect((mocks.executeToolAs.mock.calls[1][1] as { fields: string }).fields).toBe(LINKED_MEDIA_FIELDS);
+    expect(mocks.executeTool.mock.calls.some(([, a]) => (a as { handle?: string }).handle === 'harborautocare')).toBe(false);
+  });
+
+  it('falls back to the public read when the linked account cannot be read, saying why for staff', async () => {
+    mocks.composioConfigured = true;
+    mocks.loadLinkedAccounts.mockResolvedValue({ customer_id: 'c1', stage: 'client', rows: [row], note: null });
+    mocks.executeToolAs.mockRejectedValue(new Error('INSTAGRAM_GET_USER_INFO failed (400): Error validating access token'));
+    mocks.executeTool.mockImplementation(async (slug: string, args: { handle: string }) => (slug === 'SCRAPECREATORS_GET_INSTAGRAM_PROFILE' ? profile(args.handle === 'bayside' ? 500 : 1200) : posts));
+    const out = await runSocial(ctx, 0);
+    expect(out.business).toMatchObject({ followers: 1200, read_via: 'scrapecreators' });
+    expect(out.linked_note).toMatch(/could not be read .*access token.*public profile was read instead/);
+  });
+
+  it('a prospect, or a client with nothing linked, never touches the linked path; a database error stops the step so it retries', async () => {
+    mocks.composioConfigured = true;
+    mocks.executeTool.mockImplementation(async (slug: string) => (slug === 'SCRAPECREATORS_GET_INSTAGRAM_PROFILE' ? profile(1200) : posts));
+    const out = await runSocial(ctx, 0);
+    expect(out.business).toMatchObject({ followers: 1200, read_via: 'scrapecreators' });
+    expect(mocks.executeToolAs).not.toHaveBeenCalled();
+    mocks.loadLinkedAccounts.mockRejectedValue(new Error("Could not read the client's linked accounts: connection reset"));
+    await expect(runSocial(ctx, 0)).rejects.toThrow(/linked accounts/);
+  });
+
+  it('reads the Graph API media shape on its own', () => {
+    expect(mediaFromGraph(null)).toEqual([]);
+    expect(mediaFromGraph([{ media_type: 'IMAGE', media_url: 'http://insecure.example/x.jpg' }])).toEqual([]);
+    expect(mediaFromGraph([{ media_type: 'VIDEO', media_url: 'https://scontent.example/v.mp4', timestamp: 'not a date' }])).toEqual([
+      { code: null, permalink: null, image_url: 'https://scontent.example/v.mp4', type: 'video', likes: null, comments: null, plays: null, taken_at: null, caption: null },
+    ]);
   });
 });

@@ -1,5 +1,7 @@
-import { executeTool, findKey } from '../composio.js';
+import { getSupabaseAdmin } from '../../supabaseAdmin.js';
+import { executeTool, executeToolAs, findKey, isComposioConfigured } from '../composio.js';
 import { PermanentStepError, type StepContext } from '../types.js';
+import { loadLinkedAccounts } from './linked.js';
 import type { SiteScan } from './site.js';
 
 /**
@@ -15,6 +17,12 @@ import type { SiteScan } from './site.js';
  * falls back to Apify's scrapers (which take the same handle); when they
  * cannot read it either, the snapshot records the block in words a report
  * can print (`note`), and the Facebook Page stands in for the social data.
+ *
+ * A client whose Instagram is linked (groundswell_client_accounts, the Graph
+ * API as the account's own token, which no minimum age gates) is read that
+ * way first, in every phase: its own followers, posts and images, with
+ * `read_via: 'linked'`. The public read is the fallback. Competitors are
+ * always public.
  */
 
 export interface InstagramSnapshot {
@@ -33,8 +41,8 @@ export interface InstagramSnapshot {
   bio_links?: string[];
   /** The business's recent posts with their images (the ad sets' creative); never kept for a competitor. Missing before phases. */
   media?: InstagramMedia[];
-  /** Which reader answered; missing on audits before 2026-10-23. */
-  read_via?: 'scrapecreators' | 'apify';
+  /** Which reader answered; missing on audits before 2026-10-23. `linked` is the business's own account (the Graph API). */
+  read_via?: 'scrapecreators' | 'apify' | 'linked';
   /** Instagram turned the logged-out reader away (a profile shown only to signed-in adults, usually). */
   restricted?: boolean;
   /** The block in words a report may print; null when the profile was read. */
@@ -265,6 +273,103 @@ async function instagram(handle: string, pauseMs = BLOCKED_RETRY_MS): Promise<In
 }
 
 // ---------------------------------------------------------------------------
+// The business's own Instagram account (a client with Instagram linked)
+
+/** The fields read from the account's media, through Composio's Instagram toolkit (the Graph API). */
+export const LINKED_MEDIA_FIELDS = 'id,shortcode,caption,media_type,media_product_type,media_url,permalink,thumbnail_url,timestamp,like_count,comments_count,view_count';
+
+/** The account's media (Graph API fields) as the ad sets' creative: `media_url` for a photo, `thumbnail_url` for a video. */
+export function mediaFromGraph(items: unknown): InstagramMedia[] {
+  // Composio wraps the Graph API's `{ data: [...], paging }` in a `data` of its own: unwrap until the list.
+  let list: unknown = items;
+  for (let i = 0; i < 4 && list && typeof list === 'object' && !Array.isArray(list); i++) list = (list as Record<string, unknown>).data;
+  if (!Array.isArray(list)) return [];
+  const out: InstagramMedia[] = [];
+  for (const raw of list) {
+    if (!raw || typeof raw !== 'object') continue;
+    const m = raw as Record<string, unknown>;
+    const type = String(m.media_type ?? '').toUpperCase();
+    const image = type === 'VIDEO' ? m.thumbnail_url ?? m.media_url : m.media_url ?? m.thumbnail_url;
+    if (typeof image !== 'string' || !/^https:\/\//.test(image)) continue;
+    const time = typeof m.timestamp === 'string' ? Date.parse(m.timestamp) : null;
+    const code = typeof m.shortcode === 'string' ? m.shortcode : null;
+    out.push({
+      code,
+      permalink: typeof m.permalink === 'string' ? m.permalink : code ? `https://www.instagram.com/p/${code}/` : null,
+      image_url: image,
+      type: type === 'VIDEO' ? 'video' : type === 'CAROUSEL_ALBUM' ? 'carousel' : 'image',
+      likes: n(m.like_count),
+      comments: n(m.comments_count),
+      plays: type === 'VIDEO' ? n(m.view_count) : null,
+      taken_at: time && Number.isFinite(time) ? new Date(time).toISOString() : null,
+      caption: typeof m.caption === 'string' ? m.caption.slice(0, 400) : null,
+    });
+  }
+  return out.slice(0, 12);
+}
+
+/** The account's own figures as a snapshot: the Graph API's `followers_count`, `follows_count`, `media_count` and its media list. */
+export function summarizeLinkedInstagram(handle: string, info: unknown, media: unknown, now = Date.now()): InstagramSnapshot {
+  const items = mediaFromGraph(media);
+  const times = items.map((m) => (m.taken_at ? Date.parse(m.taken_at) : NaN)).filter((t) => Number.isFinite(t)).sort((a, b) => b - a);
+  const avg = (vals: (number | null)[]) => {
+    const xs = vals.filter((x): x is number => x !== null);
+    return xs.length ? Math.round(xs.reduce((a, b) => a + b, 0) / xs.length) : null;
+  };
+  const followers = n(findKey(info, 'followers_count'));
+  const count = n(findKey(info, 'media_count'));
+  const username = findKey<string>(info, 'username');
+  return {
+    handle: typeof username === 'string' && username ? username : handle,
+    exists: followers !== null || count !== null,
+    followers,
+    following: n(findKey(info, 'follows_count')),
+    posts: count,
+    biography: (findKey<string>(info, 'biography') ?? null) as string | null,
+    is_business: true,
+    last_post_at: times[0] ? new Date(times[0]).toISOString() : null,
+    posts_last_30_days: items.length ? times.filter((t) => now - t <= 30 * 86_400_000).length : null,
+    avg_likes_recent: avg(items.map((m) => m.likes)),
+    avg_comments_recent: avg(items.map((m) => m.comments)),
+    bio_links: [],
+    media: items,
+    read_via: 'linked',
+    restricted: false,
+    note: null,
+    error: null,
+  };
+}
+
+/**
+ * The business's own account when it is a client with Instagram linked and
+ * the Composio project can be reached; null otherwise (a prospect, nothing
+ * linked, the tables not there yet). A read that fails answers null with the
+ * reason, so the public read runs; a database error throws (the step
+ * retries), never a silent public read of a client whose account was there.
+ */
+async function linkedInstagram(ctx: StepContext, handle: string | null): Promise<{ snapshot: InstagramSnapshot | null; note: string | null }> {
+  if (!isComposioConfigured()) return { snapshot: null, note: null };
+  const accounts = await loadLinkedAccounts(getSupabaseAdmin(), ctx.audit.id);
+  const row = accounts.rows.find((r) => r.service === 'instagram');
+  if (!row) return { snapshot: null, note: null };
+  const timeout = Math.max(10_000, Math.min(60_000, ctx.deadline - Date.now() - 10_000));
+  const run = (slug: string, args: Record<string, unknown>) => executeToolAs(slug, args, { id: row.composio_account_id, user_id: row.user_id }, timeout);
+  try {
+    const info = await run('INSTAGRAM_GET_USER_INFO', { ig_user_id: 'me', fields: 'id,username,name,followers_count,follows_count,media_count' });
+    let media: unknown = null;
+    try {
+      media = await run('INSTAGRAM_GET_IG_USER_MEDIA', { ig_user_id: 'me', limit: 25, fields: LINKED_MEDIA_FIELDS });
+    } catch {
+      // The profile stands on its own; the public read is not worth more than this.
+    }
+    const snapshot = summarizeLinkedInstagram(handle ?? '', info, media);
+    return snapshot.exists ? { snapshot, note: null } : { snapshot: null, note: 'The linked Instagram account answered without figures.' };
+  } catch (err) {
+    return { snapshot: null, note: `The linked Instagram account could not be read (${message(err).slice(0, 160)}); the public profile was read instead.` };
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Facebook
 
 const str = (v: unknown, max = 600) => (typeof v === 'string' && v.trim() ? v.replace(/\s+/g, ' ').trim().slice(0, max) : null);
@@ -382,6 +487,8 @@ export interface SocialOutput {
   facebook?: FacebookSnapshot | null;
   /** The competitors' Pages, where their sites link one. */
   facebook_competitors?: (FacebookSnapshot & { name: string })[];
+  /** Why the business's own linked account was not used, when it was there to use (for staff). */
+  linked_note?: string | null;
 }
 
 export async function runSocial(ctx: StepContext, pauseMs = BLOCKED_RETRY_MS): Promise<SocialOutput> {
@@ -391,7 +498,8 @@ export async function runSocial(ctx: StepContext, pauseMs = BLOCKED_RETRY_MS): P
     .map((c, i) => ({ name: c.name, handle: c.instagram || site?.competitors[i]?.site?.social.instagram[0] || null }))
     .filter((c): c is { name: string; handle: string } => Boolean(c.handle))
     .slice(0, 6);
-  const business = own ? await instagram(own, pauseMs) : null;
+  const linked = await linkedInstagram(ctx, own);
+  const business = linked.snapshot ?? (own ? await instagram(own, pauseMs) : null);
   if (business?.error && /refused|not connected|no active connection|not set up/i.test(business.error)) throw new Error(business.error);
   // A competitor's posts are never anyone's creative: only the business keeps its media.
   const competitors = await Promise.all(rivals.map(async (c) => ({ name: c.name, ...(await instagram(c.handle, pauseMs)), media: [] })));
@@ -407,13 +515,15 @@ export async function runSocial(ctx: StepContext, pauseMs = BLOCKED_RETRY_MS): P
   ]);
 
   const viaApify = [business, ...competitors].some((s) => s?.read_via === 'apify');
+  const viaLinked = business?.read_via === 'linked';
   return {
-    source: `Instagram public profiles${viaApify ? ' (via Apify where Instagram hides a profile from logged-out readers)' : ''} and public Facebook Pages, via ScrapeCreators through Composio`,
+    source: `${viaLinked ? 'The business’s own Instagram account (Graph API) and its competitors’ public profiles' : 'Instagram public profiles'}${viaApify ? ' (via Apify where Instagram hides a profile from logged-out readers)' : ''} and public Facebook Pages, via ScrapeCreators through Composio`,
     fetched_at: new Date().toISOString(),
     handle_source: ctx.audit.instagram ? 'entered by an admin' : own ? 'linked from the website' : null,
     business,
     competitors,
     facebook: facebookPage,
     facebook_competitors: facebookRivals,
+    linked_note: linked.note,
   };
 }

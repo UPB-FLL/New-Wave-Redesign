@@ -8,6 +8,8 @@ const ws = vi.hoisted(() => ({
   runFiles: vi.fn(),
   reportUrl: vi.fn(),
   listStaffCustomers: vi.fn(),
+  setStaffCustomerStage: vi.fn(),
+  staffAccountsApi: { list: vi.fn(), link: vi.fn(), unlink: vi.fn() },
 }));
 
 vi.mock('../../lib/groundswellWorkspace', async (orig) => ({ ...(await orig<typeof import('../../lib/groundswellWorkspace')>()), ...ws }));
@@ -56,7 +58,8 @@ const FILES = [
 ];
 
 beforeEach(() => {
-  Object.values(ws).forEach((fn) => fn.mockReset());
+  for (const fn of Object.values(ws)) if (typeof fn === 'function') fn.mockReset();
+  for (const fn of Object.values(ws.staffAccountsApi)) fn.mockReset();
   ws.runFiles.mockResolvedValue(FILES);
 });
 
@@ -231,5 +234,50 @@ describe('staff customers', () => {
     expect(screen.getByRole('link', { name: /All customers/ })).toHaveAttribute('href', GROUNDSWELL_ADMIN_CUSTOMERS_PATH);
     await waitFor(() => expect(ws.getWorkspace).toHaveBeenCalledWith('admin', 'c1'));
     expect(await screen.findByRole('list', { name: 'Phases' })).toBeInTheDocument();
+  });
+
+  it('lets staff link a client’s accounts through the staff route, and move it back to the prospects', async () => {
+    ws.listStaffCustomers.mockResolvedValue(staff);
+    ws.getWorkspace.mockResolvedValue(workspace());
+    ws.staffAccountsApi.list.mockResolvedValue({ available: true, accounts: [{ service: 'instagram', label: 'Instagram', brings: 'Followers.', status: 'none', linked_at: null, reason: null }] });
+    ws.staffAccountsApi.link.mockResolvedValue({ redirect_url: 'https://connect.composio.example/ig', accounts: [] });
+    ws.setStaffCustomerStage.mockResolvedValue({ id: 'c1', stage: 'prospect' });
+    const assign = vi.fn();
+    vi.stubGlobal('location', { ...window.location, assign });
+    render(
+      <MemoryRouter initialEntries={[groundswellAdminCustomerPath('c1')]}>
+        <Routes>
+          <Route path={`${GROUNDSWELL_ADMIN_CUSTOMERS_PATH}/:id`} element={<GroundswellCustomer />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    expect(await screen.findByRole('heading', { name: 'Linked accounts' })).toBeInTheDocument();
+    await waitFor(() => expect(ws.staffAccountsApi.list).toHaveBeenCalledWith('c1'));
+    fireEvent.click(await screen.findByRole('button', { name: 'Link Instagram' }));
+    await waitFor(() => expect(ws.staffAccountsApi.link).toHaveBeenCalledWith('c1', 'instagram'));
+    await waitFor(() => expect(assign).toHaveBeenCalledWith('https://connect.composio.example/ig'));
+    fireEvent.click(screen.getByRole('button', { name: 'Move back to prospects' }));
+    await waitFor(() => expect(ws.setStaffCustomerStage).toHaveBeenCalledWith('c1', 'prospect'));
+    expect(await screen.findByRole('button', { name: 'Became a client' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Linked accounts' })).not.toBeInTheDocument();
+    vi.unstubAllGlobals();
+  });
+
+  it('a prospect of New Wave’s own gets "Became a client" and no accounts card until it is one', async () => {
+    ws.listStaffCustomers.mockResolvedValue(staff);
+    ws.getWorkspace.mockResolvedValue(workspace());
+    ws.setStaffCustomerStage.mockResolvedValue({ id: 'c2', stage: 'client' });
+    render(
+      <MemoryRouter initialEntries={[groundswellAdminCustomerPath('c2')]}>
+        <Routes>
+          <Route path={`${GROUNDSWELL_ADMIN_CUSTOMERS_PATH}/:id`} element={<GroundswellCustomer />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    expect(await screen.findByText('New Wave’s own')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Linked accounts' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Became a client' }));
+    await waitFor(() => expect(ws.setStaffCustomerStage).toHaveBeenCalledWith('c2', 'client'));
+    expect(await screen.findByRole('heading', { name: 'Linked accounts' })).toBeInTheDocument();
   });
 });

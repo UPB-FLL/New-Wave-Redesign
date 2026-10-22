@@ -76,12 +76,28 @@ it cannot, the note stands and Facebook carries the social section).
 
 Getting past the age gate itself: Instagram shows a gated profile only to
 a signed-in adult, so the only readers are a signed-in session or the
-account's own API. Two ways, both the owner's call:
+account's own API. Two ways; the owner chose the first on 2026-10-22:
 
-1. **Link the account** (built): once Uncommon Path is a client with
-   Instagram linked, phase 3 reads it through the Graph API
-   (`currents/linked.ts`); the minimum-age control does not apply to the
-   account's own token. This is the read Instagram allows.
+1. **Link the account** (built, and the owner's choice): the account's own
+   token through the Graph API, which the minimum-age control does not
+   gate. This is the read Instagram allows. What that takes, and what
+   shipped for it:
+   - Uncommon Path is New Wave's own customer (`partner_id` null, stage
+     prospect, no partner exists yet), and the partner route could not
+     reach it. The staff customer page (`/groundswell/admin/customers/:id`)
+     now has "Became a client" and the Linked accounts card, through
+     `api/groundswell/accounts.ts` (Groundswell admins; any customer; the
+     sign-in comes back to the staff page; `linked_by: staff:<email>`). The
+     partner route shares its answers (`api/_lib/groundswell/accountLinking.ts`).
+   - The `social` step reads a linked client's Instagram first, in every
+     phase (`linkedInstagram` in `currents/social.ts`: `INSTAGRAM_GET_USER_INFO`
+     and `INSTAGRAM_GET_IG_USER_MEDIA` as the account itself, with the images
+     for the ad sets; `read_via: 'linked'`), and only then the public reads.
+     Phase 3's `linked` step keeps reading the insights.
+   - Still needed on the live side: an Instagram auth config in the Composio
+     project (the overview's "Client sign-in: Instagram" row says whether
+     it is there), then on the staff page: Became a client, Link Instagram,
+     sign in as the brewery's account, Run again.
 2. **A signed-in headless browser**: Chromium (`browser.ts`) carrying the
    `sessionid` cookie of an adult account from Vercel's environment, asking
    Instagram's own web profile endpoint (`/api/v1/users/web_profile_info/`,

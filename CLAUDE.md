@@ -42,11 +42,27 @@ gated the same way (hence "no Ad Library id" for every brewery).
   `refusal()` tells Instagram's refusals apart ("Profile is age restricted",
   "…restricted", "…private", Composio's "blocked access"): age and
   restricted go to Apify, private gets `PRIVATE_NOTE` and no paid read.
+- **The owner's choice for the age gate: link the account.** Staff can now
+  mark any customer a client and link its accounts (New Wave's own customers
+  had no way): `api/groundswell/accounts.ts` (Groundswell admins via
+  `resolveViewer`; GET/POST/DELETE as the partner route, PATCH `{ stage }`;
+  the sign-in returns to `/groundswell/admin/customers/:id`; rows carry
+  `linked_by: staff:<email>`), its answers shared with the partner route in
+  `api/_lib/groundswell/accountLinking.ts`; `staffAccountsApi` and
+  `setStaffCustomerStage` in `groundswellWorkspace.ts`; the staff customer
+  page (`GroundswellCustomer.tsx`) shows the stage button and the
+  `AccountsCard` (which takes an `api` prop now). The `social` step reads a
+  linked client's Instagram first in every phase (`linkedInstagram`,
+  `summarizeLinkedInstagram`, `mediaFromGraph`, `LINKED_MEDIA_FIELDS`;
+  `read_via: 'linked'`, `SocialOutput.linked_note` for staff), the public
+  reads being the fallback. Tests: `groundswell-accounts.test.ts`, the
+  linked cases in `groundswell-social.test.ts` and the staff page cases in
+  `CustomerWorkspace.test.tsx`.
 - **Not verified live**: Composio's consumer executor refused every call on
   2026-10-22 ("SSRF guard blocked request"), so whether Apify reads a gated
   profile waits for the next run. A signed-in Chromium reader for gated
   profiles was not built (the permission classifier refused it; see the
-  plan doc); linking the account (phase 3) is the read Instagram allows.
+  plan doc).
 
 ### Groundswell: three phases, ad sets, and a workspace per customer (2026-10-22)
 
