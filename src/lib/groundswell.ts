@@ -85,6 +85,7 @@ export const STEP_LABELS: Record<string, string> = {
   keywords: 'Keyword demand',
   social: 'Instagram',
   ads: 'Ads',
+  linked: 'Linked accounts',
   model: 'Write-up and ROI',
   adplan: 'Ad plan and change ranking',
   adcopy: 'Ad copy',

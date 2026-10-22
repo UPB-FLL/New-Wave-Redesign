@@ -25,7 +25,7 @@ export interface AuditRow {
 }
 
 /** The public "Current" each step belongs to (content/croissance.ts names them). */
-export type CurrentName = 'Site' | 'Maps' | 'Search' | 'Social' | 'Ads' | 'Model' | 'Delivery';
+export type CurrentName = 'Site' | 'Maps' | 'Search' | 'Social' | 'Ads' | 'Accounts' | 'Model' | 'Delivery';
 
 export interface StepContext {
   audit: AuditRow;

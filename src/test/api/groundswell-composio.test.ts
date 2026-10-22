@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { authConfigFor, clientConnection, clientUserId, COMPOSIO_USER_ID, connectionFor, createConnectionLink, deleteConnectedAccount, executeTool, forgetConnections, getConnectedAccount, keyShape, toolkitOf } from '../../../api/_lib/groundswell/composio';
+import { authConfigFor, clientConnection, clientUserId, COMPOSIO_USER_ID, connectionFor, createConnectionLink, deleteConnectedAccount, executeTool, executeToolAs, forgetConnections, getConnectedAccount, keyShape, toolkitOf } from '../../../api/_lib/groundswell/composio';
 import { PermanentStepError } from '../../../api/_lib/groundswell/types';
 
 /** The Composio client's error reporting: a refused key names Composio's reason and the key's shape, never the key. */
@@ -114,6 +114,19 @@ describe('Composio client', () => {
     expect((await clientConnection('c-1', 'google_maps'))?.id).toBe('ca_client');
     expect(calls[calls.length - 1]?.url).toContain(`user_ids=${encodeURIComponent('client:c-1')}`);
     expect(await clientConnection('c-2', 'google_maps')).toBeNull();
+  });
+
+  it('runs a tool as a named account (a client\'s own) without consulting the shared lookup', async () => {
+    vi.stubEnv('COMPOSIO_API_KEY', 'ak_1234567890');
+    const calls = fetchWith([maps('ca_shared', COMPOSIO_USER_ID, '2026-01-01')], { status: 200, body: { successful: true, data: { rows: [] } } });
+    expect(await executeToolAs('GOOGLE_ANALYTICS_RUN_REPORT', { property: 'properties/1' }, { id: 'ca_client', user_id: 'client:c1' })).toEqual({ rows: [] });
+    expect(calls).toHaveLength(1);
+    expect(calls[0].url).toContain('/tools/execute/GOOGLE_ANALYTICS_RUN_REPORT');
+    expect(calls[0].body).toMatchObject({ connected_account_id: 'ca_client', user_id: 'client:c1', arguments: { property: 'properties/1' } });
+    fetchWith([], { status: 200, body: { successful: false, error: { message: 'Connected account ca_client is EXPIRED' } } });
+    const err = await executeToolAs('GOOGLE_ANALYTICS_RUN_REPORT', {}, { id: 'ca_client' }).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(PermanentStepError);
+    expect((err as Error).message).toMatch(/no active connection for google: Connected account ca_client is EXPIRED/);
   });
 
   it('finds an enabled auth config for a toolkit, preferring a Composio-managed one', async () => {
