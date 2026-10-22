@@ -119,8 +119,8 @@ describe('the business’s own images', () => {
     (outputs.social as { facebook?: unknown }).facebook = {
       url: 'https://www.facebook.com/harborauto', page_id: '1', page_name: 'Harbor Auto Care', exists: true, followers: 1900, likes: null, category: null, intro: null, rating: null, rating_count: null, ad_library_status: null, restricted: true, error: null,
       posts: [
-        { url: 'https://www.facebook.com/harborauto/posts/1', text: 'New lift installed.', posted_at: '2026-10-20T16:06:31.000Z', reactions: 44, comments: 5, shares: 2, image_url: 'https://scontent.example/p1.jpg' },
-        { url: 'https://www.facebook.com/harborauto/posts/2', text: 'Closed Monday.', posted_at: '2026-10-18T16:06:31.000Z', reactions: 4, comments: 0, shares: 0, image_url: null },
+        { url: 'https://www.facebook.com/harborauto/posts/1', text: 'New lift installed.', posted_at: '2026-10-20T16:06:31.000Z', reactions: 44, comments: 5, shares: null, video_views: null, image_url: 'https://scontent.example/p1.jpg' },
+        { url: 'https://www.facebook.com/harborauto/posts/2', text: 'Closed Monday.', posted_at: '2026-10-18T16:06:31.000Z', reactions: 4, comments: 0, shares: null, video_views: 120, image_url: null },
       ],
     };
     tools.executeTool.mockRejectedValue(new Error('Instagram blocked access to this user’s public posts.'));

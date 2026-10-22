@@ -39,16 +39,61 @@ What changed (`api/_lib/groundswell/currents/social.ts`):
   Ad Library id is found.
 - Readiness gains an Apify row. Step label: "Instagram and Facebook".
 
-Still to confirm on a live run (Composio's consumer executor refused every
-call on 2026-10-22 with an SSRF-guard error of its own, so none of this ran
-against the real services): that Apify reads an age-gated profile at all
-(if it cannot, the note stands and Facebook carries the social section), and
-the field names ScrapeCreators' Facebook answers use (`summarizeFacebook`
-looks each figure up under its usual names and reads null otherwise).
+Field names, read from ScrapeCreators' own documentation on 2026-10-22
+(docs.scrapecreators.com; Composio's consumer executor refused every call
+that day with an SSRF-guard error of its own, so nothing ran against the
+live services):
 
-The surest read of a gated account is the account itself: once Uncommon
-Path is a client with Instagram linked, phase 3 reads it through the Graph
-API (`currents/linked.ts`), which the minimum-age control does not affect.
+- Facebook Page (`/v1/facebook/profile`): `id`, `name`, `isPrivate`,
+  `url`, `adLibrary.{pageId,adStatus}`, `creationDate`, `businessHours`,
+  and (from the docs' field list, not the quoted example) `category`,
+  `pageIntro`, `rating`, `ratingCount`, `likeCount`, `followerCount`,
+  `talkingAboutCount`, `priceRange`, `website`, `phone`, `address`. The Ad
+  Library's `pageId` differs from the profile's `id`; the ads step reads by
+  the former.
+- Facebook posts (`/v1/facebook/profile/posts`, "visible without login, 3
+  per page"): `posts[].{id,text,url,permalink,reactionCount,commentCount,
+  videoViewCount,publishTime (Unix seconds),videoDetails.thumbnailUrl,
+  topComments[]}`. No shares and no image list in the example: a photo
+  post's image is not documented, so `image_url` reads the video thumbnail
+  and the usual image keys, and may be null.
+- Instagram profile (`/v1/instagram/profile`): `data.user.edge_followed_by.
+  count`, `edge_follow.count`, `edge_owner_to_timeline_media.count`,
+  `biography`, `bio_links[].url`, `external_url`, `is_business_account`,
+  `is_private`. Refusals: HTTP 403 "Profile is age restricted"
+  (`age_restricted: true`, not charged), 404 "Profile is restricted", and
+  on the posts endpoints 404 "Profile is private". Composio relays the
+  first as "Instagram blocked access to this public profile", which is what
+  the live runs recorded. `refusal()` in `social.ts` tells them apart: age
+  and restricted go to Apify; private gets its own note and no paid read.
+- Instagram posts (`/v2/instagram/user/posts`): `items[].{code,taken_at,
+  created_at,media_type,caption.text,like_count,comment_count,
+  image_versions2.candidates[].url,product_type}`, `more_available`,
+  `next_max_id`.
+
+Still to confirm on a live run: that Apify reads an age-gated profile (if
+it cannot, the note stands and Facebook carries the social section).
+
+Getting past the age gate itself: Instagram shows a gated profile only to
+a signed-in adult, so the only readers are a signed-in session or the
+account's own API. Two ways, both the owner's call:
+
+1. **Link the account** (built): once Uncommon Path is a client with
+   Instagram linked, phase 3 reads it through the Graph API
+   (`currents/linked.ts`); the minimum-age control does not apply to the
+   account's own token. This is the read Instagram allows.
+2. **A signed-in headless browser**: Chromium (`browser.ts`) carrying the
+   `sessionid` cookie of an adult account from Vercel's environment, asking
+   Instagram's own web profile endpoint (`/api/v1/users/web_profile_info/`,
+   which answers in the same `data.user` shape as above, so
+   `summarizeInstagram` reads it unchanged). It was not built from this
+   session: the Claude Code permission classifier refused the module (a
+   cookie-carrying automated session against Instagram), and Instagram's
+   terms do not allow automated reads of a signed-in session, so a session
+   used this way can be signed out or checkpointed. If the owner wants it
+   anyway, it is a small module (`currents/socialBrowser.ts`, about 60
+   lines) to be written and run under the owner's own permission rule,
+   with a dedicated account, never a personal one.
 
 ## 2. The next sources (public scrape tools only)
 

@@ -71,6 +71,7 @@ export interface FacebookPost {
   reactions: number | null;
   comments: number | null;
   shares: number | null;
+  video_views: number | null;
   image_url: string | null;
 }
 
@@ -192,12 +193,31 @@ export function summarizeInstagram(handle: string, profile: unknown, posts: unkn
 
 /** Instagram turns a scraper away now and then; a blocked read is tried once more after this pause. */
 export const BLOCKED_RETRY_MS = 3_000;
-const blocked = (err: unknown) => /blocked|rate limit|too many requests|429/i.test(err instanceof Error ? err.message : String(err));
 const message = (err: unknown) => (err instanceof Error ? err.message : String(err));
+
+/**
+ * Why Instagram refused a read, from ScrapeCreators' documented wording
+ * ("Profile is age restricted" with HTTP 403, "Profile is restricted" and
+ * "Profile is private" with 404) and the wording Composio relays
+ * ("Instagram blocked access to this public profile"). `age` and `blocked`
+ * are hidden from logged-out readers and worth another reader; `private` is
+ * the owner's choice and no reader sees it; `null` is any other failure.
+ */
+export function refusal(err: unknown): 'age' | 'restricted' | 'private' | 'blocked' | null {
+  const text = message(err);
+  if (/age[ _-]?restricted/i.test(text)) return 'age';
+  if (/is private|private profile|private account/i.test(text)) return 'private';
+  if (/is restricted|restricted profile/i.test(text)) return 'restricted';
+  if (/blocked|rate limit|too many requests|429|forbidden|403/i.test(text)) return 'blocked';
+  return null;
+}
+const blocked = (err: unknown) => refusal(err) !== null && refusal(err) !== 'private';
 
 /** What a report says about a profile Instagram hides from logged-out readers. */
 export const RESTRICTED_NOTE =
   'Instagram shows this profile only to people signed in as adults (a minimum age is set on the account, as alcohol brands often do), so its public figures could not be read. Linking the account reads them directly.';
+/** What a report says about a private account. */
+export const PRIVATE_NOTE = 'This Instagram account is private, so its figures and posts are not public. Linking the account reads them directly.';
 
 /** Apify's runs are paid and slower than ScrapeCreators; the caps keep one account under a few cents. */
 const APIFY_TIMEOUT_MS = 300_000;
@@ -229,6 +249,7 @@ async function instagram(handle: string, pauseMs = BLOCKED_RETRY_MS): Promise<In
     }
     return summarizeInstagram(handle, pair[0], pair[1]);
   } catch (err) {
+    if (refusal(err) === 'private') return { ...summarizeInstagram(handle, null, null), restricted: true, note: PRIVATE_NOTE, error: message(err) };
     if (!blocked(err)) return { ...summarizeInstagram(handle, null, null), error: message(err) };
     // Turned away twice: a profile Instagram hides from logged-out readers. Apify reads with its own sessions.
     const first = message(err);
@@ -268,41 +289,49 @@ export function toFacebookPost(r: Record<string, unknown>): FacebookPost {
     if (typeof v === 'string' && !Number.isNaN(Date.parse(v))) return Date.parse(v);
     return null;
   })();
-  const image = anyKey<unknown>(r, ['image', 'full_picture', 'thumbnail', 'photo_image', 'image_url', 'imageUrl']);
+  const image = anyKey<unknown>(r, ['image', 'full_picture', 'thumbnail', 'photo_image', 'image_url', 'imageUrl', 'thumbnailUrl']);
   const imageUrl = typeof image === 'string' ? image : typeof (image as Record<string, unknown>)?.uri === 'string' ? ((image as Record<string, unknown>).uri as string) : typeof (image as Record<string, unknown>)?.url === 'string' ? ((image as Record<string, unknown>).url as string) : null;
   return {
-    url: str(r.url ?? r.permalink_url ?? r.post_url ?? r.link, 300),
+    url: str(r.url ?? r.permalink ?? r.permalink_url ?? r.post_url ?? r.link, 300),
     text: str(r.text ?? r.message ?? r.content ?? (r.caption as Record<string, unknown>)?.text ?? r.caption, 600),
     posted_at: time ? new Date(time).toISOString() : null,
-    reactions: n(r.reactions_count) ?? n(r.reaction_count) ?? n(r.likes) ?? n(r.like_count) ?? n(findKey(r.reactions, 'count')) ?? n(findKey(r.reactions, 'total')),
-    comments: n(r.comments_count) ?? n(r.comment_count) ?? n(findKey(r.comments, 'count')) ?? n(findKey(r.comments, 'total')),
-    shares: n(r.shares_count) ?? n(r.share_count) ?? n(r.reshare_count) ?? n(findKey(r.shares, 'count')),
+    reactions: n(r.reactionCount) ?? n(r.reactions_count) ?? n(r.reaction_count) ?? n(r.likes) ?? n(r.like_count) ?? n(findKey(r.reactions, 'count')) ?? n(findKey(r.reactions, 'total')),
+    comments: n(r.commentCount) ?? n(r.comments_count) ?? n(r.comment_count) ?? n(findKey(r.comments, 'count')) ?? n(findKey(r.comments, 'total')),
+    shares: n(r.shareCount) ?? n(r.shares_count) ?? n(r.share_count) ?? n(r.reshare_count) ?? n(findKey(r.shares, 'count')),
+    video_views: n(r.videoViewCount) ?? n(r.video_view_count),
     image_url: imageUrl && /^https:\/\//.test(imageUrl) ? imageUrl : null,
   };
 }
 
-/** A Facebook Page's public figures from a GET_FACEBOOK_PROFILE answer (field names vary; each is looked up by its usual names). */
+/**
+ * A Facebook Page's public figures from a GET_FACEBOOK_PROFILE answer. The
+ * documented keys (docs.scrapecreators.com, read 2026-10-22) come first:
+ * `id`, `name`, `isPrivate`, `adLibrary.{pageId,adStatus}`, `category`,
+ * `pageIntro`, `rating`, `ratingCount`, `likeCount`, `followerCount`; the
+ * others are the names earlier answers used, in case they return.
+ */
 export function summarizeFacebook(url: string, profile: unknown, posts: unknown): FacebookSnapshot {
   const lib = findKey<Record<string, unknown>>(profile, 'adLibrary');
-  const followers = n(anyKey(profile, ['followers', 'follower_count', 'followerCount', 'followers_count']));
-  const likes = n(anyKey(profile, ['likes', 'like_count', 'likeCount', 'likes_count', 'fan_count']));
+  const followers = n(anyKey(profile, ['followerCount', 'followers', 'follower_count', 'followers_count']));
+  const likes = n(anyKey(profile, ['likeCount', 'likes', 'like_count', 'likes_count', 'fan_count']));
   const name = str(anyKey(profile, ['name', 'title', 'page_name', 'pageName']), 120);
   const categories = anyKey<unknown>(profile, ['categories', 'category', 'category_list']);
   const category = Array.isArray(categories)
     ? str(categories.map((c) => (typeof c === 'string' ? c : (c as Record<string, unknown>)?.name)).filter(Boolean).join(', '), 120)
     : str(categories, 120);
-  const restricted = Boolean(anyKey<unknown>(profile, ['gated', 'is_gated', 'isGated', 'age_restricted', 'ageRestricted', 'restricted']));
+  const restricted = Boolean(anyKey<unknown>(profile, ['gated', 'is_gated', 'isGated', 'age_restricted', 'ageRestricted', 'restricted', 'isPrivate']));
   return {
     url,
+    // The Ad Library's own id for the Page (the ads step reads by it); the profile's `id` differs from it.
     page_id: lib?.pageId ? String(lib.pageId) : str(anyKey(profile, ['pageId', 'page_id', 'id']), 40),
     page_name: name,
     exists: followers !== null || likes !== null || name !== null,
     followers,
     likes,
     category,
-    intro: str(anyKey(profile, ['intro', 'about', 'description', 'bio']), 400),
+    intro: str(anyKey(profile, ['pageIntro', 'intro', 'about', 'description', 'bio']), 400),
     rating: n(anyKey(profile, ['rating', 'overall_star_rating', 'overallStarRating'])),
-    rating_count: n(anyKey(profile, ['rating_count', 'ratingCount', 'review_count', 'reviewCount'])),
+    rating_count: n(anyKey(profile, ['ratingCount', 'rating_count', 'review_count', 'reviewCount'])),
     ad_library_status: typeof lib?.adStatus === 'string' ? lib.adStatus : null,
     restricted,
     posts: facebookPostRows(posts).map(toFacebookPost).slice(0, 6),

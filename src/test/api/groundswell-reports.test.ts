@@ -58,7 +58,7 @@ describe('report HTML', () => {
     const d = sampleReportData();
     const f = d.facts as unknown as { social: { business: Record<string, unknown>; facebook?: unknown; facebook_competitors?: unknown[] } };
     f.social.business = { ...f.social.business, exists: false, followers: null, restricted: true, note: 'Instagram shows this profile only to people signed in as adults, so its public figures could not be read.' };
-    f.social.facebook = { url: 'https://www.facebook.com/harborauto', page_id: '1', page_name: 'Harbor Auto Care', exists: true, followers: 1900, likes: 1750, category: null, intro: null, rating: 4.8, rating_count: 120, ad_library_status: null, restricted: false, posts: [{ url: null, text: null, posted_at: '2026-10-20T07:26:31.000Z', reactions: 44, comments: 5, shares: 2, image_url: null }], error: null };
+    f.social.facebook = { url: 'https://www.facebook.com/harborauto', page_id: '1', page_name: 'Harbor Auto Care', exists: true, followers: 1900, likes: 1750, category: null, intro: null, rating: 4.8, rating_count: 120, ad_library_status: null, restricted: false, posts: [{ url: null, text: null, posted_at: '2026-10-20T07:26:31.000Z', reactions: 44, comments: 5, shares: null, video_views: null, image_url: null }], error: null };
     f.social.facebook_competitors = [];
     const html = buildAuditHtml(d);
     expect(html).toContain('only to people signed in as adults');

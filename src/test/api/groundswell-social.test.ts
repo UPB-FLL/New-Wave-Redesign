@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({ executeTool: vi.fn() }));
 vi.mock('../../../api/_lib/groundswell/composio', async (original) => ({ ...(await original<object>()), executeTool: mocks.executeTool }));
 
-import { facebookPageUrl, RESTRICTED_NOTE, runSocial, summarizeFacebook, summarizeInstagram } from '../../../api/_lib/groundswell/currents/social';
+import { facebookPageUrl, PRIVATE_NOTE, refusal, RESTRICTED_NOTE, runSocial, summarizeFacebook, summarizeInstagram } from '../../../api/_lib/groundswell/currents/social';
 
 /** The Social Current when Instagram turns the scraper away: one more try, then the gap is recorded, never a failed audit. */
 
@@ -11,7 +11,7 @@ const profile = (followers: number) => ({ data: { follower_count: followers, bio
 const posts = { items: [{ like_count: 10, comment_count: 1, taken_at: 1_760_000_000 }] };
 const audit = { id: 'a1', business_name: 'Harbor Auto Care', city: 'Fort Lauderdale, FL', website: null, instagram: 'harborautocare', competitors: [{ name: 'Bayside', website: null, instagram: 'bayside' }], notes: null };
 const ctx = { audit, outputs: {}, deadline: Date.now() + 250_000, attempt: 1 };
-const blockedProfile = 'SCRAPECREATORS_GET_INSTAGRAM_PROFILE failed (200): Instagram blocked access to this public profile.';
+const blockedProfile = 'SCRAPECREATORS_GET_INSTAGRAM_PROFILE failed (403): Profile is age restricted';
 /** Apify's profile scraper answers with an array of one profile; its post scraper with an array of posts. */
 const apifyProfile = [{ username: 'harborautocare', followersCount: 2200, followsCount: 310, postsCount: 480, biography: 'Brakes & tires', isBusinessAccount: true, externalUrls: [{ url: 'https://harbor-auto.example/book' }] }];
 const apifyPosts = [
@@ -83,8 +83,28 @@ describe('Social Current: blocked profiles', () => {
     });
     const out = await runSocial(ctx, 0);
     expect(out.business).toMatchObject({ exists: false, followers: null, restricted: true, note: RESTRICTED_NOTE });
-    expect(out.business?.error).toMatch(/blocked access.*Apify: The paid Actor/);
+    expect(out.business?.error).toMatch(/age restricted.*Apify: The paid Actor/);
     expect(out.competitors[0]).toMatchObject({ followers: 500, restricted: false, note: null });
+  });
+
+  it('a private account is recorded with its own note and never sent to Apify', async () => {
+    mocks.executeTool.mockImplementation(async (slug: string, args: Record<string, unknown>) => {
+      if (slug.startsWith('SCRAPECREATORS_') && args.handle === 'harborautocare') throw new Error('SCRAPECREATORS_GET_INSTAGRAM_PROFILE failed (404): Profile is private');
+      return slug === 'SCRAPECREATORS_GET_INSTAGRAM_PROFILE' ? profile(500) : posts;
+    });
+    const out = await runSocial(ctx, 0);
+    expect(out.business).toMatchObject({ exists: false, restricted: true, note: PRIVATE_NOTE });
+    expect(mocks.executeTool.mock.calls.some(([slug]) => slug.startsWith('APIFY_'))).toBe(false);
+    // One read, no retry: a private account does not change its mind in three seconds.
+    expect(mocks.executeTool.mock.calls.filter(([, a]) => a.handle === 'harborautocare')).toHaveLength(2);
+  });
+
+  it('tells the refusals apart from the provider wording', () => {
+    expect(refusal(new Error('SCRAPECREATORS_GET_INSTAGRAM_PROFILE failed (403): Profile is age restricted'))).toBe('age');
+    expect(refusal(new Error('Instagram blocked access to this public profile.'))).toBe('blocked');
+    expect(refusal(new Error('Profile is restricted'))).toBe('restricted');
+    expect(refusal(new Error('Profile is private'))).toBe('private');
+    expect(refusal(new Error('Composio refused the API key (401).'))).toBeNull();
   });
 
   it('does not retry other failures, and still stops the step for a refused key', async () => {
@@ -99,18 +119,19 @@ describe('Social Current: Facebook Pages', () => {
     business: { social: { instagram: ['harborautocare'], facebook: ['harborauto'], tiktok: [], youtube: [] } },
     competitors: [{ name: 'Bayside', site: { social: { instagram: ['bayside'], facebook: ['https://www.facebook.com/baysideauto'], tiktok: [], youtube: [] } } }],
   };
-  const fbProfile = { name: 'Harbor Auto Care', followers: 1900, likes: 1750, categories: ['Auto Repair Shop'], intro: 'Family-run since the start.', rating: 4.8, ratingCount: 120, adLibrary: { pageId: '100063669491743', adStatus: 'This Page is currently running ads' } };
-  const fbPosts = { posts: [{ url: 'https://www.facebook.com/harborauto/posts/1', text: 'New lift installed.', publish_time: 1792512391, reactions_count: 44, comments_count: 5, shares_count: 2, image: { uri: 'https://scontent.example/p1.jpg' } }] };
+  /** The shapes docs.scrapecreators.com documents (read 2026-10-22). */
+  const fbProfile = { success: true, id: '100088017857524', name: 'Harbor Auto Care', isPrivate: false, url: 'https://www.facebook.com/harborauto', followerCount: 1900, likeCount: 1750, category: 'Auto Repair Shop', pageIntro: 'Family-run since the start.', rating: 4.8, ratingCount: 120, adLibrary: { pageId: '100063669491743', adStatus: 'This Page is currently running ads' } };
+  const fbPosts = { success: true, posts: [{ id: '1', text: 'New lift installed.', url: 'https://www.facebook.com/harborauto/posts/1', permalink: 'https://www.facebook.com/harborauto/posts/1', reactionCount: 44, commentCount: 5, videoViewCount: null, publishTime: 1792512391, videoDetails: { sdUrl: null, hdUrl: null, thumbnailUrl: 'https://scontent.example/p1.jpg' } }] };
 
   it('reads the business\'s Page (gated Pages included) with one page of posts, and each competitor\'s Page without posts', async () => {
     mocks.executeTool.mockImplementation(async (slug: string, args: Record<string, unknown>) => {
-      if (slug === 'SCRAPECREATORS_GET_FACEBOOK_PROFILE') return args.url === 'https://www.facebook.com/harborauto' ? fbProfile : { name: 'Bayside Auto', followers: 300 };
+      if (slug === 'SCRAPECREATORS_GET_FACEBOOK_PROFILE') return args.url === 'https://www.facebook.com/harborauto' ? fbProfile : { name: 'Bayside Auto', followerCount: 300 };
       if (slug === 'SCRAPECREATORS_LIST_FACEBOOK_PROFILE_POSTS') return fbPosts;
       return slug === 'SCRAPECREATORS_GET_INSTAGRAM_PROFILE' ? profile(500) : posts;
     });
     const out = await runSocial({ ...ctx, outputs: { site } }, 0);
-    expect(out.facebook).toMatchObject({ url: 'https://www.facebook.com/harborauto', page_id: '100063669491743', page_name: 'Harbor Auto Care', exists: true, followers: 1900, likes: 1750, category: 'Auto Repair Shop', rating: 4.8, rating_count: 120, ad_library_status: 'This Page is currently running ads', restricted: false, error: null });
-    expect(out.facebook?.posts).toEqual([{ url: 'https://www.facebook.com/harborauto/posts/1', text: 'New lift installed.', posted_at: '2026-10-20T16:06:31.000Z', reactions: 44, comments: 5, shares: 2, image_url: 'https://scontent.example/p1.jpg' }]);
+    expect(out.facebook).toMatchObject({ url: 'https://www.facebook.com/harborauto', page_id: '100063669491743', page_name: 'Harbor Auto Care', exists: true, followers: 1900, likes: 1750, category: 'Auto Repair Shop', intro: 'Family-run since the start.', rating: 4.8, rating_count: 120, ad_library_status: 'This Page is currently running ads', restricted: false, error: null });
+    expect(out.facebook?.posts).toEqual([{ url: 'https://www.facebook.com/harborauto/posts/1', text: 'New lift installed.', posted_at: '2026-10-20T16:06:31.000Z', reactions: 44, comments: 5, shares: null, video_views: null, image_url: 'https://scontent.example/p1.jpg' }]);
     expect(out.facebook_competitors).toEqual([expect.objectContaining({ name: 'Bayside', url: 'https://www.facebook.com/baysideauto', page_name: 'Bayside Auto', followers: 300, posts: [] })]);
     const fb = mocks.executeTool.mock.calls.filter(([slug]) => slug.startsWith('SCRAPECREATORS_') && slug.includes('FACEBOOK'));
     expect(fb.map(([slug, a]) => [slug, (a as { url: string }).url, (a as { include_gated_profile?: boolean }).include_gated_profile])).toEqual([
@@ -139,7 +160,7 @@ describe('Social Current: Facebook Pages', () => {
     expect(facebookPageUrl('https://www.facebook.com/harborauto')).toBe('https://www.facebook.com/harborauto');
     expect(facebookPageUrl('https://example.com/not-facebook')).toBeNull();
     expect(facebookPageUrl(null)).toBeNull();
-    expect(summarizeFacebook('https://www.facebook.com/x', { gated: true, followers: 10 }, null)).toMatchObject({ restricted: true, followers: 10, exists: true });
+    expect(summarizeFacebook('https://www.facebook.com/x', { isPrivate: true, followerCount: 10 }, null)).toMatchObject({ restricted: true, followers: 10, exists: true });
     expect(summarizeInstagram('x', null, null)).toMatchObject({ exists: false, read_via: 'scrapecreators', restricted: false, note: null });
   });
 });

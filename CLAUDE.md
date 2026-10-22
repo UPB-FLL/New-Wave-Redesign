@@ -35,9 +35,18 @@ gated the same way (hence "no Ad Library id" for every brewery).
   `groundswell-social.test.ts`; the social section in
   `groundswell-reports.test.ts`; the Facebook images in
   `groundswell-adsets.test.ts`; the Apify row in the readiness test.
+- **Field names** come from ScrapeCreators' documentation (the plan doc
+  lists them): Facebook `followerCount`, `likeCount`, `rating`,
+  `ratingCount`, `pageIntro`, `adLibrary.pageId`; posts `text`, `url`,
+  `reactionCount`, `commentCount`, `publishTime`, `videoDetails.thumbnailUrl`.
+  `refusal()` tells Instagram's refusals apart ("Profile is age restricted",
+  "…restricted", "…private", Composio's "blocked access"): age and
+  restricted go to Apify, private gets `PRIVATE_NOTE` and no paid read.
 - **Not verified live**: Composio's consumer executor refused every call on
   2026-10-22 ("SSRF guard blocked request"), so whether Apify reads a gated
-  profile, and the Facebook answers' field names, wait for the next run.
+  profile waits for the next run. A signed-in Chromium reader for gated
+  profiles was not built (the permission classifier refused it; see the
+  plan doc); linking the account (phase 3) is the read Instagram allows.
 
 ### Groundswell: three phases, ad sets, and a workspace per customer (2026-10-22)
 
