@@ -4,46 +4,27 @@ import { isAdplanOutput } from './adplan.js';
 import { isBenchmarkOutput } from './benchmark.js';
 import { withBrowser } from './browser.js';
 import { brandFrom } from './brand.js';
-import {
-  checkAccount,
-  CUSTOMERS_FOLDER,
-  ensureFolder,
-  fileLink,
-  folderLink,
-  PARTNERS_FOLDER,
-  safeName,
-  shareAnyoneReader,
-  uploadPdf,
-  verifyShared,
-} from './drive.js';
 import { buildFacts } from './model.js';
-import { assertDriveOnly, renderPdf } from './render.js';
-import { buildAuditHtml, buildDeckHtml, buildSummaryHtml, formatDate, preparerFor, type ModelOutput, type ReportData } from './reports.js';
+import { assertPortalOnly, renderPdf } from './render.js';
+import { REPORTS_BUCKET, safeName, storeReport, type ReportKind, type ReportRow } from './reportStore.js';
+import { buildAuditHtml, buildDeckHtml, buildSummaryHtml, formatDate, PORTAL_URL, preparerFor, type ModelOutput, type ReportData } from './reports.js';
 import { buildBenchmarkHtml } from './reportsBenchmark.js';
 import { PermanentStepError, type StepContext } from './types.js';
 import { verifiedOutputs } from './verify.js';
 
 /**
- * Delivery Current. Drive ids only exist once a file is uploaded, so the
- * reports go up in link order: the full audit (no links), the competitive
- * benchmark when the audit is one (no links), then the slides (link the
- * audit), then the summary (links the slides, audit and folder).
- * The last step shares everything, verifies it, and writes the links back.
+ * Delivery Current. Each report is printed and stored in the private
+ * reports bucket (reportStore.ts): the full audit, the competitive benchmark
+ * when the audit is one, the slides, then the one-page summary. Reports link
+ * only to the Groundswell portal, where a partner sees its own audits and an
+ * admin sees all. The last step marks the audit done.
  */
 
 interface Prepared {
-  folder_id: string;
-  customers_id: string;
-  owner: string;
+  bucket: string;
+  prefix: string;
 }
-interface Uploaded {
-  file_id: string;
-  name: string;
-  pages: number;
-  bytes: number;
-  trimmed: number;
-  broken_images: number;
-}
+type Stored = ReportRow & { trimmed: number; broken_images: number };
 
 export function reportData(ctx: StepContext): ReportData {
   // The checks' replacements (the reviewed write-up; a later read, when that is the one that held up).
@@ -80,80 +61,54 @@ function fileName(ctx: StepContext, title: string) {
   return `${safeName(ctx.audit.business_name)} - ${title} (${day}).pdf`;
 }
 
-/**
- * The business's folder: Customers/<Business> for New Wave's audits, and
- * Partners/<Partner> (<id>)/<Business> for a partner's, so a partner's client
- * never shares a link-shared folder with a New Wave customer, or another
- * partner's client, of the same name. Only the business folder is shared.
- */
+/** Checks the bucket is reachable before anything is printed; the audit's reports share one prefix. */
 export async function runDeliverPrepare(ctx: StepContext): Promise<Prepared> {
-  const owner = await checkAccount();
-  const partner = ctx.audit.branding?.partner;
-  const customers_id = partner
-    ? await ensureFolder(`${safeName(partner.company)} (${partner.id.slice(0, 8)})`, await ensureFolder(PARTNERS_FOLDER, 'root'))
-    : await ensureFolder(CUSTOMERS_FOLDER, 'root');
-  const folder_id = await ensureFolder(safeName(ctx.audit.business_name), customers_id);
-  return { folder_id, customers_id, owner };
+  const { error } = await getSupabaseAdmin().storage.from(REPORTS_BUCKET).list(ctx.audit.id, { limit: 1 });
+  if (error) throw new Error(`The reports bucket "${REPORTS_BUCKET}" is not reachable: ${error.message}`);
+  return { bucket: REPORTS_BUCKET, prefix: ctx.audit.id };
 }
 
-async function printAndUpload(ctx: StepContext, title: string, html: string, onePage = false): Promise<Uploaded> {
-  const { folder_id } = need<Prepared>(ctx, 'deliver_prepare');
+async function printAndStore(ctx: StepContext, kind: ReportKind, title: string, html: string, onePage = false): Promise<Stored> {
+  need<Prepared>(ctx, 'deliver_prepare');
   const name = fileName(ctx, title);
   const pdf = await withBrowser((browser) => renderPdf(browser, html));
-  assertDriveOnly(name, pdf.links);
+  assertPortalOnly(name, pdf.links);
   if (onePage && pdf.pages !== 1) throw new Error(`${name} printed on ${pdf.pages} pages instead of one.`);
-  const file_id = await uploadPdf(name, pdf.bytes, folder_id);
-  return { file_id, name, pages: pdf.pages, bytes: pdf.bytes.length, trimmed: pdf.trimmed, broken_images: pdf.brokenImages };
+  const row = await storeReport(getSupabaseAdmin(), { audit_id: ctx.audit.id, kind, name, pages: pdf.pages, bytes: pdf.bytes.length }, pdf.bytes);
+  return { ...row, trimmed: pdf.trimmed, broken_images: pdf.brokenImages };
 }
 
-export async function runDeliverAudit(ctx: StepContext): Promise<Uploaded> {
-  return printAndUpload(ctx, 'Full Marketing Audit', buildAuditHtml(reportData(ctx)));
+export async function runDeliverAudit(ctx: StepContext): Promise<Stored> {
+  return printAndStore(ctx, 'audit', 'Full Marketing Audit', buildAuditHtml(reportData(ctx)));
 }
 
-export async function runDeliverBenchmark(ctx: StepContext): Promise<Uploaded> {
+export async function runDeliverBenchmark(ctx: StepContext): Promise<Stored> {
   const d = reportData(ctx);
   if (!d.benchmark) throw new PermanentStepError('The benchmark write-up is missing, so the benchmark PDF cannot be built.');
-  return printAndUpload(ctx, 'Competitive Benchmark', buildBenchmarkHtml({ facts: d.facts, brand: d.brand, date: d.date, benchmark: d.benchmark, preparer: d.preparer }));
+  return printAndStore(ctx, 'benchmark', 'Competitive Benchmark', buildBenchmarkHtml({ facts: d.facts, brand: d.brand, date: d.date, benchmark: d.benchmark, preparer: d.preparer }));
 }
 
-export async function runDeliverDeck(ctx: StepContext): Promise<Uploaded> {
-  const audit = need<Uploaded>(ctx, 'deliver_audit');
-  return printAndUpload(ctx, 'Marketing Audit Slides', buildDeckHtml(reportData(ctx), { audit: fileLink(audit.file_id) }));
+export async function runDeliverDeck(ctx: StepContext): Promise<Stored> {
+  need<Stored>(ctx, 'deliver_audit');
+  return printAndStore(ctx, 'deck', 'Marketing Audit Slides', buildDeckHtml(reportData(ctx), { audit: PORTAL_URL }));
 }
 
-export async function runDeliverSummary(ctx: StepContext): Promise<Uploaded> {
-  const { folder_id } = need<Prepared>(ctx, 'deliver_prepare');
-  const audit = need<Uploaded>(ctx, 'deliver_audit');
-  const deck = need<Uploaded>(ctx, 'deliver_deck');
-  const html = buildSummaryHtml(reportData(ctx), {
-    deck: fileLink(deck.file_id),
-    audit: fileLink(audit.file_id),
-    folder: folderLink(folder_id),
-  });
-  return printAndUpload(ctx, 'Marketing Audit Summary', html, true);
+export async function runDeliverSummary(ctx: StepContext): Promise<Stored> {
+  need<Stored>(ctx, 'deliver_audit');
+  need<Stored>(ctx, 'deliver_deck');
+  const html = buildSummaryHtml(reportData(ctx), { deck: PORTAL_URL, audit: PORTAL_URL, folder: PORTAL_URL });
+  return printAndStore(ctx, 'summary', 'Marketing Audit Summary', html, true);
 }
 
 export async function runDeliverFinish(ctx: StepContext) {
-  const { folder_id } = need<Prepared>(ctx, 'deliver_prepare');
-  const files = (['deliver_audit', 'deliver_deck', 'deliver_summary'] as const).map((s) => need<Uploaded>(ctx, s));
-  // Only a competitor benchmark has a fourth file; an audit's update never names the column.
-  const bench = ctx.outputs.deliver_benchmark as Uploaded | undefined;
-  for (const id of [folder_id, ...files.map((f) => f.file_id), ...(bench ? [bench.file_id] : [])]) await shareAnyoneReader(id);
-  await verifyShared(folder_id);
-  for (const f of [...files, ...(bench ? [bench] : [])]) await verifyShared(f.file_id, folder_id);
-
-  const [audit, deck, summary] = files;
-  const links = {
-    drive_folder_url: folderLink(folder_id),
-    audit_pdf_url: fileLink(audit.file_id),
-    deck_pdf_url: fileLink(deck.file_id),
-    summary_pdf_url: fileLink(summary.file_id),
-    ...(bench ? { benchmark_pdf_url: fileLink(bench.file_id) } : {}),
-  };
+  const files = (['deliver_audit', 'deliver_deck', 'deliver_summary'] as const).map((s) => need<Stored>(ctx, s));
+  // Only a competitor benchmark has a fourth file.
+  const bench = ctx.outputs.deliver_benchmark as Stored | undefined;
+  const reports = [...files, ...(bench ? [bench] : [])].map((f) => ({ kind: f.kind, name: f.name, pages: f.pages, bytes: f.bytes }));
   const { error } = await getSupabaseAdmin()
     .from('marketing_audits')
-    .update({ ...links, status: 'done', error: null, completed_at: new Date().toISOString() })
+    .update({ status: 'done', error: null, completed_at: new Date().toISOString() })
     .eq('id', ctx.audit.id);
-  if (error) throw new Error(`Could not save the Drive links: ${error.message}`);
-  return links;
+  if (error) throw new Error(`Could not mark the audit done: ${error.message}`);
+  return { reports };
 }

@@ -31,7 +31,7 @@ beforeEach(() => {
   lib.listPartners.mockResolvedValue([partner(), partner({ id: 'p2', company: 'Tide Co', status: 'invited', audit_count: 0 })]);
   lib.getSetupStatus.mockResolvedValue({
     ready: false,
-    drive_owner: 'josh@newwaveitfl.com',
+    report_admins: ['josh@newwaveitfl.com'],
     checks: [
       { key: 'SUPABASE_SERVICE_ROLE_KEY', label: 'Supabase service role', ok: true, required: true },
       { key: 'COMPOSIO_API_KEY', label: 'Composio', ok: false, required: true },

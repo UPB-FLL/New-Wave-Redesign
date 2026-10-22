@@ -2,6 +2,43 @@
 
 ## Recent Changes
 
+### Groundswell: reports stored in the app, visible to their partner and the admin (2026-10-22)
+
+Owner's choices: Supabase Storage in a private bucket; Google Drive dropped
+entirely; the admin who sees every report is josh@newwaveitfl.com (an
+allow-list), not every signed-in Supabase user.
+
+- **Store** (`api/_lib/groundswell/reportStore.ts`): bucket
+  `groundswell-reports` (private, PDFs only), one object per report at
+  `<audit id>/<kind>/<file name>`, and one `groundswell_reports` row per
+  (audit, kind): `storeReport` (upsert), `reportsFor`, `signedReportUrl`
+  (120 s). `safeName` moved here from the deleted `drive.ts`.
+- **Delivery** (`delivery.ts`): `deliver_prepare` checks the bucket is
+  reachable; each print step stores its PDF; `deliver_finish` marks the
+  audit done and no longer writes Drive links (the `*_pdf_url` columns stay
+  for audits delivered before). Reports link only to the Groundswell portal
+  (`PORTAL_URL`, `portalLink`, `assertPortalOnly`), never to Drive.
+- **Access** (`api/groundswell/report.ts`): `GET ?audit=<id>&kind=` answers
+  a signed link to the partner whose session queued the audit, or to an
+  admin on `GROUNDSWELL_ADMIN_EMAILS` (`adminUser`, `isReportAdmin` in
+  `adminKey.ts`; default josh@newwaveitfl.com). Anyone else, and any audit
+  the partner does not own, gets 404. Without a kind it lists the audit's
+  reports. The partner routes add `reports` (kind, name, pages) to each
+  audit (`withReports`).
+- **Screens**: the partner customer page and the staff audits screen open
+  reports through that route (`partnerReportUrl`, `adminReportUrl`,
+  `REPORT_LABELS`); audits with Drive links keep them. The overview names
+  the report admins (`report_admins` from `GET /api/groundswell/run`,
+  replacing `drive_owner`). Croissance's copy describes the portal.
+- **Migration** `20261026120000`: the table (RLS on, no policies) and the
+  bucket. `GROUNDSWELL_DRIVE_OWNER` is no longer read.
+- **Tests**: `groundswell-report-store.test.ts`,
+  `groundswell-report-route.test.ts`; `fakeSupabase` gains `upsert` and a
+  storage stand-in; the white-label, reports, ad-copy, benchmark, portal and
+  admin tests follow. `groundswell-drive.test.ts` is gone with `drive.ts`.
+- **Still to do**: the manual skill (`.claude/skills/groundswell`) and the
+  spec still describe Drive delivery.
+
 ### Groundswell: the engine picks a benchmark's missing competitors (2026-10-22)
 
 Owner's choices: the Google Places API picks them; only the slots not

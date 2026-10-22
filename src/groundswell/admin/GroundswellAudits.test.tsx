@@ -24,6 +24,12 @@ const audits = vi.hoisted(() => [
     drive_folder_url: null, summary_pdf_url: null, deck_pdf_url: null, audit_pdf_url: null,
     created_at: '2026-10-21T02:00:00Z', completed_at: null,
   },
+  {
+    id: '5', business_name: 'Harbor Stored', city: null, website: 'https://stored.example', instagram: null,
+    competitors: [], notes: null, status: 'done', error: null, kind: 'benchmark',
+    drive_folder_url: null, summary_pdf_url: null, deck_pdf_url: null, audit_pdf_url: null, benchmark_pdf_url: null,
+    created_at: '2026-10-22T02:00:00Z', completed_at: '2026-10-22T03:00:00Z',
+  },
 ]);
 
 const steps = vi.hoisted(() => ({
@@ -61,14 +67,15 @@ vi.mock('../../lib/groundswell', async (orig) => {
     listAuditSteps: vi.fn(async () => steps),
     listHeldChecks: vi.fn(async () => held),
     answerReview: vi.fn(async () => {}),
+    adminReportUrl: vi.fn(async (id: string, kind: string) => `https://storage.example/signed/${id}/${kind}`),
   };
 });
 
 import GroundswellAudits from './GroundswellAudits';
-import { addCompetitor, answerReview, listAudits, queueAudit, startQueuedAudits } from '../../lib/groundswell';
+import { addCompetitor, adminReportUrl, answerReview, listAudits, queueAudit, startQueuedAudits } from '../../lib/groundswell';
 
 describe('GroundswellAudits admin screen', () => {
-  it('lists requests and shows only Google Drive links', async () => {
+  it('lists requests; an audit delivered to Drive keeps only its Google Drive links', async () => {
     render(<GroundswellAudits />);
     await waitFor(() => expect(screen.getByText('Windy City Auto')).toBeInTheDocument());
     expect(screen.getByText('1 competitor')).toBeInTheDocument();
@@ -76,6 +83,19 @@ describe('GroundswellAudits admin screen', () => {
     expect(screen.getByRole('link', { name: /Summary PDF/ })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /Slide deck/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /Full audit/ })).not.toBeInTheDocument();
+    // Only the audit stored in the app gets report buttons; the Drive one keeps its links.
+    expect(screen.getAllByRole('button', { name: 'Summary' })).toHaveLength(1);
+  });
+
+  it('opens a stored report of a finished audit through a short-lived link', async () => {
+    const opened = vi.spyOn(window, 'open').mockImplementation(() => null);
+    render(<GroundswellAudits />);
+    await waitFor(() => expect(screen.getByText('Harbor Stored')).toBeInTheDocument());
+    expect(screen.getByRole('button', { name: 'Competitive benchmark' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Full audit' }));
+    await waitFor(() => expect(opened).toHaveBeenCalledWith('https://storage.example/signed/5/audit', '_blank', 'noopener'));
+    expect(adminReportUrl).toHaveBeenCalledWith('5', 'audit');
+    opened.mockRestore();
   });
 
   it('shows Groundswell progress for a running audit', async () => {

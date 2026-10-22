@@ -53,3 +53,27 @@ export async function requireAdmin(req: ApiRequest, res: ApiResponse): Promise<b
   res.status(expected ? 401 : 503).json({ error: expected ? 'Unauthorized' : 'Admin API is not configured' });
   return false;
 }
+
+/** The signed-in Supabase user behind a Bearer token, or null; answers nothing itself. */
+export async function adminUser(req: ApiRequest): Promise<{ id: string; email: string | null } | null> {
+  const bearer = header(req, 'authorization')?.match(/^Bearer\s+(\S+)$/i)?.[1];
+  if (!bearer || !isSupabasePublicConfigured()) return null;
+  try {
+    const { data, error } = await getSupabasePublic().auth.getUser(bearer);
+    if (error || !data?.user) return null;
+    return { id: data.user.id, email: data.user.email?.toLowerCase() ?? null };
+  } catch (err) {
+    console.error('Admin session check failed:', err);
+    return null;
+  }
+}
+
+/** The admins who may open every report: GROUNDSWELL_ADMIN_EMAILS (comma-separated), josh@newwaveitfl.com by default. */
+export function reportAdminEmails(): string[] {
+  return (process.env.GROUNDSWELL_ADMIN_EMAILS || 'josh@newwaveitfl.com')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+export const isReportAdmin = (email: string | null | undefined) => Boolean(email && reportAdminEmails().includes(email.toLowerCase()));

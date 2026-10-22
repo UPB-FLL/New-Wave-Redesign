@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import {
   addCompetitor,
+  adminReportUrl,
   answerReview,
   listHeldChecks,
   type HeldCheck,
@@ -16,12 +17,41 @@ import {
   queueAudit,
   requeueAudit,
   startQueuedAudits,
+  REPORT_LABELS,
   STEP_LABELS,
   type AuditDraft,
+  type ReportKind,
   type AuditStep,
   type CompetitorDraft,
   type GroundswellAudit,
 } from '../../lib/groundswell';
+
+/** The stored reports of a finished audit, opened through short-lived links (Drive links for audits delivered before). */
+function AdminReportButtons({ auditId, kinds }: { auditId: string; kinds: ReportKind[] }) {
+  const [busy, setBusy] = useState<ReportKind | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const open = async (kind: ReportKind) => {
+    setBusy(kind);
+    setError(null);
+    try {
+      window.open(await adminReportUrl(auditId, kind), '_blank', 'noopener');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not open that report.');
+    } finally {
+      setBusy(null);
+    }
+  };
+  return (
+    <>
+      {kinds.map((kind) => (
+        <button key={kind} type="button" className="gs-link inline-flex items-center gap-1.5" disabled={busy !== null} onClick={() => void open(kind)}>
+          <ExternalLink size={14} /> {REPORT_LABELS[kind]}{busy === kind ? '…' : ''}
+        </button>
+      ))}
+      {error ? <span className="text-red-700">{error}</span> : null}
+    </>
+  );
+}
 
 const emptyDraft = (): AuditDraft => ({
   business_name: '',
@@ -416,6 +446,9 @@ export default function GroundswellAudits() {
                     </form>
                   )}
                   <div className="flex flex-wrap items-center gap-4 text-sm">
+                    {a.status === 'done' && !links.some(([, url]) => isDriveLink(url)) && (
+                      <AdminReportButtons auditId={a.id} kinds={a.kind === 'benchmark' ? ['summary', 'deck', 'audit', 'benchmark'] : ['summary', 'deck', 'audit']} />
+                    )}
                     {links.filter(([, url]) => isDriveLink(url)).map(([label, url, Icon]) => (
                       <a key={label} href={url as string} target="_blank" rel="noreferrer" className="gs-link inline-flex items-center gap-1.5">
                         <Icon size={14} /> {label}

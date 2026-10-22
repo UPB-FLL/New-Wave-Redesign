@@ -3,7 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { methodGuard, queryParam, rateLimit, readJsonBody, type ApiRequest, type ApiResponse } from '../_lib/http.js';
 import { notifyNewPartnerAudit, requirePartner } from '../_lib/groundswell/partners.js';
 import { getSupabaseAdmin, isSupabaseConfigured } from '../_lib/supabaseAdmin.js';
-import { PARTNER_DAILY_LIMIT } from './partner-audits.js';
+import { PARTNER_DAILY_LIMIT, withReports } from './partner-audits.js';
 
 /**
  * /api/groundswell/partner-customers — a signed-in partner's customers
@@ -125,7 +125,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       return res.status(500).json({ error: 'Could not load your customers.' });
     }
     const rows = (customers.data ?? []) as unknown as CustomerRow[];
-    if (id) return res.status(200).json({ customer: summarize(rows[0], audits.data ?? []), audits: (audits.data ?? []).map(publicAudit) });
+    if (id) return res.status(200).json({ customer: summarize(rows[0], audits.data ?? []), audits: await withReports(db, (audits.data ?? []).map(publicAudit) as { id: string }[]) });
     const summaries = rows.map((c) => summarize(c, audits.data ?? []));
     // Most recent activity first: a new audit counts as activity on its customer.
     const activity = (c: ReturnType<typeof summarize>) => Math.max(Date.parse(c.updated_at), c.latest ? Date.parse(c.latest.created_at) : 0);
@@ -191,5 +191,5 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   }
   await notifyNewPartnerAudit(partner, audit.business_name);
   const row = queued.data as unknown as AuditRow;
-  return res.status(201).json({ customer: summarize(customer, [row]), audit: publicAudit(row) });
+  return res.status(201).json({ customer: summarize(customer, [row]), audit: { ...publicAudit(row), reports: [] } });
 }

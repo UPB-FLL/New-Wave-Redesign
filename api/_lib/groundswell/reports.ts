@@ -16,13 +16,14 @@ import type { RoiScenarioResult } from './roi.js';
  * HTML for Groundswell's three PDFs, in the client's colours and logo:
  * - the full audit (Letter pages, no links),
  * - the slides (1920×1080; eleven, or twelve with the ad plan; the last links the audit),
- * - the one-page summary (links the slides, the audit and the Drive folder).
+ * - the one-page summary (links the slides, the audit and the portal).
  *
  * With the ad-plan step's output, the return is the plan: every change ranked
  * by return, today against the plan, and the ad plan's rows. Without it (the
  * step was skipped, or the audit started before it existed), the return is the
  * write-up step's single search-ad model, as before.
- * Every link must be a Google Drive link (`driveLink` throws otherwise).
+ * Every link must point at the Groundswell portal (`portalLink` throws otherwise);
+ * a partner's white-label reports carry no links at all, so they never name New Wave's site.
  *
  * Elements marked data-trim may be removed, last first, until their
  * data-fit box stops overflowing (render.ts), so long text never spills.
@@ -82,8 +83,11 @@ export function ownWording(html: string, p: Preparer): string {
   return html.replace(OURS, (_m, lead: string | undefined) => (lead !== undefined ? `${lead}Our ` : 'our ')).replace(ENGINE_NAMES, () => name);
 }
 
-export function driveLink(url: string): string {
-  if (!/^https:\/\/drive\.google\.com\//.test(url)) throw new Error(`Reports may only link to Google Drive, not ${url}`);
+/** Where every report link goes: the Groundswell portal, where a partner sees its own audits and an admin sees all. */
+export const PORTAL_URL = 'https://www.newwaveitfl.com/groundswell';
+
+export function portalLink(url: string): string {
+  if (!(url === PORTAL_URL || url.startsWith(`${PORTAL_URL}/`))) throw new Error(`Reports may only link to the Groundswell portal, not ${url}`);
   return url;
 }
 
@@ -597,7 +601,7 @@ export function buildDeckHtml(d: ReportData, links: { audit: string }): string {
   const { facts: f, model: m, brand: b } = d;
   const p = hasPlan(d.adplan) ? d.adplan : null;
   const bench = d.benchmark ?? null;
-  const auditLink = driveLink(links.audit);
+  const auditLink = portalLink(links.audit);
   const who = d.preparer ?? NEW_WAVE_PREPARER;
   const slide = (id: string, n: number, title: string, body: string) =>
     `<section class="slide" id="${id}"><header class="band"><span>${esc(title)}</span>${logoImg(b, 'mini')}</header><div class="body" data-fit>${body}</div><footer>${esc(f.business.name)} · ${preparedBy(who)} · ${esc(d.date)}<span>${n}</span></footer></section>`;
@@ -671,7 +675,7 @@ ${slide(
   'next',
   (p ? 12 : 11) + (bench ? BENCHMARK_SLIDE_IDS.length : 0),
   'Next steps',
-  `${listHtml(m.writeup.next_steps)}<p class="cta" style="margin-top:50px"><a href="${esc(auditLink)}">Full audit (PDF)</a></p>`
+  `${listHtml(m.writeup.next_steps)}<p class="cta" style="margin-top:50px">${d.preparer ? 'Full audit (PDF) in your portal' : `<a href="${esc(auditLink)}">Full audit (PDF)</a>`}</p>`
 )}
 </body></html>`, who);
 }
@@ -695,9 +699,9 @@ export function buildSummaryHtml(d: ReportData, links: { deck: string; audit: st
   const { facts: f, model: m, brand: b } = d;
   const p = hasPlan(d.adplan) ? d.adplan : null;
   const benchLines = d.benchmark ? benchmarkSummaryLines(d.benchmark) : [];
-  const deck = driveLink(links.deck);
-  const audit = driveLink(links.audit);
-  const folder = driveLink(links.folder);
+  const deck = portalLink(links.deck);
+  const audit = portalLink(links.audit);
+  const folder = portalLink(links.folder);
   const who = d.preparer ?? NEW_WAVE_PREPARER;
   const findings = (['google', 'social', 'website', 'ads', 'keywords'] as AreaKey[])
     .map((k) => ({ k, text: m.writeup.areas[k].costing[0] || m.writeup.areas[k].summary }))
@@ -732,13 +736,13 @@ td,th{padding:4px 6px}
 <p>${esc(m.writeup.verdict)}</p>
 ${kpiHtml(kpis(f, m, p))}
 <h3>Five findings</h3>
-<ul class="findings">${findings.map(({ k, text }) => `<li data-trim><strong>${AREA_TITLES[k]}:</strong> ${esc(text)}<a href="${esc(deck)}">Slides ›</a></li>`).join('')}</ul>
+<ul class="findings">${findings.map(({ k, text }) => `<li data-trim><strong>${AREA_TITLES[k]}:</strong> ${esc(text)}${d.preparer ? '' : `<a href="${esc(deck)}">Slides ›</a>`}</li>`).join('')}</ul>
 ${p ? summaryPlan(p, m) : `<h3>What search ads could return</h3>
 ${roiRows ? `<table><thead><tr><th>Scenario</th><th>Ad spend</th><th>12-month net</th></tr></thead><tbody>${roiRows}</tbody></table><p class="muted">${esc(feeLine(m))}</p>` : `<p class="muted">${esc(m.roi_note ?? '')}</p>`}`}
 ${benchLines.length ? `<h3>Against your competitors</h3>${listHtml(benchLines)}` : ''}
 <h3>Next 90 days</h3>
 ${listHtml(m.writeup.next_steps)}
 </div>
-<footer><a href="${esc(deck)}">Slides (PDF)</a><a href="${esc(audit)}">Full audit (PDF)</a><a href="${esc(folder)}">All files (Google Drive)</a></footer>
+<footer>${d.preparer ? '<span>Slides (PDF) · Full audit (PDF) · all reports in your portal</span>' : `<a href="${esc(deck)}">Slides (PDF)</a><a href="${esc(audit)}">Full audit (PDF)</a><a href="${esc(folder)}">All reports (Groundswell portal)</a>`}</footer>
 </div></body></html>`, who);
 }

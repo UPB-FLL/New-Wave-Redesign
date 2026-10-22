@@ -337,10 +337,10 @@ describe('the benchmark reports', () => {
     const reports = await import('../../../api/_lib/groundswell/reports');
     const { sampleReportData } = await import('./fixtures/groundswell-report');
     const data = { ...sampleReportData(), benchmark: await benchmarkOutput() };
-    const AUDIT = 'https://drive.google.com/file/d/A/view';
+    const AUDIT = 'https://www.newwaveitfl.com/groundswell';
     const deck = reports.buildDeckHtml(data, { audit: AUDIT });
     for (const id of reports.BENCHMARK_SLIDE_IDS) expect(deck).toContain(`id="${id}"`);
-    const summary = reports.buildSummaryHtml(data, { deck: AUDIT, audit: AUDIT, folder: 'https://drive.google.com/drive/folders/F' });
+    const summary = reports.buildSummaryHtml(data, { deck: AUDIT, audit: AUDIT, folder: AUDIT });
     expect(summary).toContain('Against your competitors');
 
     const chromium = process.env.CHROMIUM_PATH || '/opt/pw-browsers/chromium';

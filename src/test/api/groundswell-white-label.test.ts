@@ -2,8 +2,8 @@ import { existsSync } from 'node:fs';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { describe, expect, it, vi } from 'vitest';
 
-const drive = vi.hoisted(() => ({ ensureFolder: vi.fn(async (name: string, parent: string) => `${parent}/${name}`), checkAccount: vi.fn(async () => 'owner@example.com') }));
-vi.mock('../../../api/_lib/groundswell/drive', async (orig) => ({ ...(await orig<typeof import('../../../api/_lib/groundswell/drive')>()), ...drive }));
+const store = vi.hoisted(() => ({ client: null as unknown }));
+vi.mock('../../../api/_lib/supabaseAdmin', () => ({ getSupabaseAdmin: () => store.client, isSupabaseConfigured: () => true }));
 
 import { brandFrom } from '../../../api/_lib/groundswell/brand';
 import { loadBranding, type AuditBranding } from '../../../api/_lib/groundswell/branding';
@@ -12,9 +12,9 @@ import { buildAuditHtml, buildDeckHtml, buildSummaryHtml, NEW_WAVE_PREPARER, own
 import { fakeSupabase } from './fixtures/fakeSupabase';
 import { sampleAudit, sampleOutputs, sampleReportDataWithPlan } from './fixtures/groundswell-report';
 
-const AUDIT = 'https://drive.google.com/file/d/AUDIT_ID/view?usp=sharing';
-const DECK = 'https://drive.google.com/file/d/DECK_ID/view?usp=sharing';
-const FOLDER = 'https://drive.google.com/drive/folders/FOLDER_ID?usp=sharing';
+const AUDIT = 'https://www.newwaveitfl.com/groundswell';
+const DECK = 'https://www.newwaveitfl.com/groundswell';
+const FOLDER = 'https://www.newwaveitfl.com/groundswell';
 const LOGO = 'https://reef.example/logo.png';
 
 const partnerBranding: AuditBranding = { partner: { id: 'p1', company: 'Reef Agency LLC', name: 'Reef Growth Co', logo: LOGO }, logo: null, color: null };
@@ -153,11 +153,17 @@ describe('loading an audit\'s branding', () => {
   });
 });
 
-describe('where a partner\'s reports go in Drive', () => {
+describe('where the reports go', () => {
   const ctx = (branding?: AuditBranding) => ({ audit: { ...sampleAudit, branding }, outputs: sampleOutputs(), deadline: Date.now() + 60_000, attempt: 1 });
 
-  it('Partners/<company> (<id>)/<business>, never a folder New Wave\'s customers or another partner\'s share', async () => {
-    expect((await runDeliverPrepare(ctx(partnerBranding))).folder_id).toBe(`root/Partners/Reef Agency LLC (p1)/${sampleAudit.business_name}`);
-    expect((await runDeliverPrepare(ctx())).folder_id).toBe(`root/Customers/${sampleAudit.business_name}`);
+  it('the private reports bucket, under the audit\'s own id, partner or not', async () => {
+    store.client = fakeSupabase().client;
+    expect(await runDeliverPrepare(ctx(partnerBranding))).toEqual({ bucket: 'groundswell-reports', prefix: sampleAudit.id });
+    expect(await runDeliverPrepare(ctx())).toEqual({ bucket: 'groundswell-reports', prefix: sampleAudit.id });
+  });
+
+  it('fails before printing anything when the bucket is not there', async () => {
+    store.client = fakeSupabase({}, { storage: ['groundswell-reports'] }).client;
+    await expect(runDeliverPrepare(ctx())).rejects.toThrow(/reports bucket/);
   });
 });

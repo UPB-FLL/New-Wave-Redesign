@@ -174,7 +174,16 @@ export async function startQueuedAudits(): Promise<number> {
 export interface SetupStatus {
   ready: boolean;
   checks: { key: string; label: string; ok: boolean; required: boolean }[];
-  drive_owner: string;
+  /** Who may open every report (GROUNDSWELL_ADMIN_EMAILS). */
+  report_admins: string[];
+}
+
+export type ReportKind = 'summary' | 'deck' | 'audit' | 'benchmark';
+export const REPORT_LABELS: Record<ReportKind, string> = { summary: 'Summary', deck: 'Slides', audit: 'Full audit', benchmark: 'Competitive benchmark' };
+
+/** A short-lived link to a report, for an admin on the allow-list. */
+export async function adminReportUrl(auditId: string, kind: ReportKind): Promise<string> {
+  return (await adminApi<{ url: string }>(`/api/groundswell/report?audit=${encodeURIComponent(auditId)}&kind=${kind}`)).url;
 }
 
 export function getSetupStatus(): Promise<SetupStatus> {
