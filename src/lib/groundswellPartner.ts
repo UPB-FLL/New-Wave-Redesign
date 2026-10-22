@@ -1,4 +1,4 @@
-import type { AuditCompetitor, AuditDraft, AuditKind, AuditStatus, CustomerDraft, CustomerStage, PartnerBranding } from './groundswellValidation';
+import type { AuditCompetitor, AuditDraft, AuditKind, AuditStatus, ClientAccountStatus, ClientService, CustomerDraft, CustomerStage, PartnerBranding } from './groundswellValidation';
 
 /**
  * Browser client for Groundswell's partner app (/groundswell). Partners are not Supabase users;
@@ -190,6 +190,34 @@ export async function createPartnerCustomer(draft: NewCustomerDraft): Promise<{ 
 
 export async function updatePartnerCustomer(id: string, draft: CustomerDraft): Promise<PartnerCustomer> {
   return (await call<{ customer: PartnerCustomer }>(`${CUSTOMERS}?id=${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(draft) })).customer;
+}
+
+// ---------------------------------------------------------------------------
+// A client's linked accounts (migration 20261028120000): Composio's hosted sign-in per service.
+
+const ACCOUNTS = '/api/groundswell/partner-accounts';
+
+export interface ClientAccount {
+  service: ClientService;
+  label: string;
+  brings: string;
+  status: ClientAccountStatus | 'none';
+  linked_at: string | null;
+  /** A plain sentence for a failed or expired link. */
+  reason: string | null;
+}
+
+export async function listClientAccounts(customerId: string): Promise<{ accounts: ClientAccount[]; available: boolean }> {
+  return call<{ accounts: ClientAccount[]; available: boolean }>(`${ACCOUNTS}?customer=${encodeURIComponent(customerId)}`);
+}
+
+/** Starts the sign-in for one service; the browser goes to `redirect_url` and comes back to the client's page. */
+export async function linkClientAccount(customerId: string, service: ClientService): Promise<{ redirect_url: string; accounts: ClientAccount[] }> {
+  return call<{ redirect_url: string; accounts: ClientAccount[] }>(ACCOUNTS, { method: 'POST', body: JSON.stringify({ customer: customerId, service }) });
+}
+
+export async function unlinkClientAccount(customerId: string, service: ClientService): Promise<ClientAccount[]> {
+  return (await call<{ accounts: ClientAccount[] }>(`${ACCOUNTS}?customer=${encodeURIComponent(customerId)}&service=${service}`, { method: 'DELETE' })).accounts;
 }
 
 const BRANDING = '/api/groundswell/partner-branding';

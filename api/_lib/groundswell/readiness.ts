@@ -1,5 +1,6 @@
 import { getSupabaseAdmin, isSupabaseConfigured } from '../supabaseAdmin.js';
-import { activeConnection, isComposioConfigured, keyShape } from './composio.js';
+import { CLIENT_SERVICES } from '../../../src/lib/groundswellValidation.js';
+import { activeConnection, authConfigFor, isComposioConfigured, keyShape } from './composio.js';
 import { REPORTS_BUCKET } from './reportStore.js';
 import { PermanentStepError } from './types.js';
 
@@ -62,26 +63,42 @@ async function checkOpenAI(fetchImpl: typeof fetch): Promise<ReadinessCheck> {
   }
 }
 
-/** The Composio key, then one check per toolkit the Currents read. */
+/** The sign-ins partners can offer a client: one auth config per client service in the Composio project. */
+const SIGNIN_CHECKS = CLIENT_SERVICES.map((s) => ({ key: `authconfig:${s.toolkit}`, label: `Client sign-in: ${s.label}`, toolkit: s.toolkit, service: s.label }));
+
+/** The Composio key, one check per toolkit the Currents read, and one per client sign-in. */
 async function checkComposio(): Promise<ReadinessCheck[]> {
   const keyCheck = { key: 'COMPOSIO_API_KEY', label: 'Composio project key', required: true };
   const toolkits = TOOLKIT_CHECKS.map((t) => ({ key: `composio:${t.toolkit}`, label: t.label, required: false, without: t.without }));
   if (!isComposioConfigured()) {
+    const unchecked = { required: false, ok: false, detail: 'Not checked: Composio is not set up.' };
     return [
       { ...keyCheck, ok: false, detail: 'COMPOSIO_API_KEY is missing in Vercel.' },
-      ...toolkits.map((t) => ({ key: t.key, label: t.label, required: t.required, ok: false, detail: 'Not checked: Composio is not set up.' })),
+      ...toolkits.map((t) => ({ key: t.key, label: t.label, ...unchecked })),
+      ...SIGNIN_CHECKS.map((t) => ({ key: t.key, label: t.label, ...unchecked })),
     ];
   }
-  const results = await Promise.all(
-    TOOLKIT_CHECKS.map(async (t) => {
-      try {
-        return { account: await activeConnection(t.toolkit), error: null as unknown };
-      } catch (err) {
-        return { account: null, error: err };
-      }
-    })
-  );
-  const refused = results.find((r) => r.error instanceof PermanentStepError && /API key/i.test(message(r.error)))?.error;
+  const [results, signins] = await Promise.all([
+    Promise.all(
+      TOOLKIT_CHECKS.map(async (t) => {
+        try {
+          return { account: await activeConnection(t.toolkit), error: null as unknown };
+        } catch (err) {
+          return { account: null, error: err };
+        }
+      })
+    ),
+    Promise.all(
+      SIGNIN_CHECKS.map(async (t) => {
+        try {
+          return { config: await authConfigFor(t.toolkit), error: null as unknown };
+        } catch (err) {
+          return { config: null, error: err };
+        }
+      })
+    ),
+  ]);
+  const refused = [...results, ...signins].find((r) => r.error instanceof PermanentStepError && /API key/i.test(message(r.error)))?.error;
   const answered = results.some((r) => !r.error);
   const key: ReadinessCheck = refused
     ? { ...keyCheck, ok: false, detail: message(refused) }
@@ -95,6 +112,13 @@ async function checkComposio(): Promise<ReadinessCheck[]> {
       if (r.error) return { ...t, ok: false, detail: refused ? 'Not checked: the key was refused.' : `Could not list connections: ${message(r.error)}` };
       if (!r.account) return { ...t, ok: false, detail: `No active connection in the project; ${without}. Connect it under Auth Configs.` };
       return { ...t, ok: true, detail: `Active connection found${r.account.user_id ? ` (user id ${r.account.user_id})` : ''}.` };
+    }),
+    ...SIGNIN_CHECKS.map((t, i) => {
+      const r = signins[i];
+      const base = { key: t.key, label: t.label, required: false };
+      if (r.error) return { ...base, ok: false, detail: refused ? 'Not checked: the key was refused.' : `Could not list auth configs: ${message(r.error)}` };
+      if (!r.config) return { ...base, ok: false, detail: `No auth config in the Composio project, so partners cannot link ${t.service} for a client. Add one under Auth Configs.` };
+      return { ...base, ok: true, detail: `Auth config present; partners can link ${t.service}.` };
     }),
   ];
 }

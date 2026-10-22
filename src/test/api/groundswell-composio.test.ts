@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { connectionFor, DEFAULT_COMPOSIO_USER_ID, executeTool, forgetConnections, keyShape, toolkitOf } from '../../../api/_lib/groundswell/composio';
+import { authConfigFor, clientConnection, clientUserId, connectionFor, createConnectionLink, DEFAULT_COMPOSIO_USER_ID, deleteConnectedAccount, executeTool, forgetConnections, getConnectedAccount, keyShape, toolkitOf } from '../../../api/_lib/groundswell/composio';
 import { PermanentStepError } from '../../../api/_lib/groundswell/types';
 
 /** The Composio client's error reporting: a refused key names Composio's reason and the key's shape, never the key. */
@@ -106,5 +106,69 @@ describe('Composio client', () => {
     expect(err).toBeInstanceOf(Error);
     expect(err).not.toBeInstanceOf(PermanentStepError);
     expect((err as Error).message).toBe('GOOGLE_MAPS_TEXT_SEARCH failed (500): upstream down');
+  });
+
+  it('never runs a shared scrape as a client\'s own account, and finds a client\'s account by its user id', async () => {
+    vi.stubEnv('COMPOSIO_API_KEY', 'ak_1234567890');
+    vi.stubEnv('COMPOSIO_USER_ID', 'groundswell');
+    const calls = fetchWith(
+      [maps('ca_client', clientUserId('c-1'), '2026-10-22T00:00:00Z'), maps('ca_shared', 'pg-test', '2026-10-01T00:00:00Z')],
+      { status: 200, body: { data: {} } }
+    );
+    // The client's is the newest, but a shared scrape never picks a client: user id.
+    expect((await connectionFor('GOOGLE_MAPS_TEXT_SEARCH'))?.id).toBe('ca_shared');
+    forgetConnections();
+    expect((await clientConnection('c-1', 'google_maps'))?.id).toBe('ca_client');
+    expect(calls[calls.length - 1]?.url).toContain(`user_ids=${encodeURIComponent('client:c-1')}`);
+    expect(await clientConnection('c-2', 'google_maps')).toBeNull();
+  });
+
+  it('finds an enabled auth config for a toolkit, preferring a Composio-managed one', async () => {
+    vi.stubEnv('COMPOSIO_API_KEY', 'ak_1234567890');
+    const calls: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) => {
+        calls.push(url);
+        return {
+          status: 200,
+          ok: true,
+          json: async () => ({
+            items: [
+              { id: 'ac_custom', status: 'ENABLED', toolkit: { slug: 'googleads' }, is_composio_managed: false },
+              { id: 'ac_off', status: 'DISABLED', toolkit: { slug: 'googleads' }, is_composio_managed: true },
+              { id: 'ac_managed', status: 'ENABLED', toolkit: { slug: 'googleads' }, is_composio_managed: true },
+            ],
+          }),
+        };
+      })
+    );
+    expect((await authConfigFor('googleads'))?.id).toBe('ac_managed');
+    expect(calls[0]).toContain('/auth_configs?toolkit_slug=googleads');
+  });
+
+  it('starts the hosted sign-in, reads an account back, and removes one (a missing one counts as removed)', async () => {
+    vi.stubEnv('COMPOSIO_API_KEY', 'ak_1234567890');
+    const calls: { url: string; method?: string; body: unknown }[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: { method?: string; body?: string }) => {
+        calls.push({ url, method: init?.method, body: init?.body ? JSON.parse(init.body) : null });
+        if (url.endsWith('/connected_accounts/link')) return { status: 201, ok: true, json: async () => ({ redirect_url: 'https://connect.example/x', connected_account_id: 'ca_new', expires_at: '2026-10-22T01:00:00Z' }) };
+        if (url.endsWith('/connected_accounts/ca_new')) return { status: 200, ok: true, json: async () => ({ id: 'ca_new', status: 'ACTIVE', status_reason: null, is_disabled: false }) };
+        if (url.endsWith('/connected_accounts/ca_gone')) return { status: 404, ok: false, json: async () => ({ error: { message: 'not found' } }) };
+        if (url.includes('/connected_accounts/ca_new?revoke_on_delete=true')) return { status: 200, ok: true, json: async () => ({ success: true }) };
+        if (url.includes('/connected_accounts/ca_gone?revoke_on_delete=true')) return { status: 404, ok: false, json: async () => ({}) };
+        return { status: 500, ok: false, json: async () => ({ error: { message: 'unexpected' } }) };
+      })
+    );
+    const link = await createConnectionLink('ac_managed', clientUserId('c-1'), 'https://www.newwaveitfl.com/groundswell/customers/c-1?linked=googleads');
+    expect(link).toMatchObject({ redirect_url: 'https://connect.example/x', connected_account_id: 'ca_new' });
+    expect(calls[0]).toMatchObject({ method: 'POST', body: { auth_config_id: 'ac_managed', user_id: 'client:c-1', callback_url: 'https://www.newwaveitfl.com/groundswell/customers/c-1?linked=googleads' } });
+    expect(await getConnectedAccount('ca_new')).toMatchObject({ status: 'ACTIVE', is_disabled: false });
+    expect(await getConnectedAccount('ca_gone')).toBeNull();
+    await expect(deleteConnectedAccount('ca_new')).resolves.toBeUndefined();
+    await expect(deleteConnectedAccount('ca_gone')).resolves.toBeUndefined();
+    expect(calls[calls.length - 1]).toMatchObject({ method: 'DELETE' });
   });
 });
