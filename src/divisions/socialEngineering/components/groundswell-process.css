@@ -1,0 +1,77 @@
+/* A chapter rail and an open working surface, using the supplied GroundSwell type and palette. */
+.gs-marketing #how-it-works::before { display: none; }
+.gs-marketing #how-it-works { background: var(--gs-white) !important; }
+.gs-marketing #how-it-works > div > div:first-child { max-width: 48rem; }
+.gs-marketing #how-it-works h2 { max-width: 42rem; font-size: clamp(2rem, 3.5vw, 3.25rem); line-height: 1.16; letter-spacing: -.045em; }
+.gs-marketing .gs-process { margin-top: 2.75rem; }
+.gs-marketing .gs-process[data-look='steps'] .nwse-tablist { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; overflow: visible; border-bottom: 1px solid var(--gs-mist); }
+.gs-marketing .gs-process .nwse-tab-steps { position: relative; display: flex; align-items: baseline; gap: .75rem; padding: 1rem 0 1.25rem; min-height: 3.5rem; border: 0; border-radius: 0; background: transparent; box-shadow: none; color: var(--gs-slate); font-size: .9375rem; font-weight: 500; transition: color 160ms; }
+.gs-marketing .gs-process .nwse-tab-steps::after { content: ''; position: absolute; inset: auto 0 -1px; height: 3px; background: var(--gs-tide); transform: scaleX(0); transform-origin: left; transition: transform 180ms ease-out; }
+.gs-marketing .gs-process .nwse-tab-steps[aria-selected='true'] { color: var(--gs-navy); }
+.gs-marketing .gs-process .nwse-tab-steps[aria-selected='true']::after { transform: scaleX(1); }
+.gs-marketing .gs-process .nwse-tab-steps:hover { color: var(--gs-tide); }
+.gs-marketing .gs-process-number { font-family: var(--nw-font-technical); font-size: .6875rem; color: var(--gs-slate); }
+.gs-marketing .gs-process .nwse-tabpanel:not([hidden]) { animation: none; }
+.gs-marketing .gs-process-stage { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); align-items: center; gap: clamp(2rem, 5vw, 5rem); padding-top: 3rem; min-height: 26rem; }
+.gs-marketing .gs-process-count { font-family: var(--nw-font-technical); color: var(--gs-slate); font-size: .6875rem; }
+.gs-marketing .gs-process-copy h3 { max-width: 24rem; margin-top: 1rem; color: var(--gs-navy); font-family: var(--nw-font-display); font-size: clamp(1.75rem, 2.4vw, 2.375rem); font-weight: 600; line-height: 1.2; letter-spacing: -.035em; text-wrap: balance; }
+.gs-marketing .gs-process-detail { margin-top: 1.25rem; max-width: 28rem; color: var(--gs-slate); font-size: .9375rem; line-height: 1.85; }
+.gs-marketing .gs-process-outcome { max-width: 28rem; margin-top: 1.75rem; padding-left: 1rem; border-left: 2px solid var(--gs-tide); font-size: .8125rem; color: var(--gs-navy); line-height: 1.7; }
+.gs-marketing .gs-process-outcome span { display: block; margin-bottom: .25rem; font-weight: 600; }
+.gs-marketing .gs-process-figure { min-width: 0; margin: 0; }
+.gs-marketing .gs-process-drawing { aspect-ratio: 12 / 7; border-radius: 4px; background: var(--gs-foam); }
+.gs-marketing .gs-process-drawing svg { display: block; width: 100%; height: auto; overflow: hidden; }
+.gs-marketing .gs-process-figure figcaption { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; padding-top: .75rem; color: var(--gs-slate); font-family: var(--nw-font-technical); font-size: .625rem; line-height: 1.7; }
+.gs-marketing .gs-process-replay { display: inline-flex; align-items: center; justify-content: center; gap: .25rem; flex: none; min-height: 44px; margin-top: -.75rem; padding: .5rem 0 .5rem .5rem; color: var(--gs-tide); font: inherit; font-weight: 500; }
+.gs-marketing .gs-process-replay:hover { color: var(--gs-navy); text-decoration: underline; }
+.gs-marketing .gs-process .nwse-tabnav { margin-top: 2rem; }
+.gs-marketing .gs-process .nwse-tabnav .nwse-btn { min-height: 44px; }
+.gs-marketing .gs-process .nwse-tabnav .nwse-btn-ghost { padding-left: 0; }
+.gs-process-drawing text { font-family: var(--nw-font-technical); }
+.gs-process-drawing .gs-drawing-label { fill: var(--gs-slate); font-size: 10px; letter-spacing: .4px; }
+.gs-process-drawing .gs-drawing-value { fill: var(--gs-navy); font-family: var(--nw-font-body); font-size: 17px; font-weight: 500; }
+.gs-process-drawing .gs-drawing-small { font-size: 13px; }
+.gs-process-drawing .gs-drawing-paper { fill: var(--gs-white); stroke: #c6dadd; stroke-width: 1; }
+.gs-process-drawing .gs-drawing-track { fill: #d4e8e9; }
+.gs-process-drawing .gs-drawing-rule { stroke: #b8d2d6; stroke-width: 1; }
+.gs-process-drawing .gs-drawing-check { stroke: var(--gs-tide); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.gs-process-drawing .gs-drawing-navy { fill: var(--gs-navy); }
+.gs-process-drawing .gs-drawing-accent-fill { fill: var(--gs-cyan); }
+.gs-process-drawing .gs-drawing-light-label { fill: var(--gs-mist); font-size: 10px; letter-spacing: .5px; }
+.gs-process-drawing .gs-drawing-cyan-label { fill: var(--gs-cyan); font-size: 11px; }
+.gs-process-drawing .gs-drawing-light-rule { stroke: #526271; stroke-width: 2; }
+
+/* All sequences finish in under 2.5 seconds. No loops or layout animation. */
+.gs-process-drawing:not([data-playback='static']) :is(.gs-draw-enter,.gs-draw-page) { animation: gs-process-enter 600ms cubic-bezier(.2,.7,.3,1) both paused; }
+.gs-process-drawing:not([data-playback='static']) .gs-draw-page { animation-name: gs-process-page; }
+.gs-process-drawing:not([data-playback='static']) .gs-draw-bar { transform-box: fill-box; transform-origin: left center; animation: gs-process-bar 850ms cubic-bezier(.2,.7,.3,1) both paused; }
+.gs-process-drawing .gs-draw-first, .gs-process-drawing .gs-draw-source-0 { animation-delay: 150ms !important; }
+.gs-process-drawing .gs-draw-second, .gs-process-drawing .gs-draw-source-1 { animation-delay: 650ms !important; }
+.gs-process-drawing .gs-draw-source-2 { animation-delay: 1150ms !important; }
+.gs-process-drawing .gs-draw-third { animation-delay: 1750ms !important; }
+.gs-process-drawing[data-playback='playing'] :is(.gs-draw-enter,.gs-draw-page,.gs-draw-bar) { animation-play-state: running; }
+@keyframes gs-process-enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes gs-process-page { from { opacity: 0; transform: translateY(24px) rotate(-3deg); } to { opacity: 1; transform: translateY(0) rotate(0); } }
+@keyframes gs-process-bar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@media(max-width: 767px) {
+  .gs-marketing .gs-process { margin-top: 1.75rem; }
+  .gs-marketing .gs-process[data-look='steps'] .nwse-tablist { grid-template-columns: none; grid-auto-columns: minmax(max-content, 1fr); grid-auto-flow: column; column-gap: .75rem; overflow-x: auto; }
+  .gs-marketing .gs-process .nwse-tab-steps { flex-direction: column; gap: .375rem; padding: .75rem 0 1rem; font-size: .75rem; }
+  .gs-marketing .gs-process .nwse-tab-steps:focus-visible { outline-offset: -3px; }
+  .gs-marketing .gs-process-stage { grid-template-columns: minmax(0, 1fr); gap: 1.75rem; min-height: 0; padding-top: 1.75rem; }
+  .gs-marketing .gs-process-copy h3 { max-width: 28rem; margin-top: .75rem; }
+  .gs-marketing .gs-process-detail { max-width: 36rem; margin-top: 1rem; }
+  .gs-marketing .gs-process-outcome { margin-top: 1.25rem; }
+  .gs-marketing .gs-process-figure { width: 100%; max-width: 36rem; }
+  .gs-marketing .gs-process .nwse-tabnav { margin-top: 1rem; }
+}
+@media(prefers-reduced-motion: reduce) {
+  .gs-marketing .gs-process-drawing * { animation: none !important; transform: none !important; opacity: 1 !important; }
+  .gs-marketing .gs-process-replay { display: none; }
+}
+@media print {
+  .gs-marketing .gs-process .nwse-tabpanel[hidden] { display: block; }
+  .gs-marketing .gs-process-stage { break-inside: avoid; }
+  .gs-marketing .gs-process :is(.nwse-tablist,.nwse-tabnav,.gs-process-replay) { display: none !important; }
+  .gs-marketing .gs-process-drawing * { animation: none !important; transform: none !important; opacity: 1 !important; }
+}
