@@ -125,7 +125,10 @@ export interface MapsOutput {
   source: string;
   business: MapsPlace | null;
   nearby: MapsListing[];
+  /** Shown in the reports when the business or Places was not available. */
   note: string | null;
+  /** Why Places did not answer, for staff (the admin screen); never printed. */
+  detail?: string;
 }
 
 /** The fields one text search asks Places for (each field has a price; nothing more is read). */
@@ -234,16 +237,20 @@ export async function browserLookup(audit: StepContext['audit'], note: string | 
   });
 }
 
+/** The note a report carries when Places did not answer; the reason itself goes in `detail`, for staff. */
+export const PLACES_FALLBACK_NOTE = 'Google Places was not available for this audit, so the public Maps view was read instead.';
+
 export async function runMaps(ctx: StepContext): Promise<MapsOutput> {
   const { audit } = ctx;
-  let why: string | null = null;
+  let detail: string | null = null;
   if (isComposioConfigured()) {
     try {
       return await placesLookup(audit);
     } catch (err) {
       if (keyRefused(err)) throw err;
-      why = `Google Places did not answer (${err instanceof Error ? err.message : String(err)}), so the logged-out Maps view was read instead.`;
+      detail = (err instanceof Error ? err.message : String(err)).slice(0, 500);
     }
   }
-  return browserLookup(audit, why);
+  const out = await browserLookup(audit, detail ? PLACES_FALLBACK_NOTE : null);
+  return detail ? { ...out, detail } : out;
 }

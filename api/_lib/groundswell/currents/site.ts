@@ -203,13 +203,18 @@ export async function scanSite(url: string, timeoutMs = 20_000): Promise<SiteSca
   }
 }
 
+/** A website that cannot be reached is tried again on this many calls before the audit goes on without it. */
+export const SITE_ATTEMPTS = 3;
+
 export async function runSite(ctx: StepContext) {
   const { audit } = ctx;
+  if (!audit.website && !audit.instagram) throw new PermanentStepError('The audit has neither a website nor an Instagram handle.');
   const business = audit.website ? await scanSite(audit.website) : null;
-  if (business && business.status === null && !audit.instagram) {
+  // A site that blocks or times out is retried; after the last attempt the audit
+  // goes on with the scan's error recorded (Maps and Instagram may still find the business).
+  if (business && business.status === null && ctx.attempt < SITE_ATTEMPTS) {
     throw new Error(`The website ${audit.website} could not be reached: ${business.error}`);
   }
-  if (!audit.website && !audit.instagram) throw new PermanentStepError('The audit has neither a website nor an Instagram handle.');
   const competitors = await Promise.all(
     audit.competitors.slice(0, 6).map(async (c) => ({ name: c.name, site: c.website ? await scanSite(c.website, 15_000) : null }))
   );

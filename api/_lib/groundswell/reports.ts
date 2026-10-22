@@ -9,6 +9,7 @@ import type { AdplanOutput } from './adplan.js';
 import type { AuditBranding } from './branding.js';
 import type { BenchmarkOutput } from './benchmark.js';
 import type { Brand } from './brand.js';
+import { gapsFromMissing } from './gaps.js';
 import { AREAS, type AreaKey, type Facts, type runModel } from './model.js';
 import type { RoiScenarioResult } from './roi.js';
 
@@ -45,6 +46,8 @@ export interface ReportData {
   preparer?: Preparer;
   /** Shown as "Prepared by <preparer> · <date>". */
   date: string;
+  /** What this run could not read, in the words the audit's "Not available this time" carries (gaps.ts); absent on older callers. */
+  gaps?: string[];
 }
 
 export const PREPARED_BY = 'New Wave: Social Engineering';
@@ -505,7 +508,7 @@ export function buildAuditHtml(d: ReportData): string {
     f.social ? `${f.social.source} (${f.social.fetched_at.slice(0, 10)})` : null,
     f.ads ? `${f.ads.source} (${f.ads.fetched_at.slice(0, 10)})` : null,
   ].filter((s): s is string => Boolean(s));
-  const missing = f.missing.map((k) => `${k[0].toUpperCase()}${k.slice(1)} data could not be gathered for this audit.`);
+  const missing = d.gaps ?? gapsFromMissing(f.missing);
 
   return ownWording(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(f.business.name)} - Full Marketing Audit</title><style>
 ${baseCss(b)}
