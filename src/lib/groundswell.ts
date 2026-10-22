@@ -99,7 +99,14 @@ export const STEP_LABELS: Record<string, string> = {
   deliver_audit: 'Full audit PDF',
   deliver_deck: 'Slides PDF',
   deliver_summary: 'Summary PDF',
-  deliver_finish: 'Share and save links',
+  creative: 'Instagram images for the ads',
+  adsets: 'Ad sets',
+  deliver_creatives: 'Ad images and carousel',
+  deliver_adsets: 'Ad sets PDF and import files',
+  search_terms: 'Google Ads search terms',
+  integrated: 'Integrated plan',
+  deliver_integrated: 'Integrated plan PDF',
+  deliver_finish: 'Finish and queue the next phase',
   // The checks (api/_lib/groundswell/verify.ts), for every round the worker supports.
   ...Object.fromEntries(
     [2, 3, 4, 5].flatMap((r) => [

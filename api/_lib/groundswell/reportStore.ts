@@ -9,7 +9,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
  */
 
 export const REPORTS_BUCKET = 'groundswell-reports';
-export const REPORT_KINDS = ['summary', 'deck', 'audit', 'benchmark'] as const;
+export const REPORT_KINDS = ['summary', 'deck', 'audit', 'benchmark', 'adsets', 'integrated'] as const;
 export type ReportKind = (typeof REPORT_KINDS)[number];
 export const isReportKind = (v: unknown): v is ReportKind => typeof v === 'string' && (REPORT_KINDS as readonly string[]).includes(v);
 
@@ -19,6 +19,8 @@ export const REPORT_LABELS: Record<ReportKind, string> = {
   deck: 'Slides',
   audit: 'Full audit',
   benchmark: 'Competitive benchmark',
+  adsets: 'Ad sets',
+  integrated: 'Integrated plan',
 };
 
 /** How long a signed link opens the file for: long enough to load, short enough not to be worth forwarding. */

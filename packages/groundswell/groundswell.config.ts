@@ -356,5 +356,11 @@ export const GROUNDSWELL_CONFIG: GroundswellConfig = validateConfig({
     default_negatives: ['jobs', 'job', 'careers', 'career', 'salary', 'hiring', 'diy', 'how to', 'youtube', 'reddit'],
     negatives_basis: 'New Wave’s starting list for a local business’s search campaign; the plan adds the business’s own.',
     carousel: { max_slides: 8, caption_max_chars: 2200, source: 'Instagram Help Center: captions (2,200 characters); slides are New Wave’s rule', as_of: '2026' },
+    actuals: {
+      min_clicks: 50,
+      min_leads: 5,
+      basis:
+        'New Wave’s rule: past 50 clicks the account’s own cost per click replaces the published one, and past 5 leads Meta’s own cost per lead does. A Google Ads conversion is whatever the account counts, so the published conversion rate stays.',
+    },
   },
 });

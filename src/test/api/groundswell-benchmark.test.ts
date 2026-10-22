@@ -13,7 +13,7 @@ import { benchmarkIndustry, runAuthority } from '../../../api/_lib/groundswell/c
 import { runPricing } from '../../../api/_lib/groundswell/currents/pricing';
 import { mediaList, runSocialDepth, toRawItem } from '../../../api/_lib/groundswell/currents/socialDepth';
 import { startQueuedAudits } from '../../../api/_lib/groundswell/engine';
-import { ALL_STEPS, BENCHMARK_STEPS, STEPS } from '../../../api/_lib/groundswell/steps';
+import { ALL_STEPS, BENCHMARK_STEPS, COMPETITOR_STEPS, INTEGRATED_STEPS, STEPS } from '../../../api/_lib/groundswell/steps';
 import { PermanentStepError } from '../../../api/_lib/groundswell/types';
 import { checkStep, readStep, runVerifyCheck, sentencesOf, type VerifyReadOutput } from '../../../api/_lib/groundswell/verify';
 import { buildAuditInsert, STEP_LABELS } from '../../../src/lib/groundswell';
@@ -83,9 +83,10 @@ describe('the benchmark run', () => {
     expect(BENCHMARK_STEPS.filter((s) => s.current === 'Delivery' && s.name !== 'deliver_benchmark').every((s) => !s.optional)).toBe(true);
     // The checks come after the benchmark write-up (they review it too), before anything is delivered.
     expect(names.slice(names.indexOf('benchmark') + 1, names.indexOf('deliver_prepare'))).toEqual(['verify_read_2', 'verify_check_2', 'verify_read_3', 'verify_check_3']);
-    // The worker knows every round it supports, so an audit started under a larger max_rounds still finishes.
+    // The worker knows every step of every phase and every round it supports, so a run started under a larger max_rounds still finishes.
     const all = ALL_STEPS.map((s) => s.name);
-    expect(all.filter((n) => !n.startsWith('verify_'))).toEqual(names.filter((n) => !n.startsWith('verify_')));
+    for (const n of [...names, ...COMPETITOR_STEPS.map((s) => s.name), ...INTEGRATED_STEPS.map((s) => s.name)]) expect(all, n).toContain(n);
+    expect(new Set(all).size).toBe(all.length);
     expect(all).toContain('verify_check_5');
     expect(all[all.length - 1]).toBe('deliver_finish');
     for (const s of ALL_STEPS) expect(STEP_LABELS[s.name], s.name).toBeTruthy();

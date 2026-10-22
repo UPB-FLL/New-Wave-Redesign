@@ -18,11 +18,18 @@ import {
   runDeliverBenchmark,
   runDeliverDeck,
   runDeliverFinish,
+  runDeliverIntegrated,
   runDeliverPrepare,
   runDeliverSummary,
 } from './delivery.js';
 import { runModel } from './model.js';
-import type { StepDefinition } from './types.js';
+import { runAdsets } from './adsets.js';
+import { runDeliverAdsets, runDeliverCreatives } from './adsetsDelivery.js';
+import { runCreative } from './creative.js';
+import { runSearchTerms } from './currents/linked.js';
+import { runIntegrated } from './integrated.js';
+import type { StepLists } from './engine.js';
+import type { StepContext, StepDefinition } from './types.js';
 import { SUPPORTED_ROUNDS, verifySteps } from './verify.js';
 
 /**
@@ -43,12 +50,13 @@ const GATHER_AND_MODEL: StepDefinition[] = [
   { name: 'keywords', current: 'Search', label: 'Keyword demand (Keyword Planner)', optional: true, run: runKeywords },
   { name: 'social', current: 'Social', label: 'Instagram', optional: true, run: runSocial },
   { name: 'ads', current: 'Ads', label: 'Ads', optional: true, run: runAds },
-  // A client's own accounts, where a partner linked them; a prospect's run records that it has none.
-  { name: 'linked', current: 'Accounts', label: 'Linked accounts', optional: true, run: runLinked },
   { name: 'model', current: 'Model', label: 'Write-up and ROI', optional: false, run: runModel },
   { name: 'adplan', current: 'Model', label: 'Ad plan and change ranking', optional: true, run: runAdplan },
   { name: 'adcopy', current: 'Model', label: 'Ad copy', optional: true, run: runAdcopy },
 ];
+
+/** A client's own accounts (phase 3); runs started before the phases had it among their public-data steps. */
+const linked: StepDefinition = { name: 'linked', current: 'Accounts', label: 'Linked accounts', optional: true, run: runLinked };
 
 const deliver = {
   prepare: { name: 'deliver_prepare', current: 'Delivery', label: 'Reports storage', optional: false, run: runDeliverPrepare },
@@ -56,7 +64,10 @@ const deliver = {
   benchmark: { name: 'deliver_benchmark', current: 'Delivery', label: 'Benchmark PDF', optional: true, run: runDeliverBenchmark },
   deck: { name: 'deliver_deck', current: 'Delivery', label: 'Slides PDF', optional: false, run: runDeliverDeck },
   summary: { name: 'deliver_summary', current: 'Delivery', label: 'Summary PDF', optional: false, run: runDeliverSummary },
-  finish: { name: 'deliver_finish', current: 'Delivery', label: 'Share and save links', optional: false, run: runDeliverFinish },
+  creatives: { name: 'deliver_creatives', current: 'Delivery', label: 'Ad images and carousel', optional: true, run: runDeliverCreatives },
+  adsets: { name: 'deliver_adsets', current: 'Delivery', label: 'Ad sets PDF and import files', optional: true, run: runDeliverAdsets },
+  integrated: { name: 'deliver_integrated', current: 'Delivery', label: 'Integrated plan PDF', optional: false, run: runDeliverIntegrated },
+  finish: { name: 'deliver_finish', current: 'Delivery', label: 'Finish and queue the next phase', optional: false, run: runDeliverFinish },
 } satisfies Record<string, StepDefinition>;
 
 const ROUNDS = GROUNDSWELL_CONFIG.verification.max_rounds;
@@ -78,14 +89,31 @@ export const STEPS: StepDefinition[] = [
  * the benchmark's write-up too), and a fourth PDF before the slides and the
  * summary. The data steps are optional; the write-up and its PDF are not.
  */
+/**
+ * A data step that an earlier phase's run already ran (an older benchmark
+ * run read its competitors in phase 1) hands its output on instead of
+ * reading again: no second round of credits for the same pages.
+ */
+const reuse = (step: StepDefinition): StepDefinition => ({
+  ...step,
+  run: (ctx: StepContext) => (ctx.inherited?.[step.name] && ctx.outputs[step.name] !== undefined ? Promise.resolve(ctx.outputs[step.name]) : step.run(ctx)),
+});
+
+const COMPETITOR_DATA: StepDefinition[] = [
+  { name: 'social_depth', current: 'Social', label: 'Instagram posts and reels', optional: true, run: runSocialDepth },
+  { name: 'ads_library', current: 'Ads', label: 'Meta Ad Library and Google Ads Transparency', optional: true, run: runAdsLibrary },
+  { name: 'pricing', current: 'Site', label: 'Offers and prices', optional: true, run: runPricing },
+  { name: 'authority', current: 'Search', label: 'Domain authority, press, owned channels', optional: true, run: runAuthority },
+  { name: 'benchmark', current: 'Model', label: 'Scorecard, gaps and plan', optional: true, run: runBenchmark },
+];
+
+const creative: StepDefinition = { name: 'creative', current: 'Social', label: 'The business’s own Instagram images', optional: true, run: runCreative };
+const adsets: StepDefinition = { name: 'adsets', current: 'Model', label: 'Ad sets: Meta and Google, three budgets', optional: true, run: runAdsets };
+
 function benchmarkSteps(rounds: number): StepDefinition[] {
   return [
     ...GATHER_AND_MODEL,
-    { name: 'social_depth', current: 'Social', label: 'Instagram posts and reels', optional: true, run: runSocialDepth },
-    { name: 'ads_library', current: 'Ads', label: 'Meta Ad Library and Google Ads Transparency', optional: true, run: runAdsLibrary },
-    { name: 'pricing', current: 'Site', label: 'Offers and prices', optional: true, run: runPricing },
-    { name: 'authority', current: 'Search', label: 'Domain authority, press, owned channels', optional: true, run: runAuthority },
-    { name: 'benchmark', current: 'Model', label: 'Scorecard, gaps and plan', optional: true, run: runBenchmark },
+    ...COMPETITOR_DATA,
     ...verifySteps(rounds),
     deliver.prepare,
     deliver.audit,
@@ -99,8 +127,54 @@ function benchmarkSteps(rounds: number): StepDefinition[] {
 export const BENCHMARK_STEPS: StepDefinition[] = benchmarkSteps(ROUNDS);
 
 /**
- * Every step either kind can run, for the worker (it runs whatever rows an
- * audit was given), with the checks of every round the worker supports, so
- * an audit started under a larger `max_rounds` still finishes.
+ * Phase 2 (migration 20261029120000): the plan against competitors and the ad
+ * sets, from phase 1's run (its outputs are where this run starts): the
+ * competitor data, the benchmark write-up, the business's own images, the ad
+ * sets; then the benchmark PDF, the ad images, the ad-sets PDF and import
+ * files. Every data step is optional; something must be delivered.
  */
-export const ALL_STEPS: StepDefinition[] = benchmarkSteps(SUPPORTED_ROUNDS);
+export const COMPETITOR_STEPS: StepDefinition[] = [
+  ...COMPETITOR_DATA.map(reuse),
+  creative,
+  adsets,
+  deliver.prepare,
+  deliver.benchmark,
+  deliver.creatives,
+  deliver.adsets,
+  deliver.finish,
+];
+
+/**
+ * Phase 3: a client's own accounts (the Composio project), its search terms,
+ * the plan re-priced on its figures with the findings, the ad sets again on
+ * that plan; then the integrated PDF, the ad images and the ad sets.
+ */
+export const INTEGRATED_STEPS: StepDefinition[] = [
+  linked,
+  { name: 'search_terms', current: 'Accounts', label: 'Google Ads search terms', optional: true, run: runSearchTerms },
+  { name: 'integrated', current: 'Model', label: 'Integrated plan', optional: false, run: runIntegrated },
+  adsets,
+  deliver.prepare,
+  deliver.integrated,
+  deliver.creatives,
+  deliver.adsets,
+  deliver.finish,
+];
+
+/** The step list each queued run starts with (start_queued_runs). */
+export const PHASE_STEPS: StepLists = { audit: STEPS, benchmark: BENCHMARK_STEPS, competitors: COMPETITOR_STEPS, integrated: INTEGRATED_STEPS };
+
+/**
+ * Every step any run can hold, for the worker (it runs whatever rows a run
+ * was given): every phase, with the checks of every round the worker
+ * supports (an audit started under a larger `max_rounds` still finishes),
+ * and `linked` for runs started before the phases. deliver_finish comes last.
+ */
+export const ALL_STEPS: StepDefinition[] = (() => {
+  const byName = new Map<string, StepDefinition>();
+  // The phase lists first: their competitor steps carry `reuse`, which an older benchmark run (nothing inherited) never notices.
+  for (const step of [...COMPETITOR_STEPS, ...INTEGRATED_STEPS, ...benchmarkSteps(SUPPORTED_ROUNDS), linked]) if (!byName.has(step.name)) byName.set(step.name, step);
+  const finish = byName.get('deliver_finish')!;
+  byName.delete('deliver_finish');
+  return [...byName.values(), finish];
+})();
