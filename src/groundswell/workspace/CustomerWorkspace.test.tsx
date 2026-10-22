@@ -188,9 +188,9 @@ describe('staff customers', () => {
     const harbor = rows()[0];
     expect(within(harbor).getByRole('link', { name: 'Harbor Auto' })).toHaveAttribute('href', groundswellAdminCustomerPath('c1'));
     expect(within(harbor).getByText('Reef Agency')).toBeInTheDocument();
-    expect(within(harbor).getByText('1 · Reports ready')).toBeInTheDocument();
-    expect(within(harbor).getByText('2 · Running')).toBeInTheDocument();
-    expect(within(harbor).getByText('3 · Not started')).toBeInTheDocument();
+    expect(within(harbor).getByRole('list', { name: 'Phases for Harbor Auto' })).toHaveTextContent('Phase 1: Audit · Reports ready');
+    expect(within(harbor).getByRole('list', { name: 'Phases for Harbor Auto' })).toHaveTextContent('Phase 2: Plan against competitors · Running');
+    expect(within(harbor).getByRole('list', { name: 'Phases for Harbor Auto' })).toHaveTextContent('Phase 3: Integrated plan · Not started');
     expect(within(rows()[1]).getByText('New Wave')).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText('Partner'), { target: { value: 'new-wave' } });

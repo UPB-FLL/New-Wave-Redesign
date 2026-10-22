@@ -1,22 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ArrowRightLeft, MapPin, Handshake } from 'lucide-react';
 import { listStaffCustomers, setStaffCustomerStage, staffAccountsApi, type StaffCustomer } from '../../lib/groundswellWorkspace';
 import { STAGE_LABELS } from '../pages/customerStatus';
 import { AccountsCard } from '../pages/GroundswellCustomerPage';
 import { GROUNDSWELL_ADMIN_CUSTOMERS_PATH } from '../site';
 import { CustomerWorkspace } from '../workspace/CustomerWorkspace';
 
-/**
- * One customer for New Wave staff (/groundswell/admin/customers/:id): who it
- * belongs to, its stage, and its workspace: the three phases with every run,
- * its progress (with each step's error, which partners never see), reports,
- * downloads, ad images and the data each phase gathered. Staff can mark it
- * a client (or move it back) and link its accounts here, which the partner
- * portal does only for a partner's own customers: New Wave's own customers
- * (no partner) have nowhere else.
- */
-
+/** Staff customer workspace, including stage controls and client account linking. */
 export default function GroundswellCustomer() {
   const { id = '' } = useParams();
   const [summary, setSummary] = useState<StaffCustomer | null>(null);
@@ -24,9 +15,19 @@ export default function GroundswellCustomer() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    listStaffCustomers()
-      .then((all) => setSummary(all.find((c) => c.id === id) ?? null))
-      .catch(() => setSummary(null));
+    let live = true;
+    setSummary(null);
+    setError(null);
+    void listStaffCustomers()
+      .then((all) => {
+        if (live) setSummary(all.find((c) => c.id === id) ?? null);
+      })
+      .catch((err) => {
+        if (live) setError(err instanceof Error ? err.message : 'Could not load customer details.');
+      });
+    return () => {
+      live = false;
+    };
   }, [id]);
 
   const stage = summary ? (STAGE_LABELS[summary.stage as keyof typeof STAGE_LABELS] ?? STAGE_LABELS.prospect) : null;
@@ -45,36 +46,64 @@ export default function GroundswellCustomer() {
       setBusy(false);
     }
   };
+
   return (
-    <>
-      <Link to={GROUNDSWELL_ADMIN_CUSTOMERS_PATH} className="gs-link inline-flex items-center gap-1 text-sm">
-        <ArrowLeft size={14} aria-hidden="true" /> All customers
-      </Link>
-      <div className="mt-3 flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-bold">{summary?.business_name ?? 'Customer'}</h1>
-        {stage ? (
-          <span className="gs-chip" style={{ color: stage.color }}>
-            {stage.label}
-          </span>
-        ) : null}
-        {summary ? <span className="text-sm gs-muted">{summary.partner ? `Partner: ${summary.partner.company}` : 'New Wave’s own'}</span> : null}
-      </div>
-      {summary?.city ? <p className="mt-1 text-sm gs-muted">{summary.city}</p> : null}
-      {summary ? (
-        <div className="mt-3 flex flex-wrap items-center gap-3">
-          <button type="button" className={isClient ? 'gs-btn gs-btn-ghost' : 'gs-btn gs-btn-secondary'} onClick={move} disabled={busy}>
-            {isClient ? 'Move back to prospects' : 'Became a client'}
-          </button>
-          <span className="text-sm gs-muted">{isClient ? 'Its linked accounts feed phase 3, and Instagram feeds every phase.' : 'A client can have its own accounts linked below.'}</span>
+    <div>
+      <header className="gs-admin-customer-header">
+        <Link to={GROUNDSWELL_ADMIN_CUSTOMERS_PATH} className="gs-link">
+          <ArrowLeft size={14} aria-hidden="true" />
+          All customers
+        </Link>
+        <div className="gs-admin-customer-identity">
+          <h1>{summary?.business_name ?? 'Customer'}</h1>
+          {stage ? (
+            <span className="gs-chip" data-stage={summary?.stage} style={{ color: stage.color }}>
+              {stage.label}
+            </span>
+          ) : null}
         </div>
-      ) : null}
+        <div className="gs-admin-customer-details">
+          {summary ? (
+            <span className="inline-flex items-center gap-2">
+              <Handshake size={13} aria-hidden="true" />
+              {summary.partner ? `Partner: ${summary.partner.company}` : 'New Wave’s own'}
+            </span>
+          ) : null}
+          {summary?.city ? (
+            <span className="inline-flex items-center gap-2">
+              <MapPin size={13} aria-hidden="true" />
+              {summary.city}
+            </span>
+          ) : null}
+        </div>
+        {summary ? (
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              className={isClient ? 'gs-btn gs-btn-ghost' : 'gs-btn gs-btn-secondary'}
+              onClick={() => void move()}
+              disabled={busy}
+            >
+              <ArrowRightLeft size={14} aria-hidden="true" />
+              {isClient ? 'Move back to prospects' : 'Became a client'}
+            </button>
+            <span className="gs-admin-fine-print">
+              {isClient
+                ? 'Its linked accounts feed phase 3, and Instagram feeds every phase.'
+                : 'A client can have its own accounts linked below.'}
+            </span>
+          </div>
+        ) : null}
+      </header>
       {error ? (
-        <p className="gs-alert mt-3" role="alert">
+        <p className="gs-alert mt-4" role="alert">
           {error}
         </p>
       ) : null}
-      {isClient ? <AccountsCard customerId={id} api={staffAccountsApi} /> : null}
-      <CustomerWorkspace viewer="admin" customerId={id} />
-    </>
+      {isClient ? <AccountsCard key={id} customerId={id} api={staffAccountsApi} /> : null}
+      <div className="gs-admin-customer-workspace">
+        <CustomerWorkspace key={id} viewer="admin" customerId={id} />
+      </div>
+    </div>
   );
 }
