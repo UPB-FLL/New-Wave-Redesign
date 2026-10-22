@@ -1,9 +1,9 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2 } from 'lucide-react';
+import { Building2, Compass } from 'lucide-react';
 import { currentPartner, partnerSignOut, type PartnerSummary } from '../lib/groundswellPartner';
 import { GroundswellShell, type ShellNavItem } from './GroundswellShell';
-import { GROUNDSWELL_CUSTOMERS_PATH, GROUNDSWELL_PATH } from './site';
+import { GROUNDSWELL_CLIENTS_PATH, GROUNDSWELL_PATH, GROUNDSWELL_PROSPECTS_PATH } from './site';
 
 /**
  * The signed-in partner app: checks the partner session, sends a signed-out
@@ -11,7 +11,10 @@ import { GROUNDSWELL_CUSTOMERS_PATH, GROUNDSWELL_PATH } from './site';
  * partner's navigation. Pages get the partner through `children(partner)`.
  */
 
-const PARTNER_NAV: ShellNavItem[] = [{ label: 'Customers', path: GROUNDSWELL_CUSTOMERS_PATH, icon: Building2 }];
+const PARTNER_NAV: ShellNavItem[] = [
+  { label: 'Prospects', path: GROUNDSWELL_PROSPECTS_PATH, icon: Compass },
+  { label: 'Clients', path: GROUNDSWELL_CLIENTS_PATH, icon: Building2 },
+];
 
 export function PartnerApp({ children }: { children: (partner: PartnerSummary) => ReactNode }) {
   const navigate = useNavigate();

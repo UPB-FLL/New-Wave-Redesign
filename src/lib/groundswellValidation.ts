@@ -165,6 +165,11 @@ export interface AuditInsert {
 }
 
 /** A customer's own details: an audit draft without the per-run choices (kind, logo and colour overrides). */
+/** A customer's stage: a prospect (a lead read from public data) or a client (a business the partner works for). */
+export const CUSTOMER_STAGES = ['prospect', 'client'] as const;
+export type CustomerStage = (typeof CUSTOMER_STAGES)[number];
+export const isCustomerStage = (v: unknown): v is CustomerStage => CUSTOMER_STAGES.includes(v as CustomerStage);
+
 export type CustomerDraft = Omit<AuditDraft, 'kind' | 'brand_logo_url' | 'brand_color'>;
 export type CustomerInsert = Omit<AuditInsert, 'kind' | 'brand_logo_url' | 'brand_color'>;
 

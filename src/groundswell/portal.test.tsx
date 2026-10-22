@@ -10,6 +10,7 @@ const api = vi.hoisted(() => ({
   getPartnerCustomer: vi.fn(),
   createPartnerCustomer: vi.fn(),
   updatePartnerCustomer: vi.fn(),
+  setPartnerCustomerStage: vi.fn(),
   partnerSignOut: vi.fn(),
   setPartnerPassword: vi.fn(),
   getPartnerBranding: vi.fn(),
@@ -20,14 +21,16 @@ const api = vi.hoisted(() => ({
 vi.mock('../lib/groundswellPartner', async (orig) => ({ ...(await orig<typeof import('../lib/groundswellPartner')>()), ...api }));
 
 import GroundswellCustomerPage from './pages/GroundswellCustomerPage';
-import GroundswellCustomersPage from './pages/GroundswellCustomersPage';
+import { GroundswellClientsPage, GroundswellProspectsPage } from './pages/GroundswellCustomersPage';
 import GroundswellSetPasswordPage from './pages/GroundswellSetPasswordPage';
 import GroundswellSignInPage from './pages/GroundswellSignInPage';
 import { LegacyAdminRedirect, LegacyPartnerRedirect } from './routes';
 import {
   GROUNDSWELL_ADMIN_PATH,
+  GROUNDSWELL_CLIENTS_PATH,
   GROUNDSWELL_CUSTOMERS_PATH,
   GROUNDSWELL_PATH,
+  GROUNDSWELL_PROSPECTS_PATH,
   GROUNDSWELL_SET_PASSWORD_PATH,
   groundswellCustomerPath,
   LEGACY_ADMIN_PATH,
@@ -39,7 +42,9 @@ function renderPortal(path: string) {
     <MemoryRouter initialEntries={[path]}>
       <Routes>
         <Route path={GROUNDSWELL_PATH} element={<GroundswellSignInPage />} />
-        <Route path={GROUNDSWELL_CUSTOMERS_PATH} element={<GroundswellCustomersPage />} />
+        <Route path={GROUNDSWELL_PROSPECTS_PATH} element={<GroundswellProspectsPage />} />
+        <Route path={GROUNDSWELL_CLIENTS_PATH} element={<GroundswellClientsPage />} />
+        <Route path={GROUNDSWELL_CUSTOMERS_PATH} element={<p>customers redirect</p>} />
         <Route path={`${GROUNDSWELL_CUSTOMERS_PATH}/:id`} element={<GroundswellCustomerPage />} />
         <Route path={GROUNDSWELL_SET_PASSWORD_PATH} element={<GroundswellSetPasswordPage />} />
         <Route path={GROUNDSWELL_ADMIN_PATH} element={<p>staff sign-in</p>} />
@@ -57,7 +62,7 @@ const robots = () => document.head.querySelector('meta[name="robots"]')?.getAttr
 const partner = { company: 'Reef Agency', contact_name: null, email: 'sam@reef.example' };
 const harbor = {
   id: 'c1', business_name: 'Harbor Auto', city: 'Miami', website: 'https://harbor.example', instagram: null, competitors: [], notes: null,
-  created_at: '2026-10-20T00:00:00Z', updated_at: '2026-10-20T00:00:00Z',
+  created_at: '2026-10-20T00:00:00Z', updated_at: '2026-10-20T00:00:00Z', stage: 'prospect' as const, became_client_at: null,
 };
 
 beforeEach(() => {
@@ -78,7 +83,7 @@ describe('Groundswell sign-in page', () => {
     expect(screen.queryByRole('link', { name: /Book a discovery call/ })).not.toBeInTheDocument();
   });
 
-  it('signs in and opens the partner’s customers in the shell', async () => {
+  it('signs in and opens the partner’s prospects in the shell, with Prospects and Clients in the navigation', async () => {
     api.partnerSignIn.mockResolvedValue(partner);
     api.currentPartner.mockResolvedValueOnce(null).mockResolvedValue(partner);
     api.listPartnerCustomers.mockResolvedValue([]);
@@ -87,10 +92,12 @@ describe('Groundswell sign-in page', () => {
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'correct horse battery' } });
     fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
     await waitFor(() => expect(api.partnerSignIn).toHaveBeenCalledWith('sam@reef.example', 'correct horse battery'));
-    expect(await screen.findByRole('heading', { level: 1, name: 'Customers' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Prospects' })).toBeInTheDocument();
     expect(screen.getByText('Reef Agency')).toBeInTheDocument();
     const nav = screen.getAllByRole('navigation', { name: 'Partner pages' })[0];
-    expect(within(nav).getByRole('link', { name: 'Customers' })).toHaveAttribute('href', GROUNDSWELL_CUSTOMERS_PATH);
+    expect(within(nav).getByRole('link', { name: 'Prospects' })).toHaveAttribute('href', GROUNDSWELL_PROSPECTS_PATH);
+    expect(within(nav).getByRole('link', { name: 'Clients' })).toHaveAttribute('href', GROUNDSWELL_CLIENTS_PATH);
+    expect(api.listPartnerCustomers).toHaveBeenCalledWith('prospect');
   });
 
   it('shows the sign-in error and offers a reset link', async () => {
@@ -108,21 +115,21 @@ describe('Groundswell sign-in page', () => {
   });
 });
 
-describe('partner customers page', () => {
+describe('partner prospects page', () => {
   it('sends a signed-out visitor to sign in', async () => {
-    renderPortal(GROUNDSWELL_CUSTOMERS_PATH);
+    renderPortal(GROUNDSWELL_PROSPECTS_PATH);
     expect(await screen.findByRole('heading', { level: 1, name: 'Groundswell' })).toBeInTheDocument();
   });
 
-  it('is noindex and lists the partner’s customers, most recent first, with status and last reports', async () => {
+  it('is noindex and lists the partner’s prospects, most recent first, with status and last reports', async () => {
     api.currentPartner.mockResolvedValue(partner);
     api.listPartnerCustomers.mockResolvedValue([
       { ...harbor, latest: { id: 'a1', status: 'done', kind: 'audit', created_at: '2026-10-21T00:00:00Z', completed_at: '2026-10-21T01:00:00Z' }, last_reports_at: '2026-10-21T01:00:00Z', audit_count: 1 },
       { ...harbor, id: 'c2', business_name: 'Bay Bikes', city: null, latest: null, last_reports_at: null, audit_count: 0 },
       { ...harbor, id: 'c3', business_name: 'Reef Diner', latest: { id: 'a3', status: 'review', kind: 'audit', created_at: '2026-10-21T00:00:00Z', completed_at: null }, last_reports_at: null, audit_count: 1 },
     ]);
-    renderPortal(GROUNDSWELL_CUSTOMERS_PATH);
-    const table = await screen.findByRole('table', { name: 'Your customers' });
+    renderPortal(GROUNDSWELL_PROSPECTS_PATH);
+    const table = await screen.findByRole('table', { name: 'Your prospects' });
     expect(robots()).toBe('noindex, nofollow');
     const rows = within(table).getAllByRole('row').slice(1);
     expect(rows.map((r) => within(r).getByRole('link').getAttribute('href'))).toEqual([groundswellCustomerPath('c1'), groundswellCustomerPath('c2'), groundswellCustomerPath('c3')]);
@@ -133,24 +140,25 @@ describe('partner customers page', () => {
     expect(within(rows[2]).getByText('In review')).toBeInTheDocument();
     // With customers listed, the form waits behind the one primary action.
     expect(screen.queryByLabelText('Business name')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /Add a customer/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Add a prospect/ }));
     expect(screen.getByLabelText('Business name')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Add a prospect' })).toBeInTheDocument();
   });
 
-  it('opens the form for a first customer, checks it before sending, then adds it and opens its page', async () => {
+  it('opens the form for a first prospect, checks it before sending, then adds it and opens its page', async () => {
     api.currentPartner.mockResolvedValue(partner);
     api.listPartnerCustomers.mockResolvedValue([]);
     api.createPartnerCustomer.mockResolvedValue({ customer: { ...harbor, latest: null, last_reports_at: null, audit_count: 1 }, audit: {} });
     api.getPartnerCustomer.mockResolvedValue({ customer: { ...harbor, latest: { id: 'a1', status: 'queued', kind: 'audit', created_at: '2026-10-21T00:00:00Z', completed_at: null }, last_reports_at: null, audit_count: 1 }, audits: [] });
-    renderPortal(GROUNDSWELL_CUSTOMERS_PATH);
-    expect(await screen.findByText('No customers yet. Add your first one above.')).toBeInTheDocument();
+    renderPortal(GROUNDSWELL_PROSPECTS_PATH);
+    expect(await screen.findByText('No prospects yet. Add your first one above.')).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Business name'), { target: { value: 'Harbor Auto' } });
     fireEvent.click(screen.getByRole('button', { name: 'Add and queue the audit' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Add a website or an Instagram handle.');
     expect(api.createPartnerCustomer).not.toHaveBeenCalled();
     fireEvent.change(screen.getByLabelText('Website'), { target: { value: 'harbor.example' } });
     fireEvent.click(screen.getByRole('button', { name: 'Add and queue the audit' }));
-    await waitFor(() => expect(api.createPartnerCustomer).toHaveBeenCalledWith(expect.objectContaining({ business_name: 'Harbor Auto', website: 'harbor.example' })));
+    await waitFor(() => expect(api.createPartnerCustomer).toHaveBeenCalledWith(expect.objectContaining({ business_name: 'Harbor Auto', website: 'harbor.example', stage: 'prospect' })));
     expect(await screen.findByRole('heading', { level: 1, name: 'Harbor Auto' })).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('Queued');
     expect(screen.getByText('Waiting to start')).toBeInTheDocument();
@@ -160,7 +168,7 @@ describe('partner customers page', () => {
     api.currentPartner.mockResolvedValue(partner);
     api.listPartnerCustomers.mockResolvedValue([]);
     api.savePartnerBranding.mockImplementation(async (b: { display_name: string; logo_url: string }) => ({ company: 'Reef Agency', branding: b, available: true }));
-    renderPortal(GROUNDSWELL_CUSTOMERS_PATH);
+    renderPortal(GROUNDSWELL_PROSPECTS_PATH);
     const panel = within((await screen.findByRole('heading', { name: 'Your branding' })).closest('form')!);
     expect(panel.getByText(/Preview: Prepared by Reef Agency/)).toBeInTheDocument();
     fireEvent.change(panel.getByLabelText('Name on your reports'), { target: { value: 'Reef Growth Co' } });
@@ -179,7 +187,7 @@ describe('partner customers page', () => {
     api.currentPartner.mockResolvedValue(partner);
     api.listPartnerCustomers.mockResolvedValue([]);
     api.getPartnerBranding.mockResolvedValue({ company: 'Reef Agency', branding: { display_name: null, logo_url: null }, available: false });
-    renderPortal(GROUNDSWELL_CUSTOMERS_PATH);
+    renderPortal(GROUNDSWELL_PROSPECTS_PATH);
     expect(await screen.findByText(/Branding isn’t switched on yet/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Save branding' })).toBeDisabled();
   });
@@ -188,7 +196,7 @@ describe('partner customers page', () => {
     api.currentPartner.mockResolvedValue(partner);
     api.listPartnerCustomers.mockResolvedValue([]);
     api.partnerSignOut.mockResolvedValue(undefined);
-    renderPortal(GROUNDSWELL_CUSTOMERS_PATH);
+    renderPortal(GROUNDSWELL_PROSPECTS_PATH);
     fireEvent.click(await screen.findByRole('button', { name: 'Sign out' }));
     await waitFor(() => expect(api.partnerSignOut).toHaveBeenCalled());
     expect(await screen.findByRole('heading', { level: 1, name: 'Groundswell' })).toBeInTheDocument();
@@ -239,7 +247,35 @@ describe('partner customer page', () => {
     const failed = audits.find((li) => within(li).queryByText(/didn’t finish/))!;
     expect(within(failed).queryByRole('link')).not.toBeInTheDocument();
     expect(within(failed).queryByRole('button')).not.toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /All customers/ })).toHaveAttribute('href', GROUNDSWELL_CUSTOMERS_PATH);
+    expect(screen.getByRole('link', { name: /All prospects/ })).toHaveAttribute('href', GROUNDSWELL_PROSPECTS_PATH);
+    expect(screen.getByText('Prospect')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Audits from public data' })).toBeInTheDocument();
+  });
+
+  it('"Became a client" moves the record over, keeping its audits, and the way back is one click', async () => {
+    api.currentPartner.mockResolvedValue(partner);
+    const audits = [{ id: 'a1', business_name: 'Harbor Auto', city: 'Miami', website: 'https://harbor.example', instagram: null, competitors: [], status: 'done', kind: 'audit', drive_folder_url: null, summary_pdf_url: null, deck_pdf_url: null, audit_pdf_url: null, created_at: '2026-10-21T00:00:00Z', completed_at: '2026-10-21T01:00:00Z', reports: [{ kind: 'audit', name: 'a.pdf', pages: 20 }] }];
+    api.getPartnerCustomer.mockResolvedValue({ customer: { ...harbor, latest: null, last_reports_at: null, audit_count: 1 }, audits, stages_available: true });
+    api.setPartnerCustomerStage.mockImplementation(async (_id: string, stage: 'prospect' | 'client') => ({ ...harbor, stage, became_client_at: stage === 'client' ? '2026-10-22T00:00:00Z' : null, latest: null, last_reports_at: null, audit_count: 1 }));
+    renderPortal(groundswellCustomerPath('c1'));
+    fireEvent.click(await screen.findByRole('button', { name: 'Became a client' }));
+    await waitFor(() => expect(api.setPartnerCustomerStage).toHaveBeenCalledWith('c1', 'client'));
+    expect(await screen.findByRole('status')).toHaveTextContent('Now a client. Everything gathered as a prospect stays here.');
+    expect(screen.getByText('Client')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /All clients/ })).toHaveAttribute('href', GROUNDSWELL_CLIENTS_PATH);
+    // The scraped audit is still on the page.
+    expect(within(screen.getByRole('list', { name: 'Audits of this customer' })).getAllByRole('listitem')).toHaveLength(1);
+    fireEvent.click(screen.getByRole('button', { name: 'Move back to prospects' }));
+    await waitFor(() => expect(api.setPartnerCustomerStage).toHaveBeenLastCalledWith('c1', 'prospect'));
+    expect(await screen.findByRole('button', { name: 'Became a client' })).toBeInTheDocument();
+  });
+
+  it('offers no move before the database has stages', async () => {
+    api.currentPartner.mockResolvedValue(partner);
+    api.getPartnerCustomer.mockResolvedValue({ customer: { ...harbor, latest: null, last_reports_at: null, audit_count: 0 }, audits: [], stages_available: false });
+    renderPortal(groundswellCustomerPath('c1'));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Harbor Auto' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Became a client/ })).not.toBeInTheDocument();
   });
 
   it('edits the details in place', async () => {
@@ -261,6 +297,39 @@ describe('partner customer page', () => {
     api.getPartnerCustomer.mockRejectedValue(new Error('That customer is not in your account.'));
     renderPortal(groundswellCustomerPath('nope'));
     expect(await screen.findByRole('alert')).toHaveTextContent('not in your account');
+  });
+});
+
+describe('partner clients page', () => {
+  it('lists only the clients, and points at the prospects when there are none', async () => {
+    api.currentPartner.mockResolvedValue(partner);
+    api.listPartnerCustomers.mockResolvedValue([]);
+    renderPortal(GROUNDSWELL_CLIENTS_PATH);
+    expect(await screen.findByRole('heading', { level: 1, name: 'Clients' })).toBeInTheDocument();
+    expect(api.listPartnerCustomers).toHaveBeenCalledWith('client');
+    expect(screen.getByText(/No clients yet\. Open a prospect and choose/)).toBeInTheDocument();
+    // No form until asked, and no branding panel (it lives with the prospects).
+    expect(screen.queryByLabelText('Business name')).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Your branding' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Add a client/ }));
+    expect(screen.getByRole('heading', { level: 2, name: 'Add a client' })).toBeInTheDocument();
+    api.createPartnerCustomer.mockResolvedValue({ customer: { ...harbor, stage: 'client', latest: null, last_reports_at: null, audit_count: 1 }, audit: {} });
+    api.getPartnerCustomer.mockResolvedValue({ customer: { ...harbor, stage: 'client', latest: null, last_reports_at: null, audit_count: 1 }, audits: [], stages_available: true });
+    fireEvent.change(screen.getByLabelText('Business name'), { target: { value: 'Harbor Auto' } });
+    fireEvent.change(screen.getByLabelText('Website'), { target: { value: 'harbor.example' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Add and queue the audit' }));
+    await waitFor(() => expect(api.createPartnerCustomer).toHaveBeenCalledWith(expect.objectContaining({ stage: 'client' })));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Harbor Auto' })).toBeInTheDocument();
+    expect(screen.getByText('Client')).toBeInTheDocument();
+  });
+
+  it('shows the clients with their status', async () => {
+    api.currentPartner.mockResolvedValue(partner);
+    api.listPartnerCustomers.mockResolvedValue([{ ...harbor, stage: 'client', became_client_at: '2026-10-22T00:00:00Z', latest: { id: 'a1', status: 'done', kind: 'audit', created_at: '2026-10-21T00:00:00Z', completed_at: '2026-10-21T01:00:00Z' }, last_reports_at: '2026-10-21T01:00:00Z', audit_count: 1 }]);
+    renderPortal(GROUNDSWELL_CLIENTS_PATH);
+    const table = await screen.findByRole('table', { name: 'Your clients' });
+    expect(within(table).getByRole('link', { name: 'Harbor Auto' })).toHaveAttribute('href', groundswellCustomerPath('c1'));
+    expect(within(table).getByText('Reports ready')).toBeInTheDocument();
   });
 });
 

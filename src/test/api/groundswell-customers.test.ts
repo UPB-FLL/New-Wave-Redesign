@@ -224,3 +224,51 @@ describe('editing a customer', () => {
     expect(res.body.error).toMatch(/business name/);
   });
 });
+
+describe('prospects and clients', () => {
+  it('every customer is a prospect until moved; ?stage keeps one stage', async () => {
+    const all = await call('GET', undefined, auth);
+    expect(all.body.customers.map((c) => c.stage)).toEqual(['prospect', 'prospect']);
+    const clients = await call('GET', undefined, auth, { stage: 'client' });
+    expect(clients.statusCode).toBe(200);
+    expect(clients.body.customers).toEqual([]);
+    expect((await call('GET', undefined, auth, { stage: 'lead' })).statusCode).toBe(400);
+  });
+
+  it('"Became a client" records when, keeps every audit on the record, and the way back clears it', async () => {
+    const moved = await call('PATCH', { stage: 'client' }, auth, { id: 'c-harbor' });
+    expect(moved.statusCode).toBe(200);
+    expect(moved.body.customer).toMatchObject({ id: 'c-harbor', stage: 'client', audit_count: 2 });
+    expect(moved.body.customer.became_client_at).toBeTruthy();
+    expect((await call('GET', undefined, auth, { stage: 'client' })).body.customers.map((c) => c.id)).toEqual(['c-harbor']);
+    expect((await call('GET', undefined, auth, { stage: 'prospect' })).body.customers.map((c) => c.id)).toEqual(['c-bay']);
+    const detail = await call('GET', undefined, auth, { id: 'c-harbor' });
+    expect(detail.body.audits.map((a) => a.id)).toEqual(['a-harbor-2', 'a-harbor-1']);
+    expect(detail.body).toMatchObject({ stages_available: true });
+    const back = await call('PATCH', { stage: 'prospect' }, auth, { id: 'c-harbor' });
+    expect(back.body.customer).toMatchObject({ stage: 'prospect', became_client_at: null });
+    expect((await call('PATCH', { stage: 'client' }, auth, { id: 'c-theirs' })).statusCode).toBe(404);
+    expect((await call('PATCH', { stage: 'vip' }, auth, { id: 'c-harbor' })).statusCode).toBe(400);
+  });
+
+  it('adds a customer straight in as a client', async () => {
+    const res = await call('POST', { business_name: 'Pier Coffee', website: 'pier.example', stage: 'client' }, auth);
+    expect(res.statusCode).toBe(201);
+    expect(res.body.customer).toMatchObject({ stage: 'client' });
+    expect(db.current!.tables.groundswell_customers.find((c) => c.business_name === 'Pier Coffee')).toMatchObject({ stage: 'client' });
+    expect((await call('GET', undefined, auth, { stage: 'client' })).body.customers.map((c) => c.business_name)).toEqual(['Pier Coffee']);
+  });
+
+  it('before the stage migration every customer reads as a prospect, and moving one says so', async () => {
+    seed({ groundswell_customers: ['stage', 'became_client_at'] });
+    const all = await call('GET', undefined, auth);
+    expect(all.statusCode).toBe(200);
+    expect(all.body.customers.map((c) => c.stage)).toEqual(['prospect', 'prospect']);
+    expect((await call('GET', undefined, auth, { id: 'c-harbor' })).body).toMatchObject({ stages_available: false });
+    const moved = await call('PATCH', { stage: 'client' }, auth, { id: 'c-harbor' });
+    expect(moved.statusCode).toBe(503);
+    expect(moved.body.error).toMatch(/Clients are not available yet/);
+    expect((await call('POST', { business_name: 'Pier Coffee', website: 'pier.example', stage: 'client' }, auth)).statusCode).toBe(503);
+    expect((await call('POST', { business_name: 'Pier Coffee', website: 'pier.example' }, auth)).statusCode).toBe(201);
+  });
+});
