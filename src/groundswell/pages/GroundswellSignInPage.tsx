@@ -46,7 +46,8 @@ function SignInCard() {
   };
 
   return (
-    <form onSubmit={submit} className="gs-card self-start p-5 sm:p-6" aria-labelledby="partner-sign-in-heading">
+    <form onSubmit={submit} className="gs-card gs-portal-sign-in" aria-labelledby="partner-sign-in-heading">
+      <p className="gs-portal-eyebrow">Welcome back</p>
       <h2 id="partner-sign-in-heading" className="text-xl font-bold">
         {mode === 'sign-in' ? content.heading : content.forgot}
       </h2>
@@ -54,14 +55,30 @@ function SignInCard() {
         <label htmlFor="partner-email" className="gs-label">
           {content.emailLabel}
         </label>
-        <input id="partner-email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} className={field} />
+        <input
+          id="partner-email"
+          type="email"
+          autoComplete="username"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className={field}
+        />
       </div>
       {mode === 'sign-in' ? (
         <div className="mt-4">
           <label htmlFor="partner-password" className="gs-label">
             {content.passwordLabel}
           </label>
-          <input id="partner-password" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} className={field} />
+          <input
+            id="partner-password"
+            type="password"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className={field}
+          />
         </div>
       ) : null}
       {error ? (
@@ -114,43 +131,40 @@ export default function GroundswellSignInPage() {
 
   return (
     <GroundswellFrame>
-      <div className="max-w-2xl">
-        <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--gs-accent-deep)' }}>
-          {content.kicker}
-        </p>
-        <h1 className="mt-2 text-3xl font-bold sm:text-4xl">{content.headline}</h1>
-        <p className="mt-3 text-base gs-muted sm:text-lg">{content.summary}</p>
-        {signedIn ? (
-          <Link to={GROUNDSWELL_PROSPECTS_PATH} className="gs-btn gs-btn-primary mt-5">
-            Open {signedIn}’s customers
-          </Link>
-        ) : null}
-      </div>
-      <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:gap-16">
-        <SignInCard />
-        <div>
-          <h2 className="text-lg font-bold">How it works</h2>
-          <ol className="mt-4 space-y-4">
+      <div className="gs-portal-entry-grid">
+        <section className="gs-portal-intro">
+          <p className="gs-portal-eyebrow">{content.kicker}</p>
+          <h1>{content.headline}</h1>
+          <p className="gs-portal-intro-summary">{content.summary}</p>
+          {signedIn ? (
+            <Link to={GROUNDSWELL_PROSPECTS_PATH} className="gs-btn gs-btn-primary">
+              Open {signedIn}’s customers
+            </Link>
+          ) : null}
+        </section>
+        <div className="gs-portal-entry-forms">
+          <SignInCard />
+          <section className="gs-portal-invitation">
+            <h2>{content.invitation.heading}</h2>
+            <p>{content.invitation.body}</p>
+            <Link to={CONTACT_PATH} className="gs-link">
+              {content.invitation.link} <span aria-hidden="true">→</span>
+            </Link>
+          </section>
+        </div>
+        <section className="gs-portal-intro gs-portal-how" aria-label="How GroundSwell works">
+          <ol className="gs-portal-entry-steps" aria-label="How it works">
             {content.steps.map((step, i) => (
-              <li key={step.title} className="flex gap-4">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold" style={{ background: 'rgba(242,163,58,0.18)', color: 'var(--gs-accent-deep)' }} aria-hidden="true">
-                  {i + 1}
-                </span>
+              <li key={step.title}>
+                <span aria-hidden="true">0{i + 1}</span>
                 <div>
-                  <h3 className="font-semibold">{step.title}</h3>
-                  <p className="mt-1 text-sm gs-muted">{step.detail}</p>
+                  <h2>{step.title}</h2>
+                  <p>{step.detail}</p>
                 </div>
               </li>
             ))}
           </ol>
-          <div className="gs-card mt-8 p-4 sm:p-5">
-            <h2 className="text-base font-bold">{content.invitation.heading}</h2>
-            <p className="mt-2 text-sm gs-muted">{content.invitation.body}</p>
-            <Link to={CONTACT_PATH} className="gs-link mt-3 inline-flex items-center max-sm:min-h-11">
-              {content.invitation.link} →
-            </Link>
-          </div>
-        </div>
+        </section>
       </div>
     </GroundswellFrame>
   );

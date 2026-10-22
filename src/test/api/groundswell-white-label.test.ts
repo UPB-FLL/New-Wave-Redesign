@@ -34,7 +34,7 @@ describe('who the reports are from', () => {
       '<li>New Wave’s working bands for small accounts</li>',
       '<p>Team time is costed at New Wave’s hourly cost for the work.</p>',
       '<p>Positions (New Wave\'s rule, not a published figure).</p>',
-      '<p>Groundswell estimate for the category. New Wave’s estimate of where one page reaches.</p>',
+      '<p>GroundSwell estimate for the category. New Wave’s estimate of where one page reaches.</p>',
       '<footer>Prepared by New Wave: Social Engineering</footer>',
       '<p>NW Social Engineering and New Wave IT will set it up.</p>',
     ].join('');

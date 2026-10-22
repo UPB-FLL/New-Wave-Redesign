@@ -10,7 +10,7 @@ import {
   DIVISION_CONTACT_PATH,
   DIVISION_CONTACT_US_PATH,
   DIVISION_CUSTOMERS_PATH,
-  DIVISION_CROISSANCE_PATH,
+  DIVISION_GROUNDSWELL_PATH,
   DIVISION_PUBLISHED,
   DIVISION_SERVICE_SLUGS,
   RETIRED_SERVICE_SLUGS,
@@ -71,7 +71,7 @@ describe('division visibility', () => {
 
   it(DIVISION_PUBLISHED ? 'publishes the division (no redirect away)' : 'temporarily redirects every division URL to the home page', () => {
     // The partner portal's move to /groundswell has its own redirects (tested below).
-    const redirects = (config.redirects ?? []).filter((rule) => rule.source.startsWith('/social-engineering') && !rule.source.startsWith(LEGACY_PARTNER_PATH));
+    const redirects = (config.redirects ?? []).filter((rule) => rule.source.startsWith('/social-engineering') && !rule.source.startsWith(LEGACY_PARTNER_PATH) && !['/social-engineering/croissance', '/social-engineering/croissance/'].includes(rule.source));
     if (DIVISION_PUBLISHED) {
       // Only the retired first-launch service URLs redirect, permanently, to the hub. Vercel
       // matches sources exactly, so each needs its trailing-slash form too (without it,
@@ -157,7 +157,7 @@ describe('index.html (the parent shell every New Wave IT URL is served)', () => 
 describe('division pages beyond the services', () => {
   // Listed by hand, so a page dropped from allDivisionPages() cannot quietly
   // take its sitemap entry, rewrite, and route with it.
-  const pages = [DIVISION_CROISSANCE_PATH, DIVISION_CUSTOMERS_PATH, DIVISION_CONTACT_US_PATH, DIVISION_CONTACT_PATH];
+  const pages = [DIVISION_GROUNDSWELL_PATH, DIVISION_CUSTOMERS_PATH, DIVISION_CONTACT_US_PATH, DIVISION_CONTACT_PATH];
   const sitemap = read('public/sitemap.xml');
   const rewrites = (JSON.parse(read('vercel.json')) as { rewrites: { source: string; destination: string }[] }).rewrites;
   const app = read('src/App.tsx');
@@ -173,7 +173,7 @@ describe('division pages beyond the services', () => {
   it('registers each page’s route behind DIVISION_PUBLISHED and loads it lazily', () => {
     const divisionRoutes = app.slice(app.indexOf('{DIVISION_PUBLISHED ? ('), app.indexOf(') : null}'));
     [
-      ['DIVISION_CROISSANCE_PATH', 'SocialEngineeringCroissanceRoute', 'SocialEngineeringCroissancePage'],
+      ['DIVISION_GROUNDSWELL_PATH', 'SocialEngineeringGroundswellRoute', 'SocialEngineeringGroundswellPage'],
       ['DIVISION_CUSTOMERS_PATH', 'SocialEngineeringCustomersRoute', 'SocialEngineeringCustomersPage'],
       ['DIVISION_CONTACT_US_PATH', 'SocialEngineeringContactUsRoute', 'SocialEngineeringContactUsPage'],
       ['DIVISION_CONTACT_PATH', 'SocialEngineeringContactRoute', 'SocialEngineeringContactPage'],
@@ -181,6 +181,13 @@ describe('division pages beyond the services', () => {
       expect(divisionRoutes).toContain(`<Route path={${constant}} element={<${route} />} />`);
       expect(routes).toContain(`import('./pages/${page}')`);
     });
+  });
+
+  it('permanently redirects both old product URLs to GroundSwell', () => {
+    const config = JSON.parse(read('vercel.json'));
+    for (const source of ['/social-engineering/croissance', '/social-engineering/croissance/']) {
+      expect(config.redirects).toContainEqual({ source, destination: '/social-engineering/groundswell', permanent: true });
+    }
   });
 
   it('no longer serves the partner portal under Croissance: its old addresses redirect to /groundswell', () => {

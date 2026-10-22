@@ -273,7 +273,7 @@ export function normalizeEstimates(raw: unknown): Estimates {
     ticket: triple(r.ticket, 20, 50_000, [150, 250, 400]),
     close: triple(r.close, 0.05, 0.9, [0.2, 0.3, 0.4]),
     gross_margin: clamp(r.gross_margin, 0.1, 0.9, 0.5),
-    basis: str(r.basis, 600) || 'Groundswell estimate for the category; no published prices were found.',
+    basis: str(r.basis, 600) || 'GroundSwell estimate for the category; no published prices were found.',
     has_current_marketer: typeof r.has_current_marketer === 'boolean' ? r.has_current_marketer : null,
     is_nwse_client: typeof r.is_nwse_client === 'boolean' ? r.is_nwse_client : null,
   };

@@ -8,7 +8,7 @@ import { getSupabaseAdmin } from '../supabaseAdmin.js';
 import { hashToken, randomToken } from '../tokens.js';
 
 /**
- * Groundswell partner accounts: outside agencies and resellers who submit
+ * GroundSwell partner accounts: outside agencies and resellers who submit
  * businesses for audits and see the audits they submitted.
  *
  * They are deliberately NOT Supabase Auth users. Any signed-in Supabase user is
@@ -29,7 +29,7 @@ export const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 export const RESET_TTL_MS = 60 * 60 * 1000;
 
 export const SITE_URL = 'https://www.newwaveitfl.com';
-/** Groundswell's address (src/groundswell/site.ts): invite and reset links land on its set-password page. */
+/** GroundSwell's address (src/groundswell/site.ts): invite and reset links land on its set-password page. */
 export const PARTNER_BASE_PATH = '/groundswell';
 export const setPasswordUrl = (token: string) => `${SITE_URL}${PARTNER_BASE_PATH}/set-password?token=${encodeURIComponent(token)}`;
 
@@ -155,12 +155,13 @@ export async function consumePartnerToken(token: string): Promise<string | null>
 const FROM = 'support@newwaveitfl.com';
 
 function emailHtml(heading: string, body: string, link: string, action: string) {
-  return `<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#152232">
-<h2 style="border-bottom:2px solid #39CCCC;padding-bottom:10px">${escapeHtml(heading)}</h2>
+  return `<div style="font-family:Inter,Arial,sans-serif;max-width:560px;margin:0 auto;padding:32px;color:#09131D;background:#F7FAFB;line-height:1.6">
+<img src="https://www.newwaveitfl.com/brand/social-engineering/01_Logos/PNG/GroundSwell_Primary_Color.png" alt="GroundSwell by New Wave" width="220" style="display:block;width:220px;height:auto;margin:16px 0 32px" />
+<h2 style="font-family:Plus Jakarta Sans,Arial,sans-serif;border-bottom:2px solid #31C6CF;padding-bottom:10px">${escapeHtml(heading)}</h2>
 <p>${body}</p>
-<p style="margin:28px 0"><a href="${escapeHtml(link)}" style="background:#152232;color:#ffffff;padding:12px 20px;border-radius:8px;text-decoration:none">${escapeHtml(action)}</a></p>
-<p style="font-size:13px;color:#555">If the button does not work, copy this address into your browser:<br>${escapeHtml(link)}</p>
-<p style="font-size:13px;color:#555">New Wave: Social Engineering · Croissance partner program</p>
+<p style="margin:28px 0"><a href="${escapeHtml(link)}" style="background:#F2A33A;color:#09131D;padding:12px 20px;border-radius:8px;text-decoration:none">${escapeHtml(action)}</a></p>
+<p style="font-size:13px;color:#526271">If the button does not work, copy this address into your browser:<br>${escapeHtml(link)}</p>
+<p style="font-size:13px;color:#526271">GroundSwell · by New Wave</p>
 </div>`;
 }
 
@@ -168,26 +169,26 @@ function emailHtml(heading: string, body: string, link: string, action: string) 
 export async function sendPartnerEmail(kind: 'invite' | 'reset', to: string, company: string, token: string): Promise<boolean> {
   const key = process.env.RESEND_API_KEY;
   if (!key) {
-    console.error('Groundswell partner email skipped: RESEND_API_KEY is not set.');
+    console.error('GroundSwell partner email skipped: RESEND_API_KEY is not set.');
     return false;
   }
   const link = setPasswordUrl(token);
   const message =
     kind === 'invite'
       ? {
-          subject: 'Your Croissance partner account',
+          subject: 'Your GroundSwell partner account',
           html: emailHtml(
-            'You are invited to the Croissance partner portal',
-            `New Wave: Social Engineering set up a partner account for ${escapeHtml(company)}. Choose a password to submit businesses for Croissance audits and see their reports. This link works for 7 days.`,
+            'You are invited to the GroundSwell partner portal',
+            `New Wave: Social Engineering set up a partner account for ${escapeHtml(company)}. Choose a password to submit businesses for GroundSwell audits and see their reports. This link works for 7 days.`,
             link,
             'Choose your password'
           ),
         }
       : {
-          subject: 'Reset your Croissance partner password',
+          subject: 'Reset your GroundSwell partner password',
           html: emailHtml(
             'Reset your password',
-            'Someone asked to reset the password for this Croissance partner account. If it was you, choose a new password below; the link works for one hour. If not, ignore this email.',
+            'Someone asked to reset the password for this GroundSwell partner account. If it was you, choose a new password below; the link works for one hour. If not, ignore this email.',
             link,
             'Choose a new password'
           ),
@@ -195,12 +196,12 @@ export async function sendPartnerEmail(kind: 'invite' | 'reset', to: string, com
   try {
     const result = await new Resend(key).emails.send({ from: FROM, to, ...message });
     if (result.error) {
-      console.error('Groundswell partner email failed:', result.error);
+      console.error('GroundSwell partner email failed:', result.error);
       return false;
     }
     return true;
   } catch (err) {
-    console.error('Groundswell partner email failed:', err);
+    console.error('GroundSwell partner email failed:', err);
     return false;
   }
 }
@@ -213,10 +214,10 @@ export async function notifyNewPartnerAudit(partner: PartnerProfile, businessNam
     await new Resend(key).emails.send({
       from: FROM,
       to: 'contact@newwaveitfl.com',
-      subject: `[Groundswell] ${partner.company} queued an audit: ${businessName}`,
-      html: `<p>${escapeHtml(partner.company)} (${escapeHtml(partner.email)}) queued a Croissance audit for <strong>${escapeHtml(businessName)}</strong>.</p><p>Run it from Groundswell: ${SITE_URL}/groundswell/admin/audits</p>`,
+      subject: `[GroundSwell] ${partner.company} queued an audit: ${businessName}`,
+      html: `<p>${escapeHtml(partner.company)} (${escapeHtml(partner.email)}) queued a GroundSwell audit for <strong>${escapeHtml(businessName)}</strong>.</p><p>Run it from GroundSwell: ${SITE_URL}/groundswell/admin/audits</p>`,
     });
   } catch (err) {
-    console.error('Groundswell partner notification failed:', err);
+    console.error('GroundSwell partner notification failed:', err);
   }
 }

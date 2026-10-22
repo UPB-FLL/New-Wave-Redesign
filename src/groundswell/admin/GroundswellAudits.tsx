@@ -576,7 +576,7 @@ export default function GroundswellAudits() {
             Queue a business
           </h2>
           <p className="gs-admin-fine-print">
-            Queue a Croissance audit or competitor benchmark. Reports are saved privately in GroundSwell.
+            Queue a GroundSwell audit or competitor benchmark. Reports are saved privately in GroundSwell.
           </p>
           <div className="gs-admin-form-fields">
             <label className="space-y-1 text-sm font-medium">

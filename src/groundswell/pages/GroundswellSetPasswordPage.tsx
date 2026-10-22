@@ -36,7 +36,8 @@ export default function GroundswellSetPasswordPage() {
 
   return (
     <GroundswellFrame>
-      <div className="max-w-md">
+      <div className="gs-portal-password">
+        <p className="gs-portal-eyebrow">Your partner account</p>
         <h1 className="text-3xl font-bold">Choose your password</h1>
         <p className="mt-2 text-sm gs-muted">Use at least 10 characters. A passphrase of a few words is easiest to remember.</p>
         <div className="mt-6">
@@ -57,13 +58,31 @@ export default function GroundswellSetPasswordPage() {
                 <label htmlFor="pw-new" className="gs-label">
                   New password
                 </label>
-                <input id="pw-new" type="password" autoComplete="new-password" minLength={10} required value={password} onChange={(e) => setPassword(e.target.value)} className="input-light" />
+                <input
+                  id="pw-new"
+                  type="password"
+                  autoComplete="new-password"
+                  minLength={10}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="input-light"
+                />
               </div>
               <div className="mt-4">
                 <label htmlFor="pw-confirm" className="gs-label">
                   Type it again
                 </label>
-                <input id="pw-confirm" type="password" autoComplete="new-password" minLength={10} required value={confirm} onChange={(e) => setConfirm(e.target.value)} className="input-light" />
+                <input
+                  id="pw-confirm"
+                  type="password"
+                  autoComplete="new-password"
+                  minLength={10}
+                  required
+                  value={confirm}
+                  onChange={(e) => setConfirm(e.target.value)}
+                  className="input-light"
+                />
               </div>
               {error ? (
                 <p className="gs-alert mt-3" role="alert">

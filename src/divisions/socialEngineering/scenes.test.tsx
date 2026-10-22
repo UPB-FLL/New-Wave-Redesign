@@ -16,7 +16,7 @@ import { PAGE_SCENES, SCENE_PAGE_KEYS, type ScenePageKey } from './motion/scenes
 import { SceneSlot } from './motion/scenes/SceneSlot';
 import SocialEngineeringContactPage from './pages/SocialEngineeringContactPage';
 import SocialEngineeringContactUsPage from './pages/SocialEngineeringContactUsPage';
-import SocialEngineeringCroissancePage from './pages/SocialEngineeringCroissancePage';
+import SocialEngineeringGroundswellPage from './pages/SocialEngineeringGroundswellPage';
 import SocialEngineeringCustomersPage from './pages/SocialEngineeringCustomersPage';
 import SocialEngineeringHubPage from './pages/SocialEngineeringHubPage';
 import SocialEngineeringServicePage from './pages/SocialEngineeringServicePage';
@@ -104,8 +104,7 @@ const PAGES_WITH_SCENES: [string, () => React.ReactElement, ScenePageKey[]][] = 
   ]),
   ['contact', () => <SocialEngineeringContactPage />, ['contact']],
   ['contact-us', () => <SocialEngineeringContactUsPage />, ['contactUs']],
-  // Croissance and Customers reuse registered scenes rather than adding their own.
-  ['croissance', () => <SocialEngineeringCroissancePage />, ['hub']],
+  // GroundSwell and Customers reuse registered scenes rather than adding their own.
   ['customers', () => <SocialEngineeringCustomersPage />, ['hubSection']],
 ];
 
@@ -263,7 +262,6 @@ describe('scene placement', () => {
       ]),
       ['contact', () => <SocialEngineeringContactPage />, 'compact'],
       ['contactUs', () => <SocialEngineeringContactUsPage />, 'compact'],
-      ['hub', () => <SocialEngineeringCroissancePage />, 'large'],
       ['hubSection', () => <SocialEngineeringCustomersPage />, 'compact'],
     ];
     for (const [key, page, size] of cases) {
@@ -304,13 +302,11 @@ describe('scene placement', () => {
     expect(scenesIn(container)).toHaveLength(2);
   });
 
-  it('shows the Croissance scene from 375px and the Customers scene only beside the text, each on the dark hero', () => {
-    const croissance = renderAt(<SocialEngineeringCroissancePage />);
-    const croissanceHero = croissance.container.querySelector('main > section [data-page-scene="hub"]') as HTMLElement;
-    expect(classesOf(croissanceHero)).toContain(SMALL_PHONE_HIDDEN);
-    expect(classesOf(croissanceHero)).not.toContain(BELOW_GRID_HIDDEN);
-    expect(croissanceHero.style.background).toContain('var(--nw-deep-current)');
-    croissance.unmount();
+  it('uses the supplied GroundSwell artwork and keeps the Customers scene beside its text', () => {
+    const groundswell = renderAt(<SocialEngineeringGroundswellPage />);
+    expect(groundswell.container.querySelector('[data-page-scene]')).toBeNull();
+    expect(groundswell.container.querySelector('.gs-marketing-preview img')).toHaveAttribute('src', '/brand/social-engineering/01_Logos/SVG/GroundSwell_Mark_Reverse.svg');
+    groundswell.unmount();
 
     // No actions in the Customers hero, so below the grid the scene would sit alone under the summary.
     const customers = renderAt(<SocialEngineeringCustomersPage />);

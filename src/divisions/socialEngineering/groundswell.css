@@ -1,0 +1,99 @@
+/* GroundSwell's product page: supplied v2 identity, scoped away from other division pages. */
+.nwse-root.gs-marketing {
+  --nw-font-display: 'Plus Jakarta Sans', sans-serif;
+  --nw-font-body: 'Inter', sans-serif;
+  --nw-font-technical: 'IBM Plex Mono', monospace;
+  --nw-current-navy: #09131D;
+  --nw-deep-current: #09131D;
+  --nw-signal-cyan: #31C6CF;
+  --nw-continuity-green: #31C6CF;
+  --nwse-lure-amber: #F2A33A;
+  --nwse-lure-amber-deep: #317B92;
+  --nwse-header-height: 0px;
+  font-family: var(--nw-font-body);
+}
+.gs-marketing :is(a,button,input,summary,[tabindex]):focus-visible { outline: 3px solid var(--gs-tide); outline-offset: 4px; }
+.gs-marketing #main:focus { outline: none; }
+.gs-marketing .gs-marketing-skip { position: fixed; top: -100px; left: 16px; z-index: 100; padding: 12px 20px; background: var(--gs-white); color: var(--gs-navy); border: 2px solid var(--gs-navy); }
+.gs-marketing .gs-marketing-skip:focus { top: 12px; }
+.gs-marketing .gs-marketing-header { background: var(--gs-white); border-bottom: 1px solid var(--gs-mist); }
+.gs-marketing .gs-marketing-header-inner { max-width: 1280px; margin: 0 auto; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; gap: 32px; }
+.gs-marketing .gs-marketing-logo { display: block; flex: none; padding: 16px 0; }
+.gs-marketing .gs-marketing-logo img { display: block; width: 220px; height: auto; max-width: none; }
+.gs-marketing .gs-marketing-logo span { display: block; margin-top: 16px; font-family: var(--nw-font-technical); font-size: 11px; color: var(--gs-slate); }
+.gs-marketing .gs-marketing-header nav { display: flex; align-items: center; gap: 28px; font-size: 13px; font-weight: 500; }
+.gs-marketing .gs-marketing-header nav > a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; }
+.gs-marketing .gs-marketing-header nav > a:not(.gs-marketing-button):hover { color: var(--gs-tide); }
+.gs-marketing .gs-marketing-button { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 13px 20px; border: 1px solid transparent; border-radius: 7px; background: var(--gs-amber); color: var(--gs-navy); font-size: 14px; line-height: 1.5; font-weight: 600; transition: background-color 150ms,color 150ms; }
+.gs-marketing .gs-marketing-button:hover { background: var(--gs-navy); color: var(--gs-white); }
+.gs-marketing .gs-marketing-menu { display: none; align-items: center; justify-content: center; flex: none; width: 44px; height: 44px; border: 1px solid var(--gs-mist); border-radius: 7px; }
+.gs-marketing .gs-marketing-hero { position: relative; isolation: isolate; overflow: hidden; background: var(--gs-navy); color: var(--gs-white); }
+.gs-marketing .gs-marketing-hero::before { content: ''; position: absolute; inset: 0; z-index: -1; opacity: .2; background: url('/brand/social-engineering/02_Graphics/GroundSwell_Contours_Dark.svg') center right / auto 120% no-repeat; pointer-events: none; }
+.gs-marketing .gs-marketing-hero-inner { max-width: 1280px; margin: 0 auto; padding: 76px 32px 80px; display: grid; grid-template-columns: minmax(0,1.15fr) minmax(0,.85fr); align-items: center; gap: 64px; }
+.gs-marketing .gs-marketing-eyebrow { font-family: var(--nw-font-technical); font-size: 11px; font-weight: 500; line-height: 1.6; letter-spacing: .08em; text-transform: uppercase; }
+.gs-marketing .gs-marketing-hero-copy > .gs-marketing-eyebrow { color: var(--gs-cyan); }
+.gs-marketing .gs-marketing-hero h1 { margin-top: 24px; max-width: 600px; font-family: var(--nw-font-display); font-size: clamp(42px,4.8vw,68px); font-weight: 700; line-height: 1.1; letter-spacing: -.04em; text-wrap: balance; }
+.gs-marketing .gs-marketing-summary { max-width: 600px; margin-top: 28px; font-size: 17px; line-height: 1.8; color: var(--gs-mist); }
+.gs-marketing .gs-marketing-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+.gs-marketing .gs-marketing-hero .gs-marketing-button:hover { background: var(--gs-white); color: var(--gs-navy); }
+.gs-marketing .gs-marketing-button-outline { background: transparent; border-color: #526271; color: var(--gs-white); }
+.gs-marketing .gs-marketing-hero :is(a,button):focus-visible { outline-color: var(--gs-cyan); }
+.gs-marketing .gs-marketing-facts { display: flex; flex-wrap: wrap; gap: 12px 20px; margin-top: 28px; color: var(--gs-mist); font-size: 11px; }
+.gs-marketing .gs-marketing-facts li { display: flex; align-items: center; gap: 7px; }
+.gs-marketing .gs-marketing-facts svg { color: var(--gs-cyan); flex: none; }
+.gs-marketing .gs-marketing-preview { min-width: 0; padding: 28px; border: 1px solid #314455; border-radius: 12px; background: var(--gs-navy2); }
+.gs-marketing .gs-marketing-preview-heading { display: flex; align-items: center; gap: 16px; padding-bottom: 28px; }
+.gs-marketing .gs-marketing-preview-heading img { display: block; flex: none; width: 56px; height: 56px; }
+.gs-marketing .gs-marketing-preview-heading > span { color: var(--gs-mist); font-family: var(--nw-font-display); font-size: 19px; line-height: 1.5; }
+.gs-marketing .gs-marketing-preview-heading strong { color: var(--gs-white); font-weight: 700; }
+.gs-marketing .gs-marketing-preview > .gs-marketing-eyebrow { color: var(--gs-cyan); padding-bottom: 20px; }
+.gs-marketing .gs-marketing-preview ol { display: grid; gap: 22px; }
+.gs-marketing .gs-marketing-preview li { display: flex; align-items: start; gap: 14px; }
+.gs-marketing .gs-marketing-phase-number { display: grid; place-items: center; flex: none; width: 30px; height: 30px; border-radius: 5px; background: var(--gs-cyan); color: var(--gs-navy); font-family: var(--nw-font-technical); font-size: 11px; }
+.gs-marketing .gs-marketing-preview h2 { font-family: var(--nw-font-body); font-size: 15px; line-height: 1.5; font-weight: 600; }
+.gs-marketing .gs-marketing-preview li p { margin-top: 3px; color: var(--gs-cyan); font-size: 11px; }
+.gs-marketing .gs-marketing-preview li div > span { display: block; margin-top: 8px; color: var(--gs-mist); font-size: 12px; line-height: 1.6; }
+.gs-marketing .gs-marketing-preview > a { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 28px; padding-top: 20px; border-top: 1px solid #314455; font-size: 12px; font-weight: 600; }
+.gs-marketing .gs-marketing-footer { display: flex; justify-content: space-between; gap: 40px; padding: 56px max(32px,calc((100vw - 1216px)/2)); background: var(--gs-navy); color: var(--gs-white); }
+.gs-marketing .gs-marketing-footer img { display: block; width: 220px; height: auto; margin: 16px 0; }
+.gs-marketing .gs-marketing-footer p { margin-top: 24px; color: var(--gs-mist); font-size: 13px; }
+.gs-marketing .gs-marketing-footer nav { display: flex; flex-wrap: wrap; align-content: center; gap: 18px 28px; max-width: 560px; font-size: 13px; }
+.gs-marketing .gs-marketing-footer a { display: inline-flex; min-height: 36px; align-items: center; }
+.gs-marketing .gs-marketing-footer a:hover { color: var(--gs-cyan); text-decoration: underline; }
+.gs-marketing .gs-marketing-footer a:focus-visible { outline-color: var(--gs-cyan); }
+.gs-marketing .nwse-card { box-shadow: none; }
+.gs-marketing .nwse-icon-green, .gs-marketing .nwse-tint-green { background: var(--gs-foam); color: var(--gs-navy); }
+@media(max-width: 1100px) {
+ .gs-marketing .gs-marketing-header nav { gap: 16px; font-size: 12px; }
+ .gs-marketing .gs-marketing-hero-inner { gap: 32px; }
+}
+@media(max-width: 900px) {
+ .gs-marketing .gs-marketing-header-inner { display: flex; flex-wrap: wrap; gap: 0; }
+ .gs-marketing .gs-marketing-menu { display: inline-flex; margin-left: auto; }
+ .gs-marketing .gs-marketing-header nav { display: none; flex-basis: 100%; flex-direction: column; align-items: stretch; gap: 4px; padding: 16px 0; }
+ .gs-marketing .gs-marketing-header nav.is-open { display: flex; }
+ .gs-marketing .gs-marketing-header nav > a { padding: 12px; }
+ .gs-marketing .gs-marketing-hero-inner { grid-template-columns: minmax(0,1fr); padding-top: 56px; padding-bottom: 56px; gap: 40px; }
+ .gs-marketing .gs-marketing-hero h1 { max-width: 580px; font-size: clamp(42px,7vw,60px); }
+ .gs-marketing .gs-marketing-preview { max-width: 600px; width: 100%; }
+ .gs-marketing .gs-marketing-footer { flex-direction: column; gap: 32px; }
+}
+@media(max-width: 600px) {
+ .gs-marketing .gs-marketing-header-inner { padding: 8px 16px; }
+ .gs-marketing .gs-marketing-hero-inner { padding: 40px 20px 44px; gap: 32px; }
+ .gs-marketing .gs-marketing-hero h1 { font-size: 42px; }
+ .gs-marketing .gs-marketing-summary { font-size: 16px; line-height: 1.75; }
+ .gs-marketing .gs-marketing-actions { flex-direction: column; align-items: stretch; }
+ .gs-marketing .gs-marketing-preview { padding: 24px 20px; }
+ .gs-marketing .gs-marketing-preview-heading { padding-bottom: 24px; }
+ .gs-marketing .gs-marketing-footer { padding: 36px 20px; }
+}
+@media(prefers-reduced-motion: reduce) { .gs-marketing *, .gs-marketing *::before, .gs-marketing *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+
+.gs-marketing .nwse-btn-amber-deep { background: var(--gs-amber); color: var(--gs-navy); }
+.gs-marketing .nwse-btn-amber-deep:hover { background: var(--gs-navy); color: var(--gs-white); }
+
+.gs-marketing .gs-marketing-breadcrumb { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 28px; color: var(--gs-mist); font-size: 11px; }
+.gs-marketing .gs-marketing-breadcrumb a:hover { color: var(--gs-cyan); text-decoration: underline; }
+.gs-marketing .gs-marketing-sample-link { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin-top: 12px; font-size: 13px; font-weight: 500; }
+.gs-marketing .gs-marketing-sample-link:hover { color: var(--gs-cyan); }

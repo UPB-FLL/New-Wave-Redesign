@@ -157,7 +157,7 @@ function ServicePageBody({ service }: { service: DivisionServiceContent }) {
 
       <CtaBand
         heading={service.ctaHeading ?? 'Start with the audit'}
-        body="Before we recommend anything, we run Croissance on the business and its rivals, so the first conversation starts from data rather than a pitch."
+        body="Before we recommend anything, we run GroundSwell on the business and its rivals, so the first conversation starts from data rather than a pitch."
       />
     </DivisionLayout>
   );

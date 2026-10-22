@@ -10,7 +10,7 @@ import SocialEngineeringContactPage from './pages/SocialEngineeringContactPage';
 import SocialEngineeringContactUsPage from './pages/SocialEngineeringContactUsPage';
 import SocialEngineeringCustomersPage from './pages/SocialEngineeringCustomersPage';
 import SocialEngineeringHubPage from './pages/SocialEngineeringHubPage';
-import SocialEngineeringCroissancePage from './pages/SocialEngineeringCroissancePage';
+import SocialEngineeringGroundswellPage from './pages/SocialEngineeringGroundswellPage';
 import SocialEngineeringServicePage from './pages/SocialEngineeringServicePage';
 import { DIVISION_ICONS } from './icons/iconData';
 import { DIVISION_JSONLD_ELEMENT_ID } from './prerender';
@@ -21,7 +21,7 @@ import {
   DIVISION_CONTACT_PATH,
   DIVISION_CONTACT_US_PATH,
   DIVISION_CUSTOMERS_PATH,
-  DIVISION_CROISSANCE_PATH,
+  DIVISION_GROUNDSWELL_PATH,
   DIVISION_NAME,
   DIVISION_PRIMARY_CTA,
   SITE_URL,
@@ -169,7 +169,7 @@ describe('division positioning', () => {
   const pages: [string, React.ReactElement][] = [
     ['hub', <SocialEngineeringHubPage />],
     ...divisionServices.map((service): [string, React.ReactElement] => [service.slug, <SocialEngineeringServicePage slug={service.slug} />]),
-    ['croissance', <SocialEngineeringCroissancePage />],
+    ['groundswell', <SocialEngineeringGroundswellPage />],
     ['customers', <SocialEngineeringCustomersPage />],
     ['contact-us', <SocialEngineeringContactUsPage />],
     ['contact', <SocialEngineeringContactPage />],
@@ -192,7 +192,7 @@ describe('division positioning', () => {
   // The division is a national, remote-first growth team for small businesses
   // (2026-10-21). No page, title, description, or keyword set may position it
   // as a home-market agency again. The Customers page's facts (where each
-  // business is) and the Croissance example's audit data are facts about
+  // business is) and the GroundSwell example's audit data are facts about
   // other businesses, so they are checked for the positioning copy only.
   const LOCAL_POSITIONING = /Fort Lauderdale|South Florida|Broward|Palm Beach|Miami|Boca Raton|South FL\b/i;
   const positioningPages: [string, React.ReactElement][] = [
@@ -216,7 +216,7 @@ describe('division positioning', () => {
   });
 
   it('describes the division as national in its copy, metadata, and structured data', () => {
-    // The Croissance page's worked example (the sample board and the ad plan's
+    // The GroundSwell page's worked example (the sample board and the ad plan's
     // footnote) names the real places its data came from, so only the audit
     // page's own positioning fields are checked here.
     const auditPositioning = [auditContent.metaTitle, auditContent.metaDescription, auditContent.keywords, auditContent.headline, auditContent.summary];
@@ -291,7 +291,7 @@ describe('division icons', () => {
   const pages: [string, React.ReactElement][] = [
     ['hub', <SocialEngineeringHubPage />],
     ['integration', <SocialEngineeringServicePage slug="integration" />],
-    ['croissance', <SocialEngineeringCroissancePage />],
+    ['groundswell', <SocialEngineeringGroundswellPage />],
     ['customers', <SocialEngineeringCustomersPage />],
     ['contact-us', <SocialEngineeringContactUsPage />],
     ['contact', <SocialEngineeringContactPage />],
@@ -414,22 +414,22 @@ describe('DivisionHeader menus', () => {
   });
 });
 
-describe('SocialEngineeringCroissancePage', () => {
+describe('SocialEngineeringGroundswellPage', () => {
   it('renders its own head, one H1, its breadcrumb, and its FAQs', () => {
-    renderAt(<SocialEngineeringCroissancePage />);
+    renderAt(<SocialEngineeringGroundswellPage />);
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(auditContent.headline);
     expect(document.title).toBe(auditContent.metaTitle);
-    expect(canonical()).toBe(`${SITE_URL}${DIVISION_CROISSANCE_PATH}`);
+    expect(canonical()).toBe(`${SITE_URL}${DIVISION_GROUNDSWELL_PATH}`);
     expect(jsonLdBlocks()).toHaveLength(1);
     const breadcrumb = screen.getByRole('navigation', { name: 'Breadcrumb' });
     expect(within(breadcrumb).getByText(auditContent.navLabel)).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByText(auditContent.summary)).toHaveTextContent(DIVISION_NAME);
+    expect(screen.getByText(auditContent.summary)).toHaveTextContent('GroundSwell');
     auditContent.faqs.forEach((faq) => expect(screen.getByText(faq.question)).toBeInTheDocument());
   });
 
   it('opens on the audit’s ground rules, a second button to the example, and in-page links to every part', () => {
-    renderAt(<SocialEngineeringCroissancePage />);
+    renderAt(<SocialEngineeringGroundswellPage />);
     const hero = screen.getByRole('heading', { level: 1 }).closest('section')!;
     expect(within(hero).getByText(auditContent.facts[0]).closest('[data-role="hero-facts"]')).not.toBeNull();
     expect(within(hero).getByRole('link', { name: DIVISION_PRIMARY_CTA })).toHaveAttribute('href', DIVISION_CONTACT_PATH);
@@ -442,7 +442,7 @@ describe('SocialEngineeringCroissancePage', () => {
   });
 
   it('steps through the process one step at a time, Next naming the next step and the last step ending on the discovery call', () => {
-    renderAt(<SocialEngineeringCroissancePage />);
+    renderAt(<SocialEngineeringGroundswellPage />);
     const band = screen.getByRole('region', { name: auditContent.process.heading });
     const tabs = within(band).getAllByRole('tab');
     expect(tabs.map((tab) => tab.textContent)).toEqual(auditContent.process.steps.map((step, index) => `${String(index + 1).padStart(2, '0')}${step.title}`));
@@ -460,7 +460,7 @@ describe('SocialEngineeringCroissancePage', () => {
   });
 
   it('names the engine, every connector in its explorer, and all three reports', () => {
-    renderAt(<SocialEngineeringCroissancePage />);
+    renderAt(<SocialEngineeringGroundswellPage />);
     const engine = screen.getByRole('region', { name: auditContent.engine.heading });
     const tabs = within(engine).getAllByRole('tab');
     expect(tabs.map((tab) => tab.textContent)).toEqual(auditConnectors.map((c) => c.name));
@@ -483,7 +483,7 @@ describe('SocialEngineeringCroissancePage', () => {
   });
 
   it('shows Uncommon Path Brewing’s dated audit, with permission and sources, as the example, one part at a time', () => {
-    renderAt(<SocialEngineeringCroissancePage />);
+    renderAt(<SocialEngineeringGroundswellPage />);
     const sample = screen.getByRole('region', { name: auditContent.sample.heading });
     const viewer = sample.querySelector('[data-role="sample-viewer"]')!;
     expect(viewer).toHaveTextContent('Uncommon Path Brewing');
@@ -510,13 +510,13 @@ describe('SocialEngineeringCroissancePage', () => {
 
 /** The sample audit's viewer with one of its parts open. */
 const openSamplePart = (title: string) => {
-  renderAt(<SocialEngineeringCroissancePage />);
+  renderAt(<SocialEngineeringGroundswellPage />);
   const viewer = screen.getByRole('region', { name: auditContent.sample.heading }).querySelector('[data-role="sample-viewer"]') as HTMLElement;
   fireEvent.click(within(viewer).getByRole('tab', { name: title }));
   return within(viewer).getByRole('tabpanel');
 };
 
-describe('Croissance ad plan', () => {
+describe('GroundSwell ad plan', () => {
   it('shows the brewery’s plan from the model, funded rows first, with Reddit listed as not modeled', () => {
     const panel = openSamplePart(auditContent.sample.tabs.adPlan);
     expect(within(panel).getByRole('heading', { name: auditContent.adPlan.heading })).toBeInTheDocument();
@@ -537,7 +537,7 @@ describe('Croissance ad plan', () => {
   });
 });
 
-describe('Croissance change ranking', () => {
+describe('GroundSwell change ranking', () => {
   it('ranks every change with its area, hours and return, and compares today with the plan', () => {
     const panel = openSamplePart(auditContent.sample.tabs.changes);
     expect(within(panel).getByRole('heading', { name: auditContent.changes.heading })).toBeInTheDocument();
@@ -788,19 +788,19 @@ describe('the two contact pages', () => {
 });
 
 describe('header and footer links', () => {
-  it('lists Overview, Services, Croissance, Customers, and Contact us before the discovery-call button on desktop', () => {
+  it('lists Overview, Services, GroundSwell, Customers, and Contact us before the discovery-call button on desktop', () => {
     renderAt(<DivisionHeader />);
     const nav = screen.getByRole('navigation', { name: DIVISION_NAME });
     const row = nav.querySelector('[data-role="nav-row"] > [data-role="desktop-links"]')!;
     expect([...row.querySelectorAll(':scope > a, :scope > div > button')].map((item) => item.textContent?.trim())).toEqual([
       'Overview',
       'Services',
-      'Croissance',
+      'GroundSwell',
       'Customers',
       'Contact us',
       DIVISION_PRIMARY_CTA,
     ]);
-    expect(within(row as HTMLElement).getByRole('link', { name: 'Croissance' })).toHaveAttribute('href', DIVISION_CROISSANCE_PATH);
+    expect(within(row as HTMLElement).getByRole('link', { name: 'GroundSwell' })).toHaveAttribute('href', DIVISION_GROUNDSWELL_PATH);
     expect(within(row as HTMLElement).getByRole('link', { name: 'Customers' })).toHaveAttribute('href', DIVISION_CUSTOMERS_PATH);
     expect(within(row as HTMLElement).getByRole('link', { name: 'Contact us' })).toHaveAttribute('href', DIVISION_CONTACT_US_PATH);
     expect(within(row as HTMLElement).getByRole('link', { name: DIVISION_PRIMARY_CTA })).toHaveClass('nwse-btn-amber-deep');
@@ -817,12 +817,12 @@ describe('header and footer links', () => {
     expect(within(row).getByRole('link', { name: 'Overview' })).not.toHaveAttribute('aria-current');
   });
 
-  it('adds Croissance, its partner portal, Customers, and Contact us to the footer’s division column', () => {
+  it('adds GroundSwell, its partner portal, Customers, and Contact us to the footer’s division column', () => {
     renderAt(<DivisionFooter />);
     const column = screen.getByRole('heading', { level: 2, name: 'NW Social Engineering' }).parentElement!;
     expect(within(column).getAllByRole('link').map((link) => [link.textContent, link.getAttribute('href')])).toEqual([
       ['Division overview', '/social-engineering'],
-      ['Croissance', DIVISION_CROISSANCE_PATH],
+      ['GroundSwell', DIVISION_GROUNDSWELL_PATH],
       ['Partner portal', GROUNDSWELL_PATH],
       ['Customers', DIVISION_CUSTOMERS_PATH],
       ['Contact us', DIVISION_CONTACT_US_PATH],

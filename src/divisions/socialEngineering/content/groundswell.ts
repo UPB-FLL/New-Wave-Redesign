@@ -1,22 +1,13 @@
 import type { DivisionFaq, DivisionPoint } from '../types';
 import type { DivisionIconName } from '../icons/iconData';
 
-// The Croissance page (/social-engineering/croissance). Pure data.
-//
-// Croissance (French for "growth") is the public name of the audit the
-// division runs for prospects and clients: the groundswell skill
-// (.claude/skills/groundswell) and the queue at /groundswell/admin/audits, which keep
-// their internal "marketing audit" names. It runs on the Groundswell engine
-// and its Currents, one per kind of public data. Keep the process here in step with
-// the skill: public data only, every number sourced and dated, three reports
-// in the client's brand, delivered in the private Groundswell portal.
-//
-// The worked example is a real audit: Uncommon Path Brewing's, with the
-// owner's permission (see auditSample). No percentages (seo.test.ts), so rates
-// and ROI are left out and only counts and dollars shown.
+// GroundSwell is the public app and the engine behind its audit phases.
+// Public research starts without account access; clients can then connect their
+// own accounts for the integrated plan. Keep figures in the worked example
+// sourced and dated, and preserve the business and partner branding on reports.
 
-export const AUDIT_PRODUCT_NAME = 'Croissance';
-export const AUDIT_ENGINE_NAME = 'Groundswell';
+export const AUDIT_PRODUCT_NAME = 'GroundSwell';
+export const AUDIT_ENGINE_NAME = 'GroundSwell';
 export const AUDIT_CONNECTORS_NAME = 'Currents';
 
 export interface AuditConnector {
@@ -84,7 +75,7 @@ export const auditConnectors: readonly AuditConnector[] = [
   {
     name: 'Delivery Current',
     icon: 'send',
-    source: 'Your private Groundswell portal',
+    source: 'Your private GroundSwell portal',
     gathers: 'The three finished reports, stored privately and opened from your portal sign-in; only your account and New Wave can see them.',
     example: 'Three PDFs waiting under the brewery in its portal.',
   },
@@ -170,17 +161,17 @@ export const auditSample = {
 } as const;
 
 export const auditContent = {
-  metaTitle: 'Croissance growth audit | New Wave: Social Engineering',
+  metaTitle: 'GroundSwell — Growth audits & partner workspace | New Wave',
   metaDescription:
-    'Croissance from New Wave: Social Engineering audits your Google, social, website, ads, and rivals from public data, then delivers three reports in your brand.',
+    'GroundSwell brings growth audits, competitor plans, branded reports, and a partner workspace together. Built by New Wave for agencies and businesses.',
   keywords:
-    'croissance, growth audit, marketing audit for small business, competitor analysis, local search audit, google ads roi estimate, social media audit, new wave it',
+    'groundswell, growth audit, marketing audit for small business, competitor analysis, local search audit, google ads roi estimate, social media audit, new wave it',
   navLabel: AUDIT_PRODUCT_NAME,
-  kicker: `${AUDIT_PRODUCT_NAME} · powered by ${AUDIT_ENGINE_NAME}`,
-  headline: 'A growth audit anyone on your team can read',
-  summary: `${AUDIT_PRODUCT_NAME}, French for growth, is how New Wave: Social Engineering audits your marketing before we recommend anything, for any business in the United States. Its ${AUDIT_ENGINE_NAME} engine gathers your public data and your rivals’, models a realistic return, and hands you three reports in your own brand.`,
+  kicker: 'GroundSwell · by New Wave',
+  headline: 'Built to move people.',
+  summary: 'The app and engine for your next move. GroundSwell turns public research into a growth audit, a competitor plan, and branded reports. Manage the work in one partner workspace, then connect client accounts for a plan grounded in their own figures.',
   /** Under the hero summary: the audit's ground rules in three short facts (no numbers; one line from lg). */
-  facts: ['Public data only', 'Every number sourced and dated', 'Reports in your brand'],
+  facts: ['Start with public data', 'Every number sourced and dated', 'Reports in your brand'],
   /** The hero's second button: straight to the worked example. */
   secondaryCta: 'See a real audit',
   /** The row of in-page links under the hero. */
@@ -199,7 +190,7 @@ export const auditContent = {
   engine: {
     kicker: 'The engine',
     heading: `${AUDIT_ENGINE_NAME} and its ${AUDIT_CONNECTORS_NAME}`,
-    intro: `${AUDIT_ENGINE_NAME} is the engine that runs every audit. Each of its ${AUDIT_CONNECTORS_NAME} connects to one kind of public data, so every audit draws on the same sources, in the same way, with a source and date on every number. Pick one to see where it looks and what it brings back.`,
+    intro: `${AUDIT_ENGINE_NAME} is the engine and app that carry the work from research to reports. Each of its ${AUDIT_CONNECTORS_NAME} connects to one kind of public data, so every audit draws on the same sources, in the same way, with a source and date on every number. Pick one to see where it looks and what it brings back.`,
     explorerLabel: `The ${AUDIT_CONNECTORS_NAME}`,
     sourceLabel: 'Where it looks',
     gathersLabel: 'What it brings back',
@@ -233,7 +224,7 @@ export const auditContent = {
       },
       {
         title: 'Deliver',
-        detail: 'The reports land in your private Groundswell portal, under your business, where only your sign-in and New Wave can open them.',
+        detail: 'The reports land in your private GroundSwell portal, under your business, where only your sign-in and New Wave can open them.',
         icon: 'send',
       },
     ] satisfies DivisionPoint[],
@@ -259,7 +250,7 @@ export const auditContent = {
     kicker: 'The ad plan',
     heading: 'Win the searches you can own',
     intro:
-      'Groundswell models every angle a business can win on every ad platform its industry allows, in a low, medium and high case, and ranks them by return. For the brewery that means private events and pizza, not “best brewery”.',
+      'GroundSwell models every angle a business can win on every ad platform its industry allows, in a low, medium and high case, and ranks them by return. For the brewery that means private events and pizza, not “best brewery”.',
     columns: { angle: 'Angle', platform: 'Platform', cpc: 'Cost per click', clicks: 'Clicks a month', spend: 'Ad spend a month', net: '12-month net, low to high', call: 'Call' },
     calls: { fund: 'Fund', test: 'Test', skip: 'Skip' },
     /** The platform rules the funded and tested rows run under. */
@@ -323,7 +314,7 @@ export const auditContent = {
     'Public data only: no logins, no sign-ups, and no one contacts your business or customers.',
     'Every number carries its source and date. Anything unknown is marked unknown, never guessed.',
     'Ranges, not promises: three scenarios, including the one that loses money.',
-    'Reports link only to the Groundswell portal, never to an outside site.',
+    'Reports link only to the GroundSwell portal, never to an outside site.',
   ],
   faqs: [
     {
@@ -333,7 +324,7 @@ export const auditContent = {
     {
       question: 'Where does the data come from?',
       answer:
-        'Only public sources: Google Search and Maps, Google Keyword Planner, your public Instagram, your website, PageSpeed Insights, the Wayback Machine, and the Google Ads Transparency Center. Each number in the reports names its source and date.',
+        'The initial audit uses public sources: Google Search and Maps, Google Keyword Planner, your public Instagram, your website, PageSpeed Insights, the Wayback Machine, and the Google Ads Transparency Center. Each number in the reports names its source and date. The integrated plan can also use the client’s own figures from accounts they connect.',
     },
     {
       question: 'How is the return worked out?',
@@ -342,7 +333,11 @@ export const auditContent = {
     },
     {
       question: 'Who can see the reports?',
-      answer: 'You and New Wave. The files are stored privately and opened from your Groundswell sign-in; a partner sees only the businesses it queued.',
+      answer: 'You and New Wave. The files are stored privately and opened from your GroundSwell sign-in; a partner sees only the businesses it queued.',
+    },
+    {
+      question: 'Is GroundSwell the app or the engine?',
+      answer: 'Both. GroundSwell is the engine that gathers the data and builds the reports, and the workspace where partners manage prospects and clients, follow each phase, and open the results.',
     },
     {
       question: 'Can we run it again later?',

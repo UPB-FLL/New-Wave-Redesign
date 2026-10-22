@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { GROUNDSWELL_BRAND } from './brand';
 
-/** Staff routes own their browser identity only while the layout is mounted. */
+/** GroundSwell routes own their browser identity only while the layout is mounted. */
 export function useGroundswellBrand() {
   useEffect(() => {
     const previous = [
@@ -10,6 +10,10 @@ export function useGroundswellBrand() {
       const placeholder = document.createComment('GroundSwell browser identity');
       node.replaceWith(placeholder);
       return { node, placeholder };
+    });
+    const arrivedWithBrandIcons = previous.some(({ node }) => {
+      const href = node.getAttribute('href');
+      return href?.startsWith(GROUNDSWELL_BRAND.digital) || href === GROUNDSWELL_BRAND.favicon;
     });
     const links = [
       { rel: 'icon', href: `${GROUNDSWELL_BRAND.digital}/favicon.ico`, sizes: 'any' },
@@ -23,7 +27,27 @@ export function useGroundswellBrand() {
 
     return () => {
       [...links, theme].forEach((node) => node.remove());
-      previous.forEach(({ node, placeholder }) => placeholder.replaceWith(node));
+      previous.forEach(({ node, placeholder }) => {
+        // A cold marketing-page load starts with brand icons in its HTML.
+        // Leaving that page must still restore the parent site's identity.
+        if (arrivedWithBrandIcons) {
+          const href = node.getAttribute('href');
+          if (href?.startsWith(GROUNDSWELL_BRAND.digital) || href === GROUNDSWELL_BRAND.favicon) {
+            const rel = node.getAttribute('rel');
+            const parentHref =
+              rel === 'manifest'
+                ? '/site.webmanifest'
+                : rel === 'apple-touch-icon'
+                  ? '/apple-touch-icon.png'
+                  : node.getAttribute('type') === 'image/svg+xml'
+                    ? '/favicon.svg'
+                    : '/favicon.ico';
+            node.setAttribute('href', parentHref);
+          }
+          if (node.getAttribute('name') === 'theme-color') node.setAttribute('content', '#101E2D');
+        }
+        placeholder.replaceWith(node);
+      });
     };
   }, []);
 }

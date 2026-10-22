@@ -24,7 +24,7 @@ import type { RoiScenarioResult } from './roi.js';
  * by return, today against the plan, and the ad plan's rows. Without it (the
  * step was skipped, or the audit started before it existed), the return is the
  * write-up step's single search-ad model, as before.
- * Every link must point at the Groundswell portal (`portalLink` throws otherwise);
+ * Every link must point at the GroundSwell portal (`portalLink` throws otherwise);
  * a partner's white-label reports carry no links at all, so they never name New Wave's site.
  *
  * Elements marked data-trim may be removed, last first, until their
@@ -72,8 +72,8 @@ export const preparedBy = (p: Preparer) => `Prepared by ${esc(p.name)}`;
 export const preparerLogo = (p: Preparer) => (p.logo ? `<img class="preparer" src="${esc(p.logo)}" alt="${esc(p.name)}" onerror="this.remove()">` : '');
 
 /** Lead-aware: "Our" at the start of a sentence or element, "our" inside one. */
-const OURS = /(>\s*|[.!?]\s+)?(?:New Wave(?:: Social Engineering| IT)?|NW Social Engineering|Groundswell)(?:’s|'s|’|')?\s?(?=estimate|rule|working|internal|smallest|cost|hourly|own)/g;
-const ENGINE_NAMES = /New Wave: Social Engineering|NW Social Engineering|New Wave IT|New Wave|Groundswell|Croissance/g;
+const OURS = /(>\s*|[.!?]\s+)?(?:New Wave(?:: Social Engineering| IT)?|NW Social Engineering|Groundswell)(?:’s|'s|’|')?\s?(?=estimate|rule|working|internal|smallest|cost|hourly|own)/gi;
+const ENGINE_NAMES = /New Wave: Social Engineering|NW Social Engineering|New Wave IT|New Wave|Groundswell|Croissance/gi;
 
 /**
  * A partner's report in its own words: New Wave's rules and estimates become
@@ -87,11 +87,11 @@ export function ownWording(html: string, p: Preparer): string {
   return html.replace(OURS, (_m, lead: string | undefined) => (lead !== undefined ? `${lead}Our ` : 'our ')).replace(ENGINE_NAMES, () => name);
 }
 
-/** Where every report link goes: the Groundswell portal, where a partner sees its own audits and an admin sees all. */
+/** Where every report link goes: the GroundSwell portal, where a partner sees its own audits and an admin sees all. */
 export const PORTAL_URL = 'https://www.newwaveitfl.com/groundswell';
 
 export function portalLink(url: string): string {
-  if (!(url === PORTAL_URL || url.startsWith(`${PORTAL_URL}/`))) throw new Error(`Reports may only link to the Groundswell portal, not ${url}`);
+  if (!(url === PORTAL_URL || url.startsWith(`${PORTAL_URL}/`))) throw new Error(`Reports may only link to the GroundSwell portal, not ${url}`);
   return url;
 }
 
@@ -826,6 +826,6 @@ ${benchLines.length ? `<h3>Against your competitors</h3>${listHtml(benchLines)}`
 <h3>Next 90 days</h3>
 ${listHtml(m.writeup.next_steps)}
 </div>
-<footer>${d.preparer ? '<span>Slides (PDF) · Full audit (PDF) · all reports in your portal</span>' : `<a href="${esc(deck)}">Slides (PDF)</a><a href="${esc(audit)}">Full audit (PDF)</a><a href="${esc(folder)}">All reports (Groundswell portal)</a>`}</footer>
+<footer>${d.preparer ? '<span>Slides (PDF) · Full audit (PDF) · all reports in your portal</span>' : `<a href="${esc(deck)}">Slides (PDF)</a><a href="${esc(audit)}">Full audit (PDF)</a><a href="${esc(folder)}">All reports (GroundSwell portal)</a>`}</footer>
 </div></body></html>`, who);
 }

@@ -115,7 +115,7 @@ const accountsOf = (over: Record<string, Partial<{ status: string; reason: strin
 describe('Groundswell sign-in page', () => {
   it('signs partners in, links staff to their own sign-in, and carries the privacy notice', () => {
     renderPortal(GROUNDSWELL_PATH);
-    expect(screen.getByRole('heading', { level: 1, name: 'Groundswell' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Built to move people.' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: 'Partner sign-in' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'New Wave staff sign-in' })).toHaveAttribute('href', GROUNDSWELL_ADMIN_PATH);
     expect(screen.getByTestId('form-privacy-notice')).toHaveTextContent(/Signing in sends/);
@@ -159,7 +159,7 @@ describe('Groundswell sign-in page', () => {
 describe('partner prospects page', () => {
   it('sends a signed-out visitor to sign in', async () => {
     renderPortal(GROUNDSWELL_PROSPECTS_PATH);
-    expect(await screen.findByRole('heading', { level: 1, name: 'Groundswell' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Built to move people.' })).toBeInTheDocument();
   });
 
   it('is noindex and lists the partner’s prospects, most recent first, with status and last reports', async () => {
@@ -184,6 +184,29 @@ describe('partner prospects page', () => {
     fireEvent.click(screen.getByRole('button', { name: /Add a prospect/ }));
     expect(screen.getByLabelText('Business name')).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: 'Add a prospect' })).toBeInTheDocument();
+  });
+
+  it('recovers a failed directory read without leaving a loading state or showing empty counts', async () => {
+    api.currentPartner.mockResolvedValue(partner);
+    api.listPartnerCustomers.mockRejectedValueOnce(new Error('The directory is unavailable.')).mockResolvedValue([{ ...harbor, latest: null, last_reports_at: null, audit_count: 0 }]);
+    renderPortal(GROUNDSWELL_PROSPECTS_PATH);
+    expect(await screen.findByRole('alert')).toHaveTextContent('The directory is unavailable.');
+    expect(screen.queryByText('Loading…')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+    expect(await screen.findByRole('table', { name: 'Your prospects' })).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('searches a short directory and can clear a search with no matches', async () => {
+    api.currentPartner.mockResolvedValue(partner);
+    api.listPartnerCustomers.mockResolvedValue([{ ...harbor, latest: null, last_reports_at: null, audit_count: 0 }]);
+    renderPortal(GROUNDSWELL_PROSPECTS_PATH);
+    const search = await screen.findByRole('searchbox', { name: 'Search prospects' });
+    fireEvent.change(search, { target: { value: 'missing' } });
+    expect(screen.getByText('Nothing matches “missing”.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Clear search' }));
+    expect(screen.getByRole('table', { name: 'Your prospects' })).toBeInTheDocument();
+    expect(search).toHaveValue('');
   });
 
   it('opens the form for a first prospect, checks it before sending, then adds it and opens its page', async () => {
@@ -240,7 +263,7 @@ describe('partner prospects page', () => {
     renderPortal(GROUNDSWELL_PROSPECTS_PATH);
     fireEvent.click(await screen.findByRole('button', { name: 'Sign out' }));
     await waitFor(() => expect(api.partnerSignOut).toHaveBeenCalled());
-    expect(await screen.findByRole('heading', { level: 1, name: 'Groundswell' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Built to move people.' })).toBeInTheDocument();
   });
 });
 
@@ -499,9 +522,9 @@ describe('set-password page', () => {
 });
 
 describe('old addresses', () => {
-  it('sends the Croissance partner URLs to Groundswell, keeping an invite link’s token', async () => {
+  it('sends the GroundSwell partner URLs to Groundswell, keeping an invite link’s token', async () => {
     renderPortal(LEGACY_PARTNER_PATH);
-    expect(await screen.findByRole('heading', { level: 1, name: 'Groundswell' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Built to move people.' })).toBeInTheDocument();
     renderPortal(`${LEGACY_PARTNER_PATH}/set-password?token=abc123`);
     expect(await screen.findByLabelText('New password')).toBeInTheDocument();
   });

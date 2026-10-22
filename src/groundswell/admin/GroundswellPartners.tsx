@@ -11,7 +11,7 @@ import {
 } from '../../lib/groundswell';
 
 /**
- * Partner accounts for the Croissance partner portal: outside agencies and
+ * Partner accounts for the GroundSwell partner portal: outside agencies and
  * resellers who submit businesses and see the audits they submitted. Accounts
  * are by invitation; the invite email carries a link to choose a password, and
  * the same link is shown here once in case the email does not arrive. A

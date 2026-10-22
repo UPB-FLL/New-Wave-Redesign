@@ -194,11 +194,11 @@ export const IT_PAGE_META = withBreadcrumbs({
     crumb: 'Cellular DAS & Public Safety',
   },
   '/groundswell': {
-    title: 'Groundswell — Partner & Staff Sign-In',
-    description: 'Sign in to Groundswell, New Wave IT’s audit portal, to submit businesses for a Croissance growth audit and download each one’s summary, slides, and full audit.',
-    keywords: 'groundswell portal, croissance partner portal, marketing audit partners, agency partners, growth audit reseller, new wave it',
+    title: 'GroundSwell — Partner & Staff Sign-In',
+    description: 'Sign in to GroundSwell to manage prospects and clients, follow their growth audit phases, and download branded reports.',
+    keywords: 'groundswell portal, groundswell partner portal, marketing audit partners, agency partners, growth audit reseller, new wave it',
     canonical: 'https://www.newwaveitfl.com/groundswell',
-    crumb: 'Groundswell',
+    crumb: 'GroundSwell',
   },
   '/privacy-policy': {
     title: 'Privacy Policy — New Wave IT',

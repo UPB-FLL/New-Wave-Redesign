@@ -47,7 +47,7 @@ function Details({ customer, onEdit }: { customer: PartnerCustomer; onEdit: () =
     ['Notes', customer.notes],
   ];
   return (
-    <div className="gs-card p-5 sm:p-6">
+    <div className="gs-card gs-portal-customer-details p-5 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <h2 className="text-xl font-bold">Details</h2>
         <button type="button" onClick={onEdit} className="gs-btn gs-btn-secondary">
@@ -77,7 +77,13 @@ function Details({ customer, onEdit }: { customer: PartnerCustomer; onEdit: () =
 }
 
 /** Opens one stored report in a new tab through a short-lived link. */
-export function ReportButtons({ reports, open }: { reports: { kind: ReportKind; name: string }[]; open: (kind: ReportKind) => Promise<string> }) {
+export function ReportButtons({
+  reports,
+  open,
+}: {
+  reports: { kind: ReportKind; name: string }[];
+  open: (kind: ReportKind) => Promise<string>;
+}) {
   const [busy, setBusy] = useState<ReportKind | null>(null);
   const [error, setError] = useState<string | null>(null);
   const show = async (kind: ReportKind) => {
@@ -127,8 +133,12 @@ function AuditCard({ audit }: { audit: PartnerAudit }) {
           {status.label}
         </span>
       </div>
-      {audit.status === 'failed' ? <p className="mt-2 text-sm gs-muted">This audit didn’t finish. We’ve been notified and will follow up.</p> : null}
-      {audit.status === 'done' && audit.completed_at ? <p className="mt-2 text-sm gs-muted">Reports delivered {when(audit.completed_at)}.</p> : null}
+      {audit.status === 'failed' ? (
+        <p className="mt-2 text-sm gs-muted">This audit didn’t finish. We’ve been notified and will follow up.</p>
+      ) : null}
+      {audit.status === 'done' && audit.completed_at ? (
+        <p className="mt-2 text-sm gs-muted">Reports delivered {when(audit.completed_at)}.</p>
+      ) : null}
       {reports.length ? <ReportButtons reports={reports} open={(kind) => partnerReportUrl(audit.id, kind)} /> : null}
       {legacy.length ? (
         <p className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
@@ -165,7 +175,15 @@ export interface AccountsApi {
 const PARTNER_ACCOUNTS: AccountsApi = { list: listClientAccounts, link: linkClientAccount, unlink: unlinkClientAccount };
 
 /** A client's accounts: one row per service with its state and a Link / Unlink button. */
-export function AccountsCard({ customerId, poll = PENDING_POLL_MS, api = PARTNER_ACCOUNTS }: { customerId: string; poll?: number; api?: AccountsApi }) {
+export function AccountsCard({
+  customerId,
+  poll = PENDING_POLL_MS,
+  api = PARTNER_ACCOUNTS,
+}: {
+  customerId: string;
+  poll?: number;
+  api?: AccountsApi;
+}) {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const [accounts, setAccounts] = useState<ClientAccount[] | null>(null);
@@ -243,7 +261,7 @@ export function AccountsCard({ customerId, poll = PENDING_POLL_MS, api = PARTNER
   };
 
   return (
-    <section aria-labelledby="client-accounts-heading" className="gs-card mt-8 p-5 sm:p-6">
+    <section aria-labelledby="client-accounts-heading" className="gs-card gs-portal-accounts mt-8 p-5 sm:p-6">
       <h2 id="client-accounts-heading" className="text-xl font-bold">
         Linked accounts
       </h2>
@@ -286,11 +304,23 @@ export function AccountsCard({ customerId, poll = PENDING_POLL_MS, api = PARTNER
                   <p className="mt-0.5 text-sm gs-muted">{a.reason ?? a.brings}</p>
                 </div>
                 {a.status === 'active' ? (
-                  <button type="button" className="gs-btn gs-btn-ghost" disabled={busy !== null} onClick={() => void unlink(a.service)} aria-label={`Unlink ${a.label}`}>
+                  <button
+                    type="button"
+                    className="gs-btn gs-btn-ghost"
+                    disabled={busy !== null}
+                    onClick={() => void unlink(a.service)}
+                    aria-label={`Unlink ${a.label}`}
+                  >
                     <Link2Off size={14} aria-hidden="true" /> Unlink
                   </button>
                 ) : (
-                  <button type="button" className="gs-btn gs-btn-secondary" disabled={busy !== null || !available} onClick={() => void link(a.service)} aria-label={`${a.status === 'none' ? 'Link' : 'Link again'} ${a.label}`}>
+                  <button
+                    type="button"
+                    className="gs-btn gs-btn-secondary"
+                    disabled={busy !== null || !available}
+                    onClick={() => void link(a.service)}
+                    aria-label={`${a.status === 'none' ? 'Link' : 'Link again'} ${a.label}`}
+                  >
                     <Link2 size={14} aria-hidden="true" /> {busy === a.service ? 'Starting…' : a.status === 'none' ? 'Link' : 'Link again'}
                   </button>
                 )}
@@ -310,7 +340,9 @@ function Customer({ id }: { id: string }) {
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [moving, setMoving] = useState(false);
-  const [notice, setNotice] = useState<string | null>(state?.queued ? 'Queued. Phase 1 starts on its own within a minute; its reports will appear below.' : null);
+  const [notice, setNotice] = useState<string | null>(
+    state?.queued ? 'Queued. Phase 1 starts on its own within a minute; its reports will appear below.' : null,
+  );
 
   const refresh = useCallback(async () => {
     try {
@@ -334,7 +366,11 @@ function Customer({ id }: { id: string }) {
 
   const signedOut = useCallback(() => navigate(GROUNDSWELL_PATH, { replace: true }), [navigate]);
   // Only audits delivered before reports moved into the app: they carry Drive links and no stored reports.
-  const legacy = (data?.audits ?? []).filter((a) => !(a.reports ?? []).length && [a.summary_pdf_url, a.deck_pdf_url, a.audit_pdf_url, a.benchmark_pdf_url ?? null, a.drive_folder_url].some((u) => isDriveLink(u)));
+  const legacy = (data?.audits ?? []).filter(
+    (a) =>
+      !(a.reports ?? []).length &&
+      [a.summary_pdf_url, a.deck_pdf_url, a.audit_pdf_url, a.benchmark_pdf_url ?? null, a.drive_folder_url].some((u) => isDriveLink(u)),
+  );
   const status = customerStatus(data?.customer.latest ?? null);
   const stage = data?.customer.stage ?? 'prospect';
   const stageLabel = STAGE_LABELS[stage];
@@ -373,7 +409,7 @@ function Customer({ id }: { id: string }) {
       ) : null}
       {data ? (
         <>
-          <div className="mt-3 flex flex-wrap items-center gap-3">
+          <div className="gs-portal-customer-heading mt-3 flex flex-wrap items-center gap-3">
             <h1 className="text-2xl font-bold">{data.customer.business_name}</h1>
             <span className="gs-chip" style={{ color: stageLabel.color }} data-stage={stage}>
               {stageLabel.label}
@@ -382,7 +418,12 @@ function Customer({ id }: { id: string }) {
               {status.label}
             </span>
             {data.stages_available !== false ? (
-              <button type="button" onClick={() => void move()} disabled={moving} className={stage === 'client' ? 'gs-btn gs-btn-ghost' : 'gs-btn gs-btn-secondary'}>
+              <button
+                type="button"
+                onClick={() => void move()}
+                disabled={moving}
+                className={stage === 'client' ? 'gs-btn gs-btn-ghost' : 'gs-btn gs-btn-secondary'}
+              >
                 <ArrowRightLeft size={14} aria-hidden="true" /> {stage === 'client' ? 'Move back to prospects' : 'Became a client'}
               </button>
             ) : null}
@@ -392,43 +433,49 @@ function Customer({ id }: { id: string }) {
               {notice}
             </p>
           ) : null}
-          <div className="mt-6">
-            {editing ? (
-              <CustomerForm
-                mode="edit"
-                customer={data.customer}
-                onSaved={(customer) => {
-                  setData((d) => (d ? { ...d, customer } : d));
-                  setEditing(false);
-                  setNotice('Details saved.');
-                }}
-                onCancel={() => setEditing(false)}
-              />
-            ) : (
-              <Details
-                customer={data.customer}
-                onEdit={() => {
-                  setNotice(null);
-                  setEditing(true);
-                }}
-              />
-            )}
+          <div className="gs-portal-workspace-grid">
+            <div className="gs-portal-customer-work">
+              <CustomerWorkspace viewer="partner" customerId={data.customer.id} onSignedOut={signedOut} />
+              {legacy.length ? (
+                <section aria-labelledby="customer-audits-heading" className="mt-8">
+                  <h2 id="customer-audits-heading" className="text-xl font-bold">
+                    Earlier audits (Google Drive)
+                  </h2>
+                  <p className="mt-1 text-sm gs-muted">
+                    Delivered before reports moved into GroundSwell; their files stay in Google Drive.
+                  </p>
+                  <ul className="mt-4 space-y-3" aria-label="Earlier audits of this customer">
+                    {legacy.map((a) => (
+                      <AuditCard key={a.id} audit={a} />
+                    ))}
+                  </ul>
+                </section>
+              ) : null}
+            </div>
+            <aside className="gs-portal-customer-sidebar" aria-label="Business details and accounts">
+              {editing ? (
+                <CustomerForm
+                  mode="edit"
+                  customer={data.customer}
+                  onSaved={(customer) => {
+                    setData((d) => (d ? { ...d, customer } : d));
+                    setEditing(false);
+                    setNotice('Details saved.');
+                  }}
+                  onCancel={() => setEditing(false)}
+                />
+              ) : (
+                <Details
+                  customer={data.customer}
+                  onEdit={() => {
+                    setNotice(null);
+                    setEditing(true);
+                  }}
+                />
+              )}
+              {stage === 'client' ? <AccountsCard customerId={data.customer.id} /> : null}
+            </aside>
           </div>
-          {stage === 'client' ? <AccountsCard customerId={data.customer.id} /> : null}
-          <CustomerWorkspace viewer="partner" customerId={data.customer.id} onSignedOut={signedOut} />
-          {legacy.length ? (
-            <section aria-labelledby="customer-audits-heading" className="mt-8">
-              <h2 id="customer-audits-heading" className="text-xl font-bold">
-                Earlier audits (Google Drive)
-              </h2>
-              <p className="mt-1 text-sm gs-muted">Delivered before reports moved into Groundswell; their files stay in Google Drive.</p>
-              <ul className="mt-4 space-y-3" aria-label="Earlier audits of this customer">
-                {legacy.map((a) => (
-                  <AuditCard key={a.id} audit={a} />
-                ))}
-              </ul>
-            </section>
-          ) : null}
         </>
       ) : null}
     </>
