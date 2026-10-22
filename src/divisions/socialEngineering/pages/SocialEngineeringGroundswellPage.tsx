@@ -1,17 +1,24 @@
-import { DivisionLayout } from '../components/DivisionLayout';
+import { GroundswellMarketingLayout } from '../components/GroundswellMarketingLayout';
+import { GroundswellHero } from '../components/GroundswellHero';
 import { accentAt } from '../components/pillarStyle';
-import { Band, CheckList, CtaBand, CtaStrip, DivisionHero, FaqList, PrimaryCta, SectionIntro } from '../components/sections';
+import { Band, CheckList, CtaBand, CtaStrip, FaqList, PrimaryCta, SectionIntro } from '../components/sections';
 import { Tabs, type TabItem } from '../components/Tabs';
 import { auditConnectors, auditContent, auditReports, auditSample } from '../content';
 import { NwseIcon } from '../icons/NwseIcon';
-import { croissancePageSeo } from '../seo';
+import { groundswellPageSeo } from '../seo';
 import { useDivisionMeta } from '../useDivisionMeta';
 import { GROUNDSWELL_CONFIG } from '../../../../packages/groundswell/groundswell.config';
-import { UPB_ANGLES, UPB_BASELINE, UPB_INDUSTRY, UPB_TEMPLATES, upbChanges } from '../../../../packages/groundswell/examples/uncommon-path-brewing';
+import {
+  UPB_ANGLES,
+  UPB_BASELINE,
+  UPB_INDUSTRY,
+  UPB_TEMPLATES,
+  upbChanges,
+} from '../../../../packages/groundswell/examples/uncommon-path-brewing';
 import { buildAdPlan, type PlanRow } from '../../../../packages/groundswell/src/adplan';
 import { compareWithToday, rankChanges, type RankedChange } from '../../../../packages/groundswell/src/changes';
 
-const seo = croissancePageSeo();
+const seo = groundswellPageSeo();
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
@@ -218,23 +225,36 @@ function AdPlanBoard() {
   const c = auditContent.adPlan;
   const shown = upbPlan.rows.filter((r) => r.recommendation !== 'skip' || r.roi_tier !== 'not modeled');
   const callClass = (r: PlanRow) =>
-    r.recommendation === 'fund' ? 'text-[var(--nwse-lure-amber-deep)]' : r.recommendation === 'test' ? 'text-[var(--nw-tide-blue)]' : 'text-[var(--nw-slate)]';
+    r.recommendation === 'fund'
+      ? 'text-[var(--nwse-lure-amber-deep)]'
+      : r.recommendation === 'test'
+        ? 'text-[var(--nw-tide-blue)]'
+        : 'text-[var(--nw-slate)]';
   return (
     <div className="nwse-card mt-5 overflow-hidden sm:mt-6">
       <table className="w-full text-left max-md:block">
         <thead className="max-md:hidden">
           <tr className="border-b" style={{ borderColor: 'var(--nw-mist-gray)' }}>
-            {[c.columns.angle, c.columns.platform, c.columns.cpc, c.columns.clicks, c.columns.spend, c.columns.net, c.columns.call].map((h) => (
-              <th key={h} scope="col" className="nwse-type-label nwse-label px-4 py-3 font-normal lg:px-6">
-                {h}
-              </th>
-            ))}
+            {[c.columns.angle, c.columns.platform, c.columns.cpc, c.columns.clicks, c.columns.spend, c.columns.net, c.columns.call].map(
+              (h) => (
+                <th key={h} scope="col" className="nwse-type-label nwse-label px-4 py-3 font-normal lg:px-6">
+                  {h}
+                </th>
+              ),
+            )}
           </tr>
         </thead>
         <tbody className="max-md:block">
           {shown.map((r) => (
-            <tr key={`${r.angle_id}-${r.platform}`} className="border-b align-top last:border-b-0 max-md:block max-md:px-4 max-md:py-4" style={{ borderColor: 'var(--nw-mist-gray)' }}>
-              <th scope="row" className="nwse-type-body-small px-4 py-3 font-semibold text-[var(--nw-current-navy)] max-md:block max-md:p-0 lg:px-6">
+            <tr
+              key={`${r.angle_id}-${r.platform}`}
+              className="border-b align-top last:border-b-0 max-md:block max-md:px-4 max-md:py-4"
+              style={{ borderColor: 'var(--nw-mist-gray)' }}
+            >
+              <th
+                scope="row"
+                className="nwse-type-body-small px-4 py-3 font-semibold text-[var(--nw-current-navy)] max-md:block max-md:p-0 lg:px-6"
+              >
                 {r.angle}
                 <span className="block font-normal text-[var(--nw-slate)] md:hidden">{r.platform_label}</span>
               </th>
@@ -267,14 +287,20 @@ function AdPlanBoard() {
         // Each platform's conditions once, not on every row.
         const rules = [...new Set(upbPlan.rows.filter((r) => r.recommendation !== 'skip').flatMap((r) => r.conditions))];
         return rules.length ? (
-          <p className="nwse-type-body-small border-t px-4 py-3 text-[var(--nw-slate)] lg:px-6" style={{ borderColor: 'var(--nw-mist-gray)' }}>
+          <p
+            className="nwse-type-body-small border-t px-4 py-3 text-[var(--nw-slate)] lg:px-6"
+            style={{ borderColor: 'var(--nw-mist-gray)' }}
+          >
             <span className="font-semibold text-[var(--nw-current-navy)]">{auditContent.adPlan.conditionsHeading}: </span>
             {rules.join(' ')}
           </p>
         ) : null;
       })()}
       {upbPlan.unmodeled.length ? (
-        <p className="nwse-type-body-small border-t px-4 py-3 text-[var(--nw-slate)] lg:px-6" style={{ borderColor: 'var(--nw-mist-gray)' }}>
+        <p
+          className="nwse-type-body-small border-t px-4 py-3 text-[var(--nw-slate)] lg:px-6"
+          style={{ borderColor: 'var(--nw-mist-gray)' }}
+        >
           <span className="font-semibold text-[var(--nw-current-navy)]">{c.unmodeledHeading}: </span>
           {[...new Set(upbPlan.unmodeled.map((u) => u.reason))].join(' ')}
         </p>
@@ -315,7 +341,9 @@ function TemplatePreviews() {
           const t = UPB_TEMPLATES.find((x) => x.platform === platform && x.angle_id === angle)!;
           const p = GROUNDSWELL_CONFIG.platforms[platform];
           const row = upbPlan.rows.find((r) => r.platform === platform && r.angle_id === angle);
-          const status = row ? `${c.calls[row.recommendation]}: ${row.reason}` : upbPlan.unmodeled.find((u) => u.platform === platform)?.reason ?? '';
+          const status = row
+            ? `${c.calls[row.recommendation]}: ${row.reason}`
+            : (upbPlan.unmodeled.find((u) => u.platform === platform)?.reason ?? '');
           return (
             <li key={`${platform}-${angle}`} className="nwse-card flex flex-col p-4 sm:p-5">
               <p className="nwse-type-label nwse-label">
@@ -325,7 +353,9 @@ function TemplatePreviews() {
                 {Object.entries(t.fields).map(([field, value]) => (
                   <div key={field}>
                     <dt className="nwse-type-body-small text-[var(--nw-slate)]">{field.replace(/_/g, ' ').replace(/(\d)$/, ' $1')}</dt>
-                    <dd className="nwse-type-body-small text-[var(--nw-current-navy)]">{Array.isArray(value) ? value.join(' · ') : value}</dd>
+                    <dd className="nwse-type-body-small text-[var(--nw-current-navy)]">
+                      {Array.isArray(value) ? value.join(' · ') : value}
+                    </dd>
                   </div>
                 ))}
               </dl>
@@ -364,11 +394,22 @@ function ChangeRanking() {
         </thead>
         <tbody className="max-md:block">
           {upbRanked.map((ch) => (
-            <tr key={ch.id} className="border-b align-top last:border-b-0 max-md:block max-md:px-4 max-md:py-4" style={{ borderColor: 'var(--nw-mist-gray)' }}>
-              <td className="nwse-type-body-small px-4 py-3 tabular-nums text-[var(--nw-slate)] max-md:inline max-md:p-0 max-md:pr-2 lg:px-6">{ch.rank}</td>
-              <th scope="row" className="nwse-type-body-small px-4 py-3 text-left font-semibold text-[var(--nw-current-navy)] max-md:inline max-md:p-0 lg:px-6">
+            <tr
+              key={ch.id}
+              className="border-b align-top last:border-b-0 max-md:block max-md:px-4 max-md:py-4"
+              style={{ borderColor: 'var(--nw-mist-gray)' }}
+            >
+              <td className="nwse-type-body-small px-4 py-3 tabular-nums text-[var(--nw-slate)] max-md:inline max-md:p-0 max-md:pr-2 lg:px-6">
+                {ch.rank}
+              </td>
+              <th
+                scope="row"
+                className="nwse-type-body-small px-4 py-3 text-left font-semibold text-[var(--nw-current-navy)] max-md:inline max-md:p-0 lg:px-6"
+              >
                 {ch.title}
-                <span className="mt-1 block font-normal text-[var(--nw-slate)]">{ch.impact.kind === 'not_modeled' ? ch.impact.reason : ch.evidence}</span>
+                <span className="mt-1 block font-normal text-[var(--nw-slate)]">
+                  {ch.impact.kind === 'not_modeled' ? ch.impact.reason : ch.evidence}
+                </span>
               </th>
               <td className="nwse-type-body-small px-4 py-3 text-[var(--nw-slate)] max-md:mt-2 max-md:block max-md:p-0 lg:px-6">
                 <span className="md:hidden">{c.columns.area}: </span>
@@ -421,7 +462,10 @@ function TodayVsPlan() {
           {cell(c.labels.addedSpend, dollars(w.added_monthly_spend.medium))}
           {cell(c.labels.hours, String(Math.round(w.team_hours)))}
           {cell(c.labels.customers, w.extra_customers_month.medium.toFixed(1))}
-          {cell(c.labels.net, `${dollars(w.net_year.low)} to ${dollars(w.net_year.high)} (${dollars(w.net_year.medium)} ${c.labels.medium})`)}
+          {cell(
+            c.labels.net,
+            `${dollars(w.net_year.low)} to ${dollars(w.net_year.high)} (${dollars(w.net_year.medium)} ${c.labels.medium})`,
+          )}
         </dl>
         <p className="nwse-type-body-small mt-2 text-[var(--nw-slate)]">
           {upbRanked
@@ -495,67 +539,73 @@ function SampleViewer() {
 }
 
 /**
- * The Croissance page: the audit explained one part at a time. Hero (with a
+ * The GroundSwell page: the audit explained one part at a time. Hero (with a
  * second button straight to the example); the in-page links; the five steps
  * as a stepper; the Currents as an explorer; the worked example as a report
  * viewer, then the call to action; the three reports; how the audit grows;
  * questions; the closing call. Bands alternate white and Cloud White.
  */
-export default function SocialEngineeringCroissancePage() {
+export default function SocialEngineeringGroundswellPage() {
   useDivisionMeta(seo);
   const content = auditContent;
 
   return (
-    <DivisionLayout>
-      <DivisionHero
-        breadcrumbs={seo.breadcrumbs}
-        // The hub's scene (guesswork straightening into a rising trend): the
-        // audit's story too. From 375px, like the service pages: the summary
-        // runs long on the smallest phones.
-        scene="hub"
-        sceneOnPhones="wide"
-        kicker={content.kicker}
-        headline={content.headline}
-        summary={content.summary}
-        facts={content.facts}
-        actions={
-          <>
-            <PrimaryCta />
-            <a href="#sample" className="nwse-btn nwse-btn-ghost-dark">
-              {content.secondaryCta}
-            </a>
-          </>
-        }
-      />
+    <GroundswellMarketingLayout>
+      <GroundswellHero />
 
       <Band tone="white" size="compact">
         <JumpNav />
       </Band>
 
       <Band id="how-it-works" labelledBy="nwse-audit-process">
-        <SectionIntro kicker={content.process.kicker} title={content.process.heading} description={content.process.intro} id="nwse-audit-process" />
+        <SectionIntro
+          kicker={content.process.kicker}
+          title={content.process.heading}
+          description={content.process.intro}
+          id="nwse-audit-process"
+        />
         <ProcessStepper />
       </Band>
 
       <Band tone="white" id="currents" labelledBy="nwse-audit-engine">
-        <SectionIntro kicker={content.engine.kicker} title={content.engine.heading} description={content.engine.intro} id="nwse-audit-engine" />
+        <SectionIntro
+          kicker={content.engine.kicker}
+          title={content.engine.heading}
+          description={content.engine.intro}
+          id="nwse-audit-engine"
+        />
         <CurrentsExplorer />
         <CheckList items={content.rules} />
       </Band>
 
       <Band id="sample" labelledBy="nwse-audit-sample">
-        <SectionIntro kicker={content.sample.kicker} title={content.sample.heading} description={content.sample.intro} id="nwse-audit-sample" />
+        <SectionIntro
+          kicker={content.sample.kicker}
+          title={content.sample.heading}
+          description={content.sample.intro}
+          id="nwse-audit-sample"
+        />
         <SampleViewer />
         <CtaStrip heading={content.sample.cta.heading} body={content.sample.cta.body} />
       </Band>
 
       <Band tone="white" id="reports" labelledBy="nwse-audit-reports">
-        <SectionIntro kicker={content.reports.kicker} title={content.reports.heading} description={content.reports.intro} id="nwse-audit-reports" />
+        <SectionIntro
+          kicker={content.reports.kicker}
+          title={content.reports.heading}
+          description={content.reports.intro}
+          id="nwse-audit-reports"
+        />
         <ReportGrid />
       </Band>
 
       <Band labelledBy="nwse-audit-growth">
-        <SectionIntro kicker={content.growth.kicker} title={content.growth.heading} description={content.growth.intro} id="nwse-audit-growth" />
+        <SectionIntro
+          kicker={content.growth.kicker}
+          title={content.growth.heading}
+          description={content.growth.intro}
+          id="nwse-audit-growth"
+        />
         <div className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 md:grid-cols-2 md:gap-4 lg:mt-10">
           {content.growth.groups.map((group, index) => {
             const color = accentAt(index);
@@ -575,6 +625,6 @@ export default function SocialEngineeringCroissancePage() {
       </Band>
 
       <CtaBand heading={content.cta.heading} body={content.cta.body} />
-    </DivisionLayout>
+    </GroundswellMarketingLayout>
   );
 }

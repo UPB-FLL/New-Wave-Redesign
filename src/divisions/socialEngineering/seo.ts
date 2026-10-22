@@ -1,15 +1,25 @@
+import { GROUNDSWELL_BRAND } from '../../groundswell/brand';
 // Per-URL SEO records and schema.org builders for the division. Pure data —
 // shared by the runtime meta hook and the build-time prerenderer so the two can
 // never disagree about a page's title, canonical, or structured data.
 
-import { auditContent, contactContent, contactUsContent, customersContent, divisionApps, divisionCustomers, divisionServices, hubContent } from './content';
+import {
+  auditContent,
+  contactContent,
+  contactUsContent,
+  customersContent,
+  divisionApps,
+  divisionCustomers,
+  divisionServices,
+  hubContent,
+} from './content';
 import {
   DIVISION_ASSETS,
   DIVISION_BASE_PATH,
   DIVISION_CONTACT_PATH,
   DIVISION_CONTACT_US_PATH,
   DIVISION_CUSTOMERS_PATH,
-  DIVISION_CROISSANCE_PATH,
+  DIVISION_GROUNDSWELL_PATH,
   DIVISION_NAME,
   DIVISION_ORGANIZATION_ID,
   DIVISION_SERVICE_AREA,
@@ -236,10 +246,12 @@ export function customersPageSeo(): DivisionPageSeo {
 }
 
 /** How the audit engine works: a WebPage with its FAQs. The sample business is made up, so it gets no node. */
-export function croissancePageSeo(): DivisionPageSeo {
-  const path = DIVISION_CROISSANCE_PATH;
+export function groundswellPageSeo(): DivisionPageSeo {
+  const path = DIVISION_GROUNDSWELL_PATH;
   const breadcrumbs = [HUB_CRUMB, { name: auditContent.navLabel, path }];
   return {
+    brand: 'groundswell',
+    ogImage: GROUNDSWELL_BRAND.ogImage,
     path,
     title: auditContent.metaTitle,
     description: auditContent.metaDescription,
@@ -248,13 +260,25 @@ export function croissancePageSeo(): DivisionPageSeo {
     breadcrumbs,
     jsonLd: [
       divisionOrganizationNode(),
-      webPageNode(path, auditContent.metaTitle, auditContent.metaDescription),
+      {
+        '@type': 'SoftwareApplication',
+        '@id': absoluteUrl(`${path}#application`),
+        name: 'GroundSwell',
+        applicationCategory: 'BusinessApplication',
+        operatingSystem: 'Web',
+        url: absoluteUrl('/groundswell'),
+        image: absoluteUrl(GROUNDSWELL_BRAND.logoPng),
+        provider: { '@id': DIVISION_ORGANIZATION_ID },
+      },
+      {
+        ...webPageNode(path, auditContent.metaTitle, auditContent.metaDescription),
+        primaryImageOfPage: absoluteUrl(GROUNDSWELL_BRAND.ogImage),
+      },
       breadcrumbNode(path, breadcrumbs),
       faqNode(path, auditContent.faqs),
     ],
   };
 }
-
 
 export function contactUsPageSeo(): DivisionPageSeo {
   const path = DIVISION_CONTACT_US_PATH;
@@ -296,9 +320,16 @@ export function contactPageSeo(): DivisionPageSeo {
   };
 }
 
-/** Every indexable division URL, in sitemap order (the header's order: overview, services, then Croissance, customers, contact us, discovery call). */
+/** Every indexable division URL, in sitemap order (the header's order: overview, services, then GroundSwell, customers, contact us, discovery call). */
 export function allDivisionPages(): DivisionPageSeo[] {
-  return [hubPageSeo(), ...divisionServices.map(servicePageSeo), croissancePageSeo(), customersPageSeo(), contactUsPageSeo(), contactPageSeo()];
+  return [
+    hubPageSeo(),
+    ...divisionServices.map(servicePageSeo),
+    groundswellPageSeo(),
+    customersPageSeo(),
+    contactUsPageSeo(),
+    contactPageSeo(),
+  ];
 }
 
 /** Serialises a page's nodes into one JSON-LD document. */
@@ -313,8 +344,8 @@ export function divisionPageMetaOptions(page: DivisionPageSeo): Omit<PageMetaOpt
     description: page.description,
     includeSiteName: false,
     canonical: absoluteUrl(page.path),
-    ogImage: absoluteUrl(DIVISION_ASSETS.ogImage),
+    ogImage: absoluteUrl(page.ogImage ?? DIVISION_ASSETS.ogImage),
     keywords: page.keywords,
-    siteName: DIVISION_NAME,
+    siteName: page.brand === 'groundswell' ? 'GroundSwell' : DIVISION_NAME,
   };
 }

@@ -522,7 +522,7 @@ describe('set-password page', () => {
 });
 
 describe('old addresses', () => {
-  it('sends the Croissance partner URLs to Groundswell, keeping an invite link’s token', async () => {
+  it('sends the GroundSwell partner URLs to Groundswell, keeping an invite link’s token', async () => {
     renderPortal(LEGACY_PARTNER_PATH);
     expect(await screen.findByRole('heading', { level: 1, name: 'Built to move people.' })).toBeInTheDocument();
     renderPortal(`${LEGACY_PARTNER_PATH}/set-password?token=abc123`);

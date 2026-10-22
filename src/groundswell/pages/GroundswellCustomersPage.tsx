@@ -22,7 +22,7 @@ import { customerStatus } from './customerStatus';
  * for; "Became a client" on a prospect's page moves it here with everything
  * gathered). Each list shows the newest audit's status and the date of the
  * last reports, most recent activity first. "Add a prospect" / "Add a client"
- * is the one primary action; it queues the business's first Croissance audit
+ * is the one primary action; it queues the business's first GroundSwell audit
  * and opens its page. Below the prospects, the partner sets the name and logo
  * its reports carry (they never name New Wave).
  */

@@ -55,7 +55,7 @@ describe('division metadata', () => {
       expect(new Set(values).size, `duplicate ${key}`).toBe(values.length);
     }
     pages.forEach((page) => {
-      expect(page.title.endsWith(`| ${DIVISION_NAME}`), page.title).toBe(true);
+      expect(page.title.endsWith(page.brand === 'groundswell' ? '| New Wave' : `| ${DIVISION_NAME}`), page.title).toBe(true);
     });
   });
 
@@ -131,7 +131,7 @@ describe('division copy follows the brand guidelines', () => {
   });
 
   it('names the division in full in the Customers and Contact us summaries, their first reference', () => {
-    [customersContent.summary, contactUsContent.summary, auditContent.summary].forEach((summary) => expect(summary).toContain(DIVISION_NAME));
+    [customersContent.summary, contactUsContent.summary].forEach((summary) => expect(summary).toContain(DIVISION_NAME));
   });
 
   it('makes no percentage claims (metric labels only, no invented results)', () => {
@@ -155,8 +155,8 @@ describe('division copy follows the brand guidelines', () => {
       auditContent.changes.heading,
     ].forEach((headline) => {
       const words = headline.split(/\s+/).slice(1);
-      // Croissance (the audit), Groundswell (its engine), and its Currents are product names.
-      const properNouns = /^(Croissance|Groundswell|Currents|New|Wave|IT|Social|Engineering|Fort|Lauderdale|South|Florida|HIPAA|PCI|DSS|SOC|MFA|QR|SMS|USB)\b/;
+      // GroundSwell (the audit), GroundSwell (its engine), and its Currents are product names.
+      const properNouns = /^(GroundSwell|GroundSwell|Currents|New|Wave|IT|Social|Engineering|Fort|Lauderdale|South|Florida|HIPAA|PCI|DSS|SOC|MFA|QR|SMS|USB)\b/;
       words.forEach((word) => {
         if (/^[A-Z]/.test(word) && !properNouns.test(word)) {
           throw new Error(`"${headline}" is not sentence case at "${word}"`);

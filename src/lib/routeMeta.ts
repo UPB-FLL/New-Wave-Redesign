@@ -196,7 +196,7 @@ export const IT_PAGE_META = withBreadcrumbs({
   '/groundswell': {
     title: 'GroundSwell — Partner & Staff Sign-In',
     description: 'Sign in to GroundSwell to manage prospects and clients, follow their growth audit phases, and download branded reports.',
-    keywords: 'groundswell portal, croissance partner portal, marketing audit partners, agency partners, growth audit reseller, new wave it',
+    keywords: 'groundswell portal, groundswell partner portal, marketing audit partners, agency partners, growth audit reseller, new wave it',
     canonical: 'https://www.newwaveitfl.com/groundswell',
     crumb: 'GroundSwell',
   },

@@ -5,7 +5,7 @@ import {
   DIVISION_BASE_PATH,
   DIVISION_CONTACT_PATH,
   DIVISION_CONTACT_US_PATH,
-  DIVISION_CROISSANCE_PATH,
+  DIVISION_GROUNDSWELL_PATH,
   DIVISION_CUSTOMERS_PATH,
   DIVISION_ENDORSEMENT,
   DIVISION_PRIMARY_CTA,
@@ -36,7 +36,7 @@ const DESKTOP_NAV_QUERY = '(min-width: 64em)';
 
 /** Page links: after the Services menu on desktop, beside Overview in the phone and tablet sheet. */
 const pageLinks = [
-  { label: 'Croissance', path: DIVISION_CROISSANCE_PATH },
+  { label: 'GroundSwell', path: DIVISION_GROUNDSWELL_PATH },
   { label: 'Customers', path: DIVISION_CUSTOMERS_PATH },
   { label: 'Contact us', path: DIVISION_CONTACT_US_PATH },
 ];
@@ -272,7 +272,7 @@ export function DivisionHeader() {
             style={{ borderColor: 'var(--nw-mist-gray)' }}
           >
             <div className="flex flex-col px-4 pb-4 pt-2 sm:px-6">
-              {/* Overview, Croissance, Customers, and Contact us share one wrapping
+              {/* Overview, GroundSwell, Customers, and Contact us share one wrapping
                   row. On a 320x568 phone it takes two lines (88px): the discovery-call
                   button still fits the first screen, and the endorsement at the foot
                   sits just below it (the sheet scrolls). */}

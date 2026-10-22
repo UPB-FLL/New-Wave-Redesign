@@ -21,7 +21,7 @@ import {
   type SetupStatus,
 } from '../../lib/groundswell';
 import { listStaffCustomers, type StaffCustomer } from '../../lib/groundswellWorkspace';
-import { DIVISION_CROISSANCE_PATH } from '../../divisions/socialEngineering/site';
+import { DIVISION_GROUNDSWELL_PATH } from '../../divisions/socialEngineering/site';
 import { GROUNDSWELL_ADMIN_AUDITS_PATH, GROUNDSWELL_ADMIN_CUSTOMERS_PATH, GROUNDSWELL_ADMIN_PARTNERS_PATH } from '../site';
 import { AdminEmptyState, AdminPageHeader, PhaseLegend, StaffCustomerTable } from './AdminUi';
 
@@ -290,11 +290,11 @@ export default function GroundswellOverview() {
               <ArrowRight size={15} aria-hidden="true" />
             </Link>
           </section>
-          <a href={DIVISION_CROISSANCE_PATH} target="_blank" rel="noreferrer" className="gs-admin-product-link">
+          <a href={DIVISION_GROUNDSWELL_PATH} target="_blank" rel="noreferrer" className="gs-admin-product-link">
             <CircleDashed size={19} aria-hidden="true" />
             <div>
-              <strong>Croissance</strong>
-              <span>The audit, powered by GroundSwell</span>
+              <strong>GroundSwell</strong>
+              <span>Growth audits and the partner workspace.</span>
             </div>
             <ArrowUpRight size={16} aria-hidden="true" />
           </a>

@@ -6,7 +6,7 @@ import { AUDIT_NAME } from '../site';
 
 /**
  * The customer form, in two uses: adding a customer as a prospect or a client
- * (which also queues its first Croissance audit, as an audit or a benchmark,
+ * (which also queues its first GroundSwell audit, as an audit or a benchmark,
  * with optional logo and colour overrides for the reports) and editing a
  * customer's details. The
  * checks are the shared ones from groundswellValidation, run before the call

@@ -193,7 +193,7 @@ describe('invite and reset links', () => {
     const created = await call(partners, 'POST', { company: 'New Co', email: 'Hello@NewCo.example', contact_name: 'Ana' }, { authorization: 'Bearer admin-session' });
     expect(created.statusCode).toBe(201);
     expect(created.body.emailed).toBe(true);
-    expect(mail.send).toHaveBeenCalledWith(expect.objectContaining({ to: 'hello@newco.example', subject: 'Your Croissance partner account' }));
+    expect(mail.send).toHaveBeenCalledWith(expect.objectContaining({ to: 'hello@newco.example', subject: 'Your GroundSwell partner account' }));
     const token = new URL(created.body.invite_url).searchParams.get('token')!;
     expect(created.body.invite_url).toMatch(/^https:\/\/www\.newwaveitfl\.com\/groundswell\/set-password\?token=/);
 
@@ -220,7 +220,7 @@ describe('invite and reset links', () => {
     expect([real.statusCode, fake.statusCode, off.statusCode]).toEqual([200, 200, 200]);
     expect(real.body).toEqual(fake.body);
     expect(mail.send).toHaveBeenCalledTimes(1);
-    expect(mail.send.mock.calls[0][0]).toMatchObject({ to: SAM, subject: 'Reset your Croissance partner password' });
+    expect(mail.send.mock.calls[0][0]).toMatchObject({ to: SAM, subject: 'Reset your GroundSwell partner password' });
   });
 });
 
@@ -310,7 +310,7 @@ describe('admin partner management', () => {
     expect(res.body.emailed).toBe(false);
     expect(res.body.invite_url).toContain('/set-password?token=');
     await call(partners, 'PATCH', { id: 'p-active', action: 'resend' }, admin);
-    expect(mail.send.mock.calls[mail.send.mock.calls.length - 1][0].subject).toBe('Reset your Croissance partner password');
+    expect(mail.send.mock.calls[mail.send.mock.calls.length - 1][0].subject).toBe('Reset your GroundSwell partner password');
     expect((await call(partners, 'PATCH', { id: 'p-off', action: 'resend' }, admin)).statusCode).toBe(409);
   });
 });

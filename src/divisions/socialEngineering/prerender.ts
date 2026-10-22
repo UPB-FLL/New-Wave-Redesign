@@ -1,3 +1,4 @@
+import { GROUNDSWELL_BRAND } from '../../groundswell/brand';
 // Build-time <head> prerendering for division URLs. The page's own title,
 // description, canonical, and Open Graph/Twitter tags come from the shared
 // applyPageHead() (src/lib/prerenderHead.ts), fed the same options the runtime
@@ -54,7 +55,7 @@ const GOOGLE_FONTS_HREF = /\shref\s*=\s*["']https:\/\/fonts\.googleapis\.com\//i
  * <noscript> copy of the original link covers browsers without JavaScript.
  * The font preloads go where the link was, early in the head.
  */
-function deferGoogleFontsStylesheet(html: string): string {
+function deferGoogleFontsStylesheet(html: string, criticalFonts: readonly string[] = DIVISION_CRITICAL_FONTS): string {
   const links = (html.match(linkTagPattern('stylesheet')) ?? []).filter((tag) => GOOGLE_FONTS_HREF.test(tag));
   if (links.length !== 1) {
     throw new Error(
@@ -70,9 +71,7 @@ function deferGoogleFontsStylesheet(html: string): string {
     );
   }
   const deferred = link.replace(/\s*\/?>$/, (end) => ` media="print" onload="this.media='all'"${end}`);
-  const preloads = DIVISION_CRITICAL_FONTS.map(
-    (href) => `<link rel="preload" as="font" type="font/woff2" crossorigin href="${href}" />`,
-  );
+  const preloads = criticalFonts.map((href) => `<link rel="preload" as="font" type="font/woff2" crossorigin href="${href}" />`);
   return html.replace(link, () => [...preloads, deferred, `<noscript>${link}</noscript>`].join('\n    '));
 }
 
@@ -85,14 +84,45 @@ export function renderDivisionPageHtml(shell: string, page: DivisionPageSeo, opt
   const attr = escapeHtmlAttribute;
   let html = applyPageHead(shell, resolvePageMeta(divisionPageMetaOptions(page), page.path));
 
+  const assets =
+    page.brand === 'groundswell'
+      ? {
+          faviconSvg: GROUNDSWELL_BRAND.favicon,
+          faviconIco: `${GROUNDSWELL_BRAND.digital}/favicon.ico`,
+          appleTouchIcon: `${GROUNDSWELL_BRAND.digital}/GroundSwell_Favicon_180.png`,
+          manifest: `${GROUNDSWELL_BRAND.digital}/site.webmanifest`,
+        }
+      : DIVISION_ASSETS;
   const icons = [
-    { label: 'SVG favicon link', pattern: linkTagPattern('icon', ['type', 'image/svg+xml']), tag: `<link rel="icon" type="image/svg+xml" href="${DIVISION_ASSETS.faviconSvg}" />` },
-    { label: 'ICO favicon link', pattern: linkTagPattern('icon', ['sizes', 'any']), tag: `<link rel="icon" href="${DIVISION_ASSETS.faviconIco}" sizes="any" />` },
-    { label: 'apple-touch-icon link', pattern: linkTagPattern('apple-touch-icon'), tag: `<link rel="apple-touch-icon" href="${DIVISION_ASSETS.appleTouchIcon}" />` },
-    { label: 'manifest link', pattern: linkTagPattern('manifest'), tag: `<link rel="manifest" href="${DIVISION_ASSETS.manifest}" />` },
+    {
+      label: 'SVG favicon link',
+      pattern: linkTagPattern('icon', ['type', 'image/svg+xml']),
+      tag: `<link rel="icon" type="image/svg+xml" href="${assets.faviconSvg}" />`,
+    },
+    {
+      label: 'ICO favicon link',
+      pattern: linkTagPattern('icon', ['sizes', 'any']),
+      tag: `<link rel="icon" href="${assets.faviconIco}" sizes="any" />`,
+    },
+    {
+      label: 'apple-touch-icon link',
+      pattern: linkTagPattern('apple-touch-icon'),
+      tag: `<link rel="apple-touch-icon" href="${assets.appleTouchIcon}" />`,
+    },
+    { label: 'manifest link', pattern: linkTagPattern('manifest'), tag: `<link rel="manifest" href="${assets.manifest}" />` },
   ];
   for (const icon of icons) html = upsertHeadTag(html, { ...icon, required: false });
-  html = deferGoogleFontsStylesheet(html);
+  html = deferGoogleFontsStylesheet(
+    html,
+    page.brand === 'groundswell'
+      ? [
+          '/brand/social-engineering/04_Fonts/plus-jakarta-sans/PlusJakartaSans-Variable-Latin.woff2',
+          '/brand/social-engineering/04_Fonts/inter/Inter-Variable-Latin.woff2',
+        ]
+      : DIVISION_CRITICAL_FONTS,
+  );
+  if (page.brand === 'groundswell')
+    html = html.replace(/<meta\b[^>]*name="theme-color"[^>]*>/i, '<meta name="theme-color" content="#09131D" />');
 
   // Every shell JSON-LD block describes the parent; division pages carry their
   // own graph instead, which links back to the parent by @id.
@@ -106,9 +136,7 @@ export function renderDivisionPageHtml(shell: string, page: DivisionPageSeo, opt
 
   // Readable fallback for crawlers that never execute the app bundle, with
   // plain links to every other division page.
-  const crumbs = page.breadcrumbs
-    .map((crumb) => `<a href="${attr(crumb.path)}">${escapeHtmlText(crumb.name)}</a>`)
-    .join(' / ');
+  const crumbs = page.breadcrumbs.map((crumb) => `<a href="${attr(crumb.path)}">${escapeHtmlText(crumb.name)}</a>`).join(' / ');
   const links = allDivisionPages()
     .filter((other) => other.path !== page.path)
     .map((other) => `<li><a href="${attr(other.path)}">${escapeHtmlText(other.breadcrumbs.slice(-1)[0]?.name ?? other.h1)}</a></li>`)

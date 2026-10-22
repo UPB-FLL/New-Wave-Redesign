@@ -1,3 +1,4 @@
+import { GROUNDSWELL_BRAND } from '../../groundswell/brand';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -61,10 +62,10 @@ describe('renderDivisionPageHtml', () => {
     expect(head.ogUrl).toBe(url);
     expect(head.ogTitle).toBe(page.title);
     expect(head.twitterTitle).toBe(page.title);
-    expect(head.ogSiteName).toBe(DIVISION_NAME);
-    expect(head.ogImage).toBe(`${SITE_URL}${DIVISION_ASSETS.ogImage}`);
-    expect(head.icon).toBe(DIVISION_ASSETS.faviconSvg);
-    expect(head.manifest).toBe(DIVISION_ASSETS.manifest);
+    expect(head.ogSiteName).toBe(page.brand === 'groundswell' ? 'GroundSwell' : DIVISION_NAME);
+    expect(head.ogImage).toBe(`${SITE_URL}${page.ogImage ?? DIVISION_ASSETS.ogImage}`);
+    expect(head.icon).toBe(page.brand === 'groundswell' ? GROUNDSWELL_BRAND.favicon : DIVISION_ASSETS.faviconSvg);
+    expect(head.manifest).toBe(page.brand === 'groundswell' ? `${GROUNDSWELL_BRAND.digital}/site.webmanifest` : DIVISION_ASSETS.manifest);
 
     // Exactly one JSON-LD block, the division's — the parent's LocalBusiness is gone.
     expect(head.jsonLd).toHaveLength(1);
@@ -227,7 +228,10 @@ describe('division fonts in the prerendered head', () => {
       const head = headOf(html);
 
       const preloads = [...head.querySelectorAll('link[rel="preload"][as="font"]')];
-      expect(preloads.map((el) => el.getAttribute('href'))).toEqual([...DIVISION_CRITICAL_FONTS]);
+      expect(preloads.map((el) => el.getAttribute('href'))).toEqual(page.brand === 'groundswell' ? [
+        '/brand/social-engineering/04_Fonts/plus-jakarta-sans/PlusJakartaSans-Variable-Latin.woff2',
+        '/brand/social-engineering/04_Fonts/inter/Inter-Variable-Latin.woff2',
+      ] : [...DIVISION_CRITICAL_FONTS]);
       for (const preload of preloads) {
         expect(preload.getAttribute('type')).toBe('font/woff2');
         // Fonts are always fetched in CORS mode; without crossorigin the preload goes unused.

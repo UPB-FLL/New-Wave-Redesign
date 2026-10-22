@@ -50,4 +50,16 @@ describe('GroundSwell browser identity', () => {
     unmount();
     expect(document.head.childNodes).toHaveLength(0);
   });
+
+  it('restores the parent identity when a public GroundSwell page arrived with prerendered brand icons', () => {
+    document.head.innerHTML =
+      '<link rel="icon" type="image/svg+xml" href="/brand/social-engineering/01_Logos/SVG/GroundSwell_Micro_Navy.svg"><link rel="icon" sizes="any" href="/brand/social-engineering/06_Digital/favicon.ico"><link rel="apple-touch-icon" href="/brand/social-engineering/06_Digital/GroundSwell_Favicon_180.png"><link rel="manifest" href="/brand/social-engineering/06_Digital/site.webmanifest"><meta name="theme-color" content="#09131D">';
+    const { unmount } = render(<PortalBrand />);
+    unmount();
+    expect(document.head.querySelector('link[type="image/svg+xml"]')).toHaveAttribute('href', '/favicon.svg');
+    expect(document.head.querySelector('link[sizes="any"]')).toHaveAttribute('href', '/favicon.ico');
+    expect(document.head.querySelector('link[rel="apple-touch-icon"]')).toHaveAttribute('href', '/apple-touch-icon.png');
+    expect(document.head.querySelector('link[rel="manifest"]')).toHaveAttribute('href', '/site.webmanifest');
+    expect(document.head.querySelector('meta[name="theme-color"]')).toHaveAttribute('content', '#101E2D');
+  });
 });

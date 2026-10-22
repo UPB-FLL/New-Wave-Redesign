@@ -1,14 +1,14 @@
 // Copy for GroundSwell's sign-in page (/groundswell). Pure data.
 //
 // Partners are outside agencies and resellers. They submit businesses for a
-// Croissance audit and get the reports as Google Drive links. Accounts are by
+// GroundSwell audit and open their reports in the private workspace. Accounts are by
 // invitation only. Never promise turnaround times or results here.
 
 export const signInContent = {
   metaTitle: 'GroundSwell — Partner & Staff Sign-In',
   metaDescription:
     'Sign in to GroundSwell to manage prospects and clients, follow their growth audit phases, and download branded reports.',
-  keywords: 'groundswell portal, croissance partner portal, marketing audit partners, agency partners, growth audit reseller, new wave it',
+  keywords: 'groundswell portal, groundswell partner portal, marketing audit partners, agency partners, growth audit reseller, new wave it',
   kicker: 'The partner workspace',
   headline: 'Built to move people.',
   summary: 'Manage prospects and clients, follow their audit phases, and share reports in each business’s own brand.',

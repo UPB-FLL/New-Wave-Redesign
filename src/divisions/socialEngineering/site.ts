@@ -18,10 +18,11 @@ export const DIVISION_CONTACT_PATH = `${DIVISION_BASE_PATH}/contact`;
 /** Everything that isn't a new project (clients, questions, partnerships): separate from the discovery call. */
 export const DIVISION_CONTACT_US_PATH = `${DIVISION_BASE_PATH}/contact-us`;
 export const DIVISION_CUSTOMERS_PATH = `${DIVISION_BASE_PATH}/customers`;
-/** Croissance, the division's growth audit (run by the Groundswell engine), with sample data. */
-export const DIVISION_CROISSANCE_PATH = `${DIVISION_BASE_PATH}/croissance`;
+/** GroundSwell, the division's growth audit (run by the GroundSwell engine), with sample data. */
+export const DIVISION_GROUNDSWELL_PATH = `${DIVISION_BASE_PATH}/groundswell`;
+export const LEGACY_CROISSANCE_PAGE_PATH = `${DIVISION_BASE_PATH}/croissance`;
 // The partner portal moved to /groundswell (src/groundswell/site.ts); vercel.json
-// redirects its old addresses under Croissance.
+// redirects its old addresses under GroundSwell.
 
 /**
  * Service URL segments, in display order. Kept here (not derived from the copy

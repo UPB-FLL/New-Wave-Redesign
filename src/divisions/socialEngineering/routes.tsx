@@ -1,9 +1,16 @@
 import { Component, Suspense, lazy, type ReactNode } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
+import { DIVISION_GROUNDSWELL_PATH } from './site';
+
+export function LegacyGroundswellPageRoute() {
+  const { search, hash } = useLocation();
+  return <Navigate to={{ pathname: DIVISION_GROUNDSWELL_PATH, search, hash }} replace />;
+}
 
 // Division pages load on demand so New Wave IT pages ship no division code.
 const HubPage = lazy(() => import('./pages/SocialEngineeringHubPage'));
 const ServicePage = lazy(() => import('./pages/SocialEngineeringServicePage'));
-const CroissancePage = lazy(() => import('./pages/SocialEngineeringCroissancePage'));
+const GroundSwellPage = lazy(() => import('./pages/SocialEngineeringGroundswellPage'));
 const CustomersPage = lazy(() => import('./pages/SocialEngineeringCustomersPage'));
 const ContactUsPage = lazy(() => import('./pages/SocialEngineeringContactUsPage'));
 const ContactPage = lazy(() => import('./pages/SocialEngineeringContactPage'));
@@ -59,10 +66,10 @@ export function SocialEngineeringServiceRoute({ slug }: { slug: string }) {
   );
 }
 
-export function SocialEngineeringCroissanceRoute() {
+export function SocialEngineeringGroundswellRoute() {
   return (
     <Deferred>
-      <CroissancePage />
+      <GroundSwellPage />
     </Deferred>
   );
 }

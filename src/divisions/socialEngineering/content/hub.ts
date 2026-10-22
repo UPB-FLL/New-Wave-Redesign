@@ -33,7 +33,7 @@ export const hubContent: DivisionHubContent = {
       icon: 'pillar-data',
       summary: 'Know what is working before you spend another dollar.',
       items: [
-        'Croissance, our audit: your market, your rivals, and real demand, from public data',
+        'GroundSwell, our audit: your market, your rivals, and real demand, from public data',
         'Analytics and conversion tracking, tested before anyone relies on them',
         'Attribution from first click to sale, by channel and campaign',
         'One monthly report against revenue, ending with the next moves',
@@ -69,7 +69,7 @@ export const hubContent: DivisionHubContent = {
       title: 'Audit',
       icon: 'method-discover',
       detail:
-        'We run Croissance, our audit, on your business and your rivals from public data, then review your tracking, tools, and ad accounts. You see where the demand is, what it costs to reach, and what breaks between a click and a sale.',
+        'We run GroundSwell, our audit, on your business and your rivals from public data, then review your tracking, tools, and ad accounts. You see where the demand is, what it costs to reach, and what breaks between a click and a sale.',
     },
     {
       title: 'Plan',
@@ -117,7 +117,7 @@ export const hubContent: DivisionHubContent = {
       phase: 'Days 1–30',
       title: 'Foundation',
       icon: 'phase-foundation',
-      items: ['Croissance audit', 'Tracking and analytics', 'CRM and booking integrations', 'Website conversion fixes', 'Google Business Profile', 'Offers and landing pages'],
+      items: ['GroundSwell audit', 'Tracking and analytics', 'CRM and booking integrations', 'Website conversion fixes', 'Google Business Profile', 'Offers and landing pages'],
     },
     {
       phase: 'Days 31–60',
@@ -216,7 +216,7 @@ export const hubContent: DivisionHubContent = {
     {
       question: 'How do we get started?',
       answer:
-        'With a discovery call, then Croissance, our audit, which uses only public data and needs no logins. From there we set a 90-day plan with targets and a budget. The work starts with tracking and integrations, so every campaign that follows can be measured against sales.',
+        'With a discovery call, then GroundSwell, our audit, which uses only public data and needs no logins. From there we set a 90-day plan with targets and a budget. The work starts with tracking and integrations, so every campaign that follows can be measured against sales.',
     },
     {
       question: 'Do we need to be a New Wave IT client?',
@@ -236,6 +236,6 @@ export const hubContent: DivisionHubContent = {
   ],
   cta: {
     heading: 'Start with the audit',
-    body: 'Book a discovery call. We’ll run Croissance on your business and your rivals, show you where the demand is and what it costs to reach, and set out what we would do first.',
+    body: 'Book a discovery call. We’ll run GroundSwell on your business and your rivals, show you where the demand is and what it costs to reach, and set out what we would do first.',
   },
 };

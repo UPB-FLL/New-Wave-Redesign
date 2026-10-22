@@ -163,6 +163,8 @@ export interface DivisionApp {
 
 /** Everything the prerenderer and the runtime meta hook need for one URL. */
 export interface DivisionPageSeo {
+  brand?: 'groundswell';
+  ogImage?: string;
   /** Absolute path, no trailing slash, e.g. '/social-engineering/social-media'. */
   path: string;
   title: string;

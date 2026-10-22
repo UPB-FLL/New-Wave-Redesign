@@ -79,8 +79,8 @@ describe('report HTML', () => {
   });
 
   it('refuses a link outside the Groundswell portal', () => {
-    expect(() => buildDeckHtml(data, { audit: 'https://claude.ai/x' })).toThrow(/Groundswell portal/);
-    expect(() => buildSummaryHtml(data, { deck: DECK, audit: AUDIT, folder: 'https://drive.google.com/drive/folders/F' })).toThrow(/Groundswell portal/);
+    expect(() => buildDeckHtml(data, { audit: 'https://claude.ai/x' })).toThrow(/GroundSwell portal/);
+    expect(() => buildSummaryHtml(data, { deck: DECK, audit: AUDIT, folder: 'https://drive.google.com/drive/folders/F' })).toThrow(/GroundSwell portal/);
   });
 });
 

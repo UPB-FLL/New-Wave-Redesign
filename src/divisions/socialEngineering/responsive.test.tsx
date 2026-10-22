@@ -21,7 +21,7 @@ import SocialEngineeringServicePage from './pages/SocialEngineeringServicePage';
 import {
   DIVISION_CONTACT_PATH,
   DIVISION_CONTACT_US_PATH,
-  DIVISION_CROISSANCE_PATH,
+  DIVISION_GROUNDSWELL_PATH,
   DIVISION_CUSTOMERS_PATH,
   DIVISION_DESCRIPTOR,
   DIVISION_ENDORSEMENT,
@@ -284,13 +284,13 @@ describe('mobile menu', () => {
     );
   });
 
-  it('puts Croissance, Customers, and Contact us beside Overview in one wrapping top row, above the services', () => {
+  it('puts GroundSwell, Customers, and Contact us beside Overview in one wrapping top row, above the services', () => {
     renderAt(<DivisionHeader />);
     const menu = openMenu();
     const links = within(menu).getAllByRole('link');
     expect(links.map((link) => link.textContent?.trim())).toEqual([
       'Overview',
-      'Croissance',
+      'GroundSwell',
       'Customers',
       'Contact us',
       ...divisionServices.map((service) => service.navLabel),
@@ -300,10 +300,10 @@ describe('mobile menu', () => {
     // One wrapping row with no extra block, border, or margin. On a 320x568
     // phone it wraps to two lines; the discovery-call button still fits the first screen.
     const row = menu.querySelector('[data-role="menu-pages"]')!;
-    expect(within(row as HTMLElement).getAllByRole('link').map((link) => link.textContent)).toEqual(['Overview', 'Croissance', 'Customers', 'Contact us']);
+    expect(within(row as HTMLElement).getAllByRole('link').map((link) => link.textContent)).toEqual(['Overview', 'GroundSwell', 'Customers', 'Contact us']);
     expect(classesOf(row)).toEqual(expect.arrayContaining(['flex', 'flex-wrap']));
     expect(classesOf(row).filter((name) => /^(m[tby]?|p[tby]?|border)(-|$)/.test(name))).toEqual([]);
-    expect(within(menu).getByRole('link', { name: 'Croissance' })).toHaveAttribute('href', DIVISION_CROISSANCE_PATH);
+    expect(within(menu).getByRole('link', { name: 'GroundSwell' })).toHaveAttribute('href', DIVISION_GROUNDSWELL_PATH);
     expect(within(menu).getByRole('link', { name: 'Customers' })).toHaveAttribute('href', DIVISION_CUSTOMERS_PATH);
     expect(within(menu).getByRole('link', { name: 'Contact us' })).toHaveAttribute('href', DIVISION_CONTACT_US_PATH);
     // The discovery call keeps its amber button.
@@ -312,7 +312,7 @@ describe('mobile menu', () => {
   });
 
   it.each([
-    ['Croissance', DIVISION_CROISSANCE_PATH],
+    ['GroundSwell', DIVISION_GROUNDSWELL_PATH],
     ['Customers', DIVISION_CUSTOMERS_PATH],
     ['Contact us', DIVISION_CONTACT_US_PATH],
   ])('marks %s as the current page', (label, path) => {
