@@ -185,7 +185,8 @@ describe('Groundswell steps and Vercel limits', () => {
   it('lists unique step names and ends with delivery', () => {
     const names = STEPS.map((s) => s.name);
     expect(new Set(names).size).toBe(names.length);
-    expect(names[0]).toBe('site');
+    // The competitor picker runs first, so the Site, Social and Search steps already see its picks.
+    expect(names.slice(0, 2)).toEqual(['competitors', 'site']);
     expect(names[names.length - 1]).toBe('deliver_finish');
     expect(STEPS.filter((s) => s.current === 'Delivery').every((s) => !s.optional)).toBe(true);
   });

@@ -181,13 +181,9 @@ describe('adding a customer', () => {
     expect(mail.send).toHaveBeenCalledWith(expect.objectContaining({ to: 'contact@newwaveitfl.com' }));
   });
 
-  it('queues a benchmark, which needs two competitors, and keeps the logo and colour on the audit only', async () => {
+  it('queues a benchmark with one competitor (the engine picks the other) and keeps the logo and colour on the audit only', async () => {
     const base = { business_name: 'Bench Shop', website: 'bench.example', kind: 'benchmark', brand_color: '#1A2B3C' };
-    const one = await call('POST', { ...base, competitors: [{ name: 'A', website: 'a.example' }] }, auth);
-    expect(one.statusCode).toBe(400);
-    expect(one.body.error).toMatch(/two competitors/);
-    expect(db.current!.tables.groundswell_customers.some((c) => c.business_name === 'Bench Shop')).toBe(false);
-    const two = await call('POST', { ...base, competitors: [{ name: 'A', website: 'a.example' }, { name: 'B', instagram: 'b_shop' }] }, auth);
+    const two = await call('POST', { ...base, competitors: [{ name: 'A', website: 'a.example' }] }, auth);
     expect(two.statusCode).toBe(201);
     expect(db.current!.tables.marketing_audits.find((a) => a.business_name === 'Bench Shop')).toMatchObject({ kind: 'benchmark', brand_color: '#1a2b3c' });
     expect(db.current!.tables.groundswell_customers.find((c) => c.business_name === 'Bench Shop')).not.toHaveProperty('brand_color');

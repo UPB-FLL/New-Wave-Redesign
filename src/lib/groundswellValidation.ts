@@ -4,9 +4,9 @@
 
 /** `review`: held before delivery for a person (the checks could not vouch for the figures). */
 export type AuditStatus = 'queued' | 'running' | 'done' | 'failed' | 'review';
-/** An audit, or a competitor benchmark (the audit plus a comparison with the top two competitors). */
+/** An audit, or a competitor benchmark (the audit plus a comparison with the top two competitors; any not entered are picked by the engine). */
 export type AuditKind = 'audit' | 'benchmark';
-/** Competitors a benchmark compares: the first ones entered, in order. */
+/** Competitors a benchmark compares: the first ones entered, in order; the engine picks one local and one country-wide for empty slots. */
 export const BENCHMARK_COMPETITORS = 2;
 
 export interface AuditCompetitor {
@@ -184,9 +184,7 @@ export function buildAuditInsert(draft: AuditDraft): AuditInsert {
   const competitors = draft.competitors
     .filter((c) => c.name.trim() || c.website.trim() || c.instagram.trim())
     .map(buildCompetitor);
-  if (draft.kind === 'benchmark' && competitors.length < BENCHMARK_COMPETITORS) {
-    throw new Error('A benchmark needs two competitors, each with a website or an Instagram handle.');
-  }
+  // A benchmark with fewer than BENCHMARK_COMPETITORS entered gets the rest picked by the engine (Google Places).
   const brand_logo_url = normalizeLogoUrl(draft.brand_logo_url ?? '');
   const brand_color = normalizeBrandColor(draft.brand_color ?? '');
   return {

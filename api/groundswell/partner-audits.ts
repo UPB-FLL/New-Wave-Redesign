@@ -10,7 +10,7 @@ import { getSupabaseAdmin, isSupabaseConfigured } from '../_lib/supabaseAdmin.js
  * GET: the audits this partner submitted, newest first, with Drive links once
  * done. Error details stay internal; a failed audit only says so.
  * POST: queue a business (same checks as the admin form), as an audit or a
- * competitor benchmark (`kind: 'benchmark'`, two competitors), optionally
+ * competitor benchmark (`kind: 'benchmark'`; competitors not entered are picked by the engine), optionally
  * with the business's logo link and main colour for its reports. It waits in
  * the queue until an admin runs it.
  */

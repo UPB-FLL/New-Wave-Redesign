@@ -104,9 +104,10 @@ describe('the benchmark run', () => {
     expect(calls[1]).toEqual({ step_names: STEPS.map((s) => s.name), max_audits: 3 });
   });
 
-  it('needs two competitors to queue a benchmark, and names the kind only for one', () => {
+  it('queues a benchmark with fewer than two competitors (the engine picks the rest), and names the kind only for one', () => {
     const draft = { business_name: 'Shop', city: '', website: 'shop.example', instagram: '', notes: '', competitors: [{ name: 'A', website: 'a.example', instagram: '' }] };
-    expect(() => buildAuditInsert({ ...draft, kind: 'benchmark' })).toThrow(/two competitors/);
+    expect(buildAuditInsert({ ...draft, kind: 'benchmark' })).toMatchObject({ kind: 'benchmark', competitors: [{ name: 'A' }] });
+    expect(buildAuditInsert({ ...draft, kind: 'benchmark', competitors: [] }).competitors).toEqual([]);
     expect(buildAuditInsert(draft)).not.toHaveProperty('kind');
     expect(buildAuditInsert({ ...draft, kind: 'benchmark', competitors: [...draft.competitors, { name: 'B', website: '', instagram: 'b_shop' }] }).kind).toBe('benchmark');
   });

@@ -133,6 +133,11 @@ export async function runWorker(
         deadline: deadline - SAFETY_MS,
         attempt: claimed.attempts,
       });
+      const patch = def.persist?.(output, auditRow as AuditRow);
+      if (patch && Object.keys(patch).length) {
+        const { error: persistError } = await db.from('marketing_audits').update(patch).eq('id', claimed.audit_id);
+        if (persistError) throw new Error(`Could not save the step's changes to the audit: ${persistError.message}`);
+      }
       await db
         .from('marketing_audit_steps')
         .update({ status: 'done', output: output ?? null, error: null, finished_at: new Date().toISOString() })
