@@ -9,7 +9,7 @@ const GAP_WORDING: Record<string, string> = {
   maps: 'Google Maps could not be read for this audit.',
   search: 'Search rankings and backlinks (Ahrefs) were not available for this audit.',
   keywords: 'Keyword demand (Google Keyword Planner) was not available for this audit, so the ad plan and the ad copy are not included.',
-  social: 'Instagram could not be read for this audit.',
+  social: 'Instagram and Facebook could not be read for this audit.',
   ads: 'Ad tags and paid search pages could not be checked for this audit.',
   linked: 'The business’s own accounts could not be read for this audit, so it is built from public data.',
   social_depth: 'Instagram posts and reels could not be read, so engagement is not compared.',

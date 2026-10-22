@@ -114,6 +114,28 @@ describe('the business’s own images', () => {
     expect(tools.executeTool.mock.calls.every(([, args]) => (args as { handle?: string }).handle === 'harborautocare')).toBe(true);
   });
 
+  it('with Instagram unreadable, the images on the business’s Facebook posts (phase 1’s read) come before the website’s share image', async () => {
+    const outputs = sampleOutputs();
+    (outputs.social as { facebook?: unknown }).facebook = {
+      url: 'https://www.facebook.com/harborauto', page_id: '1', page_name: 'Harbor Auto Care', exists: true, followers: 1900, likes: null, category: null, intro: null, rating: null, rating_count: null, ad_library_status: null, restricted: true, error: null,
+      posts: [
+        { url: 'https://www.facebook.com/harborauto/posts/1', text: 'New lift installed.', posted_at: '2026-10-20T16:06:31.000Z', reactions: 44, comments: 5, shares: 2, image_url: 'https://scontent.example/p1.jpg' },
+        { url: 'https://www.facebook.com/harborauto/posts/2', text: 'Closed Monday.', posted_at: '2026-10-18T16:06:31.000Z', reactions: 4, comments: 0, shares: 0, image_url: null },
+      ],
+    };
+    tools.executeTool.mockRejectedValue(new Error('Instagram blocked access to this user’s public posts.'));
+    const fetchImpl = vi.fn(async () => ({ ok: true, arrayBuffer: async () => jpeg(1080, 1080).buffer })) as unknown as typeof fetch;
+    const out = await runCreative(ctxWith(outputs), fetchImpl);
+    // One Facebook image is fewer than two, so the website's share image still follows it.
+    expect(out.images.map((i) => [i.name, i.origin, i.permalink, i.likes, i.caption])).toEqual([
+      ['fb-1.jpg', 'facebook', 'https://www.facebook.com/harborauto/posts/1', 44, 'New lift installed.'],
+      ['site-share-image.jpg', 'website', null, null, null],
+    ]);
+    expect(out.source).toBe('The business’s own Facebook posts');
+    expect(out.tried).toContain('The business’s Facebook posts: 1 with an image, 1 kept.');
+    expect(tools.executeTool.mock.calls.map(([slug]) => slug)).toEqual(['SCRAPECREATORS_LIST_INSTAGRAM_USER_POSTS', 'APIFY_SCRAPE_INSTAGRAM_POSTS']);
+  });
+
   it('tries Apify, then the website’s share image; with nothing usable the step is skipped, saying what was tried', async () => {
     tools.executeTool.mockRejectedValue(new Error('Instagram blocked access to this user’s public posts.'));
     const nothing = vi.fn(async () => ({ ok: false, arrayBuffer: async () => new ArrayBuffer(0) })) as unknown as typeof fetch;

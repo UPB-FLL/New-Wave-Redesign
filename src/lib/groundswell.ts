@@ -83,7 +83,7 @@ export const STEP_LABELS: Record<string, string> = {
   maps: 'Google Maps',
   search: 'Search rankings',
   keywords: 'Keyword demand',
-  social: 'Instagram',
+  social: 'Instagram and Facebook',
   ads: 'Ads',
   linked: 'Linked accounts',
   model: 'Write-up and ROI',

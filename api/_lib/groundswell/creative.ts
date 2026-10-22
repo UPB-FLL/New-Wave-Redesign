@@ -2,7 +2,7 @@ import type { CreativeRef } from '../../../packages/groundswell/src/adsets.js';
 import { getSupabaseAdmin } from '../supabaseAdmin.js';
 import { storeAsset } from './assetStore.js';
 import { executeTool } from './composio.js';
-import { mediaFrom, type InstagramMedia, type InstagramSnapshot } from './currents/social.js';
+import { mediaFrom, type FacebookSnapshot, type InstagramMedia, type InstagramSnapshot } from './currents/social.js';
 import type { SiteScan } from './currents/site.js';
 import { PermanentStepError, type StepContext } from './types.js';
 
@@ -14,7 +14,8 @@ import { PermanentStepError, type StepContext } from './types.js';
  * 2. one more page of posts from ScrapeCreators (one credit), when those
  *    links have expired;
  * 3. Apify's Instagram scraper, when ScrapeCreators is blocked or empty;
- * 4. the website's own share image.
+ * 4. the images on the business's newest Facebook posts (phase 1's read);
+ * 5. the website's own share image.
  * Each image is downloaded, checked (a JPEG, PNG or WebP, at least
  * MIN_SIDE pixels on its short side) and stored. The best performers come
  * first: likes plus three times comments, newest first on a tie.
@@ -26,7 +27,7 @@ const MAX_BYTES = 8 * 1024 * 1024;
 const USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0 Safari/537.36';
 
 export interface CreativeImage extends CreativeRef {
-  origin: 'instagram' | 'website';
+  origin: 'instagram' | 'facebook' | 'website';
   type: InstagramMedia['type'] | 'image';
   taken_at: string | null;
   caption: string | null;
@@ -105,7 +106,7 @@ const extension = (type: string) => (type === 'image/png' ? 'png' : type === 'im
 const message = (err: unknown) => (err instanceof Error ? err.message : String(err)).slice(0, 200);
 
 export async function runCreative(ctx: StepContext, fetchImpl: typeof fetch = fetch): Promise<CreativeOutput> {
-  const social = ctx.outputs.social as { business?: InstagramSnapshot | null } | undefined;
+  const social = ctx.outputs.social as { business?: InstagramSnapshot | null; facebook?: FacebookSnapshot | null } | undefined;
   const site = ctx.outputs.site as { business?: SiteScan | null } | undefined;
   const handle = social?.business?.handle ?? ctx.audit.instagram ?? null;
   const tried: string[] = [];
@@ -155,6 +156,21 @@ export async function runCreative(ctx: StepContext, fetchImpl: typeof fetch = fe
     tried.push('No Instagram handle: none was entered and the website links none.');
   }
 
+  const fbPosts = (social?.facebook?.posts ?? []).filter((p) => p.image_url);
+  if (images.length < 2 && fbPosts.length) {
+    let kept = 0;
+    for (const p of fbPosts) {
+      if (images.length >= WANTED) break;
+      const got = await download(p.image_url!, fetchImpl);
+      if (!got) continue;
+      const name = `fb-${images.length + 1}.${extension(got.type)}`;
+      const row = await storeAsset(db, { audit_id: ctx.audit.id, kind: 'image', name, content_type: got.type, meta: { origin: 'facebook', permalink: p.url, reactions: p.reactions, comments: p.comments, width: got.width, height: got.height } }, got.bytes);
+      images.push({ path: row.path, name, permalink: p.url, likes: p.reactions, comments: p.comments, width: got.width, height: got.height, origin: 'facebook', type: 'image', taken_at: p.posted_at, caption: p.text, content_type: got.type });
+      kept++;
+    }
+    tried.push(`The business’s Facebook posts: ${fbPosts.length} with an image, ${kept} kept.`);
+  }
+
   const og = site?.business?.og_image;
   if (images.length < 2 && og && /^https:\/\//.test(og)) {
     const got = await download(og, fetchImpl);
@@ -170,7 +186,7 @@ export async function runCreative(ctx: StepContext, fetchImpl: typeof fetch = fe
 
   if (!images.length) throw new PermanentStepError(`No usable image of the business’s own was found. ${tried.join(' ')}`);
   return {
-    source: images.some((i) => i.origin === 'instagram') ? `The business’s own Instagram posts${handle ? ` (@${handle})` : ''}` : 'The business’s website',
+    source: images.some((i) => i.origin === 'instagram') ? `The business’s own Instagram posts${handle ? ` (@${handle})` : ''}` : images.some((i) => i.origin === 'facebook') ? 'The business’s own Facebook posts' : 'The business’s website',
     fetched_at: new Date().toISOString(),
     handle,
     images,
