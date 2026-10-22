@@ -344,4 +344,17 @@ export const GROUNDSWELL_CONFIG: GroundswellConfig = validateConfig({
       'Disparaging a competitor or another profession.',
     ],
   },
+
+  // The ad sets (src/adsets.ts): Meta and Google structures built from the plan's rows. New Wave's rules, not a platform's.
+  adsets: {
+    engagement_share: [0.15, 0.2, 0.25],
+    engagement_basis:
+      'New Wave’s rule: about a fifth of the plan’s monthly spend (never less than Meta’s smallest useful test) puts the business’s best posts in front of the people the leads sets retarget. Not a published benchmark.',
+    rankings_positions: [4, 20],
+    rankings_min_searches: 30,
+    keywords_per_group: 12,
+    default_negatives: ['jobs', 'job', 'careers', 'career', 'salary', 'hiring', 'diy', 'how to', 'youtube', 'reddit'],
+    negatives_basis: 'New Wave’s starting list for a local business’s search campaign; the plan adds the business’s own.',
+    carousel: { max_slides: 8, caption_max_chars: 2200, source: 'Instagram Help Center: captions (2,200 characters); slides are New Wave’s rule', as_of: '2026' },
+  },
 });

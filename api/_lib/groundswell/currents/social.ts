@@ -47,7 +47,7 @@ function imageOf(p: Record<string, unknown>): string | null {
   for (const item of [p, ...(first ? [first] : [])]) {
     const candidates = (item.image_versions2 as { candidates?: { url?: unknown }[] } | undefined)?.candidates ?? [];
     const original = candidates.find((c) => typeof c?.url === 'string')?.url;
-    const url = original ?? item.display_uri ?? item.display_url ?? item.thumbnail_src ?? item.thumbnail_url;
+    const url = original ?? item.display_uri ?? item.display_url ?? item.displayUrl ?? item.thumbnail_src ?? item.thumbnail_url ?? (item.images as unknown[] | undefined)?.[0];
     if (typeof url === 'string' && /^https:\/\//.test(url)) return url;
   }
   return null;
@@ -55,25 +55,27 @@ function imageOf(p: Record<string, unknown>): string | null {
 
 /** The posts a page lists, with what the ad sets need: image, type, counts, caption. */
 export function mediaFrom(posts: unknown): InstagramMedia[] {
-  const items = (findKey<unknown[]>(posts, 'items') ?? findKey<unknown[]>(posts, 'posts') ?? findKey<unknown[]>(posts, 'edges') ?? []).map(
-    (i) => ((i as Record<string, unknown>).node ?? i) as Record<string, unknown>
-  );
+  // ScrapeCreators lists `items` (or `posts` / `edges`); Apify's scraper answers with an array of posts.
+  const list = Array.isArray(posts)
+    ? posts
+    : findKey<unknown[]>(posts, 'items') ?? findKey<unknown[]>(posts, 'posts') ?? findKey<unknown[]>(posts, 'edges') ?? (Array.isArray(findKey(posts, 'data')) ? findKey<unknown[]>(posts, 'data') : null) ?? [];
+  const items = list.filter((i) => i && typeof i === 'object').map((i) => ((i as Record<string, unknown>).node ?? i) as Record<string, unknown>);
   const out: InstagramMedia[] = [];
   for (const p of items) {
     const image_url = imageOf(p);
     if (!image_url) continue;
-    const kind = n(p.media_type);
+    const kind = n(p.media_type) ?? (p.type === 'Video' ? 2 : p.type === 'Sidecar' ? 8 : p.type === 'Image' ? 1 : null);
     const caption = typeof p.caption === 'string' ? p.caption : typeof (p.caption as { text?: unknown })?.text === 'string' ? (p.caption as { text: string }).text : null;
     const time = postTime(p);
-    const code = typeof p.code === 'string' ? p.code : typeof p.shortcode === 'string' ? p.shortcode : null;
+    const code = typeof p.code === 'string' ? p.code : typeof p.shortcode === 'string' ? p.shortcode : typeof p.shortCode === 'string' ? p.shortCode : null;
     out.push({
       code,
       permalink: typeof p.url === 'string' ? p.url : code ? `https://www.instagram.com/p/${code}/` : null,
       image_url,
       type: kind === 2 || p.product_type === 'clips' ? 'video' : kind === 8 || (Array.isArray(p.carousel_media) && p.carousel_media.length) ? 'carousel' : 'image',
-      likes: n(p.like_count) ?? n(findKey(p.edge_liked_by ?? p.edge_media_preview_like, 'count')),
-      comments: n(p.comment_count) ?? n(findKey(p.edge_media_to_comment, 'count')),
-      plays: n(p.play_count) ?? n(p.ig_play_count),
+      likes: n(p.like_count) ?? n(p.likesCount) ?? n(findKey(p.edge_liked_by ?? p.edge_media_preview_like, 'count')),
+      comments: n(p.comment_count) ?? n(p.commentsCount) ?? n(findKey(p.edge_media_to_comment, 'count')),
+      plays: n(p.play_count) ?? n(p.ig_play_count) ?? n(p.videoPlayCount) ?? n(p.videoViewCount),
       taken_at: time ? new Date(time).toISOString() : null,
       caption: caption ? caption.slice(0, 400) : null,
     });

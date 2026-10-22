@@ -69,6 +69,16 @@ export const config: GroundswellConfig = validateConfig({
   min_angle_searches: 100,
   unsupported_claims: ['best', '#1', 'number one'],
   verification: { tolerance: 0.1, max_rounds: 2, max_review_drops: 0.25 },
+  adsets: {
+    engagement_share: [0.1, 0.2, 0.3],
+    engagement_basis: 'test',
+    rankings_positions: [4, 20],
+    rankings_min_searches: 30,
+    keywords_per_group: 12,
+    default_negatives: ['jobs', 'diy'],
+    negatives_basis: 'test',
+    carousel: { max_slides: 6, caption_max_chars: 2200, source: 'test', as_of: '2026' },
+  },
   benchmark: {
     accounts: 3,
     pricing_pages_per_account: 10,
