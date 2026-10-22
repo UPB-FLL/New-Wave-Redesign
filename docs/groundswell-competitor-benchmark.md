@@ -18,6 +18,15 @@ yet; this is the spec to build from.
 
 ---
 
+
+> **2026-10-22**: a benchmark no longer needs two competitors entered. The
+> `competitors` step (first in every audit) fills the empty slots from the
+> Google Places API: one from the local market (the business's category near
+> its city) and one from the country-wide market (the same category anywhere
+> in the United States, outside the city), most Google reviews first, with a
+> website required. Entered competitors always come first. See
+> `api/_lib/groundswell/currents/competitors.ts`.
+
 ## 1. Inputs and scope
 
 | Input | Source | Rule |

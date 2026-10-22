@@ -2,6 +2,40 @@
 
 ## Recent Changes
 
+### Groundswell: the engine picks a benchmark's missing competitors (2026-10-22)
+
+Owner's choices: the Google Places API picks them; only the slots not
+entered are filled; one from the local market and one from the
+country-wide market.
+
+- **Step** `competitors` (`api/_lib/groundswell/currents/competitors.ts`),
+  first in every audit and benchmark, optional. When fewer than two
+  competitors were entered: one Places text search finds the business
+  (`matchBusiness`) and its category and area; `"<category> near <area>"`
+  gives the local pick and `"<category> in the United States"` the
+  country-wide one, outside the business's city (`cityOf`). "Top" is the
+  most Google reviews, then the higher rating (`pickFrom`); a pick needs a
+  website, and never is the business itself, a closed place, an entered
+  competitor, or a host already used. Entered competitors stay first. Two
+  entered means no Places call. The output records each pick's query,
+  rating, reviews and address, and how many places each query returned.
+- **Engine**: `StepDefinition.persist(output, audit)` names audit-row fields
+  a finished step changes; the worker writes them to `marketing_audits`
+  before marking the step done, so the next step's row read sees them
+  (`persistCompetitors` writes the competitors only when the step added
+  any). A write that fails fails the step.
+- **Queueing**: `buildAuditInsert` no longer requires two competitors for a
+  benchmark; the admin and partner forms say a blank slot is picked by
+  Groundswell. Migration `20261025120000` drops
+  `marketing_audits_benchmark_competitors_check`. `STEP_LABELS` gains
+  "Top competitors".
+- **Tests**: `src/test/api/groundswell-competitors.test.ts`, the persist
+  case in `groundswell-engine.test.ts`, and the queue cases in the
+  benchmark, partner and customer tests.
+- **Not yet**: the reports do not say which competitors were picked and
+  why; the step's output holds it. The Places project's daily text-search
+  quota (4,000) is shared with every other use of the key.
+
 ### Groundswell: review, re-interpret, re-run before delivery (2026-10-21)
 
 Owner's choices: re-read the plan's sources, re-run the plan and add a

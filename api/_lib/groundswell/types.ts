@@ -47,6 +47,8 @@ export interface StepDefinition {
   /** An optional step that keeps failing is skipped; the audit goes on without it. */
   optional: boolean;
   run(ctx: StepContext): Promise<unknown>;
+  /** Fields of the audit row a finished step changes (the engine writes them before the next step reads the row). */
+  persist?(output: unknown, audit: AuditRow): Partial<Pick<AuditRow, 'competitors'>> | null;
 }
 
 /** Thrown when a step cannot succeed by retrying (bad input, missing setup). */

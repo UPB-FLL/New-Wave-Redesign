@@ -292,7 +292,7 @@ export default function GroundswellAudits() {
         </label>
 
         <fieldset className="space-y-3">
-          <legend className="text-sm font-semibold">{benchmark ? 'Competitors (the first two are required)' : 'Competitors (optional)'}</legend>
+          <legend className="text-sm font-semibold">{benchmark ? 'Competitors (leave a slot blank and Groundswell picks it from Google Places: one local, one country-wide)' : 'Competitors (optional)'}</legend>
           {draft.competitors.map((c, i) => (
             <div key={i} className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto] items-center">
               <input className={input} aria-label={`${competitorLabel(i)} name`} placeholder={benchmark && i < BENCHMARK_COMPETITORS ? competitorLabel(i) : 'Name'} value={c.name} onChange={(e) => setCompetitor(i, 'name', e.target.value)} />

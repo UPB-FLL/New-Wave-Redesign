@@ -113,6 +113,19 @@ describe('startQueuedAudits', () => {
 });
 
 describe('runWorker', () => {
+  it('writes a step\'s persisted fields to the audit row before the next step reads it', async () => {
+    const seen: unknown[] = [];
+    const picked = [{ name: 'Rival', website: 'https://rival.example', instagram: null }];
+    const steps: StepDefinition[] = [
+      { ...def('competitors', async () => ({ competitors: picked })), persist: (out) => ({ competitors: (out as { competitors: typeof picked }).competitors }) },
+      def('site', async (ctx) => (seen.push(ctx.audit.competitors), 'ok')),
+    ];
+    const { db, audits } = fakeDb(['competitors', 'site']);
+    await runWorker(db, steps, { deadline: plenty() });
+    expect(audits.get(sampleAudit.id)?.competitors).toEqual(picked);
+    expect(seen).toEqual([picked]);
+  });
+
   it('runs steps in order and hands each one the earlier outputs', async () => {
     const seen: Record<string, unknown>[] = [];
     const steps = [

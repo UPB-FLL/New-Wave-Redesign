@@ -130,7 +130,7 @@ export function CustomerForm(props: Props) {
       ) : null}
       <fieldset className="mt-5">
         <legend className="gs-label">
-          {benchmark ? `Competitors (the first two are compared; up to ${MAX_COMPETITORS})` : `Competitors (optional, up to ${MAX_COMPETITORS})`}
+          {benchmark ? `Competitors (the first two are compared; leave a slot blank and Groundswell picks it from Google Places, one local and one country-wide; up to ${MAX_COMPETITORS})` : `Competitors (optional, up to ${MAX_COMPETITORS})`}
         </legend>
         <div className="space-y-3">
           {draft.competitors.map((c, i) => (

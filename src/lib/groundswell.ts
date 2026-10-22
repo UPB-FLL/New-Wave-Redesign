@@ -78,6 +78,7 @@ export interface AuditStep {
 
 /** Plain labels for Groundswell's steps (api/_lib/groundswell/steps.ts). */
 export const STEP_LABELS: Record<string, string> = {
+  competitors: 'Top competitors',
   site: 'Website',
   maps: 'Google Maps',
   search: 'Search rankings',

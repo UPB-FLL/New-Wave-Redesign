@@ -4,6 +4,7 @@ import { runAdplan } from './adplan.js';
 import { runBenchmark } from './benchmark.js';
 import { runAdsLibrary } from './currents/adsLibrary.js';
 import { runAuthority } from './currents/authority.js';
+import { persistCompetitors, runCompetitors } from './currents/competitors.js';
 import { runPricing } from './currents/pricing.js';
 import { runSocialDepth } from './currents/socialDepth.js';
 import { runAds } from './currents/ads.js';
@@ -33,6 +34,8 @@ import { SUPPORTED_ROUNDS, verifySteps } from './verify.js';
  * setup file sets how many rounds an audit started now gets.
  */
 const GATHER_AND_MODEL: StepDefinition[] = [
+  // First, so the Site, Social and Search steps already see the picked competitors.
+  { name: 'competitors', current: 'Maps', label: 'Top competitors (Google Places)', optional: true, run: runCompetitors, persist: persistCompetitors },
   { name: 'site', current: 'Site', label: 'Website scan', optional: false, run: runSite },
   { name: 'maps', current: 'Maps', label: 'Google Maps', optional: true, run: runMaps },
   { name: 'search', current: 'Search', label: 'Search rankings (Ahrefs)', optional: true, run: runSearch },
