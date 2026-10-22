@@ -1,6 +1,7 @@
 import { getSupabaseAdmin, isSupabaseConfigured } from '../supabaseAdmin.js';
 import { CLIENT_SERVICES } from '../../../src/lib/groundswellValidation.js';
 import { activeConnection, authConfigFor, isComposioConfigured, keyShape } from './composio.js';
+import { consumerConnections, consumerKeyShape, isConsumerConfigured } from './composioConsumer.js';
 import { REPORTS_BUCKET } from './reportStore.js';
 import { PermanentStepError } from './types.js';
 
@@ -66,21 +67,60 @@ async function checkOpenAI(fetchImpl: typeof fetch): Promise<ReadinessCheck> {
 /** The sign-ins partners can offer a client: one auth config per client service in the Composio project. */
 const SIGNIN_CHECKS = CLIENT_SERVICES.map((s) => ({ key: `authconfig:${s.toolkit}`, label: `Client sign-in: ${s.label}`, toolkit: s.toolkit, service: s.label }));
 
-/** The Composio key, one check per toolkit the Currents read, and one per client sign-in. */
-async function checkComposio(): Promise<ReadinessCheck[]> {
-  const keyCheck = { key: 'COMPOSIO_API_KEY', label: 'Composio project key', required: true };
+/** Toolkits Composio serves from its instant account (billed per call) rather than one New Wave linked. */
+const INSTANT_TOOLKITS = ['ahrefs'];
+
+/**
+ * The consumer account (phases 1 and 2): its key, then one check per toolkit
+ * the Currents read, from its list of linked accounts. Without the key the row
+ * says the project reads instead, and the toolkit rows come from the project.
+ */
+async function checkConsumer(): Promise<ReadinessCheck[] | null> {
+  const keyCheck = { key: 'COMPOSIO_CONSUMER_API_KEY', label: 'Composio consumer account (phases 1 and 2)', required: false };
+  if (!isConsumerConfigured()) return null;
   const toolkits = TOOLKIT_CHECKS.map((t) => ({ key: `composio:${t.toolkit}`, label: t.label, required: false, without: t.without }));
+  try {
+    const states = await consumerConnections(
+      TOOLKIT_CHECKS.map((t) => t.toolkit),
+      INSTANT_TOOLKITS
+    );
+    return [
+      { ...keyCheck, ok: true, detail: `Composio accepted the consumer key (${consumerKeyShape(process.env.COMPOSIO_CONSUMER_API_KEY ?? '')}); phases 1 and 2 read through it.` },
+      ...toolkits.map(({ without, ...t }, i) => {
+        const st = states[i];
+        if (st.state === 'active') return { ...t, ok: true, detail: `Linked in the consumer account (${st.accounts || 1} account${st.accounts === 1 || !st.accounts ? '' : 's'}).` };
+        if (st.state === 'instant') return { ...t, ok: true, detail: 'Served by Composio’s instant account, billed per call; the first run confirms it.' };
+        return { ...t, ok: false, detail: `Nothing linked in the consumer account; ${without}. Link it in Composio’s For You dashboard.` };
+      }),
+    ];
+  } catch (err) {
+    const refused = err instanceof PermanentStepError && /API key/i.test(message(err));
+    return [
+      { ...keyCheck, ok: false, detail: refused ? message(err) : `Composio’s consumer endpoint could not be reached: ${message(err)}` },
+      ...toolkits.map(({ without, ...t }) => ({ ...t, ok: false, detail: refused ? 'Not checked: the consumer key was refused.' : `Not checked; if it stays down, ${without}.` })),
+    ];
+  }
+}
+
+/**
+ * The project key (a client's linked accounts, phase 3; and the shared reads
+ * when there is no consumer key), one check per toolkit the Currents read when
+ * the project reads them, and one per client sign-in.
+ */
+async function checkComposio(consumerRows: boolean): Promise<ReadinessCheck[]> {
+  const keyCheck = { key: 'COMPOSIO_API_KEY', label: consumerRows ? 'Composio project key (clients’ linked accounts)' : 'Composio project key', required: !consumerRows };
+  const toolkits = consumerRows ? [] : TOOLKIT_CHECKS.map((t) => ({ key: `composio:${t.toolkit}`, label: t.label, required: false, without: t.without }));
   if (!isComposioConfigured()) {
     const unchecked = { required: false, ok: false, detail: 'Not checked: Composio is not set up.' };
     return [
-      { ...keyCheck, ok: false, detail: 'COMPOSIO_API_KEY is missing in Vercel.' },
+      { ...keyCheck, ok: false, detail: consumerRows ? 'COMPOSIO_API_KEY is missing in Vercel: partners cannot link a client’s accounts, and phase 3 cannot run.' : 'COMPOSIO_API_KEY is missing in Vercel.' },
       ...toolkits.map((t) => ({ key: t.key, label: t.label, ...unchecked })),
       ...SIGNIN_CHECKS.map((t) => ({ key: t.key, label: t.label, ...unchecked })),
     ];
   }
   const [results, signins] = await Promise.all([
     Promise.all(
-      TOOLKIT_CHECKS.map(async (t) => {
+      (consumerRows ? [] : TOOLKIT_CHECKS).map(async (t) => {
         try {
           return { account: await activeConnection(t.toolkit), error: null as unknown };
         } catch (err) {
@@ -99,18 +139,21 @@ async function checkComposio(): Promise<ReadinessCheck[]> {
     ),
   ]);
   const refused = [...results, ...signins].find((r) => r.error instanceof PermanentStepError && /API key/i.test(message(r.error)))?.error;
-  const answered = results.some((r) => !r.error);
+  // The connection listing decides whether the key works when the project reads the toolkits; else the sign-in listing does.
+  const probe: { error: unknown }[] = results.length ? results : signins;
+  const answered = probe.some((r) => !r.error);
+  const firstError = probe.find((r) => r.error)?.error;
   const key: ReadinessCheck = refused
     ? { ...keyCheck, ok: false, detail: message(refused) }
     : answered
       ? { ...keyCheck, ok: true, detail: `Composio accepted the key (${keyShape(process.env.COMPOSIO_API_KEY ?? '')}).` }
-      : { ...keyCheck, ok: false, detail: `Composio could not be reached: ${message(results[0]?.error)}` };
+      : { ...keyCheck, ok: false, detail: `Composio could not be reached: ${message(firstError)}` };
   return [
     key,
     ...toolkits.map(({ without, ...t }, i) => {
       const r = results[i];
       if (r.error) return { ...t, ok: false, detail: refused ? 'Not checked: the key was refused.' : `Could not list connections: ${message(r.error)}` };
-      if (!r.account) return { ...t, ok: false, detail: `No active connection in the project; ${without}. Connect it under Auth Configs.` };
+      if (!r.account) return { ...t, ok: false, detail: `No active connection in the project; ${without}. Connect it under Auth Configs, or set COMPOSIO_CONSUMER_API_KEY to read through the consumer account.` };
       return { ...t, ok: true, detail: `Active connection found${r.account.user_id ? ` (user id ${r.account.user_id})` : ''}.` };
     }),
     ...SIGNIN_CHECKS.map((t, i) => {
@@ -122,6 +165,15 @@ async function checkComposio(): Promise<ReadinessCheck[]> {
     }),
   ];
 }
+
+/** The row for a consumer key that is not set: phases 1 and 2 read through the project. */
+const NO_CONSUMER: ReadinessCheck = {
+  key: 'COMPOSIO_CONSUMER_API_KEY',
+  label: 'Composio consumer account (phases 1 and 2)',
+  required: false,
+  ok: false,
+  detail: 'Not set: phases 1 and 2 read through the Composio project, which has fewer linked tools. Set COMPOSIO_CONSUMER_API_KEY (the ck_ key from Composio’s For You dashboard).',
+};
 
 function envChecks(): ReadinessCheck[] {
   const set = (name: string) => Boolean(process.env[name]);
@@ -145,8 +197,9 @@ function envChecks(): ReadinessCheck[] {
 
 /** Every check, with the services asked to answer. Never throws: a failure is a check that is not ok. */
 export async function readinessChecks(fetchImpl: typeof fetch = fetch): Promise<ReadinessCheck[]> {
-  const [storage, openai, composio] = await Promise.all([checkStorage(), checkOpenAI(fetchImpl), checkComposio()]);
-  return [storage, openai, ...composio, ...envChecks()];
+  const consumer = await checkConsumer();
+  const [storage, openai, composio] = await Promise.all([checkStorage(), checkOpenAI(fetchImpl), checkComposio(Boolean(consumer))]);
+  return [storage, openai, ...(consumer ?? [NO_CONSUMER]), ...composio, ...envChecks()];
 }
 
 /** One line for the overview: ready, ready with data sources missing, or not ready. */

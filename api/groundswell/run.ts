@@ -1,6 +1,7 @@
 import { reportAdminEmails, requireAdmin } from '../_lib/adminKey.js';
 import { runWorkerInBackground } from '../_lib/groundswell/background.js';
-import { isComposioConfigured } from '../_lib/groundswell/composio.js';
+import { isComposioConfigured, isSharedLookupConfigured } from '../_lib/groundswell/composio.js';
+import { isConsumerConfigured } from '../_lib/groundswell/composioConsumer.js';
 import { startQueuedAudits } from '../_lib/groundswell/engine.js';
 import { readinessChecks, readinessSummary } from '../_lib/groundswell/readiness.js';
 import { answerReview, ReviewError } from '../_lib/groundswell/review.js';
@@ -30,7 +31,18 @@ export const MAX_AUDITS_PER_CLICK = 3;
 export function setupChecks() {
   return [
     { key: 'SUPABASE_SERVICE_ROLE_KEY', label: 'Supabase service role', ok: isSupabaseConfigured(), required: true },
-    { key: 'COMPOSIO_API_KEY', label: 'Composio (Ahrefs, Keyword Planner, Instagram, Places)', ok: isComposioConfigured(), required: true },
+    {
+      key: 'COMPOSIO_CONSUMER_API_KEY',
+      label: 'Composio consumer account (phases 1 and 2: Ahrefs, Keyword Planner, Instagram, Places)',
+      ok: isConsumerConfigured(),
+      required: false,
+    },
+    {
+      key: 'COMPOSIO_API_KEY',
+      label: isConsumerConfigured() ? 'Composio project (phase 3: clients’ linked accounts)' : 'Composio (Ahrefs, Keyword Planner, Instagram, Places)',
+      ok: isComposioConfigured(),
+      required: !isConsumerConfigured(),
+    },
     { key: 'OPENAI_API_KEY', label: 'OpenAI (the write-up)', ok: Boolean(process.env.OPENAI_API_KEY), required: true },
     { key: 'RESEND_API_KEY', label: 'Resend (partner invites and resets)', ok: Boolean(process.env.RESEND_API_KEY), required: false },
     { key: 'GOOGLE_ADS_CUSTOMER_ID', label: 'Google Ads customer id (Keyword Planner)', ok: Boolean(process.env.GOOGLE_ADS_CUSTOMER_ID), required: false },
@@ -40,7 +52,7 @@ export function setupChecks() {
 export function missingSetup(): string[] {
   return [
     isSupabaseConfigured() ? null : 'SUPABASE_SERVICE_ROLE_KEY',
-    isComposioConfigured() ? null : 'COMPOSIO_API_KEY',
+    isSharedLookupConfigured() ? null : 'COMPOSIO_CONSUMER_API_KEY or COMPOSIO_API_KEY',
     process.env.OPENAI_API_KEY ? null : 'OPENAI_API_KEY',
   ].filter((v): v is string => Boolean(v));
 }

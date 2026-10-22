@@ -1,6 +1,6 @@
 import type { Page } from 'puppeteer-core';
 import { withBrowser } from '../browser.js';
-import { executeTool, findKey, isComposioConfigured } from '../composio.js';
+import { executeTool, findKey, isSharedLookupConfigured } from '../composio.js';
 import { PermanentStepError, type StepContext } from '../types.js';
 
 /**
@@ -243,7 +243,7 @@ export const PLACES_FALLBACK_NOTE = 'Google Places was not available for this au
 export async function runMaps(ctx: StepContext): Promise<MapsOutput> {
   const { audit } = ctx;
   let detail: string | null = null;
-  if (isComposioConfigured()) {
+  if (isSharedLookupConfigured()) {
     try {
       return await placesLookup(audit);
     } catch (err) {

@@ -4,7 +4,7 @@ const mocks = vi.hoisted(() => ({ executeTool: vi.fn(), isComposioConfigured: vi
 vi.mock('../../../api/_lib/groundswell/composio', async (original) => ({
   ...(await original<object>()),
   executeTool: mocks.executeTool,
-  isComposioConfigured: mocks.isComposioConfigured,
+  isSharedLookupConfigured: mocks.isComposioConfigured,
 }));
 vi.mock('../../../api/_lib/groundswell/browser', () => ({ withBrowser: mocks.withBrowser }));
 

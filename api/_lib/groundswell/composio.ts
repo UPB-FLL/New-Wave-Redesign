@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { executeConsumerTool, isConsumerConfigured } from './composioConsumer.js';
 import { PermanentStepError } from './types.js';
 
 /**
@@ -13,16 +14,25 @@ import { PermanentStepError } from './types.js';
  *   (`connected_account_id`), preferring that user id and otherwise the
  *   newest.
  *
- * Connections made through Composio's MCP in Claude live in a separate consumer
- * project that this key cannot reach; they have to be connected again in the
- * Platform project.
+ * Connections made through Composio's MCP in Claude live in Composio's consumer
+ * account, which this key cannot reach. When COMPOSIO_CONSUMER_API_KEY is set,
+ * the shared lookups (executeTool: a business's public data, phases 1 and 2)
+ * run there instead (composioConsumer.ts); a client's own accounts
+ * (executeToolAs, phase 3) always run in the project.
  */
 
 const BASE = (process.env.COMPOSIO_BASE_URL || 'https://backend.composio.dev/api/v3.1').replace(/\/+$/, '');
 
+/** The Platform project is set up: a client's linked accounts (and the shared lookups when there is no consumer key). */
 export function isComposioConfigured(): boolean {
   return Boolean(process.env.COMPOSIO_API_KEY);
 }
+
+/** A business's public data can be read: through the consumer account, or the project when there is none. */
+export const isSharedLookupConfigured = (): boolean => isConsumerConfigured() || isComposioConfigured();
+
+/** Where the shared lookups run, for the readiness checks and the overview. */
+export const sharedLookupSource = (): 'consumer' | 'project' | null => (isConsumerConfigured() ? 'consumer' : isComposioConfigured() ? 'project' : null);
 
 function apiKey(): string {
   const key = process.env.COMPOSIO_API_KEY;
@@ -198,8 +208,13 @@ export async function connectionFor(slug: string): Promise<ConnectedAccount | nu
   return pending;
 }
 
-/** Runs one Composio tool as the project's shared connection for its toolkit and returns its `data`. */
+/**
+ * Runs one Composio tool for a business's public data and returns its `data`:
+ * through the consumer account when COMPOSIO_CONSUMER_API_KEY is set, else as
+ * the project's shared connection for its toolkit.
+ */
 export async function executeTool(slug: string, args: Record<string, unknown>, timeoutMs = 60_000): Promise<unknown> {
+  if (isConsumerConfigured()) return executeConsumerTool(slug, args, Math.max(timeoutMs, 90_000));
   const account = await connectionFor(slug);
   if (!account) {
     throw new PermanentStepError(`Composio has no active connection for ${toolkitOf(slug)} in this project (any user id). Connect it under Auth Configs in the Composio project COMPOSIO_API_KEY belongs to.`);
