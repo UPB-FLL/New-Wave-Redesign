@@ -78,7 +78,9 @@ describe('the benchmark run', () => {
     expect(names.slice(names.indexOf('adcopy') + 1, names.indexOf('benchmark') + 1)).toEqual(['social_depth', 'ads_library', 'pricing', 'authority', 'benchmark']);
     expect(names.indexOf('deliver_benchmark')).toBeLessThan(names.indexOf('deliver_deck'));
     expect(names[names.length - 1]).toBe('deliver_finish');
-    expect(BENCHMARK_STEPS.filter((s) => ['benchmark', 'deliver_benchmark'].includes(s.name)).every((s) => !s.optional)).toBe(true);
+    // The write-up and its PDF are optional: with no benchmark data at all, the audit still delivers its three reports and names the gap.
+    expect(BENCHMARK_STEPS.filter((s) => ['benchmark', 'deliver_benchmark'].includes(s.name)).every((s) => s.optional)).toBe(true);
+    expect(BENCHMARK_STEPS.filter((s) => s.current === 'Delivery' && s.name !== 'deliver_benchmark').every((s) => !s.optional)).toBe(true);
     // The checks come after the benchmark write-up (they review it too), before anything is delivered.
     expect(names.slice(names.indexOf('benchmark') + 1, names.indexOf('deliver_prepare'))).toEqual(['verify_read_2', 'verify_check_2', 'verify_read_3', 'verify_check_3']);
     // The worker knows every round it supports, so an audit started under a larger max_rounds still finishes.

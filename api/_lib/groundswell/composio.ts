@@ -93,6 +93,9 @@ async function lookupConnection(toolkit: string): Promise<ConnectedAccount | nul
   return pool[0] ?? null;
 }
 
+/** The project's active connection for a toolkit, asked for afresh (the readiness checks); null when none. */
+export const activeConnection = (toolkit: string): Promise<ConnectedAccount | null> => lookupConnection(toolkit);
+
 /** The connected account a tool runs as, cached per toolkit; a failed lookup is not cached. */
 export async function connectionFor(slug: string): Promise<ConnectedAccount | null> {
   const toolkit = toolkitOf(slug);

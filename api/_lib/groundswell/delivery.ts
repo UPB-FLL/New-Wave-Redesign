@@ -4,6 +4,7 @@ import { isAdplanOutput } from './adplan.js';
 import { isBenchmarkOutput } from './benchmark.js';
 import { withBrowser } from './browser.js';
 import { brandFrom } from './brand.js';
+import { gapsFor } from './gaps.js';
 import { buildFacts } from './model.js';
 import { assertPortalOnly, renderPdf } from './render.js';
 import { REPORTS_BUCKET, safeName, storeReport, type ReportKind, type ReportRow } from './reportStore.js';
@@ -46,6 +47,7 @@ export function reportData(ctx: StepContext): ReportData {
     benchmark,
     preparer: preparerFor(branding),
     date: formatDate(new Date(model.generated_at)),
+    gaps: gapsFor(outputs, ctx.steps),
   };
 }
 

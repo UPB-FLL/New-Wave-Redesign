@@ -19,6 +19,8 @@ vi.mock('../../../api/_lib/supabaseAdmin', () => ({
 vi.mock('../../../api/_lib/groundswell/engine', () => engine);
 vi.mock('@vercel/functions', () => ({ waitUntil }));
 vi.mock('../../../api/_lib/groundswell/review', async (original) => ({ ...(await original<object>()), answerReview: review.answerReview }));
+const readiness = vi.hoisted(() => ({ readinessChecks: vi.fn() }));
+vi.mock('../../../api/_lib/groundswell/readiness', async (original) => ({ ...(await original<object>()), readinessChecks: readiness.readinessChecks }));
 
 import handler, { MAX_AUDITS_PER_CLICK } from '../../../api/groundswell/run';
 import worker from '../../../api/groundswell/worker';
@@ -97,6 +99,21 @@ describe('POST /api/groundswell/run', () => {
     vi.stubEnv('OPENAI_API_KEY', '');
     expect(((await call(handler, signedIn, 'GET')).body as { ready: boolean }).ready).toBe(false);
     expect((await call(handler, {}, 'GET')).statusCode).toBe(401);
+  });
+
+  it('with ?check=live, asks every service to answer and adds the verdict', async () => {
+    readiness.readinessChecks.mockResolvedValue([
+      { key: 'OPENAI_API_KEY', label: 'OpenAI', ok: true, required: true, detail: 'OpenAI accepted the key.' },
+      { key: 'composio:googleads', label: 'Google Ads (Keyword Planner)', ok: false, required: false, detail: 'No active connection in the project.' },
+    ]);
+    const res = makeRes();
+    await handler({ method: 'GET', headers: signedIn, query: { check: 'live' } }, res);
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toMatchObject({ live: true, ready: true, complete: false, summary: expect.stringMatching(/^Audits run, with 1 data source missing: Google Ads/) });
+    expect((res.body as { checks: unknown[] }).checks).toHaveLength(2);
+    // The plain GET never asks the services.
+    await call(handler, signedIn, 'GET');
+    expect(readiness.readinessChecks).toHaveBeenCalledTimes(1);
   });
 
   it('refuses callers who are not signed-in admins', async () => {
