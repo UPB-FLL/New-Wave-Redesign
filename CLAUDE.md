@@ -2,6 +2,53 @@
 
 ## Recent Changes
 
+### Groundswell: a client's linked accounts (2026-10-22)
+
+PR 3 of the prospect/client plan. Owner's choices: a partner links a client's
+accounts in the portal, signing in with the client through Composio's hosted
+connect flow; the accounts are Google Analytics 4, Google Search Console,
+Google Ads, Instagram and Meta Ads (Google Business Profile has no Composio
+toolkit and is dropped for now; the scraped Maps listing stays). Runs that
+read the linked data are the next PR.
+
+- **Catalogue** `CLIENT_SERVICES` (`groundswellValidation.ts`): key,
+  Composio toolkit, label, what it brings; `isClientService`,
+  `ClientAccountStatus`.
+- **Composio** (`composio.ts`): a client's accounts live in New Wave's
+  project under the user id `client:<customer id>` (`CLIENT_USER_PREFIX`,
+  `clientUserId`); the shared lookup never picks one, and `clientConnection`
+  finds a client's by that id. New calls: `authConfigFor(toolkit)` (an
+  enabled auth config, Composio-managed first), `createConnectionLink`
+  (`POST /connected_accounts/link` with `auth_config_id`, `user_id`,
+  `callback_url`), `getConnectedAccount`, `deleteConnectedAccount`
+  (`revoke_on_delete`); `composioJson` is the shared request.
+- **Migration** `20261028120000`: `groundswell_client_accounts` (one row
+  per customer and service: the Composio account id, auth config, user id,
+  status pending | active | failed | expired | disabled, when linked and
+  checked; RLS on, no policies). Additive: the route answers 503 without it.
+- **Route** `api/groundswell/partner-accounts.ts` (partner session; the
+  customer must be the partner's and a client): GET `?customer=` lists every
+  service with its state after asking Composio about pending accounts and
+  active ones not checked for `RECHECK_MS` (`refreshClientAccounts`,
+  `statusFrom`, `accountsView` in `clientAccounts.ts`; a failed or expired
+  link reads as a plain sentence, never Composio's text); POST
+  `{ customer, service }` starts the sign-in (replacing an old link) and
+  answers `redirect_url`, with Composio bringing the browser back to the
+  client's page `?linked=<service>`; DELETE `?customer=&service=` removes
+  the connection and forgets it.
+- **Portal**: `AccountsCard` on a client's page (`GroundswellCustomerPage`):
+  a row per service with its chip, Link / Link again / Unlink; back from a
+  sign-in it polls for a couple of minutes. `listClientAccounts`,
+  `linkClientAccount`, `unlinkClientAccount` in `groundswellPartner.ts`.
+- **Readiness**: one `authconfig:<toolkit>` check per client service
+  ("Client sign-in: …"): whether the Composio project has an auth config
+  partners can link through; never counted against readiness.
+- **Tests**: `groundswell-client-accounts.test.ts`, the connect-flow and
+  client-lookup cases in `groundswell-composio.test.ts`, the sign-in rows in
+  `groundswell-readiness.test.ts`, the accounts cases in `portal.test.tsx`.
+- **Not yet**: New Wave's own clients (partner_id null) have no staff
+  screen for linking; the engine does not read linked data.
+
 ### Groundswell: prospects and clients (2026-10-22)
 
 Owner's choices: a prospect (a lead) is entered and its public data is read;

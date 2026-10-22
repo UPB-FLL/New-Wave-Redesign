@@ -170,6 +170,23 @@ export const CUSTOMER_STAGES = ['prospect', 'client'] as const;
 export type CustomerStage = (typeof CUSTOMER_STAGES)[number];
 export const isCustomerStage = (v: unknown): v is CustomerStage => CUSTOMER_STAGES.includes(v as CustomerStage);
 
+/**
+ * The accounts a partner can link for a client (api/groundswell/partner-accounts.ts),
+ * each a Composio toolkit the client signs in to. Google Business Profile has no
+ * Composio toolkit (owner's call, 2026-10-22: dropped for now; the scraped Maps
+ * listing stays).
+ */
+export const CLIENT_SERVICES = [
+  { key: 'google_analytics', toolkit: 'google_analytics', label: 'Google Analytics 4', brings: 'Real site traffic, where it comes from, and conversions.' },
+  { key: 'google_search_console', toolkit: 'google_search_console', label: 'Google Search Console', brings: 'The searches the site actually appears and ranks for.' },
+  { key: 'googleads', toolkit: 'googleads', label: 'Google Ads', brings: 'Campaigns, spend, clicks and cost per lead, plus Keyword Planner on the client’s own account.' },
+  { key: 'instagram', toolkit: 'instagram', label: 'Instagram', brings: 'Followers, reach and post performance from the Graph API.' },
+  { key: 'metaads', toolkit: 'metaads', label: 'Meta Ads', brings: 'Facebook and Instagram ad performance.' },
+] as const;
+export type ClientService = (typeof CLIENT_SERVICES)[number]['key'];
+export const isClientService = (v: unknown): v is ClientService => CLIENT_SERVICES.some((s) => s.key === v);
+export type ClientAccountStatus = 'pending' | 'active' | 'failed' | 'expired' | 'disabled';
+
 export type CustomerDraft = Omit<AuditDraft, 'kind' | 'brand_logo_url' | 'brand_color'>;
 export type CustomerInsert = Omit<AuditInsert, 'kind' | 'brand_logo_url' | 'brand_color'>;
 

@@ -74,21 +74,109 @@ interface ConnectedAccount {
   toolkit?: { slug?: string };
 }
 
+/**
+ * A client's own accounts (api/groundswell/partner-accounts.ts) are tagged
+ * `client:<customer id>`, so the shared lookups below never pick one for a
+ * prospect's scrape, and a client's run finds its own by that id.
+ */
+export const CLIENT_USER_PREFIX = 'client:';
+export const clientUserId = (customerId: string) => `${CLIENT_USER_PREFIX}${customerId}`;
+const isClientAccount = (a: ConnectedAccount) => (a.user_id ?? '').startsWith(CLIENT_USER_PREFIX);
+
+async function composioJson<T>(path: string, init: RequestInit = {}, timeoutMs = 30_000): Promise<{ status: number; ok: boolean; body: T & ExecuteResponse }> {
+  const response = await fetch(`${BASE}${path}`, {
+    ...init,
+    headers: { 'x-api-key': apiKey(), 'Content-Type': 'application/json', ...(init.headers ?? {}) },
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+  const body = (await response.json().catch(() => ({}))) as T & ExecuteResponse;
+  if (response.status === 401 || response.status === 403) {
+    throw new PermanentStepError(`Composio refused the API key (${response.status}): ${describeError(body.error).replace(/\.?$/, '.')} COMPOSIO_API_KEY as read: ${keyShape(apiKey())}.`);
+  }
+  return { status: response.status, ok: response.ok, body };
+}
+
+/** Every active connection in the project for a toolkit (all user ids). */
+async function listActive(toolkit: string, userId?: string): Promise<ConnectedAccount[]> {
+  const query = `toolkit_slugs=${encodeURIComponent(toolkit)}&statuses=ACTIVE&limit=50${userId ? `&user_ids=${encodeURIComponent(userId)}` : ''}`;
+  const { status, ok, body } = await composioJson<{ items?: ConnectedAccount[] }>(`/connected_accounts?${query}`);
+  if (!ok) throw new Error(`Composio could not list the ${toolkit} connections (${status}).`);
+  return (body.items ?? []).filter((a) => a.id && (a.status ?? 'ACTIVE') === 'ACTIVE' && (a.toolkit?.slug ?? toolkit) === toolkit && (!userId || a.user_id === userId));
+}
+
+export interface AuthConfig {
+  id: string;
+  status?: string;
+  toolkit?: { slug?: string };
+  is_composio_managed?: boolean;
+  auth_scheme?: string;
+}
+
+/** The project's enabled auth config for a toolkit (what a client signs in through), or null when the project has none. */
+export async function authConfigFor(toolkit: string): Promise<AuthConfig | null> {
+  const { status, ok, body } = await composioJson<{ items?: AuthConfig[] }>(`/auth_configs?toolkit_slug=${encodeURIComponent(toolkit)}&limit=50`);
+  if (!ok) throw new Error(`Composio could not list the ${toolkit} auth configs (${status}).`);
+  const enabled = (body.items ?? []).filter((c) => c.id && (c.status ?? 'ENABLED') === 'ENABLED' && (c.toolkit?.slug ?? toolkit) === toolkit);
+  return enabled.find((c) => c.is_composio_managed) ?? enabled[0] ?? null;
+}
+
+export interface ConnectionLink {
+  redirect_url: string;
+  connected_account_id: string;
+  expires_at?: string;
+}
+
+/** Starts Composio's hosted connect flow: the user signs in at `redirect_url`, and the account lands under `userId`. */
+export async function createConnectionLink(authConfigId: string, userId: string, callbackUrl: string): Promise<ConnectionLink> {
+  const { status, ok, body } = await composioJson<ConnectionLink>('/connected_accounts/link', {
+    method: 'POST',
+    body: JSON.stringify({ auth_config_id: authConfigId, user_id: userId, callback_url: callbackUrl }),
+  });
+  if (!ok || !body.redirect_url || !body.connected_account_id) {
+    throw new Error(`Composio could not start the connection (${status}): ${describeError(body.error)}`);
+  }
+  return { redirect_url: body.redirect_url, connected_account_id: body.connected_account_id, expires_at: body.expires_at };
+}
+
+export interface ConnectedAccountState {
+  id: string;
+  status: string;
+  status_reason: string | null;
+  is_disabled: boolean;
+}
+
+/** One connected account's state; null when Composio no longer has it. */
+export async function getConnectedAccount(id: string): Promise<ConnectedAccountState | null> {
+  const { status, ok, body } = await composioJson<{ id?: string; status?: string; status_reason?: string | null; is_disabled?: boolean }>(`/connected_accounts/${encodeURIComponent(id)}`);
+  if (status === 404) return null;
+  if (!ok) throw new Error(`Composio could not read the connection (${status}): ${describeError(body.error)}`);
+  return { id: body.id ?? id, status: body.status ?? 'INITIATED', status_reason: body.status_reason ?? null, is_disabled: Boolean(body.is_disabled) };
+}
+
+/** Removes a connected account from the project, revoking it at the provider; a missing account counts as removed. */
+export async function deleteConnectedAccount(id: string): Promise<void> {
+  const { status, ok, body } = await composioJson<unknown>(`/connected_accounts/${encodeURIComponent(id)}?revoke_on_delete=true`, { method: 'DELETE' });
+  if (!ok && status !== 404) throw new Error(`Composio could not remove the connection (${status}): ${describeError(body.error)}`);
+}
+
+/** A client's own active connection for a toolkit (tagged with its user id), or null. */
+export async function clientConnection(customerId: string, toolkit: string): Promise<ConnectedAccount | null> {
+  const mine = await listActive(toolkit, clientUserId(customerId));
+  mine.sort((a, b) => (b.created_at ?? '').localeCompare(a.created_at ?? ''));
+  return mine[0] ?? null;
+}
+
 /** The connection to use for each toolkit, looked up once per function instance; `null` means none is active. */
 const connections = new Map<string, Promise<ConnectedAccount | null>>();
 export const forgetConnections = () => connections.clear();
 
-/** Lists the project's active connections for a toolkit and picks one: the preferred user id's, else the newest. */
+/**
+ * Lists the project's active connections for a toolkit and picks the shared
+ * one: the preferred user id's, else the newest. A client's own account
+ * (`client:` user id) is never picked here.
+ */
 async function lookupConnection(toolkit: string): Promise<ConnectedAccount | null> {
-  const url = `${BASE}/connected_accounts?toolkit_slugs=${encodeURIComponent(toolkit)}&statuses=ACTIVE&limit=50`;
-  const response = await fetch(url, { headers: { 'x-api-key': apiKey() }, signal: AbortSignal.timeout(30_000) });
-  if (response.status === 401 || response.status === 403) {
-    const body = (await response.json().catch(() => ({}))) as ExecuteResponse;
-    throw new PermanentStepError(`Composio refused the API key (${response.status}): ${describeError(body.error).replace(/\.?$/, '.')} COMPOSIO_API_KEY as read: ${keyShape(apiKey())}.`);
-  }
-  if (!response.ok) throw new Error(`Composio could not list the ${toolkit} connections (${response.status}).`);
-  const body = (await response.json().catch(() => ({}))) as { items?: ConnectedAccount[] };
-  const active = (body.items ?? []).filter((a) => a.id && (a.status ?? 'ACTIVE') === 'ACTIVE' && (a.toolkit?.slug ?? toolkit) === toolkit);
+  const active = (await listActive(toolkit)).filter((a) => !isClientAccount(a));
   const preferred = active.filter((a) => a.user_id === userId());
   const pool = preferred.length ? preferred : active;
   pool.sort((a, b) => (b.created_at ?? '').localeCompare(a.created_at ?? ''));

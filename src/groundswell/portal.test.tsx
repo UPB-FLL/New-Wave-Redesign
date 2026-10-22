@@ -11,6 +11,9 @@ const api = vi.hoisted(() => ({
   createPartnerCustomer: vi.fn(),
   updatePartnerCustomer: vi.fn(),
   setPartnerCustomerStage: vi.fn(),
+  listClientAccounts: vi.fn(),
+  linkClientAccount: vi.fn(),
+  unlinkClientAccount: vi.fn(),
   partnerSignOut: vi.fn(),
   setPartnerPassword: vi.fn(),
   getPartnerBranding: vi.fn(),
@@ -20,7 +23,7 @@ const api = vi.hoisted(() => ({
 
 vi.mock('../lib/groundswellPartner', async (orig) => ({ ...(await orig<typeof import('../lib/groundswellPartner')>()), ...api }));
 
-import GroundswellCustomerPage from './pages/GroundswellCustomerPage';
+import GroundswellCustomerPage, { AccountsCard } from './pages/GroundswellCustomerPage';
 import { GroundswellClientsPage, GroundswellProspectsPage } from './pages/GroundswellCustomersPage';
 import GroundswellSetPasswordPage from './pages/GroundswellSetPasswordPage';
 import GroundswellSignInPage from './pages/GroundswellSignInPage';
@@ -69,7 +72,18 @@ beforeEach(() => {
   Object.values(api).forEach((fn) => fn.mockReset());
   api.currentPartner.mockResolvedValue(null);
   api.getPartnerBranding.mockResolvedValue({ company: 'Reef Agency', branding: { display_name: null, logo_url: null }, available: true });
+  api.listClientAccounts.mockResolvedValue({ accounts: accountsOf(), available: true });
 });
+
+const SERVICES = [
+  ['google_analytics', 'Google Analytics 4'],
+  ['google_search_console', 'Google Search Console'],
+  ['googleads', 'Google Ads'],
+  ['instagram', 'Instagram'],
+  ['metaads', 'Meta Ads'],
+] as const;
+const accountsOf = (over: Record<string, Partial<{ status: string; reason: string | null; linked_at: string | null }>> = {}) =>
+  SERVICES.map(([service, label]) => ({ service, label, brings: `${label} data.`, status: 'none', linked_at: null, reason: null, ...over[service] }));
 
 describe('Groundswell sign-in page', () => {
   it('signs partners in, links staff to their own sign-in, and carries the privacy notice', () => {
@@ -297,6 +311,78 @@ describe('partner customer page', () => {
     api.getPartnerCustomer.mockRejectedValue(new Error('That customer is not in your account.'));
     renderPortal(groundswellCustomerPath('nope'));
     expect(await screen.findByRole('alert')).toHaveTextContent('not in your account');
+  });
+});
+
+describe('a client’s linked accounts', () => {
+  const client = { ...harbor, stage: 'client' as const, became_client_at: '2026-10-22T00:00:00Z', latest: null, last_reports_at: null, audit_count: 0 };
+
+  it('shows every service with its state on a client’s page only, and starts the sign-in from a Link button', async () => {
+    api.currentPartner.mockResolvedValue(partner);
+    api.getPartnerCustomer.mockResolvedValue({ customer: client, audits: [], stages_available: true });
+    api.listClientAccounts.mockResolvedValue({ accounts: accountsOf({ googleads: { status: 'active', linked_at: '2026-10-22T00:00:00Z' }, instagram: { status: 'failed', reason: 'The sign-in did not finish. Try linking the account again.' } }), available: true });
+    api.linkClientAccount.mockResolvedValue({ redirect_url: 'https://connect.composio.example/go', accounts: accountsOf() });
+    const assign = vi.fn();
+    const original = window.location;
+    Object.defineProperty(window, 'location', { configurable: true, value: { ...original, assign } });
+    renderPortal(groundswellCustomerPath('c1'));
+    const list = await screen.findByRole('list', { name: 'Accounts' });
+    const rows = within(list).getAllByRole('listitem');
+    expect(rows).toHaveLength(5);
+    expect(within(rows[2]).getByText('Linked')).toBeInTheDocument();
+    expect(within(rows[2]).getByRole('button', { name: 'Unlink Google Ads' })).toBeInTheDocument();
+    expect(within(rows[3]).getByText('Sign-in failed')).toBeInTheDocument();
+    expect(within(rows[3]).getByText(/did not finish/)).toBeInTheDocument();
+    expect(within(rows[3]).getByRole('button', { name: 'Link again Instagram' })).toBeInTheDocument();
+    fireEvent.click(within(rows[0]).getByRole('button', { name: 'Link Google Analytics 4' }));
+    await waitFor(() => expect(api.linkClientAccount).toHaveBeenCalledWith('c1', 'google_analytics'));
+    await waitFor(() => expect(assign).toHaveBeenCalledWith('https://connect.composio.example/go'));
+    Object.defineProperty(window, 'location', { configurable: true, value: original });
+  });
+
+  it('keeps the accounts off a prospect’s page', async () => {
+    api.currentPartner.mockResolvedValue(partner);
+    api.getPartnerCustomer.mockResolvedValue({ customer: { ...harbor, latest: null, last_reports_at: null, audit_count: 0 }, audits: [], stages_available: true });
+    renderPortal(groundswellCustomerPath('c1'));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Harbor Auto' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Linked accounts' })).not.toBeInTheDocument();
+    expect(api.listClientAccounts).not.toHaveBeenCalled();
+  });
+
+  it('back from the sign-in, keeps asking until the account is linked, then unlinks on request', async () => {
+    api.listClientAccounts
+      .mockResolvedValueOnce({ accounts: accountsOf({ googleads: { status: 'pending' } }), available: true })
+      .mockResolvedValueOnce({ accounts: accountsOf({ googleads: { status: 'pending' } }), available: true })
+      .mockResolvedValue({ accounts: accountsOf({ googleads: { status: 'active', linked_at: '2026-10-22T00:00:00Z' } }), available: true });
+    api.unlinkClientAccount.mockResolvedValue(accountsOf());
+    render(
+      <MemoryRouter initialEntries={[`${groundswellCustomerPath('c1')}?linked=googleads`]}>
+        <Routes>
+          <Route path={`${GROUNDSWELL_CUSTOMERS_PATH}/:id`} element={<AccountsCard customerId="c1" poll={10} />} />
+        </Routes>
+      </MemoryRouter>
+    );
+    expect(await screen.findByText(/Back from the sign-in/)).toBeInTheDocument();
+    expect(await screen.findByText('Waiting for sign-in')).toBeInTheDocument();
+    expect(await screen.findByText('Linked')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('Linked.');
+    fireEvent.click(screen.getByRole('button', { name: 'Unlink Google Ads' }));
+    await waitFor(() => expect(api.unlinkClientAccount).toHaveBeenCalledWith('c1', 'googleads'));
+    expect(await screen.findByText('Unlinked.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Link Google Ads' })).toBeInTheDocument();
+  });
+
+  it('says when linking is not switched on', async () => {
+    api.listClientAccounts.mockResolvedValue({ accounts: accountsOf(), available: false });
+    render(
+      <MemoryRouter initialEntries={[groundswellCustomerPath('c1')]}>
+        <Routes>
+          <Route path={`${GROUNDSWELL_CUSTOMERS_PATH}/:id`} element={<AccountsCard customerId="c1" />} />
+        </Routes>
+      </MemoryRouter>
+    );
+    expect(await screen.findByText(/isn’t switched on yet/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Link Google Ads' })).toBeDisabled();
   });
 });
 
