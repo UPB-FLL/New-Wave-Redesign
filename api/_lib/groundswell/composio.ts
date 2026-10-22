@@ -7,12 +7,11 @@ import { PermanentStepError } from './types.js';
  * own Composio Platform project.
  *
  * - COMPOSIO_API_KEY: that project's API key (`ak_…`), sent as `x-api-key`.
- * - COMPOSIO_USER_ID: the user id to prefer when a toolkit has connections
- *   under several (default `DEFAULT_COMPOSIO_USER_ID`, the id Composio's
- *   dashboard gave New Wave's connections). Not required: before each call the
- *   client lists the project's active connections for the tool's toolkit and
- *   names one (`connected_account_id`), preferring that user id and otherwise
- *   the newest, so the tag a connection was made under never matters.
+ * - The Composio user id is fixed (COMPOSIO_USER_ID below; no environment
+ *   variable overrides it). Before each call the client lists the project's
+ *   active connections for the tool's toolkit and names one
+ *   (`connected_account_id`), preferring that user id and otherwise the
+ *   newest.
  *
  * Connections made through Composio's MCP in Claude live in a separate consumer
  * project that this key cannot reach; they have to be connected again in the
@@ -31,10 +30,9 @@ function apiKey(): string {
   return key;
 }
 
-/** The user id Composio's dashboard assigned New Wave's connections; COMPOSIO_USER_ID in Vercel overrides it. */
-export const DEFAULT_COMPOSIO_USER_ID = 'pg-test-0ff14d6b-e58a-45f1-a053-db132130d54f';
-
-const userId = () => process.env.COMPOSIO_USER_ID || DEFAULT_COMPOSIO_USER_ID;
+/** The user id New Wave's Composio project tags its connections with (the owner's choice). */
+export const COMPOSIO_USER_ID = 'pg-test-0ff14d6b-e58a-45f1-a053-db132130d54f';
+const userId = () => COMPOSIO_USER_ID;
 
 interface ExecuteResponse {
   data?: unknown;
