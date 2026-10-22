@@ -294,7 +294,7 @@ export default function GroundswellOverview() {
             <CircleDashed size={19} aria-hidden="true" />
             <div>
               <strong>Croissance</strong>
-              <span>The audit, powered by Groundswell</span>
+              <span>The audit, powered by GroundSwell</span>
             </div>
             <ArrowUpRight size={16} aria-hidden="true" />
           </a>

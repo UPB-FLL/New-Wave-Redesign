@@ -126,7 +126,7 @@ export default function GroundswellCustomers() {
             <AdminEmptyState title={filtered ? 'No customers match.' : 'Your customer list starts here'} icon={Users}>
               {filtered
                 ? 'Try a different search or clear the filters.'
-                : 'Businesses added through Groundswell appear here with their partner and phase progress.'}
+                : 'Businesses added through GroundSwell appear here with their partner and phase progress.'}
             </AdminEmptyState>
           )
         ) : !error ? (

@@ -576,7 +576,7 @@ export default function GroundswellAudits() {
             Queue a business
           </h2>
           <p className="gs-admin-fine-print">
-            Queue a Croissance audit or competitor benchmark. Reports are saved privately in Groundswell.
+            Queue a Croissance audit or competitor benchmark. Reports are saved privately in GroundSwell.
           </p>
           <div className="gs-admin-form-fields">
             <label className="space-y-1 text-sm font-medium">
@@ -626,7 +626,7 @@ export default function GroundswellAudits() {
           <fieldset className="space-y-3">
             <legend className="text-sm font-semibold">
               {benchmark
-                ? 'Competitors (leave a slot blank and Groundswell picks it from Google Places: one local, one country-wide)'
+                ? 'Competitors (leave a slot blank and GroundSwell picks it from Google Places: one local, one country-wide)'
                 : 'Competitors (optional)'}
             </legend>
             {draft.competitors.map((c, i) => (
