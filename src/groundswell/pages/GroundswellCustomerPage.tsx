@@ -20,6 +20,7 @@ import { isDriveLink, type ClientService } from '../../lib/groundswellValidation
 import { usePageMeta } from '../../lib/usePageMeta';
 import { PartnerApp } from '../PartnerApp';
 import { GROUNDSWELL_NAME, GROUNDSWELL_PATH, groundswellStagePath } from '../site';
+import { CustomerWorkspace } from '../workspace/CustomerWorkspace';
 import { CustomerForm } from './CustomerForm';
 import { AUDIT_STATUS, customerStatus, STAGE_LABELS } from './customerStatus';
 
@@ -27,12 +28,12 @@ import { AUDIT_STATUS, customerStatus, STAGE_LABELS } from './customerStatus';
  * One customer (noindex), a prospect or a client: its stage, its details with
  * an Edit link, "Became a client" (or the way back), a client's linked
  * accounts (one Link button per service, through Composio's hosted sign-in;
- * the browser comes back here with ?linked=<service>), then every audit of it,
- * newest first, as a card with its status and its reports (opened through
- * short-lived links from /api/groundswell/report; Drive links for audits
- * delivered before reports moved into the app). Everything gathered as a
- * prospect stays on the page when it becomes a client. New Wave starts queued
- * audits from its own queue.
+ * the browser comes back here with ?linked=<service>), then its three phases
+ * (workspace/CustomerWorkspace.tsx): the audit, the plan against competitors
+ * with its ad sets, and the integrated plan, each with its progress, reports,
+ * downloads and data, started on their own one after another. Audits
+ * delivered before reports moved into the app keep their Drive links below.
+ * Everything gathered as a prospect stays on the page when it becomes a client.
  */
 
 const when = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString('en-US') : null);
@@ -301,7 +302,7 @@ function Customer({ id }: { id: string }) {
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [moving, setMoving] = useState(false);
-  const [notice, setNotice] = useState<string | null>(state?.queued ? 'Queued. We’ll start the audit shortly; its reports will appear here.' : null);
+  const [notice, setNotice] = useState<string | null>(state?.queued ? 'Queued. Phase 1 starts on its own within a minute; its reports will appear below.' : null);
 
   const refresh = useCallback(async () => {
     try {
@@ -323,6 +324,9 @@ function Customer({ id }: { id: string }) {
     return () => window.clearInterval(timer);
   }, [active, refresh]);
 
+  const signedOut = useCallback(() => navigate(GROUNDSWELL_PATH, { replace: true }), [navigate]);
+  // Only audits delivered before reports moved into the app: they carry Drive links and no stored reports.
+  const legacy = (data?.audits ?? []).filter((a) => !(a.reports ?? []).length && [a.summary_pdf_url, a.deck_pdf_url, a.audit_pdf_url, a.benchmark_pdf_url ?? null, a.drive_folder_url].some((u) => isDriveLink(u)));
   const status = customerStatus(data?.customer.latest ?? null);
   const stage = data?.customer.stage ?? 'prospect';
   const stageLabel = STAGE_LABELS[stage];
@@ -403,25 +407,20 @@ function Customer({ id }: { id: string }) {
             )}
           </div>
           {stage === 'client' ? <AccountsCard customerId={data.customer.id} /> : null}
-          <section aria-labelledby="customer-audits-heading" className="mt-8">
-            <h2 id="customer-audits-heading" className="text-xl font-bold">
-              Audits from public data
-            </h2>
-            <p className="mt-1 text-sm gs-muted">
-              {stage === 'client'
-                ? 'What Groundswell gathered from the web, as a prospect and since. It stays here for as long as the client does.'
-                : 'What Groundswell gathers from the web: the business’s site, Google listing, Instagram, search rankings and ads.'}
-            </p>
-            {data.audits.length ? (
-              <ul className="mt-4 space-y-3" aria-label="Audits of this customer">
-                {data.audits.map((a) => (
+          <CustomerWorkspace viewer="partner" customerId={data.customer.id} onSignedOut={signedOut} />
+          {legacy.length ? (
+            <section aria-labelledby="customer-audits-heading" className="mt-8">
+              <h2 id="customer-audits-heading" className="text-xl font-bold">
+                Earlier audits (Google Drive)
+              </h2>
+              <p className="mt-1 text-sm gs-muted">Delivered before reports moved into Groundswell; their files stay in Google Drive.</p>
+              <ul className="mt-4 space-y-3" aria-label="Earlier audits of this customer">
+                {legacy.map((a) => (
                   <AuditCard key={a.id} audit={a} />
                 ))}
               </ul>
-            ) : (
-              <p className="mt-4 text-sm gs-muted">No audits yet.</p>
-            )}
-          </section>
+            </section>
+          ) : null}
         </>
       ) : null}
     </>

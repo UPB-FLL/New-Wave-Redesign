@@ -53,7 +53,6 @@ const R2 = 'aaaaaaaa-2222-4222-8222-222222222222';
 const RX = 'aaaaaaaa-3333-4333-8333-333333333333';
 const R9 = 'aaaaaaaa-9999-4999-8999-999999999999';
 const reef = { id: 'p1', company: 'Reef Agency', contact_name: null, email: 'reef@example.com', status: 'active' as const };
-const tide = { id: 'p2', company: 'Tide Media', contact_name: null, email: 'tide@example.com', status: 'active' as const };
 const T = (d: number) => `2026-10-${String(d).padStart(2, '0')}T12:00:00.000Z`;
 
 let db: ReturnType<typeof fakeSupabase>;

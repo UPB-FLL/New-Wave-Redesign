@@ -191,8 +191,15 @@ export interface SetupStatus {
   summary?: string;
 }
 
-export type ReportKind = 'summary' | 'deck' | 'audit' | 'benchmark';
-export const REPORT_LABELS: Record<ReportKind, string> = { summary: 'Summary', deck: 'Slides', audit: 'Full audit', benchmark: 'Competitive benchmark' };
+export type ReportKind = 'summary' | 'deck' | 'audit' | 'benchmark' | 'adsets' | 'integrated';
+export const REPORT_LABELS: Record<ReportKind, string> = {
+  summary: 'Summary',
+  deck: 'Slides',
+  audit: 'Full audit',
+  benchmark: 'Competitive benchmark',
+  adsets: 'Ad sets',
+  integrated: 'Integrated plan',
+};
 
 /** A short-lived link to a report, for an admin on the allow-list. */
 export async function adminReportUrl(auditId: string, kind: ReportKind): Promise<string> {

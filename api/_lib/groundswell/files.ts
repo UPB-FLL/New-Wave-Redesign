@@ -172,7 +172,7 @@ export const csvField = (v: Cell) => {
 };
 
 /** CSV text with CRLF line ends and a byte-order mark, as spreadsheet tools expect. */
-export const toCsv = (rows: Cell[][]) => `﻿${rows.map((r) => r.map(csvField).join(',')).join('\r\n')}\r\n`;
+export const toCsv = (rows: Cell[][]) => `\uFEFF${rows.map((r) => r.map(csvField).join(',')).join('\r\n')}\r\n`;
 
 /** The content types the exports are stored as. */
 export const CSV_TYPE = 'text/csv';

@@ -35,8 +35,15 @@ export interface PartnerAudit {
   completed_at: string | null;
 }
 
-export type ReportKind = 'summary' | 'deck' | 'audit' | 'benchmark';
-export const REPORT_LABELS: Record<ReportKind, string> = { summary: 'Summary', deck: 'Slides', audit: 'Full audit', benchmark: 'Competitive benchmark' };
+export type ReportKind = 'summary' | 'deck' | 'audit' | 'benchmark' | 'adsets' | 'integrated';
+export const REPORT_LABELS: Record<ReportKind, string> = {
+  summary: 'Summary',
+  deck: 'Slides',
+  audit: 'Full audit',
+  benchmark: 'Competitive benchmark',
+  adsets: 'Ad sets',
+  integrated: 'Integrated plan',
+};
 const REPORT = '/api/groundswell/report';
 
 /** A short-lived link to one of the partner's own reports. */
