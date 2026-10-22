@@ -11,6 +11,7 @@ const GAP_WORDING: Record<string, string> = {
   keywords: 'Keyword demand (Google Keyword Planner) was not available for this audit, so the ad plan and the ad copy are not included.',
   social: 'Instagram could not be read for this audit.',
   ads: 'Ad tags and paid search pages could not be checked for this audit.',
+  linked: 'The business’s own accounts could not be read for this audit, so it is built from public data.',
   social_depth: 'Instagram posts and reels could not be read, so engagement is not compared.',
   ads_library: 'The Meta Ad Library and Google Ads Transparency Center could not be read for this audit.',
   pricing: 'Offers and prices could not be read from the websites.',

@@ -200,12 +200,22 @@ export async function connectionFor(slug: string): Promise<ConnectedAccount | nu
   return pending;
 }
 
-/** Runs one Composio tool and returns its `data`. */
+/** Runs one Composio tool as the project's shared connection for its toolkit and returns its `data`. */
 export async function executeTool(slug: string, args: Record<string, unknown>, timeoutMs = 60_000): Promise<unknown> {
   const account = await connectionFor(slug);
   if (!account) {
     throw new PermanentStepError(`Composio has no active connection for ${toolkitOf(slug)} in this project (any user id). Connect it under Auth Configs in the Composio project COMPOSIO_API_KEY belongs to.`);
   }
+  return executeToolAs(slug, args, account, timeoutMs);
+}
+
+/**
+ * Runs one Composio tool as a named connected account (a client's own,
+ * api/_lib/groundswell/currents/linked.ts) and returns its `data`. The
+ * shared lookup is never consulted, so a client's read can never land on New
+ * Wave's connection by mistake.
+ */
+export async function executeToolAs(slug: string, args: Record<string, unknown>, account: { id: string; user_id?: string }, timeoutMs = 60_000): Promise<unknown> {
   const response = await fetch(`${BASE}/tools/execute/${encodeURIComponent(slug)}`, {
     method: 'POST',
     headers: { 'x-api-key': apiKey(), 'Content-Type': 'application/json' },

@@ -2,6 +2,52 @@
 
 ## Recent Changes
 
+### Groundswell: a client's runs read its linked accounts (2026-10-22)
+
+PR 4 of the prospect/client plan. The same audit and the same four reports
+for both stages: a client's run reads the accounts a partner linked, and a
+prospect's reads public data. Linked figures outrank the public estimates
+where they overlap; nothing linked ever stops a run.
+
+- **Step** `linked` (`api/_lib/groundswell/currents/linked.ts`, Current
+  "Accounts", after `ads`, before `model`, optional). `loadLinkedAccounts`
+  reads the audit's `customer_id`, the customer's stage and its active
+  `groundswell_client_accounts` rows (a missing column or table reads as a
+  prospect; any other read error retries). A prospect, a customer moved back
+  to prospects, or a client with nothing active gets `{ linked: false,
+  services: [], note }`. Each active row is read as its own connected account
+  (`executeToolAs` in `composio.ts`, never the shared lookup), in parallel and
+  best-effort: GA4 (the property matching the website, channel totals and
+  landing pages), Search Console (the domain property, exact totals from the
+  daily rows, 28-day window ending 3 days back), Google Ads (the first
+  non-manager customer, campaigns over `LAST_30_DAYS`, micros to dollars),
+  Instagram (profile, account insights as totals, the recent posts) and Meta
+  Ads (the active ad account, spend, leads and messages from `actions`). A
+  service that fails carries `problem` (a plain sentence; a stale link says to
+  link again) and `detail` (for staff, never printed). `findKey` looks
+  through Composio's wrappers; rates are stored as whole percentages so the
+  write-up can quote them. `WINDOW_DAYS` is 30.
+- **Facts**: `Facts.linked` (the step's output when it tried anything;
+  `isLinkedOutput`), `linkedForPrompt` as `client_accounts` in
+  `factsForPrompt`, so the write-up and the reviewer see the figures and
+  `allowedNumbers` allows them; the system prompt says they outrank the
+  public estimates and are never listed under `cant_see`.
+- **Reports**: the full audit gains "8 · Your accounts" ("From the business's
+  own accounts": a table per service read, "Not read this time" for the
+  rest) before the plan, and the later sections move down one; the sources
+  list each service's `source` and the gaps list each `problem`. Every cover
+  (audit, slides, summary) carries `linkedLine`: "Includes the business's own
+  Google Analytics 4, …". No new slide. A prospect's reports are unchanged.
+- `STEP_LABELS.linked` "Linked accounts"; `gaps.ts` names a skipped step.
+- **Tests**: `groundswell-linked.test.ts` (every service against provider-
+  shaped answers, failures, the loader's fallbacks, the facts), the account
+  case in `groundswell-composio.test.ts`, and the "client's own accounts"
+  cases in `groundswell-reports.test.ts`.
+- **Not yet**: Keyword Planner still runs on New Wave's shared Google Ads
+  connection, not the client's; a failed read does not update the row's
+  status (the portal's refresh does); the benchmark steps and the ad plan do
+  not read the linked data.
+
 ### Groundswell: a client's linked accounts (2026-10-22)
 
 PR 3 of the prospect/client plan. Owner's choices: a partner links a client's

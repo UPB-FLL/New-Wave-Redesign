@@ -1,7 +1,8 @@
 import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { brandFrom, contrast, FALLBACK_PRIMARY } from '../../../api/_lib/groundswell/brand';
-import { AD_PLAN_SLIDE_ID, buildAuditHtml, buildDeckHtml, buildSummaryHtml, feeLine, money, SLIDE_IDS } from '../../../api/_lib/groundswell/reports';
+import { AD_PLAN_SLIDE_ID, buildAuditHtml, buildDeckHtml, buildSummaryHtml, feeLine, linkedLine, money, SLIDE_IDS, type ReportData } from '../../../api/_lib/groundswell/reports';
+import type { LinkedOutput } from '../../../api/_lib/groundswell/currents/linked';
 import { assertPortalOnly, countPdfPages, pdfLinks } from '../../../api/_lib/groundswell/render';
 import { gapsFor, gapsFromMissing } from '../../../api/_lib/groundswell/gaps';
 import { PLACES_FALLBACK_NOTE } from '../../../api/_lib/groundswell/currents/maps';
@@ -212,5 +213,92 @@ describe('what a run could not read', () => {
       expect(html).not.toMatch(/failed \(|RESOURCE_EXHAUSTED/);
     }
     expect(plain(buildAuditHtml(data))).toContain(PLACES_FALLBACK_NOTE);
+  });
+});
+
+describe('report HTML with the client’s own accounts', () => {
+  const plain = (html: string) => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+  const linked: LinkedOutput = {
+    fetched_at: '2026-10-21T12:00:00.000Z',
+    linked: true,
+    customer_id: 'c1',
+    stage: 'client',
+    window: { start: '2026-09-21', end: '2026-10-20', days: 30 },
+    services: [
+      {
+        service: 'google_analytics',
+        label: 'Google Analytics 4',
+        ok: true,
+        source: 'Google Analytics 4, the business’s property “Harbor Auto” (2026-09-21 to 2026-10-20)',
+        data: { property: 'Harbor Auto', totals: { sessions: 1686, users: 1360, new_users: 1180, conversions: 40, engagement_rate_pct: 58 }, channels: [{ channel: 'Organic Search', sessions: 1284, users: 1010, conversions: 31 }], landing_pages: [{ page: '/brakes', sessions: 240 }] },
+        problem: null,
+        detail: null,
+      },
+      {
+        service: 'metaads',
+        label: 'Meta Ads',
+        ok: false,
+        source: 'Meta Ads',
+        data: null,
+        problem: 'The Meta Ads link no longer works, so it was not read. Link the account again.',
+        detail: 'METAADS_GET_AD_ACCOUNTS failed (401): connected account ca_77 is EXPIRED; invalid_grant',
+      },
+    ],
+    note: null,
+  };
+  const withLinked = (d: ReportData): ReportData => ({ ...d, facts: { ...d.facts, linked } });
+
+  it('the full audit adds a section on the accounts before the plan, moves the later sections down one, and names what was not read', () => {
+    const d = withLinked(sampleReportDataWithPlan());
+    const html = buildAuditHtml(d);
+    const text = plain(html);
+    expect(html).toContain('8 · Your accounts');
+    expect(text).toContain('From the business’s own accounts');
+    expect(text).toContain('Google Analytics 4: Harbor Auto');
+    expect(text).toMatch(/Sessions.*1,686/);
+    expect(text).toContain('58%');
+    expect(text).toContain('Organic Search');
+    expect(html).toContain('9 · Plan');
+    expect(html).toContain('10 · Return');
+    expect(html).toContain('11 · Ad plan');
+    expect(html).toContain('12 · Sources');
+    expect(text).toContain('Not read this time');
+    expect(text).toContain('The Meta Ads link no longer works, so it was not read. Link the account again.');
+    // The source line, and the problem under "Not available this time" as well.
+    expect(text).toContain('Google Analytics 4, the business’s property “Harbor Auto” (2026-09-21 to 2026-10-20) (2026-10-21)');
+    expect(text.split('The Meta Ads link no longer works').length - 1).toBe(2);
+  });
+
+  it('every cover says which of the business’s own accounts the reports include', () => {
+    const d = withLinked(sampleReportData());
+    expect(linkedLine(d.facts)).toBe('Includes the business’s own Google Analytics 4');
+    expect(plain(buildAuditHtml(d))).toContain('Includes the business’s own Google Analytics 4');
+    expect(plain(buildDeckHtml(d, { audit: AUDIT }))).toContain('Includes the business’s own Google Analytics 4');
+    expect(plain(buildSummaryHtml(d, { deck: DECK, audit: AUDIT, folder: FOLDER }))).toContain('Includes the business’s own Google Analytics 4');
+    // The slides keep their ids and count: no slide is added for the accounts.
+    for (const id of SLIDE_IDS) expect(buildDeckHtml(d, { audit: AUDIT })).toContain(`id="${id}"`);
+  });
+
+  it('the staff detail of a failed read never reaches a report, and a prospect’s reports are unchanged', () => {
+    const d = withLinked(sampleReportData());
+    for (const html of [buildAuditHtml(d), buildDeckHtml(d, { audit: AUDIT }), buildSummaryHtml(d, { deck: DECK, audit: AUDIT, folder: FOLDER })]) {
+      expect(html).not.toMatch(/METAADS|ca_77|invalid_grant|failed \(/);
+    }
+    const prospect = sampleReportData();
+    expect(prospect.facts.linked).toBeNull();
+    for (const html of [buildAuditHtml(prospect), buildDeckHtml(prospect, { audit: AUDIT }), buildSummaryHtml(prospect, { deck: DECK, audit: AUDIT, folder: FOLDER })]) {
+      expect(html).not.toMatch(/own accounts|Your accounts|Includes the business/);
+    }
+    expect(buildAuditHtml(prospect)).toContain('8 · Plan');
+  });
+
+  it('a run whose every linked read failed still names the gaps, without a section of figures', () => {
+    const failed = { ...linked, linked: false, services: linked.services.filter((s) => !s.ok) };
+    const d: ReportData = { ...sampleReportData(), facts: { ...sampleReportData().facts, linked: failed } };
+    const text = plain(buildAuditHtml(d));
+    expect(linkedLine(d.facts)).toBeNull();
+    expect(text).toContain('Not read this time');
+    expect(text).toContain('The Meta Ads link no longer works');
+    expect(text).not.toContain('Includes the business');
   });
 });

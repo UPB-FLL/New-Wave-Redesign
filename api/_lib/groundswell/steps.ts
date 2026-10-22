@@ -9,6 +9,7 @@ import { runPricing } from './currents/pricing.js';
 import { runSocialDepth } from './currents/socialDepth.js';
 import { runAds } from './currents/ads.js';
 import { runMaps } from './currents/maps.js';
+import { runLinked } from './currents/linked.js';
 import { runKeywords, runSearch } from './currents/search.js';
 import { runSite } from './currents/site.js';
 import { runSocial } from './currents/social.js';
@@ -42,6 +43,8 @@ const GATHER_AND_MODEL: StepDefinition[] = [
   { name: 'keywords', current: 'Search', label: 'Keyword demand (Keyword Planner)', optional: true, run: runKeywords },
   { name: 'social', current: 'Social', label: 'Instagram', optional: true, run: runSocial },
   { name: 'ads', current: 'Ads', label: 'Ads', optional: true, run: runAds },
+  // A client's own accounts, where a partner linked them; a prospect's run records that it has none.
+  { name: 'linked', current: 'Accounts', label: 'Linked accounts', optional: true, run: runLinked },
   { name: 'model', current: 'Model', label: 'Write-up and ROI', optional: false, run: runModel },
   { name: 'adplan', current: 'Model', label: 'Ad plan and change ranking', optional: true, run: runAdplan },
   { name: 'adcopy', current: 'Model', label: 'Ad copy', optional: true, run: runAdcopy },

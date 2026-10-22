@@ -6,6 +6,7 @@ import type { MapsListing, MapsPlace } from './currents/maps.js';
 import type { AhrefsSnapshot, KeywordIdea } from './currents/search.js';
 import type { InstagramSnapshot } from './currents/social.js';
 import type { AdsEvidence } from './currents/ads.js';
+import { isLinkedOutput, type LinkedOutput } from './currents/linked.js';
 
 /**
  * Model step: turns the Currents' data into the audit's write-up (OpenAI) and
@@ -80,6 +81,8 @@ export interface Facts {
   keywords: KeywordsOut | null;
   social: SocialOut | null;
   ads: AdsOut | null;
+  /** The client's own accounts, where a partner linked them and the run read (or tried to read) them; null for a prospect. */
+  linked: LinkedOutput | null;
   missing: string[];
 }
 
@@ -112,7 +115,18 @@ export function buildFacts(audit: AuditRow, outputs: Record<string, unknown>): F
     keywords: (outputs.keywords as KeywordsOut | undefined) ?? null,
     social: (outputs.social as SocialOut | undefined) ?? null,
     ads: (outputs.ads as AdsOut | undefined) ?? null,
+    linked: isLinkedOutput(outputs.linked) && outputs.linked.services.length ? outputs.linked : null,
     missing,
+  };
+}
+
+/** The linked accounts as the model sees them: each service read, with its figures, and the names of those not read. */
+export function linkedForPrompt(l: LinkedOutput | null) {
+  if (!l) return null;
+  return {
+    window: l.window,
+    read: l.services.filter((s) => s.ok).map((s) => ({ service: s.label, source: s.source, data: s.data })),
+    not_read: l.services.filter((s) => !s.ok).map((s) => s.label),
   };
 }
 
@@ -126,6 +140,7 @@ export function factsForPrompt(f: Facts) {
     keyword_planner: f.keywords && { ...f.keywords, ideas: f.keywords.ideas.slice(0, 25) },
     instagram: f.social,
     ads: f.ads,
+    client_accounts: linkedForPrompt(f.linked),
     not_available: f.missing,
   };
 }
@@ -344,6 +359,7 @@ Write in plain words for a busy owner. Rules:
 - Never cite sources as links or URLs; name a source in words if needed.
 - If a field is null, missing, or in not_available, say it could not be checked; never say the business lacks something you could not see.
 - Never describe as active something the data does not show.
+- When client_accounts is present, it is data from the business's own accounts (Google Analytics, Search Console, Google Ads, Instagram, Meta Ads). It outranks the public estimates: prefer it in every area it covers, say which figures come from the business's own accounts, and do not list those accounts under cant_see.
 - Use they/them for people. Do not name people.
 - Recommend concrete fixes in priority order.
 - Do not choose ad platforms, budgets or campaigns in the plan or next steps: the return section, modeled from the data after this write-up, decides which ads to run. Say "start the ads the return section funds" instead.

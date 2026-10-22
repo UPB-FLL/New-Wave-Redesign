@@ -11,6 +11,7 @@ import type { BenchmarkOutput } from './benchmark.js';
 import type { Brand } from './brand.js';
 import { gapsFromMissing } from './gaps.js';
 import { AREAS, type AreaKey, type Facts, type runModel } from './model.js';
+import type { GaData, GoogleAdsData, GscData, InstagramData, LinkedOutput, MetaAdsData } from './currents/linked.js';
 import type { RoiScenarioResult } from './roi.js';
 
 /**
@@ -469,6 +470,73 @@ function roiTable(m: ModelOutput) {
 // ---------------------------------------------------------------------------
 // Full audit
 
+// ---------------------------------------------------------------------------
+// The business's own accounts (the linked step)
+
+/** The services read from the business's own accounts, for a cover line; null for a run built from public data only. */
+export function linkedLine(f: Facts): string | null {
+  const read = f.linked?.services.filter((s) => s.ok).map((s) => s.label) ?? [];
+  return read.length ? `Includes the business’s own ${read.join(', ')}` : null;
+}
+
+const pc = (x: number | null | undefined) => (x === null || x === undefined ? NOT_CHECKED : `${num(x, 1)}%`);
+
+function linkedTables(l: LinkedOutput): string {
+  return l.services
+    .filter((s) => s.ok && s.data)
+    .map((s) => {
+      switch (s.service) {
+        case 'google_analytics': {
+          const g = s.data as GaData;
+          return `<h3>${esc(s.label)}: ${esc(g.property)}</h3>${table(
+            ['Sessions', 'Users', 'New users', 'Conversions', 'Engagement rate'],
+            [[num(g.totals.sessions), num(g.totals.users), num(g.totals.new_users), num(g.totals.conversions), pc(g.totals.engagement_rate_pct)]]
+          )}${g.channels.length ? table(['Channel', 'Sessions', 'Users', 'Conversions'], g.channels.slice(0, 8).map((c) => [c.channel, num(c.sessions), num(c.users), num(c.conversions)])) : ''}${
+            g.landing_pages.length ? table(['Landing page', 'Sessions'], g.landing_pages.slice(0, 8).map((p) => [p.page, num(p.sessions)])) : ''
+          }`;
+        }
+        case 'google_search_console': {
+          const g = s.data as GscData;
+          return `<h3>${esc(s.label)}</h3>${table(['Clicks', 'Impressions', 'Click-through', 'Average position'], [[num(g.totals.clicks), num(g.totals.impressions), pc(g.totals.ctr_pct), num(g.totals.position, 1)]])}${
+            g.queries.length ? table(['Search', 'Clicks', 'Impressions', 'Position'], g.queries.slice(0, 12).map((q) => [q.query, num(q.clicks), num(q.impressions), num(q.position, 1)])) : ''
+          }`;
+        }
+        case 'googleads': {
+          const g = s.data as GoogleAdsData;
+          return `<h3>${esc(s.label)}: ${esc(g.account)}</h3>${table(
+            ['Spend', 'Impressions', 'Clicks', 'Conversions', 'Cost per conversion'],
+            [[money(g.totals.cost), num(g.totals.impressions), num(g.totals.clicks), num(g.totals.conversions, 1), g.totals.cost_per_conversion === null ? '–' : money(g.totals.cost_per_conversion)]]
+          )}${g.campaigns.length ? table(['Campaign', 'Status', 'Spend', 'Clicks', 'Conversions'], g.campaigns.slice(0, 10).map((c) => [c.name, c.status ?? '–', money(c.cost), num(c.clicks), num(c.conversions, 1)])) : ''}`;
+        }
+        case 'instagram': {
+          const g = s.data as InstagramData;
+          return `<h3>${esc(s.label)}${g.username ? `: @${esc(g.username)}` : ''}</h3>${table(
+            ['Followers', 'Reach', 'Accounts engaged', 'Profile views', 'Website taps'],
+            [[num(g.followers), num(g.reach), num(g.accounts_engaged), num(g.profile_views), num(g.website_clicks)]]
+          )}${table(['Posts in the window', 'Reels', 'Average likes (recent posts)', 'Average comments'], [[num(g.posts_in_window), num(g.reels_in_window), num(g.avg_likes), num(g.avg_comments)]])}`;
+        }
+        case 'metaads': {
+          const g = s.data as MetaAdsData;
+          const t = g.totals;
+          return `<h3>${esc(s.label)}: ${esc(g.account)}</h3>${
+            t
+              ? table(['Spend', 'Impressions', 'Reach', 'Clicks', 'Cost per click', 'Leads', 'Messages'], [[money(t.spend), num(t.impressions), num(t.reach), num(t.clicks), t.cpc === null ? '–' : `$${num(t.cpc, 2)}`, num(t.leads), num(t.messages)]])
+              : '<p class="muted">No ads ran from this account in the last 30 days.</p>'
+          }${g.campaigns.length ? table(['Campaign', 'Spend', 'Clicks', 'Leads'], g.campaigns.slice(0, 10).map((c) => [c.name, money(c.spend), num(c.clicks), num(c.leads)])) : ''}`;
+        }
+      }
+    })
+    .join('');
+}
+
+/** The full audit's section on the business's own accounts: the figures read, and the services that could not be. */
+function linkedSection(l: LinkedOutput): string {
+  const notRead = l.services.filter((s) => !s.ok).map((s) => s.problem ?? `${s.label} could not be read this time.`);
+  return `<p>Figures from the business’s own accounts, ${esc(l.window.start)} to ${esc(l.window.end)}. Where they cover an area, they outrank the public estimates elsewhere in this audit.</p>${linkedTables(l)}${
+    notRead.length ? `<h3>Not read this time</h3>${listHtml(notRead, false)}` : ''
+  }`;
+}
+
 export function buildAuditHtml(d: ReportData): string {
   const { facts: f, model: m, brand: b } = d;
   const p = hasPlan(d.adplan) ? d.adplan : null;
@@ -484,12 +552,15 @@ export function buildAuditHtml(d: ReportData): string {
   ).join('');
 
   const plan = m.writeup.plan;
+  // A client's own accounts take a section of their own before the plan, and the later sections move down one.
+  const linked = f.linked;
+  const o = linked ? 1 : 0;
   const returnSections = p
-    ? section('9 · Return', 'What pays back first', returnSection(p, m)) +
-      section('10 · Ad plan', 'The ad plan', adPlanSection(p)) +
-      (copy ? section('11 · Ad copy', 'Ad copy, ready to paste', adCopySection(copy)) : '')
+    ? section(`${9 + o} · Return`, 'What pays back first', returnSection(p, m)) +
+      section(`${10 + o} · Ad plan`, 'The ad plan', adPlanSection(p)) +
+      (copy ? section(`${11 + o} · Ad copy`, 'Ad copy, ready to paste', adCopySection(copy)) : '')
     : section(
-        '9 · Return',
+        `${9 + o} · Return`,
         'What search ads could return',
         `<p>${esc(m.roi?.lever ?? '')}</p>${roiTable(m)}<p>${esc(feeLine(m))}</p>${stopLoss(m) ? `<p><strong>${esc(stopLoss(m)!)}</strong></p>` : ''}
 <h3>Where the numbers come from</h3>${listHtml(m.roi_sources, false)}
@@ -507,8 +578,10 @@ export function buildAuditHtml(d: ReportData): string {
     f.keywords?.source ? `${f.keywords.source} (${f.keywords.fetched_at?.slice(0, 10) ?? ''})` : null,
     f.social ? `${f.social.source} (${f.social.fetched_at.slice(0, 10)})` : null,
     f.ads ? `${f.ads.source} (${f.ads.fetched_at.slice(0, 10)})` : null,
+    ...(linked?.services.filter((s) => s.ok).map((s) => `${s.source} (${linked.fetched_at.slice(0, 10)})`) ?? []),
   ].filter((s): s is string => Boolean(s));
-  const missing = d.gaps ?? gapsFromMissing(f.missing);
+  const missing = [...(d.gaps ?? gapsFromMissing(f.missing)), ...(linked?.services.filter((s) => !s.ok).map((s) => s.problem ?? `${s.label} could not be read this time.`) ?? [])];
+  const dataLine = linkedLine(f);
 
   return ownWording(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(f.business.name)} - Full Marketing Audit</title><style>
 ${baseCss(b)}
@@ -537,7 +610,7 @@ td,th{padding:5px 7px}
 .note{font-size:7.5pt;color:#4b5563;margin-top:2px}
 </style></head><body>
 <section class="page cover">
-  <div class="band">${logoImg(b, '')}<h1>${esc(f.business.name)}</h1><div class="muted">Marketing audit${f.business.city ? ` · ${esc(f.business.city)}` : ''} · ${preparedBy(who)}${preparerLogo(who)} · ${esc(d.date)}</div></div>
+  <div class="band">${logoImg(b, '')}<h1>${esc(f.business.name)}</h1><div class="muted">Marketing audit${f.business.city ? ` · ${esc(f.business.city)}` : ''} · ${preparedBy(who)}${preparerLogo(who)} · ${esc(d.date)}</div>${dataLine ? `<div class="muted">${esc(dataLine)}</div>` : ''}</div>
   <div class="inner">
     <p class="headline">${esc(m.writeup.headline)}</p>
     <p>${esc(m.writeup.verdict)}</p>
@@ -548,10 +621,11 @@ td,th{padding:5px 7px}
   <div class="foot">${footer}</div>
 </section>
 ${areas}
-${section('8 · Plan', 'The 90-day plan', `<h3>Weeks 1–2</h3>${listHtml(plan.weeks_1_2, false)}<h3>Weeks 3–6</h3>${listHtml(plan.weeks_3_6, false)}<h3>Weeks 7–12</h3>${listHtml(plan.weeks_7_12, false)}`)}
+${linked ? section('8 · Your accounts', 'From the business’s own accounts', linkedSection(linked)) : ''}
+${section(`${8 + o} · Plan`, 'The 90-day plan', `<h3>Weeks 1–2</h3>${listHtml(plan.weeks_1_2, false)}<h3>Weeks 3–6</h3>${listHtml(plan.weeks_3_6, false)}<h3>Weeks 7–12</h3>${listHtml(plan.weeks_7_12, false)}`)}
 ${returnSections}
 ${section(
-  `${p ? (copy ? 12 : 11) : 10} · Sources`,
+  `${(p ? (copy ? 12 : 11) : 10) + o} · Sources`,
   'Sources and limits',
   `<h3>Data used</h3>${listHtml(sources, false)}${missing.length ? `<h3>Not available this time</h3>${listHtml(missing, false)}` : ''}${m.writeup.cant_see.length ? `<h3>Needs owner access</h3>${listHtml(m.writeup.cant_see, false)}` : ''}<p class="muted">Ratings, followers and rankings change daily; figures are as of the dates above.</p>`
 )}
@@ -648,7 +722,7 @@ td,th{padding:14px 18px;font-size:30px}
 .cover .sub{font-size:36px}
 .cta{font-size:40px;font-weight:700}
 </style></head><body>
-<section class="slide band cover" id="cover">${logoImg(b, '')}<h1>${esc(f.business.name)}</h1><div class="sub">Marketing audit · ${preparedBy(who)}${preparerLogo(who)} · ${esc(d.date)}</div></section>
+<section class="slide band cover" id="cover">${logoImg(b, '')}<h1>${esc(f.business.name)}</h1><div class="sub">Marketing audit · ${preparedBy(who)}${preparerLogo(who)} · ${esc(d.date)}${linkedLine(f) ? ` · ${esc(linkedLine(f)!)}` : ''}</div></section>
 ${slide('glance', 2, 'At a glance', `<p class="lead"><strong>${esc(m.writeup.headline)}</strong></p><p>${esc(m.writeup.verdict)}</p>${kpiHtml(kpis(f, m, p))}`)}
 ${areaSlides}
 ${slide('plan', 9, 'The 90-day plan', `<div class="cols" style="grid-template-columns:1fr 1fr 1fr"><div><h3>Weeks 1–2</h3>${listHtml(plan.weeks_1_2.slice(0, 3))}</div><div><h3>Weeks 3–6</h3>${listHtml(plan.weeks_3_6.slice(0, 3))}</div><div><h3>Weeks 7–12</h3>${listHtml(plan.weeks_7_12.slice(0, 3))}</div></div>`)}
@@ -733,7 +807,7 @@ table{font-size:9pt}
 td,th{padding:4px 6px}
 .sheet>footer{position:absolute;left:0.5in;right:0.5in;bottom:0.35in;border-top:1px solid #e5e7eb;padding-top:6px;font-size:8.5pt;display:flex;gap:18px}
 </style></head><body><div class="sheet">
-<header class="band"><div><h1>${esc(f.business.name)}</h1><div class="muted">Marketing audit summary · ${preparedBy(who)}${preparerLogo(who)} · ${esc(d.date)}</div></div>${logoImg(b, '')}</header>
+<header class="band"><div><h1>${esc(f.business.name)}</h1><div class="muted">Marketing audit summary · ${preparedBy(who)}${preparerLogo(who)} · ${esc(d.date)}${linkedLine(f) ? ` · ${esc(linkedLine(f)!)}` : ''}</div></div>${logoImg(b, '')}</header>
 <div class="body" data-fit>
 <p class="headline">${esc(m.writeup.headline)}</p>
 <p>${esc(m.writeup.verdict)}</p>
