@@ -10,6 +10,8 @@ export const GROUNDSWELL_PATH = '/groundswell';
 export const GROUNDSWELL_SET_PASSWORD_PATH = `${GROUNDSWELL_PATH}/set-password`;
 /** The partner app: a partner's own customers and their audits. */
 export const GROUNDSWELL_CUSTOMERS_PATH = `${GROUNDSWELL_PATH}/customers`;
+/** One customer: its details and every audit of it. */
+export const groundswellCustomerPath = (id: string) => `${GROUNDSWELL_CUSTOMERS_PATH}/${encodeURIComponent(id)}`;
 /** The staff admin (Supabase sign-in): overview, the audit queue, partners. */
 export const GROUNDSWELL_ADMIN_PATH = `${GROUNDSWELL_PATH}/admin`;
 export const GROUNDSWELL_ADMIN_AUDITS_PATH = `${GROUNDSWELL_ADMIN_PATH}/audits`;

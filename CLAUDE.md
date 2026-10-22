@@ -133,6 +133,44 @@ front page) is now `previewUrl(url, anchor?)`: the public page with
 - **Tests**: `src/lib/preview.test.tsx` (URL, mode, overlay, the hook in
   and out of preview, the banner), new `ContentManager.test.ts` cases, and
   the pinned hrefs in the admin tests.
+### Groundswell: customers (2026-10-21)
+
+PR 2 of the Groundswell portal plan. A customer is now a record of its own
+(`groundswell_customers`), and every audit points at one; a partner's
+customer list and customer page are built on it. Partners still cannot start
+runs (PR 3).
+
+- **Migration** `20261024120000`: `groundswell_customers` (partner_id, null
+  for New Wave's own prospects; name, city, website, Instagram, competitors,
+  notes; RLS on, no policies) and `marketing_audits.customer_id`. A `BEFORE
+  INSERT` trigger (`groundswell_link_audit_customer`, SECURITY DEFINER)
+  finds or creates the customer for any audit inserted without one, so the
+  admin queue (an RLS insert by a signed-in user) and the old partner route
+  get customers without naming the column; the backfill links every existing
+  audit the same way, oldest first. `groundswell_customer_for_audit` has no
+  EXECUTE for anon or authenticated. Additive: the customers route answers
+  503 until the table exists; nothing else reads the column.
+- **Route** `api/groundswell/partner-customers.ts` (partner session): GET
+  lists the partner's customers, most recent activity first, each with its
+  newest audit (`latest`), `last_reports_at` and `audit_count`; `?id=`
+  returns one with all of its audits (Drive links; never error text or ids
+  of other things). POST adds a customer and queues its first audit (audit
+  or benchmark, optional logo and colour; the customer is removed again if
+  the audit cannot be queued). PUT `?id=` edits the details; queued audits
+  keep theirs. `buildCustomerInsert` in `groundswellValidation.ts` is the
+  audit checks without the per-run fields. `partner-audits.ts` stays.
+- **Pages** (`src/groundswell/pages/`): `GroundswellCustomersPage` is a
+  table (business, city, status chip, last reports; a search box from four
+  customers) with "Add a customer" as the one primary action, the empty
+  state, and the branding panel below; `GroundswellCustomerPage`
+  (`/groundswell/customers/:id`, noindex) shows the details with Edit in
+  place and each audit as a card with its Drive links. `CustomerForm` is the
+  shared add/edit form (add queues the first audit and carries the privacy
+  notice); `customerStatus.ts` holds the status labels (Not started,
+  Waiting to start, Running, Reports ready, Needs attention, In review).
+- **Tests**: `src/test/api/groundswell-customers.test.ts` (`fakeSupabase`
+  can now simulate a missing table, `['*']`), and the customer cases in
+  `src/groundswell/portal.test.tsx`.
 
 ### Groundswell: white-label reports for partners (2026-10-21)
 

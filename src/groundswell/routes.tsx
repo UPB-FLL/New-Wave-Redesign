@@ -5,6 +5,7 @@ import { GROUNDSWELL_ADMIN_PATH, GROUNDSWELL_CUSTOMERS_PATH, GROUNDSWELL_PATH, G
 // Groundswell loads on demand: public New Wave IT pages ship none of the portal.
 const SetPasswordPage = lazy(() => import('./pages/GroundswellSetPasswordPage'));
 const CustomersPage = lazy(() => import('./pages/GroundswellCustomersPage'));
+const CustomerPage = lazy(() => import('./pages/GroundswellCustomerPage'));
 const AdminLayout = lazy(() => import('./admin/GroundswellAdminLayout'));
 const AdminOverview = lazy(() => import('./admin/GroundswellOverview'));
 const AdminAudits = lazy(() => import('./admin/GroundswellAudits'));
@@ -51,6 +52,14 @@ export function GroundswellCustomersRoute() {
   return (
     <Deferred>
       <CustomersPage />
+    </Deferred>
+  );
+}
+
+export function GroundswellCustomerRoute() {
+  return (
+    <Deferred>
+      <CustomerPage />
     </Deferred>
   );
 }

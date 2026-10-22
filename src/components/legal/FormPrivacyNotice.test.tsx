@@ -12,7 +12,7 @@ const PUBLIC_FORMS = [
   'src/components/support/SupportEmailCard.tsx',
   'src/components/support/CustomerPortalCard.tsx',
   'src/groundswell/pages/GroundswellSignInPage.tsx',
-  'src/groundswell/pages/GroundswellCustomersPage.tsx',
+  'src/groundswell/pages/CustomerForm.tsx',
 ];
 
 describe('FormPrivacyNotice', () => {

@@ -1,4 +1,4 @@
-import type { AuditDraft, AuditStatus, PartnerBranding } from './groundswellValidation';
+import type { AuditCompetitor, AuditDraft, AuditKind, AuditStatus, CustomerDraft, PartnerBranding } from './groundswellValidation';
 
 /**
  * Browser client for Groundswell's partner app (/groundswell). Partners are not Supabase users;
@@ -120,6 +120,48 @@ export async function listPartnerAudits(): Promise<PartnerAudit[]> {
 
 export async function submitPartnerAudit(draft: AuditDraft): Promise<PartnerAudit> {
   return (await call<{ audit: PartnerAudit }>(AUDITS, { method: 'POST', body: JSON.stringify(draft) })).audit;
+}
+
+// ---------------------------------------------------------------------------
+// Customers (migration 20261024120000): a business the partner audits, with its audits as history.
+
+const CUSTOMERS = '/api/groundswell/partner-customers';
+
+export interface PartnerCustomer {
+  id: string;
+  business_name: string;
+  city: string | null;
+  website: string | null;
+  instagram: string | null;
+  competitors: AuditCompetitor[];
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  /** The newest audit, or null before the first one is queued. */
+  latest: { id: string; status: AuditStatus; kind: AuditKind; created_at: string; completed_at: string | null } | null;
+  /** When the newest finished audit's reports were delivered. */
+  last_reports_at: string | null;
+  audit_count: number;
+}
+
+/** The first audit queued with a new customer: an audit or a benchmark, with optional look overrides. */
+export type NewCustomerDraft = CustomerDraft & Pick<AuditDraft, 'kind' | 'brand_logo_url' | 'brand_color'>;
+
+export async function listPartnerCustomers(): Promise<PartnerCustomer[]> {
+  return (await call<{ customers: PartnerCustomer[] }>(CUSTOMERS)).customers;
+}
+
+export async function getPartnerCustomer(id: string): Promise<{ customer: PartnerCustomer; audits: PartnerAudit[] }> {
+  return call<{ customer: PartnerCustomer; audits: PartnerAudit[] }>(`${CUSTOMERS}?id=${encodeURIComponent(id)}`);
+}
+
+/** Adds a customer and queues its first audit. */
+export async function createPartnerCustomer(draft: NewCustomerDraft): Promise<{ customer: PartnerCustomer; audit: PartnerAudit }> {
+  return call<{ customer: PartnerCustomer; audit: PartnerAudit }>(CUSTOMERS, { method: 'POST', body: JSON.stringify(draft) });
+}
+
+export async function updatePartnerCustomer(id: string, draft: CustomerDraft): Promise<PartnerCustomer> {
+  return (await call<{ customer: PartnerCustomer }>(`${CUSTOMERS}?id=${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(draft) })).customer;
 }
 
 const BRANDING = '/api/groundswell/partner-branding';

@@ -164,6 +164,16 @@ export interface AuditInsert {
   brand_color?: string;
 }
 
+/** A customer's own details: an audit draft without the per-run choices (kind, logo and colour overrides). */
+export type CustomerDraft = Omit<AuditDraft, 'kind' | 'brand_logo_url' | 'brand_color'>;
+export type CustomerInsert = Omit<AuditInsert, 'kind' | 'brand_logo_url' | 'brand_color'>;
+
+/** The same checks as an audit, for the customer record (groundswell_customers). */
+export function buildCustomerInsert(draft: CustomerDraft): CustomerInsert {
+  const { business_name, city, website, instagram, notes, competitors } = buildAuditInsert({ ...draft, kind: undefined, brand_logo_url: '', brand_color: '' });
+  return { business_name, city, website, instagram, notes, competitors };
+}
+
 /** Validates a draft from the admin form; throws a readable Error on bad input. */
 export function buildAuditInsert(draft: AuditDraft): AuditInsert {
   const business_name = draft.business_name.trim();

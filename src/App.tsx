@@ -98,6 +98,7 @@ import {
   GroundswellAdminOverview,
   GroundswellAdminPartners,
   GroundswellAdminRoute,
+  GroundswellCustomerRoute,
   GroundswellCustomersRoute,
   GroundswellSetPasswordRoute,
   LegacyAdminRedirect,
@@ -203,6 +204,7 @@ export default function App() {
         <Route path="/groundswell" element={<GroundswellSignInPage />} />
         <Route path={GROUNDSWELL_SET_PASSWORD_PATH} element={<GroundswellSetPasswordRoute />} />
         <Route path={GROUNDSWELL_CUSTOMERS_PATH} element={<GroundswellCustomersRoute />} />
+        <Route path={`${GROUNDSWELL_CUSTOMERS_PATH}/:id`} element={<GroundswellCustomerRoute />} />
         <Route path={GROUNDSWELL_ADMIN_PATH} element={<GroundswellAdminRoute />}>
           <Route index element={<GroundswellAdminOverview />} />
           <Route path="audits" element={<GroundswellAdminAudits />} />
