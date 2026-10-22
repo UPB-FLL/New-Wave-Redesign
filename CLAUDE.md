@@ -33,6 +33,7 @@ both, one from linked data and one from public data (the PR after).
   `stage`. The partner navigation is Prospects, Clients.
 - **Tests**: the stage cases in `groundswell-customers.test.ts` and
   `portal.test.tsx`.
+
 ### Groundswell: partner-ready prospect runs (2026-10-22)
 
 Owner's choices: partners link nothing for a prospect's audit (New Wave's
