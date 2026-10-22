@@ -1,34 +1,77 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 
 const audits = vi.hoisted(() => [
   {
-    id: '1', business_name: 'Windy City Auto', city: 'Hialeah Gardens, FL', website: 'https://windycity-auto.com', instagram: '_windycityauto',
+    id: '1',
+    business_name: 'Windy City Auto',
+    city: 'Hialeah Gardens, FL',
+    website: 'https://windycity-auto.com',
+    instagram: '_windycityauto',
     competitors: [{ name: 'Westland Auto Center', website: 'https://westlandautocenter.com', instagram: 'westlandautocenter' }],
-    notes: null, status: 'done', error: null,
+    notes: null,
+    status: 'done',
+    error: null,
     drive_folder_url: 'https://drive.google.com/drive/folders/abc',
     summary_pdf_url: 'https://drive.google.com/file/d/sum/view',
     deck_pdf_url: 'https://claude.ai/artifact/not-drive',
     audit_pdf_url: null,
-    created_at: '2026-10-20T00:00:00Z', completed_at: '2026-10-20T01:00:00Z',
+    created_at: '2026-10-20T00:00:00Z',
+    completed_at: '2026-10-20T01:00:00Z',
   },
   {
-    id: '2', business_name: 'Flow and Mills', city: null, website: null, instagram: 'flowandmills',
-    competitors: [], notes: null, status: 'queued', error: null,
-    drive_folder_url: null, summary_pdf_url: null, deck_pdf_url: null, audit_pdf_url: null,
-    created_at: '2026-10-20T02:00:00Z', completed_at: null,
+    id: '2',
+    business_name: 'Flow and Mills',
+    city: null,
+    website: null,
+    instagram: 'flowandmills',
+    competitors: [],
+    notes: null,
+    status: 'queued',
+    error: null,
+    drive_folder_url: null,
+    summary_pdf_url: null,
+    deck_pdf_url: null,
+    audit_pdf_url: null,
+    created_at: '2026-10-20T02:00:00Z',
+    completed_at: null,
   },
   {
-    id: '3', business_name: 'Harbor Auto Care', city: null, website: 'https://harbor-auto.example', instagram: null,
-    competitors: [], notes: null, status: 'running', error: null,
-    drive_folder_url: null, summary_pdf_url: null, deck_pdf_url: null, audit_pdf_url: null,
-    created_at: '2026-10-21T02:00:00Z', completed_at: null,
+    id: '3',
+    business_name: 'Harbor Auto Care',
+    city: null,
+    website: 'https://harbor-auto.example',
+    instagram: null,
+    competitors: [],
+    notes: null,
+    status: 'running',
+    error: null,
+    drive_folder_url: null,
+    summary_pdf_url: null,
+    deck_pdf_url: null,
+    audit_pdf_url: null,
+    created_at: '2026-10-21T02:00:00Z',
+    completed_at: null,
   },
   {
-    id: '5', business_name: 'Harbor Stored', city: null, website: 'https://stored.example', instagram: null,
-    competitors: [], notes: null, status: 'done', error: null, kind: 'benchmark',
-    drive_folder_url: null, summary_pdf_url: null, deck_pdf_url: null, audit_pdf_url: null, benchmark_pdf_url: null,
-    created_at: '2026-10-22T02:00:00Z', completed_at: '2026-10-22T03:00:00Z',
+    id: '5',
+    business_name: 'Harbor Stored',
+    city: null,
+    website: 'https://stored.example',
+    instagram: null,
+    competitors: [],
+    notes: null,
+    status: 'done',
+    error: null,
+    kind: 'benchmark',
+    drive_folder_url: null,
+    summary_pdf_url: null,
+    deck_pdf_url: null,
+    audit_pdf_url: null,
+    benchmark_pdf_url: null,
+    created_at: '2026-10-22T02:00:00Z',
+    completed_at: '2026-10-22T03:00:00Z',
   },
 ]);
 
@@ -46,11 +89,25 @@ const held = vi.hoisted(() => ({
     round: 3,
     hold: 'The figures did not agree after 3 reads.',
     disagreements: [
-      { key: 'keyword:pizza near me:searches', label: '“pizza near me”: searches a month', earlier: 1300, later: 2600, change: 0.5, kind: 'moved' },
+      {
+        key: 'keyword:pizza near me:searches',
+        label: '“pizza near me”: searches a month',
+        earlier: 1300,
+        later: 2600,
+        change: 0.5,
+        kind: 'moved',
+      },
       { key: 'source:maps', label: 'Google Maps was read', earlier: 1, later: null, change: null, kind: 'unread' },
     ],
     missing_keywords: [],
-    review: { checked: 40, corrected: [{ from: 'a', to: 'b', problem: 'p' }], dropped: [{ from: 'c', problem: 'p' }, { from: 'd', problem: 'p' }] },
+    review: {
+      checked: 40,
+      corrected: [{ from: 'a', to: 'b', problem: 'p' }],
+      dropped: [
+        { from: 'c', problem: 'p' },
+        { from: 'd', problem: 'p' },
+      ],
+    },
   },
 }));
 
@@ -75,8 +132,56 @@ import GroundswellAudits from './GroundswellAudits';
 import { addCompetitor, adminReportUrl, answerReview, listAudits, queueAudit, startQueuedAudits } from '../../lib/groundswell';
 
 describe('GroundswellAudits admin screen', () => {
+  it('does not restore an old status when clearing filters and immediately searching', async () => {
+    render(
+      <MemoryRouter initialEntries={['/groundswell/admin/audits?status=running']}>
+        <GroundswellAudits />
+      </MemoryRouter>,
+    );
+    await screen.findByText('Harbor Auto Care');
+    act(() => {
+      fireEvent.click(screen.getByRole('button', { name: 'Clear filters' }));
+      fireEvent.change(screen.getByRole('searchbox', { name: 'Search runs' }), { target: { value: 'Windy City Auto' } });
+    });
+    expect(await screen.findByText('Windy City Auto')).toBeInTheDocument();
+    expect(screen.getByLabelText('Run status')).toHaveValue('all');
+  });
+
+  it('focuses a run opened from the overview after the requests finish loading', async () => {
+    render(
+      <MemoryRouter initialEntries={['/groundswell/admin/audits?status=running#run-3']}>
+        <GroundswellAudits />
+      </MemoryRouter>,
+    );
+    const business = await screen.findByText('Harbor Auto Care');
+    await waitFor(() => expect(business.closest('li')).toHaveFocus());
+    expect(screen.queryByText('Windy City Auto')).not.toBeInTheDocument();
+  });
+
+  it('combines status and business search without changing other requests', async () => {
+    render(
+      <MemoryRouter>
+        <GroundswellAudits />
+      </MemoryRouter>,
+    );
+    await screen.findByText('Windy City Auto');
+    fireEvent.change(screen.getByLabelText('Run status'), { target: { value: 'done' } });
+    expect(screen.queryByText('Flow and Mills')).not.toBeInTheDocument();
+    expect(screen.getByText('Harbor Stored')).toBeInTheDocument();
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Search runs' }), { target: { value: 'harbor' } });
+    expect(screen.queryByText('Windy City Auto')).not.toBeInTheDocument();
+    expect(screen.queryByText('Harbor Auto Care')).not.toBeInTheDocument();
+    expect(screen.getByText('Harbor Stored')).toBeInTheDocument();
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Search runs' }), { target: { value: 'no match' } });
+    expect(screen.getByText('No runs match your filters.')).toBeInTheDocument();
+  });
+
   it('lists requests; an audit delivered to Drive keeps only its Google Drive links', async () => {
-    render(<GroundswellAudits />);
+    render(
+      <MemoryRouter>
+        <GroundswellAudits />
+      </MemoryRouter>,
+    );
     await waitFor(() => expect(screen.getByText('Windy City Auto')).toBeInTheDocument());
     expect(screen.getByText('1 competitor')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Drive folder/ })).toHaveAttribute('href', 'https://drive.google.com/drive/folders/abc');
@@ -89,7 +194,11 @@ describe('GroundswellAudits admin screen', () => {
 
   it('opens a stored report of a finished audit through a short-lived link', async () => {
     const opened = vi.spyOn(window, 'open').mockImplementation(() => null);
-    render(<GroundswellAudits />);
+    render(
+      <MemoryRouter>
+        <GroundswellAudits />
+      </MemoryRouter>,
+    );
     await waitFor(() => expect(screen.getByText('Harbor Stored')).toBeInTheDocument());
     expect(screen.getByRole('button', { name: 'Competitive benchmark' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Full audit' }));
@@ -99,7 +208,11 @@ describe('GroundswellAudits admin screen', () => {
   });
 
   it('shows Groundswell progress for a running audit', async () => {
-    render(<GroundswellAudits />);
+    render(
+      <MemoryRouter>
+        <GroundswellAudits />
+      </MemoryRouter>,
+    );
     const progress = await screen.findByRole('list', { name: 'Audit progress' });
     expect(progress).toHaveTextContent('Website: done');
     expect(progress).toHaveTextContent('Google Maps: skipped');
@@ -109,7 +222,11 @@ describe('GroundswellAudits admin screen', () => {
   });
 
   it('has a labelled form for the business and its competitors', async () => {
-    render(<GroundswellAudits />);
+    render(
+      <MemoryRouter>
+        <GroundswellAudits />
+      </MemoryRouter>,
+    );
     expect(screen.getByLabelText('Business name')).toBeRequired();
     expect(screen.getByLabelText('Website')).toBeInTheDocument();
     expect(screen.getByLabelText('Instagram')).toBeInTheDocument();
@@ -118,7 +235,11 @@ describe('GroundswellAudits admin screen', () => {
   });
 
   it('adds a competitor to an existing request and queues it again', async () => {
-    render(<GroundswellAudits />);
+    render(
+      <MemoryRouter>
+        <GroundswellAudits />
+      </MemoryRouter>,
+    );
     fireEvent.click(await screen.findByRole('button', { name: 'Add a competitor to Windy City Auto' }));
     fireEvent.change(screen.getByLabelText('New competitor Instagram'), { target: { value: '@rival_shop' } });
     fireEvent.click(screen.getByRole('button', { name: 'Add and queue again' }));
@@ -126,29 +247,45 @@ describe('GroundswellAudits admin screen', () => {
   });
 
   it('starts the queued audits on demand and says how many runs started', async () => {
-    render(<GroundswellAudits />);
+    render(
+      <MemoryRouter>
+        <GroundswellAudits />
+      </MemoryRouter>,
+    );
     const button = await screen.findByRole('button', { name: /Run queued audits now/ });
     await waitFor(() => expect(button).toBeEnabled());
     fireEvent.click(button);
     await waitFor(() => expect(startQueuedAudits).toHaveBeenCalledTimes(1));
-    expect(await screen.findByRole('status')).toHaveTextContent('Started 1 audit.');
+    expect(await screen.findByText(/Started 1 audit\./)).toBeInTheDocument();
   });
 
   it('disables the run button when nothing is queued', async () => {
     vi.mocked(listAudits).mockResolvedValueOnce([audits[0]] as never);
-    render(<GroundswellAudits />);
+    render(
+      <MemoryRouter>
+        <GroundswellAudits />
+      </MemoryRouter>,
+    );
     await waitFor(() => expect(screen.getByText('Windy City Auto')).toBeInTheDocument());
     expect(screen.getByRole('button', { name: /Run queued audits now/ })).toBeDisabled();
   });
 
   it('shows what the checks found on a held audit, and delivers it or runs the checks again', async () => {
     const inReview = {
-      ...audits[2], id: '4', business_name: 'Reef Diner', status: 'review', error: 'The figures did not agree after 3 reads.',
+      ...audits[2],
+      id: '4',
+      business_name: 'Reef Diner',
+      status: 'review',
+      error: 'The figures did not agree after 3 reads.',
     };
     vi.mocked(listAudits).mockImplementation(async () => [inReview] as never);
     const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true);
     try {
-      render(<GroundswellAudits />);
+      render(
+        <MemoryRouter>
+          <GroundswellAudits />
+        </MemoryRouter>,
+      );
       expect(await screen.findByText('Needs review')).toBeInTheDocument();
       expect(screen.getByText('The figures did not agree after 3 reads.')).toBeInTheDocument();
       const moved = await screen.findByRole('list', { name: 'What moved for Reef Diner' });
@@ -167,13 +304,19 @@ describe('GroundswellAudits admin screen', () => {
   });
 
   it('queues a competitor benchmark with two labelled competitor rows', async () => {
-    render(<GroundswellAudits />);
+    render(
+      <MemoryRouter>
+        <GroundswellAudits />
+      </MemoryRouter>,
+    );
     await screen.findByText('Windy City Auto');
     fireEvent.click(screen.getByLabelText(/Benchmark against the top 2 competitors/));
     expect(screen.getByLabelText('Competitor 1 (top) name')).toBeInTheDocument();
     expect(screen.getByLabelText('Competitor 2 name')).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Business name'), { target: { value: 'Bench Shop' } });
     fireEvent.click(screen.getByRole('button', { name: 'Queue benchmark' }));
-    await waitFor(() => expect(queueAudit).toHaveBeenCalledWith(expect.objectContaining({ kind: 'benchmark', business_name: 'Bench Shop' })));
+    await waitFor(() =>
+      expect(queueAudit).toHaveBeenCalledWith(expect.objectContaining({ kind: 'benchmark', business_name: 'Bench Shop' })),
+    );
   });
 });

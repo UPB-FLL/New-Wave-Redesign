@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Copy, Loader2, Mail, Palette, Power, UserPlus } from 'lucide-react';
+import { AdminEmptyState, AdminPageHeader } from './AdminUi';
+import { Copy, Loader2, Mail, Palette, Power, UserPlus, Handshake } from 'lucide-react';
 import {
   invitePartner,
   listPartners,
@@ -50,8 +51,20 @@ function BrandingEditor({ partner, onSaved }: { partner: GroundswellPartner; onS
   };
   return (
     <form onSubmit={save} className="w-full grid gap-2 md:grid-cols-[1fr_1fr_auto] items-start">
-      <input className={input} aria-label={`Name on ${partner.company}'s reports`} placeholder={partner.company} value={name} onChange={(e) => setName(e.target.value)} />
-      <input className={input} aria-label={`${partner.company}'s logo link`} placeholder="https://…/logo.png" value={logo} onChange={(e) => setLogo(e.target.value)} />
+      <input
+        className={input}
+        aria-label={`Name on ${partner.company}'s reports`}
+        placeholder={partner.company}
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
+      <input
+        className={input}
+        aria-label={`${partner.company}'s logo link`}
+        placeholder="https://…/logo.png"
+        value={logo}
+        onChange={(e) => setLogo(e.target.value)}
+      />
       <button type="submit" disabled={busy} className="gs-btn gs-btn-primary">
         Save branding
       </button>
@@ -106,7 +119,11 @@ export default function GroundswellPartners() {
   };
 
   const act = async (partner: GroundswellPartner, action: 'resend' | 'disable' | 'enable') => {
-    if (action === 'disable' && !window.confirm(`Turn off ${partner.company}'s account? They are signed out and can't sign in until you turn it back on.`)) return;
+    if (
+      action === 'disable' &&
+      !window.confirm(`Turn off ${partner.company}'s account? They are signed out and can't sign in until you turn it back on.`)
+    )
+      return;
     setError(null);
     setLink(null);
     setBusyId(partner.id);
@@ -122,14 +139,28 @@ export default function GroundswellPartners() {
   };
 
   return (
-    <div className="space-y-8">
-      <header className="space-y-2">
-        <h1 className="text-2xl font-bold">Partners</h1>
-        <p className="max-w-3xl text-sm gs-muted">
-          Agencies and resellers who add customers for Croissance audits. They see only the customers they added. Partner
-          accounts are separate from staff sign-in: a partner can never reach these pages.
-        </p>
-      </header>
+    <div className="gs-admin-page">
+      <AdminPageHeader
+        title="Partners"
+        description="The agencies behind your customer workspaces. Manage access, invitations, and the name on their reports."
+        action={
+          <a href="#gs-invite-heading" className="gs-btn gs-btn-secondary">
+            <UserPlus size={15} aria-hidden="true" />
+            Invite a partner
+          </a>
+        }
+      />
+      <div className="gs-admin-directory-stats">
+        <span>
+          <strong>{loading ? '–' : partners.filter((p) => p.status === 'active').length}</strong>Active partners
+        </span>
+        <span>
+          <strong>{loading ? '–' : partners.filter((p) => p.status === 'invited').length}</strong>Invitations pending
+        </span>
+        <span>
+          <strong>{loading ? '–' : partners.filter((p) => p.status === 'disabled').length}</strong>Turned off
+        </span>
+      </div>
 
       {error && (
         <p className="gs-alert" role="alert">
@@ -159,83 +190,140 @@ export default function GroundswellPartners() {
         </div>
       )}
 
-      <form onSubmit={submit} className="gs-card space-y-4 p-6">
-        <h2 className="text-lg font-bold">Invite a partner</h2>
-        <div className="grid gap-3 md:grid-cols-3">
-          <input className={input} aria-label="Company" placeholder="Company" required value={draft.company} onChange={(e) => setDraft({ ...draft, company: e.target.value })} />
-          <input className={input} aria-label="Contact name" placeholder="Contact name" value={draft.contact_name} onChange={(e) => setDraft({ ...draft, contact_name: e.target.value })} />
-          <input className={input} aria-label="Email" type="email" placeholder="Email" required value={draft.email} onChange={(e) => setDraft({ ...draft, email: e.target.value })} />
-        </div>
-        <textarea className={input} aria-label="Notes" placeholder="Notes (only admins see these)" rows={2} value={draft.notes} onChange={(e) => setDraft({ ...draft, notes: e.target.value })} />
-        <button type="submit" disabled={saving} className="gs-btn gs-btn-primary">
-          {saving ? <Loader2 size={16} className="animate-spin" /> : <UserPlus size={16} />} Send invite
-        </button>
-      </form>
-
-      <section className="space-y-3" aria-label="Partners">
-        {loading ? (
-          <p className="text-sm gs-muted">Loading…</p>
-        ) : partners.length === 0 ? (
-          <p className="text-sm gs-muted">No partners yet. Invite the first one above.</p>
-        ) : (
-          <ul className="space-y-3">
-            {partners.map((p) => {
-              const s = STATUS[p.status];
-              return (
-                <li key={p.id} className="gs-card flex flex-wrap items-center justify-between gap-4 p-5">
-                  <div>
-                    <div className="font-semibold">{p.company}</div>
-                    <div className="mt-1 flex flex-wrap gap-3 text-xs gs-muted">
-                      <span>{p.contact_name ? `${p.contact_name} · ` : ''}{p.email}</span>
-                      <span>
-                        {p.audit_count} audit{p.audit_count === 1 ? '' : 's'}
-                      </span>
-                      <span>last sign-in {when(p.last_sign_in_at)}</span>
+      <div className="gs-admin-partners-grid">
+        <section className="gs-admin-partner-list space-y-3" aria-label="Partners">
+          {loading ? (
+            <p className="text-sm gs-muted">Loading…</p>
+          ) : partners.length === 0 ? (
+            <div className="gs-card">
+              <AdminEmptyState title="Your partner network starts here" icon={Handshake}>
+                Invite an agency to give its team a dedicated customer workspace.
+              </AdminEmptyState>
+            </div>
+          ) : (
+            <ul className="space-y-3">
+              {partners.map((p) => {
+                const s = STATUS[p.status];
+                return (
+                  <li key={p.id} className="gs-card gs-admin-partner-card flex flex-wrap items-center justify-between gap-4 p-5">
+                    <div>
+                      <div className="font-semibold">{p.company}</div>
+                      <div className="mt-1 flex flex-wrap gap-3 text-xs gs-muted">
+                        <span>
+                          {p.contact_name ? `${p.contact_name} · ` : ''}
+                          {p.email}
+                        </span>
+                        <span>
+                          {p.audit_count} audit{p.audit_count === 1 ? '' : 's'}
+                        </span>
+                        <span>last sign-in {when(p.last_sign_in_at)}</span>
+                      </div>
+                      {p.notes && <p className="mt-1 text-xs gs-muted">{p.notes}</p>}
+                      <p className="mt-1 text-xs gs-muted">
+                        Reports say “Prepared by {p.display_name || p.company}”{p.logo_url ? ', with their logo' : ''}.
+                      </p>
                     </div>
-                    {p.notes && <p className="mt-1 text-xs gs-muted">{p.notes}</p>}
-                    <p className="mt-1 text-xs gs-muted">Reports say “Prepared by {p.display_name || p.company}”{p.logo_url ? ', with their logo' : ''}.</p>
-                  </div>
-                  <div className="flex items-center gap-4 text-sm">
-                    <span className="gs-chip" style={{ color: s.color }}>
-                      {s.label}
-                    </span>
-                    {p.status !== 'disabled' && (
-                      <button type="button" disabled={busyId === p.id} onClick={() => void act(p, 'resend')} className="gs-btn gs-btn-ghost px-2">
-                        <Mail size={14} /> {p.status === 'invited' ? 'Resend invite' : 'Send reset link'}
+                    <div className="flex items-center gap-4 text-sm">
+                      <span className="gs-chip" style={{ color: s.color }}>
+                        {s.label}
+                      </span>
+                      {p.status !== 'disabled' && (
+                        <button
+                          type="button"
+                          disabled={busyId === p.id}
+                          onClick={() => void act(p, 'resend')}
+                          className="gs-btn gs-btn-ghost px-2"
+                        >
+                          <Mail size={14} /> {p.status === 'invited' ? 'Resend invite' : 'Send reset link'}
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        disabled={busyId === p.id}
+                        onClick={() => void act(p, p.status === 'disabled' ? 'enable' : 'disable')}
+                        className="gs-btn gs-btn-ghost px-2"
+                      >
+                        <Power size={14} /> {p.status === 'disabled' ? 'Turn on' : 'Turn off'}
                       </button>
+                      <button
+                        type="button"
+                        aria-expanded={brandingId === p.id}
+                        onClick={() => setBrandingId(brandingId === p.id ? null : p.id)}
+                        className="gs-btn gs-btn-ghost px-2"
+                      >
+                        <Palette size={14} /> Branding
+                      </button>
+                    </div>
+                    {brandingId === p.id && (
+                      <BrandingEditor
+                        partner={p}
+                        onSaved={async () => {
+                          setBrandingId(null);
+                          await refresh();
+                        }}
+                      />
                     )}
-                    <button
-                      type="button"
-                      disabled={busyId === p.id}
-                      onClick={() => void act(p, p.status === 'disabled' ? 'enable' : 'disable')}
-                      className="gs-btn gs-btn-ghost px-2"
-                    >
-                      <Power size={14} /> {p.status === 'disabled' ? 'Turn on' : 'Turn off'}
-                    </button>
-                    <button
-                      type="button"
-                      aria-expanded={brandingId === p.id}
-                      onClick={() => setBrandingId(brandingId === p.id ? null : p.id)}
-                      className="gs-btn gs-btn-ghost px-2"
-                    >
-                      <Palette size={14} /> Branding
-                    </button>
-                  </div>
-                  {brandingId === p.id && (
-                    <BrandingEditor
-                      partner={p}
-                      onSaved={async () => {
-                        setBrandingId(null);
-                        await refresh();
-                      }}
-                    />
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+        <form onSubmit={submit} className="gs-card gs-admin-invite-form space-y-4" aria-labelledby="gs-invite-heading">
+          <h2 id="gs-invite-heading" className="text-lg font-bold" tabIndex={-1}>
+            Invite a partner
+          </h2>
+          <p className="gs-admin-fine-print">Send a secure invitation to their own Groundswell workspace.</p>
+          <div className="grid gap-4">
+            <label>
+              <span className="gs-label">Company</span>
+              <input
+                className={input}
+                autoComplete="organization"
+                placeholder="Agency name"
+                required
+                value={draft.company}
+                onChange={(e) => setDraft({ ...draft, company: e.target.value })}
+              />
+            </label>
+            <label>
+              <span className="gs-label">Contact name</span>
+              <input
+                className={input}
+                autoComplete="name"
+                placeholder="Full name"
+                value={draft.contact_name}
+                onChange={(e) => setDraft({ ...draft, contact_name: e.target.value })}
+              />
+            </label>
+            <label>
+              <span className="gs-label">Email</span>
+              <input
+                className={input}
+                autoComplete="email"
+                type="email"
+                placeholder="name@agency.com"
+                required
+                value={draft.email}
+                onChange={(e) => setDraft({ ...draft, email: e.target.value })}
+              />
+            </label>
+          </div>
+          <label className="block">
+            <span className="gs-label">Notes</span>
+            <textarea
+              className={input}
+              placeholder="For your team only"
+              rows={3}
+              value={draft.notes}
+              onChange={(e) => setDraft({ ...draft, notes: e.target.value })}
+            />
+          </label>
+          <button type="submit" disabled={saving} className="gs-btn gs-btn-primary">
+            {saving ? <Loader2 size={16} className="animate-spin" /> : <UserPlus size={16} />} Send invite
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

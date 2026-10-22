@@ -1,11 +1,10 @@
 import { Suspense } from 'react';
-import { Link, Outlet, useNavigate } from 'react-router-dom';
-import { ClipboardList, Gauge, Handshake, Users } from 'lucide-react';
+import { Outlet, useNavigate } from 'react-router-dom';
 import AdminGuard from '../../admin/AdminGuard';
 import { supabase } from '../../lib/supabase';
 import { usePageMeta } from '../../lib/usePageMeta';
-import { GroundswellShell, type ShellNavItem } from '../GroundswellShell';
-import { GROUNDSWELL_ADMIN_AUDITS_PATH, GROUNDSWELL_ADMIN_CUSTOMERS_PATH, GROUNDSWELL_ADMIN_PARTNERS_PATH, GROUNDSWELL_ADMIN_PATH, GROUNDSWELL_NAME } from '../site';
+import { GroundswellAdminShell } from './GroundswellAdminShell';
+import { GROUNDSWELL_ADMIN_PATH, GROUNDSWELL_NAME } from '../site';
 
 /**
  * The staff side of Groundswell (/groundswell/admin): the same Supabase
@@ -13,13 +12,6 @@ import { GROUNDSWELL_ADMIN_AUDITS_PATH, GROUNDSWELL_ADMIN_CUSTOMERS_PATH, GROUND
  * Groundswell shell rather than the content admin's sidebar. Partners never
  * reach it: their sessions are not Supabase sessions.
  */
-
-const ADMIN_NAV: ShellNavItem[] = [
-  { label: 'Overview', path: GROUNDSWELL_ADMIN_PATH, icon: Gauge, end: true },
-  { label: 'Customers', path: GROUNDSWELL_ADMIN_CUSTOMERS_PATH, icon: Users },
-  { label: 'Run queue', path: GROUNDSWELL_ADMIN_AUDITS_PATH, icon: ClipboardList },
-  { label: 'Partners', path: GROUNDSWELL_ADMIN_PARTNERS_PATH, icon: Handshake },
-];
 
 export default function GroundswellAdminLayout() {
   usePageMeta({ title: `Staff | ${GROUNDSWELL_NAME}`, includeSiteName: false, noindex: true });
@@ -32,22 +24,17 @@ export default function GroundswellAdminLayout() {
 
   return (
     <AdminGuard title={GROUNDSWELL_NAME} subtitle="New Wave staff sign-in">
-      <GroundswellShell
-        who="New Wave staff"
-        role="Staff"
-        nav={ADMIN_NAV}
-        navLabel="Staff pages"
-        onSignOut={() => void signOut()}
-        aside={
-          <Link to="/admin" className="gs-muted underline-offset-4 hover:underline">
-            Website content admin →
-          </Link>
-        }
-      >
-        <Suspense fallback={<div aria-busy="true" />}>
+      <GroundswellAdminShell onSignOut={() => void signOut()}>
+        <Suspense
+          fallback={
+            <p className="gs-admin-loading" aria-busy="true">
+              Loading workspace…
+            </p>
+          }
+        >
           <Outlet />
         </Suspense>
-      </GroundswellShell>
+      </GroundswellAdminShell>
     </AdminGuard>
   );
 }

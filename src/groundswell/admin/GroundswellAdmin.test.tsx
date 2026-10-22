@@ -8,16 +8,29 @@ const lib = vi.hoisted(() => ({
   listPartners: vi.fn(),
   invitePartner: vi.fn(),
   updatePartner: vi.fn(),
+  listStaffCustomers: vi.fn(),
 }));
 
 vi.mock('../../lib/groundswell', async (orig) => ({ ...(await orig<typeof import('../../lib/groundswell')>()), ...lib }));
+vi.mock('../../lib/groundswellWorkspace', async (orig) => ({
+  ...(await orig<typeof import('../../lib/groundswellWorkspace')>()),
+  listStaffCustomers: lib.listStaffCustomers,
+}));
 
 import GroundswellOverview from './GroundswellOverview';
 import GroundswellPartners from './GroundswellPartners';
 
 const partner = (over = {}) => ({
-  id: 'p1', company: 'Reef Agency', contact_name: 'Sam', email: 'sam@reef.example', status: 'active' as const, notes: null,
-  created_at: '2026-10-21T00:00:00Z', last_sign_in_at: null, audit_count: 2, ...over,
+  id: 'p1',
+  company: 'Reef Agency',
+  contact_name: 'Sam',
+  email: 'sam@reef.example',
+  status: 'active' as const,
+  notes: null,
+  created_at: '2026-10-21T00:00:00Z',
+  last_sign_in_at: null,
+  audit_count: 2,
+  ...over,
 });
 
 beforeEach(() => {
@@ -29,6 +42,17 @@ beforeEach(() => {
     { id: 'd', status: 'review', partner_id: null },
   ]);
   lib.listPartners.mockResolvedValue([partner(), partner({ id: 'p2', company: 'Tide Co', status: 'invited', audit_count: 0 })]);
+  lib.listStaffCustomers.mockResolvedValue([
+    {
+      id: 'harbor',
+      business_name: 'Harbor Dental',
+      city: 'Miami',
+      stage: 'client',
+      partner: null,
+      updated_at: '2026-10-22T00:00:00Z',
+      phases: { audit: { status: 'done', at: '2026-10-21' }, competitors: { status: 'running', at: '2026-10-22' }, integrated: null },
+    },
+  ]);
   lib.getSetupStatus.mockResolvedValue({
     ready: false,
     report_admins: ['josh@newwaveitfl.com'],
@@ -41,8 +65,51 @@ beforeEach(() => {
 });
 
 describe('Groundswell overview', () => {
+  it('shows unavailable states instead of endless loading when audit and setup reads fail', async () => {
+    lib.listAudits.mockRejectedValue(new Error('Runs unavailable.'));
+    lib.getSetupStatus.mockRejectedValue(new Error('Setup unavailable.'));
+    render(
+      <MemoryRouter>
+        <GroundswellOverview />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByText('Run status unavailable')).toBeInTheDocument();
+    const health = screen.getByRole('region', { name: 'Engine health' });
+    expect(within(health).getByText('Connection status unavailable.')).not.toHaveAttribute('aria-busy', 'true');
+    fireEvent.click(screen.getByRole('button', { name: /Check connections/ }));
+    await waitFor(() => expect(screen.getByRole('button', { name: /Check connections/ })).toBeEnabled());
+    expect(within(health).getByText('Connection status unavailable.')).not.toHaveAttribute('aria-busy', 'true');
+  });
+
+  it('opens customer workspaces and links attention states to the filtered queue', async () => {
+    render(
+      <MemoryRouter>
+        <GroundswellOverview />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByRole('link', { name: 'Harbor Dental' })).toHaveAttribute('href', '/groundswell/admin/customers/harbor');
+    expect(screen.getByRole('link', { name: /Needs review/ })).toHaveAttribute('href', '/groundswell/admin/audits?status=review');
+    expect(screen.getByRole('region', { name: 'Customer progress' })).toHaveTextContent('Plan against competitors');
+  });
+
+  it('keeps audit counts and connection checks available if the customer list fails', async () => {
+    lib.listStaffCustomers.mockRejectedValue(new Error('Customers are temporarily unavailable.'));
+    render(
+      <MemoryRouter>
+        <GroundswellOverview />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByText('Customers are temporarily unavailable.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Check connections/ })).toBeEnabled();
+    expect(within(screen.getByRole('region', { name: 'Audits by status' })).getByText('Done').previousSibling).toHaveTextContent('2');
+  });
+
   it('counts audits by status, lists the setup checks, and summarizes partners', async () => {
-    render(<MemoryRouter><GroundswellOverview /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <GroundswellOverview />
+      </MemoryRouter>,
+    );
     const counts = screen.getByRole('region', { name: 'Audits by status' });
     await waitFor(() => expect(within(counts).getByText('Done').previousSibling).toHaveTextContent('2'));
     expect(within(counts).getByText('Queued').previousSibling).toHaveTextContent('1');
@@ -65,12 +132,27 @@ describe('Groundswell overview', () => {
             report_admins: ['josh@newwaveitfl.com'],
             checks: [
               { key: 'OPENAI_API_KEY', label: 'OpenAI (the write-up)', ok: true, required: true, detail: 'OpenAI accepted the key.' },
-              { key: 'composio:googleads', label: 'Google Ads (Keyword Planner)', ok: false, required: false, detail: 'No active connection in the project; keyword demand, the ad plan and the ad copy are left out of the reports. Connect it under Auth Configs.' },
+              {
+                key: 'composio:googleads',
+                label: 'Google Ads (Keyword Planner)',
+                ok: false,
+                required: false,
+                detail:
+                  'No active connection in the project; keyword demand, the ad plan and the ad copy are left out of the reports. Connect it under Auth Configs.',
+              },
             ],
           }
-        : { ready: true, report_admins: ['josh@newwaveitfl.com'], checks: [{ key: 'OPENAI_API_KEY', label: 'OpenAI', ok: true, required: true }] }
+        : {
+            ready: true,
+            report_admins: ['josh@newwaveitfl.com'],
+            checks: [{ key: 'OPENAI_API_KEY', label: 'OpenAI', ok: true, required: true }],
+          },
     );
-    render(<MemoryRouter><GroundswellOverview /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <GroundswellOverview />
+      </MemoryRouter>,
+    );
     expect(await screen.findByText(/Variables set\. Check the connections/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Check connections/ }));
     expect(await screen.findByText(/Audits run, with 1 data source missing: Google Ads/)).toBeInTheDocument();
@@ -83,7 +165,11 @@ describe('Groundswell overview', () => {
 
 describe('Groundswell partners', () => {
   it('lists partners and invites a new one, showing the link once', async () => {
-    lib.invitePartner.mockResolvedValue({ partner: partner({ id: 'p3', company: 'New Co' }), invite_url: 'https://www.newwaveitfl.com/social-engineering/croissance/partners/set-password?token=t', emailed: true });
+    lib.invitePartner.mockResolvedValue({
+      partner: partner({ id: 'p3', company: 'New Co' }),
+      invite_url: 'https://www.newwaveitfl.com/social-engineering/croissance/partners/set-password?token=t',
+      emailed: true,
+    });
     render(<GroundswellPartners />);
     expect(await screen.findByText('Reef Agency')).toBeInTheDocument();
     expect(screen.getByText('Tide Co')).toBeInTheDocument();
@@ -91,7 +177,9 @@ describe('Groundswell partners', () => {
     fireEvent.change(screen.getByLabelText('Company'), { target: { value: 'New Co' } });
     fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'hi@newco.example' } });
     fireEvent.click(screen.getByRole('button', { name: /Send invite/ }));
-    await waitFor(() => expect(lib.invitePartner).toHaveBeenCalledWith({ company: 'New Co', contact_name: '', email: 'hi@newco.example', notes: '' }));
+    await waitFor(() =>
+      expect(lib.invitePartner).toHaveBeenCalledWith({ company: 'New Co', contact_name: '', email: 'hi@newco.example', notes: '' }),
+    );
     expect(await screen.findByRole('status')).toHaveTextContent('Emailed New Co a link to choose a password.');
     expect(screen.getByText(/set-password\?token=t/)).toBeInTheDocument();
   });
