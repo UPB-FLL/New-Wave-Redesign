@@ -166,6 +166,39 @@ export interface AuditInsert {
 
 /** A customer's own details: an audit draft without the per-run choices (kind, logo and colour overrides). */
 /** A customer's stage: a prospect (a lead read from public data) or a client (a business the partner works for). */
+/**
+ * Groundswell's three phases, each its own run of a customer (migration
+ * 20261029120000): the audit from public data, the plan against competitors
+ * with its ad sets, and the integrated plan once a client's accounts are
+ * linked. Phases 1 and 2 read through Composio's consumer account; phase 3
+ * reads the client's own accounts in the Composio project.
+ */
+export const PHASES = ['audit', 'competitors', 'integrated'] as const;
+export type Phase = (typeof PHASES)[number];
+export const isPhase = (v: unknown): v is Phase => PHASES.includes(v as Phase);
+export const PHASE_INFO: Record<Phase, { number: 1 | 2 | 3; title: string; source: string; brings: string }> = {
+  audit: {
+    number: 1,
+    title: 'Audit',
+    source: 'Public data',
+    brings: 'The business’s website, Google listing, Instagram, search rankings, keyword demand and ads: the full audit, slides and summary.',
+  },
+  competitors: {
+    number: 2,
+    title: 'Plan against competitors',
+    source: 'Public data',
+    brings: 'How the business stacks up against its top competitors, what to change on the website and in its ads, and ready-to-import ad sets with spend and return at three budgets.',
+  },
+  integrated: {
+    number: 3,
+    title: 'Integrated plan',
+    source: 'The client’s own accounts',
+    brings: 'The plan re-read against the client’s own Analytics, Search Console, Google Ads, Instagram and Meta figures, with its ad sets re-priced.',
+  },
+};
+/** The phase that follows one, or null after the last. */
+export const nextPhase = (phase: Phase): Phase | null => (phase === 'audit' ? 'competitors' : phase === 'competitors' ? 'integrated' : null);
+
 export const CUSTOMER_STAGES = ['prospect', 'client'] as const;
 export type CustomerStage = (typeof CUSTOMER_STAGES)[number];
 export const isCustomerStage = (v: unknown): v is CustomerStage => CUSTOMER_STAGES.includes(v as CustomerStage);

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { executeTool, forgetConnections, isSharedLookupConfigured, sharedLookupSource } from '../../../api/_lib/groundswell/composio';
-import { callConsumerTool, consumerConnections, consumerKeyShape, executeConsumerTool, forgetConsumerSession, messageFromStream } from '../../../api/_lib/groundswell/composioConsumer';
+import { callConsumerTool, consumerConnections, consumerKeyShape, executeConsumerTool, forgetConsumerSession, messageFromStream, prunerCode } from '../../../api/_lib/groundswell/composioConsumer';
 import { runKeywords } from '../../../api/_lib/groundswell/currents/search';
 import { PermanentStepError } from '../../../api/_lib/groundswell/types';
 
@@ -118,6 +118,59 @@ describe('Composio consumer account', () => {
     expect(flaky).toBeInstanceOf(Error);
     expect(flaky).not.toBeInstanceOf(PermanentStepError);
     expect((flaky as Error).message).toMatch(/GOOGLEADS_GENERATE_KEYWORD_IDEAS failed \(consumer account\): Upstream timed out/);
+  });
+
+  it('reads a failed tool\'s reason out of an answer the endpoint flags as an error', async () => {
+    vi.stubEnv('COMPOSIO_CONSUMER_API_KEY', 'ck_consumer_secret');
+    // As the live endpoint answers a blocked Instagram read: the MCP result is an error, the reason is inside.
+    const blocked = {
+      successful: false,
+      data: { results: [{ response: { successful: false, data: { message: 'Instagram blocked access to this user\'s public posts.', status_code: 403 }, error: 'Instagram blocked access to this user\'s public posts.' }, tool_slug: 'SCRAPECREATORS_LIST_INSTAGRAM_USER_POSTS', index: 0 }] },
+      error: '1 out of 1 tools failed',
+    };
+    mcp((req) => ({ body: { jsonrpc: '2.0', id: req.body.id, result: { content: [{ type: 'text', text: JSON.stringify(blocked) }], isError: true } } }));
+    await expect(executeConsumerTool('SCRAPECREATORS_LIST_INSTAGRAM_USER_POSTS', { handle: 'x' })).rejects.toThrow(/failed \(consumer account\): Instagram blocked access/);
+  });
+
+  it('an answer too large to send inline is read back from the consumer sandbox, pruned', async () => {
+    vi.stubEnv('COMPOSIO_CONSUMER_API_KEY', 'ck_consumer_secret');
+    const posts = { items: [{ code: 'DeuOR', like_count: 12, image_versions2: { candidates: [{ url: 'https://cdn.example/orig.jpg' }] } }] };
+    const sent = mcp((req) => {
+      if (req.body.params?.name === 'COMPOSIO_REMOTE_WORKBENCH') {
+        return { body: { jsonrpc: '2.0', id: req.body.id, result: toolResult({ successful: true, data: { results: '', stdout: `${JSON.stringify(posts)}\n`, stderr: '', error: '' } }) } };
+      }
+      // As the live endpoint answers a 200,000-token Instagram page: a preview, and the full answer saved in its sandbox.
+      return {
+        body: {
+          jsonrpc: '2.0',
+          id: req.body.id,
+          result: toolResult({
+            successful: true,
+            data: {
+              results: [{ response: { successful: true, data_preview: { items: ['...12 more items'] } }, tool_slug: 'SCRAPECREATORS_LIST_INSTAGRAM_USER_POSTS', index: 0 }],
+              remote_file_info: { message: 'Complete response was large (200783 tokens).', file_path: '/mnt/files/mex/talk.json' },
+            },
+          }),
+        },
+      };
+    });
+    expect(await executeConsumerTool('SCRAPECREATORS_LIST_INSTAGRAM_USER_POSTS', { handle: 'x' })).toEqual(posts);
+    const code = sent.find((s) => s.body.params?.name === 'COMPOSIO_REMOTE_WORKBENCH')?.body.params?.arguments?.code_to_execute as string;
+    expect(code).toContain('json.load(open("/mnt/files/mex/talk.json"))');
+    expect(code).toContain('f["results"][0]["response"]["data"]');
+    expect(prunerCode('/mnt/files/mex/a.json').split('\n')[0]).toBe('import json');
+  });
+
+  it('never reads a saved answer from an unexpected place', async () => {
+    vi.stubEnv('COMPOSIO_CONSUMER_API_KEY', 'ck_consumer_secret');
+    mcp((req) => ({
+      body: {
+        jsonrpc: '2.0',
+        id: req.body.id,
+        result: toolResult({ successful: true, data: { results: [{ response: { successful: true, data_preview: {} } }], remote_file_info: { file_path: '/etc/passwd"); import os; os.system("x' } } }),
+      },
+    }));
+    await expect(executeConsumerTool('AHREFS_RETRIEVE_ORGANIC_KEYWORDS', {})).rejects.toThrow(/saved its answer somewhere unexpected/);
   });
 
   it('a session the server forgot is opened again once', async () => {

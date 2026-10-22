@@ -153,8 +153,13 @@ function resultPayload(result: unknown): { payload: unknown; isError: boolean } 
   }
 }
 
-/** Calls one tool of the consumer MCP server (a Composio meta tool) and returns its parsed answer. */
-export async function callConsumerTool(name: string, args: Record<string, unknown>, timeoutMs = 90_000): Promise<unknown> {
+/**
+ * Calls one tool of the consumer MCP server (a Composio meta tool) and returns
+ * its parsed answer. A result flagged as an error is thrown, unless
+ * `envelope` is set and the answer is JSON: COMPOSIO_MULTI_EXECUTE_TOOL flags
+ * a failed tool that way, and its reason is inside the envelope.
+ */
+export async function callConsumerTool(name: string, args: Record<string, unknown>, timeoutMs = 90_000, { envelope = false } = {}): Promise<unknown> {
   for (let attempt = 1; ; attempt++) {
     const sid = await sessionId();
     const id = nextId++;
@@ -163,7 +168,9 @@ export async function callConsumerTool(name: string, args: Record<string, unknow
       if (!message) throw new Error(`Composio's consumer endpoint gave no answer to ${name}.`);
       if (message.error) throw new Error(`${name} failed: ${message.error.message ?? `error ${message.error.code ?? ''}`}`);
       const { payload, isError } = resultPayload(message.result);
-      if (isError) throw new Error(`${name} failed: ${typeof payload === 'string' ? payload.slice(0, 300) : JSON.stringify(payload).slice(0, 300)}`);
+      if (isError && !(envelope && payload && typeof payload === 'object')) {
+        throw new Error(`${name} failed: ${typeof payload === 'string' ? payload.slice(0, 300) : JSON.stringify(payload).slice(0, 300)}`);
+      }
       return payload;
     } catch (err) {
       // A session the server forgot (a redeploy on its side): shake hands again, once.
@@ -186,6 +193,52 @@ const describeError = (err: unknown): string => {
 
 const NO_CONNECTION = /no (active )?connect|not connected|connection (is )?required|connect (an|the) account|initiate a (new )?connection/i;
 
+/** Where the consumer sandbox keeps an answer too large to return inline. */
+const SANDBOX_PATH = /^\/mnt\/files\/[\w./-]+\.json$/;
+
+/**
+ * Python for COMPOSIO_REMOTE_WORKBENCH: loads a saved answer and prints it
+ * without what the Currents never read (the poster's profile on every post,
+ * video renditions, every image size but the original), lists capped at 30
+ * and long strings at 1,500 characters.
+ */
+export function prunerCode(path: string, index = 0): string {
+  return [
+    'import json',
+    'DROP = {"owner","user","polaris_ordered_timeline_connection","video_versions","additional_candidates","usertags","tagged_users","biography_with_entities","has_translation","friendship_status","clips_metadata","music_metadata"}',
+    'def prune(x, depth=0):',
+    '    if isinstance(x, dict):',
+    '        out = {}',
+    '        for k, v in x.items():',
+    '            if k in DROP and depth > 0: continue',
+    '            if k == "candidates" and isinstance(v, list): out[k] = [prune(c, depth + 1) for c in v[:1]]; continue',
+    '            out[k] = prune(v, depth + 1)',
+    '        return out',
+    '    if isinstance(x, list): return [prune(v, depth + 1) for v in x[:30]]',
+    '    if isinstance(x, str) and len(x) > 1500: return x[:1500]',
+    '    return x',
+    `f = json.load(open(${JSON.stringify(path)}))`,
+    `print(json.dumps(prune(f["results"][${index}]["response"]["data"])))`,
+  ].join('\n');
+}
+
+/** Reads an answer the endpoint cut to a preview back from the consumer sandbox, pruned to what the Currents read. */
+async function readSaved(path: string, slug: string, timeoutMs: number): Promise<unknown> {
+  if (!SANDBOX_PATH.test(path)) throw new Error(`${slug}: the consumer endpoint saved its answer somewhere unexpected.`);
+  const out = (await callConsumerTool(
+    'COMPOSIO_REMOTE_WORKBENCH',
+    { code_to_execute: prunerCode(path), thought: 'Groundswell reads a large answer back, pruned.', current_step: 'GROUNDSWELL_READ_LARGE' },
+    timeoutMs
+  )) as { data?: { stdout?: string; error?: string; stderr?: string }; error?: unknown };
+  const stdout = out?.data?.stdout ?? '';
+  if (out?.data?.error || !stdout.trim()) throw new Error(`${slug}: the large answer could not be read back (${(out?.data?.error || out?.data?.stderr || 'no output').toString().slice(0, 200)}).`);
+  try {
+    return JSON.parse(stdout);
+  } catch {
+    throw new Error(`${slug}: the large answer came back unreadable.`);
+  }
+}
+
 /**
  * Runs one Composio tool through the consumer account and returns its `data`,
  * like executeTool does through the project. COMPOSIO_MULTI_EXECUTE_TOOL wraps
@@ -200,18 +253,30 @@ export async function executeConsumerTool(slug: string, args: Record<string, unk
       thought: 'Groundswell reads public data for a marketing audit.',
       current_step: 'GROUNDSWELL_READ',
     },
-    timeoutMs
-  )) as { successful?: boolean; data?: { results?: { response?: { successful?: boolean; data?: unknown; error?: unknown }; error?: unknown }[] }; error?: unknown };
+    timeoutMs,
+    { envelope: true }
+  )) as {
+    successful?: boolean;
+    data?: {
+      results?: { response?: { successful?: boolean; data?: unknown; data_preview?: unknown; error?: unknown }; error?: unknown }[];
+      remote_file_info?: { file_path?: string };
+    };
+    error?: unknown;
+  };
   const item = raw?.data?.results?.[0];
   const response = item?.response;
   const why = describeError(response?.error ?? item?.error ?? raw?.error);
-  if (!response || response.successful === false || (raw?.successful === false && !response.data)) {
+  if (!response || response.successful === false || (raw?.successful === false && response.data === undefined && response.data_preview === undefined)) {
     if (NO_CONNECTION.test(why)) {
       throw new PermanentStepError(`Composio's consumer account has no active connection for ${slug.split('_')[0].toLowerCase()}: ${why}`);
     }
     throw new Error(`${slug} failed (consumer account): ${why}`);
   }
-  return response.data;
+  if (response.data !== undefined) return response.data;
+  // Too large to return inline: the endpoint sent a preview and saved the answer in the consumer sandbox.
+  const path = raw?.data?.remote_file_info?.file_path;
+  if (!path) throw new Error(`${slug}: the consumer endpoint sent only a preview of its answer.`);
+  return readSaved(path, slug, timeoutMs);
 }
 
 export interface ConsumerToolkitState {
