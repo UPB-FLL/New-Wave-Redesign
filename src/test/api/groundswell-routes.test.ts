@@ -225,9 +225,9 @@ describe('Groundswell steps and Vercel limits', () => {
     expect(STEPS.filter((s) => s.current === 'Delivery').every((s) => !s.optional)).toBe(true);
   });
 
-  it('gives both routes the time the worker plans for, and ships Chromium and the report font', () => {
+  it('gives every route that wakes the worker the time it plans for, and ships Chromium and the report font', () => {
     const vercel = JSON.parse(readFileSync('vercel.json', 'utf8'));
-    for (const route of ['api/groundswell/run.ts', 'api/groundswell/worker.ts']) {
+    for (const route of ['api/groundswell/run.ts', 'api/groundswell/worker.ts', 'api/groundswell/workspace.ts']) {
       expect(vercel.functions[route].maxDuration).toBe(FUNCTION_SECONDS);
       expect(vercel.functions[route].includeFiles).toContain('node_modules/@sparticuz/chromium/bin/**');
       expect(vercel.functions[route].includeFiles).toContain('inter-latin-var.woff2');
