@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Copy, Loader2, Mail, Palette, Power, UserPlus } from 'lucide-react';
+import { Copy, Loader2, Mail, Palette, Power, UserPlus, Gauge } from 'lucide-react';
 import {
   invitePartner,
   listPartners,
   setPartnerBranding,
+  setPartnerLimits,
   updatePartner,
   type GroundswellPartner,
   type PartnerDraft,
@@ -64,6 +65,42 @@ function BrandingEditor({ partner, onSaved }: { partner: GroundswellPartner; onS
   );
 }
 
+/** How many audits the partner may start a day; blank keeps the default. */
+function LimitsEditor({ partner, onSaved }: { partner: GroundswellPartner; onSaved: () => Promise<void> }) {
+  const [limit, setLimit] = useState(partner.daily_run_limit == null ? '' : String(partner.daily_run_limit));
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const save = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setBusy(true);
+    try {
+      await setPartnerLimits(partner.id, { daily_run_limit: limit.trim() === '' ? null : Number(limit) });
+      await onSaved();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not save the limit.');
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <form onSubmit={save} className="w-full grid gap-2 md:grid-cols-[1fr_auto] items-start">
+      <label className="grid gap-1 text-sm">
+        <span className="gs-label">Runs a day for {partner.company} (blank: the default, 3; 0 stops runs)</span>
+        <input className={input} type="number" min={0} max={50} step={1} placeholder="3" value={limit} onChange={(e) => setLimit(e.target.value)} />
+      </label>
+      <button type="submit" disabled={busy} className="gs-btn gs-btn-primary md:mt-6">
+        Save limit
+      </button>
+      {error && (
+        <p className="gs-alert md:col-span-2" role="alert">
+          {error}
+        </p>
+      )}
+    </form>
+  );
+}
+
 export default function GroundswellPartners() {
   const [partners, setPartners] = useState<GroundswellPartner[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,6 +110,7 @@ export default function GroundswellPartners() {
   const [link, setLink] = useState<{ company: string; url: string; emailed: boolean } | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [brandingId, setBrandingId] = useState<string | null>(null);
+  const [limitsId, setLimitsId] = useState<string | null>(null);
 
   const refresh = async () => {
     try {
@@ -220,7 +258,24 @@ export default function GroundswellPartners() {
                     >
                       <Palette size={14} /> Branding
                     </button>
+                    <button
+                      type="button"
+                      aria-expanded={limitsId === p.id}
+                      onClick={() => setLimitsId(limitsId === p.id ? null : p.id)}
+                      className="gs-btn gs-btn-ghost px-2"
+                    >
+                      <Gauge size={14} /> Runs a day{p.daily_run_limit != null ? `: ${p.daily_run_limit}` : ''}
+                    </button>
                   </div>
+                  {limitsId === p.id && (
+                    <LimitsEditor
+                      partner={p}
+                      onSaved={async () => {
+                        setLimitsId(null);
+                        await refresh();
+                      }}
+                    />
+                  )}
                   {brandingId === p.id && (
                     <BrandingEditor
                       partner={p}

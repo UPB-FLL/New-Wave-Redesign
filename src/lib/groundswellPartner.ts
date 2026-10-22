@@ -31,6 +31,13 @@ export interface PartnerAudit {
   benchmark_pdf_url?: string | null;
   created_at: string;
   completed_at: string | null;
+  /** While queued or running: each step by name and state, in order (empty until it starts). */
+  steps?: PartnerStep[];
+}
+
+export interface PartnerStep {
+  step: string;
+  status: 'pending' | 'running' | 'done' | 'skipped' | 'failed';
 }
 
 export function getPartnerToken(): string | null {
@@ -162,6 +169,20 @@ export async function createPartnerCustomer(draft: NewCustomerDraft): Promise<{ 
 
 export async function updatePartnerCustomer(id: string, draft: CustomerDraft): Promise<PartnerCustomer> {
   return (await call<{ customer: PartnerCustomer }>(`${CUSTOMERS}?id=${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(draft) })).customer;
+}
+
+const RUN = '/api/groundswell/partner-run';
+
+/** What to run on a customer: an audit or a benchmark, with optional look overrides for a fresh audit. */
+export type RunOptions = Partial<Pick<AuditDraft, 'kind' | 'brand_logo_url' | 'brand_color'>>;
+
+/**
+ * Starts the customer's queued audit, or queues and starts a fresh one when
+ * the last one finished. A cap (one at a time, so many a day) comes back as
+ * an Error whose message says when the next run frees up.
+ */
+export async function runPartnerAudit(customerId: string, options: RunOptions = {}): Promise<{ customer: PartnerCustomer; audits: PartnerAudit[] }> {
+  return call<{ customer: PartnerCustomer; audits: PartnerAudit[] }>(RUN, { method: 'POST', body: JSON.stringify({ customer_id: customerId, ...options }) });
 }
 
 const BRANDING = '/api/groundswell/partner-branding';

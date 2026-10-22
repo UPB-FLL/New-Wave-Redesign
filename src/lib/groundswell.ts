@@ -76,36 +76,7 @@ export interface AuditStep {
   error: string | null;
 }
 
-/** Plain labels for Groundswell's steps (api/_lib/groundswell/steps.ts). */
-export const STEP_LABELS: Record<string, string> = {
-  site: 'Website',
-  maps: 'Google Maps',
-  search: 'Search rankings',
-  keywords: 'Keyword demand',
-  social: 'Instagram',
-  ads: 'Ads',
-  model: 'Write-up and ROI',
-  adplan: 'Ad plan and change ranking',
-  adcopy: 'Ad copy',
-  social_depth: 'Instagram posts and reels',
-  ads_library: 'Ad libraries',
-  pricing: 'Offers and prices',
-  authority: 'Authority',
-  benchmark: 'Scorecard and plan',
-  deliver_benchmark: 'Benchmark PDF',
-  deliver_prepare: 'Drive folder',
-  deliver_audit: 'Full audit PDF',
-  deliver_deck: 'Slides PDF',
-  deliver_summary: 'Summary PDF',
-  deliver_finish: 'Share and save links',
-  // The checks (api/_lib/groundswell/verify.ts), for every round the worker supports.
-  ...Object.fromEntries(
-    [2, 3, 4, 5].flatMap((r) => [
-      [`verify_read_${r}`, `Read again (round ${r})`],
-      [`verify_check_${r}`, `Compare and review (round ${r})`],
-    ])
-  ),
-};
+export { STEP_LABELS } from './groundswellSteps';
 
 /** Each audit's steps in order, by audit id. Empty when there are none to show. */
 export async function listAuditSteps(auditIds: string[]): Promise<Record<string, AuditStep[]>> {
@@ -195,6 +166,8 @@ export interface GroundswellPartner {
   /** The name and logo the partner's reports carry; missing before the white-label migration (20261023120000). */
   display_name?: string | null;
   logo_url?: string | null;
+  /** Audits the partner may start a day; null for the default. Missing before migration 20261025120000. */
+  daily_run_limit?: number | null;
 }
 
 export interface PartnerDraft {
@@ -224,6 +197,11 @@ export function updatePartner(id: string, action: 'resend' | 'disable' | 'enable
 }
 
 /** Sets the name and logo a partner's reports carry instead of New Wave's. */
+/** How many audits a partner may start a day (null: the default, DEFAULT_DAILY_RUNS in the engine). */
+export function setPartnerLimits(id: string, limits: { daily_run_limit: number | null }): Promise<{ partner: GroundswellPartner }> {
+  return adminApi('/api/groundswell/partners', { method: 'PATCH', body: JSON.stringify({ id, action: 'limits', ...limits }) });
+}
+
 export function setPartnerBranding(id: string, branding: { display_name: string; logo_url: string }): Promise<{ partner: GroundswellPartner }> {
   return adminApi('/api/groundswell/partners', { method: 'PATCH', body: JSON.stringify({ id, action: 'branding', ...branding }) });
 }

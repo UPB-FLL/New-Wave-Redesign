@@ -4,11 +4,15 @@
  * order, limit, single and maybeSingle. Rows are plain objects; ids are made up.
  * `missing` lists columns a table does not have yet (a migration not applied):
  * naming one in a select or a write fails the statement as Postgres does (42703);
- * `['*']` means the whole table is not there yet (42P01).
+ * `['*']` means the whole table is not there yet (42P01). `functions` stands in
+ * for database functions (`rpc`): each takes the call's arguments and the
+ * tables and returns the rows; a name not listed fails as Postgres does
+ * (PGRST202).
  */
 type Row = Record<string, unknown>;
+type Fn = (args: Record<string, unknown>, tables: Record<string, Row[]>) => unknown;
 
-export function fakeSupabase(seed: Record<string, Row[]> = {}, missing: Record<string, string[]> = {}) {
+export function fakeSupabase(seed: Record<string, Row[]> = {}, missing: Record<string, string[]> = {}, functions: Record<string, Fn> = {}) {
   const tables: Record<string, Row[]> = Object.fromEntries(Object.entries(seed).map(([k, v]) => [k, v.map((r) => ({ ...r }))]));
   let nextId = 1;
   const unique: Record<string, string[]> = { groundswell_partners: ['email'], groundswell_partner_sessions: ['token_hash'], groundswell_partner_tokens: ['token_hash'] };
@@ -108,5 +112,15 @@ export function fakeSupabase(seed: Record<string, Row[]> = {}, missing: Record<s
     return chain;
   };
 
-  return { client: { from }, tables };
+  const rpc = async (name: string, args: Record<string, unknown> = {}) => {
+    const fn = functions[name];
+    if (!fn) return { data: null, error: { message: `Could not find the function public.${name} in the schema cache`, code: 'PGRST202' } };
+    try {
+      return { data: fn(args, tables), error: null };
+    } catch (e) {
+      return { data: null, error: { message: e instanceof Error ? e.message : String(e) } };
+    }
+  };
+
+  return { client: { from, rpc }, tables };
 }

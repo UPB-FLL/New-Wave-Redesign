@@ -205,16 +205,21 @@ export async function sendPartnerEmail(kind: 'invite' | 'reset', to: string, com
   }
 }
 
-/** Tells the team a partner submitted a business. Best effort. */
-export async function notifyNewPartnerAudit(partner: PartnerProfile, businessName: string): Promise<void> {
+/** Tells the team a partner submitted a business, or started a run of one. Best effort. */
+export async function notifyNewPartnerAudit(partner: PartnerProfile, businessName: string, event: 'queued' | 'started' = 'queued'): Promise<void> {
   const key = process.env.RESEND_API_KEY;
   if (!key) return;
+  const verb = event === 'started' ? 'started an audit' : 'queued an audit';
+  const detail =
+    event === 'started'
+      ? `started a Croissance audit for <strong>${escapeHtml(businessName)}</strong>. It is running now.</p><p>Follow it from Groundswell: ${SITE_URL}/groundswell/admin/audits`
+      : `queued a Croissance audit for <strong>${escapeHtml(businessName)}</strong>.</p><p>Run it from Groundswell: ${SITE_URL}/groundswell/admin/audits`;
   try {
     await new Resend(key).emails.send({
       from: FROM,
       to: 'contact@newwaveitfl.com',
-      subject: `[Groundswell] ${partner.company} queued an audit: ${businessName}`,
-      html: `<p>${escapeHtml(partner.company)} (${escapeHtml(partner.email)}) queued a Croissance audit for <strong>${escapeHtml(businessName)}</strong>.</p><p>Run it from Groundswell: ${SITE_URL}/groundswell/admin/audits</p>`,
+      subject: `[Groundswell] ${partner.company} ${verb}: ${businessName}`,
+      html: `<p>${escapeHtml(partner.company)} (${escapeHtml(partner.email)}) ${detail}</p>`,
     });
   } catch (err) {
     console.error('Groundswell partner notification failed:', err);

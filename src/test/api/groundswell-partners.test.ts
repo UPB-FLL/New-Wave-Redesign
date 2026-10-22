@@ -360,6 +360,20 @@ describe('white-label branding', () => {
     expect((await call(partners, 'PATCH', { id: 'p-invited', action: 'branding', display_name: 'Tide Growth' }, admin)).statusCode).toBe(503);
   });
 
+  it('lets an admin set how many audits a partner may start a day, and says so before the migration', async () => {
+    const res = await call(partners, 'PATCH', { id: 'p-invited', action: 'limits', daily_run_limit: 5 }, admin);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.partner).toMatchObject({ company: 'Tide Co', daily_run_limit: 5 });
+    expect((await call(partners, 'PATCH', { id: 'p-invited', action: 'limits', daily_run_limit: '' }, admin)).body.partner).toMatchObject({ daily_run_limit: null });
+    expect((await call(partners, 'PATCH', { id: 'p-invited', action: 'limits', daily_run_limit: 51 }, admin)).statusCode).toBe(400);
+    expect((await call(partners, 'PATCH', { id: 'p-invited', action: 'limits', daily_run_limit: 2.5 }, admin)).statusCode).toBe(400);
+    expect((await call(partners, 'GET', undefined, admin)).body.partners.find((p) => p.id === 'p-invited')).toHaveProperty('daily_run_limit', null);
+
+    db.current = fakeSupabase(db.current!.tables, { groundswell_partners: ['daily_run_limit'] });
+    expect((await call(partners, 'GET', undefined, admin)).body.partners.map((p) => p.id)).toEqual(['p-active', 'p-invited', 'p-off']);
+    expect((await call(partners, 'PATCH', { id: 'p-invited', action: 'limits', daily_run_limit: 5 }, admin)).statusCode).toBe(503);
+  });
+
   it('queues a business with its own logo and colour, checked, and only names those columns when set', async () => {
     const headers = await partnerHeaders();
     const bad = await call(partnerAudits, 'POST', { business_name: 'Harbor Auto', website: 'harbor.example', brand_color: 'teal' }, headers);

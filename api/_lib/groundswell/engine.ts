@@ -59,6 +59,46 @@ export async function startQueuedAudits(
   return ((data ?? []) as unknown[]).map((v) => (typeof v === 'string' ? v : (v as { start_queued_audits: string }).start_queued_audits));
 }
 
+/** Partners' runs: the default daily cap when a partner has none of its own (groundswell_partners.daily_run_limit). */
+export const DEFAULT_DAILY_RUNS = 3;
+
+export type StartOutcome = 'started' | 'not_queued' | 'another_running' | 'daily_limit';
+
+export interface StartResult {
+  outcome: StartOutcome;
+  /** For `another_running`: the business whose audit is still running. */
+  running_business: string | null;
+  /** For `daily_limit`: when the oldest run of the last 24 hours leaves the window. */
+  resets_at: string | null;
+}
+
+/**
+ * Starts one queued audit for a partner (start_audit, migration
+ * 20261025120000), which also holds the partner's caps: one running audit at
+ * a time and a daily limit. Throws when the function is missing, so the route
+ * can say the feature is not switched on yet.
+ */
+export async function startAudit(
+  db: SupabaseClient,
+  auditId: string,
+  partnerId: string,
+  steps: StepDefinition[],
+  benchmarkSteps: StepDefinition[],
+  defaultDailyLimit = DEFAULT_DAILY_RUNS
+): Promise<StartResult> {
+  const { data, error } = await db.rpc('start_audit', {
+    p_audit_id: auditId,
+    p_partner_id: partnerId,
+    step_names: steps.map((s) => s.name),
+    benchmark_step_names: benchmarkSteps.map((s) => s.name),
+    default_daily_limit: defaultDailyLimit,
+  });
+  if (error) throw new Error(`Could not start the audit: ${error.message}`);
+  const row = (Array.isArray(data) ? data[0] : data) as StartResult | undefined;
+  if (!row?.outcome) throw new Error('Could not start the audit: no outcome.');
+  return { outcome: row.outcome, running_business: row.running_business ?? null, resets_at: row.resets_at ?? null };
+}
+
 /** The outputs of the audit's finished steps, and the names of all its steps in order. */
 async function loadSteps(db: SupabaseClient, auditId: string): Promise<{ outputs: Record<string, unknown>; steps: string[] }> {
   const { data, error } = await db.from('marketing_audit_steps').select('step,status,output,position').eq('audit_id', auditId);
