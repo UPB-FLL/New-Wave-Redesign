@@ -48,7 +48,7 @@ const GATHER_AND_MODEL: StepDefinition[] = [
   { name: 'maps', current: 'Maps', label: 'Google Maps', optional: true, run: runMaps },
   { name: 'search', current: 'Search', label: 'Search rankings (Ahrefs)', optional: true, run: runSearch },
   { name: 'keywords', current: 'Search', label: 'Keyword demand (Keyword Planner)', optional: true, run: runKeywords },
-  { name: 'social', current: 'Social', label: 'Instagram', optional: true, run: runSocial },
+  { name: 'social', current: 'Social', label: 'Instagram and Facebook', optional: true, run: runSocial },
   { name: 'ads', current: 'Ads', label: 'Ads', optional: true, run: runAds },
   { name: 'model', current: 'Model', label: 'Write-up and ROI', optional: false, run: runModel },
   { name: 'adplan', current: 'Model', label: 'Ad plan and change ranking', optional: true, run: runAdplan },

@@ -47,7 +47,7 @@ type ModelOut = Awaited<ReturnType<typeof runModel>>;
 
 export const READ_SOURCES = ['maps', 'search', 'keywords', 'social'] as const;
 export type ReadSource = (typeof READ_SOURCES)[number];
-const SOURCE_LABEL: Record<ReadSource, string> = { maps: 'Google Maps', search: 'Ahrefs', keywords: 'Keyword Planner', social: 'Instagram' };
+const SOURCE_LABEL: Record<ReadSource, string> = { maps: 'Google Maps', search: 'Ahrefs', keywords: 'Keyword Planner', social: 'Instagram and Facebook' };
 const READERS: Record<ReadSource, (ctx: StepContext) => Promise<unknown>> = { maps: runMaps, search: runSearch, keywords: runKeywords, social: runSocial };
 
 /** Rounds the worker knows, whatever the setup file asks for. */

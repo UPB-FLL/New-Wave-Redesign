@@ -4,7 +4,7 @@ import { PermanentStepError, type AuditRow, type StepContext } from './types.js'
 import type { SiteScan } from './currents/site.js';
 import type { MapsListing, MapsPlace } from './currents/maps.js';
 import type { AhrefsSnapshot, KeywordIdea } from './currents/search.js';
-import type { InstagramSnapshot } from './currents/social.js';
+import type { SocialOutput } from './currents/social.js';
 import type { AdsEvidence } from './currents/ads.js';
 import { isLinkedOutput, type LinkedOutput } from './currents/linked.js';
 
@@ -69,7 +69,7 @@ type SiteOut = { business: SiteScan | null; competitors: { name: string; site: S
 type MapsOut = { business: MapsPlace | null; nearby: MapsListing[]; note: string | null; source: string; fetched_at: string };
 type SearchOut = { business: AhrefsSnapshot | null; competitors: (AhrefsSnapshot & { name: string })[]; source: string; fetched_at: string };
 type KeywordsOut = { ideas: KeywordIdea[]; seeds?: string[]; source?: string; fetched_at?: string; skipped?: string };
-type SocialOut = { business: InstagramSnapshot | null; competitors: (InstagramSnapshot & { name: string })[]; source: string; fetched_at: string };
+type SocialOut = SocialOutput;
 type AdsOut = { business: AdsEvidence; competitors: AdsEvidence[]; source: string; fetched_at: string };
 
 /** The compact, sourced facts the write-up and reports are built from. */
@@ -353,7 +353,8 @@ export function roiInputsFrom(f: Facts, est: Estimates): RoiPlan | null {
 // The step
 
 const SYSTEM = `You write marketing audits for small local businesses for New Wave: Social Engineering.
-You receive JSON of data gathered from public sources (website scan, Google Maps, Ahrefs, Google Ads Keyword Planner, Instagram, ad tags).
+You receive JSON of data gathered from public sources (website scan, Google Maps, Ahrefs, Google Ads Keyword Planner, Instagram and the Facebook Page, ad tags).
+- instagram.business.note, when present, says why the Instagram profile could not be read (it is shown only to signed-in adults): say that in the social area, never that the business is inactive on Instagram, and use instagram.facebook for the social figures instead.
 Write in plain words for a busy owner. Rules:
 - Use ONLY facts in the data. Every number you write must appear in the data. Do not invent statistics, studies, percentages, or prices.
 - Never cite sources as links or URLs; name a source in words if needed.

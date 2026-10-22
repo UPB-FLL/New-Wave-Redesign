@@ -1,6 +1,6 @@
 import { adminAuthHeaders } from './adminAuth';
-import { getPartnerToken, PartnerSignedOut, type ReportKind } from './groundswellPartner';
-import type { Phase } from './groundswellValidation';
+import { getPartnerToken, PartnerSignedOut, type ClientAccount, type ReportKind } from './groundswellPartner';
+import type { ClientService, CustomerStage, Phase } from './groundswellValidation';
 
 /**
  * The browser's side of a customer's workspace (/api/groundswell/workspace
@@ -96,3 +96,21 @@ export const runFiles = async (viewer: WorkspaceViewer, auditId: string) => (awa
 /** A short-lived link to one report of a run. */
 export const reportUrl = async (viewer: WorkspaceViewer, auditId: string, kind: ReportKind) =>
   (await api<{ url: string }>(viewer, `/api/groundswell/report?audit=${encodeURIComponent(auditId)}&kind=${kind}`)).url;
+
+// ---------------------------------------------------------------------------
+// Staff: a customer's stage and linked accounts (/api/groundswell/accounts)
+
+const ACCOUNTS = '/api/groundswell/accounts';
+
+/** The staff versions of the partner portal's account calls, for the AccountsCard on the staff customer page. */
+export const staffAccountsApi = {
+  list: async (customerId: string) => api<{ accounts: ClientAccount[]; available: boolean }>('admin', `${ACCOUNTS}?customer=${encodeURIComponent(customerId)}`),
+  link: (customerId: string, service: ClientService) =>
+    api<{ redirect_url: string; accounts: ClientAccount[] }>('admin', ACCOUNTS, { method: 'POST', body: JSON.stringify({ customer: customerId, service }) }),
+  unlink: async (customerId: string, service: ClientService) =>
+    (await api<{ accounts: ClientAccount[] }>('admin', `${ACCOUNTS}?customer=${encodeURIComponent(customerId)}&service=${service}`, { method: 'DELETE' })).accounts,
+};
+
+/** "Became a client" or back to the prospects, by staff, for any customer. */
+export const setStaffCustomerStage = async (customerId: string, stage: CustomerStage) =>
+  (await api<{ customer: { id: string; stage: CustomerStage } }>('admin', `${ACCOUNTS}?customer=${encodeURIComponent(customerId)}`, { method: 'PATCH', body: JSON.stringify({ stage }) })).customer;

@@ -372,9 +372,15 @@ function areaTables(key: AreaKey, f: Facts): string {
       const rows = [f.social?.business ? { name: f.business.name, ...f.social.business } : null, ...(f.social?.competitors ?? [])]
         .filter((r): r is NonNullable<typeof r> => Boolean(r))
         .map((r) => [r.name, `@${r.handle}`, num(r.followers), num(r.posts), num(r.posts_last_30_days), num(r.avg_likes_recent)]);
-      return rows.length
+      const ig = rows.length
         ? table(['Business', 'Instagram', 'Followers', 'Posts', 'Posts, last 30 days', 'Avg. likes (recent)'], rows)
         : '<p class="muted">No Instagram account was found or checked.</p>';
+      const note = f.social?.business?.note ? `<p class="muted">${esc(f.social.business.note)}</p>` : '';
+      const pages = [f.social?.facebook ? { name: f.business.name, ...f.social.facebook } : null, ...(f.social?.facebook_competitors ?? [])]
+        .filter((p): p is NonNullable<typeof p> => Boolean(p && p.exists))
+        .map((p): string[] => [p.name, num(p.followers), num(p.likes), p.rating === null ? "–" : `${p.rating}${p.rating_count === null ? "" : ` (${num(p.rating_count)})`}`, p.posts[0]?.posted_at ? p.posts[0].posted_at.slice(0, 10) : "–"]);
+      const fb = pages.length ? table(['Facebook Page', 'Followers', 'Likes', 'Rating (reviews)', 'Newest post'], pages) : '';
+      return ig + note + fb;
     }
     case 'website': {
       const s = f.site?.business;
