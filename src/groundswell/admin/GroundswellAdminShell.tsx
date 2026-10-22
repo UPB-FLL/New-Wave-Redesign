@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { ArrowUpRight, ChevronRight, ClipboardList, Gauge, Handshake, LogOut, Menu, Users, Waves, X } from 'lucide-react';
+import { ArrowUpRight, ChevronRight, ClipboardList, Gauge, Handshake, LogOut, Menu, Users, X } from 'lucide-react';
+import { GROUNDSWELL_BRAND } from './brand';
 import {
   GROUNDSWELL_ADMIN_AUDITS_PATH,
   GROUNDSWELL_ADMIN_CUSTOMERS_PATH,
@@ -26,17 +27,15 @@ export function GroundswellAdminShell({ onSignOut, children }: { onSignOut: () =
   const isCustomer = pathname.startsWith(`${GROUNDSWELL_ADMIN_CUSTOMERS_PATH}/`);
 
   return (
-    <div className="gs-root gs-admin">
+    <div className="gs-root gs-admin-branding gs-admin">
       <a href="#gs-admin-main" className="gs-admin-skip">
         Skip to content
       </a>
       <aside className="gs-admin-sidebar gs-chrome">
         <div className="gs-admin-brand-row">
-          <Link to={GROUNDSWELL_ADMIN_PATH} className="gs-admin-brand" aria-label="Groundswell home">
-            <span>
-              Groundswell <Waves size={24} aria-hidden="true" />
-            </span>
-            <small>NEW WAVE IT</small>
+          <Link to={GROUNDSWELL_ADMIN_PATH} className="gs-admin-brand" aria-label="GroundSwell home">
+            <img src={GROUNDSWELL_BRAND.logo} alt="GroundSwell" width={220} height={31.125} />
+            <small>by New Wave</small>
           </Link>
           <button
             type="button"
@@ -74,7 +73,7 @@ export function GroundswellAdminShell({ onSignOut, children }: { onSignOut: () =
               </span>
               <div>
                 <strong>New Wave staff</strong>
-                <span>Groundswell admin</span>
+                <span>GroundSwell admin</span>
               </div>
               <button type="button" onClick={onSignOut} className="gs-btn gs-btn-ghost gs-admin-signout" aria-label="Sign out">
                 <LogOut size={17} aria-hidden="true" />
@@ -113,8 +112,8 @@ export function GroundswellAdminShell({ onSignOut, children }: { onSignOut: () =
           {children}
         </main>
         <footer className="gs-admin-footer gs-chrome">
-          <span>Groundswell</span>
-          <span>Growth decisions, grounded in data.</span>
+          <span>{GROUNDSWELL_BRAND.name}</span>
+          <span>{GROUNDSWELL_BRAND.tagline}</span>
         </footer>
       </div>
     </div>

@@ -273,7 +273,7 @@ export default function GroundswellPartners() {
           <h2 id="gs-invite-heading" className="text-lg font-bold" tabIndex={-1}>
             Invite a partner
           </h2>
-          <p className="gs-admin-fine-print">Send a secure invitation to their own Groundswell workspace.</p>
+          <p className="gs-admin-fine-print">Send a secure invitation to their own GroundSwell workspace.</p>
           <div className="grid gap-4">
             <label>
               <span className="gs-label">Company</span>

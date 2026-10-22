@@ -4,7 +4,9 @@ import AdminGuard from '../../admin/AdminGuard';
 import { supabase } from '../../lib/supabase';
 import { usePageMeta } from '../../lib/usePageMeta';
 import { GroundswellAdminShell } from './GroundswellAdminShell';
-import { GROUNDSWELL_ADMIN_PATH, GROUNDSWELL_NAME } from '../site';
+import { GROUNDSWELL_ADMIN_PATH } from '../site';
+import { GROUNDSWELL_BRAND } from './brand';
+import { useGroundswellBrand } from './useGroundswellBrand';
 
 /**
  * The staff side of Groundswell (/groundswell/admin): the same Supabase
@@ -14,7 +16,8 @@ import { GROUNDSWELL_ADMIN_PATH, GROUNDSWELL_NAME } from '../site';
  */
 
 export default function GroundswellAdminLayout() {
-  usePageMeta({ title: `Staff | ${GROUNDSWELL_NAME}`, includeSiteName: false, noindex: true });
+  useGroundswellBrand();
+  usePageMeta({ title: `Staff | ${GROUNDSWELL_BRAND.name}`, includeSiteName: false, noindex: true });
   const navigate = useNavigate();
 
   const signOut = async () => {
@@ -23,7 +26,14 @@ export default function GroundswellAdminLayout() {
   };
 
   return (
-    <AdminGuard title={GROUNDSWELL_NAME} subtitle="New Wave staff sign-in">
+    <AdminGuard
+      title={GROUNDSWELL_BRAND.name}
+      subtitle="New Wave staff sign-in"
+      loginBrand={{
+        className: 'gs-admin-branding gs-admin-login',
+        logo: <img src={GROUNDSWELL_BRAND.logoReverse} alt="GroundSwell" width={220} height={31.125} />,
+      }}
+    >
       <GroundswellAdminShell onSignOut={() => void signOut()}>
         <Suspense
           fallback={

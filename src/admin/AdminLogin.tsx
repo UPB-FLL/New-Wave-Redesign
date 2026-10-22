@@ -1,9 +1,19 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
 import { Waves, Lock, Mail } from 'lucide-react';
 import { usePageMeta } from '../lib/usePageMeta';
 
-export default function AdminLogin({ title = 'Admin Panel', subtitle = 'New Wave IT — Content Management' }: { title?: string; subtitle?: string }) {
+export default function AdminLogin({
+  title = 'Admin Panel',
+  subtitle = 'New Wave IT — Content Management',
+  className = '',
+  logo,
+}: {
+  title?: string;
+  subtitle?: string;
+  className?: string;
+  logo?: ReactNode;
+}) {
   usePageMeta({ title: `${title} Sign In` });
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -20,23 +30,43 @@ export default function AdminLogin({ title = 'Admin Panel', subtitle = 'New Wave
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: '#0f1923' }}>
+    <div
+      className={`min-h-screen flex items-center justify-center ${className}`}
+      style={{ background: 'var(--admin-login-background, #0f1923)' }}
+    >
       <div className="w-full max-w-md px-6">
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-5" style={{ background: 'rgba(57,204,204,0.15)', border: '1px solid rgba(57,204,204,0.3)' }}>
-            <Waves size={28} style={{ color: '#39CCCC' }} />
-          </div>
+          {logo ? (
+            <div className="flex justify-center mb-8">{logo}</div>
+          ) : (
+            <div
+              className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-5"
+              style={{ background: 'rgba(57,204,204,0.15)', border: '1px solid rgba(57,204,204,0.3)' }}
+            >
+              <Waves size={28} style={{ color: '#39CCCC' }} />
+            </div>
+          )}
           <h1 className="text-2xl font-bold text-white mb-1">{title}</h1>
-          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>{subtitle}</p>
+          <p className="text-sm" style={{ color: 'var(--admin-login-muted, rgba(255,255,255,0.4))' }}>
+            {subtitle}
+          </p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="block text-xs font-medium mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Email</label>
+            <label
+              htmlFor="staff-email"
+              className="block text-xs font-medium mb-1.5"
+              style={{ color: 'var(--admin-login-muted, rgba(255,255,255,0.5))' }}
+            >
+              Email
+            </label>
             <div className="relative">
               <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: 'rgba(255,255,255,0.3)' }} />
               <input
                 type="email"
+                id="staff-email"
+                autoComplete="username"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -50,11 +80,19 @@ export default function AdminLogin({ title = 'Admin Panel', subtitle = 'New Wave
           </div>
 
           <div>
-            <label className="block text-xs font-medium mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Password</label>
+            <label
+              htmlFor="staff-password"
+              className="block text-xs font-medium mb-1.5"
+              style={{ color: 'var(--admin-login-muted, rgba(255,255,255,0.5))' }}
+            >
+              Password
+            </label>
             <div className="relative">
               <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: 'rgba(255,255,255,0.3)' }} />
               <input
                 type="password"
+                id="staff-password"
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -68,7 +106,10 @@ export default function AdminLogin({ title = 'Admin Panel', subtitle = 'New Wave
           </div>
 
           {error && (
-            <p className="text-sm text-center py-2.5 rounded-lg" style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}>
+            <p
+              className="text-sm text-center py-2.5 rounded-lg"
+              style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}
+            >
               {error}
             </p>
           )}
@@ -77,7 +118,10 @@ export default function AdminLogin({ title = 'Admin Panel', subtitle = 'New Wave
             type="submit"
             disabled={loading}
             className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-all duration-200 mt-2"
-            style={{ background: loading ? 'rgba(57,204,204,0.5)' : '#39CCCC' }}
+            style={{
+              background: loading ? 'var(--admin-login-button-loading, rgba(57,204,204,0.5))' : 'var(--admin-login-button, #39CCCC)',
+              color: 'var(--admin-login-button-text, #ffffff)',
+            }}
           >
             {loading ? 'Signing in…' : 'Sign In'}
           </button>
