@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { connectionFor, executeTool, forgetConnections, keyShape, toolkitOf } from '../../../api/_lib/groundswell/composio';
+import { COMPOSIO_USER_ID, connectionFor, executeTool, forgetConnections, keyShape, toolkitOf } from '../../../api/_lib/groundswell/composio';
 import { PermanentStepError } from '../../../api/_lib/groundswell/types';
 
 /** The Composio client's error reporting: a refused key names Composio's reason and the key's shape, never the key. */
@@ -56,10 +56,11 @@ describe('Composio client', () => {
     expect(calls.filter((c) => c.url.includes('/connected_accounts'))).toHaveLength(1);
   });
 
-  it('prefers the connection under COMPOSIO_USER_ID when the toolkit has several', async () => {
+  it('prefers the connection under the fixed user id, whatever COMPOSIO_USER_ID says', async () => {
     vi.stubEnv('COMPOSIO_API_KEY', 'ak_1234567890');
     vi.stubEnv('COMPOSIO_USER_ID', 'groundswell');
-    fetchWith([maps('ca_new', 'pg-test', '2026-10-21T23:01:45Z'), maps('ca_mine', 'groundswell', '2026-10-01T00:00:00Z')], { status: 200, body: { data: {} } });
+    fetchWith([maps('ca_new', 'groundswell', '2026-10-21T23:01:45Z'), maps('ca_mine', COMPOSIO_USER_ID, '2026-10-01T00:00:00Z')], { status: 200, body: { data: {} } });
+    expect(COMPOSIO_USER_ID).toBe('pg-test-0ff14d6b-e58a-45f1-a053-db132130d54f');
     expect((await connectionFor('GOOGLE_MAPS_TEXT_SEARCH'))?.id).toBe('ca_mine');
   });
 

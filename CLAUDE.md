@@ -78,11 +78,13 @@ Composio's dashboard assigned (`pg-test-…`), not `groundswell`.
 
 - `executeTool` (`composio.ts`) now lists the project's active connected
   accounts for the tool's toolkit (`toolkitOf`: `GOOGLE_MAPS_TEXT_SEARCH` →
-  `google_maps`), picks the one under `COMPOSIO_USER_ID` when there is one
+  `google_maps`), picks the one under the fixed user id `COMPOSIO_USER_ID`
+  (`pg-test-0ff14d6b-e58a-45f1-a053-db132130d54f`, in code; no environment
+  variable overrides it, owner's call on 2026-10-22) when there is one
   and otherwise the newest (`connectionFor`, cached per toolkit for the
   function instance), and runs the tool with `connected_account_id`. No
   active account stops the step for good, naming the toolkit and the
-  project. `COMPOSIO_USER_ID` is a preference now, not a requirement.
+  project. The user id is a preference, not a requirement.
 - Tests: `src/test/api/groundswell-composio.test.ts`.
 
 ### Groundswell: reports stored in the app, visible to their partner and the admin (2026-10-22)
@@ -768,7 +770,7 @@ Code: `api/_lib/groundswell/`.
 - **Admin**: `/admin/groundswell/audits` shows each running or failed audit's steps.
 - **Setup** (Vercel): `COMPOSIO_API_KEY` from a Composio Platform project
   with Google Maps, Google Ads, ScrapeCreators and Ahrefs connected (under
-  any user id; `COMPOSIO_USER_ID` only says which to prefer); `OPENAI_API_KEY` and the
+  any user id; `pg-test-0ff14d6b-…`, fixed in `composio.ts`, is preferred); `OPENAI_API_KEY` and the
   Supabase service role as before. Optional: `GOOGLE_ADS_CUSTOMER_ID`,
   `GROUNDSWELL_GEO_TARGETS`. Without the required ones the run route
   answers 503. `AUDIT_ROUTINE_ID`/`AUDIT_ROUTINE_TOKEN` are no longer read.
