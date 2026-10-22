@@ -53,6 +53,32 @@ describe('Groundswell overview', () => {
     expect(within(checks).getByText('COMPOSIO_API_KEY')).toBeInTheDocument();
     expect(await screen.findByText(/1 active, 1 invited, 0 turned off\. 2 audits came from partners\./)).toBeInTheDocument();
   });
+
+  it('"Check connections" asks every service to answer and shows each one’s detail and the verdict', async () => {
+    lib.getSetupStatus.mockImplementation(async (live?: boolean) =>
+      live
+        ? {
+            ready: true,
+            complete: false,
+            live: true,
+            summary: 'Audits run, with 1 data source missing: Google Ads (Keyword Planner).',
+            report_admins: ['josh@newwaveitfl.com'],
+            checks: [
+              { key: 'OPENAI_API_KEY', label: 'OpenAI (the write-up)', ok: true, required: true, detail: 'OpenAI accepted the key.' },
+              { key: 'composio:googleads', label: 'Google Ads (Keyword Planner)', ok: false, required: false, detail: 'No active connection in the project; keyword demand, the ad plan and the ad copy are left out of the reports. Connect it under Auth Configs.' },
+            ],
+          }
+        : { ready: true, report_admins: ['josh@newwaveitfl.com'], checks: [{ key: 'OPENAI_API_KEY', label: 'OpenAI', ok: true, required: true }] }
+    );
+    render(<MemoryRouter><GroundswellOverview /></MemoryRouter>);
+    expect(await screen.findByText(/Variables set\. Check the connections/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Check connections/ }));
+    expect(await screen.findByText(/Audits run, with 1 data source missing: Google Ads/)).toBeInTheDocument();
+    expect(lib.getSetupStatus).toHaveBeenLastCalledWith(true);
+    expect(screen.getByText('OpenAI accepted the key.')).toBeInTheDocument();
+    expect(screen.getByText(/Connect it under Auth Configs/)).toBeInTheDocument();
+    expect(screen.getByText(/A missing data source never stops an audit/)).toBeInTheDocument();
+  });
 });
 
 describe('Groundswell partners', () => {

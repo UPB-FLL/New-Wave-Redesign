@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { parseSite } from '../../../api/_lib/groundswell/currents/site';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { parseSite, runSite, SITE_ATTEMPTS } from '../../../api/_lib/groundswell/currents/site';
 import { assertNotBlocked, mapsSearchUrl } from '../../../api/_lib/groundswell/currents/maps';
 import { domainOf, parseKeywordIdeas } from '../../../api/_lib/groundswell/currents/search';
 import { summarizeInstagram } from '../../../api/_lib/groundswell/currents/social';
@@ -112,5 +112,32 @@ describe('Social Current: summarizeInstagram', () => {
     expect(snap.exists).toBe(false);
     expect(snap.followers).toBeNull();
     expect(snap.posts_last_30_days).toBeNull();
+  });
+});
+
+describe('Site Current: a website that cannot be reached', () => {
+  const audit = { id: 'a1', business_name: 'Harbor Auto Care', city: null, website: 'https://down.example', instagram: null, competitors: [], notes: null };
+  const down = vi.fn(async () => {
+    throw new Error('fetch failed');
+  });
+
+  beforeEach(() => {
+    down.mockClear();
+    vi.stubGlobal('fetch', down);
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('is tried again on the first calls, then recorded as a gap so the audit goes on', async () => {
+    await expect(runSite({ audit, outputs: {}, deadline: Date.now() + 60_000, attempt: 1 })).rejects.toThrow(/could not be reached: fetch failed/);
+    await expect(runSite({ audit, outputs: {}, deadline: Date.now() + 60_000, attempt: SITE_ATTEMPTS - 1 })).rejects.toThrow(/could not be reached/);
+    const out = await runSite({ audit, outputs: {}, deadline: Date.now() + 60_000, attempt: SITE_ATTEMPTS });
+    expect(out.business).toMatchObject({ status: null, error: 'fetch failed' });
+  });
+
+  it('refuses an audit with neither a website nor an Instagram handle for good', async () => {
+    await expect(runSite({ audit: { ...audit, website: null }, outputs: {}, deadline: Date.now() + 60_000, attempt: 1 })).rejects.toBeInstanceOf(PermanentStepError);
+    expect(down).not.toHaveBeenCalled();
   });
 });

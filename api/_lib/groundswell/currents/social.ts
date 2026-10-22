@@ -76,28 +76,43 @@ export function summarizeInstagram(handle: string, profile: unknown, posts: unkn
   };
 }
 
-async function instagram(handle: string): Promise<InstagramSnapshot> {
+/** Instagram turns a scraper away now and then; a blocked read is tried once more after this pause. */
+export const BLOCKED_RETRY_MS = 3_000;
+const blocked = (err: unknown) => /blocked|rate limit|too many requests|429/i.test(err instanceof Error ? err.message : String(err));
+
+async function read(handle: string) {
+  return Promise.all([
+    executeTool('SCRAPECREATORS_GET_INSTAGRAM_PROFILE', { handle, trim: true }),
+    executeTool('SCRAPECREATORS_LIST_INSTAGRAM_USER_POSTS', { handle, trim: true }),
+  ]);
+}
+
+async function instagram(handle: string, pauseMs = BLOCKED_RETRY_MS): Promise<InstagramSnapshot> {
   try {
-    const [profile, posts] = await Promise.all([
-      executeTool('SCRAPECREATORS_GET_INSTAGRAM_PROFILE', { handle, trim: true }),
-      executeTool('SCRAPECREATORS_LIST_INSTAGRAM_USER_POSTS', { handle, trim: true }),
-    ]);
-    return summarizeInstagram(handle, profile, posts);
+    let pair: [unknown, unknown];
+    try {
+      pair = await read(handle);
+    } catch (err) {
+      if (!blocked(err)) throw err;
+      await new Promise((r) => setTimeout(r, pauseMs));
+      pair = await read(handle);
+    }
+    return summarizeInstagram(handle, pair[0], pair[1]);
   } catch (err) {
     return { ...summarizeInstagram(handle, null, null), error: err instanceof Error ? err.message : String(err) };
   }
 }
 
-export async function runSocial(ctx: StepContext) {
+export async function runSocial(ctx: StepContext, pauseMs = BLOCKED_RETRY_MS) {
   const site = ctx.outputs.site as { business: SiteScan | null; competitors: { name: string; site: SiteScan | null }[] } | undefined;
   const own = ctx.audit.instagram || site?.business?.social.instagram[0] || null;
   const rivals = ctx.audit.competitors
     .map((c, i) => ({ name: c.name, handle: c.instagram || site?.competitors[i]?.site?.social.instagram[0] || null }))
     .filter((c): c is { name: string; handle: string } => Boolean(c.handle))
     .slice(0, 6);
-  const business = own ? await instagram(own) : null;
+  const business = own ? await instagram(own, pauseMs) : null;
   if (business?.error && /refused|not connected|no active connection|not set up/i.test(business.error)) throw new Error(business.error);
-  const competitors = await Promise.all(rivals.map(async (c) => ({ name: c.name, ...(await instagram(c.handle)) })));
+  const competitors = await Promise.all(rivals.map(async (c) => ({ name: c.name, ...(await instagram(c.handle, pauseMs)) })));
   return {
     source: 'Instagram public profiles, via ScrapeCreators through Composio',
     fetched_at: new Date().toISOString(),

@@ -8,7 +8,7 @@ vi.mock('../../../api/_lib/groundswell/composio', async (original) => ({
 }));
 vi.mock('../../../api/_lib/groundswell/browser', () => ({ withBrowser: mocks.withBrowser }));
 
-import { matchBusiness, placeRows, placesLookup, runMaps, toMapsListing, toMapsPlace } from '../../../api/_lib/groundswell/currents/maps';
+import { matchBusiness, placeRows, placesLookup, PLACES_FALLBACK_NOTE, runMaps, toMapsListing, toMapsPlace } from '../../../api/_lib/groundswell/currents/maps';
 import { PermanentStepError } from '../../../api/_lib/groundswell/types';
 
 /**
@@ -111,7 +111,10 @@ describe('Maps Current: runMaps', () => {
     const fromBrowser = { fetched_at: 'x', source: 'Google Maps (logged-out view)', business: null, nearby: [], note: null };
     mocks.withBrowser.mockResolvedValue(fromBrowser);
     const out = await runMaps(ctx);
-    expect(out).toBe(fromBrowser);
+    expect(out).toMatchObject(fromBrowser);
+    // The reason stays with the step for staff; the reports carry only the plain note (reports.test.ts checks no tool name reaches them).
+    expect(out.detail).toMatch(/429/);
+    expect(PLACES_FALLBACK_NOTE).not.toMatch(/Composio|GOOGLE_MAPS|failed/);
     expect(mocks.withBrowser).toHaveBeenCalledTimes(1);
   });
 
