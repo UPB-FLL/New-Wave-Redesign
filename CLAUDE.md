@@ -2,6 +2,29 @@
 
 ## Recent Changes
 
+### Support: SuperOps connected, new-ticket alerts, branded reply template (2026-10-23)
+
+- **SuperOps account**: subdomain `newwave` (`newwave.superops.ai`, US). The
+  token goes in Vercel as `SUPEROPS_API_TOKEN` with `SUPEROPS_SUBDOMAIN=newwave`,
+  never in the repo. The portal's ticket list (`getTicketsForRequester`) asked
+  for `technician { name }`, which SuperOps refuses (requester, client, site
+  and technician are JSON scalars), so it could never have loaded; it selects
+  `technician` bare now.
+- **Alerts** (`api/support/ticket-alerts.ts`, `api/_lib/ticketAlerts.ts`):
+  SuperOps' `TICKET_CREATED` webhook (header `x-superops-webhook-secret` =
+  `SUPEROPS_WEBHOOK_SECRET`) or `x-admin-key` runs a check: the 10 newest
+  tickets (`getRecentTickets`, plus `getTicketById` for any id the delivery
+  names), those under an hour old, each alerted once
+  (`support_ticket_alerts`, migration `20261031120000`) by text through
+  Twilio (`SUPPORT_ALERT_SMS_NUMBERS`, else `SUPPORT_AGENT_SMS_NUMBERS`) and
+  email through Resend (`SUPPORT_ALERT_EMAIL`, default josh@newwaveitfl.com).
+  The webhook is created through SuperOps' API (`createWebhookSubscription`);
+  docs/support-page.md section 4 has the call.
+- **Reply template**: `docs/superops/ticket-reply-template.html`, pasted into
+  SuperOps' Notification Center by hand (its API cannot edit templates);
+  logo PNG `public/brand/email/new-wave-it-logo-on-dark.png`.
+- **Tests**: `src/test/api/support-ticket-alerts.test.ts`.
+
 ### Groundswell: age-gated Instagram profiles, the Facebook Page, and the public-sources plan (2026-10-22)
 
 Uncommon Path's two live runs read nothing from Instagram: ScrapeCreators

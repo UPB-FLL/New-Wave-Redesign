@@ -117,9 +117,7 @@ const TICKET_LIST_QUERY = `
         createdTime
         updatedTime
         resolutionDueTime
-        technician {
-          name
-        }
+        technician
       }
       listInfo {
         page
@@ -141,6 +139,7 @@ interface RawTicket {
   createdTime?: string;
   updatedTime?: string;
   resolutionDueTime?: string | null;
+  /** SuperOps types requester, client and technician as JSON scalars, so no sub-selection. */
   technician?: { name?: string } | null;
 }
 
@@ -219,4 +218,101 @@ export async function getTicketsForRequester(
     totalCount: data.getTicketList?.listInfo?.totalCount ?? tickets.length,
     hasMore: Boolean(data.getTicketList?.listInfo?.hasMore),
   };
+}
+
+/** A ticket as the new-ticket alert reads it. */
+export interface AlertTicket {
+  ticketId: string;
+  displayId: string;
+  subject: string;
+  status: string;
+  priority: string;
+  source: string;
+  createdAt: string;
+  requester: string;
+  client: string;
+  site: string;
+}
+
+const TICKET_ALERT_FIELDS = `
+  ticketId
+  displayId
+  subject
+  status
+  priority
+  source
+  createdTime
+  requester
+  client
+  site
+`;
+
+const RECENT_TICKETS_QUERY = `
+  query getRecentTickets($input: ListInfoInput!) {
+    getTicketList(input: $input) {
+      tickets { ${TICKET_ALERT_FIELDS} }
+    }
+  }
+`;
+
+const TICKET_QUERY = `
+  query getTicket($input: TicketIdentifierInput!) {
+    getTicket(input: $input) { ${TICKET_ALERT_FIELDS} }
+  }
+`;
+
+interface RawAlertTicket {
+  ticketId?: string | number;
+  displayId?: string | number;
+  subject?: string | null;
+  status?: string | null;
+  priority?: string | null;
+  source?: string | null;
+  createdTime?: string | null;
+  requester?: { name?: string } | null;
+  client?: { name?: string } | null;
+  site?: { name?: string } | null;
+}
+
+/**
+ * SuperOps answers `createdTime` in UTC without an offset ("2026-10-23T19:46:34");
+ * read that way, a ticket raised a minute ago is a minute old.
+ */
+export function superOpsTime(value: string): number {
+  if (!value) return Number.NaN;
+  return Date.parse(/[zZ]|[+-]\d\d:?\d\d$/.test(value) ? value : `${value}Z`);
+}
+
+function toAlertTicket(raw: RawAlertTicket): AlertTicket | null {
+  if (raw.ticketId === undefined || raw.ticketId === null) return null;
+  return {
+    ticketId: String(raw.ticketId),
+    displayId: String(raw.displayId ?? raw.ticketId),
+    subject: raw.subject || 'Untitled ticket',
+    status: raw.status || '',
+    priority: raw.priority || '',
+    source: raw.source || '',
+    createdAt: raw.createdTime || '',
+    requester: raw.requester?.name || '',
+    client: raw.client?.name || '',
+    site: raw.site?.name || '',
+  };
+}
+
+/** The newest tickets on the board, newest first. */
+export async function getRecentTickets(limit = 10): Promise<AlertTicket[]> {
+  const data = await superOpsRequest<{ getTicketList?: { tickets?: RawAlertTicket[] } }>(RECENT_TICKETS_QUERY, {
+    input: {
+      page: 1,
+      pageSize: Math.min(Math.max(limit, 1), 100),
+      sort: [{ attribute: 'createdTime', order: 'DESC' }],
+    },
+  });
+  return (data.getTicketList?.tickets ?? []).map(toAlertTicket).filter((t): t is AlertTicket => t !== null);
+}
+
+/** One ticket by its SuperOps id, or null when SuperOps has none. */
+export async function getTicketById(ticketId: string): Promise<AlertTicket | null> {
+  const data = await superOpsRequest<{ getTicket?: RawAlertTicket | null }>(TICKET_QUERY, { input: { ticketId } });
+  return data.getTicket ? toAlertTicket(data.getTicket) : null;
 }
