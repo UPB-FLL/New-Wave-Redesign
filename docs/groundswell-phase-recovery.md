@@ -1,0 +1,15 @@
+# Recovering a run with missing earlier research
+
+Wildly Primal's failed competitor-plan run had lost its growth-audit source. The database intentionally clears `source_audit_id` when that earlier audit is deleted. Queueing the remaining competitor run again preserved its phase, so it received only competitor-plan steps: no business discovery, website/Maps research, keyword research, write-up, or ad plan. With zero competitors the benchmark skipped, ad sets had no inherited plan, and every report step skipped. The final step then failed with “This phase delivered nothing.”
+
+Queued competitor or integrated runs whose source link is missing now restart as growth audits. They retain the business inputs and rebuild the research under the existing worker lease and concurrency checks. A valid linked phase continues to use its own step list. Runs that still cannot print a report enter review with the missing inputs and recovery action, and do not advance to the next phase or count old reports as new delivery.
+
+Delivery holds are separate from held verification checks: the staff screen offers Queue again, while verification-only override/recheck actions require an actual held verification check. This prevents a finish-only hold being released into a running state with no pending work. Missing ad-plan inputs are described as unavailable evidence, not zero demand.
+
+The live recovery also exposed a generic Google category (“Services”) masking the business's first-party functional-health-coaching information. Website category evidence now takes priority in worker competitor discovery, Google search, and keyword seeds; generic listing labels do not establish an industry. Automatically suggested competitors from the generic query must be cleared before rerunning this affected business, while manually entered competitors are preserved by normal runs.
+
+Keyword Planner now resolves the supplied US city and state through Google Ads' read-only geographic constants before measuring demand. An unresolved or ambiguous location does not fall back to the old fixed target or an all-location query. Explicit configured targets are used when no business city was supplied. The captured canonical geography is included in the source label; no verified geography means no measured-demand forecast. The implementation follows Google's [geo target reference](https://developers.google.com/google-ads/api/fields/v26/geo_target_constant) and [GAQL case-sensitivity rules](https://developers.google.com/google-ads/api/docs/query/case-sensitivity).
+
+Live remediation is scoped to Wildly Primal's failed run. Its audit and step outputs were backed up to the ignored `output/groundswell/recovery/` directory before resetting the run. The full growth audit was started and then held before model/report delivery when the generic-category issue appeared. The old zero-competitor failure is not treated as a successful report delivery.
+
+No schema, authorization, or billing configuration changes are required.

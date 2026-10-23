@@ -157,7 +157,7 @@ const MONTH = () => new Date().toISOString().slice(0, 7);
 export async function runAdsets(ctx: StepContext): Promise<AdsetsOutput> {
   const config = GROUNDSWELL_CONFIG;
   const found = planFor(ctx.outputs);
-  if (!found) throw new PermanentStepError(`There is no ad plan (the ${PHASE_INFO.audit.title.toLowerCase()} found no keyword demand), so no ad sets were built.`);
+  if (!found) throw new PermanentStepError(`No verified ad plan is available from the ${PHASE_INFO.audit.title.toLowerCase()}, so budgeted ad sets cannot be built. Recover the audit and measured keyword demand first; missing data does not establish zero demand.`);
   const { plan, basis } = found;
   const f = buildFacts(ctx.audit, ctx.outputs);
   const creative = isCreativeOutput(ctx.outputs.creative) ? ctx.outputs.creative.images : [];

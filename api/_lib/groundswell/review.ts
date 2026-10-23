@@ -37,12 +37,12 @@ export async function answerReview(db: SupabaseClient, auditId: unknown, action:
   const { data, error: stepsError } = await db.from('marketing_audit_steps').select('id,step,output').eq('audit_id', auditId);
   if (stepsError) throw new Error(stepsError.message);
   const checks = ((data ?? []) as StepRow[]).filter((r) => isVerifyStep(r.step));
+  const held = checks
+    .flatMap((r) => (isCheckOutput(r.output) && r.output.status === 'held' ? [{ id: r.id, output: r.output }] : []))
+    .sort((a, b) => b.output.round - a.output.round)[0];
+  if (!held) throw new ReviewError(409, 'This run has no held verification check. Recover its missing inputs and queue it again.');
 
   if (action === 'deliver') {
-    const held = checks
-      .flatMap((r) => (isCheckOutput(r.output) && r.output.status === 'held' ? [{ id: r.id, output: r.output }] : []))
-      .sort((a, b) => b.output.round - a.output.round)[0];
-    if (!held) throw new ReviewError(409, 'This audit has no held check to deliver.');
     const { error: e } = await db
       .from('marketing_audit_steps')
       .update({ output: { ...held.output, released_at: new Date().toISOString() } })

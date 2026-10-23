@@ -1,4 +1,5 @@
 import { executeTool, findKey } from '../composio.js';
+import type { SiteScan } from './site.js';
 
 /** A dated, query-specific logged-out Google result. These positions are never Places relevance or review rank. */
 export interface GoogleSerp {
@@ -52,6 +53,20 @@ export async function readGoogleSerp(query: string, location: string | null = nu
   }
 }
 
+/** Listing/schema labels that do not identify a market cannot seed competitor or keyword research. */
+export function specificCategory(value: string | null | undefined): string | null {
+  const category = value?.replace(/\s+/g, ' ').trim();
+  if (!category) return null;
+  const normalized = category.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/[_-]/g, ' ').replace(/\s+/g, ' ').toLowerCase();
+  return /^(?:services?|establishments?|point of interest|local business|business(?:es)?|compan(?:y|ies)|organi[sz]ation|professional services?|business services?|service establishment|store|place|website)$/.test(normalized) ? null : category;
+}
+
+/** First-party service wording takes precedence over a broader Google listing category. */
+export function categoryFromSite(site: Pick<SiteScan, 'title' | 'meta_description' | 'h1' | 'schema_types' | 'status' | 'error'> | null | undefined): string | null {
+  if (!site || site.error || (site.status !== null && (site.status < 200 || site.status >= 400))) return null;
+  return categoryFromText([site.title, site.meta_description, ...(site.h1 ?? []), ...(site.schema_types ?? []).map(type => type.replace(/([a-z])([A-Z])/g, '$1 $2'))].filter(Boolean).join(' '));
+}
+
 /** Category hints come only from public first-party wording, never from the business name alone. */
 export function categoryFromText(text: string): string | null {
   const categories: [RegExp, string][] = [
@@ -71,5 +86,5 @@ export function categoryFromText(text: string): string | null {
     [/roofing|roofer/i, 'Roofing contractor'],
     [/real estate agent|real estate broker/i, 'Real estate agency'],
   ];
-  return categories.find(([pattern]) => pattern.test(text))?.[1] ?? null;
+  return categories.find(([pattern]) => pattern.test(text.replace(/[-_]/g, ' ').replace(/\s+/g, ' ')))?.[1] ?? null;
 }

@@ -12,7 +12,7 @@ import { buildAuditHtml, buildDeckHtml, buildSummaryHtml, formatDate, PORTAL_URL
 import { buildBenchmarkHtml } from './reportsBenchmark.js';
 import { PermanentStepError, type StepContext } from './types.js';
 import { verifiedOutputs } from './verify.js';
-import type { Phase } from '../../../src/lib/groundswellValidation.js';
+import { PHASE_INFO, type Phase } from '../../../src/lib/groundswellValidation.js';
 import { isAdsetsOutput, type AdsetsOutput } from './adsets.js';
 import type { AdsetsDelivery } from './adsetsDelivery.js';
 import { isLinkedOutput } from './currents/linked.js';
@@ -154,7 +154,17 @@ export async function runDeliverFinish(ctx: StepContext) {
   // Every report this run printed itself: never one an earlier phase handed down.
   const optional = ['deliver_benchmark', 'deliver_adsets'].map((s) => own<Stored | AdsetsDelivery>(ctx, s)).filter((x): x is Stored | AdsetsDelivery => Boolean(x));
   const stored = [...required, ...optional.map((x) => ('report' in x ? x.report : x))];
-  if (!stored.length) throw new PermanentStepError('This phase delivered nothing: no report was printed.');
+  if (!stored.length) {
+    const missing: string[] = [];
+    if (!ctx.audit.source_audit_id) missing.push('The growth audit is missing. Start a fresh growth audit, or queue this run again to rebuild its research.');
+    else if (!ctx.outputs.model) missing.push('The growth audit write-up is missing. Start a fresh growth audit from the customer workspace before retrying this phase.');
+    if (!ctx.audit.competitors.length) missing.push('No competitor has been verified. Confirm at least one relevant competitor before running the competitor plan.');
+    if (!isAdplanOutput(ctx.outputs.adplan)) missing.push('A verified ad plan is unavailable. Recover keyword demand and its geographic scope before building budgeted ad sets.');
+    return {
+      hold: `${PHASE_INFO[phase].title} needs review: no new report could be printed. ${missing.length ? missing.join(' ') : 'Review the skipped report steps and recover their missing inputs before queuing this phase again.'}`,
+      reports: [], exports: [],
+    };
+  }
   const reports = stored.map((f) => ({ kind: f.kind, name: f.name, pages: f.pages, bytes: f.bytes }));
   const exports = optional.flatMap((x) => ('exports' in x ? x.exports.map((e) => ({ name: e.name, bytes: e.bytes })) : []));
   const db = getSupabaseAdmin();

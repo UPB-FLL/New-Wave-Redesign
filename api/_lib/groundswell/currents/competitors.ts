@@ -1,7 +1,8 @@
 import { normalizeWebsite } from '../../../../src/lib/groundswellValidation.js';
-import { readGoogleSerp, categoryFromText } from './serp.js';
+import { readGoogleSerp, categoryFromSite, categoryFromText, specificCategory } from './serp.js';
 import { googlePlacesSearch, matchBusiness, serpMapsSearch, toMapsPlace } from './maps.js';
 import { type AuditCompetitor, type AuditRow, type StepContext } from '../types.js';
+import type { SiteScan } from './site.js';
 
 /** Relevant local candidates from the same public category and area. Manual selections remain first. */
 
@@ -133,7 +134,7 @@ export async function findCompetitors(seed: CompetitorSeed, limit = PICKS_WANTED
     catch (err) { gaps.push(`Public Maps business lookup: ${err instanceof Error ? err.message : String(err)}`); }
   }
   const self = found ? toMapsPlace(found) : null;
-  let category = seed.category || self?.category || null;
+  let category = specificCategory(seed.category) || specificCategory(self?.category);
   if (!category && hasBudget()) {
     const web = await readGoogleSerp(query, seed.city, timeoutMs());
     const ownHost = hostOf(seed.website);
@@ -182,7 +183,25 @@ export async function findCompetitors(seed: CompetitorSeed, limit = PICKS_WANTED
 export async function runCompetitors(ctx: StepContext): Promise<CompetitorsOutput> {
   const entered = ctx.audit.competitors ?? [];
   if (entered.length >= PICKS_WANTED) return { source: SOURCE, fetched_at: new Date().toISOString(), business: null, local: null, national: null, considered: { local: 0, national: 0 }, competitors: entered, picks: [], sources: [], gaps: [], note: `${entered.length} competitors were entered, so none were added.` };
-  const found = await findCompetitors(ctx.audit);
+  const site = ctx.outputs.site as { business?: SiteScan | null } | undefined;
+  let scan = site?.business;
+  let category = categoryFromSite(scan);
+  const websiteGaps: string[] = [];
+  const remaining = ctx.deadline - Date.now();
+  // This step runs before Site Current on a fresh audit. Reserve the inspector's
+  // bounded CSS reads and leave time for listing research under the same deadline.
+  if (!scan && ctx.audit.website && remaining > 4_000) {
+    try {
+      const { inspectBusinessWebsite } = await import('../discoveryWebsite.js');
+      const inspected = await inspectBusinessWebsite(ctx.audit.website, { timeoutMs: Math.min(8_000, remaining - 3_500) });
+      scan = inspected.scan;
+      category = categoryFromSite(scan) || specificCategory(inspected.business.category);
+      if (!category && scan.error) websiteGaps.push(`First-party website category: ${scan.error}`);
+    } catch (err) { websiteGaps.push(`First-party website category: ${err instanceof Error ? err.message : String(err)}`); }
+  }
+  const found = await findCompetitors({ ...ctx.audit, category, deadline: ctx.deadline });
+  if (category) found.sources.unshift({ label: 'Business category from its first-party website', query: category, url: scan?.final_url || ctx.audit.website || undefined, captured_at: scan?.fetched_at || new Date().toISOString(), notes: 'Specific service wording on the business website takes precedence over a generic listing label.' });
+  found.gaps.unshift(...websiteGaps);
   const hosts = new Set(entered.map((c) => hostOf(c.website)).filter(Boolean));
   const names = new Set(entered.map((c) => key(c.name)));
   const picks = found.picks.filter((p) => !hosts.has(hostOf(p.website)) && !names.has(key(p.name))).slice(0, PICKS_WANTED - entered.length);

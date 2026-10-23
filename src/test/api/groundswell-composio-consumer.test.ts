@@ -9,6 +9,8 @@ import { runKeywords } from '../../../api/_lib/groundswell/currents/search';
 import { ProviderCreditError, resetPublicReadBudget } from '../../../api/_lib/groundswell/providerBudget';
 import { PermanentStepError } from '../../../api/_lib/groundswell/types';
 
+vi.mock('../../../api/_lib/groundswell/keywordsGeography', () => ({ resolveKeywordGeography: async () => ({ constants: ['geoTargetConstants/12345'], label: 'North Miami Beach, Florida, United States', error: null }) }));
+
 /**
  * The consumer account (phases 1 and 2): Composio's MCP endpoint with a ck_
  * key, the same tools New Wave runs from Composio's MCP in Claude. Answers are

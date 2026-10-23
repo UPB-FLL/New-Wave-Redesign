@@ -129,9 +129,21 @@ vi.mock('../../lib/groundswell', async (orig) => {
 });
 
 import GroundswellAudits from './GroundswellAudits';
-import { addCompetitor, adminReportUrl, answerReview, listAudits, queueAudit, startQueuedAudits } from '../../lib/groundswell';
+import { addCompetitor, adminReportUrl, answerReview, listAudits, listHeldChecks, queueAudit, requeueAudit, startQueuedAudits } from '../../lib/groundswell';
 
 describe('GroundswellAudits admin screen', () => {
+  it('offers a fresh queue action without delivery overrides when required phase inputs are missing', async () => {
+    const inReview = { ...audits[2], id: 'missing-inputs', business_name: 'WildlyPrimal', status: 'review', error: 'The growth audit is missing. Queue this run again to rebuild its research.' };
+    vi.mocked(listAudits).mockResolvedValueOnce([inReview] as never);
+    vi.mocked(listHeldChecks).mockResolvedValueOnce({});
+    render(<MemoryRouter><GroundswellAudits /></MemoryRouter>);
+    expect(await screen.findByText('Needs review')).toBeInTheDocument();
+    await screen.findByText(inReview.error);
+    expect(screen.queryByRole('button', { name: /Deliver anyway/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Run the checks again/ })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Queue again/ }));
+    await waitFor(() => expect(requeueAudit).toHaveBeenCalledWith('missing-inputs'));
+  });
   it('does not restore an old status when clearing filters and immediately searching', async () => {
     render(
       <MemoryRouter initialEntries={['/groundswell/admin/audits?status=running']}>

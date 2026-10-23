@@ -116,6 +116,16 @@ describe('a phase starts from the runs it builds on', () => {
 describe('starting queued runs', () => {
   const lists = PHASE_STEPS as StepLists;
 
+  it.each(['competitors', 'integrated'])('rebuilds the growth audit when a queued %s run lost its source audit', async (phase) => {
+    const audits = [audit('orphan', { status: 'queued', phase, source_audit_id: null, started_at: null, error: 'This phase delivered nothing: no report was printed.' })];
+    const steps: Row[] = [done('orphan', 'creative', 1, { stale: true })];
+    const { db } = engineDb(audits, steps);
+    expect(await startQueuedRuns(db, lists, 1)).toEqual(['orphan']);
+    expect(audits[0]).toMatchObject({ phase: 'audit', kind: 'audit', status: 'running', source_audit_id: null, error: null });
+    expect(steps.map(s => s.step)).toEqual(STEPS.map(s => s.name));
+    expect(steps.every(s => s.status === 'pending' && s.output === null)).toBe(true);
+  });
+
   it('gives each run its phase\'s steps, and a benchmark from before the phases its own', async () => {
     const audits = [audit('q1', { status: 'queued', started_at: null }), audit('q2', { status: 'queued', phase: 'competitors', source_audit_id: 'x', started_at: null }), audit('q3', { status: 'queued', kind: 'benchmark', started_at: null })];
     const steps: Row[] = [];
