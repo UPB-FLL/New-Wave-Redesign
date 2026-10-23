@@ -2,7 +2,8 @@ import type { Page } from 'puppeteer-core';
 import { withBrowser } from '../browser.js';
 import { executeTool, findKey, isSharedLookupConfigured } from '../composio.js';
 import { PermanentStepError, type StepContext } from '../types.js';
-import { numeric } from './serp.js';
+import { categoryFromSite, numeric, specificCategory } from './serp.js';
+import type { SiteScan } from './site.js';
 
 /**
  * Maps Current: the business's Google Business Profile and nearby rivals in
@@ -138,6 +139,9 @@ export const PLACE_FIELDS =
 
 const PLACES_SOURCE = 'Google Places API text search (relevance order, not the Maps pack), via Composio';
 const NOT_FOUND = 'The business was not found on Google Maps under its name and city.';
+const CATEGORY_UNVERIFIED = 'Nearby businesses were not compared because a specific business category could not be verified.';
+const nearbyUnavailable = (category: string) => `The business listing was read, but nearby ${category} results were unavailable.`;
+const describeFailure = (err: unknown) => (err instanceof Error ? err.message : String(err)).slice(0, 1000);
 
 export type PlaceRow = Record<string, unknown>;
 
@@ -219,29 +223,33 @@ export async function serpMapsSearch(query: string, timeoutMs?: number): Promise
 }
 
 /** Google Places through Composio: the business, then rivals in its category near its area. */
-export async function placesLookup(audit: StepContext['audit']): Promise<MapsOutput> {
+export async function placesLookup(audit: StepContext['audit'], categoryHint: string | null = null): Promise<MapsOutput> {
   const query = [audit.business_name, audit.city].filter(Boolean).join(' ');
   const found = matchBusiness(await googlePlacesSearch(query, 5), audit.business_name, audit.website);
   const business = found ? toMapsPlace(found) : null;
   const area = audit.city || business?.address?.split(',').slice(-2, -1)[0]?.trim() || null;
   let nearby: MapsListing[] = [];
-  if (business?.category && area) {
+  let nearbyError: string | null = null;
+  const category = specificCategory(categoryHint) || specificCategory(business?.category);
+  if (business && category && area) {
     const self = (business.name || '').toLowerCase();
     const id = typeof found?.id === 'string' ? found.id : null;
-    nearby = (await googlePlacesSearch(`${business.category} near ${area}`, 10))
-      .filter((r) => (id ? r.id !== id : true) && (localized(r.displayName) ?? '').toLowerCase() !== self)
-      .map(toMapsListing)
-      .filter((l) => l.name)
-      .slice(0, 8);
+    try {
+      nearby = (await googlePlacesSearch(`${category} near ${area}`, 10))
+        .filter((r) => (id ? r.id !== id : true) && (localized(r.displayName) ?? '').toLowerCase() !== self)
+        .map(toMapsListing)
+        .filter((l) => l.name)
+        .slice(0, 8);
+    } catch (err) { nearbyError = describeFailure(err); }
   }
-  return { fetched_at: new Date().toISOString(), source: PLACES_SOURCE, business, nearby, note: business ? null : NOT_FOUND };
+  return { fetched_at: new Date().toISOString(), source: PLACES_SOURCE, business, nearby, note: nearbyError && category ? nearbyUnavailable(category) : business ? category ? null : CATEGORY_UNVERIFIED : NOT_FOUND, ...(nearbyError ? { detail: nearbyError } : {}) };
 }
 
 /** True for the one Places failure the browser must not paper over: the Composio key itself. */
 const keyRefused = (err: unknown) => err instanceof PermanentStepError && /API key/i.test(err.message);
 
 /** The logged-out Maps view in headless Chromium (the fallback). */
-export async function browserLookup(audit: StepContext['audit'], note: string | null = null): Promise<MapsOutput> {
+export async function browserLookup(audit: StepContext['audit'], note: string | null = null, categoryHint: string | null = null): Promise<MapsOutput> {
   return withBrowser(async (browser) => {
     const page = await browser.newPage();
     await page.setViewport({ width: 1280, height: 1000 });
@@ -250,17 +258,22 @@ export async function browserLookup(audit: StepContext['audit'], note: string | 
     const business = await findBusiness(page, audit.business_name, audit.city);
     const area = audit.city || business?.address?.split(',').slice(-2, -1)[0]?.trim() || null;
     let nearby: MapsListing[] = [];
-    if (business?.category && area) {
-      await open(page, `${business.category} near ${area}`);
-      const self = (business.name || '').toLowerCase();
-      nearby = (await readList(page)).filter((l) => l.name && l.name.toLowerCase() !== self).slice(0, 8);
+    let nearbyError: string | null = null;
+    const category = specificCategory(categoryHint) || specificCategory(business?.category);
+    if (business && category && area) {
+      try {
+        await open(page, `${category} near ${area}`);
+        const self = (business.name || '').toLowerCase();
+        nearby = (await readList(page)).filter((l) => l.name && l.name.toLowerCase() !== self).slice(0, 8);
+      } catch (err) { nearbyError = describeFailure(err); }
     }
     return {
       fetched_at: new Date().toISOString(),
       source: 'Google Maps (logged-out view)',
       business,
       nearby,
-      note: [note, business ? null : NOT_FOUND].filter(Boolean).join(' ') || null,
+      note: [note, nearbyError && category ? nearbyUnavailable(category) : business ? category ? null : CATEGORY_UNVERIFIED : NOT_FOUND].filter(Boolean).join(' ') || null,
+      ...(nearbyError ? { detail: nearbyError } : {}),
     };
   });
 }
@@ -270,11 +283,14 @@ export const PLACES_FALLBACK_NOTE = 'Google Places was not available for this au
 
 export async function runMaps(ctx: StepContext): Promise<MapsOutput> {
   const { audit } = ctx;
+  const site = ctx.outputs.site as { business?: SiteScan | null } | undefined;
+  const competitors = ctx.outputs.competitors as { business?: { category?: string | null } | null } | undefined;
+  const categoryHint = categoryFromSite(site?.business) || specificCategory(competitors?.business?.category);
   const errors: string[] = [];
   let places: MapsOutput | null = null;
   if (isSharedLookupConfigured()) {
     try {
-      places = await placesLookup(audit);
+      places = await placesLookup(audit, categoryHint);
       if (places.business) return places;
     } catch (err) {
       if (keyRefused(err)) throw err;
@@ -284,10 +300,15 @@ export async function runMaps(ctx: StepContext): Promise<MapsOutput> {
       const query = [audit.business_name, audit.city].filter(Boolean).join(' ');
       const found = matchBusiness(await serpMapsSearch(query), audit.business_name, audit.website);
       const business = found ? toMapsPlace(found) : null;
-      const nearby = business?.category && audit.city
-        ? (await serpMapsSearch(`${business.category} near ${audit.city}`)).filter((r) => toMapsPlace(r).name !== business.name).map(toMapsListing).slice(0, 8)
-        : [];
-      if (business) return { fetched_at: new Date().toISOString(), source: 'Google Maps public search results (query-specific order, not organic search rank), via SerpApi', business, nearby, note: null, ...(errors.length ? { detail: errors.join(' ').slice(0, 1000) } : {}) };
+      const category = specificCategory(categoryHint) || specificCategory(business?.category);
+      let nearby: MapsListing[] = [];
+      let nearbyError: string | null = null;
+      if (business && category && audit.city) {
+        try { nearby = (await serpMapsSearch(`${category} near ${audit.city}`)).filter((r) => toMapsPlace(r).name !== business.name).map(toMapsListing).slice(0, 8); }
+        catch (err) { nearbyError = describeFailure(err); }
+      }
+      const detail = [...errors, nearbyError].filter(Boolean).join(' ').slice(0, 1000);
+      if (business) return { fetched_at: new Date().toISOString(), source: 'Google Maps public search results (query-specific order, not organic search rank), via SerpApi', business, nearby, note: nearbyError && category ? nearbyUnavailable(category) : category ? null : CATEGORY_UNVERIFIED, ...(detail ? { detail } : {}) };
     } catch (err) {
       if (keyRefused(err)) throw err;
       errors.push(err instanceof Error ? err.message : String(err));
@@ -296,8 +317,8 @@ export async function runMaps(ctx: StepContext): Promise<MapsOutput> {
     if (places && !errors.length) return places;
   }
   try {
-    const out = await browserLookup(audit, errors.length ? PLACES_FALLBACK_NOTE : null);
-    return errors.length ? { ...out, detail: errors.join(' ').slice(0, 1000) } : out;
+    const out = await browserLookup(audit, errors.length ? PLACES_FALLBACK_NOTE : null, categoryHint);
+    return errors.length ? { ...out, detail: [...errors, out.detail].filter(Boolean).join(' ').slice(0, 1000) } : out;
   } catch (err) {
     errors.push(err instanceof Error ? err.message : String(err));
     if (places) return { ...places, note: `${NOT_FOUND} The additional public Maps lookup was unavailable.`, detail: errors.join(' ').slice(0, 1000) };

@@ -184,11 +184,11 @@ describe('ad libraries', () => {
     expect(mocks.withBrowser).not.toHaveBeenCalled();
   });
 
-  it('falls back to the Transparency Center in the browser for a domain ScrapeCreators could not answer', async () => {
+  it('falls back after a temporary provider outage and requires the advertiser domain in the browser answer', async () => {
     mocks.executeTool.mockImplementation((slug: string, args: Record<string, unknown>) =>
-      slug === 'SCRAPECREATORS_LIST_GOOGLE_COMPANY_ADS' ? Promise.reject(new Error('SCRAPECREATORS_LIST_GOOGLE_COMPANY_ADS failed (402): out of credits')) : composio(slug, args)
+      slug === 'SCRAPECREATORS_LIST_GOOGLE_COMPANY_ADS' ? Promise.reject(new Error('Temporary provider outage')) : composio(slug, args)
     );
-    const page = { goto: vi.fn(), evaluate: vi.fn().mockResolvedValue('Shown in the United States Any time 0 ads'), close: vi.fn() };
+    const page = { goto: vi.fn(), evaluate: vi.fn().mockResolvedValue('Ads for harbor-auto.example Shown in the United States Any time 0 ads'), close: vi.fn() };
     mocks.withBrowser.mockImplementation(async (fn: (b: unknown) => unknown) => fn({ newPage: async () => page }));
     vi.useFakeTimers({ toFake: ['setTimeout'] });
     const run = runAdsLibrary(ctx(benchmarkOutputs()));
@@ -196,7 +196,7 @@ describe('ad libraries', () => {
     const out = await run;
     vi.useRealTimers();
     expect(out.business.google_ads_status).toBe('none');
-    expect(out.business.error).toMatch(/Google Ads Transparency: .*out of credits/);
+    expect(out.business.error).toMatch(/Google Ads Transparency: .*Temporary provider outage/);
   });
 
   it('stops for good when Composio refuses the key on the Google ads call', async () => {

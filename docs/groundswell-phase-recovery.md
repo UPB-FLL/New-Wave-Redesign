@@ -10,6 +10,12 @@ The live recovery also exposed a generic Google category (“Services”) maskin
 
 Keyword Planner now resolves the supplied US city and state through Google Ads' read-only geographic constants before measuring demand. An unresolved or ambiguous location does not fall back to the old fixed target or an all-location query. Explicit configured targets are used when no business city was supplied. The captured canonical geography is included in the source label; no verified geography means no measured-demand forecast. The implementation follows Google's [geo target reference](https://developers.google.com/google-ads/api/fields/v26/geo_target_constant) and [GAQL case-sensitivity rules](https://developers.google.com/google-ads/api/docs/query/case-sensitivity).
 
+Maps nearby searches use the same verified category across Places, SerpApi, and browser reads. A generic listing category cannot establish the comparison set. If the matched business listing succeeds but its nearby search fails, the listing and any returned rating/review count are retained, with a separate research limitation.
+
+Ad-library credit denials, including embedded provider errors and HTTP 402 responses, leave advertising status unknown and stop later paid reads for that account. They do not trigger a browser workaround. After other provider failures, a browser result must identify the requested advertiser domain before it can establish either ads or a zero result. A domain present only in the query URL is insufficient.
+
 Live remediation is scoped to Wildly Primal's failed run. Its audit and step outputs were backed up to the ignored `output/groundswell/recovery/` directory before resetting the run. The full growth audit was started and then held before model/report delivery when the generic-category issue appeared. The old zero-competitor failure is not treated as a successful report delivery.
+
+The corrected production run on October 23, 2026 at 22:12 UTC found six health-coach comparison candidates and twelve measured Jacksonville keyword rows. It remains in review: later social and ad-library reads returned credit errors and verification could not confirm enough findings. The separately generated review PDFs distinguish the earlier Instagram observation from the failed latest refresh. They are drafts, not successful automated delivery, and no verification hold was released.
 
 No schema, authorization, or billing configuration changes are required.
