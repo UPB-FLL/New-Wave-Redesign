@@ -40,7 +40,7 @@ const LOOP_STEPS: Record<GrowthLoopNodeKey, { title: string; detail: string }> =
   sales: { title: 'Sales', detail: 'Revenue flows back into the reporting and sets the next decision.' },
 };
 
-/** Each loop step's colour, for the numeral beside its name: the pillar roles, then amber for sales. */
+/** Each loop step's icon colour: the pillar roles, then amber for sales. */
 const LOOP_STEP_COLORS: Record<GrowthLoopNodeKey, string> = {
   data: PILLAR_STYLE.data.onDark,
   integrations: PILLAR_STYLE.integrations.onDark,
@@ -97,10 +97,10 @@ export default function SocialEngineeringHubPage() {
             <figcaption className="mt-4 border-t pt-4 sm:mt-5 sm:pt-5" style={{ borderColor: 'color-mix(in srgb, var(--nw-cloud-white) 14%, transparent)' }}>
               <p className="nwse-type-kicker nwse-kicker-on-dark">The growth loop</p>
               <ol className="mt-3 grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
-                {GROWTH_LOOP_NODES.map(({ key }, index) => (
+                {GROWTH_LOOP_NODES.map(({ key, icon }) => (
                   <li key={key} className="flex gap-3">
-                    <span className="nwse-type-label nwse-type-numeric mt-0.5 shrink-0" style={{ color: LOOP_STEP_COLORS[key] }} aria-hidden="true">
-                      {String(index + 1).padStart(2, '0')}
+                    <span className="mt-0.5 shrink-0" style={{ color: LOOP_STEP_COLORS[key] }}>
+                      <NwseIcon name={icon} size={20} />
                     </span>
                     <span className="nwse-type-body-small text-[var(--nw-mist-gray)]">
                       <span className="font-semibold text-[var(--nw-cloud-white)]">{LOOP_STEPS[key].title}. </span>

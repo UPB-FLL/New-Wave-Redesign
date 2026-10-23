@@ -111,7 +111,7 @@ describe('a partner’s view of its customer', () => {
     expect(competitors.runs[0]).not.toHaveProperty('error');
     // Phase 2 failed, so phase 3 waits; phase 2 can run again on phase 1.
     expect(competitors.start).toMatchObject({ allowed: true });
-    expect(integrated.start).toEqual({ allowed: false, reason: 'Phase 2 has to deliver first.', builds_on: null });
+    expect(integrated.start).toEqual({ allowed: false, reason: 'Competitor plan has to deliver first.', builds_on: null });
   });
 
   it('another partner’s customer answers exactly like a missing one, and the staff list is closed to partners', async () => {
@@ -134,7 +134,7 @@ describe('a partner’s view of its customer', () => {
     expect((await call(workspaceRoute, 'POST', {}, { customer: C1, phase: 'competitors' })).statusCode).toBe(409);
     const one = await call(workspaceRoute, 'POST', {}, { customer: C1, phase: 'audit' });
     expect(db.tables.marketing_audits.find((r) => r.id === one.body.queued)).toMatchObject({ customer_id: C1, partner_id: 'p1', phase: 'audit', business_name: 'Harbor Auto Care', status: 'queued' });
-    expect((await call(workspaceRoute, 'POST', {}, { customer: C1, phase: 'integrated' })).body.error).toBe('Phase 2 has to deliver first.');
+    expect((await call(workspaceRoute, 'POST', {}, { customer: C1, phase: 'integrated' })).body.error).toBe('Competitor plan has to deliver first.');
     expect((await call(workspaceRoute, 'POST', {}, { customer: C1, phase: 'everything' })).statusCode).toBe(400);
   });
 });

@@ -107,7 +107,7 @@ describe('the business’s own images', () => {
     const out = await runCreative(ctxWith(outputs), fetchImpl);
     expect(out.images.map((i) => i.name)).toEqual(['ig-NEW1.jpg', 'ig-NEW2.jpg']);
     expect(out.images[0]).toMatchObject({ origin: 'instagram', width: 1080, height: 1350, permalink: 'https://www.instagram.com/p/NEW1/', likes: 40 });
-    expect(out.tried[0]).toMatch(/Phase 1’s Instagram read: 1 post listed, 0 images kept/);
+    expect(out.tried[0]).toMatch(/Growth audit’s Instagram read: 1 post listed, 0 images kept/);
     expect([...store.current!.objects[ASSETS_BUCKET].keys()]).toEqual(['run-2/image/ig-NEW1.jpg', 'run-2/image/ig-NEW2.jpg']);
     expect(store.current!.tables.groundswell_assets.map((r) => r.kind)).toEqual(['image', 'image']);
     // Only the business's handle is ever read.

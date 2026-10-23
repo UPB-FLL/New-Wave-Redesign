@@ -1,4 +1,5 @@
 import { GROUNDSWELL_CONFIG } from '../../../packages/groundswell/groundswell.config.js';
+import { PHASE_INFO } from '../../../src/lib/groundswellValidation.js';
 import { SCENARIOS, type Scenario } from '../../../packages/groundswell/src/config.js';
 import type { GoogleAdGroup, MetaAdSet, OutcomeRange, TierForecast } from '../../../packages/groundswell/src/adsets.js';
 import type { RankedChange } from '../../../packages/groundswell/src/changes.js';
@@ -270,7 +271,7 @@ export function buildAdsetsHtml(d: AdsetsReportData): string {
   const { brand: b, adsets: o } = d;
   const s = o.sets;
   const who = d.preparer ?? NEW_WAVE_PREPARER;
-  const phaseWords = d.phase === 'integrated' ? 'Phase 3 · from the business’s own accounts' : 'Phase 2 · from public data, against competitors';
+  const phaseWords = d.phase === 'integrated' ? `${PHASE_INFO.integrated.title} · from the business’s own accounts` : `${PHASE_INFO.competitors.title} · from public data, against competitors`;
   const footer = `${esc(d.business)} · Ad sets · ${preparedBy(who)} · ${esc(d.date)}`;
   const section = (kicker: string, title: string, body: string) =>
     `<section class="page"><div class="kicker">${esc(kicker)}</div><h2>${esc(title)}</h2>${body}<div class="foot">${footer}</div></section>`;

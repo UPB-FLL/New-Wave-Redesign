@@ -203,7 +203,7 @@
   outline: 2px solid var(--gs-accent-deep);
   outline-offset: 2px;
 }
-.gs-phase-num {
+.gs-phase-icon {
   display: inline-flex;
   flex: none;
   width: 2rem;

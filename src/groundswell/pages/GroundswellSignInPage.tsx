@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 import FormPrivacyNotice from '../../components/legal/FormPrivacyNotice';
 import { currentPartner, partnerSignIn, requestPartnerReset } from '../../lib/groundswellPartner';
 import { GroundswellFrame } from '../GroundswellShell';
@@ -154,9 +155,9 @@ export default function GroundswellSignInPage() {
         </div>
         <section className="gs-portal-intro gs-portal-how" aria-label="How GroundSwell works">
           <ol className="gs-portal-entry-steps" aria-label="How it works">
-            {content.steps.map((step, i) => (
+            {content.steps.map((step) => (
               <li key={step.title}>
-                <span aria-hidden="true">0{i + 1}</span>
+                <span aria-hidden="true"><ArrowRight size={16} /></span>
                 <div>
                   <h2>{step.title}</h2>
                   <p>{step.detail}</p>

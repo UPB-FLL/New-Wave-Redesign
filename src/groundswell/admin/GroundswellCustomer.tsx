@@ -6,6 +6,7 @@ import { STAGE_LABELS } from '../pages/customerStatus';
 import { AccountsCard } from '../pages/GroundswellCustomerPage';
 import { GROUNDSWELL_ADMIN_CUSTOMERS_PATH } from '../site';
 import { CustomerWorkspace } from '../workspace/CustomerWorkspace';
+import { PHASE_INFO } from '../../lib/groundswellValidation';
 
 /** Staff customer workspace, including stage controls and client account linking. */
 export default function GroundswellCustomer() {
@@ -89,7 +90,7 @@ export default function GroundswellCustomer() {
             </button>
             <span className="gs-admin-fine-print">
               {isClient
-                ? 'Its linked accounts feed phase 3, and Instagram feeds every phase.'
+                ? `Its linked accounts feed the ${PHASE_INFO.integrated.title.toLowerCase()}, and Instagram feeds every phase.`
                 : 'A client can have its own accounts linked below.'}
             </span>
           </div>

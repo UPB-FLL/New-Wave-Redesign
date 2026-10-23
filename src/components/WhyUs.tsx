@@ -1,4 +1,4 @@
-import { ArrowRight, Award, CheckCircle2, Clock, Lightbulb, Users, type LucideIcon } from 'lucide-react';
+import { ArrowRight, Award, CheckCircle2, Clock, Lightbulb, Map, Search, Users, Wrench, type LucideIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useContent } from '../lib/useContent';
 import { SectionHeading } from './brand/SectionHeading';
@@ -58,17 +58,17 @@ export default function WhyUs({ headlineAs: Heading = 'h2' }: { headlineAs?: 'h1
   const accent = content.headline_accent || 'need continuity.';
   const steps = [
     {
-      step: '01',
+      icon: Search,
       title: content.how_step1_title || 'Assessment',
       description: content.how_step1_desc || 'We learn how your team works, review the environment, and identify practical priorities.',
     },
     {
-      step: '02',
+      icon: Map,
       title: content.how_step2_title || 'Planning',
       description: content.how_step2_desc || 'Together we build a clear technology roadmap aligned to business outcomes.',
     },
     {
-      step: '03',
+      icon: Wrench,
       title: content.how_step3_title || 'Implementation & Support',
       description: content.how_step3_desc || 'We deliver the plan and remain accountable as your day-to-day technology partner.',
     },
@@ -134,8 +134,8 @@ export default function WhyUs({ headlineAs: Heading = 'h2' }: { headlineAs?: 'h1
           />
           <ol className="mt-10 grid gap-4 md:grid-cols-3">
             {steps.map((step) => (
-              <li key={step.step} className="rounded-lg border p-6" style={{ background: 'var(--nw-cloud-white)', borderColor: 'var(--nw-mist-gray)' }}>
-                <p className="nw-meta text-sm text-[var(--nw-tide-blue)]">{step.step}</p>
+              <li key={step.title} className="rounded-lg border p-6" style={{ background: 'var(--nw-cloud-white)', borderColor: 'var(--nw-mist-gray)' }}>
+                <span className="nw-icon-signal h-10 w-10"><step.icon size={19} aria-hidden="true" /></span>
                 <h4 className="mt-6 text-lg font-bold text-[var(--nw-current-navy)]">{step.title}</h4>
                 <p className="mt-3 text-sm leading-relaxed text-[var(--nw-slate)]">{step.description}</p>
               </li>

@@ -9,11 +9,9 @@
 .gs-marketing .gs-process .nwse-tab-steps[aria-selected='true'] { color: var(--gs-navy); }
 .gs-marketing .gs-process .nwse-tab-steps[aria-selected='true']::after { transform: scaleX(1); }
 .gs-marketing .gs-process .nwse-tab-steps:hover { color: var(--gs-tide); }
-.gs-marketing .gs-process-number { font-family: var(--nw-font-technical); font-size: .6875rem; color: var(--gs-slate); }
 .gs-marketing .gs-process .nwse-tabpanel:not([hidden]) { animation: none; }
 .gs-marketing .gs-process-stage { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); align-items: center; gap: clamp(2rem, 5vw, 5rem); padding-top: 3rem; min-height: 26rem; }
-.gs-marketing .gs-process-count { font-family: var(--nw-font-technical); color: var(--gs-slate); font-size: .6875rem; }
-.gs-marketing .gs-process-copy h3 { max-width: 24rem; margin-top: 1rem; color: var(--gs-navy); font-family: var(--nw-font-display); font-size: clamp(1.75rem, 2.4vw, 2.375rem); font-weight: 600; line-height: 1.2; letter-spacing: -.035em; text-wrap: balance; }
+.gs-marketing .gs-process-copy h3 { max-width: 24rem; color: var(--gs-navy); font-family: var(--nw-font-display); font-size: clamp(1.75rem, 2.4vw, 2.375rem); font-weight: 600; line-height: 1.2; letter-spacing: -.035em; text-wrap: balance; }
 .gs-marketing .gs-process-detail { margin-top: 1.25rem; max-width: 28rem; color: var(--gs-slate); font-size: .9375rem; line-height: 1.85; }
 .gs-marketing .gs-process-outcome { max-width: 28rem; margin-top: 1.75rem; padding-left: 1rem; border-left: 2px solid var(--gs-tide); font-size: .8125rem; color: var(--gs-navy); line-height: 1.7; }
 .gs-marketing .gs-process-outcome span { display: block; margin-bottom: .25rem; font-weight: 600; }
@@ -31,7 +29,7 @@
   .gs-marketing .gs-process .nwse-tab-steps { flex-direction: column; gap: .375rem; padding: .75rem 0 1rem; font-size: .75rem; }
   .gs-marketing .gs-process .nwse-tab-steps:focus-visible { outline-offset: -3px; }
   .gs-marketing .gs-process-stage { grid-template-columns: minmax(0, 1fr); gap: 1.75rem; min-height: 0; padding-top: 1.75rem; }
-  .gs-marketing .gs-process-copy h3 { max-width: 28rem; margin-top: .75rem; }
+  .gs-marketing .gs-process-copy h3 { max-width: 28rem; }
   .gs-marketing .gs-process-detail { max-width: 36rem; margin-top: 1rem; }
   .gs-marketing .gs-process-outcome { margin-top: 1.25rem; }
   .gs-marketing .gs-process-figure { width: 100%; max-width: 36rem; }

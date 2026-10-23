@@ -53,13 +53,13 @@ export function GroundswellHero() {
           </div>
           <p className="gs-marketing-eyebrow">The workspace, from start to finish</p>
           <ol>
-            {[
-              ['Growth audit', 'Public research', 'Understand the business, its audience, and the opportunities in reach.'],
-              ['Competitor plan', 'Turn research into a plan', 'Compare the market, prioritize changes, and build the ad plan.'],
-              ['Integrated plan', 'Bring in client accounts', 'Read the plan against the client’s own traffic, ads, and social figures.'],
-            ].map(([title, source, detail], i) => (
+            {([
+              ['Growth audit', 'Public research', 'Understand the business, its audience, and the opportunities in reach.', 'method-discover'],
+              ['Competitor plan', 'Turn research into a plan', 'Compare the market, prioritize changes, and build the ad plan.', 'method-prioritize'],
+              ['Integrated plan', 'Bring in client accounts', 'Read the plan against the client’s own traffic, ads, and social figures.', 'method-build'],
+            ] as const).map(([title, source, detail, icon]) => (
               <li key={title}>
-                <span className="gs-marketing-phase-number">0{i + 1}</span>
+                <span className="gs-marketing-phase-marker" aria-hidden="true"><NwseIcon name={icon} size={18} /></span>
                 <div>
                   <h2>{title}</h2>
                   <p>{source}</p>

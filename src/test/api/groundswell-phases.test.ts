@@ -203,28 +203,28 @@ describe('queueing the next phase', () => {
   it('phase 1 delivering queues phase 2 with the business\'s details, its partner and customer, once', async () => {
     const { client, tables } = seed();
     const first = await queueNextPhase(client as never, { id: 'p1', phase: 'audit', customer_id: 'c1' });
-    expect(first).toMatchObject({ phase: 'competitors', reason: 'Phase 2 queued.' });
+    expect(first).toMatchObject({ phase: 'competitors', reason: 'Competitor plan queued.' });
     const queued = tables.marketing_audits.find((a) => a.id === first.queued)!;
     expect(queued).toMatchObject({ status: 'queued', phase: 'competitors', source_audit_id: 'p1', partner_id: 'partner-a', customer_id: 'c1', business_name: 'Flow & Mills', instagram: 'flowandmills', brand_color: '#cc0000', kind: 'audit' });
     expect(queued.competitors).toEqual([{ name: 'Rival', website: 'https://rival.example', instagram: null }]);
     const again = await queueNextPhase(client as never, { id: 'p1', phase: 'audit', customer_id: 'c1' });
-    expect(again).toMatchObject({ queued: first.queued, reason: 'Phase 2 is already queued.' });
+    expect(again).toMatchObject({ queued: first.queued, reason: 'Competitor plan is already queued.' });
     expect(tables.marketing_audits.filter((a) => a.phase === 'competitors')).toHaveLength(1);
   });
 
   it('phase 3 waits for a client with a linked account, and says why', async () => {
     let { client } = seed({ phase: 'competitors' });
-    expect(await queueNextPhase(client as never, { id: 'p1', phase: 'competitors', customer_id: 'c1' })).toMatchObject({ queued: null, reason: 'Phase 3 is for clients: mark the business as a client first.' });
+    expect(await queueNextPhase(client as never, { id: 'p1', phase: 'competitors', customer_id: 'c1' })).toMatchObject({ queued: null, reason: 'Integrated plan is for clients: mark the business as a client first.' });
     ({ client } = seed({ phase: 'competitors' }, { id: 'c1', stage: 'client' }, [{ id: 'x', customer_id: 'c1', status: 'expired' }]));
     expect((await queueNextPhase(client as never, { id: 'p1', phase: 'competitors', customer_id: 'c1' })).reason).toMatch(/No linked account yet/);
     ({ client } = seed({ phase: 'competitors' }, { id: 'c1', stage: 'client' }, [{ id: 'x', customer_id: 'c1', status: 'active' }]));
-    expect(await queueNextPhase(client as never, { id: 'p1', phase: 'competitors', customer_id: 'c1' })).toMatchObject({ phase: 'integrated', reason: 'Phase 3 queued.' });
+    expect(await queueNextPhase(client as never, { id: 'p1', phase: 'competitors', customer_id: 'c1' })).toMatchObject({ phase: 'integrated', reason: 'Integrated plan queued.' });
   });
 
   it('refuses a source that has not delivered, a phase out of order, and anything after the last', async () => {
     const { client } = seed({ status: 'running' });
-    expect((await queuePhase(client as never, 'p1', 'competitors')).reason).toBe('Phase 1 has not delivered yet.');
-    expect((await queuePhase(client as never, 'p1', 'integrated')).reason).toBe('Phase 3 builds on phase 2.');
+    expect((await queuePhase(client as never, 'p1', 'competitors')).reason).toBe('Growth audit has not delivered yet.');
+    expect((await queuePhase(client as never, 'p1', 'integrated')).reason).toBe('Integrated plan builds on competitor plan.');
     expect(await queueNextPhase(client as never, { id: 'p1', phase: 'integrated', customer_id: 'c1' })).toEqual({ queued: null, phase: null, reason: 'This was the last phase.' });
   });
 

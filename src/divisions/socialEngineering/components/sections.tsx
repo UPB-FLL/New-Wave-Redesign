@@ -404,28 +404,28 @@ export function PointGrid({
 }
 
 /**
- * A card's Plex Mono label ("Step 01", "Phase 01"), led by its marker tile: a
- * 24px icon in a 48px tile (one step up from the 20px service icons in their
- * 44px tiles), or, with `number`, the step's number in the same tile. The
- * tile takes a colour role (`color.tile`); the label stays Tide Blue. With
- * `rail`, a hairline follows the label (.nwse-rail in division.css: the
- * stepper's rail to the next step, shown from md).
+ * A card's optional Plex Mono label (such as "Days 1–30"), led by its marker
+ * tile: a 24px icon in a 48px tile, or a neutral dot when `marker` is set
+ * without an icon. The tile takes a colour role (`color.tile`); the label
+ * stays Tide Blue. With `rail`, a hairline follows the marker and label
+ * (.nwse-rail in division.css: the stepper's rail to the next step, shown
+ * from md).
  */
 function CardLabel({
   icon,
-  number,
+  marker = false,
   color,
   rail = false,
   children,
 }: {
   icon?: DivisionIconName;
-  number?: number;
+  marker?: boolean;
   color?: SurfaceColor;
   rail?: boolean;
-  children: ReactNode;
+  children?: ReactNode;
 }) {
-  const label = <p className="nwse-type-label nwse-label">{children}</p>;
-  if (!icon && number === undefined) return label;
+  const label = children ? <p className="nwse-type-label nwse-label">{children}</p> : null;
+  if (!icon && !marker) return label;
   // Below lg: a 40px tile with a 20px icon. Below md division.css pins the
   // tile to the timeline rail (StepList) or beside the title (RoadmapGrid).
   return (
@@ -434,9 +434,7 @@ function CardLabel({
         {icon ? (
           <NwseIcon name={icon} size={24} className="max-lg:h-5 max-lg:w-5" />
         ) : (
-          <span className="nwse-type-label nwse-type-numeric font-semibold text-[var(--nw-current-navy)]" aria-hidden="true">
-            {String(number).padStart(2, '0')}
-          </span>
+          <span className="h-2.5 w-2.5 rounded-full" style={{ background: color?.deep ?? 'var(--nw-current-navy)' }} aria-hidden="true" />
         )}
       </span>
       {label}
@@ -467,16 +465,16 @@ const STEP_GRID: Record<number, StepGrid> = {
 const STEP_GRID_FALLBACK: StepGrid = { className: `md:grid-cols-2 lg:grid-cols-4 ${ODD_ORPHAN_LI}`, columns: { md: 2, lg: 4 } };
 
 /**
- * The steps as a stepper from md: each marker tile (the step's icon, or its
- * number) and its "Step 01" label, then a hairline rail from the label to the
- * next step's tile (.nwse-rail in division.css), with no card chrome, so the
+ * The steps as a stepper from md: each marker tile (the step's icon, or a
+ * neutral dot), then a hairline rail from the marker to the next step's
+ * tile (.nwse-rail in division.css), with no card chrome, so the
  * row reads as one process rather than three more boxes. The last step has
  * no rail, nor does a step that ends a row, which the list declares per width
  * (data-columns-md/-lg/-xl). Below md the same list is a timeline
  * (.nwse-timeline). The tiles take the colour roles in rotation.
  */
 export function StepList({ steps }: { steps: readonly DivisionPoint[] }) {
-  const markers = steps.every((step) => step.icon) ? 'icon' : 'number';
+  const markers = steps.every((step) => step.icon) ? 'icon' : 'dot';
   const grid = STEP_GRID[steps.length] ?? STEP_GRID_FALLBACK;
   return (
     <ol
@@ -488,9 +486,7 @@ export function StepList({ steps }: { steps: readonly DivisionPoint[] }) {
     >
       {steps.map((step, index) => (
         <li key={step.title} className="relative md:pr-4">
-          <CardLabel icon={step.icon} number={step.icon ? undefined : index + 1} color={accentAt(index)} rail={index < steps.length - 1}>
-            Step {String(index + 1).padStart(2, '0')}
-          </CardLabel>
+          <CardLabel icon={step.icon} marker color={accentAt(index)} rail={index < steps.length - 1} />
           <h3 className="nwse-type-title-2 mt-1 text-[var(--nw-current-navy)] md:mt-4">{step.title}</h3>
           <p className="nwse-type-body-small mt-2 text-[var(--nw-slate)]">{step.detail}</p>
         </li>
@@ -538,8 +534,9 @@ export function JourneyStrip({ stages }: { stages: readonly string[] }) {
     >
       {stages.map((stage, index) => (
         <li key={stage} className="flex shrink-0 snap-start items-center gap-2">
-          <span className="nwse-type-label nwse-label rounded-md border px-3 py-1.5" style={{ borderColor: 'var(--nw-mist-gray)', background: 'var(--nw-pure-white)' }}>
-            <span className="text-[var(--nwse-lure-amber-deep)]">{String(index + 1).padStart(2, '0')}</span> {stage}
+          <span className="nwse-type-label nwse-label flex items-center gap-2 rounded-md border px-3 py-1.5" style={{ borderColor: 'var(--nw-mist-gray)', background: 'var(--nw-pure-white)' }}>
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--nwse-lure-amber-deep)]" aria-hidden="true" />
+            {stage}
           </span>
           {index < stages.length - 1 ? <NwseIcon name="chevron-right" size={14} className="text-[var(--nw-slate)]" /> : null}
         </li>
@@ -721,7 +718,7 @@ export function Band({
 /**
  * The hub's three pillars, each in its own colour role (cyan, green, amber):
  * on a dark band (`tone="dark"`, the hub), glass tiles with a coloured cap,
- * a coloured icon tile, and the index in the role's colour; on a light band,
+ * a coloured icon tile; on a light band,
  * the same card washed in the role's tint. One column on phones, three from
  * lg; on tablets the third card spans the row rather than standing alone.
  */
@@ -729,7 +726,7 @@ export function PillarCards({ pillars, tone = 'light' }: { pillars: readonly Div
   const dark = tone === 'dark';
   return (
     <ol className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 sm:gap-4 md:grid-cols-2 lg:mt-10 lg:grid-cols-3 md:max-lg:[&>li:last-child:nth-child(odd)]:col-span-2" data-role="pillars">
-      {pillars.map((pillar, index) => {
+      {pillars.map((pillar) => {
         const color = PILLAR_STYLE[pillar.key];
         return (
           <li
@@ -738,14 +735,9 @@ export function PillarCards({ pillars, tone = 'light' }: { pillars: readonly Div
             className={`${dark ? 'nwse-glass' : `nwse-tint ${color.tint}`} relative flex flex-col overflow-hidden p-5 sm:p-6 lg:p-7`}
           >
             <span className="absolute inset-x-0 top-0 h-1.5" style={{ background: color.accent }} aria-hidden="true" />
-            <div className="flex items-center justify-between gap-4">
-              <span className={`nwse-icon ${color.tile} ${dark ? 'nwse-icon-on-dark' : ''} h-14 w-14 shrink-0`}>
-                <NwseIcon name={pillar.icon} size={28} />
-              </span>
-              <span className="nwse-type-label" style={{ color: dark ? color.onDark : color.deep }}>
-                {String(index + 1).padStart(2, '0')}
-              </span>
-            </div>
+            <span className={`nwse-icon ${color.tile} ${dark ? 'nwse-icon-on-dark' : ''} h-14 w-14 shrink-0`}>
+              <NwseIcon name={pillar.icon} size={28} />
+            </span>
             <h3 className={`nwse-type-title-1 mt-5 ${TEXT[tone].heading}`}>{pillar.title}</h3>
             <p className={`nwse-type-body mt-2 ${TEXT[tone].body}`}>{pillar.summary}</p>
             <div className="mt-4 border-t pt-4" style={{ borderColor: dark ? TEXT.dark.hairline : color.accent }}>
@@ -791,7 +783,7 @@ export function GlanceStrip({ items, labelledBy, tone = 'light' }: { items: read
 
 /**
  * What changes for the business: three statements, each a panel washed in
- * the next colour role (cyan, green, amber) with a large numeral in the
+ * the next colour role (cyan, green, amber) with a check icon in the
  * role's text colour. One grouped list on phones (.nwse-rowlist), three
  * panels from md.
  */
@@ -803,8 +795,8 @@ export function OutcomeList({ outcomes }: { outcomes: readonly string[] }) {
         return (
           <li key={outcome} className={`nwse-tint ${color.tint} flex flex-col gap-3 p-5 sm:p-6 lg:p-7`}>
             <span className="flex items-center gap-3" aria-hidden="true">
-              <span className="nwse-type-display-2 nwse-type-numeric" style={{ color: color.deep }}>
-                {String(index + 1).padStart(2, '0')}
+              <span style={{ color: color.deep }}>
+                <NwseIcon name="check-circle" size={32} />
               </span>
               <span className="h-1 w-8 rounded-full" style={{ background: color.accent }} />
             </span>

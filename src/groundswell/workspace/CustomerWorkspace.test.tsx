@@ -26,9 +26,9 @@ const workspace = (runs: Runs = {}, start: Partial<Record<string, { allowed: boo
   phases_available: true,
   phases: (
     [
-      ['audit', 1, 'The audit'],
-      ['competitors', 2, 'The plan against competitors'],
-      ['integrated', 3, 'The integrated plan'],
+      ['audit', 1, 'Growth audit'],
+      ['competitors', 2, 'Competitor plan'],
+      ['integrated', 3, 'Integrated plan'],
     ] as const
   ).map(([phase, number, title]) => ({
     phase, number, title, source: 'Public data', brings: `${title} brings this.`, runs: runs[phase] ?? [],
@@ -81,7 +81,7 @@ describe('customer workspace', () => {
     ws.reportUrl.mockResolvedValue('https://s.example/adsets.pdf');
     const opened = vi.spyOn(window, 'open').mockImplementation(() => null);
     render(<CustomerWorkspace viewer="admin" customerId="c1" />);
-    expect(await screen.findByRole('heading', { level: 3, name: 'Phase 2 · The plan against competitors' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 3, name: 'Competitor plan' })).toBeInTheDocument();
     expect(ws.getWorkspace).toHaveBeenCalledWith('admin', 'c1');
     const cards = within(screen.getByRole('list', { name: 'Phases' })).getAllByRole('button');
     expect(cards.map((c) => c.getAttribute('aria-pressed'))).toEqual(['false', 'true', 'false']);
@@ -105,7 +105,7 @@ describe('customer workspace', () => {
     expect(screen.getByText('1,240')).toBeInTheDocument();
     // Another phase is one click away.
     fireEvent.click(cards[0]);
-    expect(screen.getByRole('heading', { level: 3, name: 'Phase 1 · The audit' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 3, name: 'Growth audit' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Full audit \(PDF\)/ })).toBeInTheDocument();
   });
 
@@ -139,23 +139,23 @@ describe('customer workspace', () => {
 
   it('runs a delivered phase again, and lists the earlier runs under it', async () => {
     ws.getWorkspace.mockResolvedValue(workspace({ audit: [run({ id: 'r3', files: [] }), run({ id: 'r1', files: [] })] }, { audit: { allowed: true, reason: 'Reads public data again.' } }));
-    ws.startPhase.mockResolvedValue({ queued: 'r4', reason: 'Phase 1 is queued.' });
+    ws.startPhase.mockResolvedValue({ queued: 'r4', reason: 'Growth audit is queued.' });
     render(<CustomerWorkspace viewer="admin" customerId="c1" />);
     expect(await screen.findByText('Earlier runs (1)')).toBeInTheDocument();
     expect(document.querySelectorAll('[data-run]')).toHaveLength(2);
     fireEvent.click(screen.getByRole('button', { name: /Run again/ }));
     await waitFor(() => expect(ws.startPhase).toHaveBeenCalledWith('admin', 'c1', 'audit'));
-    expect(await screen.findByRole('status')).toHaveTextContent('Phase 1 is queued. It starts on its own within a minute');
+    expect(await screen.findByRole('status')).toHaveTextContent('Growth audit is queued. It starts on its own within a minute');
   });
 
   it('says why a phase cannot start, and shows the server’s refusal', async () => {
     ws.getWorkspace.mockResolvedValue(workspace({}, { audit: { allowed: true, reason: 'Reads public data.' } }));
     ws.startPhase.mockRejectedValue(new Error('Too many runs started; try again in a few minutes.'));
     render(<CustomerWorkspace viewer="partner" customerId="c1" />);
-    fireEvent.click(await screen.findByRole('button', { name: /Start phase 1/ }));
+    fireEvent.click(await screen.findByRole('button', { name: /Start growth audit/ }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Too many runs started');
     fireEvent.click(within(screen.getByRole('list', { name: 'Phases' })).getAllByRole('button')[2]);
-    expect(screen.queryByRole('button', { name: /Start phase 3/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Start integrated plan/ })).not.toBeInTheDocument();
     expect(screen.getByText('Waiting on the phase before it.')).toBeInTheDocument();
   });
 
@@ -188,9 +188,9 @@ describe('staff customers', () => {
     const harbor = rows()[0];
     expect(within(harbor).getByRole('link', { name: 'Harbor Auto' })).toHaveAttribute('href', groundswellAdminCustomerPath('c1'));
     expect(within(harbor).getByText('Reef Agency')).toBeInTheDocument();
-    expect(within(harbor).getByRole('list', { name: 'Phases for Harbor Auto' })).toHaveTextContent('Phase 1: Audit · Reports ready');
-    expect(within(harbor).getByRole('list', { name: 'Phases for Harbor Auto' })).toHaveTextContent('Phase 2: Plan against competitors · Running');
-    expect(within(harbor).getByRole('list', { name: 'Phases for Harbor Auto' })).toHaveTextContent('Phase 3: Integrated plan · Not started');
+    expect(within(harbor).getByRole('list', { name: 'Phases for Harbor Auto' })).toHaveTextContent('Growth audit · Reports ready');
+    expect(within(harbor).getByRole('list', { name: 'Phases for Harbor Auto' })).toHaveTextContent('Competitor plan · Running');
+    expect(within(harbor).getByRole('list', { name: 'Phases for Harbor Auto' })).toHaveTextContent('Integrated plan · Not started');
     expect(within(rows()[1]).getByText('New Wave')).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText('Partner'), { target: { value: 'new-wave' } });

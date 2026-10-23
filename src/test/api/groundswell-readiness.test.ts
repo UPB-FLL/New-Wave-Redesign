@@ -65,7 +65,7 @@ describe('readiness checks', () => {
     ]);
     // Without a consumer key, phases 1 and 2 read through the project; the row says so and never blocks.
     expect(checks.find((c) => c.key === 'COMPOSIO_CONSUMER_API_KEY')).toMatchObject({ ok: false, required: false });
-    expect(checks.find((c) => c.key === 'COMPOSIO_CONSUMER_API_KEY')?.detail).toMatch(/phases 1 and 2 read through the Composio project/);
+    expect(checks.find((c) => c.key === 'COMPOSIO_CONSUMER_API_KEY')?.detail).toMatch(/growth audit and competitor plan read through the Composio project/);
     expect(checks.filter((c) => c.key !== 'COMPOSIO_CONSUMER_API_KEY').every((c) => c.ok)).toBe(true);
     expect(mocks.consumerConnections).not.toHaveBeenCalled();
     expect(readinessSummary(checks)).toEqual({ ready: true, complete: true, summary: 'Ready: every service answered.' });

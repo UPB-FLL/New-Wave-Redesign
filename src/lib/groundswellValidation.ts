@@ -179,13 +179,13 @@ export const isPhase = (v: unknown): v is Phase => PHASES.includes(v as Phase);
 export const PHASE_INFO: Record<Phase, { number: 1 | 2 | 3; title: string; source: string; brings: string }> = {
   audit: {
     number: 1,
-    title: 'Audit',
+    title: 'Growth audit',
     source: 'Public data',
     brings: 'The business’s website, Google listing, Instagram, search rankings, keyword demand and ads: the full audit, slides and summary.',
   },
   competitors: {
     number: 2,
-    title: 'Plan against competitors',
+    title: 'Competitor plan',
     source: 'Public data',
     brings: 'How the business stacks up against its top competitors, what to change on the website and in its ads, and ready-to-import ad sets with spend and return at three budgets.',
   },

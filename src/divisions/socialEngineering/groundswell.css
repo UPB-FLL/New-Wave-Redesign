@@ -56,7 +56,7 @@
 .gs-marketing .gs-marketing-preview > .gs-marketing-eyebrow { color: var(--gs-cyan); padding-bottom: 20px; }
 .gs-marketing .gs-marketing-preview ol { display: grid; gap: 22px; }
 .gs-marketing .gs-marketing-preview li { display: flex; align-items: start; gap: 14px; }
-.gs-marketing .gs-marketing-phase-number { display: grid; place-items: center; flex: none; width: 30px; height: 30px; border-radius: 5px; background: var(--gs-cyan); color: var(--gs-navy); font-family: var(--nw-font-technical); font-size: 11px; }
+.gs-marketing .gs-marketing-phase-marker { display: grid; place-items: center; flex: none; width: 30px; height: 30px; border-radius: 5px; background: var(--gs-cyan); color: var(--gs-navy); }
 .gs-marketing .gs-marketing-preview h2 { font-family: var(--nw-font-body); font-size: 15px; line-height: 1.5; font-weight: 600; }
 .gs-marketing .gs-marketing-preview li p { margin-top: 3px; color: var(--gs-cyan); font-size: 11px; }
 .gs-marketing .gs-marketing-preview li div > span { display: block; margin-top: 8px; color: var(--gs-mist); font-size: 12px; line-height: 1.6; }

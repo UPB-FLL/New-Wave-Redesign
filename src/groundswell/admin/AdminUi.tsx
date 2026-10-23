@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Check, CircleDashed, type LucideIcon } from 'lucide-react';
+import { ArrowRight, Check, CircleDashed, Clock3, Loader2, X, type LucideIcon } from 'lucide-react';
 import { PHASE_INFO, PHASES } from '../../lib/groundswellValidation';
 import type { StaffCustomer } from '../../lib/groundswellWorkspace';
 import { AUDIT_STATUS, STAGE_LABELS } from '../pages/customerStatus';
 import { groundswellAdminCustomerPath } from '../site';
+import { PhaseIcon } from '../PhaseIcon';
 
 export function AdminPageHeader({
   title,
@@ -58,19 +59,23 @@ export function CustomerPhaseTrack({ customer }: { customer: StaffCustomer }) {
           const run = customer.phases[p];
           const label = run ? (AUDIT_STATUS[run.status as keyof typeof AUDIT_STATUS]?.label ?? 'Not started') : 'Not started';
           return (
-            <li key={p} data-status={run?.status ?? 'idle'} title={`Phase ${PHASE_INFO[p].number}: ${PHASE_INFO[p].title} · ${label}`}>
+            <li key={p} data-status={run?.status ?? 'idle'} title={`${PHASE_INFO[p].title} · ${label}`}>
               <span className="gs-admin-phase-node" aria-hidden="true">
-                {run?.status === 'done' ? <Check size={12} /> : PHASE_INFO[p].number}
+                {run?.status === 'done' ? <Check size={12} />
+                  : run?.status === 'failed' ? <X size={12} />
+                  : run?.status === 'running' ? <Loader2 size={12} />
+                  : run?.status === 'queued' || run?.status === 'review' ? <Clock3 size={12} />
+                  : <CircleDashed size={12} />}
               </span>
               <span className="sr-only">
-                Phase {PHASE_INFO[p].number}: {PHASE_INFO[p].title} · {label}
+                {PHASE_INFO[p].title} · {label}
               </span>
             </li>
           );
         })}
       </ol>
       <span className="gs-admin-phase-caption" style={{ color: state?.color }}>
-        {latest ? PHASE_INFO[latest].title : 'Audit'} · {state?.label ?? 'Not started'}
+        {PHASE_INFO[latest ?? 'audit'].title} · {state?.label ?? 'Not started'}
       </span>
     </div>
   );
@@ -78,10 +83,10 @@ export function CustomerPhaseTrack({ customer }: { customer: StaffCustomer }) {
 
 export function PhaseLegend() {
   return (
-    <ol className="gs-admin-phase-legend" aria-label="The three phases">
+    <ol className="gs-admin-phase-legend" aria-label="Phases">
       {PHASES.map((p) => (
         <li key={p}>
-          <span>{String(PHASE_INFO[p].number).padStart(2, '0')}</span>
+          <span aria-hidden="true"><PhaseIcon phase={p} size={13} /></span>
           {PHASE_INFO[p].title}
         </li>
       ))}
