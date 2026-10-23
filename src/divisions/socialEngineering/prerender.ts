@@ -78,6 +78,8 @@ function deferGoogleFontsStylesheet(html: string, criticalFonts: readonly string
 export interface RenderOptions {
   /** Extra <head> markup, e.g. modulepreload links for the page's lazy chunks. */
   headExtras?: readonly string[];
+  /** Actual page markup from the build-only React renderer, replaced by the app at startup. */
+  bodyHtml?: string;
 }
 
 export function renderDivisionPageHtml(shell: string, page: DivisionPageSeo, options: RenderOptions = {}): string {
@@ -133,6 +135,21 @@ export function renderDivisionPageHtml(shell: string, page: DivisionPageSeo, opt
       `<script type="application/ld+json" id="${DIVISION_JSONLD_ELEMENT_ID}">${escapeJsonForScript(divisionJsonLdDocument(page))}</script>`,
   );
   for (const extra of options.headExtras ?? []) html = insertBeforeHeadClose(html, extra);
+
+  // Visible, server-rendered page content works for plain HTTP readers as well
+  // as browsers. Do not emit the old noscript summary beside a complete page:
+  // that would duplicate its H1 and navigation when JavaScript is disabled.
+  if (options.bodyHtml !== undefined) {
+    if (!options.bodyHtml.trim() || !/<h1\b/i.test(options.bodyHtml)) {
+      throw new Error(`Prerender: ${page.path} body must contain the rendered page and its H1.`);
+    }
+    return upsertHeadTag(html, {
+      label: 'root element',
+      pattern: /<div id="root"><\/div>/g,
+      tag: `<div id="root">${options.bodyHtml}</div>`,
+      required: true,
+    });
+  }
 
   // Readable fallback for crawlers that never execute the app bundle, with
   // plain links to every other division page.

@@ -1,4 +1,6 @@
 import { PermanentStepError, type StepContext } from '../types.js';
+import { inspectTechnicalSeo, type TechnicalSeo } from './technicalSeo.js';
+export type { TechnicalSeo, TechnicalSeoFinding } from './technicalSeo.js';
 
 /**
  * Site Current: fetches a website's homepage (plain HTTP, no browser) and reads
@@ -21,12 +23,15 @@ export interface SiteScan {
   h1: string[];
   canonical: string | null;
   has_viewport: boolean;
+  /** Body text only on new scans; older stored scans may also include head or noscript text. */
   word_count: number;
   theme_color: string | null;
   brand_colors: string[];
   logo: string | null;
   og_image: string | null;
   schema_types: string[];
+  /** Optional because scans stored before technical SEO diagnostics remain valid. */
+  technical_seo?: TechnicalSeo;
   tracking: {
     google_analytics: string[];
     google_tag_manager: string[];
@@ -106,23 +111,9 @@ const BOOKING = [
   ['Tekmetric', /tekmetric\.com/i],
 ] as const;
 
-export function parseSite(html: string, url: string, finalUrl: string, status: number): SiteScan {
-  const body = html.replace(/<script\b[\s\S]*?<\/script>/gi, ' ').replace(/<style\b[\s\S]*?<\/style>/gi, ' ');
-  const text = decode(body.replace(/<[^>]+>/g, ' '));
+export function parseSite(html: string, url: string, finalUrl: string, status: number, xRobotsTag: string | null = null): SiteScan {
+  const seo = inspectTechnicalSeo(html, finalUrl, status, xRobotsTag);
   const title = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
-  const h1 = [...body.matchAll(/<h1\b[^>]*>([\s\S]*?)<\/h1>/gi)].map((m) => decode(m[1].replace(/<[^>]+>/g, ' '))).filter(Boolean);
-
-  const schemaTypes: string[] = [];
-  for (const m of html.matchAll(/<script[^>]*application\/ld\+json[^>]*>([\s\S]*?)<\/script>/gi)) {
-    for (const t of m[1].matchAll(/"@type"\s*:\s*(\[[^\]]*\]|"[^"]+")/g)) {
-      try {
-        const v = JSON.parse(t[1]);
-        schemaTypes.push(...(Array.isArray(v) ? v : [v]).map(String));
-      } catch {
-        /* malformed JSON-LD is itself a finding, but not one we parse further */
-      }
-    }
-  }
 
   const hexes = (html.match(/#[0-9a-fA-F]{6}\b/g) ?? []).map((h) => h.toLowerCase());
   const counts = new Map<string, number>();
@@ -157,15 +148,16 @@ export function parseSite(html: string, url: string, finalUrl: string, status: n
     error: null,
     title: title ? decode(title[1]) : null,
     meta_description: metaContent(html, 'name', 'description'),
-    h1,
+    h1: seo.h1,
     canonical: linkHref(html, /\bcanonical\b/i),
     has_viewport: /<meta[^>]+name\s*=\s*["']viewport["']/i.test(html),
-    word_count: text ? text.split(' ').length : 0,
+    word_count: seo.wordCount,
     theme_color: metaContent(html, 'name', 'theme-color'),
     brand_colors: brandColors,
     logo,
     og_image: absolute(metaContent(html, 'property', 'og:image'), finalUrl),
-    schema_types: unique(schemaTypes),
+    schema_types: seo.schemaTypes,
+    technical_seo: seo.technicalSeo,
     tracking: {
       google_analytics: ga,
       google_tag_manager: gtm,
@@ -192,7 +184,7 @@ export async function scanSite(url: string, timeoutMs = 20_000): Promise<SiteSca
       signal: AbortSignal.timeout(timeoutMs),
     });
     const html = (await response.text()).slice(0, 3_000_000);
-    return parseSite(html, url, response.url || url, response.status);
+    return parseSite(html, url, response.url || url, response.status, response.headers?.get('x-robots-tag') ?? null);
   } catch (err) {
     return {
       ...parseSite('', url, url, 0),

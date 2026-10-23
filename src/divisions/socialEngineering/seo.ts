@@ -264,6 +264,7 @@ export function groundswellPageSeo(): DivisionPageSeo {
         '@type': 'SoftwareApplication',
         '@id': absoluteUrl(`${path}#application`),
         name: 'GroundSwell',
+        description: auditContent.metaDescription,
         applicationCategory: 'BusinessApplication',
         operatingSystem: 'Web',
         url: absoluteUrl('/groundswell'),
@@ -272,6 +273,7 @@ export function groundswellPageSeo(): DivisionPageSeo {
       },
       {
         ...webPageNode(path, auditContent.metaTitle, auditContent.metaDescription),
+        mainEntity: { '@id': absoluteUrl(`${path}#application`) },
         primaryImageOfPage: absoluteUrl(GROUNDSWELL_BRAND.ogImage),
       },
       breadcrumbNode(path, breadcrumbs),

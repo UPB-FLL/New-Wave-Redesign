@@ -1,6 +1,5 @@
 /* A chapter rail and an open working surface, using the supplied GroundSwell type and palette. */
 .gs-marketing #how-it-works::before { display: none; }
-.gs-marketing #how-it-works { background: var(--gs-white) !important; }
 .gs-marketing #how-it-works > div > div:first-child { max-width: 48rem; }
 .gs-marketing #how-it-works h2 { max-width: 42rem; font-size: clamp(2rem, 3.5vw, 3.25rem); line-height: 1.16; letter-spacing: -.045em; }
 .gs-marketing .gs-process { margin-top: 2.75rem; }
@@ -19,8 +18,7 @@
 .gs-marketing .gs-process-outcome { max-width: 28rem; margin-top: 1.75rem; padding-left: 1rem; border-left: 2px solid var(--gs-tide); font-size: .8125rem; color: var(--gs-navy); line-height: 1.7; }
 .gs-marketing .gs-process-outcome span { display: block; margin-bottom: .25rem; font-weight: 600; }
 .gs-marketing .gs-process-figure { min-width: 0; margin: 0; }
-.gs-marketing .gs-process-drawing { aspect-ratio: 8 / 5; position: relative; isolation: isolate; overflow: hidden; border: 1px solid #253b4b; border-radius: 12px; background: var(--gs-navy); }
-.gs-marketing .gs-process-drawing svg { display: block; width: 100%; height: auto; overflow: hidden; }
+.gs-marketing .gs-process-drawing { aspect-ratio: 3 / 2; position: relative; isolation: isolate; }
 .gs-marketing .gs-process-figure figcaption { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; padding-top: .75rem; color: var(--gs-slate); font-family: var(--nw-font-technical); font-size: .625rem; line-height: 1.7; }
 .gs-marketing .gs-process-replay { display: inline-flex; align-items: center; justify-content: center; gap: .25rem; flex: none; min-height: 44px; margin-top: -.75rem; padding: .5rem 0 .5rem .5rem; color: var(--gs-tide); font: inherit; font-weight: 500; }
 .gs-marketing .gs-process-replay:hover { color: var(--gs-navy); text-decoration: underline; }

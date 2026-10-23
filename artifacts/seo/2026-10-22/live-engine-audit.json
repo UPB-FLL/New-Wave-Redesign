@@ -1,0 +1,295 @@
+{
+  "observed_at": "2026-10-23T01:14:53.930Z",
+  "engine": "GroundSwell Site Current: api/_lib/groundswell/currents/site.ts",
+  "source": {
+    "kind": "live_http",
+    "requested_url": "https://www.newwaveitfl.com/social-engineering/groundswell",
+    "final_url": "https://www.newwaveitfl.com/social-engineering/groundswell",
+    "status": 200,
+    "sha256": "abf3629b25add1418e7482e04d0df6ee1cd00f3433dcc4bd21866c566e25c06f",
+    "content_type": "text/html; charset=utf-8",
+    "x_robots_tag": null
+  },
+  "raw_parse_site": {
+    "url": "https://www.newwaveitfl.com/social-engineering/groundswell",
+    "final_url": "https://www.newwaveitfl.com/social-engineering/groundswell",
+    "status": 200,
+    "https": true,
+    "fetched_at": "2026-10-23T01:14:53.938Z",
+    "error": null,
+    "title": "GroundSwell — Growth audits & partner workspace | New Wave",
+    "meta_description": "GroundSwell brings growth audits, competitor plans, branded reports, and a partner workspace together. Built by New Wave for agencies and businesses.",
+    "h1": [],
+    "canonical": "https://www.newwaveitfl.com/social-engineering/groundswell",
+    "has_viewport": true,
+    "word_count": 0,
+    "theme_color": "#09131D",
+    "brand_colors": [],
+    "logo": "https://www.newwaveitfl.com/brand/social-engineering/06_Digital/GroundSwell_Favicon_180.png",
+    "og_image": "https://www.newwaveitfl.com/brand/social-engineering/06_Digital/GroundSwell_OG_1200x630.png",
+    "schema_types": [
+      "Organization",
+      "Country",
+      "SoftwareApplication",
+      "WebPage",
+      "WebSite",
+      "BreadcrumbList",
+      "ListItem",
+      "FAQPage",
+      "Question",
+      "Answer"
+    ],
+    "technical_seo": {
+      "scope": "raw_http",
+      "limitation": "Initial HTML from a raw HTTP fetch; JavaScript was not rendered. Head, comments, scripts, styles, templates and noscript are excluded from body counts. Confirm rendered content and indexing with Search Console; these checks do not measure rankings, robots.txt access, or rich-result eligibility.",
+      "body_h1_count": 0,
+      "body_word_count": 0,
+      "app_shell": true,
+      "robots": [
+        "index, follow"
+      ],
+      "x_robots_tag": null,
+      "canonical_url": "https://www.newwaveitfl.com/social-engineering/groundswell",
+      "json_ld": {
+        "blocks": 1,
+        "invalid_blocks": 0
+      },
+      "images": {
+        "total": 0,
+        "missing_alt": 0,
+        "empty_alt": 0
+      },
+      "findings": [
+        {
+          "code": "app_shell",
+          "severity": "medium",
+          "title": "Main content may depend on JavaScript rendering",
+          "evidence": "An empty app mount and external scripts were found; the initial body contains 0 words and 0 main headings.",
+          "recommendation": "Compare the rendered page with this response and use Search Console URL Inspection. If essential copy exists only after JavaScript, consider server rendering or prerendering. This observation does not establish whether Google can index the page."
+        },
+        {
+          "code": "missing_body_h1",
+          "severity": "low",
+          "title": "No main heading was found in the initial body",
+          "evidence": "No non-empty h1 was found outside head, comments, scripts, templates and noscript.",
+          "recommendation": "Check the rendered page for a clear main heading. If it is absent there too, add one that describes the page; do not treat this raw-response observation as a ranking score."
+        }
+      ]
+    },
+    "tracking": {
+      "google_analytics": [],
+      "google_tag_manager": [],
+      "google_ads": [],
+      "meta_pixel": false,
+      "tiktok_pixel": false
+    },
+    "booking": [],
+    "phones": [],
+    "social": {
+      "instagram": [],
+      "facebook": [],
+      "tiktok": [],
+      "youtube": []
+    }
+  },
+  "limitations": [
+    "Plain HTTP and local browser observations only; no Search Console, ranking, traffic, or Google indexing evidence.",
+    "No PageSpeed API, Core Web Vitals, or Lighthouse scores were requested or estimated."
+  ],
+  "live_scan_site": {
+    "url": "https://www.newwaveitfl.com/social-engineering/groundswell",
+    "final_url": "https://www.newwaveitfl.com/social-engineering/groundswell",
+    "status": 200,
+    "https": true,
+    "fetched_at": "2026-10-23T01:14:54.013Z",
+    "error": null,
+    "title": "GroundSwell — Growth audits & partner workspace | New Wave",
+    "meta_description": "GroundSwell brings growth audits, competitor plans, branded reports, and a partner workspace together. Built by New Wave for agencies and businesses.",
+    "h1": [],
+    "canonical": "https://www.newwaveitfl.com/social-engineering/groundswell",
+    "has_viewport": true,
+    "word_count": 0,
+    "theme_color": "#09131D",
+    "brand_colors": [],
+    "logo": "https://www.newwaveitfl.com/brand/social-engineering/06_Digital/GroundSwell_Favicon_180.png",
+    "og_image": "https://www.newwaveitfl.com/brand/social-engineering/06_Digital/GroundSwell_OG_1200x630.png",
+    "schema_types": [
+      "Organization",
+      "Country",
+      "SoftwareApplication",
+      "WebPage",
+      "WebSite",
+      "BreadcrumbList",
+      "ListItem",
+      "FAQPage",
+      "Question",
+      "Answer"
+    ],
+    "technical_seo": {
+      "scope": "raw_http",
+      "limitation": "Initial HTML from a raw HTTP fetch; JavaScript was not rendered. Head, comments, scripts, styles, templates and noscript are excluded from body counts. Confirm rendered content and indexing with Search Console; these checks do not measure rankings, robots.txt access, or rich-result eligibility.",
+      "body_h1_count": 0,
+      "body_word_count": 0,
+      "app_shell": true,
+      "robots": [
+        "index, follow"
+      ],
+      "x_robots_tag": null,
+      "canonical_url": "https://www.newwaveitfl.com/social-engineering/groundswell",
+      "json_ld": {
+        "blocks": 1,
+        "invalid_blocks": 0
+      },
+      "images": {
+        "total": 0,
+        "missing_alt": 0,
+        "empty_alt": 0
+      },
+      "findings": [
+        {
+          "code": "app_shell",
+          "severity": "medium",
+          "title": "Main content may depend on JavaScript rendering",
+          "evidence": "An empty app mount and external scripts were found; the initial body contains 0 words and 0 main headings.",
+          "recommendation": "Compare the rendered page with this response and use Search Console URL Inspection. If essential copy exists only after JavaScript, consider server rendering or prerendering. This observation does not establish whether Google can index the page."
+        },
+        {
+          "code": "missing_body_h1",
+          "severity": "low",
+          "title": "No main heading was found in the initial body",
+          "evidence": "No non-empty h1 was found outside head, comments, scripts, templates and noscript.",
+          "recommendation": "Check the rendered page for a clear main heading. If it is absent there too, add one that describes the page; do not treat this raw-response observation as a ranking score."
+        }
+      ]
+    },
+    "tracking": {
+      "google_analytics": [],
+      "google_tag_manager": [],
+      "google_ads": [],
+      "meta_pixel": false,
+      "tiktok_pixel": false
+    },
+    "booking": [],
+    "phones": [],
+    "social": {
+      "instagram": [],
+      "facebook": [],
+      "tiktok": [],
+      "youtube": []
+    }
+  },
+  "social_image": {
+    "url": "https://www.newwaveitfl.com/brand/social-engineering/06_Digital/GroundSwell_OG_1200x630.png",
+    "status": 200,
+    "content_type": "image/png",
+    "width": 1200,
+    "height": 630
+  },
+  "discovery": [
+    {
+      "url": "https://www.newwaveitfl.com/robots.txt",
+      "status": 200,
+      "sha256": "3775eff6f11a7512f308d470ee672df9933637124f10f050474a25ef942e24ef",
+      "text": "User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /admin/\nDisallow: /admin/*\n\nSitemap: https://www.newwaveitfl.com/sitemap.xml\nSitemap: https://www.newwaveitfl.com/sitemap-content.xml\n"
+    },
+    {
+      "url": "https://www.newwaveitfl.com/sitemap.xml",
+      "status": 200,
+      "sha256": "96ebbc4233c3486dad947ec88989b6c5657ea850c62b91e61bd751a171497ae8",
+      "includes_requested_url": true
+    }
+  ],
+  "browser": {
+    "requested_url": "https://www.newwaveitfl.com/social-engineering/groundswell",
+    "final_url": "https://www.newwaveitfl.com/social-engineering/groundswell",
+    "status": 200,
+    "response_sha256": "abf3629b25add1418e7482e04d0df6ee1cd00f3433dcc4bd21866c566e25c06f",
+    "sha256": "3acafd94f734da151170b35398cb0caa38dcaa3b1a4daea31ce63291d94d12df",
+    "page_errors": [],
+    "parser_url_context": "https://www.newwaveitfl.com/social-engineering/groundswell",
+    "parse_site": {
+      "url": "https://www.newwaveitfl.com/social-engineering/groundswell",
+      "final_url": "https://www.newwaveitfl.com/social-engineering/groundswell",
+      "status": 200,
+      "https": true,
+      "fetched_at": "2026-10-23T01:14:55.992Z",
+      "error": null,
+      "title": "GroundSwell — Growth audits & partner workspace | New Wave",
+      "meta_description": "GroundSwell brings growth audits, competitor plans, branded reports, and a partner workspace together. Built by New Wave for agencies and businesses.",
+      "h1": [
+        "Built to move people."
+      ],
+      "canonical": "https://www.newwaveitfl.com/social-engineering/groundswell",
+      "has_viewport": true,
+      "word_count": 3690,
+      "theme_color": "#09131D",
+      "brand_colors": [
+        "#31c6cf",
+        "#317b92",
+        "#f2a33a"
+      ],
+      "logo": "https://www.newwaveitfl.com/brand/social-engineering/06_Digital/GroundSwell_Favicon_180.png",
+      "og_image": "https://www.newwaveitfl.com/brand/social-engineering/06_Digital/GroundSwell_OG_1200x630.png",
+      "schema_types": [
+        "Organization",
+        "Country",
+        "SoftwareApplication",
+        "WebPage",
+        "WebSite",
+        "BreadcrumbList",
+        "ListItem",
+        "FAQPage",
+        "Question",
+        "Answer"
+      ],
+      "technical_seo": {
+        "scope": "raw_http",
+        "limitation": "Initial HTML from a raw HTTP fetch; JavaScript was not rendered. Head, comments, scripts, styles, templates and noscript are excluded from body counts. Confirm rendered content and indexing with Search Console; these checks do not measure rankings, robots.txt access, or rich-result eligibility.",
+        "body_h1_count": 1,
+        "body_word_count": 3690,
+        "app_shell": false,
+        "robots": [
+          "index, follow"
+        ],
+        "x_robots_tag": null,
+        "canonical_url": "https://www.newwaveitfl.com/social-engineering/groundswell",
+        "json_ld": {
+          "blocks": 1,
+          "invalid_blocks": 0
+        },
+        "images": {
+          "total": 3,
+          "missing_alt": 0,
+          "empty_alt": 1
+        },
+        "findings": []
+      },
+      "tracking": {
+        "google_analytics": [],
+        "google_tag_manager": [],
+        "google_ads": [],
+        "meta_pixel": false,
+        "tiktok_pixel": false
+      },
+      "booking": [],
+      "phones": [],
+      "social": {
+        "instagram": [],
+        "facebook": [],
+        "tiktok": [],
+        "youtube": []
+      }
+    },
+    "dom": {
+      "root_child_count": 1,
+      "main_word_count": 3163,
+      "h1": [
+        "Built to move people."
+      ],
+      "faq_count": 6,
+      "title_count": 1,
+      "canonical_count": 1,
+      "json_ld_count": 1
+    }
+  }
+}

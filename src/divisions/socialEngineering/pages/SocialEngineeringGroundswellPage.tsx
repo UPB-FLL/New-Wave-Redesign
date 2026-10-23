@@ -1,8 +1,9 @@
+import type { ReactNode } from 'react';
 import { GroundswellMarketingLayout } from '../components/GroundswellMarketingLayout';
 import { GroundswellHero } from '../components/GroundswellHero';
 import { GroundswellProcess } from '../components/GroundswellProcess';
 import { accentAt } from '../components/pillarStyle';
-import { Band, CheckList, CtaBand, CtaStrip, FaqList, PrimaryCta, SectionIntro } from '../components/sections';
+import { CheckList, CtaBand, CtaStrip, FaqList, PrimaryCta, SectionIntro } from '../components/sections';
 import { Tabs, type TabItem } from '../components/Tabs';
 import { auditConnectors, auditContent, auditReports, auditSample } from '../content';
 import { NwseIcon } from '../icons/NwseIcon';
@@ -21,6 +22,31 @@ import { compareWithToday, rankChanges, type RankedChange } from '../../../../pa
 
 const seo = groundswellPageSeo();
 
+/** Product-only surfaces leave the division's shared section colours intact. */
+function SectionBand({
+  children,
+  surface,
+  compact = false,
+  id,
+  labelledBy,
+}: {
+  children: ReactNode;
+  surface: 'navigation' | 'foam' | 'navy' | 'sample' | 'amber';
+  compact?: boolean;
+  id?: string;
+  labelledBy?: string;
+}) {
+  return (
+    <section
+      id={id}
+      aria-labelledby={labelledBy}
+      className={`gs-section gs-section-${surface} relative ${compact ? 'py-6 sm:py-8 lg:py-10' : 'py-10 sm:py-14 lg:py-20'}`}
+    >
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">{children}</div>
+    </section>
+  );
+}
+
 /** The row of in-page links under the hero: one pill per section, so a reader can go straight to the part they came for. */
 function JumpNav() {
   const c = auditContent.jump;
@@ -37,9 +63,8 @@ function JumpNav() {
 }
 
 /**
- * The Currents as an explorer: one chip per Current (its icon in the next
- * colour role), and a panel in that role's tint with where it looks, what it
- * brings back, and, where the worked example has a figure, what it found.
+ * The Currents as a dark explorer: one chip per source, with where it looks,
+ * what it brings back, and, where the worked example has a figure, what it found.
  */
 function CurrentsExplorer() {
   const c = auditContent.engine;
@@ -57,18 +82,18 @@ function CurrentsExplorer() {
         </>
       ),
       panel: (
-        <div className={`nwse-tint ${color.tint} grid gap-5 p-5 sm:p-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:gap-8 lg:p-7`}>
+        <div className="gs-current-panel grid gap-5 p-5 sm:p-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:gap-8 lg:p-7">
           <div>
-            <h3 className="nwse-type-title-1 text-[var(--nw-current-navy)]">{connector.name}</h3>
-            <p className="nwse-type-label mt-4 text-[var(--nw-current-navy)]">{c.sourceLabel}</p>
-            <p className="nwse-type-body-small mt-1 text-[var(--nw-slate)]">{connector.source}</p>
-            <p className="nwse-type-label mt-4 text-[var(--nw-current-navy)]">{c.gathersLabel}</p>
-            <p className="nwse-type-body mt-1 text-[var(--nw-current-navy)]">{connector.gathers}</p>
+            <h3 className="gs-current-title nwse-type-title-1">{connector.name}</h3>
+            <p className="gs-current-label nwse-type-label mt-4">{c.sourceLabel}</p>
+            <p className="gs-current-copy nwse-type-body-small mt-1">{connector.source}</p>
+            <p className="gs-current-label nwse-type-label mt-4">{c.gathersLabel}</p>
+            <p className="gs-current-title nwse-type-body mt-1">{connector.gathers}</p>
           </div>
           {connector.example ? (
-            <div className="nwse-soft self-start p-4 sm:p-5">
-              <p className="nwse-type-label nwse-label">{c.exampleLabel}</p>
-              <p className="nwse-type-body mt-2 text-[var(--nw-current-navy)]">{connector.example}</p>
+            <div className="gs-current-example self-start p-4 sm:p-5">
+              <p className="gs-current-label nwse-type-label">{c.exampleLabel}</p>
+              <p className="gs-current-title nwse-type-body mt-2">{connector.example}</p>
             </div>
           ) : null}
         </div>
@@ -78,7 +103,7 @@ function CurrentsExplorer() {
   return <Tabs items={items} label={c.explorerLabel} look="chips" className="mt-6 sm:mt-8 lg:mt-10" bodyClassName="mt-4" />;
 }
 
-/** The three reports as capped cards: a coloured cap each (cyan, green, amber), the format in the cap's text colour. */
+/** The three report formats share warm paper and a brand-colour cap. */
 function ReportGrid() {
   return (
     <ol className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 md:grid-cols-3 md:gap-4 lg:mt-10">
@@ -89,7 +114,7 @@ function ReportGrid() {
             <span className="absolute inset-x-0 top-0 h-1.5" style={{ background: color.accent }} aria-hidden="true" />
             <p className="nwse-type-label nwse-label mt-1">{report.audience}</p>
             <h3 className="nwse-type-title-1 mt-1 text-[var(--nw-current-navy)]">{report.name}</h3>
-            <p className="nwse-type-body-small mt-1 font-semibold" style={{ color: color.deep }}>
+            <p className="nwse-type-body-small mt-1 font-semibold text-[var(--gs-navy)]">
               {report.format}
             </p>
             <p className="nwse-type-body-small mt-3 text-[var(--nw-slate)]">{report.detail}</p>
@@ -493,7 +518,7 @@ function SampleViewer() {
  * second button straight to the example); the in-page links; the five steps
  * as a stepper; the Currents as an explorer; the worked example as a report
  * viewer, then the call to action; the three reports; how the audit grows;
- * questions; the closing call. Bands alternate white and Cloud White.
+ * questions; the closing call. Brand surfaces distinguish each part of the audit.
  */
 export default function SocialEngineeringGroundswellPage() {
   useDivisionMeta(seo);
@@ -503,11 +528,11 @@ export default function SocialEngineeringGroundswellPage() {
     <GroundswellMarketingLayout>
       <GroundswellHero />
 
-      <Band tone="white" size="compact">
+      <SectionBand surface="navigation" compact>
         <JumpNav />
-      </Band>
+      </SectionBand>
 
-      <Band id="how-it-works" labelledBy="nwse-audit-process">
+      <SectionBand surface="foam" id="how-it-works" labelledBy="nwse-audit-process">
         <SectionIntro
           kicker={content.process.kicker}
           title={content.process.heading}
@@ -515,20 +540,21 @@ export default function SocialEngineeringGroundswellPage() {
           id="nwse-audit-process"
         />
         <GroundswellProcess />
-      </Band>
+      </SectionBand>
 
-      <Band tone="white" id="currents" labelledBy="nwse-audit-engine">
+      <SectionBand surface="navy" id="currents" labelledBy="nwse-audit-engine">
         <SectionIntro
           kicker={content.engine.kicker}
           title={content.engine.heading}
           description={content.engine.intro}
           id="nwse-audit-engine"
+          tone="dark"
         />
         <CurrentsExplorer />
-        <CheckList items={content.rules} />
-      </Band>
+        <CheckList items={content.rules} tone="dark" />
+      </SectionBand>
 
-      <Band id="sample" labelledBy="nwse-audit-sample">
+      <SectionBand surface="sample" id="sample" labelledBy="nwse-audit-sample">
         <SectionIntro
           kicker={content.sample.kicker}
           title={content.sample.heading}
@@ -537,9 +563,9 @@ export default function SocialEngineeringGroundswellPage() {
         />
         <SampleViewer />
         <CtaStrip heading={content.sample.cta.heading} body={content.sample.cta.body} />
-      </Band>
+      </SectionBand>
 
-      <Band tone="white" id="reports" labelledBy="nwse-audit-reports">
+      <SectionBand surface="amber" id="reports" labelledBy="nwse-audit-reports">
         <SectionIntro
           kicker={content.reports.kicker}
           title={content.reports.heading}
@@ -547,32 +573,33 @@ export default function SocialEngineeringGroundswellPage() {
           id="nwse-audit-reports"
         />
         <ReportGrid />
-      </Band>
+      </SectionBand>
 
-      <Band labelledBy="nwse-audit-growth">
+      <SectionBand surface="navy" id="growth" labelledBy="nwse-audit-growth">
         <SectionIntro
           kicker={content.growth.kicker}
           title={content.growth.heading}
           description={content.growth.intro}
           id="nwse-audit-growth"
+          tone="dark"
         />
         <div className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 md:grid-cols-2 md:gap-4 lg:mt-10">
           {content.growth.groups.map((group, index) => {
             const color = accentAt(index);
             return (
-              <div key={group.title} className={`nwse-tint ${color.tint} p-4 sm:p-5 lg:p-6`}>
-                <h3 className="nwse-type-title-2 text-[var(--nw-current-navy)]">{group.title}</h3>
-                <CheckList items={group.items} color={color} />
+              <div key={group.title} className="gs-growth-panel p-4 sm:p-5 lg:p-6">
+                <h3 className="nwse-type-title-2 text-[var(--gs-white)]">{group.title}</h3>
+                <CheckList items={group.items} color={color} tone="dark" />
               </div>
             );
           })}
         </div>
-      </Band>
+      </SectionBand>
 
-      <Band tone="white" id="questions" labelledBy="nwse-audit-faq">
+      <SectionBand surface="foam" id="questions" labelledBy="nwse-audit-faq">
         <SectionIntro kicker="Questions" title="Common questions" id="nwse-audit-faq" />
         <FaqList faqs={content.faqs} />
-      </Band>
+      </SectionBand>
 
       <CtaBand heading={content.cta.heading} body={content.cta.body} />
     </GroundswellMarketingLayout>

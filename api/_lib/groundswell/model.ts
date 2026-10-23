@@ -98,6 +98,8 @@ const slimSite = (s: SiteScan | null) =>
     has_viewport: s.has_viewport,
     word_count: s.word_count,
     schema_types: s.schema_types,
+    canonical: s.canonical,
+    technical_seo: s.technical_seo,
     tracking: s.tracking,
     booking: s.booking,
     phones: s.phones.slice(0, 2),
@@ -360,6 +362,7 @@ Write in plain words for a busy owner. Rules:
 - Never cite sources as links or URLs; name a source in words if needed.
 - If a field is null, missing, or in not_available, say it could not be checked; never say the business lacks something you could not see.
 - Never describe as active something the data does not show.
+- website.business.technical_seo contains verified observations and fixes from the initial HTTP response only. Prioritize its high-severity findings in the website area. JavaScript was not rendered: an empty app shell, missing raw-body heading or small raw-body word count does not prove that Google cannot index the page or that it ranks poorly. Preserve the stated verification steps; do not invent SEO scores, traffic effects, or ranking gains. noindex may be intentional on private pages.
 - When client_accounts is present, it is data from the business's own accounts (Google Analytics, Search Console, Google Ads, Instagram, Meta Ads). It outranks the public estimates: prefer it in every area it covers, say which figures come from the business's own accounts, and do not list those accounts under cant_see.
 - Use they/them for people. Do not name people.
 - Recommend concrete fixes in priority order.
