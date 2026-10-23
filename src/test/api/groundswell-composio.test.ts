@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { authConfigFor, clientConnection, clientUserId, COMPOSIO_USER_ID, connectionFor, createConnectionLink, deleteConnectedAccount, executeTool, executeToolAs, forgetConnections, getConnectedAccount, keyShape, toolkitOf } from '../../../api/_lib/groundswell/composio';
+import { ProviderCreditError, resetPublicReadBudget } from '../../../api/_lib/groundswell/providerBudget';
 import { PermanentStepError } from '../../../api/_lib/groundswell/types';
 
 /** The Composio client's error reporting: a refused key names Composio's reason and the key's shape, never the key. */
@@ -8,6 +9,8 @@ afterEach(() => {
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
   forgetConnections();
+  resetPublicReadBudget();
+  vi.restoreAllMocks();
 });
 
 /** A fetch that answers the connection listing with `accounts` and the execute call with `execute`. */
@@ -27,6 +30,37 @@ function fetchWith(accounts: unknown[], execute: { status: number; body: unknown
 const maps = (id: string, user_id: string, created_at: string) => ({ id, status: 'ACTIVE', user_id, created_at, toolkit: { slug: 'google_maps' } });
 
 describe('Composio client', () => {
+  it('shares the caller deadline between connection resolution and execution', async () => {
+    vi.stubEnv('COMPOSIO_API_KEY', 'ak_1234567890');
+    vi.stubEnv('COMPOSIO_CONSUMER_API_KEY', '');
+    let now = 1_000;
+    vi.spyOn(Date, 'now').mockImplementation(() => now);
+    const timeout = vi.spyOn(AbortSignal, 'timeout');
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (url.includes('/connected_accounts')) {
+        now += 3_000;
+        return { status: 200, ok: true, json: async () => ({ items: [maps('ca_shared', COMPOSIO_USER_ID, '2026-10-21')] }) };
+      }
+      return { status: 200, ok: true, json: async () => ({ successful: true, data: { found: true } }) };
+    }));
+    expect(await executeTool('GOOGLE_MAPS_TEXT_SEARCH', {}, 9_000)).toEqual({ found: true });
+    expect(timeout.mock.calls.map(([ms]) => ms)).toEqual([9_000, 6_000]);
+  });
+
+  it('does not execute after connection resolution uses the entire deadline', async () => {
+    vi.stubEnv('COMPOSIO_API_KEY', 'ak_1234567890');
+    vi.stubEnv('COMPOSIO_CONSUMER_API_KEY', '');
+    let now = 1_000;
+    vi.spyOn(Date, 'now').mockImplementation(() => now);
+    const fetchMock = vi.fn(async () => {
+      now += 9_000;
+      return { status: 200, ok: true, json: async () => ({ items: [maps('ca_shared', COMPOSIO_USER_ID, '2026-10-21')] }) };
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    await expect(executeTool('GOOGLE_MAPS_TEXT_SEARCH', {}, 9_000)).rejects.toThrow(/timed out/);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it('describes the key without revealing it', () => {
     expect(keyShape('ak_1234567890')).toBe('13 characters, starts with ak_');
     expect(keyShape(' ak_1234567890\n')).toBe('15 characters, starts with ak_, with surrounding whitespace');
@@ -99,6 +133,18 @@ describe('Composio client', () => {
     expect(err).toBeInstanceOf(Error);
     expect(err).not.toBeInstanceOf(PermanentStepError);
     expect((err as Error).message).toBe('GOOGLE_MAPS_TEXT_SEARCH failed (500): upstream down');
+  });
+
+  it('pauses shared project reads after a wallet failure without blocking a client-owned read', async () => {
+    vi.stubEnv('COMPOSIO_API_KEY', 'ak_1234567890');
+    const calls = fetchWith([maps('ca_public', COMPOSIO_USER_ID, '2026-10-21')], { status: 402, body: { successful: false, error: 'Payment required: wallet credits are empty.' } });
+    await expect(executeTool('GOOGLE_MAPS_TEXT_SEARCH', {})).rejects.toBeInstanceOf(ProviderCreditError);
+    const afterFirst = calls.length;
+    await expect(executeTool('GOOGLE_MAPS_TEXT_SEARCH', {})).rejects.toThrow(/Add credits/);
+    expect(calls).toHaveLength(afterFirst);
+    const own = fetchWith([], { status: 200, body: { successful: true, data: { rows: [] } } });
+    await expect(executeToolAs('GOOGLE_ANALYTICS_RUN_REPORT', {}, { id: 'ca_client', user_id: 'client:c1' })).resolves.toEqual({ rows: [] });
+    expect(own).toHaveLength(1);
   });
 
   it('never runs a shared scrape as a client\'s own account, and finds a client\'s account by its user id', async () => {

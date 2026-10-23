@@ -3,6 +3,7 @@ import { executeTool, executeToolAs, findKey, isComposioConfigured } from '../co
 import { PermanentStepError, type StepContext } from '../types.js';
 import { loadLinkedAccounts } from './linked.js';
 import type { SiteScan } from './site.js';
+import { numeric } from './serp.js';
 
 /**
  * Social Current: public Instagram profiles (followers, posts, recent activity)
@@ -139,11 +140,12 @@ export function mediaFrom(posts: unknown): InstagramMedia[] {
   return out.slice(0, 12);
 }
 
-const n = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+const n = numeric;
 
 /** Post timestamps arrive as epoch seconds, epoch ms, or ISO strings. */
 function postTime(p: Record<string, unknown>): number | null {
   const v = p.taken_at_timestamp ?? p.taken_at ?? p.timestamp ?? p.created_at;
+  if (typeof v === 'string' && /^\d{10,13}$/.test(v)) { const t = Number(v); return t > 1e12 ? t : t * 1000; }
   if (typeof v === 'number') return v > 1e12 ? v : v * 1000;
   if (typeof v === 'string') {
     const t = Date.parse(v);
@@ -187,7 +189,7 @@ export function summarizeInstagram(handle: string, profile: unknown, posts: unkn
     biography: (findKey<string>(profile, 'biography') ?? null) as string | null,
     is_business: (findKey<boolean>(profile, 'is_business_account') ?? findKey<boolean>(profile, 'isBusinessAccount') ?? null) as boolean | null,
     last_post_at: times[0] ? new Date(times[0]).toISOString() : null,
-    posts_last_30_days: items.length ? times.filter((t) => now - t <= 30 * 86_400_000).length : null,
+    posts_last_30_days: times.length ? times.filter((t) => t <= now && now - t <= 30 * 86_400_000).length : null,
     avg_likes_recent: avg(recent.map((p) => n(p.like_count) ?? n(p.likesCount) ?? n(findKey(p.edge_liked_by ?? p.edge_media_preview_like, 'count')))),
     avg_comments_recent: avg(recent.map((p) => n(p.comment_count) ?? n(p.commentsCount) ?? n(findKey(p.edge_media_to_comment, 'count')))),
     bio_links: bioLinks(profile),
@@ -230,44 +232,52 @@ export const PRIVATE_NOTE = 'This Instagram account is private, so its figures a
 /** Apify's runs are paid and slower than ScrapeCreators; the caps keep one account under a few cents. */
 const APIFY_TIMEOUT_MS = 300_000;
 
-async function read(handle: string) {
-  return Promise.all([
-    executeTool('SCRAPECREATORS_GET_INSTAGRAM_PROFILE', { handle, trim: true }),
-    executeTool('SCRAPECREATORS_LIST_INSTAGRAM_USER_POSTS', { handle, trim: true }),
-  ]);
-}
+type ProfilePair = [unknown, unknown, string | null];
 
-/** The same profile through Apify's scrapers, which read with their own sessions. */
-async function readApify(handle: string) {
-  return Promise.all([
+/** Profile and post-list failures are independent; the profile survives an unreadable large posts answer. */
+async function readPair(profile: Promise<unknown>, posts: Promise<unknown>): Promise<ProfilePair> {
+  const [p, list] = await Promise.allSettled([profile, posts]);
+  if (p.status === 'rejected') throw p.reason;
+  return [p.value, list.status === 'fulfilled' ? list.value : null, list.status === 'rejected' ? `Posts: ${message(list.reason).slice(0, 300)}` : null];
+}
+async function read(handle: string): Promise<ProfilePair> {
+  return readPair(
+    executeTool('SCRAPECREATORS_GET_INSTAGRAM_PROFILE', { handle, trim: true }),
+    executeTool('SCRAPECREATORS_LIST_INSTAGRAM_USER_POSTS', { handle, trim: true })
+  );
+}
+async function readApify(handle: string): Promise<ProfilePair> {
+  return readPair(
     executeTool('APIFY_SCRAPE_INSTAGRAM_PROFILES', { usernames: [handle], maxTotalChargeUsd: 0.05 }, APIFY_TIMEOUT_MS),
-    executeTool('APIFY_SCRAPE_INSTAGRAM_POSTS', { username: [handle], resultsLimit: 12, dataDetailLevel: 'basicData', maxTotalChargeUsd: 0.25 }, APIFY_TIMEOUT_MS),
-  ]);
+    executeTool('APIFY_SCRAPE_INSTAGRAM_POSTS', { username: [handle], resultsLimit: 12, dataDetailLevel: 'basicData', maxTotalChargeUsd: 0.25 }, APIFY_TIMEOUT_MS)
+  );
 }
 
 async function instagram(handle: string, pauseMs = BLOCKED_RETRY_MS): Promise<InstagramSnapshot> {
-  let pair: [unknown, unknown];
+  let pair: ProfilePair;
   try {
-    try {
-      pair = await read(handle);
-    } catch (err) {
+    try { pair = await read(handle); }
+    catch (err) {
       if (!blocked(err)) throw err;
       await new Promise((r) => setTimeout(r, pauseMs));
       pair = await read(handle);
     }
-    return summarizeInstagram(handle, pair[0], pair[1]);
+    const snap = summarizeInstagram(handle, pair[0], pair[1]);
+    return { ...snap, error: pair[2] ?? (snap.exists ? null : 'The public Instagram profile returned no recognizable profile figures.') };
   } catch (err) {
     if (refusal(err) === 'private') return { ...summarizeInstagram(handle, null, null), restricted: true, note: PRIVATE_NOTE, error: message(err) };
-    if (!blocked(err)) return { ...summarizeInstagram(handle, null, null), error: message(err) };
-    // Turned away twice: a profile Instagram hides from logged-out readers. Apify reads with its own sessions.
+    const restricted = blocked(err);
+    // Provider setup/outages may use the other public reader. A wallet or key refusal needs action, not more paid calls.
+    if (/API key|wallet|out of credits|insufficient (?:credit|balance)/i.test(message(err))) return { ...summarizeInstagram(handle, null, null), error: message(err) };
+    if (!restricted && !/not connected|no active connection|unavailable|502|503|504/i.test(message(err))) return { ...summarizeInstagram(handle, null, null), error: message(err) };
     const first = message(err);
     try {
       pair = await readApify(handle);
       const snap = summarizeInstagram(handle, pair[0], pair[1]);
-      if (snap.exists) return { ...snap, read_via: 'apify', restricted: true, note: null };
-      return { ...snap, read_via: 'apify', restricted: true, note: RESTRICTED_NOTE, error: `${first} Apify answered with no profile either.` };
+      if (snap.exists) return { ...snap, read_via: 'apify', restricted, note: null, error: pair[2] };
+      return { ...snap, read_via: 'apify', restricted, note: restricted ? RESTRICTED_NOTE : null, error: `${first} Apify answered with no recognizable profile either.` };
     } catch (fallback) {
-      return { ...summarizeInstagram(handle, null, null), restricted: true, note: RESTRICTED_NOTE, error: `${first} Apify: ${message(fallback).slice(0, 200)}` };
+      return { ...summarizeInstagram(handle, null, null), restricted, note: restricted ? RESTRICTED_NOTE : null, error: `${first} Apify: ${message(fallback).slice(0, 200)}` };
     }
   }
 }
@@ -328,7 +338,7 @@ export function summarizeLinkedInstagram(handle: string, info: unknown, media: u
     biography: (findKey<string>(info, 'biography') ?? null) as string | null,
     is_business: true,
     last_post_at: times[0] ? new Date(times[0]).toISOString() : null,
-    posts_last_30_days: items.length ? times.filter((t) => now - t <= 30 * 86_400_000).length : null,
+    posts_last_30_days: times.length ? times.filter((t) => t <= now && now - t <= 30 * 86_400_000).length : null,
     avg_likes_recent: avg(items.map((m) => m.likes)),
     avg_comments_recent: avg(items.map((m) => m.comments)),
     bio_links: [],
@@ -451,7 +461,9 @@ export function facebookPageUrl(ref: string | null | undefined): string | null {
   if (!ref) return null;
   const clean = ref.trim().replace(/^@/, '');
   if (!clean) return null;
-  if (/^https?:\/\//i.test(clean)) return /facebook\.com/i.test(clean) ? clean : null;
+  if (/^https?:\/\//i.test(clean)) {
+    try { const u = new URL(clean); return /(^|\.)facebook\.com$/i.test(u.hostname) ? clean : null; } catch { return null; }
+  }
   return `https://www.facebook.com/${clean.replace(/^\/+/, '')}`;
 }
 
@@ -461,7 +473,7 @@ async function facebook(url: string, withPosts: boolean): Promise<FacebookSnapsh
   try {
     profile = await executeTool('SCRAPECREATORS_GET_FACEBOOK_PROFILE', { url, include_gated_profile: true, cache_max_age: '7d' });
   } catch (err) {
-    if (err instanceof PermanentStepError) throw err;
+    if (err instanceof PermanentStepError && /API key/i.test(err.message)) throw err;
     return empty(url, message(err));
   }
   let posts: unknown = null;
@@ -470,7 +482,7 @@ async function facebook(url: string, withPosts: boolean): Promise<FacebookSnapsh
     try {
       posts = await executeTool('SCRAPECREATORS_LIST_FACEBOOK_PROFILE_POSTS', { url });
     } catch (err) {
-      if (err instanceof PermanentStepError) throw err;
+      if (err instanceof PermanentStepError && /API key/i.test(err.message)) throw err;
       error = `Posts: ${message(err).slice(0, 200)}`;
     }
   }
@@ -500,13 +512,13 @@ export async function runSocial(ctx: StepContext, pauseMs = BLOCKED_RETRY_MS): P
     .slice(0, 6);
   const linked = await linkedInstagram(ctx, own);
   const business = linked.snapshot ?? (own ? await instagram(own, pauseMs) : null);
-  if (business?.error && /refused|not connected|no active connection|not set up/i.test(business.error)) throw new Error(business.error);
+  if (business?.error && /API key/i.test(business.error)) throw new Error(business.error);
   // A competitor's posts are never anyone's creative: only the business keeps its media.
   const competitors = await Promise.all(rivals.map(async (c) => ({ name: c.name, ...(await instagram(c.handle, pauseMs)), media: [] })));
 
-  const ownPage = facebookPageUrl(site?.business?.social.facebook[0]);
+  const ownPage = facebookPageUrl(ctx.audit.facebook || site?.business?.social.facebook[0]);
   const rivalPages = ctx.audit.competitors
-    .map((c, i) => ({ name: c.name, url: facebookPageUrl(site?.competitors[i]?.site?.social.facebook[0]) }))
+    .map((c, i) => ({ name: c.name, url: facebookPageUrl(c.facebook || site?.competitors.find((s) => s.name === c.name)?.site?.social.facebook[0] || site?.competitors[i]?.site?.social.facebook[0]) }))
     .filter((c): c is { name: string; url: string } => Boolean(c.url))
     .slice(0, 6);
   const [facebookPage, facebookRivals] = await Promise.all([

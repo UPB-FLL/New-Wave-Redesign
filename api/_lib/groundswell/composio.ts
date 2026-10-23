@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { executeConsumerTool, isConsumerConfigured } from './composioConsumer.js';
 import { PermanentStepError } from './types.js';
+import { assertPublicReadBudget, isProviderCreditFailure, pausePublicReadsForCredits } from './providerBudget.js';
 
 /**
  * Composio REST client (v3.1) for Groundswell's Currents: Ahrefs, Google Ads,
@@ -107,9 +108,9 @@ async function composioJson<T>(path: string, init: RequestInit = {}, timeoutMs =
 }
 
 /** Every active connection in the project for a toolkit (all user ids). */
-async function listActive(toolkit: string, userId?: string): Promise<ConnectedAccount[]> {
+async function listActive(toolkit: string, userId?: string, timeoutMs = 30_000): Promise<ConnectedAccount[]> {
   const query = `toolkit_slugs=${encodeURIComponent(toolkit)}&statuses=ACTIVE&limit=50${userId ? `&user_ids=${encodeURIComponent(userId)}` : ''}`;
-  const { status, ok, body } = await composioJson<{ items?: ConnectedAccount[] }>(`/connected_accounts?${query}`);
+  const { status, ok, body } = await composioJson<{ items?: ConnectedAccount[] }>(`/connected_accounts?${query}`, {}, timeoutMs);
   if (!ok) throw new Error(`Composio could not list the ${toolkit} connections (${status}).`);
   return (body.items ?? []).filter((a) => a.id && (a.status ?? 'ACTIVE') === 'ACTIVE' && (a.toolkit?.slug ?? toolkit) === toolkit && (!userId || a.user_id === userId));
 }
@@ -185,8 +186,8 @@ export const forgetConnections = () => connections.clear();
  * one: the preferred user id's, else the newest. A client's own account
  * (`client:` user id) is never picked here.
  */
-async function lookupConnection(toolkit: string): Promise<ConnectedAccount | null> {
-  const active = (await listActive(toolkit)).filter((a) => !isClientAccount(a));
+async function lookupConnection(toolkit: string, timeoutMs = 30_000): Promise<ConnectedAccount | null> {
+  const active = (await listActive(toolkit, undefined, timeoutMs)).filter((a) => !isClientAccount(a));
   const preferred = active.filter((a) => a.user_id === userId());
   const pool = preferred.length ? preferred : active;
   pool.sort((a, b) => (b.created_at ?? '').localeCompare(a.created_at ?? ''));
@@ -197,15 +198,22 @@ async function lookupConnection(toolkit: string): Promise<ConnectedAccount | nul
 export const activeConnection = (toolkit: string): Promise<ConnectedAccount | null> => lookupConnection(toolkit);
 
 /** The connected account a tool runs as, cached per toolkit; a failed lookup is not cached. */
-export async function connectionFor(slug: string): Promise<ConnectedAccount | null> {
+export async function connectionFor(slug: string, timeoutMs = 30_000): Promise<ConnectedAccount | null> {
   const toolkit = toolkitOf(slug);
   let pending = connections.get(toolkit);
   if (!pending) {
-    pending = lookupConnection(toolkit);
+    pending = lookupConnection(toolkit, Math.min(timeoutMs, 30_000));
     connections.set(toolkit, pending);
-    pending.catch(() => connections.delete(toolkit));
+    const current = pending;
+    pending.catch(() => { if (connections.get(toolkit) === current) connections.delete(toolkit); });
   }
-  return pending;
+  // A cached lookup may belong to a worker with a longer budget than intake.
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([pending, new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(new Error('Composio connection lookup timed out.')), timeoutMs);
+    })]);
+  } finally { clearTimeout(timer); }
 }
 
 /**
@@ -213,13 +221,22 @@ export async function connectionFor(slug: string): Promise<ConnectedAccount | nu
  * through the consumer account when COMPOSIO_CONSUMER_API_KEY is set, else as
  * the project's shared connection for its toolkit.
  */
-export async function executeTool(slug: string, args: Record<string, unknown>, timeoutMs = 60_000): Promise<unknown> {
-  if (isConsumerConfigured()) return executeConsumerTool(slug, args, Math.max(timeoutMs, 90_000));
-  const account = await connectionFor(slug);
+export async function executeTool(slug: string, args: Record<string, unknown>, timeoutMs = 90_000): Promise<unknown> {
+  assertPublicReadBudget();
+  if (timeoutMs <= 0) throw new Error('Composio public lookup timed out.');
+  if (isConsumerConfigured()) return executeConsumerTool(slug, args, timeoutMs);
+  const deadline = Date.now() + timeoutMs;
+  const account = await connectionFor(slug, timeoutMs);
   if (!account) {
     throw new PermanentStepError(`Composio has no active connection for ${toolkitOf(slug)} in this project (any user id). Connect it under Auth Configs in the Composio project COMPOSIO_API_KEY belongs to.`);
   }
-  return executeToolAs(slug, args, account, timeoutMs);
+  const remaining = deadline - Date.now();
+  if (remaining <= 0) throw new Error('Composio public lookup timed out.');
+  try { return await executeToolAs(slug, args, account, remaining); }
+  catch (err) {
+    if (isProviderCreditFailure(err instanceof Error ? err.message : String(err))) pausePublicReadsForCredits();
+    throw err;
+  }
 }
 
 /**

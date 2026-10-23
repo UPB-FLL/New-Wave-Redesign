@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { AdminEmptyState, AdminPageHeader } from './AdminUi';
+import { BusinessBrandPreview, BusinessDiscoveryStatus, CompetitorDiscoverySource } from '../components/BusinessDiscovery';
+import { useBusinessDiscovery } from '../components/useBusinessDiscovery';
 import {
   Plus,
   Trash2,
@@ -82,6 +84,7 @@ const emptyDraft = (): AuditDraft => ({
   city: '',
   website: '',
   instagram: '',
+  facebook: '',
   notes: '',
   brand_logo_url: '',
   brand_color: '',
@@ -215,6 +218,7 @@ export default function GroundswellAudits() {
   const [steps, setSteps] = useState<Record<string, AuditStep[]>>({});
   const [held, setHeld] = useState<Record<string, HeldCheck>>({});
   const [partnerNames, setPartnerNames] = useState<Map<string, string>>(new Map());
+  const discovery = useBusinessDiscovery(draft, setDraft, 'admin');
 
   useEffect(() => {
     if (!hash) {
@@ -279,7 +283,10 @@ export default function GroundswellAudits() {
     }
   };
 
-  const setField = (key: keyof Omit<AuditDraft, 'competitors' | 'kind'>, value: string) => setDraft((d) => ({ ...d, [key]: value }));
+  const setField = (key: keyof Omit<AuditDraft, 'competitors' | 'kind'>, value: string) => {
+    if (key !== 'notes') discovery.markEdited(key, value);
+    setDraft((d) => ({ ...d, [key]: value }));
+  };
   const benchmark = draft.kind === 'benchmark';
   // A benchmark compares the first two competitors, so the form always shows two rows for them.
   const setBenchmark = (on: boolean) =>
@@ -295,15 +302,18 @@ export default function GroundswellAudits() {
           : d.competitors,
     }));
   const competitorLabel = (i: number) => (benchmark && i === 0 ? 'Competitor 1 (top)' : `Competitor ${i + 1}`);
-  const setCompetitor = (i: number, key: 'name' | 'website' | 'instagram', value: string) =>
+  const setCompetitor = (i: number, key: 'name' | 'website' | 'instagram' | 'facebook', value: string) => {
+    discovery.markEdited('competitors');
     setDraft((d) => ({ ...d, competitors: d.competitors.map((c, j) => (j === i ? { ...c, [key]: value } : c)) }));
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSaving(true);
     try {
-      await queueAudit(draft);
+      await queueAudit(await discovery.resolve());
+      discovery.reset();
       setDraft(emptyDraft());
       await refresh();
     } catch (err) {
@@ -576,22 +586,9 @@ export default function GroundswellAudits() {
             Queue a business
           </h2>
           <p className="gs-admin-fine-print">
-            Queue a GroundSwell audit or competitor benchmark. Reports are saved privately in GroundSwell.
+            Start with a website, Instagram or Facebook profile. Review the details, then queue an audit or benchmark.
           </p>
           <div className="gs-admin-form-fields">
-            <label className="space-y-1 text-sm font-medium">
-              <span>Business name</span>
-              <input className={input} value={draft.business_name} onChange={(e) => setField('business_name', e.target.value)} required />
-            </label>
-            <label className="space-y-1 text-sm font-medium">
-              <span>City</span>
-              <input
-                className={input}
-                value={draft.city}
-                placeholder="Delray Beach, FL"
-                onChange={(e) => setField('city', e.target.value)}
-              />
-            </label>
             <label className="space-y-1 text-sm font-medium">
               <span>Website</span>
               <input
@@ -609,6 +606,21 @@ export default function GroundswellAudits() {
                 placeholder="@handle or profile link"
                 onChange={(e) => setField('instagram', e.target.value)}
               />
+            </label>
+            <label className="space-y-1 text-sm font-medium">
+              <span>Facebook</span>
+              <input className={input} value={draft.facebook ?? ''} placeholder="Facebook page link" onChange={(e) => setField('facebook', e.target.value)} />
+            </label>
+          </div>
+          <BusinessDiscoveryStatus discovery={discovery} />
+          <div className="gs-admin-form-fields">
+            <label className="space-y-1 text-sm font-medium">
+              <span>Business name</span>
+              <input className={input} value={draft.business_name} onChange={(e) => setField('business_name', e.target.value)} required={!discovery.pending} aria-required="true" />
+            </label>
+            <label className="space-y-1 text-sm font-medium">
+              <span>City</span>
+              <input className={input} value={draft.city} placeholder="Delray Beach, FL" onChange={(e) => setField('city', e.target.value)} />
             </label>
           </div>
 
@@ -630,7 +642,8 @@ export default function GroundswellAudits() {
                 : 'Competitors (optional)'}
             </legend>
             {draft.competitors.map((c, i) => (
-              <div key={i} className="gs-admin-competitor-fields">
+              <div key={i} className="space-y-1.5">
+              <div className="gs-admin-competitor-fields">
                 <input
                   className={input}
                   aria-label={`${competitorLabel(i)} name`}
@@ -652,20 +665,29 @@ export default function GroundswellAudits() {
                   value={c.instagram}
                   onChange={(e) => setCompetitor(i, 'instagram', e.target.value)}
                 />
+                <input
+                  className={input}
+                  aria-label={`${competitorLabel(i)} Facebook`}
+                  placeholder="Facebook page"
+                  value={c.facebook ?? ''}
+                  onChange={(e) => setCompetitor(i, 'facebook', e.target.value)}
+                />
                 <button
                   type="button"
                   aria-label={`Remove ${competitorLabel(i).toLowerCase()}`}
                   className="gs-btn gs-btn-ghost px-2"
-                  onClick={() => setDraft((d) => ({ ...d, competitors: d.competitors.filter((_, j) => j !== i) }))}
+                  onClick={() => { discovery.markEdited('competitors'); setDraft((d) => ({ ...d, competitors: d.competitors.filter((_, j) => j !== i) })); }}
                 >
                   <X size={16} />
                 </button>
+              </div>
+              <CompetitorDiscoverySource result={discovery.result} competitor={c} />
               </div>
             ))}
             <button
               type="button"
               className="gs-link inline-flex items-center gap-2 text-sm"
-              onClick={() => setDraft((d) => ({ ...d, competitors: [...d.competitors, { name: '', website: '', instagram: '' }] }))}
+              onClick={() => { discovery.markEdited('competitors'); setDraft((d) => ({ ...d, competitors: [...d.competitors, { name: '', website: '', instagram: '' }] })); }}
             >
               <Plus size={14} /> Add competitor
             </button>
@@ -676,8 +698,9 @@ export default function GroundswellAudits() {
             <textarea className={input} rows={2} value={draft.notes} onChange={(e) => setField('notes', e.target.value)} />
           </label>
 
-          <details className="text-sm">
-            <summary className="cursor-pointer">The business’s logo and colour (optional; the reports use its website’s otherwise)</summary>
+          <fieldset className="space-y-3 text-sm">
+            <legend className="text-sm font-semibold">The business’s logo and colour</legend>
+            <BusinessBrandPreview name={draft.business_name} logo={draft.brand_logo_url} color={draft.brand_color} colors={discovery.result?.business.brand_colors} onColor={(value) => setField('brand_color', value)} />
             <div className="grid gap-3 md:grid-cols-2 mt-2">
               <input
                 className={input}
@@ -694,11 +717,11 @@ export default function GroundswellAudits() {
                 onChange={(e) => setField('brand_color', e.target.value)}
               />
             </div>
-          </details>
+          </fieldset>
 
           <button type="submit" disabled={saving} className="gs-btn gs-btn-primary">
             {saving ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <Plus size={16} aria-hidden="true" />}{' '}
-            {benchmark ? 'Queue benchmark' : 'Queue audit'}
+            {saving ? discovery.loading ? 'Finding business details…' : 'Queuing…' : benchmark ? 'Queue benchmark' : 'Queue audit'}
           </button>
         </form>
       </div>

@@ -2,7 +2,7 @@ import type { SiteScan } from './currents/site.js';
 
 /**
  * The client's brand for the three reports: a main colour from the website's
- * theme-color or its most used non-grey colours, text colours that pass 4.5:1
+ * ranked brand colour, theme-color or observed non-grey colours, text colours that pass 4.5:1
  * against it, and the logo the Site Current found. A colour or logo set when
  * the audit was queued comes first (a colour still has to carry text at 4.5:1).
  */
@@ -59,7 +59,7 @@ function mix(hex: string, withHex: string, amount: number): string {
 }
 
 export function brandFrom(site: SiteScan | null | undefined, override?: { logo?: string | null; color?: string | null }): Brand {
-  const candidates = [override?.color, site?.theme_color, ...(site?.brand_colors ?? [])].map(normalizeHex).filter((h): h is string => Boolean(h));
+  const candidates = [override?.color, site?.brand_primary, site?.theme_color, ...(site?.brand_colors ?? [])].map(normalizeHex).filter((h): h is string => Boolean(h));
   // The first colour that carries white or near-black text at 4.5:1.
   const primary = candidates.find((c) => Math.max(contrast(c, WHITE), contrast(c, INK)) >= 4.5) ?? FALLBACK_PRIMARY;
   const onPrimary = contrast(primary, WHITE) >= contrast(primary, INK) ? WHITE : INK;

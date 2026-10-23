@@ -11,6 +11,7 @@ export interface AuditCompetitor {
   name: string;
   website: string | null;
   instagram: string | null;
+  facebook?: string | null;
 }
 
 export interface AuditRow {
@@ -19,6 +20,7 @@ export interface AuditRow {
   city: string | null;
   website: string | null;
   instagram: string | null;
+  facebook?: string | null;
   competitors: AuditCompetitor[];
   notes: string | null;
   /** Who the reports are from and any override of the business's look; absent means New Wave's, as before. */

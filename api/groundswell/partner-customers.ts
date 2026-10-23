@@ -33,12 +33,12 @@ import { PARTNER_DAILY_LIMIT, withReports } from './partner-audits.js';
  * migration every customer reads as a prospect and PATCH answers 503.
  */
 
-const CUSTOMER_COLUMNS = 'id,business_name,city,website,instagram,competitors,notes,created_at,updated_at';
+const CUSTOMER_COLUMNS = 'id,business_name,city,website,instagram,facebook,competitors,notes,created_at,updated_at';
 /** Read only where the database has them (migration 20261027120000). */
 const STAGE_COLUMNS = ',stage,became_client_at';
 const STAGES_NOT_READY = 'Clients are not available yet. Try again later.';
 const AUDIT_COLUMNS =
-  'id,customer_id,business_name,city,website,instagram,competitors,status,drive_folder_url,summary_pdf_url,deck_pdf_url,audit_pdf_url,created_at,completed_at';
+  'id,customer_id,business_name,city,website,instagram,facebook,competitors,status,drive_folder_url,summary_pdf_url,deck_pdf_url,audit_pdf_url,created_at,completed_at';
 /** Read only where the database has them (migration 20261022120000). */
 const BENCHMARK_COLUMNS = ',kind,benchmark_pdf_url';
 
@@ -120,13 +120,14 @@ function draftFrom(body: Record<string, unknown>): AuditDraft {
     city: str(body.city),
     website: str(body.website),
     instagram: str(body.instagram),
+    ...(typeof body.facebook === 'string' ? { facebook: body.facebook } : {}),
     notes: str(body.notes).slice(0, 2000),
     ...(body.kind === 'benchmark' ? { kind: 'benchmark' as const } : {}),
     brand_logo_url: str(body.brand_logo_url),
     brand_color: str(body.brand_color),
     competitors: competitors.map((c) => {
       const r = (c ?? {}) as Record<string, unknown>;
-      return { name: str(r.name), website: str(r.website), instagram: str(r.instagram) };
+      return { name: str(r.name), website: str(r.website), instagram: str(r.instagram), facebook: str(r.facebook) };
     }),
   };
 }

@@ -13,6 +13,7 @@ export interface AuditCompetitor {
   name: string;
   website: string | null;
   instagram: string | null;
+  facebook?: string | null;
 }
 
 export interface GroundswellAudit {
@@ -21,6 +22,7 @@ export interface GroundswellAudit {
   city: string | null;
   website: string | null;
   instagram: string | null;
+  facebook?: string | null;
   competitors: AuditCompetitor[];
   notes: string | null;
   status: AuditStatus;
@@ -46,8 +48,9 @@ export interface AuditDraft {
   city: string;
   website: string;
   instagram: string;
+  facebook?: string;
   notes: string;
-  competitors: { name: string; website: string; instagram: string }[];
+  competitors: { name: string; website: string; instagram: string; facebook?: string }[];
   /** 'benchmark' compares the business with its first two competitors; omitted means an audit. */
   kind?: AuditKind;
   /** Optional: the business's logo link and main colour, when its website's are wrong or missing. */
@@ -86,6 +89,24 @@ export function normalizeInstagram(input: string): string | null {
     throw new Error(`“${input.trim()}” isn’t an Instagram handle.`);
   }
   return raw;
+}
+
+/** Public business Page URL or handle; tracking parameters never become part of its identity. */
+export function normalizeFacebook(input: string): string | null {
+  const raw = input.trim();
+  if (!raw) return null;
+  const candidate = /^https?:\/\//i.test(raw) ? raw : /^(?:www\.|m\.)?facebook\.com\//i.test(raw) ? `https://${raw}` : `https://www.facebook.com/${raw.replace(/^@/, '')}`;
+  let url: URL;
+  try { url = new URL(candidate); } catch { throw new Error('Add a public Facebook Page link or handle.'); }
+  if (!['facebook.com', 'www.facebook.com', 'm.facebook.com'].includes(url.hostname.toLowerCase()) || url.username || url.password || url.port) throw new Error('Add a public Facebook Page link or handle.');
+  const path = url.pathname.replace(/\/+$/, '');
+  if (!path || /^\/(?:groups|events|watch|share|sharer|dialog|reel|reels|login|posts)(?:\/|$)/i.test(path) || !/^\/[A-Za-z0-9._/-]{2,180}$/.test(path)) throw new Error('Add the business’s Facebook Page, rather than a post or sharing link.');
+  if (path.toLowerCase() === '/profile.php') {
+    const id = url.searchParams.get('id');
+    if (!id || !/^\d{4,30}$/.test(id)) throw new Error('That Facebook Page link needs its numeric id.');
+    return `https://www.facebook.com/profile.php?id=${id}`;
+  }
+  return `https://www.facebook.com${path}`;
 }
 
 /** Report links must be Google Drive links (the table enforces the same rule). */
@@ -146,8 +167,9 @@ export type CompetitorDraft = AuditDraft['competitors'][number];
 export function buildCompetitor(c: CompetitorDraft): AuditCompetitor {
   const website = normalizeWebsite(c.website);
   const instagram = normalizeInstagram(c.instagram);
-  if (!website && !instagram) throw new Error(`Add a website or Instagram for ${c.name.trim() || 'each competitor'}.`);
-  return { name: c.name.trim() || website || `@${instagram}`, website, instagram };
+  const facebook = normalizeFacebook(c.facebook ?? '');
+  if (!website && !instagram && !facebook) throw new Error(`Add a website, Instagram, or Facebook Page for ${c.name.trim() || 'each competitor'}.`);
+  return { name: c.name.trim() || website || (instagram ? `@${instagram}` : facebook!), website, instagram, ...(facebook ? { facebook } : {}) };
 }
 
 export interface AuditInsert {
@@ -155,6 +177,7 @@ export interface AuditInsert {
   city: string | null;
   website: string | null;
   instagram: string | null;
+  facebook?: string | null;
   notes: string | null;
   competitors: AuditCompetitor[];
   /** Sent only for a benchmark, so queueing an audit never names the column. */
@@ -225,8 +248,8 @@ export type CustomerInsert = Omit<AuditInsert, 'kind' | 'brand_logo_url' | 'bran
 
 /** The same checks as an audit, for the customer record (groundswell_customers). */
 export function buildCustomerInsert(draft: CustomerDraft): CustomerInsert {
-  const { business_name, city, website, instagram, notes, competitors } = buildAuditInsert({ ...draft, kind: undefined, brand_logo_url: '', brand_color: '' });
-  return { business_name, city, website, instagram, notes, competitors };
+  const { business_name, city, website, instagram, facebook, notes, competitors } = buildAuditInsert({ ...draft, kind: undefined, brand_logo_url: '', brand_color: '' });
+  return { business_name, city, website, instagram, ...(draft.facebook !== undefined ? { facebook: facebook ?? null } : {}), notes, competitors };
 }
 
 /** Validates a draft from the admin form; throws a readable Error on bad input. */
@@ -235,9 +258,10 @@ export function buildAuditInsert(draft: AuditDraft): AuditInsert {
   if (business_name.length < 2) throw new Error('Add the business name.');
   const website = normalizeWebsite(draft.website);
   const instagram = normalizeInstagram(draft.instagram);
-  if (!website && !instagram) throw new Error('Add a website or an Instagram handle.');
+  const facebook = normalizeFacebook(draft.facebook ?? '');
+  if (!website && !instagram && !facebook) throw new Error('Add a website, an Instagram handle, or a Facebook Page.');
   const competitors = draft.competitors
-    .filter((c) => c.name.trim() || c.website.trim() || c.instagram.trim())
+    .filter((c) => c.name.trim() || c.website.trim() || c.instagram.trim() || c.facebook?.trim())
     .map(buildCompetitor);
   // A benchmark with fewer than BENCHMARK_COMPETITORS entered gets the rest picked by the engine (Google Places).
   const brand_logo_url = normalizeLogoUrl(draft.brand_logo_url ?? '');
@@ -247,6 +271,7 @@ export function buildAuditInsert(draft: AuditDraft): AuditInsert {
     city: draft.city.trim() || null,
     website,
     instagram,
+    ...(facebook ? { facebook } : {}),
     notes: draft.notes.trim() || null,
     competitors,
     ...(draft.kind === 'benchmark' ? { kind: 'benchmark' as const } : {}),

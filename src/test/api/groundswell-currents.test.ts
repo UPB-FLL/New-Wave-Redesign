@@ -1,10 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { parseSite, runSite, SITE_ATTEMPTS } from '../../../api/_lib/groundswell/currents/site';
+vi.mock('../../../api/_lib/groundswell/publicFetch', () => ({ readPublicText: vi.fn() }));
+
+import { readPublicText } from '../../../api/_lib/groundswell/publicFetch';
+import { parseSite, runSite, scanSite, SITE_ATTEMPTS } from '../../../api/_lib/groundswell/currents/site';
 import { assertNotBlocked, mapsSearchUrl } from '../../../api/_lib/groundswell/currents/maps';
 import { domainOf, parseKeywordIdeas } from '../../../api/_lib/groundswell/currents/search';
 import { summarizeInstagram } from '../../../api/_lib/groundswell/currents/social';
 import { PermanentStepError } from '../../../api/_lib/groundswell/types';
 import { sampleHtml } from './fixtures/groundswell-report';
+
+const read = vi.mocked(readPublicText);
 
 describe('Site Current: parseSite', () => {
   const s = parseSite(sampleHtml, 'https://harbor-auto.example', 'https://harbor-auto.example/', 200);
@@ -123,10 +128,10 @@ describe('Site Current: a website that cannot be reached', () => {
 
   beforeEach(() => {
     down.mockClear();
-    vi.stubGlobal('fetch', down);
+    read.mockImplementation(down);
   });
   afterEach(() => {
-    vi.unstubAllGlobals();
+    read.mockReset();
   });
 
   it('is tried again on the first calls, then recorded as a gap so the audit goes on', async () => {
@@ -136,8 +141,41 @@ describe('Site Current: a website that cannot be reached', () => {
     expect(out.business).toMatchObject({ status: null, error: 'fetch failed' });
   });
 
-  it('refuses an audit with neither a website nor an Instagram handle for good', async () => {
+  it('refuses an audit without a website, Instagram handle, or Facebook Page for good', async () => {
     await expect(runSite({ audit: { ...audit, website: null }, outputs: {}, deadline: Date.now() + 60_000, attempt: 1 })).rejects.toBeInstanceOf(PermanentStepError);
     expect(down).not.toHaveBeenCalled();
+  });
+});
+
+describe('Site Current: shared website branding', () => {
+  beforeEach(() => read.mockReset());
+  afterEach(() => read.mockReset());
+
+  it('loads schema logos and external CSS colours for the business and competitor while retaining site evidence', async () => {
+    read.mockImplementation(async (url) => {
+      const origin = new URL(url).origin;
+      const own = origin === 'https://business.example';
+      if (url.endsWith('.css')) return { url, status: 200, contentType: 'text/css', text: `:root { --brand-primary: ${own ? '#245c38' : '#8c1f27'}; }` };
+      return { url: `${origin}/`, status: 200, contentType: 'text/html', text: `<html><head><title>${own ? 'Business' : 'Competitor'}</title><meta name="theme-color" content="#ffffff"><meta name="description" content="Actual business description"><link rel="canonical" href="/"><link rel="stylesheet" href="/brand.css"><script type="application/ld+json">{"@type":"LocalBusiness","name":"${own ? 'Business' : 'Competitor'}","logo":{"@type":"ImageObject","url":"/brand-logo.svg"}}</script></head><body><h1>Actual service</h1><a href="tel:+19545550199">Call now</a><script>G-ABC1234567</script></body></html>` };
+    });
+    const audit = { id: 'a1', business_name: 'Business', city: null, website: 'https://business.example', instagram: null, competitors: [{ name: 'Competitor', website: 'https://competitor.example', instagram: null }], notes: null };
+    const output = await runSite({ audit, outputs: {}, deadline: Date.now() + 60_000, attempt: 1 });
+    expect(output.business).toMatchObject({ logo: 'https://business.example/brand-logo.svg', brand_primary: '#245c38', brand_colors: ['#245c38'], theme_color: '#ffffff', meta_description: 'Actual business description', h1: ['Actual service'], phones: ['+19545550199'], tracking: { google_analytics: ['G-ABC1234567'] }, technical_seo: { scope: 'raw_http', body_h1_count: 1 } });
+    expect(output.competitors[0].site).toMatchObject({ logo: 'https://competitor.example/brand-logo.svg', brand_primary: '#8c1f27', brand_colors: ['#8c1f27'] });
+    expect(read).toHaveBeenCalledTimes(4);
+  });
+
+  it('keeps the scanner timeout contract and canonical numeric Facebook Page references', async () => {
+    read.mockResolvedValue({ url: 'https://business.example/', status: 200, contentType: 'text/html', text: '<title>Business</title><script type="application/ld+json">{"@type":"LocalBusiness","sameAs":["https://facebook.com/profile.php?id=123456789"]}</script>' });
+    const scan = await scanSite('https://business.example', 4_321);
+    expect(read).toHaveBeenCalledWith('https://business.example', expect.objectContaining({ timeoutMs: 4_321 }));
+    expect(scan.social.facebook[0]).toBe('profile.php?id=123456789');
+  });
+
+  it('lets a Facebook-only seed continue to profile research without fabricating a website scan', async () => {
+    const audit = { id: 'a1', business_name: 'Business', city: null, website: null, instagram: null, facebook: 'https://www.facebook.com/business', competitors: [], notes: null };
+    const output = await runSite({ audit, outputs: {}, deadline: Date.now() + 60_000, attempt: 1 });
+    expect(output).toEqual({ business: null, competitors: [] });
+    expect(read).not.toHaveBeenCalled();
   });
 });

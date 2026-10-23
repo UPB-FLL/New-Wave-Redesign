@@ -2,6 +2,7 @@ import type { Page } from 'puppeteer-core';
 import { withBrowser } from '../browser.js';
 import { executeTool, findKey, isSharedLookupConfigured } from '../composio.js';
 import { PermanentStepError, type StepContext } from '../types.js';
+import { numeric } from './serp.js';
 
 /**
  * Maps Current: the business's Google Business Profile and nearby rivals in
@@ -138,12 +139,12 @@ export const PLACE_FIELDS =
 const PLACES_SOURCE = 'Google Places API text search (relevance order, not the Maps pack), via Composio';
 const NOT_FOUND = 'The business was not found on Google Maps under its name and city.';
 
-type PlaceRow = Record<string, unknown>;
+export type PlaceRow = Record<string, unknown>;
 
 /** Places wraps display text as `{ text, languageCode }`. */
 const localized = (v: unknown): string | null =>
   typeof v === 'string' ? v : v && typeof v === 'object' && typeof (v as { text?: unknown }).text === 'string' ? ((v as { text: string }).text) : null;
-const finite = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+const finite = numeric;
 const str = (v: unknown): string | null => (typeof v === 'string' && v.trim() ? v.trim() : null);
 
 /** The places in a GOOGLE_MAPS_TEXT_SEARCH response, whatever it nests them under. */
@@ -157,15 +158,15 @@ export function toMapsPlace(p: PlaceRow): MapsPlace {
   const hours = findKey<unknown[]>(p.regularOpeningHours, 'weekdayDescriptions') ?? [];
   const types = Array.isArray(p.types) ? p.types.filter((t): t is string => typeof t === 'string') : [];
   return {
-    name: localized(p.displayName),
+    name: localized(p.displayName) ?? str(p.title) ?? str(p.name),
     rating: finite(p.rating),
-    reviews: finite(p.userRatingCount),
-    category: localized(p.primaryTypeDisplayName) ?? (types[0] ? types[0].replace(/_/g, ' ') : null),
-    address: str(p.formattedAddress),
-    phone: str(p.nationalPhoneNumber),
-    website: str(p.websiteUri),
+    reviews: finite(p.userRatingCount ?? p.reviews ?? p.user_ratings_total),
+    category: localized(p.primaryTypeDisplayName) ?? str(p.type) ?? (types[0] ? types[0].replace(/_/g, ' ') : null),
+    address: str(p.formattedAddress) ?? str(p.address),
+    phone: str(p.nationalPhoneNumber) ?? str(p.phone),
+    website: str(p.websiteUri) ?? str(p.website),
     hours: (Array.isArray(hours) ? hours : []).filter((h): h is string => typeof h === 'string'),
-    url: str(p.googleMapsUri),
+    url: str(p.googleMapsUri) ?? str(p.link) ?? (str(p.place_id) ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(str(p.title) ?? '')}&query_place_id=${encodeURIComponent(str(p.place_id)!)}` : null),
   };
 }
 
@@ -180,27 +181,54 @@ export function toMapsListing(p: PlaceRow): MapsListing {
   };
 }
 
-/** The result that is the business: the first one whose name carries the business's first word. */
-export function matchBusiness(rows: PlaceRow[], name: string): PlaceRow | null {
-  const wanted = name.toLowerCase().split(/\s+/)[0];
-  return rows.find((r) => (localized(r.displayName) ?? '').toLowerCase().includes(wanted)) ?? null;
+/** A branded name or the business's exact domain must match; common first words are not identity evidence. */
+export function matchBusiness(rows: PlaceRow[], name: string, website?: string | null): PlaceRow | null {
+  const clean = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  const host = (value: string | null | undefined) => { try { return value ? new URL(value).hostname.toLowerCase().replace(/^www\./, '') : null; } catch { return null; } };
+  const ownHost = host(website);
+  if (ownHost) {
+    const exact = rows.find((r) => host(toMapsPlace(r).website) === ownHost);
+    if (exact) return exact;
+  }
+  const wanted = clean(name);
+  if (!wanted) return null;
+  const words = wanted.split(' ').filter((w) => !['the', 'a', 'an', 'and', 'of', 'llc', 'inc', 'company', 'co'].includes(w));
+  return rows.find((r) => {
+    const got = clean(toMapsPlace(r).name ?? '');
+    return got === wanted || (words.length > 0 && words.every((w) => got.split(' ').includes(w)));
+  }) ?? null;
 }
 
-async function textSearch(textQuery: string, maxResultCount: number): Promise<PlaceRow[]> {
-  return placeRows(await executeTool('GOOGLE_MAPS_TEXT_SEARCH', { textQuery, maxResultCount, fieldMask: PLACE_FIELDS }));
+export async function googlePlacesSearch(textQuery: string, maxResultCount = 20, timeoutMs?: number): Promise<PlaceRow[]> {
+  const payload = await executeTool('GOOGLE_MAPS_TEXT_SEARCH', { textQuery, maxResultCount: Math.max(1, Math.min(20, maxResultCount)), fieldMask: PLACE_FIELDS }, timeoutMs);
+  const error = findKey<unknown>(payload, 'error');
+  if (error || findKey(payload, 'success') === false) throw new Error(`Google Places did not answer: ${typeof error === 'string' ? error : 'provider error'}`);
+  return placeRows(payload);
+}
+
+/** Public Maps results, preserving Google's order without calling it an organic or local-pack ranking. */
+export async function serpMapsSearch(query: string, timeoutMs?: number): Promise<PlaceRow[]> {
+  const payload = await executeTool('SERPAPI_GOOGLE_MAPS_SEARCH', { q: query }, timeoutMs);
+  const error = findKey<unknown>(payload, 'error');
+  if (error) throw new Error(`Google Maps search did not answer: ${String(error).slice(0, 300)}`);
+  const list = findKey<unknown>(payload, 'local_results');
+  const place = findKey<unknown>(payload, 'place_results');
+  if (Array.isArray(list)) return list.filter((r): r is PlaceRow => Boolean(r && typeof r === 'object'));
+  if (place && typeof place === 'object') return [place as PlaceRow];
+  throw new Error('Google Maps search returned no recognizable listing fields.');
 }
 
 /** Google Places through Composio: the business, then rivals in its category near its area. */
 export async function placesLookup(audit: StepContext['audit']): Promise<MapsOutput> {
   const query = [audit.business_name, audit.city].filter(Boolean).join(' ');
-  const found = matchBusiness(await textSearch(query, 5), audit.business_name);
+  const found = matchBusiness(await googlePlacesSearch(query, 5), audit.business_name, audit.website);
   const business = found ? toMapsPlace(found) : null;
   const area = audit.city || business?.address?.split(',').slice(-2, -1)[0]?.trim() || null;
   let nearby: MapsListing[] = [];
   if (business?.category && area) {
     const self = (business.name || '').toLowerCase();
     const id = typeof found?.id === 'string' ? found.id : null;
-    nearby = (await textSearch(`${business.category} near ${area}`, 10))
+    nearby = (await googlePlacesSearch(`${business.category} near ${area}`, 10))
       .filter((r) => (id ? r.id !== id : true) && (localized(r.displayName) ?? '').toLowerCase() !== self)
       .map(toMapsListing)
       .filter((l) => l.name)
@@ -242,15 +270,37 @@ export const PLACES_FALLBACK_NOTE = 'Google Places was not available for this au
 
 export async function runMaps(ctx: StepContext): Promise<MapsOutput> {
   const { audit } = ctx;
-  let detail: string | null = null;
+  const errors: string[] = [];
+  let places: MapsOutput | null = null;
   if (isSharedLookupConfigured()) {
     try {
-      return await placesLookup(audit);
+      places = await placesLookup(audit);
+      if (places.business) return places;
     } catch (err) {
       if (keyRefused(err)) throw err;
-      detail = (err instanceof Error ? err.message : String(err)).slice(0, 500);
+      errors.push(err instanceof Error ? err.message : String(err));
     }
+    try {
+      const query = [audit.business_name, audit.city].filter(Boolean).join(' ');
+      const found = matchBusiness(await serpMapsSearch(query), audit.business_name, audit.website);
+      const business = found ? toMapsPlace(found) : null;
+      const nearby = business?.category && audit.city
+        ? (await serpMapsSearch(`${business.category} near ${audit.city}`)).filter((r) => toMapsPlace(r).name !== business.name).map(toMapsListing).slice(0, 8)
+        : [];
+      if (business) return { fetched_at: new Date().toISOString(), source: 'Google Maps public search results (query-specific order, not organic search rank), via SerpApi', business, nearby, note: null, ...(errors.length ? { detail: errors.join(' ').slice(0, 1000) } : {}) };
+    } catch (err) {
+      if (keyRefused(err)) throw err;
+      errors.push(err instanceof Error ? err.message : String(err));
+    }
+    // A successful public search with no business match is a scoped result, not evidence of no listing anywhere.
+    if (places && !errors.length) return places;
   }
-  const out = await browserLookup(audit, detail ? PLACES_FALLBACK_NOTE : null);
-  return detail ? { ...out, detail } : out;
+  try {
+    const out = await browserLookup(audit, errors.length ? PLACES_FALLBACK_NOTE : null);
+    return errors.length ? { ...out, detail: errors.join(' ').slice(0, 1000) } : out;
+  } catch (err) {
+    errors.push(err instanceof Error ? err.message : String(err));
+    if (places) return { ...places, note: `${NOT_FOUND} The additional public Maps lookup was unavailable.`, detail: errors.join(' ').slice(0, 1000) };
+    throw new Error(`Google Maps could not be read. ${errors.join(' ').slice(0, 1000)}`);
+  }
 }

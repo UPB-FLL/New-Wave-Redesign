@@ -6,7 +6,8 @@ import type { LinkedOutput } from '../../../api/_lib/groundswell/currents/linked
 import { assertPortalOnly, countPdfPages, pdfLinks } from '../../../api/_lib/groundswell/render';
 import { gapsFor, gapsFromMissing } from '../../../api/_lib/groundswell/gaps';
 import { PLACES_FALLBACK_NOTE } from '../../../api/_lib/groundswell/currents/maps';
-import { sampleReportData, sampleReportDataWithPlan } from './fixtures/groundswell-report';
+import { sampleAudit, sampleOutputs, sampleReportData, sampleReportDataWithPlan } from './fixtures/groundswell-report';
+import { buildFacts, normalizeWriteup } from '../../../api/_lib/groundswell/model';
 
 const AUDIT = 'https://www.newwaveitfl.com/groundswell';
 const DECK = 'https://www.newwaveitfl.com/groundswell';
@@ -33,12 +34,14 @@ describe('brandFrom', () => {
 describe('report HTML', () => {
   const data = sampleReportData();
 
-  it('picks the fee sentence: existing client, no marketer, or fee-neutral', () => {
+  it('does not infer a fee agreement from a client or marketer relationship', () => {
     const withEst = (e: Partial<typeof data.model.estimates>) => ({ ...data.model, estimates: { ...data.model.estimates, ...e } });
-    expect(feeLine(withEst({ is_nwse_client: true, has_current_marketer: true }))).toMatch(/already a client of New Wave: Social Engineering/);
-    expect(feeLine(withEst({ is_nwse_client: null, has_current_marketer: false }))).toBe('These figures are before any management fee.');
-    expect(feeLine(withEst({ is_nwse_client: null, has_current_marketer: null }))).toMatch(/^Management is fee-neutral/);
-    expect(buildSummaryHtml({ ...data, model: withEst({ is_nwse_client: true }) }, { deck: DECK, audit: AUDIT, folder: FOLDER })).toContain('already a client of New Wave: Social Engineering');
+    for (const flags of [{ is_nwse_client: true, has_current_marketer: true }, { is_nwse_client: null, has_current_marketer: false }, { is_nwse_client: null, has_current_marketer: null }]) {
+      const line = feeLine(withEst(flags));
+      expect(line).toMatch(/before.*management fee/i);
+      expect(line).not.toMatch(/fee-neutral|only new money|replaces/i);
+    }
+    expect(buildSummaryHtml({ ...data, model: withEst({ is_nwse_client: true }) }, { deck: DECK, audit: AUDIT, folder: FOLDER })).toContain('Confirm scope and commercial terms before funding');
   });
 
   it('rounds money to the nearest $10', () => {
@@ -81,6 +84,28 @@ describe('report HTML', () => {
   it('refuses a link outside the Groundswell portal', () => {
     expect(() => buildDeckHtml(data, { audit: 'https://claude.ai/x' })).toThrow(/GroundSwell portal/);
     expect(() => buildSummaryHtml(data, { deck: DECK, audit: AUDIT, folder: 'https://drive.google.com/drive/folders/F' })).toThrow(/GroundSwell portal/);
+  });
+
+  it('keeps unmeasured demand and failed social reads out of the metric cards and discloses their scope', () => {
+    const outputs = sampleOutputs();
+    outputs.keywords = { source: 'Google related searches', ideas: [{ keyword: 'health coach', monthly_searches: null }], demand_status: 'unavailable', error: 'Planner failed' };
+    outputs.social = { source: 'Instagram', fetched_at: '2026-10-21', business: { handle: 'harborautocare', exists: false, followers: null, posts: null, error: 'Posts response unreadable' }, competitors: [] };
+    const d = { ...sampleReportData(), facts: buildFacts(sampleAudit, outputs) };
+    const summary = buildSummaryHtml(d, { deck: DECK, audit: AUDIT, folder: FOLDER });
+    expect(summary).not.toMatch(/class="v">not checked/);
+    expect(summary).toContain('Evidence limits');
+    expect(summary).toContain('Keyword demand');
+    const full = buildAuditHtml(d);
+    expect(full).toContain('Evidence and decision limits');
+    expect(full).toContain('Suggestions or an empty response do not establish zero demand');
+    expect(full).not.toContain('No Instagram account was found or checked');
+  });
+
+  it('shows evidence, business implication, action, effort and verification for substantive findings', () => {
+    const d = sampleReportData();
+    d.model.writeup = normalizeWriteup({ ...d.model.writeup, findings: [{ area: 'website', priority: 'high', title: 'Booking completion is unverified', evidence: 'Square booking link appears in the initial homepage HTML.', source: 'website', basis: 'observed', implication: 'A visible booking link does not establish completed appointments.', action: 'Trace a completed booking and verify its analytics event.', measure: 'A test booking produces one event with a deduplicated identifier.', effort: 'Estimate: a short implementation task, depending on booking access.', dependency: 'Booking and analytics access.' }], assumptions: ['Revenue impact depends on the actual completed-booking rate.'] });
+    const html = buildAuditHtml(d);
+    for (const expected of ['Booking completion is unverified', 'Business implication', 'Recommended action', 'Effort and dependencies', 'How to verify', 'Revenue impact depends']) expect(html).toContain(expected);
   });
 });
 

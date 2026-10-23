@@ -198,7 +198,7 @@
 .gs-admin .gs-admin-queue-form :is(label, legend) { font-size: 11px; }
 .gs-admin .gs-admin-queue-form .gs-admin-form-fields, .gs-admin .gs-admin-queue-form .gs-admin-competitor-fields { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
 .gs-admin .gs-admin-queue-form .gs-admin-competitor-fields { padding: 12px; border: 1px solid var(--gs-admin-line); border-radius: 7px; background: var(--gs-admin-canvas); }
-.gs-admin .gs-admin-queue-form .gs-admin-competitor-fields > button { justify-self: end; }
+.gs-admin .gs-admin-queue-form .gs-admin-competitor-fields > button { grid-column: 1 / -1; justify-self: end; }
 .gs-admin .gs-admin-queue-list { grid-column: 1; grid-row: 1; min-width: 0; }
 .gs-admin .gs-admin-queue-filters { border: 1px solid var(--gs-admin-line); border-radius: 9px; background: white; }
 .gs-admin .gs-admin-run-card { scroll-margin-top: 24px; }
@@ -241,7 +241,7 @@
   .gs-admin .gs-admin-queue-grid, .gs-admin .gs-admin-partners-grid { grid-template-columns: minmax(0, 1fr); }
   .gs-admin .gs-admin-queue-form, .gs-admin .gs-admin-invite-form { grid-column: 1; grid-row: 2; }
   .gs-admin .gs-admin-queue-form .gs-admin-form-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .gs-admin .gs-admin-queue-form .gs-admin-competitor-fields { grid-template-columns: repeat(3, minmax(0, 1fr)) auto; align-items: center; }
+  .gs-admin .gs-admin-queue-form .gs-admin-competitor-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; }
 }
 @media (max-width: 900px) {
   .gs-admin { grid-template-columns: minmax(0, 1fr); }

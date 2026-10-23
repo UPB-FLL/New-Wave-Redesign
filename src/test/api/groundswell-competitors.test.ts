@@ -4,12 +4,10 @@ const mocks = vi.hoisted(() => ({ executeTool: vi.fn() }));
 vi.mock('../../../api/_lib/groundswell/composio', async (original) => ({ ...(await original<object>()), executeTool: mocks.executeTool }));
 
 import { cityOf, hostOf, persistCompetitors, pickFrom, runCompetitors } from '../../../api/_lib/groundswell/currents/competitors';
-import { PermanentStepError } from '../../../api/_lib/groundswell/types';
 
 /**
- * The Competitors Current picks what was not entered: one local rival (the
- * category near the city) and one country-wide (the category anywhere in the
- * US, outside the city), most Google reviews first, websites required.
+ * The Competitors Current picks what was not entered: up to six local rivals from the category near the city, ordered by
+ * review count for selection only. Websites are required; these are not SERP ranks.
  */
 
 const place = (id: string, name: string, address: string, reviews: number | null, rating: number | null, website: string | null = `https://${id}.example/`, extra: Record<string, unknown> = {}) => ({
@@ -79,18 +77,17 @@ describe('Competitors Current: helpers', () => {
 });
 
 describe('Competitors Current: runCompetitors', () => {
-  it('picks one local and one country-wide competitor, outside the city, and lists them for the audit', async () => {
+  it('keeps local category competitors and excludes national businesses from an automatic local benchmark', async () => {
     const out = await runCompetitors(ctx());
     expect(out.business).toMatchObject({ name: 'Uncommon Path Brewing', category: 'Brewery', area: 'Fort Lauderdale, FL', place_id: 'self' });
     expect(out.local).toMatchObject({ name: 'Tarpon River Brewing', query: 'Brewery near Fort Lauderdale, FL' });
-    // The country-wide pick leaves out the business's city and the local pick; Tree House has the most reviews left.
-    expect(out.national).toMatchObject({ name: 'Tree House Brewing Company', query: 'Brewery in the United States', address: expect.stringContaining('Charlton, MA') });
+    expect(out.national).toBeNull();
     expect(out.competitors).toEqual([
       { name: 'Tarpon River Brewing', website: 'https://tarpon.example', instagram: null },
-      { name: 'Tree House Brewing Company', website: 'https://tree.example', instagram: null },
+      { name: 'Gulf Stream Brewing Company', website: 'https://gulf.example', instagram: null },
     ]);
-    expect(out.considered).toEqual({ local: 5, national: 4 });
-    expect(out.note).toBeNull();
+    expect(out.considered).toEqual({ local: 5, national: 0 });
+    expect(out.note).toMatch(/Only 2 relevant local competitors/);
     expect(persistCompetitors(out, audit([]))).toEqual({ competitors: out.competitors });
   });
 
@@ -103,19 +100,20 @@ describe('Competitors Current: runCompetitors', () => {
     expect(mocks.executeTool).toHaveBeenCalledTimes(2);
   });
 
-  it('does nothing when two competitors were entered', async () => {
+  it('preserves all entered competitors when the six suggestion slots are already filled', async () => {
     const entered = [
       { name: 'A', website: 'https://a.example', instagram: null },
       { name: 'B', website: 'https://b.example', instagram: null },
     ];
+    while (entered.length < 6) entered.push({ name: `Manual ${entered.length}`, website: `https://manual${entered.length}.example`, instagram: null });
     const out = await runCompetitors(ctx(entered));
     expect(out.competitors).toBe(entered);
-    expect(out.note).toMatch(/2 competitors were entered/);
+    expect(out.note).toMatch(/6 competitors were entered/);
     expect(mocks.executeTool).not.toHaveBeenCalled();
     expect(persistCompetitors(out, audit(entered))).toBeNull();
   });
 
-  it('says so when fewer than two could be found, and stops for good when the business is not on Places', async () => {
+  it('reports limited verified local suggestions and an unavailable category without guessing rivals', async () => {
     mocks.executeTool.mockImplementation(async (_slug: string, args: Record<string, unknown>) => {
       const q = String(args.textQuery);
       if (q.startsWith('Uncommon Path')) return { data: { places: [self] } };
@@ -124,9 +122,11 @@ describe('Competitors Current: runCompetitors', () => {
     });
     const out = await runCompetitors(ctx());
     expect(out.competitors).toHaveLength(1);
-    expect(out.note).toMatch(/Only 1 competitor could be found/);
+    expect(out.note).toMatch(/Only 1 relevant local competitor/);
 
     mocks.executeTool.mockResolvedValue({ data: { places: [] } });
-    await expect(runCompetitors(ctx())).rejects.toBeInstanceOf(PermanentStepError);
+    const missing = await runCompetitors(ctx());
+    expect(missing.competitors).toEqual([]);
+    expect(missing.note).toMatch(/category could not be verified/);
   });
 });

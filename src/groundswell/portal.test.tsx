@@ -218,7 +218,7 @@ describe('partner prospects page', () => {
     expect(await screen.findByText('No prospects yet. Add your first one above.')).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Business name'), { target: { value: 'Harbor Auto' } });
     fireEvent.click(screen.getByRole('button', { name: 'Add and queue the audit' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('Add a website or an Instagram handle.');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Add a website, an Instagram handle, or a Facebook Page.');
     expect(api.createPartnerCustomer).not.toHaveBeenCalled();
     fireEvent.change(screen.getByLabelText('Website'), { target: { value: 'harbor.example' } });
     fireEvent.click(screen.getByRole('button', { name: 'Add and queue the audit' }));

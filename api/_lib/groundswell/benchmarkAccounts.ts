@@ -1,7 +1,7 @@
 import { GROUNDSWELL_CONFIG } from '../../../packages/groundswell/groundswell.config.js';
 import { domainOf } from './currents/search.js';
 import { UA, type SiteScan } from './currents/site.js';
-import type { InstagramSnapshot } from './currents/social.js';
+import { facebookPageUrl, type InstagramSnapshot } from './currents/social.js';
 import type { StepContext } from './types.js';
 
 /**
@@ -39,19 +39,19 @@ export function benchAccounts(ctx: StepContext): BenchAccount[] {
     website: own?.final_url ?? ctx.audit.website,
     domain: domainOf(own?.final_url ?? ctx.audit.website),
     instagram: social?.business?.handle ?? ctx.audit.instagram ?? own?.social.instagram[0] ?? null,
-    facebook: facebookUrl(own),
+    facebook: facebookPageUrl(ctx.audit.facebook) ?? facebookUrl(own),
     site: own,
     ig: social?.business ?? null,
   };
   const rivals = ctx.audit.competitors.slice(0, GROUNDSWELL_CONFIG.benchmark.accounts - 1).map((c, i): BenchAccount => {
-    const scan = site?.competitors[i]?.site ?? null;
+    const scan = site?.competitors.find((s) => s.name === c.name)?.site ?? site?.competitors[i]?.site ?? null;
     const ig = social?.competitors.find((s) => s.name === c.name) ?? null;
     return {
       name: c.name,
       website: scan?.final_url ?? c.website,
       domain: domainOf(scan?.final_url ?? c.website),
       instagram: ig?.handle ?? c.instagram ?? scan?.social.instagram[0] ?? null,
-      facebook: facebookUrl(scan),
+      facebook: facebookPageUrl(c.facebook) ?? facebookUrl(scan),
       site: scan,
       ig,
     };

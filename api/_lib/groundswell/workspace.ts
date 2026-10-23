@@ -189,7 +189,7 @@ export function panelsFor(outputs: Record<string, unknown>): DataPanel[] {
 const missingColumn = (m: string | undefined) => /column .* does not exist|42703/i.test(m ?? '');
 const missingTable = (m: string | undefined) => /relation .* does not exist|42P01/i.test(m ?? '');
 
-const CUSTOMER_COLUMNS = 'id,partner_id,business_name,city,website,instagram,competitors,notes,created_at,updated_at';
+const CUSTOMER_COLUMNS = 'id,partner_id,business_name,city,website,instagram,facebook,competitors,notes,created_at,updated_at';
 const RUN_COLUMNS = 'id,customer_id,partner_id,status,kind,created_at,started_at,completed_at';
 
 interface RunRow {
@@ -357,6 +357,7 @@ export async function queueAudit(db: SupabaseClient, customer: Record<string, un
     city: customer.city ?? null,
     website: customer.website ?? null,
     instagram: customer.instagram ?? null,
+    ...(customer.facebook ? { facebook: customer.facebook } : {}),
     competitors: customer.competitors ?? [],
     notes: customer.notes ?? null,
     partner_id: customer.partner_id,

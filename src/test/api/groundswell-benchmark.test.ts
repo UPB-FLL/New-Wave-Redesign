@@ -72,10 +72,11 @@ afterEach(() => vi.unstubAllGlobals());
 describe('the benchmark run', () => {
   it('keeps the audit steps as they were and adds the benchmark steps after the ad plan and its copy', () => {
     expect(STEPS.map((s) => s.name)).not.toContain('benchmark');
+    expect(STEPS.findIndex((s) => s.name === 'ads_library')).toBeLessThan(STEPS.findIndex((s) => s.name === 'model'));
     const names = BENCHMARK_STEPS.map((s) => s.name);
     const audit = STEPS.map((s) => s.name);
     expect(names.slice(0, names.indexOf('adcopy') + 1)).toEqual(audit.slice(0, audit.indexOf('adcopy') + 1));
-    expect(names.slice(names.indexOf('adcopy') + 1, names.indexOf('benchmark') + 1)).toEqual(['social_depth', 'ads_library', 'pricing', 'authority', 'benchmark']);
+    expect(names.slice(names.indexOf('adcopy') + 1, names.indexOf('benchmark') + 1)).toEqual(['social_depth', 'pricing', 'authority', 'benchmark']);
     expect(names.indexOf('deliver_benchmark')).toBeLessThan(names.indexOf('deliver_deck'));
     expect(names[names.length - 1]).toBe('deliver_finish');
     // The write-up and its PDF are optional: with no benchmark data at all, the audit still delivers its three reports and names the gap.

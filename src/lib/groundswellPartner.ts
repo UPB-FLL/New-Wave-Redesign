@@ -20,6 +20,7 @@ export interface PartnerAudit {
   city: string | null;
   website: string | null;
   instagram: string | null;
+  facebook?: string | null;
   competitors: { name: string }[];
   status: AuditStatus;
   drive_folder_url: string | null;
@@ -152,6 +153,7 @@ export interface PartnerCustomer {
   city: string | null;
   website: string | null;
   instagram: string | null;
+  facebook?: string | null;
   competitors: AuditCompetitor[];
   notes: string | null;
   created_at: string;

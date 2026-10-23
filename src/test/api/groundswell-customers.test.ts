@@ -192,7 +192,7 @@ describe('adding a customer', () => {
   it('rejects a business with neither website nor Instagram, adding nothing', async () => {
     const res = await call('POST', { business_name: 'Nothing' }, auth);
     expect(res.statusCode).toBe(400);
-    expect(res.body.error).toMatch(/website or an Instagram/);
+    expect(res.body.error).toMatch(/website, an Instagram handle, or a Facebook Page/);
     expect(db.current!.tables.groundswell_customers).toHaveLength(3);
   });
 

@@ -24,7 +24,7 @@ export interface QueueResult {
   reason: string;
 }
 
-const COPY_COLUMNS = 'id,business_name,city,website,instagram,competitors,notes,partner_id,customer_id,requested_by,brand_logo_url,brand_color,status,phase';
+const COPY_COLUMNS = 'id,business_name,city,website,instagram,facebook,competitors,notes,partner_id,customer_id,requested_by,brand_logo_url,brand_color,status,phase';
 const missingColumn = (message: string | undefined) => /column .* does not exist|42703/i.test(message ?? '');
 const missingTable = (message: string | undefined) => /relation .* does not exist|42P01/i.test(message ?? '');
 const NOT_READY = 'Phases are not set up yet. Try again later.';
@@ -81,6 +81,7 @@ export async function queuePhase(db: Pick<SupabaseClient, 'from'>, sourceId: str
     city: source.city ?? null,
     website: source.website ?? null,
     instagram: source.instagram ?? null,
+    ...(source.facebook ? { facebook: source.facebook } : {}),
     competitors: source.competitors ?? [],
     notes: source.notes ?? null,
     partner_id: source.partner_id ?? null,

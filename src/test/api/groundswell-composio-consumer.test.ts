@@ -1,7 +1,12 @@
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { executeTool, forgetConnections, isSharedLookupConfigured, sharedLookupSource } from '../../../api/_lib/groundswell/composio';
-import { callConsumerTool, consumerConnections, consumerKeyShape, executeConsumerTool, forgetConsumerSession, messageFromStream, prunerCode } from '../../../api/_lib/groundswell/composioConsumer';
+import { callConsumerTool, consumerConnections, consumerKeyShape, executeConsumerTool, forgetConsumerSession, messageFromStream, prunerCode, decodeWorkbenchJson } from '../../../api/_lib/groundswell/composioConsumer';
 import { runKeywords } from '../../../api/_lib/groundswell/currents/search';
+import { ProviderCreditError, resetPublicReadBudget } from '../../../api/_lib/groundswell/providerBudget';
 import { PermanentStepError } from '../../../api/_lib/groundswell/types';
 
 /**
@@ -16,11 +21,15 @@ afterEach(() => {
   vi.unstubAllEnvs();
   forgetConsumerSession();
   forgetConnections();
+  resetPublicReadBudget();
+  vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
 interface Sent {
   url: string;
   headers: Record<string, string>;
+  signal?: AbortSignal;
   body: { id?: number; method: string; params?: { name?: string; arguments?: Record<string, unknown> } };
 }
 
@@ -31,8 +40,8 @@ function endpoint(answer: (req: Sent) => Answer) {
   const sent: Sent[] = [];
   vi.stubGlobal(
     'fetch',
-    vi.fn(async (url: string, init: { headers: Record<string, string>; body: string }) => {
-      const req = { url, headers: init.headers, body: JSON.parse(init.body) } as Sent;
+    vi.fn(async (url: string, init: { headers: Record<string, string>; body: string; signal?: AbortSignal }) => {
+      const req = { url, headers: init.headers, signal: init.signal, body: JSON.parse(init.body) } as Sent;
       sent.push(req);
       const a = answer(req);
       const status = a.status ?? 200;
@@ -157,8 +166,7 @@ describe('Composio consumer account', () => {
     expect(await executeConsumerTool('SCRAPECREATORS_LIST_INSTAGRAM_USER_POSTS', { handle: 'x' })).toEqual(posts);
     const code = sent.find((s) => s.body.params?.name === 'COMPOSIO_REMOTE_WORKBENCH')?.body.params?.arguments?.code_to_execute as string;
     expect(code).toContain('json.load(open("/mnt/files/mex/talk.json"))');
-    expect(code).toContain('f["results"][0]["response"]["data"]');
-    expect(prunerCode('/mnt/files/mex/a.json').split('\n')[0]).toBe('import json');
+    expect(code).toContain('GROUNDSWELL_JSON_START');
   });
 
   it('never reads a saved answer from an unexpected place', async () => {
@@ -171,6 +179,55 @@ describe('Composio consumer account', () => {
       },
     }));
     await expect(executeConsumerTool('AHREFS_RETRIEVE_ORGANIC_KEYWORDS', {})).rejects.toThrow(/saved its answer somewhere unexpected/);
+  });
+
+  it.each(['/mnt/files/../secret.json', '/mnt/files/mex/./a.json', '/mnt/files/mex/../../secret.json', '/mnt/files//a.json'])(
+    'rejects unexpected sandbox path segments before running Workbench: %s', async (path) => {
+      vi.stubEnv('COMPOSIO_CONSUMER_API_KEY', 'ck_consumer_secret');
+      const sent = mcp((req) => ({ body: { jsonrpc: '2.0', id: req.body.id, result: toolResult({ successful: true, data: { results: [{ response: { successful: true, data_preview: {} } }], remote_file_info: { file_path: path } } }) } }));
+      await expect(executeConsumerTool('SCRAPECREATORS_GET_INSTAGRAM_PROFILE', {})).rejects.toThrow(/somewhere unexpected/);
+      expect(sent.filter((s) => s.body.params?.name === 'COMPOSIO_REMOTE_WORKBENCH')).toHaveLength(0);
+    }
+  );
+
+  it.each([false, true])('reads complete marked JSON from %s direct Workbench stdout', async (direct) => {
+    vi.stubEnv('COMPOSIO_CONSUMER_API_KEY', 'ck_consumer_secret');
+    const stdout = 'Loading file\nGROUNDSWELL_JSON_START\n{"data":{"user":{"follower_count":450}}}\nGROUNDSWELL_JSON_END\nDone';
+    mcp((req) => ({ body: { jsonrpc: '2.0', id: req.body.id, result: toolResult(req.body.params?.name === 'COMPOSIO_REMOTE_WORKBENCH' ? (direct ? { stdout, stderr: '', error: '' } : { successful: true, data: { stdout, stderr: '', error: '' } }) : { successful: true, data: { results: [{ response: { successful: true, data_preview: {} } }], remote_file_info: { file_path: '/mnt/files/mex/profile.json' } } }) } }));
+    await expect(executeConsumerTool('SCRAPECREATORS_GET_INSTAGRAM_PROFILE', {})).resolves.toEqual({ data: { user: { follower_count: 450 } } });
+  });
+
+  it.each(['envelope', 'mcp', 'http'])('pauses subsequent public reads on actionable credit failures from %s', async (surface) => {
+    vi.stubEnv('COMPOSIO_CONSUMER_API_KEY', 'ck_consumer_secret');
+    vi.useFakeTimers({ toFake: ['Date'] });
+    const credit = 'Your Composio wallet is out of credits. Instant tool calls are paused.';
+    const sent = mcp((req) => surface === 'http' ? { status: 402, body: { error: credit } } : { body: { jsonrpc: '2.0', id: req.body.id, result: surface === 'mcp' ? { content: [{ type: 'text', text: credit }], isError: true } : toolResult(multi({ successful: false, error: credit })) } });
+    await expect(executeConsumerTool('SERPAPI_GOOGLE_LIGHT_SEARCH', {})).rejects.toBeInstanceOf(ProviderCreditError);
+    const afterFirst = sent.length;
+    forgetConsumerSession();
+    await expect(executeTool('GOOGLE_MAPS_TEXT_SEARCH', {})).rejects.toThrow(/Add credits in Composio, then retry/);
+    expect(sent).toHaveLength(afterFirst);
+    vi.setSystemTime(Date.now() + 30_001);
+    await expect(executeConsumerTool('SERPAPI_GOOGLE_LIGHT_SEARCH', {})).rejects.toBeInstanceOf(ProviderCreditError);
+    expect(sent.length).toBeGreaterThan(afterFirst);
+  });
+
+  it('also pauses when reading a saved answer encounters the wallet failure', async () => {
+    vi.stubEnv('COMPOSIO_CONSUMER_API_KEY', 'ck_consumer_secret');
+    const sent = mcp((req) => ({ body: { jsonrpc: '2.0', id: req.body.id, result: req.body.params?.name === 'COMPOSIO_REMOTE_WORKBENCH' ? { content: [{ type: 'text', text: 'Composio wallet credits are empty' }], isError: true } : toolResult({ successful: true, data: { results: [{ response: { successful: true, data_preview: {} } }], remote_file_info: { file_path: '/mnt/files/mex/profile.json' } } }) } }));
+    await expect(executeConsumerTool('SCRAPECREATORS_GET_INSTAGRAM_PROFILE', {})).rejects.toBeInstanceOf(ProviderCreditError);
+    const afterFirst = sent.length;
+    await expect(executeConsumerTool('GOOGLE_MAPS_TEXT_SEARCH', {})).rejects.toBeInstanceOf(ProviderCreditError);
+    expect(sent).toHaveLength(afterFirst);
+  });
+
+  it('preserves a short public-read timeout through session setup and execution', async () => {
+    vi.stubEnv('COMPOSIO_CONSUMER_API_KEY', 'ck_consumer_secret');
+    const timeouts = vi.spyOn(AbortSignal, 'timeout');
+    mcp((req) => ({ body: { jsonrpc: '2.0', id: req.body.id, result: toolResult(multi({ successful: true, data: { places: [] } })) } }));
+    await executeTool('GOOGLE_MAPS_TEXT_SEARCH', {}, 1500);
+    expect(timeouts.mock.calls.every(([ms]) => ms > 0 && ms <= 1500)).toBe(true);
+    timeouts.mockRestore();
   });
 
   it('a session the server forgot is opened again once', async () => {
@@ -239,5 +296,43 @@ describe('Composio consumer account', () => {
     const out = await runKeywords({ audit, outputs: {}, deadline: Date.now() + 60_000, attempt: 1 });
     expect(out.ideas).toEqual([{ keyword: 'transmission repair', monthly_searches: 1900, competition: 'HIGH', low_bid_usd: 3.2, high_bid_usd: 8.3 }]);
     expect(sent.filter((s) => s.body.method === 'tools/call')).toHaveLength(2);
+  });
+});
+
+
+describe('saved Workbench provider data', () => {
+  it.each([
+    ['{"items":[{"code":"C1"}]}', { items: [{ code: 'C1' }] }],
+    ['[INFO] Loaded profile\n{"items":[]}\nFinished', { items: [] }],
+    ['Loaded profile\n{"data":{"user":{"follower_count":450}}}\nFinished', { data: { user: { follower_count: 450 } } }],
+    ['Diagnostic\nGROUNDSWELL_JSON_START\n{"items":[]}\nGROUNDSWELL_JSON_END\nFinished', { items: [] }],
+    ['Diagnostic\n```json\n{"items":[]}\n```\nFinished', { items: [] }],
+  ])('decodes complete payloads with known stdout wrappers: %s', (stdout, want) => {
+    expect(decodeWorkbenchJson(stdout)).toEqual(want);
+  });
+
+  it.each([
+    '{"data":{"user":{"follower_count":450}',
+    'Loaded\n{"data":\n{"user":{"follower_count":450}}',
+    'GROUNDSWELL_JSON_START\n{"data":{"user":{"follower_count":450}}',
+    '```json\n{"data":{"user":{"follower_count":450}}',
+    'Diagnostic {"user":{"follower_count":450}}',
+    '{"data":\nGROUNDSWELL_JSON_START\n{"user":{"follower_count":450}}\nGROUNDSWELL_JSON_END',
+    '{"data":\n```json\n{"user":{"follower_count":450}}\n```',
+  ])('rejects truncated or ambiguous output instead of accepting a nested fragment: %s', (stdout) => {
+    expect(() => decodeWorkbenchJson(stdout)).toThrow();
+  });
+
+  it.each([false, true])('executes the generated pruner on a %s wrapped envelope, bounds stdout and retains nested user figures', (wrapped) => {
+    const dir = mkdtempSync(join(tmpdir(), 'groundswell-pruner-'));
+    try {
+      const path = join(dir, 'profile.json');
+      const payload = { data: Object.fromEntries([...Array.from({ length: 100 }, (_, i) => [`noise${i}`, { text: 'x'.repeat(5000), rows: Array.from({ length: 20 }, () => ({ huge: 'y'.repeat(2000) })) }]), ['user', { username: 'wildlyprimal', follower_count: 450, media_count: 80 }], ['x'.repeat(5000), 'y'.repeat(5000)]]) };
+      const envelope = { results: [{ response: { successful: true, data: payload } }] };
+      writeFileSync(path, JSON.stringify(wrapped ? { successful: true, data: envelope } : envelope));
+      const stdout = execFileSync('python3', ['-c', prunerCode(path)], { encoding: 'utf8', maxBuffer: 50_000 });
+      expect(Buffer.byteLength(stdout)).toBeLessThanOrEqual(20_000);
+      expect(decodeWorkbenchJson(stdout)).toMatchObject({ data: { user: { username: 'wildlyprimal', follower_count: 450, media_count: 80 } } });
+    } finally { rmSync(dir, { recursive: true, force: true }); }
   });
 });

@@ -11,7 +11,7 @@ import { runMaps } from './currents/maps.js';
 import { runKeywords, runSearch } from './currents/search.js';
 import { runSocial } from './currents/social.js';
 import { MAX_ATTEMPTS } from './engine.js';
-import { allowedNumbers, buildFacts, factsForPrompt, roiInputsFrom, SENTENCE, unsupportedNumbers, type Facts, type runModel } from './model.js';
+import { allowedNumbers, buildFacts, criticalEvidenceProblems, evidenceCoverage, factsForPrompt, roiInputsFrom, scrubUnsupportedClaims, SENTENCE, unsupportedNumbers, type Facts, type runModel } from './model.js';
 import { chatJson } from './openai.js';
 import { runRoiModel } from './roi.js';
 import { PermanentStepError, type AuditRow, type StepContext, type StepDefinition } from './types.js';
@@ -156,7 +156,9 @@ const f = (key: string, label: string, value: number | null | undefined, extra: 
 
 /** The figures the reports print from the sources read again, for the business and each competitor. */
 export function rawFigures(facts: Facts, data: Record<string, unknown>): FigureSet {
-  const figures: Figure[] = READ_SOURCES.filter((s) => data[s] !== undefined).map((s) => f(`source:${s}`, `${SOURCE_LABEL[s]} was read`, 1));
+  const coverage = new Map(evidenceCoverage(facts).map(s => [s.key, s.status]));
+  const usable = (s: ReadSource) => s === 'social' ? coverage.get('instagram') === 'checked' || coverage.get('facebook') === 'checked' : coverage.get(s) === 'checked';
+  const figures: Figure[] = READ_SOURCES.filter((s) => data[s] !== undefined).map((s) => f(`source:${s}`, `${SOURCE_LABEL[s]} was read`, usable(s) ? 1 : null));
   const place = facts.maps?.business;
   if (place) {
     figures.push(f('maps:rating', 'Google rating', place.rating), f('maps:reviews', 'Google reviews', place.reviews, { count: true }));
@@ -185,7 +187,7 @@ export function rawFigures(facts: Facts, data: Record<string, unknown>): FigureS
     );
   }
   const site = facts.search?.business;
-  if (site && !site.error) {
+  if (site) {
     figures.push(
       f('ahrefs:dr', 'Ahrefs Domain Rating', site.domain_rating),
       f('ahrefs:traffic', 'Organic visits a month (Ahrefs)', site.organic_traffic, { count: true }),
@@ -193,7 +195,6 @@ export function rawFigures(facts: Facts, data: Record<string, unknown>): FigureS
     );
   }
   for (const c of facts.search?.competitors ?? []) {
-    if (c.error) continue;
     figures.push(
       f(`ahrefs:${lower(c.name)}:dr`, `${c.name}: Ahrefs Domain Rating`, c.domain_rating),
       f(`ahrefs:${lower(c.name)}:traffic`, `${c.name}: organic visits a month (Ahrefs)`, c.organic_traffic, { count: true })
@@ -280,7 +281,7 @@ export function laterPassOutputs(ctx: StepContext, pass: Pass, model: ModelOut, 
     roi,
     roi_sources: plan?.sources ?? [],
     core_keywords: plan?.core_keywords ?? [],
-    roi_note: plan ? null : 'Keyword Planner returned no search volumes for the area, so no return was modeled.',
+    roi_note: plan ? null : 'Keyword demand and bids could not be verified for this run, so ad spend and return were not modeled. This does not establish low or zero demand.',
   };
   if (adplan && pass.rerun) out.adplan = { ...adplan, angles: pass.rerun.angles, baseline: pass.rerun.baseline, ...pass.rerun.result };
   const copy = ctx.outputs.adcopy;
@@ -304,13 +305,15 @@ Report a sentence only when the data shows it is wrong:
 - a number given for the wrong business, competitor, place or measure (for example a competitor's followers given as the business's);
 - a claim the data contradicts (for example "no booking link" when the data shows one);
 - saying the business lacks something the data could not check (a null, missing or not_available field means it was not checked);
+- treating failed/unavailable evidence as zero activity, low demand, absent social presence or no active campaigns; website tags and Ahrefs zero paid keywords do not establish campaign status;
+- claiming measured loss, spend, leads or bookings from public proxies; a hypothesis or risk must remain labelled as such;
 - a number that is not in the data.
 Do not report style, tone, advice, plans, or estimates labelled as estimates.
 For each problem give a corrected sentence that uses only the data, or "" to drop the sentence.
 Return JSON only: {"problems": [{"id": string, "problem": string (one short sentence), "fix": string}]}`;
 
 /** Fields that are labels or fixed rules, not sentences to review. */
-const SKIP_KEYS = new Set(['lever', 'area', 'name', 'metric', 'rank', 'do_not_copy']);
+const SKIP_KEYS = new Set(['lever', 'area', 'name', 'metric', 'rank', 'do_not_copy', 'source', 'priority', 'basis']);
 
 /**
  * Walks every sentence of a write-up in a fixed order, giving each an id
@@ -459,7 +462,20 @@ export const runVerifyCheck =
       };
     }
 
-    const holds: string[] = [];
+    const guarded = scrubUnsupportedClaims(reviewed.model.writeup, passes[chosen].facts);
+    reviewed.model = { ...reviewed.model, writeup: guarded.writeup, removed_sentences: [...reviewed.model.removed_sentences, ...guarded.removed] };
+    reviewed.record.dropped.push(...guarded.removed.map(from => ({ from, problem: 'The available source does not establish this absence or activity claim.' })));
+    const holds: string[] = criticalEvidenceProblems(passes[chosen].facts, ctx.steps);
+    if (reviewed.model.report_schema_version >= 2) {
+      const checked = new Set(evidenceCoverage(passes[chosen].facts).filter(s => s.status === 'checked').map(s => s.key));
+      const substantive = (reviewed.model.writeup.findings ?? []).filter(finding =>
+        finding.basis !== 'hypothesis' &&
+        (finding.source === 'client_accounts' ? passes[chosen].facts.linked?.services.some(s => s.ok && s.data) : checked.has(finding.source)) &&
+        finding.evidence.length >= 40 && finding.action.length >= 40 && finding.implication.length >= 30 && finding.measure.length >= 30 &&
+        !/^(?:boost .*presence|improve seo|post more|increase engagement)[.!]?$/i.test(finding.title.trim())
+      );
+      if (substantive.length < 3) holds.push(`The report has ${substantive.length} substantive evidence-backed findings. Complete the specific actions, business implications and verification checks before client delivery.`);
+    }
     if (agreed === null) holds.push(`The figures did not agree after ${round} reads: ${summarize(disagreements)}.`);
     const w = reviewed.model.writeup;
     if (!w.headline || !w.verdict) {

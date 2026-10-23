@@ -100,6 +100,41 @@ describe('reading again', () => {
 });
 
 describe('the check', () => {
+  it('holds a new-format report with complete research when its findings are still generic or missing', async () => {
+    const o = { ...first(), [readStep(2)]: read(2) };
+    (o.model as Record<string, unknown>).report_schema_version = 2;
+    const out = await runVerifyCheck(2)(ctx(o));
+    expect(out.status).toBe('held');
+    expect(out.hold).toMatch(/substantive.*findings/i);
+  });
+
+  it('accepts a new-format report whose supported findings connect evidence to actions and verification', async () => {
+    const o = { ...first(), [readStep(2)]: read(2) };
+    const model = o.model as ReturnType<typeof sampleModelOutput>;
+    model.report_schema_version = 2;
+    model.writeup.findings = [
+      { area: 'website', source: 'website', title: 'Verify booking completion', evidence: 'The homepage contains a Square booking link in its initial HTML.', implication: 'A booking link alone does not establish completed appointments.', action: 'Trace a completed test booking and inspect its confirmation event.', measure: 'A completed booking produces one deduplicated analytics event.' },
+      { area: 'google', source: 'maps', title: 'Build on the observed review baseline', evidence: 'The Google listing has a 4.6 rating from 212 reviews in the snapshot.', implication: 'A consistent follow-up process can make customer feedback easier to capture.', action: 'Add the correct review link to the completed-job follow-up workflow.', measure: 'The link opens the correct listing and the workflow records its delivery.' },
+      { area: 'keywords', source: 'keywords', title: 'Match service intent to a landing page', evidence: 'Keyword Planner returned brake repair searches and associated bid estimates.', implication: 'A service-specific destination can answer a relevant search more directly.', action: 'Create a brake-repair page with local service details and a booking path.', measure: 'The published page and its booking path work on a mobile device.' },
+    ].map(finding => ({ ...finding, priority: 'high', basis: 'observed', effort: 'Estimate depends on access and the existing system.', dependency: 'Requires owner approval.' })) as NonNullable<typeof model.writeup.findings>;
+    const out = await runVerifyCheck(2)(ctx(o));
+    expect(out.status).toBe('agreed');
+    expect(out.hold).toBeNull();
+  });
+
+  it('holds an audit when repeated payloads contain failures rather than usable public research', async () => {
+    const o = first();
+    const failed = (x: Outputs) => {
+      x.maps = { business: null, nearby: [], note: 'Google Maps could not be read.', source: 'Google Maps', fetched_at: '2026-10-21' };
+      x.social = { business: { handle: 'harborautocare', exists: false, followers: null, error: 'blocked' }, competitors: [], source: 'Instagram', fetched_at: '2026-10-21' };
+    };
+    failed(o);
+    o[readStep(2)] = read(2, failed);
+    const out = await runVerifyCheck(2)(ctx(o, { steps: ['maps', 'social', ...STEPS_2] }));
+    expect(out.status).toBe('held');
+    expect(out.hold).toMatch(/public research/i);
+  });
+
   it('agrees in round 2 on the same figures, and delivers the first read with the write-up reviewed', async () => {
     const o = { ...first(), [readStep(2)]: read(2) };
     mocks.chatJson.mockResolvedValue({

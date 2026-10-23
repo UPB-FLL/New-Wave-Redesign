@@ -43,13 +43,14 @@ import { SUPPORTED_ROUNDS, verifySteps } from './verify.js';
  */
 const GATHER_AND_MODEL: StepDefinition[] = [
   // First, so the Site, Social and Search steps already see the picked competitors.
-  { name: 'competitors', current: 'Maps', label: 'Top competitors (Google Places)', optional: true, run: runCompetitors, persist: persistCompetitors },
+  { name: 'competitors', current: 'Maps', label: 'Local competitors (public Google listings)', optional: true, run: runCompetitors, persist: persistCompetitors },
   { name: 'site', current: 'Site', label: 'Website scan', optional: false, run: runSite },
   { name: 'maps', current: 'Maps', label: 'Google Maps', optional: true, run: runMaps },
-  { name: 'search', current: 'Search', label: 'Search rankings (Ahrefs)', optional: true, run: runSearch },
+  { name: 'search', current: 'Search', label: 'Search rankings (Ahrefs and public Google)', optional: true, run: runSearch },
   { name: 'keywords', current: 'Search', label: 'Keyword demand (Keyword Planner)', optional: true, run: runKeywords },
   { name: 'social', current: 'Social', label: 'Instagram and Facebook', optional: true, run: runSocial },
   { name: 'ads', current: 'Ads', label: 'Ads', optional: true, run: runAds },
+  { name: 'ads_library', current: 'Ads', label: 'Meta Ad Library and Google Ads Transparency', optional: true, run: runAdsLibrary },
   { name: 'model', current: 'Model', label: 'Write-up and ROI', optional: false, run: runModel },
   { name: 'adplan', current: 'Model', label: 'Ad plan and change ranking', optional: true, run: runAdplan },
   { name: 'adcopy', current: 'Model', label: 'Ad copy', optional: true, run: runAdcopy },
@@ -113,7 +114,7 @@ const adsets: StepDefinition = { name: 'adsets', current: 'Model', label: 'Ad se
 function benchmarkSteps(rounds: number): StepDefinition[] {
   return [
     ...GATHER_AND_MODEL,
-    ...COMPETITOR_DATA,
+    ...COMPETITOR_DATA.filter((s) => s.name !== 'ads_library'),
     ...verifySteps(rounds),
     deliver.prepare,
     deliver.audit,

@@ -29,7 +29,8 @@ export const TOOLKIT_CHECKS = [
   { toolkit: 'ahrefs', label: 'Ahrefs (search rankings, paid pages, authority)', without: 'search rankings, paid pages and domain authority are left out of the reports' },
   { toolkit: 'scrapecreators', label: 'ScrapeCreators (Instagram, Facebook, ad libraries)', without: 'Instagram, Facebook and the ad libraries are left out of the reports' },
   { toolkit: 'apify', label: 'Apify (Instagram profiles shown only to signed-in adults, extra images)', without: 'an Instagram profile that hides from logged-out readers stays unread, and the ad images come from fewer posts' },
-  { toolkit: 'google_maps', label: 'Google Places (Maps listing, competitor picks)', without: 'Maps is read from its public view and no competitors are picked' },
+  { toolkit: 'google_maps', label: 'Google Places (Maps listing, competitor picks)', without: 'Maps listings and competitor suggestions use public Google search or browser fallbacks' },
+  { toolkit: 'serpapi', label: 'Public Google search (rankings, Maps and ad library fallback)', without: 'public search observations and fallback Maps and Google Ads Transparency reads are unavailable' },
   { toolkit: 'googleads', label: 'Google Ads (Keyword Planner)', without: 'keyword demand, the ad plan and the ad copy are left out of the reports' },
 ] as const;
 
@@ -69,7 +70,7 @@ async function checkOpenAI(fetchImpl: typeof fetch): Promise<ReadinessCheck> {
 const SIGNIN_CHECKS = CLIENT_SERVICES.map((s) => ({ key: `authconfig:${s.toolkit}`, label: `Client sign-in: ${s.label}`, toolkit: s.toolkit, service: s.label }));
 
 /** Toolkits Composio serves from its instant account (billed per call) rather than one New Wave linked. */
-const INSTANT_TOOLKITS = ['ahrefs'];
+const INSTANT_TOOLKITS = ['ahrefs', 'google_maps', 'serpapi'];
 
 /**
  * The consumer account (phases 1 and 2): its key, then one check per toolkit
