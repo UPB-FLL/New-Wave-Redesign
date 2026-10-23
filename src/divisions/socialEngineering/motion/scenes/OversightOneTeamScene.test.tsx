@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { checkPath, sceneColor } from '../index';
+import { sceneColor } from '../index';
 import { OversightOneTeamScene } from './OversightOneTeamScene';
 
 /** Every stroke and fill in a scene is a palette variable (or none), never a hard-coded colour. */
@@ -46,9 +46,10 @@ describe('OversightOneTeamScene', () => {
 
     // The customer rests at the calendar's entry, and the calendar holds its check.
     const dot = svg.querySelector('circle[r="6"]');
-    expect(dot).toHaveAttribute('cx', '376');
-    expect(dot).toHaveAttribute('cy', '250');
-    expect(svg.querySelector(`path[d="${checkPath([406, 268.33], 33.33)}"]`)).not.toBeNull();
+    expect(dot).toHaveAttribute('cx', '377.67');
+    expect(dot).toHaveAttribute('cy', '248.33');
+    expect(svg.querySelector('path[d="M8.5 15.5L11 18L16 13"]')).toHaveAttribute('stroke', sceneColor('line'));
+    expect(svg.querySelector('path[d^="M 320 250 C"]')?.getAttribute('d')).toMatch(/ 377\.67 248\.33$/);
   });
 
   it('holds its start state until it is scrolled into view: needle pointing left, gap still open', () => {

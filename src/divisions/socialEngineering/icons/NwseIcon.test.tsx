@@ -16,7 +16,7 @@ describe('NwseIcon', () => {
     expect(screen.queryByRole('img')).toBeNull();
   });
 
-  it('draws the spec: 24 x 24 grid, currentColor stroke 1.75, round caps and joins', () => {
+  it('normalizes the supplied icon and its stroke uniformly to the 24 x 24 grid', () => {
     const { container } = render(<NwseIcon name="service-web" />);
     const svg = svgOf(container);
     expect(svg).toHaveAttribute('viewBox', '0 0 24 24');
@@ -24,10 +24,12 @@ describe('NwseIcon', () => {
     expect(svg).toHaveAttribute('height', '24');
     expect(svg).toHaveAttribute('fill', 'none');
     expect(svg).toHaveAttribute('stroke', 'currentColor');
-    expect(svg).toHaveAttribute('stroke-width', '1.75');
+    expect(svg).toHaveAttribute('stroke-width', '1.35');
     expect(svg).toHaveAttribute('stroke-linecap', 'round');
     expect(svg).toHaveAttribute('stroke-linejoin', 'round');
     expect(svg).toHaveAttribute('data-icon', 'service-web');
+    expect(svg).toHaveAttribute('data-icon-family', 'groundswell');
+    expect(svg).toHaveAttribute('data-icon-source', 'web-design');
     expect([...svg.querySelectorAll('path')].map((p) => p.getAttribute('d'))).toEqual(
       DIVISION_ICONS['service-web'].paths.map((p) => p.d),
     );
@@ -41,19 +43,34 @@ describe('NwseIcon', () => {
     expect(svg).toHaveAttribute('class', 'shrink-0 text-[var(--nw-slate)]');
   });
 
-  it('strokes only the accent paths with --nwse-icon-accent, falling back to currentColor', () => {
-    const { container } = render(<NwseIcon name="method-discover" />);
+  it('preserves the source cyan, tide, and amber roles on service icons', () => {
+    const { container } = render(<NwseIcon name="service-web" size={32} />);
     const paths = [...svgOf(container).querySelectorAll('path')];
     const accents = paths.filter((p) => p.getAttribute('data-accent') === 'true');
     expect(accents).toHaveLength(1);
-    expect(accents[0].style.stroke).toBe('var(--nwse-icon-accent, currentColor)');
-    paths.filter((p) => !accents.includes(p)).forEach((p) => expect(p.style.stroke).toBe(''));
+    expect(accents[0]).toHaveAttribute('stroke', 'var(--nwse-signal-cyan, #31C6CF)');
+    expect(svgOf(container).querySelector('[data-tone="tide"]')).toHaveAttribute('stroke', 'var(--nwse-tide-blue, #317B92)');
+    expect(svgOf(container).querySelector('[data-tone="highlight"]')).toHaveAttribute('fill', 'var(--nwse-lure-amber, #F2A33A)');
+    expect(svgOf(container).querySelector('[data-tone="highlight"]')).toHaveAttribute('stroke', 'none');
+    paths.filter((p) => !p.getAttribute('data-tone')).forEach((p) => expect(p).toHaveAttribute('stroke', 'currentColor'));
   });
 
   it('lets accentColor override the accent stroke', () => {
-    const { container } = render(<NwseIcon name="menu" accentColor="#F2A33A" />);
+    const { container } = render(<NwseIcon name="service-brand" accentColor="#F2A33A" />);
     const accent = svgOf(container).querySelector('path[data-accent="true"]') as SVGPathElement;
-    expect(accent.style.stroke.toLowerCase()).toMatch(/#f2a33a|rgb\(242, 163, 58\)/);
+    expect(accent).toHaveAttribute('stroke', '#F2A33A');
+    expect(svgOf(container).querySelector('[data-tone="highlight"]')).toHaveAttribute('fill', 'var(--nwse-lure-amber, #F2A33A)');
+  });
+
+  it.each([14, 16, 20])('keeps the %ipx navigation icon monochrome with a legible stroke', (size) => {
+    const { container } = render(<NwseIcon name="service-social" size={size} accentColor="#F2A33A" />);
+    const svg = svgOf(container);
+    expect(svg).toHaveAttribute('data-icon-color', 'mono');
+    expect(svg).toHaveAttribute('stroke-width', '1.65');
+    [...svg.querySelectorAll('path')].forEach((p) => {
+      expect(['currentColor', 'none']).toContain(p.getAttribute('stroke'));
+      expect(['currentColor', 'none']).toContain(p.getAttribute('fill'));
+    });
   });
 
   it('draws UI glyphs without an accent', () => {

@@ -37,17 +37,21 @@ describe('MarketingReachScene', () => {
     expect(svg.querySelector('[data-scene-icon="service-marketing"]')).not.toBeNull();
     const amber = Array.from(svg.querySelectorAll(`[stroke="${sceneColor('accent')}"]`)).map((el) => el.getAttribute('d'));
     expect(amber).toHaveLength(1);
-    expect(amber[0]).toMatch(/^M 84 164 C .* 352 164$/);
+    expect(amber[0]).toMatch(/^M 103\.25 148\.88 C .* 352 148\.88$/);
+    const megaphone = svg.querySelector('[data-scene-icon="service-marketing"]')!;
+    expect(megaphone).toHaveAttribute('stroke-width', '1.35');
+    expect(megaphone.querySelector('path[fill="var(--scene-accent)"]')).toHaveAttribute('stroke', 'none');
+    expect(megaphone.querySelector('path[stroke="var(--scene-tide)"]')).not.toBeNull();
 
     // The customer rests at the page, which holds the check.
     const dots = svg.querySelectorAll('circle');
     expect(dots).toHaveLength(1);
     expect(dots[0]).toHaveAttribute('cx', '352');
-    expect(dots[0]).toHaveAttribute('cy', '164');
+    expect(dots[0]).toHaveAttribute('cy', '148.88');
     expect(svg.querySelector(`path[d="${checkPath([400, 176], 40)}"]`)).not.toBeNull();
 
     // The follow-up: a tide arc and chevron, carried by an email.
-    expect(svg.querySelectorAll(`[stroke="${sceneColor('tide')}"]`)).toHaveLength(2);
+    expect(svg.querySelectorAll(`[stroke="${sceneColor('tide')}"]`)).toHaveLength(3);
     expect(svg.querySelector('[data-scene-icon="mail"]')).not.toBeNull();
   });
 });

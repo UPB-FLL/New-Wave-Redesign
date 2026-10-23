@@ -116,6 +116,13 @@ describe('scene placement', () => {
     scenes.forEach((element) => {
       expect(element).toHaveAttribute('aria-hidden', 'true');
       expect(element.querySelector('a, button, input, select, textarea, [tabindex]')).toBeNull();
+      const signal = element.querySelector('[data-role="groundswell-signal"]');
+      if (signal) {
+        expect(signal).toHaveTextContent('The growth engine by New Wave');
+        expect(signal.querySelector('img')).toHaveAttribute('alt', '');
+        expect(signal.querySelector('img')?.getAttribute('src')).toContain('GroundSwell_Primary_Reverse.svg');
+        return;
+      }
       expect(element.textContent?.trim()).toBe('');
       // The slot holds the scene's 3:2 box before anything loads.
       const slot = element.querySelector('[data-scene-slot]') as HTMLElement;
@@ -412,8 +419,7 @@ describe('scene loading', () => {
     vi.stubGlobal('IntersectionObserver', InViewObserver);
     reducedMotion.set(true);
     const { container } = renderAt(<SocialEngineeringHubPage />);
-    await waitFor(() => expect(container.querySelector('[data-page-scene="hub"] [data-scene]')).not.toBeNull());
-    expect(container.querySelector('[data-page-scene="hub"] [data-scene]')).toHaveAttribute('data-scene-state', 'static');
+    expect(container.querySelector('[data-page-scene="hub"] [data-role="groundswell-signal"]')).toHaveAttribute('data-scene-state', 'static');
     await waitFor(() => expect(container.querySelector('[data-page-scene="hubSection"] [data-scene]')).not.toBeNull());
     const section = container.querySelector('[data-page-scene="hubSection"] [data-scene]')!;
     expect(section).toHaveAttribute('data-scene-state', 'static');

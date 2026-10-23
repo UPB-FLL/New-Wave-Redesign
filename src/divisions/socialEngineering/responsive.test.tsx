@@ -205,7 +205,7 @@ describe('mobile menu', () => {
     expect(classesOf(toggle)).toContain('p-[10px]');
     const menu = openMenu();
     const links = within(menu).getAllByRole('link');
-    expect(links).toHaveLength(1 + divisionServices.length + 3 + 1 + 1); // overview, services, croissance + customers + contact us, CTA, parent
+    expect(links).toHaveLength(1 + divisionServices.length + 3 + 1 + 1 + 1); // overview, services, page links, CTA, workspace, parent
     links.forEach((link) => {
       const classes = classesOf(link);
       expect(classes.includes('min-h-11') || classes.includes('min-h-12'), link.textContent ?? '').toBe(true);
@@ -295,6 +295,7 @@ describe('mobile menu', () => {
       'Contact us',
       ...divisionServices.map((service) => service.navLabel),
       DIVISION_PRIMARY_CTA,
+      'Existing partner workspace',
       `Managed IT & cybersecurity at ${PARENT_NAME}`,
     ]);
     // One wrapping row with no extra block, border, or margin. On a 320x568
@@ -402,12 +403,12 @@ describe('content hidden below a breakpoint', () => {
   const onlyDecorativeGraphics = (element: Element) =>
     [...element.querySelectorAll('img')].every((img) => img.getAttribute('alt') === '') &&
     [...element.querySelectorAll('svg')].every((svg) => svg.closest('[aria-hidden="true"]') !== null);
-  /** A line-art scene's wrapper (sections.tsx PageScene): hidden from assistive tech, nothing focusable, no text. */
+  /** Decorative art contains no controls; branded hero labels repeat the engine explanation. */
   const isDecorativeScene = (element: Element) =>
     element.hasAttribute('data-page-scene') &&
     element.getAttribute('aria-hidden') === 'true' &&
     element.querySelector('a, button, input, select, textarea, [tabindex]') === null &&
-    !element.textContent?.trim();
+    (!element.textContent?.trim() || element.querySelector('[data-role="groundswell-signal"]') !== null);
 
   it('on the hub, hides only decorative art and repeats of content shown elsewhere', () => {
     const { container } = renderAt(<SocialEngineeringHubPage />);

@@ -9,6 +9,11 @@ import { useState } from 'react';
 import { easeInOut, motion, type AnimationDefinition, type Variants } from 'framer-motion';
 import { Appear, Draw, SceneFrame, Travel, sceneColor, useSceneState, type SceneProps } from '../index';
 import { BookedCalendar } from './BookedCalendar';
+import { bookedCalendarEntry } from './bookedCalendarEntry';
+
+/** The booking's shared header entry also anchors the final repaired path. */
+const CALENDAR = { cx: 406, cy: 255, size: 80 } as const;
+const [ENTRY_X, ENTRY_Y] = bookedCalendarEntry(CALENDAR.cx, CALENDAR.cy, CALENDAR.size);
 
 /** The dial: r 140 around (220, 206), from 190° to 350° (its two feet). */
 const DIAL = 'M 82.13 181.69 A 140 140 0 0 1 357.87 181.69';
@@ -22,13 +27,13 @@ const SWEEP_DURATION = 1.7;
 
 /**
  * The customer's path at y 250: six half-waves (amplitude 8, 56 units each)
- * from 40 to 376. It starts broken: A and C are there, B (between the 4th and
+ * from 40 to the calendar header. It starts broken: A and C are there, B (between the 4th and
  * 5th touchpoints) is missing until the needle reaches it.
  */
 const PATH_A = 'M 40 250 C 57.61 239.33 78.39 239.33 96 250 S 134.39 260.67 152 250 S 190.39 239.33 208 250 S 246.39 260.67 264 250';
 const PATH_B = 'M 264 250 C 281.61 239.33 302.39 239.33 320 250';
-const PATH_C = 'M 320 250 C 337.61 260.67 358.39 260.67 376 250';
-const FULL_PATH = `${PATH_A} S 302.39 239.33 320 250 S 358.39 260.67 376 250`;
+const PATH_C = `M 320 250 C 337.61 260.67 358.39 260.67 ${ENTRY_X} ${ENTRY_Y}`;
+const FULL_PATH = `${PATH_A} S 302.39 239.33 320 250 ${PATH_C.replace(/^M 320 250 /, '')}`;
 
 /** Touchpoints on the path, and when the needle checks each one (its inner dot pops). */
 const TOUCHPOINTS = [
@@ -39,9 +44,6 @@ const TOUCHPOINTS = [
   { x: 320, checked: 2.9 },
 ] as const;
 const TOUCHPOINT_Y = 250;
-
-/** The calendar at (406, 255), S 80: its entry point is the path's end, (376, 250). */
-const CALENDAR = { cx: 406, cy: 255, size: 80 } as const;
 
 const round = (n: number) => Math.round(n * 100) / 100;
 

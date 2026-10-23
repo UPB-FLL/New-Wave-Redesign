@@ -18,7 +18,7 @@ vi.mock('./motion/scenes/ContactDiscoveryScene', () => {
   throw new TypeError('Failed to fetch dynamically imported module: /assets/ContactDiscoveryScene-stale.js');
 });
 // The hub scene's module loads but has no component (a broken build).
-vi.mock('./motion/scenes/HubGrowthScene', () => ({ default: undefined }));
+vi.mock('./motion/scenes/HubJourneyScene', () => ({ default: undefined }));
 vi.mock('../../lib/useContent', () => ({ useContent: vi.fn(() => ({})) }));
 // In production Vite wraps every import() in its preload helper, so the
 // registry's loadDecorativeChunk(() => import('./X')) receives
@@ -112,19 +112,19 @@ describe('a scene that fails to load', () => {
     expect(screen.getByRole('button', { name: /Send message/ })).toBeInTheDocument();
   }, 30_000);
 
-  it('leaves its empty box in the hub hero, and the rest of the hub, band scene included, renders', async () => {
+  it('keeps the branded engine hero and page when the decorative journey scene fails', async () => {
     const { container } = render(
       <MemoryRouter>
         <SocialEngineeringHubRoute />
       </MemoryRouter>,
     );
-    await waitFor(() => expect(failedBox(container, 'hub')).not.toBeNull(), CHUNK_LOAD);
-    expect(failedBox(container, 'hub')!.style.aspectRatio).toBe('3 / 2');
+    await waitFor(() => expect(failedBox(container, 'hubSection')).not.toBeNull(), CHUNK_LOAD);
+    expect(failedBox(container, 'hubSection')!.style.aspectRatio).toBe('3 / 2');
     expect(reloaded()).toBe(false);
 
     expect(screen.queryByRole('alert')).toBeNull();
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(hubContent.headline);
-    // The other scene on the page is unaffected.
-    await waitFor(() => expect(container.querySelector('[data-page-scene="hubSection"] [data-scene]')).not.toBeNull(), CHUNK_LOAD);
+    expect(container.querySelector('[data-page-scene="hub"] [data-role="groundswell-signal"]')).not.toBeNull();
+    expect(container.querySelector('[data-role="groundswell-engine"]')).not.toBeNull();
   }, 30_000);
 });

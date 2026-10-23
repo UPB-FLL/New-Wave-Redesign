@@ -4,10 +4,11 @@ import { NwseIcon } from '../icons/NwseIcon';
 import type { DivisionIconName } from '../icons/iconData';
 import type { ScenePageKey } from '../motion/scenes';
 import { SceneSlot } from '../motion/scenes/SceneSlot';
-import { DIVISION_BASE_PATH, DIVISION_CONTACT_PATH, DIVISION_PRIMARY_CTA } from '../site';
+import { DIVISION_BASE_PATH, DIVISION_CONTACT_PATH, DIVISION_PRIMARY_CTA, DIVISION_SERVICE_SLUGS } from '../site';
 import type { DivisionFaq, DivisionGlance, DivisionPageSeo, DivisionPillar, DivisionPillarKey, DivisionPoint, DivisionRoadmapPhase } from '../types';
 import { DivisionCurrents } from './DivisionCurrents';
 import { PILLAR_STYLE, accentAt, type SurfaceColor } from './pillarStyle';
+import { GroundswellSignal } from './GroundswellEngine';
 
 /** A section's ground: light tones (Band) or dark (a navy or Deep Current band). */
 export type SurfaceTone = 'light' | 'dark';
@@ -111,15 +112,17 @@ function PageScene({
   tone,
   className,
   style,
+  branded = false,
 }: {
   page: ScenePageKey;
   tone: 'dark' | 'light';
   className?: string;
   style?: CSSProperties;
+  branded?: boolean;
 }) {
   return (
     <div aria-hidden="true" data-page-scene={page} className={className} style={style}>
-      <SceneSlot page={page} tone={tone} />
+      {branded ? <GroundswellSignal page={page} /> : <SceneSlot page={page} tone={tone} />}
     </div>
   );
 }
@@ -147,6 +150,7 @@ function HeroScene({ page, onPhones }: { page: ScenePageKey; onPhones: HeroScene
     <PageScene
       page={page}
       tone="dark"
+      branded={page === 'hub' || (DIVISION_SERVICE_SLUGS as readonly string[]).includes(page)}
       style={HERO_SCENE_KNOCKOUT}
       className={`mx-auto mt-4 w-full max-w-[18rem] sm:mx-0 sm:mt-10 [@media(min-width:48em)]:ml-auto [@media(min-width:48em)]:mt-8 [@media(min-width:48em)]:w-[16rem] [@media(min-width:48em)]:shrink-0 [@media(min-width:64em)]:col-start-2 [@media(min-width:64em)]:row-span-2 [@media(min-width:64em)]:row-start-1 [@media(min-width:64em)]:mt-0 [@media(min-width:64em)]:w-full [@media(min-width:64em)]:max-w-none [@media(min-width:64em)]:self-center max-lg:[@media(max-height:500px)]:hidden ${HERO_SCENE_ON_PHONES[onPhones]}`}
     />
@@ -592,7 +596,7 @@ export function CheckList({ items, tone = 'light', color }: { items: readonly st
           <span className={`nwse-icon ${color?.tile ?? ''} ${tone === 'dark' ? 'nwse-icon-on-dark' : ''} mt-0.5 h-5 w-5 shrink-0`}>
             <NwseIcon name="check" size={15} />
           </span>
-          {item}
+          <span className="min-w-0 [overflow-wrap:anywhere]">{item}</span>
         </li>
       ))}
     </ul>

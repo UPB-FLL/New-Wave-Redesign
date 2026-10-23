@@ -19,6 +19,8 @@ import {
   divisionServicePath,
 } from '../site';
 import { GROUNDSWELL_PATH } from '../../../groundswell/site';
+import { GROUNDSWELL_BRAND } from '../../../groundswell/brand';
+import './division-navigation.css';
 
 import { DivisionCurrents } from './DivisionCurrents';
 import { DivisionLogo } from './DivisionLogo';
@@ -57,9 +59,29 @@ export function DivisionFooter() {
   const address = content.address || FOOTER_ADDRESS_FALLBACK;
 
   return (
-    <footer className="nwse-dark relative overflow-hidden" style={{ background: 'var(--nw-deep-current)' }}>
+    <footer className="gs-division-footer nwse-dark relative overflow-hidden" style={{ background: 'var(--nw-deep-current)' }}>
       <DivisionCurrents className="pointer-events-none absolute inset-0 h-full w-full" opacity={0.18} />
       <div className="relative mx-auto max-w-7xl px-4 pb-6 pt-8 sm:px-6 lg:px-8 lg:pt-10">
+        <div className="gs-division-footer-engine">
+          <div className="gs-division-footer-engine-copy">
+            <img src={GROUNDSWELL_BRAND.mark} width={52} height={52} alt="" aria-hidden="true" />
+            <div>
+              <p className="gs-division-nav-eyebrow">The engine behind the division</p>
+              <h2>GroundSwell connects the work.</h2>
+              <p>Connected data, clear priorities, and a shared workspace for your growth.</p>
+            </div>
+          </div>
+          <div className="gs-division-footer-engine-actions">
+            <Link to={DIVISION_GROUNDSWELL_PATH} className="gs-division-footer-engine-link">
+              Explore GroundSwell
+              <NwseIcon name="arrow-right" size={17} />
+            </Link>
+            <Link to={GROUNDSWELL_PATH} className="gs-division-footer-workspace">
+              <span><small>Already a partner?</small>Open partner workspace</span>
+              <NwseIcon name="arrow-up-right" size={18} />
+            </Link>
+          </div>
+        </div>
         <div className="grid grid-cols-2 gap-x-6 gap-y-6 md:grid-cols-[fit-content(280px)_repeat(2,minmax(0,1fr))] md:gap-x-8 lg:grid-cols-[fit-content(280px)_repeat(3,minmax(0,1fr))] lg:gap-y-8 xl:grid-cols-[fit-content(280px)_repeat(3,minmax(0,1fr))_minmax(0,1.25fr)]">
           {/* Family lockup: parent leads, division below at equal height (guidelines page 10). */}
           <div className="col-span-2 flex flex-col items-start gap-3 md:col-span-1 md:row-span-2 lg:row-span-1">
@@ -83,16 +105,6 @@ export function DivisionFooter() {
               <li>
                 <Link to={DIVISION_BASE_PATH} className={linkClass}>
                   Division overview
-                </Link>
-              </li>
-              <li>
-                <Link to={DIVISION_GROUNDSWELL_PATH} className={linkClass}>
-                  GroundSwell
-                </Link>
-              </li>
-              <li>
-                <Link to={GROUNDSWELL_PATH} className={linkClass}>
-                  Partner portal
                 </Link>
               </li>
               <li>
