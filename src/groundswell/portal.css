@@ -100,7 +100,7 @@
 .gs-portal .gs-phases { gap: 12px; }
 .gs-portal .gs-phase { min-width: 0; padding: 18px 16px; box-shadow: none; border-radius: 8px; }
 .gs-portal .gs-phase[aria-pressed='true'] { border-color: var(--gs-tide); background: var(--gs-foam); box-shadow: inset 0 3px 0 var(--gs-cyan); }
-.gs-portal .gs-phase-num { font-family: var(--nw-font-technical); background: var(--gs-mist); }
+.gs-portal .gs-phase-icon { background: var(--gs-mist); }
 .gs-portal .gs-panel { background: var(--gs-white); border-radius: 7px; }
 .gs-portal #gs-phase-panel { padding: 28px; }
 .gs-portal .gs-portal-aside { margin-top: 36px; padding-top: 24px; border-top: 1px solid var(--gs-mist); }

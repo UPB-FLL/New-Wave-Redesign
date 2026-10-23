@@ -1,4 +1,5 @@
 import { GROUNDSWELL_CONFIG } from '../../../packages/groundswell/groundswell.config.js';
+import { PHASE_INFO } from '../../../src/lib/groundswellValidation.js';
 import { repriceWithActuals, type AccountActuals, type Repriced } from '../../../packages/groundswell/src/actuals.js';
 import { buildAdPlan } from '../../../packages/groundswell/src/adplan.js';
 import { claimsIn } from '../../../packages/groundswell/src/templates.js';
@@ -183,7 +184,7 @@ export async function runIntegrated(ctx: StepContext): Promise<IntegratedOutput>
   const window = linked.window ? `${linked.window.start} – ${linked.window.end}` : 'the last 30 days';
 
   let adplan: AdplanOutput | null = null;
-  let repricing: IntegratedOutput['repricing'] = { google: null, meta: null, notes: ['Phase 1 built no ad plan, so there is nothing to re-price.'] };
+  let repricing: IntegratedOutput['repricing'] = { google: null, meta: null, notes: [`${PHASE_INFO.audit.title} built no ad plan, so there is nothing to re-price.`] };
   if (phase1) {
     const config = GROUNDSWELL_CONFIG;
     const industry = config.industries.find((i) => i.id === phase1.industry.id) ?? config.industries.find((i) => i.id === 'general')!;

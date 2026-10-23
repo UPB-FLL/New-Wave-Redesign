@@ -82,9 +82,9 @@ const phasesOf = (runs: Partial<Record<'audit' | 'competitors' | 'integrated', u
   phases_available: true,
   phases: (
     [
-      ['audit', 1, 'The audit'],
-      ['competitors', 2, 'The plan against competitors'],
-      ['integrated', 3, 'The integrated plan'],
+      ['audit', 1, 'Growth audit'],
+      ['competitors', 2, 'Competitor plan'],
+      ['integrated', 3, 'Integrated plan'],
     ] as const
   ).map(([phase, number, title]) => ({
     phase, number, title, source: 'Public data', brings: `${title} brings this.`, runs: runs[phase] ?? [],
@@ -306,16 +306,16 @@ describe('partner customer page', () => {
     expect(ws.getWorkspace).toHaveBeenCalledWith('partner', 'c1');
     // The furthest phase with a run is open: phase 1, delivered, with its reports.
     expect(cards[0]).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByRole('heading', { level: 3, name: 'Phase 1 · The audit' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 3, name: 'Growth audit' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Slides \(PDF\)/ }));
     await waitFor(() => expect(opened).toHaveBeenCalledWith('https://storage.example/signed/a2/deck', '_blank', 'noopener'));
     expect(ws.reportUrl).toHaveBeenCalledWith('partner', 'a2', 'deck');
     opened.mockRestore();
     // Phase 2 can start; phase 3 says why it cannot.
     fireEvent.click(cards[1]);
-    expect(screen.getByRole('button', { name: /Start phase 2/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Start competitor plan/ })).toBeInTheDocument();
     fireEvent.click(cards[2]);
-    expect(screen.queryByRole('button', { name: /Start phase 3/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Start integrated plan/ })).not.toBeInTheDocument();
     expect(screen.getByText('Waiting on the phase before it.')).toBeInTheDocument();
     // Only the audit delivered to Drive is listed below, with its Drive links only.
     expect(screen.getByRole('heading', { level: 2, name: 'Earlier audits (Google Drive)' })).toBeInTheDocument();
@@ -334,11 +334,11 @@ describe('partner customer page', () => {
     api.currentPartner.mockResolvedValue(partner);
     api.getPartnerCustomer.mockResolvedValue({ customer: { ...harbor, latest: null, last_reports_at: null, audit_count: 0 }, audits: [] });
     ws.getWorkspace.mockResolvedValue(phasesOf({}, { audit: { allowed: true, reason: 'Reads the business’s public data.' } }));
-    ws.startPhase.mockResolvedValue({ queued: 'a9', reason: 'Phase 1 is queued.' });
+    ws.startPhase.mockResolvedValue({ queued: 'a9', reason: 'Growth audit is queued.' });
     renderPortal(groundswellCustomerPath('c1'));
-    fireEvent.click(await screen.findByRole('button', { name: /Start phase 1/ }));
+    fireEvent.click(await screen.findByRole('button', { name: /Start growth audit/ }));
     await waitFor(() => expect(ws.startPhase).toHaveBeenCalledWith('partner', 'c1', 'audit'));
-    expect(await screen.findByRole('status')).toHaveTextContent('Phase 1 is queued. It starts on its own within a minute');
+    expect(await screen.findByRole('status')).toHaveTextContent('Growth audit is queued. It starts on its own within a minute');
     expect(ws.getWorkspace).toHaveBeenCalledTimes(2);
   });
 
@@ -356,7 +356,7 @@ describe('partner customer page', () => {
     expect(screen.getByText('Client')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /All clients/ })).toHaveAttribute('href', GROUNDSWELL_CLIENTS_PATH);
     // The scraped audit is still on the page, as phase 1.
-    expect(await screen.findByRole('heading', { level: 3, name: 'Phase 1 · The audit' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 3, name: 'Growth audit' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Full audit \(PDF\)/ })).toBeInTheDocument();
     // No Drive-era audits, so no list of them.
     expect(screen.queryByRole('list', { name: 'Earlier audits of this customer' })).not.toBeInTheDocument();

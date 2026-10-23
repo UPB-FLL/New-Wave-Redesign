@@ -161,6 +161,29 @@ describe('SocialEngineeringServicePage', () => {
   });
 });
 
+describe('descriptive public stage labels', () => {
+  const pages: [string, React.ReactElement][] = [
+    ['hub', <SocialEngineeringHubPage />],
+    ...divisionServices.map((service): [string, React.ReactElement] => [service.slug, <SocialEngineeringServicePage slug={service.slug} />]),
+  ];
+
+  it.each(pages)('%s uses descriptive labels and decorative markers without step numbers', (_name, page) => {
+    renderAt(page);
+    const main = screen.getByRole('main');
+    expect(main).not.toHaveTextContent(/\b(?:Step|Phase)\s+0?\d\b/);
+    const labelledLists = main.querySelectorAll('.nwse-timeline, .nwse-journey, [data-role="growth-system"] figcaption, [data-role="pillars"], [data-role="outcomes"]');
+    labelledLists.forEach((list) => {
+      const leaves = [...list.querySelectorAll('*')].filter((element) => element.children.length === 0);
+      leaves.forEach((element) => expect(element.textContent?.trim(), list.className).not.toMatch(/^0\d$/));
+    });
+    main.querySelectorAll('.nwse-timeline > li').forEach((stage) => {
+      const heading = within(stage as HTMLElement).getByRole('heading', { level: 3 });
+      expect(within(stage as HTMLElement).getAllByText(heading.textContent ?? '', { exact: true })).toHaveLength(1);
+      expect(stage.querySelector('.nwse-cardlabel')?.textContent).toBe('');
+    });
+  });
+});
+
 describe('division positioning', () => {
   // The division's first launch described security testing; it is a social
   // media, brand, web, and marketing division. Keep that copy from creeping back.
@@ -253,8 +276,16 @@ describe('the growth system', () => {
     expect(loop.querySelectorAll('[data-loop-node]')).toHaveLength(4);
     expect(loop.querySelector('text')).toBeNull();
     expect(loop.closest('figure')).toHaveTextContent('The growth loop');
+    const loopStages = [...loop.closest('figure')!.querySelectorAll('figcaption li')];
+    expect(loopStages.map((stage) => stage.querySelector('svg')?.getAttribute('data-icon'))).toEqual([
+      'pillar-data', 'pillar-integrations', 'pillar-advertising', 'metric-bookings',
+    ]);
+    expect(loopStages.map((stage) => stage.querySelector('.font-semibold')?.textContent)).toEqual([
+      'Data. ', 'Integrations. ', 'Smart advertising. ', 'Sales. ',
+    ]);
     // The 90-day plan and the rhythm after it.
     expect(hubContent.roadmap.map((phase) => phase.phase)).toEqual(['Days 1–30', 'Days 31–60', 'Days 61–90 and on']);
+    hubContent.roadmap.forEach((phase) => expect(screen.getByText(phase.phase)).toBeInTheDocument());
     expect(container.querySelector('[data-role="cadence"]')).toHaveTextContent('Weekly');
   });
 
@@ -268,7 +299,8 @@ describe('the growth system', () => {
     expect(container.querySelector('main > section:nth-of-type(2) [data-role="glance"]')).not.toBeNull();
     const outcomes = container.querySelector('[data-role="outcomes"]')!;
     expect(within(outcomes as HTMLElement).getAllByRole('listitem')).toHaveLength(3);
-    service.outcomes.forEach((outcome) => expect(outcomes).toHaveTextContent(outcome));
+    expect(within(outcomes as HTMLElement).getAllByRole('listitem').map((outcome) => outcome.textContent)).toEqual(service.outcomes);
+    expect(outcomes.querySelectorAll('svg[data-icon="check-circle"]')).toHaveLength(service.outcomes.length);
     const strip = container.querySelector('[data-role="pillar-strip"]')!;
     expect(strip).toHaveAttribute('data-active', service.pillar);
     const current = strip.querySelector('[aria-current="true"]')!;
@@ -445,15 +477,20 @@ describe('SocialEngineeringGroundswellPage', () => {
     renderAt(<SocialEngineeringGroundswellPage />);
     const band = screen.getByRole('region', { name: auditContent.process.heading });
     const tabs = within(band).getAllByRole('tab');
-    expect(tabs.map((tab) => tab.textContent)).toEqual(auditContent.process.steps.map((step, index) => `${String(index + 1).padStart(2, '0')}${step.title}`));
+    expect(tabs.map((tab) => tab.textContent)).toEqual(auditContent.process.steps.map((step) => step.title));
     const panel = () => within(band).getByRole('tabpanel');
-    expect(panel()).toHaveTextContent('Step 1 of 5');
+    expect(band).not.toHaveTextContent(/Step \d|\b0[1-5]\b/);
+    expect(tabs[0]).toHaveAttribute('aria-selected', 'true');
     expect(panel()).toHaveTextContent(auditContent.process.steps[0].detail);
     expect(within(band).queryByRole('link', { name: DIVISION_PRIMARY_CTA })).toBeNull();
     expect(within(band).getByRole('button', { name: /Back/ })).toBeDisabled();
     const next = () => within(band).getByRole('button', { name: /^Next/ });
     expect(next()).toHaveTextContent(`Next: ${auditContent.process.steps[1].title}`);
-    for (let step = 1; step < auditContent.process.steps.length; step += 1) fireEvent.click(next());
+    for (let step = 1; step < auditContent.process.steps.length; step += 1) {
+      fireEvent.click(next());
+      expect(tabs[step]).toHaveAttribute('aria-selected', 'true');
+      expect(panel()).toHaveTextContent(auditContent.process.steps[step].caption);
+    }
     expect(panel()).toHaveTextContent(auditContent.process.steps[4].detail);
     expect(within(band).queryByRole('button', { name: /^Next/ })).toBeNull();
     expect(within(band).getByRole('link', { name: DIVISION_PRIMARY_CTA })).toHaveAttribute('href', DIVISION_CONTACT_PATH);

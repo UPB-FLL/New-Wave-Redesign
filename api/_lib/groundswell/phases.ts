@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { nextPhase, PHASE_INFO, type Phase } from '../../../src/lib/groundswellValidation.js';
+import { nextPhase, PHASE_INFO, PHASES, type Phase } from '../../../src/lib/groundswellValidation.js';
 import type { AuditRow } from './types.js';
 
 /**
@@ -31,13 +31,13 @@ const NOT_READY = 'Phases are not set up yet. Try again later.';
 
 /** Phase 3's precondition: the customer is a client with at least one active linked account. */
 export async function integratedReady(db: Pick<SupabaseClient, 'from'>, customerId: string | null | undefined): Promise<{ ok: boolean; reason: string }> {
-  if (!customerId) return { ok: false, reason: 'Phase 3 needs a customer record with linked accounts.' };
+  if (!customerId) return { ok: false, reason: `${PHASE_INFO.integrated.title} needs a customer record with linked accounts.` };
   const customer = await db.from('groundswell_customers').select('id,stage').eq('id', customerId).maybeSingle();
   if (customer.error) {
     if (missingColumn(customer.error.message) || missingTable(customer.error.message)) return { ok: false, reason: 'Clients are not set up yet.' };
     throw new Error(`Could not read the customer: ${customer.error.message}`);
   }
-  if ((customer.data as { stage?: string } | null)?.stage !== 'client') return { ok: false, reason: 'Phase 3 is for clients: mark the business as a client first.' };
+  if ((customer.data as { stage?: string } | null)?.stage !== 'client') return { ok: false, reason: `${PHASE_INFO.integrated.title} is for clients: mark the business as a client first.` };
   const accounts = await db.from('groundswell_client_accounts').select('id').eq('customer_id', customerId).eq('status', 'active').limit(1);
   if (accounts.error) {
     if (missingTable(accounts.error.message)) return { ok: false, reason: 'Account linking is not set up yet.' };
@@ -60,15 +60,16 @@ export async function queuePhase(db: Pick<SupabaseClient, 'from'>, sourceId: str
   }
   const source = read.data as unknown as (Record<string, unknown> & { id: string; status: string; phase?: Phase; customer_id?: string | null }) | null;
   if (!source) return { queued: null, phase, reason: 'That run is not there.' };
+  const before = PHASES[PHASES.indexOf(phase) - 1];
   if (nextPhase(source.phase ?? 'audit') !== phase) {
-    return { queued: null, phase, reason: `Phase ${PHASE_INFO[phase].number} builds on phase ${PHASE_INFO[phase].number - 1}.` };
+    return { queued: null, phase, reason: before ? `${PHASE_INFO[phase].title} builds on ${PHASE_INFO[before].title.toLowerCase()}.` : `${PHASE_INFO[phase].title} starts from the business’s public data.` };
   }
-  if (source.status !== 'done') return { queued: null, phase, reason: `Phase ${PHASE_INFO[phase].number - 1} has not delivered yet.` };
+  if (source.status !== 'done') return { queued: null, phase, reason: `${PHASE_INFO[before].title} has not delivered yet.` };
 
   const waiting = await db.from('marketing_audits').select('id,status').eq('source_audit_id', sourceId).eq('phase', phase);
   if (waiting.error) throw new Error(`Could not check the queue: ${waiting.error.message}`);
   const open = ((waiting.data ?? []) as { id: string; status: string }[]).find((r) => r.status === 'queued' || r.status === 'running');
-  if (open) return { queued: open.id, phase, reason: `Phase ${PHASE_INFO[phase].number} is already ${open.status}.` };
+  if (open) return { queued: open.id, phase, reason: `${PHASE_INFO[phase].title} is already ${open.status}.` };
 
   if (phase === 'integrated') {
     const ready = await integratedReady(db, source.customer_id);
@@ -95,9 +96,9 @@ export async function queuePhase(db: Pick<SupabaseClient, 'from'>, sourceId: str
   const inserted = await db.from('marketing_audits').insert(row).select('id').single();
   if (inserted.error || !inserted.data) {
     if (missingColumn(inserted.error?.message)) return { queued: null, phase, reason: NOT_READY };
-    throw new Error(`Could not queue phase ${PHASE_INFO[phase].number}: ${inserted.error?.message ?? 'no row'}`);
+    throw new Error(`Could not queue ${PHASE_INFO[phase].title.toLowerCase()}: ${inserted.error?.message ?? 'no row'}`);
   }
-  return { queued: (inserted.data as { id: string }).id, phase, reason: `Phase ${PHASE_INFO[phase].number} queued.` };
+  return { queued: (inserted.data as { id: string }).id, phase, reason: `${PHASE_INFO[phase].title} queued.` };
 }
 
 /** After a run delivers: queues the phase after it when that phase applies. Never throws; the reason says what happened. */

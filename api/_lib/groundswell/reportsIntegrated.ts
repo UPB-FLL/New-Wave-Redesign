@@ -1,4 +1,5 @@
 import { SCENARIOS } from '../../../packages/groundswell/src/config.js';
+import { PHASE_INFO } from '../../../src/lib/groundswellValidation.js';
 import { escapeHtml as esc } from '../http.js';
 import type { AdsetsOutput } from './adsets.js';
 import type { Brand } from './brand.js';
@@ -45,12 +46,12 @@ export function buildIntegratedHtml(d: IntegratedReportData): string {
   const { brand: b, integrated: x, linked: l } = d;
   const who = d.preparer ?? NEW_WAVE_PREPARER;
   const period = x.window ? `${x.window.start} to ${x.window.end}` : 'the last 30 days';
-  const footer = `${esc(d.business)} · Integrated plan · ${preparedBy(who)} · ${esc(d.date)}`;
+  const footer = `${esc(d.business)} · ${esc(PHASE_INFO.integrated.title)} · ${preparedBy(who)} · ${esc(d.date)}`;
   const section = (kicker: string, title: string, body: string) =>
     `<section class="page"><div class="kicker">${esc(kicker)}</div><h2>${esc(title)}</h2>${body}<div class="foot">${footer}</div></section>`;
 
   const cover = `<section class="page cover"><div class="band">${logoImg(b, '')}<h1>${esc(d.business)}</h1>
-<div class="muted">Integrated plan · Phase 3 · the business’s own accounts, ${esc(period)} · ${preparedBy(who)}${preparerLogo(who)} · ${esc(d.date)}</div></div>
+<div class="muted">${esc(PHASE_INFO.integrated.title)} · the business’s own accounts, ${esc(period)} · ${preparedBy(who)}${preparerLogo(who)} · ${esc(d.date)}</div></div>
 <div class="inner">${x.writeup.headline ? `<p class="lead">${esc(x.writeup.headline)}</p>` : ''}
 <div class="kpis">${tiles(l).map((t) => `<div class="kpi"><div class="v">${esc(t.v)}</div><div class="l">${esc(t.l)}</div></div>`).join('')}</div>
 ${x.writeup.findings.length ? `<h3>Findings</h3><ol class="findings">${x.writeup.findings.map((f) => `<li><b>${esc(f.title)}.</b> ${esc(f.text)}</li>`).join('')}</ol>` : ''}

@@ -540,7 +540,7 @@ describe('journey strip', () => {
     renderAt(<SocialEngineeringHubPage />);
     const strip = screen.getByRole('list', { name: 'Customer journey' });
     expect(classesOf(strip)).toEqual(expect.arrayContaining(['overflow-x-auto', 'lg:flex-wrap', 'lg:overflow-visible']));
-    expect(within(strip).getAllByRole('listitem').map((item) => item.textContent?.replace(/^\d+\s*/, ''))).toEqual(
+    expect(within(strip).getAllByRole('listitem').map((item) => item.textContent)).toEqual(
       hubContent.journey,
     );
   });
@@ -571,7 +571,7 @@ describe('journey strip', () => {
 });
 
 describe('step timeline markers', () => {
-  it('uses the icon tiles on the hub and numbered tiles on service pages, each on the rail', () => {
+  it('uses icon tiles on the hub and neutral dot tiles on service pages, each on the rail', () => {
     const { container, unmount } = renderAt(<SocialEngineeringHubPage />);
     const hubList = container.querySelector('.nwse-timeline')!;
     expect(hubList).toHaveAttribute('data-markers', 'icon');
@@ -582,18 +582,21 @@ describe('step timeline markers', () => {
     unmount();
     const service = renderAt(<SocialEngineeringServicePage slug={divisionServices[0].slug} />);
     const list = service.container.querySelector('.nwse-timeline')!;
-    expect(list).toHaveAttribute('data-markers', 'number');
+    expect(list).toHaveAttribute('data-markers', 'dot');
     // Every step has a marker tile, which the phone timeline pins to its rail.
     const steps = [...list.querySelectorAll(':scope > li')];
     expect(steps.length).toBeGreaterThan(2);
     steps.forEach((step, index) => {
       const tile = step.querySelector('.nwse-icon')!;
       expect(tile).not.toBeNull();
-      expect(tile).toHaveTextContent(String(index + 1).padStart(2, '0'));
+      expect(tile.textContent).toBe('');
+      expect(tile.querySelector('[aria-hidden="true"].rounded-full')).not.toBeNull();
+      expect(within(step as HTMLElement).getByRole('heading', { level: 3 })).toHaveTextContent(divisionServices[0].process[index].title);
+      expect(step.querySelector('.nwse-cardlabel')?.textContent).toBe('');
     });
   });
 
-  it('runs the stepper’s rail from each label to the next tile, never through the label, and not after the last step', () => {
+  it('runs the stepper’s rail from each marker to the next tile, above the stage title, and not after the last step', () => {
     const { container } = renderAt(<SocialEngineeringServicePage slug={divisionServices[0].slug} />);
     const list = container.querySelector('.nwse-stepper')!;
     const steps = [...list.querySelectorAll(':scope > li')];
@@ -610,12 +613,14 @@ describe('step timeline markers', () => {
         expect(rail).toBeNull();
         return;
       }
-      // The rail is the label's next sibling in the flex row, so it starts
-      // after the text rather than under it.
+      // The rail follows the marker in its own row, so each descriptive
+      // heading remains below it and appears only once.
       expect(rail).not.toBeNull();
       expect(rail).toHaveAttribute('aria-hidden', 'true');
-      expect(rail!.previousElementSibling).toHaveTextContent(`Step ${String(index + 1).padStart(2, '0')}`);
+      expect(rail!.previousElementSibling).toHaveClass('nwse-icon');
       expect(rail!.nextElementSibling).toBeNull();
+      expect(row.nextElementSibling?.tagName).toBe('H3');
+      expect(row.nextElementSibling).toHaveTextContent(divisionServices[0].process[index].title);
     });
     // Hidden below md (the timeline draws its own rail); from md it crosses
     // the item's right padding and the grid gap to reach the next tile.

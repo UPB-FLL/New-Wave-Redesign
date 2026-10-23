@@ -1,4 +1,5 @@
 import { GROUNDSWELL_CONFIG } from '../../../packages/groundswell/groundswell.config.js';
+import { PHASE_INFO } from '../../../src/lib/groundswellValidation.js';
 import { buildAdSets, businessCode, type AdSetsPlan, type AdSetsWriting } from '../../../packages/groundswell/src/adsets.js';
 import type { GroundswellConfig } from '../../../packages/groundswell/src/config.js';
 import { claimsIn } from '../../../packages/groundswell/src/templates.js';
@@ -156,7 +157,7 @@ const MONTH = () => new Date().toISOString().slice(0, 7);
 export async function runAdsets(ctx: StepContext): Promise<AdsetsOutput> {
   const config = GROUNDSWELL_CONFIG;
   const found = planFor(ctx.outputs);
-  if (!found) throw new PermanentStepError('There is no ad plan (phase 1 found no keyword demand), so no ad sets were built.');
+  if (!found) throw new PermanentStepError(`There is no ad plan (the ${PHASE_INFO.audit.title.toLowerCase()} found no keyword demand), so no ad sets were built.`);
   const { plan, basis } = found;
   const f = buildFacts(ctx.audit, ctx.outputs);
   const creative = isCreativeOutput(ctx.outputs.creative) ? ctx.outputs.creative.images : [];

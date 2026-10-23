@@ -89,7 +89,7 @@ describe('Groundswell overview', () => {
     );
     expect(await screen.findByRole('link', { name: 'Harbor Dental' })).toHaveAttribute('href', '/groundswell/admin/customers/harbor');
     expect(screen.getByRole('link', { name: /Needs review/ })).toHaveAttribute('href', '/groundswell/admin/audits?status=review');
-    expect(screen.getByRole('region', { name: 'Customer progress' })).toHaveTextContent('Plan against competitors');
+    expect(screen.getByRole('region', { name: 'Customer progress' })).toHaveTextContent('Competitor plan');
   });
 
   it('keeps audit counts and connection checks available if the customer list fails', async () => {

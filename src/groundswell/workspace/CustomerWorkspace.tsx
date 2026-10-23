@@ -2,9 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, CircleDashed, Download, FileText, Loader2, Play, RotateCcw, XCircle } from 'lucide-react';
 import { STEP_LABELS } from '../../lib/groundswell';
 import { PartnerSignedOut, REPORT_LABELS, type ReportKind } from '../../lib/groundswellPartner';
-import type { Phase } from '../../lib/groundswellValidation';
+import { PHASE_INFO, type Phase } from '../../lib/groundswellValidation';
 import { getWorkspace, reportUrl, runFiles, startPhase, type DataPanel, type WorkspaceData, type WorkspaceFile, type WorkspacePhase, type WorkspaceRun, type WorkspaceViewer } from '../../lib/groundswellWorkspace';
 import { AUDIT_STATUS, NOT_STARTED } from '../pages/customerStatus';
+import { PhaseIcon } from '../PhaseIcon';
 
 /**
  * A customer's three phases, the same screen for its partner and for New
@@ -271,12 +272,11 @@ function PhaseCard({ phase, selected, onSelect }: { phase: WorkspacePhase; selec
   const p = latest && (latest.status === 'running' || latest.status === 'queued') ? progress(latest) : null;
   return (
     <button type="button" className="gs-phase" aria-pressed={selected} aria-controls="gs-phase-panel" onClick={onSelect} data-phase={phase.phase}>
-      <span className="gs-phase-num" aria-hidden="true">
-        {phase.number}
+      <span className="gs-phase-icon" aria-hidden="true">
+        <PhaseIcon phase={phase.phase} />
       </span>
       <span className="min-w-0 flex-1 text-left">
         <span className="block text-sm font-bold">
-          <span className="sr-only">Phase {phase.number}: </span>
           {phase.title}
         </span>
         <span className="block text-xs gs-muted">{phase.source}</span>
@@ -353,7 +353,7 @@ export function CustomerWorkspace({ viewer, customerId, onSignedOut, poll = POLL
       <h2 id="gs-phases-heading" className="text-xl font-bold">
         Phases
       </h2>
-      <p className="mt-1 text-sm gs-muted">Phases 1 and 2 read public data. Phase 3 reads the client’s own accounts once they are linked. Each phase starts the next on its own when it delivers.</p>
+      <p className="mt-1 text-sm gs-muted">The {PHASE_INFO.audit.title.toLowerCase()} and {PHASE_INFO.competitors.title.toLowerCase()} read public data. The {PHASE_INFO.integrated.title.toLowerCase()} reads the client’s own accounts once they are linked. Each phase starts the next on its own when it delivers.</p>
       {error ? (
         <p className="gs-alert mt-3" role="alert">
           {error}
@@ -383,14 +383,14 @@ export function CustomerWorkspace({ viewer, customerId, onSignedOut, poll = POLL
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                   <h3 className="text-lg font-bold">
-                    Phase {current.number} · {current.title}
+                    {current.title}
                   </h3>
                   <p className="mt-1 max-w-2xl text-sm gs-muted">{current.brings}</p>
                 </div>
                 {current.start.allowed ? (
                   <button type="button" className="gs-btn gs-btn-primary" disabled={busy} onClick={() => void start(current)}>
                     {current.runs.length ? <RotateCcw size={14} aria-hidden="true" /> : <Play size={14} aria-hidden="true" />}
-                    {busy ? 'Starting…' : current.runs.length ? 'Run again' : `Start phase ${current.number}`}
+                    {busy ? 'Starting…' : current.runs.length ? 'Run again' : `Start ${current.title.toLowerCase()}`}
                   </button>
                 ) : null}
               </div>

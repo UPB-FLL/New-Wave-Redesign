@@ -464,8 +464,8 @@
   border-radius: 12px;
 }
 
-/* Steps from 768px: a stepper on a rail. After each step's "Step 01" label a
-   hairline (.nwse-rail, a flex item in the label row; StepList in
+/* Steps from 768px: a stepper on a rail. After each step's icon or dot tile a
+   hairline (.nwse-rail, a flex item in the marker row; StepList in
    sections.tsx) runs to the next step's tile, across the item's right
    padding and the grid gap (md:pr-4 + md:gap-4 = 2rem); the cards drop their
    chrome. The last step has no rail, and neither does a step that ends a
@@ -630,8 +630,8 @@
     box-shadow: none;
   }
 
-  /* Steps: a timeline instead of a stepper. Each step's marker (its icon tile,
-     or its numbered disc when it has no icon) sits on a rail at the left edge. */
+  /* Steps: a timeline instead of a stepper. Each step's icon or dot tile
+     sits on a rail at the left edge. */
   .nwse-timeline > li {
     background: none;
     border: 0;

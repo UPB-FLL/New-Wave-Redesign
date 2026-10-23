@@ -90,7 +90,7 @@ export interface DivisionServiceContent {
 }
 
 export interface DivisionRoadmapPhase {
-  /** e.g. 'Phase 01' */
+  /** A meaningful time range, e.g. 'Days 1–30'. */
   phase: string;
   title: string;
   items: string[];

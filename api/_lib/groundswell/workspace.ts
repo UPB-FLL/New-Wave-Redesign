@@ -273,17 +273,17 @@ const open = (runs: RunRow[], phase: Phase) => runs.find((r) => r.phase === phas
 /** Whether a phase can be started now: what it builds on, and nothing of it already waiting or running. */
 export async function startable(db: SupabaseClient, runs: RunRow[], phase: Phase, customerId: string, phasesAvailable: boolean): Promise<WorkspacePhase['start']> {
   const waiting = open(runs, phase);
-  if (waiting) return { allowed: false, reason: `Phase ${PHASE_INFO[phase].number} is already ${waiting.status}.`, builds_on: null };
+  if (waiting) return { allowed: false, reason: `${PHASE_INFO[phase].title} is already ${waiting.status}.`, builds_on: null };
   if (phase === 'audit') return { allowed: true, reason: runs.some((r) => r.phase === 'audit') ? 'Runs the audit again from today’s public data.' : 'Reads the business’s public data.', builds_on: null };
   if (!phasesAvailable) return { allowed: false, reason: 'Phases are not set up yet. Try again later.', builds_on: null };
   const before = PHASES[PHASES.indexOf(phase) - 1];
   const source = delivered(runs, before);
-  if (!source) return { allowed: false, reason: `Phase ${PHASE_INFO[before].number} has to deliver first.`, builds_on: null };
+  if (!source) return { allowed: false, reason: `${PHASE_INFO[before].title} has to deliver first.`, builds_on: null };
   if (phase === 'integrated') {
     const ready = await integratedReady(db, customerId);
     if (!ready.ok) return { allowed: false, reason: ready.reason, builds_on: source.id };
   }
-  return { allowed: true, reason: `Builds on phase ${PHASE_INFO[before].number} from ${new Date(source.completed_at ?? source.created_at).toLocaleDateString('en-US')}.`, builds_on: source.id };
+  return { allowed: true, reason: `Builds on ${PHASE_INFO[before].title.toLowerCase()} from ${new Date(source.completed_at ?? source.created_at).toLocaleDateString('en-US')}.`, builds_on: source.id };
 }
 
 export async function loadWorkspace(db: SupabaseClient, customerId: string, viewer: Viewer): Promise<Workspace | null> {
@@ -366,7 +366,7 @@ export async function queueAudit(db: SupabaseClient, customer: Record<string, un
   };
   const { data, error } = await db.from('marketing_audits').insert(row).select('id').single();
   if (error || !data) throw new Error(`Could not queue the audit: ${error?.message ?? 'no row'}`);
-  return { queued: (data as { id: string }).id, reason: 'Phase 1 queued.' };
+  return { queued: (data as { id: string }).id, reason: `${PHASE_INFO.audit.title} queued.` };
 }
 
 export interface CustomerListItem {

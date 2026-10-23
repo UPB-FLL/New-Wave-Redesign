@@ -45,7 +45,7 @@ describe('GroundSwell process', () => {
     expect(drawing()).toHaveAttribute('data-playback', 'paused');
     act(() => visibleObserver().notify(true));
     const previous = drawing();
-    fireEvent.click(screen.getByRole('button', { name: 'Replay queue animation' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Replay business brief animation' }));
     expect(drawing()).not.toBe(previous);
     expect(drawing()).toHaveAttribute('data-playback', 'idle');
     unmount();

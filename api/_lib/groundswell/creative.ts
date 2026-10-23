@@ -1,4 +1,5 @@
 import type { CreativeRef } from '../../../packages/groundswell/src/adsets.js';
+import { PHASE_INFO } from '../../../src/lib/groundswellValidation.js';
 import { getSupabaseAdmin } from '../supabaseAdmin.js';
 import { storeAsset } from './assetStore.js';
 import { executeTool } from './composio.js';
@@ -136,7 +137,7 @@ export async function runCreative(ctx: StepContext, fetchImpl: typeof fetch = fe
   };
 
   if (handle) {
-    await take(social?.business?.media ?? [], 'Phase 1’s Instagram read');
+    await take(social?.business?.media ?? [], `${PHASE_INFO.audit.title}’s Instagram read`);
     if (images.length < WANTED) {
       try {
         await take(mediaFrom(await executeTool('SCRAPECREATORS_LIST_INSTAGRAM_USER_POSTS', { handle, trim: true })), 'ScrapeCreators, one page of posts');

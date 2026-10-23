@@ -1,5 +1,5 @@
 import { getSupabaseAdmin, isSupabaseConfigured } from '../supabaseAdmin.js';
-import { CLIENT_SERVICES } from '../../../src/lib/groundswellValidation.js';
+import { CLIENT_SERVICES, PHASE_INFO } from '../../../src/lib/groundswellValidation.js';
 import { activeConnection, authConfigFor, isComposioConfigured, keyShape } from './composio.js';
 import { consumerConnections, consumerKeyShape, isConsumerConfigured } from './composioConsumer.js';
 import { REPORTS_BUCKET } from './reportStore.js';
@@ -77,7 +77,7 @@ const INSTANT_TOOLKITS = ['ahrefs'];
  * says the project reads instead, and the toolkit rows come from the project.
  */
 async function checkConsumer(): Promise<ReadinessCheck[] | null> {
-  const keyCheck = { key: 'COMPOSIO_CONSUMER_API_KEY', label: 'Composio consumer account (phases 1 and 2)', required: false };
+  const keyCheck = { key: 'COMPOSIO_CONSUMER_API_KEY', label: 'Composio consumer account (public research)', required: false };
   if (!isConsumerConfigured()) return null;
   const toolkits = TOOLKIT_CHECKS.map((t) => ({ key: `composio:${t.toolkit}`, label: t.label, required: false, without: t.without }));
   try {
@@ -86,7 +86,7 @@ async function checkConsumer(): Promise<ReadinessCheck[] | null> {
       INSTANT_TOOLKITS
     );
     return [
-      { ...keyCheck, ok: true, detail: `Composio accepted the consumer key (${consumerKeyShape(process.env.COMPOSIO_CONSUMER_API_KEY ?? '')}); phases 1 and 2 read through it.` },
+      { ...keyCheck, ok: true, detail: `Composio accepted the consumer key (${consumerKeyShape(process.env.COMPOSIO_CONSUMER_API_KEY ?? '')}); the ${PHASE_INFO.audit.title.toLowerCase()} and ${PHASE_INFO.competitors.title.toLowerCase()} read through it.` },
       ...toolkits.map(({ without, ...t }, i) => {
         const st = states[i];
         if (st.state === 'active') return { ...t, ok: true, detail: `Linked in the consumer account (${st.accounts || 1} account${st.accounts === 1 || !st.accounts ? '' : 's'}).` };
@@ -114,7 +114,7 @@ async function checkComposio(consumerRows: boolean): Promise<ReadinessCheck[]> {
   if (!isComposioConfigured()) {
     const unchecked = { required: false, ok: false, detail: 'Not checked: Composio is not set up.' };
     return [
-      { ...keyCheck, ok: false, detail: consumerRows ? 'COMPOSIO_API_KEY is missing in Vercel: partners cannot link a client’s accounts, and phase 3 cannot run.' : 'COMPOSIO_API_KEY is missing in Vercel.' },
+      { ...keyCheck, ok: false, detail: consumerRows ? `COMPOSIO_API_KEY is missing in Vercel: partners cannot link a client’s accounts, and the ${PHASE_INFO.integrated.title.toLowerCase()} cannot run.` : 'COMPOSIO_API_KEY is missing in Vercel.' },
       ...toolkits.map((t) => ({ key: t.key, label: t.label, ...unchecked })),
       ...SIGNIN_CHECKS.map((t) => ({ key: t.key, label: t.label, ...unchecked })),
     ];
@@ -170,10 +170,10 @@ async function checkComposio(consumerRows: boolean): Promise<ReadinessCheck[]> {
 /** The row for a consumer key that is not set: phases 1 and 2 read through the project. */
 const NO_CONSUMER: ReadinessCheck = {
   key: 'COMPOSIO_CONSUMER_API_KEY',
-  label: 'Composio consumer account (phases 1 and 2)',
+  label: 'Composio consumer account (public research)',
   required: false,
   ok: false,
-  detail: 'Not set: phases 1 and 2 read through the Composio project, which has fewer linked tools. Set COMPOSIO_CONSUMER_API_KEY (the ck_ key from Composio’s For You dashboard).',
+  detail: `Not set: the ${PHASE_INFO.audit.title.toLowerCase()} and ${PHASE_INFO.competitors.title.toLowerCase()} read through the Composio project, which has fewer linked tools. Set COMPOSIO_CONSUMER_API_KEY (the ck_ key from Composio’s For You dashboard).`,
 };
 
 function envChecks(): ReadinessCheck[] {

@@ -1,4 +1,5 @@
 import { reportAdminEmails, requireAdmin } from '../_lib/adminKey.js';
+import { PHASE_INFO } from '../../src/lib/groundswellValidation.js';
 import { runWorkerInBackground } from '../_lib/groundswell/background.js';
 import { isComposioConfigured, isSharedLookupConfigured } from '../_lib/groundswell/composio.js';
 import { isConsumerConfigured } from '../_lib/groundswell/composioConsumer.js';
@@ -34,13 +35,13 @@ export function setupChecks() {
     { key: 'SUPABASE_SERVICE_ROLE_KEY', label: 'Supabase service role', ok: isSupabaseConfigured(), required: true },
     {
       key: 'COMPOSIO_CONSUMER_API_KEY',
-      label: 'Composio consumer account (phases 1 and 2: Ahrefs, Keyword Planner, Instagram, Places)',
+      label: 'Composio consumer account (public research: Ahrefs, Keyword Planner, Instagram, Places)',
       ok: isConsumerConfigured(),
       required: false,
     },
     {
       key: 'COMPOSIO_API_KEY',
-      label: isConsumerConfigured() ? 'Composio project (phase 3: clients’ linked accounts)' : 'Composio (Ahrefs, Keyword Planner, Instagram, Places)',
+      label: isConsumerConfigured() ? `Composio project (${PHASE_INFO.integrated.title.toLowerCase()}: clients’ linked accounts)` : 'Composio (Ahrefs, Keyword Planner, Instagram, Places)',
       ok: isComposioConfigured(),
       required: !isConsumerConfigured(),
     },

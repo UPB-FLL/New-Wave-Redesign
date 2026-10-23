@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowRight } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Shield } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { PublicPageHero } from '../components/brand/PublicPageHero';
 import Footer from '../components/Footer';
@@ -110,9 +110,9 @@ export default function ThreatDetailPage() {
           <section>
             <h2 className="nw-display mb-6 text-3xl text-brand-navy">Our defense strategy</h2>
             <div className="grid gap-4 sm:grid-cols-2">
-              {threat.mitigation_strategies.map((strategy, index) => (
+              {threat.mitigation_strategies.map((strategy) => (
                 <div key={strategy} className="flex gap-3 rounded-lg p-5 nw-surface" style={{ borderColor: 'var(--nw-continuity-green)' }}>
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold" style={{ background: 'var(--nw-continuity-green)', color: 'var(--nw-deep-current)' }}>{index + 1}</span>
+                  <Shield size={20} className="mt-0.5 shrink-0 text-[var(--nw-tide-blue)]" aria-hidden="true" />
                   <p className="text-[var(--nw-current-navy)]">{strategy}</p>
                 </div>
               ))}

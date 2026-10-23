@@ -51,7 +51,6 @@ function ProcessPanel({ index, active }: { index: number; active: boolean }) {
   return (
     <div className="gs-process-stage">
       <div className="gs-process-copy">
-        <p className="gs-process-count">Step {index + 1} of {auditContent.process.steps.length}</p>
         <h3>{step.heading}</h3>
         <p className="gs-process-detail">{step.detail}</p>
         <p className="gs-process-outcome"><span>You get</span>{step.outcome}</p>
@@ -83,7 +82,7 @@ export function GroundswellProcess() {
       items={content.steps.map((step, index) => ({
         id: `step-${index + 1}`,
         title: step.title,
-        label: <><span className="gs-process-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><span>{step.title}</span></>,
+        label: step.title,
         panel: <ProcessPanel index={index} active={active === index} />,
       }))}
     />

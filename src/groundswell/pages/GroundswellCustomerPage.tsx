@@ -16,7 +16,7 @@ import {
   type PartnerCustomerDetail,
   type ReportKind,
 } from '../../lib/groundswellPartner';
-import { isDriveLink, type ClientService } from '../../lib/groundswellValidation';
+import { isDriveLink, PHASE_INFO, type ClientService } from '../../lib/groundswellValidation';
 import { usePageMeta } from '../../lib/usePageMeta';
 import { PartnerApp } from '../PartnerApp';
 import { GROUNDSWELL_NAME, GROUNDSWELL_PATH, groundswellStagePath } from '../site';
@@ -341,7 +341,7 @@ function Customer({ id }: { id: string }) {
   const [editing, setEditing] = useState(false);
   const [moving, setMoving] = useState(false);
   const [notice, setNotice] = useState<string | null>(
-    state?.queued ? 'Queued. Phase 1 starts on its own within a minute; its reports will appear below.' : null,
+    state?.queued ? `Queued. ${PHASE_INFO.audit.title} starts on its own within a minute; its reports will appear below.` : null,
   );
 
   const refresh = useCallback(async () => {

@@ -507,9 +507,9 @@ export default function ServiceGuidePage() {
         <section className="mt-20">
           <SectionHeading title="Implementation roadmap" description="Use these steps to turn the guidance into a sequence your team can work through." />
           <ol className="mt-8 space-y-3">
-            {guide.implementationSteps.map((step, index) => (
+            {guide.implementationSteps.map((step) => (
               <li key={step} className="flex items-start gap-4 rounded-md border p-4" style={{ background: 'var(--nw-pure-white)', borderColor: 'var(--nw-mist-gray)' }}>
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--nw-signal-cyan)] text-sm font-bold text-[var(--nw-deep-current)]">{index + 1}</span>
+                <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[var(--nw-tide-blue)]" aria-hidden="true" />
                 <p className="pt-1 text-sm leading-relaxed text-[var(--nw-current-navy)]">{step}</p>
               </li>
             ))}

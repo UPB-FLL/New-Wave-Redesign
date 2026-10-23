@@ -162,9 +162,9 @@ export const WHYUS: SectionDescriptor = {
       fields: [
         text('how_it_works_title', 'Section title', 'e.g. How It Works'),
         textarea('how_it_works_desc', 'Section description'),
-        ...[1, 2, 3].flatMap((n) => [
-          text(`how_step${n}_title`, `Step ${n} title`, ['e.g. Assessment', 'e.g. Planning', 'e.g. Implementation & Support'][n - 1]),
-          textarea(`how_step${n}_desc`, `Step ${n} description`),
+        ...['Assessment', 'Planning', 'Implementation & Support'].flatMap((stage, index) => [
+          text(`how_step${index + 1}_title`, `${stage} title`, `e.g. ${stage}`),
+          textarea(`how_step${index + 1}_desc`, `${stage} description`),
         ]),
       ],
     },
