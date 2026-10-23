@@ -11,7 +11,7 @@ type Row = Record<string, unknown>;
 export function fakeSupabase(seed: Record<string, Row[]> = {}, missing: Record<string, string[]> = {}) {
   const tables: Record<string, Row[]> = Object.fromEntries(Object.entries(seed).map(([k, v]) => [k, v.map((r) => ({ ...r }))]));
   let nextId = 1;
-  const unique: Record<string, string[]> = { groundswell_partners: ['email'], groundswell_partner_sessions: ['token_hash'], groundswell_partner_tokens: ['token_hash'] };
+  const unique: Record<string, string[]> = { groundswell_partners: ['email'], groundswell_partner_sessions: ['token_hash'], groundswell_partner_tokens: ['token_hash'], support_ticket_alerts: ['ticket_id'] };
 
   const from = (table: string) => {
     tables[table] ??= [];
