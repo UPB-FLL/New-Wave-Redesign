@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Loader2, RefreshCw } from 'lucide-react';
 import type { DiscoveryResult } from '../../lib/groundswellDiscoveryTypes';
+import { logoBackground } from '../../lib/groundswellBrandAssets';
 import type { BusinessDiscovery } from './useBusinessDiscovery';
 
 function publicLink(raw: string | null | undefined): string | undefined {
@@ -54,7 +55,7 @@ export function BusinessBrandPreview({ name, logo, color, colors = [], onColor }
   const [failedImage, setFailedImage] = useState<string | null>(null);
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-xl border p-3" style={{ borderColor: 'var(--nw-mist-gray)' }} aria-label="Business brand preview">
-      {image && image !== failedImage ? <img src={image} alt={`${name || 'Business'} logo preview`} className="h-12 w-20 rounded bg-white object-contain p-1" referrerPolicy="no-referrer" onError={() => setFailedImage(image)} /> : <span className="text-xs gs-muted">{image ? 'Logo preview unavailable' : 'Logo not found yet'}</span>}
+      {image && image !== failedImage ? <img src={image} alt={`${name || 'Business'} logo preview`} className="h-12 w-20 rounded object-contain p-1" style={{ backgroundColor: logoBackground(image) }} referrerPolicy="no-referrer" onError={() => setFailedImage(image)} /> : <span className="text-xs gs-muted">{image ? 'Logo preview unavailable' : 'Logo not found yet'}</span>}
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold">{name || 'Business brand'}</p>
         <p className="text-xs gs-muted">Logo and main colour will carry into the reports.</p>

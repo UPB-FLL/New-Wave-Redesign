@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { escapeHtml as esc } from '../http.js';
+import { logoBackground } from '../../../src/lib/groundswellBrandAssets.js';
 import { GROUNDSWELL_CONFIG } from '../../../packages/groundswell/groundswell.config.js';
 import type { PlanRow } from '../../../packages/groundswell/src/adplan.js';
 import type { ChangeArea, RankedChange } from '../../../packages/groundswell/src/changes.js';
@@ -69,7 +70,7 @@ export function preparerFor(branding: AuditBranding | null | undefined): Prepare
 
 export const preparedBy = (p: Preparer) => `Prepared by ${esc(p.name)}`;
 /** The partner's logo beside "Prepared by" on a cover; New Wave's reports have none. */
-export const preparerLogo = (p: Preparer) => (p.logo ? `<img class="preparer" src="${esc(p.logo)}" alt="${esc(p.name)}" onerror="this.remove()">` : '');
+export const preparerLogo = (p: Preparer) => (p.logo ? `<img class="preparer" src="${esc(p.logo)}" alt="${esc(p.name)}" style="background:${logoBackground(p.logo)}" onerror="this.remove()">` : '');
 
 /** Lead-aware: "Our" at the start of a sentence or element, "our" inside one. */
 const OURS = /(>\s*|[.!?]\s+)?(?:New Wave(?:: Social Engineering| IT)?|NW Social Engineering|Groundswell)(?:’s|'s|’|')?\s?(?=estimate|rule|working|internal|smallest|cost|hourly|own)/gi;
@@ -166,7 +167,7 @@ ul{padding-left:1.1em}
 }
 
 export const logoImg = (b: Brand, cls: string) =>
-  b.logo ? `<img class="logo ${cls}" src="${esc(b.logo)}" alt="" onerror="this.remove()">` : '';
+  b.logo ? `<img class="logo ${cls}" src="${esc(b.logo)}" alt="" style="background:${logoBackground(b.logo)}" onerror="this.remove()">` : '';
 
 export const listHtml = (items: string[], trim = true) =>
   items.length ? `<ul>${items.map((i) => `<li${trim ? ' data-trim' : ''}>${esc(i)}</li>`).join('')}</ul>` : '';

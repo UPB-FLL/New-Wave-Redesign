@@ -3,6 +3,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { buildAuditInsert, buildCompetitor, isDriveLink, normalizeInstagram, normalizeWebsite, type AuditDraft } from './groundswell';
 import { buildCustomerInsert, buildPartnerBranding, normalizeBrandColor, normalizeFacebook, normalizeLogoUrl } from './groundswellValidation';
+import { logoBackground } from './groundswellBrandAssets';
 
 const draft = (over: Partial<AuditDraft> = {}): AuditDraft => ({
   business_name: 'Flow and Mills',
@@ -84,6 +85,12 @@ describe('buildAuditInsert', () => {
 });
 
 describe('white-label branding input', () => {
+  it('gives reverse wordmarks a dark backing without using the domain name as a colour hint', () => {
+    expect(logoBackground('https://wildlyprimal.com/brand/wildly-primal-logo-light.svg')).toBe('#101e2d');
+    expect(logoBackground('https://brand.example/LOGO_WHITE.png')).toBe('#101e2d');
+    expect(logoBackground('https://white.example/logo.svg')).toBe('#ffffff');
+    expect(logoBackground(null)).toBe('#ffffff');
+  });
   it('takes an https logo on a public host, and nothing else', () => {
     expect(normalizeLogoUrl('')).toBeNull();
     expect(normalizeLogoUrl(' https://cdn.reef.example/logo.png ')).toBe('https://cdn.reef.example/logo.png');

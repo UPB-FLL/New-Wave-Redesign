@@ -16,6 +16,14 @@ const FOLDER = 'https://www.newwaveitfl.com/groundswell';
 const hrefs = (html: string) => [...html.matchAll(/href="([^"]*)"/g)].map((m) => m[1].replace(/&amp;/g, '&'));
 
 describe('brandFrom', () => {
+  it('keeps a reverse client wordmark readable in every report format', () => {
+    const data = sampleReportData();
+    data.brand.logo = 'https://brand.example/client-logo-light.svg';
+    for (const html of [buildAuditHtml(data), buildDeckHtml(data, { audit: AUDIT }), buildSummaryHtml(data, { deck: DECK, audit: AUDIT, folder: FOLDER })]) {
+      expect(html).toMatch(/class="logo [^"]*" src="https:\/\/brand.example\/client-logo-light.svg" alt="" style="background:#101e2d"/);
+    }
+  });
+
   it('uses the theme colour and picks text that passes 4.5:1', () => {
     const b = brandFrom(sampleReportData().facts.site?.business);
     expect(b.primary).toBe('#0e5a8a');
