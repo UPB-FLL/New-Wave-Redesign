@@ -1,0 +1,165 @@
+/* Five finite 4.8s explanatory films. Each has an input, a transformation, and a result. */
+.gs-process-drawing { --gs-motion-out: cubic-bezier(.23,1,.32,1); --gs-motion-travel: cubic-bezier(.77,0,.175,1); }
+.gs-process-drawing::before { content: ''; position: absolute; inset: 0; z-index: -1; opacity: .1; background: url('/brand/social-engineering/02_Graphics/GroundSwell_Contours_Dark.svg') center / cover; }
+.gsp-film text { font-family: var(--nw-font-body); }
+.gsp-film .gsp-eyebrow { fill: #96b1bd; font-family: var(--nw-font-technical); font-size: 12px; letter-spacing: 1.2px; }
+.gsp-film .gsp-text { fill: #f7fafb; font-size: 18px; font-weight: 500; }
+.gsp-film .gsp-small { font-size: 15px; }
+.gsp-film .gsp-muted { fill: #a7bec8; font-size: 14px; }
+.gsp-film .gsp-cyan-text { fill: var(--gs-cyan); font-size: 15px; }
+.gsp-hairline { stroke: #29414f; stroke-width: 1; }
+.gsp-window { fill: #101e2d; stroke: #36505e; stroke-width: 1; }
+.gsp-input { fill: #09131d; stroke: #406271; }
+.gsp-cyan-fill { fill: var(--gs-cyan); }
+.gsp-secondary-fill { fill: #294553; }
+.gsp-ink-stroke { stroke: #09131d; stroke-width: 1.7; stroke-linejoin: round; }
+.gsp-button-text { fill: #09131d; font-size: 16px; font-weight: 600; }
+.gsp-route { stroke: #31c6cf; stroke-opacity: .55; stroke-width: 1.5; stroke-dasharray: 1; }
+.gsp-check { stroke: var(--gs-cyan); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; }
+.gsp-profile-check .gsp-check { stroke: var(--gs-navy); }
+.gsp-content-line { stroke: #698897; stroke-width: 3; }
+.gsp-pointer { fill: #f7fafb; stroke: #09131d; stroke-width: 2; stroke-linejoin: round; opacity: 0; }
+.gsp-click-ripple { fill: none; stroke: #f7fafb; stroke-width: 1; opacity: 0; transform-origin: 270px 225px; }
+.gsp-type-cursor { fill: var(--gs-cyan); opacity: 0; }
+.gsp-engine-box { fill: #163c49; stroke: #31c6cf; stroke-width: 1.5; }
+.gsp-wave { stroke: #31c6cf; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 1; }
+.gsp-engine { transform-origin: 43px 41px; }
+.gsp-packet { fill: #71e5e9; opacity: 0; }
+.gsp-chart-grid { stroke: #28404e; stroke-width: 1; }
+.gsp-chart-grid path + path { stroke-dasharray: 3 7; stroke-opacity: .65; }
+.gsp-scenario { stroke-width: 2; stroke-linecap: round; stroke-dasharray: 1; }
+.gsp-scenario-low { stroke: #6b91a0; }
+.gsp-scenario-base { stroke: #31c6cf; stroke-width: 3.5; }
+.gsp-scenario-high { stroke: #b2c6ce; }
+.gsp-chart-scan { stroke: #f2a33a; fill: #f2a33a; stroke-width: 1; opacity: 0; }
+.gsp-note { fill: #163c49; stroke: #317b92; }
+.gsp-film .gsp-model-note text { font-size: 16px; }
+.gsp-paper { fill: #f7fafb; stroke: #becdd3; stroke-width: 1; }
+.gsp-film .gsp-paper-title { fill: #09131d; font-family: var(--nw-font-display); font-size: 16px; font-weight: 700; }
+.gsp-paper-lines { stroke: #afc0c8; stroke-width: 2; }
+.gsp-paper-chart { stroke: #317b92; stroke-width: 3; stroke-linecap: square; }
+.gsp-paper-tint { fill: #e1edef; }
+.gsp-manuscript { opacity: 0; }
+.gsp-build-page { transform-origin: 66px 89px; }
+.gsp-build-summary { transform: translateX(-178px) rotate(-4deg); }
+.gsp-build-audit { transform: translateX(178px) rotate(4deg); }
+.gsp-print-head { opacity: 0; }
+.gsp-lock { stroke: #31c6cf; stroke-width: 1.7; }
+.gsp-row-surface { fill: #19303e; }
+.gsp-file-icon { stroke: #7fadb8; stroke-width: 1.2; }
+.gsp-flying-file { opacity: 0; transform-origin: 32px 41px; }
+
+/* A common clock makes pauses and deterministic frame inspection work across every layer. */
+.gs-process-drawing:not([data-playback='static']) .gsp-film :where(
+ .gsp-url-reveal,.gsp-type-cursor,.gsp-brief,.gsp-pointer,.gsp-click-ripple,.gsp-profile,.gsp-profile-rivals,.gsp-profile-check,.gsp-finish,
+ .gsp-route,.gsp-source,.gsp-packet,.gsp-wave,.gsp-engine,.gsp-evidence-row,.gsp-evidence-seal,
+ .gsp-scenario,.gsp-chart-scan,.gsp-scan-point,.gsp-scenario-labels,.gsp-model-note,
+ .gsp-manuscript,.gsp-build-page,.gsp-page-content,.gsp-print-head,.gsp-build-checks,
+ .gsp-delivery-portal,.gsp-flying-file,.gsp-delivery-row,.gsp-lock,.gsp-delivery-done
+) { animation-duration: 4.5s; animation-timing-function: var(--gs-motion-out); animation-fill-mode: both; animation-play-state: paused; }
+.gs-process-drawing:not([data-playback='static']) .gsp-build-page .gsp-page-content { animation-name: gsp-compose; animation-timing-function: linear; }
+.gs-process-drawing[data-playback='playing'] .gsp-film * { animation-play-state: running; }
+
+/* 01: type the address, click, and turn the brief into a business record. */
+.gs-process-drawing:not([data-playback='static']) .gsp-url-reveal { animation-name: gsp-type; animation-timing-function: steps(16,end); transform-origin: 61px 122px; }
+.gs-process-drawing:not([data-playback='static']) .gsp-type-cursor { animation-name: gsp-type-cursor; }
+.gs-process-drawing:not([data-playback='static']) .gsp-brief { animation-name: gsp-brief; transform-origin: 182px 190px; }
+.gs-process-drawing:not([data-playback='static']) .gsp-pointer { animation-name: gsp-pointer; animation-timing-function: var(--gs-motion-travel); }
+.gs-process-drawing:not([data-playback='static']) .gsp-click-ripple { animation-name: gsp-click; }
+.gs-process-drawing:not([data-playback='static']) .gsp-profile { animation-name: gsp-profile; }
+.gs-process-drawing:not([data-playback='static']) .gsp-profile-rivals { animation-name: gsp-rivals; }
+.gs-process-drawing:not([data-playback='static']) .gsp-profile-check { animation-name: gsp-confirm; }
+.gs-process-drawing:not([data-playback='static']) .gsp-finish { animation-name: gsp-finish; }
+@keyframes gsp-type { 0%,8% { transform: scaleX(.001); } 32%,100% { transform: scaleX(1); } }
+@keyframes gsp-type-cursor { 0%,8% { opacity: 0; transform: translateX(0); } 9% { opacity: 1; } 32% { opacity: 1; transform: translateX(161px); } 36%,100% { opacity: 0; transform: translateX(161px); } }
+@keyframes gsp-brief { 0% { opacity: 0; transform: translateY(14px); } 10%,41% { opacity: 1; transform: none; } 46% { transform: scale(.97); } 53%,100% { opacity: 1; transform: none; } }
+@keyframes gsp-pointer { 0%,25% { opacity: 0; transform: translate(345px,300px); } 30% { opacity: 1; } 40%,45% { opacity: 1; transform: translate(270px,223px); } 57%,100% { opacity: 0; transform: translate(289px,260px); } }
+@keyframes gsp-click { 0%,41% { opacity: 0; transform: scale(.7); } 44% { opacity: .9; } 53%,100% { opacity: 0; transform: scale(2.1); } }
+@keyframes gsp-profile { 0%,45% { opacity: .12; transform: translateX(-22px); } 65%,100% { opacity: 1; transform: none; } }
+@keyframes gsp-rivals { 0%,64% { opacity: 0; transform: translateY(10px); } 80%,100% { opacity: 1; transform: none; } }
+@keyframes gsp-confirm { 0%,74% { opacity: 0; transform: translateY(5px); } 86%,100% { opacity: 1; transform: none; } }
+@keyframes gsp-finish { 0%,82% { opacity: 0; transform: translateY(6px); } 96%,100% { opacity: 1; transform: none; } }
+
+/* 02: packets take four different source paths into the engine, then build the evidence. */
+.gs-process-drawing:not([data-playback='static']) .gsp-route { animation-name: gsp-route; }
+.gs-process-drawing:not([data-playback='static']) .gsp-source { animation-name: gsp-source; }
+.gs-process-drawing:not([data-playback='static']) .gsp-source-1 { animation-delay: 90ms; }
+.gs-process-drawing:not([data-playback='static']) .gsp-source-2 { animation-delay: 180ms; }
+.gs-process-drawing:not([data-playback='static']) .gsp-source-3 { animation-delay: 270ms; }
+.gs-process-drawing:not([data-playback='static']) .gsp-packet { animation-timing-function: var(--gs-motion-travel); }
+.gs-process-drawing:not([data-playback='static']) .gsp-packet-0 { animation-name: gsp-packet-0; }
+.gs-process-drawing:not([data-playback='static']) .gsp-packet-1 { animation-name: gsp-packet-1; }
+.gs-process-drawing:not([data-playback='static']) .gsp-packet-2 { animation-name: gsp-packet-2; }
+.gs-process-drawing:not([data-playback='static']) .gsp-packet-3 { animation-name: gsp-packet-3; }
+.gs-process-drawing:not([data-playback='static']) .gsp-packet-output { animation-name: gsp-packet-output; }
+.gs-process-drawing:not([data-playback='static']) .gsp-wave { animation-name: gsp-wave; }
+.gs-process-drawing:not([data-playback='static']) .gsp-engine { animation-name: gsp-engine; }
+.gs-process-drawing:not([data-playback='static']) .gsp-evidence-row { animation-name: gsp-evidence; }
+.gs-process-drawing:not([data-playback='static']) .gsp-evidence-row-1 { animation-delay: 100ms; }
+.gs-process-drawing:not([data-playback='static']) .gsp-evidence-row-2 { animation-delay: 200ms; }
+.gs-process-drawing:not([data-playback='static']) .gsp-evidence-seal { animation-name: gsp-finish; }
+@keyframes gsp-route { 0%,18% { stroke-dashoffset: 1; opacity: .2; } 42%,100% { stroke-dashoffset: 0; opacity: 1; } }
+@keyframes gsp-source { 0% { opacity: 0; transform: translateX(-10px); } 14%,100% { opacity: 1; transform: none; } }
+@keyframes gsp-packet-0 { 0%,20% { opacity: 0; transform: none; } 22% { opacity: 1; } 30% { transform: translate(36px,49px); } 39% { opacity: 1; transform: translate(77px,98px); } 42%,100% { opacity: 0; transform: translate(77px,98px); } }
+@keyframes gsp-packet-1 { 0%,27% { opacity: 0; transform: none; } 29% { opacity: 1; } 36% { transform: translate(36px,16.5px); } 44% { opacity: 1; transform: translate(77px,33px); } 47%,100% { opacity: 0; transform: translate(77px,33px); } }
+@keyframes gsp-packet-2 { 0%,34% { opacity: 0; transform: none; } 36% { opacity: 1; } 42% { transform: translate(36px,-16px); } 49% { opacity: 1; transform: translate(77px,-32px); } 52%,100% { opacity: 0; transform: translate(77px,-32px); } }
+@keyframes gsp-packet-3 { 0%,41% { opacity: 0; transform: none; } 43% { opacity: 1; } 49% { transform: translate(36px,-48.5px); } 54% { opacity: 1; transform: translate(77px,-97px); } 57%,100% { opacity: 0; transform: translate(77px,-97px); } }
+@keyframes gsp-packet-output { 0%,57% { opacity: 0; transform: none; } 59% { opacity: 1; } 71% { opacity: 1; transform: translateX(63px); } 74%,100% { opacity: 0; transform: translateX(63px); } }
+@keyframes gsp-wave { 0%,43% { stroke-dashoffset: 1; } 62%,100% { stroke-dashoffset: 0; } }
+@keyframes gsp-engine { 0%,43% { transform: scale(.96); } 49% { transform: scale(1.06); } 60%,100% { transform: scale(1); } }
+@keyframes gsp-evidence { 0%,68% { opacity: 0; transform: translateX(-10px); } 83%,100% { opacity: 1; transform: none; } }
+
+/* 03: three assumptions trace distinct curves, the comparison cursor scans, base case settles. */
+.gs-process-drawing:not([data-playback='static']) .gsp-scenario { animation-name: gsp-scenario; }
+.gs-process-drawing:not([data-playback='static']) .gsp-scenario-base { animation-delay: 140ms; }
+.gs-process-drawing:not([data-playback='static']) .gsp-scenario-high { animation-delay: 280ms; }
+.gs-process-drawing:not([data-playback='static']) .gsp-chart-scan { animation-name: gsp-chart-scan; animation-timing-function: linear; }
+.gs-process-drawing:not([data-playback='static']) .gsp-scan-point { animation-name: gsp-scan-point; animation-timing-function: linear; }
+.gs-process-drawing:not([data-playback='static']) .gsp-scenario-labels { animation-name: gsp-source; }
+.gs-process-drawing:not([data-playback='static']) .gsp-model-note { animation-name: gsp-finish; }
+@keyframes gsp-scenario { 0%,12% { stroke-dashoffset: 1; } 65%,100% { stroke-dashoffset: 0; } }
+@keyframes gsp-chart-scan { 0%,18% { opacity: 0; transform: translateX(78px); } 20% { opacity: .8; } 65% { opacity: .8; transform: translateX(564px); } 76%,100% { opacity: 0; transform: translateX(564px); } }
+@keyframes gsp-scan-point { 0%,18% { transform: none; } 42% { transform: translateY(-80px); } 65%,100% { transform: translateY(-133px); } }
+
+/* 04: findings split into three formats; the print head composes them, then checks them. */
+.gs-process-drawing:not([data-playback='static']) .gsp-manuscript { animation-name: gsp-manuscript; }
+.gs-process-drawing:not([data-playback='static']) .gsp-build-summary { animation-name: gsp-build-summary; }
+.gs-process-drawing:not([data-playback='static']) .gsp-build-slides { animation-name: gsp-build-slides; }
+.gs-process-drawing:not([data-playback='static']) .gsp-build-audit { animation-name: gsp-build-audit; }
+.gs-process-drawing:not([data-playback='static']) .gsp-print-head { animation-name: gsp-print-head; animation-timing-function: var(--gs-motion-travel); }
+.gs-process-drawing:not([data-playback='static']) .gsp-build-checks { animation-name: gsp-finish; }
+@keyframes gsp-manuscript { 0% { opacity: 0; } 12%,20% { opacity: 1; } 34%,100% { opacity: 0; } }
+@keyframes gsp-build-summary { 0%,20% { opacity: 0; transform: translateY(0) scale(.96); } 27% { opacity: 1; } 52%,100% { opacity: 1; transform: translateX(-178px) rotate(-4deg); } }
+@keyframes gsp-build-slides { 0%,25% { opacity: 0; transform: translateY(14px) scale(.96); } 49%,100% { opacity: 1; transform: none; } }
+@keyframes gsp-build-audit { 0%,20% { opacity: 0; transform: translateY(0) scale(.96); } 27% { opacity: 1; } 52%,100% { opacity: 1; transform: translateX(178px) rotate(4deg); } }
+@keyframes gsp-print-head { 0%,47% { opacity: 0; transform: translateY(0); } 51% { opacity: .8; } 78% { opacity: .8; transform: translateY(213px); } 83%,100% { opacity: 0; transform: translateY(213px); } }
+@keyframes gsp-compose { 0%,51% { clip-path: inset(0 0 100% 0); } 79%,100% { clip-path: inset(0 0 0 0); } }
+
+/* 05: the report files physically move into their rows; the portal confirms private delivery. */
+.gs-process-drawing:not([data-playback='static']) .gsp-delivery-portal { animation-name: gsp-source; }
+.gs-process-drawing:not([data-playback='static']) .gsp-flying-file-0 { animation-name: gsp-file-0; }
+.gs-process-drawing:not([data-playback='static']) .gsp-flying-file-1 { animation-name: gsp-file-1; }
+.gs-process-drawing:not([data-playback='static']) .gsp-flying-file-2 { animation-name: gsp-file-2; }
+.gs-process-drawing:not([data-playback='static']) .gsp-flying-file { animation-timing-function: var(--gs-motion-travel); }
+.gs-process-drawing:not([data-playback='static']) .gsp-delivery-row-0 { animation-name: gsp-row-0; }
+.gs-process-drawing:not([data-playback='static']) .gsp-delivery-row-1 { animation-name: gsp-row-1; }
+.gs-process-drawing:not([data-playback='static']) .gsp-delivery-row-2 { animation-name: gsp-row-2; }
+.gs-process-drawing:not([data-playback='static']) .gsp-lock { animation-name: gsp-confirm; }
+.gs-process-drawing:not([data-playback='static']) .gsp-delivery-done { animation-name: gsp-finish; }
+@keyframes gsp-file-0 { 0%,8% { opacity: 0; transform: rotate(-12deg); } 15%,23% { opacity: 1; transform: rotate(-8deg); } 40% { opacity: 1; transform: translate(134px,-6px) scale(.35); } 44%,100% { opacity: 0; transform: translate(134px,-6px) scale(.3); } }
+@keyframes gsp-file-1 { 0%,24% { opacity: 0; transform: rotate(-4deg); } 31%,39% { opacity: 1; transform: rotate(-4deg); } 56% { opacity: 1; transform: translate(134px,12px) scale(.35); } 60%,100% { opacity: 0; transform: translate(134px,12px) scale(.3); } }
+@keyframes gsp-file-2 { 0%,40% { opacity: 0; transform: rotate(6deg); } 47%,55% { opacity: 1; transform: rotate(6deg); } 72% { opacity: 1; transform: translate(134px,30px) scale(.35); } 76%,100% { opacity: 0; transform: translate(134px,30px) scale(.3); } }
+@keyframes gsp-row-0 { 0%,38% { opacity: .08; transform: translateX(-8px); } 48%,100% { opacity: 1; transform: none; } }
+@keyframes gsp-row-1 { 0%,54% { opacity: .08; transform: translateX(-8px); } 64%,100% { opacity: 1; transform: none; } }
+@keyframes gsp-row-2 { 0%,70% { opacity: .08; transform: translateX(-8px); } 80%,100% { opacity: 1; transform: none; } }
+
+@media(max-width: 767px) {
+ .gsp-film .gsp-text { font-size: 22px; }
+ .gsp-film .gsp-small { font-size: 20px; }
+ .gsp-film .gsp-muted { font-size: 18px; }
+ .gsp-film .gsp-cyan-text { font-size: 19px; }
+ .gsp-film .gsp-paper-title { font-size: 19px; }
+ .gsp-film .gsp-model-note text { font-size: 20px; }
+}
+@media(prefers-reduced-motion: reduce) { .gs-process-drawing .gsp-film * { animation: none !important; } }
+@media print { .gs-process-drawing .gsp-film * { animation: none !important; } }
