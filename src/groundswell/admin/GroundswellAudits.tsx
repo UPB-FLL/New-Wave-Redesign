@@ -490,7 +490,7 @@ export default function GroundswellAudits() {
                         {a.error}
                       </p>
                     )}
-                    {a.status === 'review' && (
+                    {a.status === 'review' && held[a.id] && (
                       <ReviewPanel
                         name={a.business_name}
                         check={held[a.id]}

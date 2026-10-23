@@ -67,7 +67,7 @@ const missingColumn = (message: string | undefined) => /column .* does not exist
 /** A run another worker claimed to start but never moved to running is free again after this. */
 export const START_LEASE_MS = 120_000;
 
-type QueuedRun = { id: string; kind?: string | null; phase?: string | null; started_at?: string | null };
+type QueuedRun = { id: string; kind?: string | null; phase?: string | null; source_audit_id?: string | null; started_at?: string | null };
 
 const listFor = (run: QueuedRun, lists: StepLists) =>
   run.phase && run.phase !== 'audit' && run.phase in lists ? lists[run.phase as keyof StepLists] : run.kind === 'benchmark' ? lists.benchmark : lists.audit;
@@ -85,7 +85,7 @@ const listFor = (run: QueuedRun, lists: StepLists) =>
  * phase 1, and start_queued_audits starts it by kind.
  */
 export async function startQueuedRuns(db: SupabaseClient, lists: StepLists, max = 3): Promise<string[]> {
-  const queued = await db.from('marketing_audits').select('id,kind,phase,started_at').eq('status', 'queued').order('created_at', { ascending: true }).limit(max * 3);
+  const queued = await db.from('marketing_audits').select('id,kind,phase,source_audit_id,started_at').eq('status', 'queued').order('created_at', { ascending: true }).limit(max * 3);
   if (queued.error && missingColumn(queued.error.message)) return startQueuedAudits(db, lists.audit, max, lists.benchmark);
   if (queued.error) throw new Error(`Could not read the queue: ${queued.error.message}`);
   const started: string[] = [];
@@ -98,16 +98,20 @@ export async function startQueuedRuns(db: SupabaseClient, lists: StepLists, max 
     const claimed = await (run.started_at ? claim.lt('started_at', stale) : claim.is('started_at', null)).select('id');
     if (claimed.error) throw new Error(`Could not start a queued run: ${claimed.error.message}`);
     if (!(claimed.data ?? []).length) continue;
+    // Deleting a source audit clears the foreign key. A later-phase retry
+    // must rebuild its research instead of repeating a phase with no inputs.
+    const recover = Boolean(run.phase && run.phase !== 'audit' && !run.source_audit_id);
+    const starting = recover ? { ...run, phase: 'audit', kind: 'audit' } : run;
     const cleared = await db.from('marketing_audit_steps').delete().eq('audit_id', run.id);
     if (cleared.error) throw new Error(`Could not clear a run's old steps: ${cleared.error.message}`);
-    const rows = listFor(run, lists).map((s, i) => ({ audit_id: run.id, step: s.name, position: i + 1 }));
+    const rows = listFor(starting, lists).map((s, i) => ({ audit_id: run.id, step: s.name, position: i + 1 }));
     const added = await db.from('marketing_audit_steps').insert(rows);
     // A requeue while this worker was starting the run let another worker take it over.
     if (added.error && /duplicate key|23505/i.test(`${added.error.message} ${(added.error as { code?: string }).code ?? ''}`)) continue;
     if (added.error) throw new Error(`Could not give a run its steps: ${added.error.message}`);
     const moved = await db
       .from('marketing_audits')
-      .update({ status: 'running', completed_at: null, error: null })
+      .update({ status: 'running', completed_at: null, error: null, ...(recover ? { phase: 'audit', kind: 'audit' } : {}) })
       .eq('id', run.id)
       .eq('status', 'queued')
       .eq('started_at', token)

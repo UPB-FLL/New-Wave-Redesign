@@ -1,25 +1,102 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const mocks = vi.hoisted(() => ({ executeTool: vi.fn(), withBrowser: vi.fn() }));
+const mocks = vi.hoisted(() => ({ executeTool: vi.fn(), withBrowser: vi.fn(), inspectWebsite: vi.fn(), geography: vi.fn() }));
 vi.mock('../../../api/_lib/groundswell/composio', async (original) => ({ ...(await original<object>()), executeTool: mocks.executeTool, isSharedLookupConfigured: () => true }));
 vi.mock('../../../api/_lib/groundswell/browser', () => ({ withBrowser: mocks.withBrowser }));
+vi.mock('../../../api/_lib/groundswell/discoveryWebsite', () => ({ inspectBusinessWebsite: mocks.inspectWebsite }));
+vi.mock('../../../api/_lib/groundswell/keywordsGeography', () => ({ resolveKeywordGeography: mocks.geography }));
 
-import { parseGoogleSerp, readGoogleSerp } from '../../../api/_lib/groundswell/currents/serp';
+import { categoryFromSite, parseGoogleSerp, readGoogleSerp, specificCategory } from '../../../api/_lib/groundswell/currents/serp';
 import { runKeywords, runSearch } from '../../../api/_lib/groundswell/currents/search';
 import { findCompetitors, runCompetitors } from '../../../api/_lib/groundswell/currents/competitors';
 import { matchBusiness, runMaps } from '../../../api/_lib/groundswell/currents/maps';
 import { googleAdsFromList, runAdsLibrary } from '../../../api/_lib/groundswell/currents/adsLibrary';
 import { runAds } from '../../../api/_lib/groundswell/currents/ads';
 import { runSocial } from '../../../api/_lib/groundswell/currents/social';
+import { parseSite } from '../../../api/_lib/groundswell/currents/site';
 
 const seed = { business_name: 'Wildly Primal', city: 'Fort Lauderdale, FL', website: 'https://wildlyprimal.example', instagram: 'wildlyprimal', facebook: 'https://www.facebook.com/wildlyprimal' };
 const context = (outputs: Record<string, unknown> = {}) => ({ audit: { id: 'a1', ...seed, competitors: [], notes: null }, outputs, deadline: Date.now() + 20_000, attempt: 1 });
 const own = { id: 'self', displayName: { text: 'Wildly Primal' }, primaryTypeDisplayName: { text: 'Health food store' }, websiteUri: seed.website, formattedAddress: '1 Main St, Fort Lauderdale, FL 33301, USA' };
 const serp = { search_metadata: { status: 'Success', google_url: 'https://www.google.com/search?q=health+food+Fort+Lauderdale' }, organic_results: [{ position: 3, title: 'Wildly Primal', link: seed.website, snippet: 'Grass fed food.' }], related_searches: [{ query: 'grass fed food near me' }] };
 
-beforeEach(() => { mocks.executeTool.mockReset().mockRejectedValue(new Error('provider unavailable')); mocks.withBrowser.mockReset().mockRejectedValue(new Error('no browser')); });
+beforeEach(() => {
+  mocks.executeTool.mockReset().mockRejectedValue(new Error('provider unavailable'));
+  mocks.withBrowser.mockReset().mockRejectedValue(new Error('no browser'));
+  mocks.inspectWebsite.mockReset().mockRejectedValue(new Error('Website unavailable in this test'));
+  mocks.geography.mockReset().mockResolvedValue({ constants: ['geoTargetConstants/12345'], label: 'Jacksonville, Florida, United States', error: null });
+});
+afterEach(() => { vi.unstubAllEnvs(); vi.restoreAllMocks(); });
 
 describe('public Google research fallback', () => {
+  it('starts no geography, Planner or fallback reads after the worker deadline expires', async () => {
+    const ctx = context();
+    ctx.deadline = Date.now() - 1;
+    const out = await runKeywords(ctx);
+    expect(mocks.geography).not.toHaveBeenCalled();
+    expect(mocks.executeTool).not.toHaveBeenCalled();
+    expect(out.demand_status).toBe('unavailable');
+  });
+
+  it('does not start Planner or related-query reads after geography uses the remaining deadline', async () => {
+    let now = 1000;
+    vi.spyOn(Date, 'now').mockImplementation(() => now);
+    const ctx = context();
+    ctx.deadline = 6000;
+    mocks.geography.mockImplementation(async () => { now = 7000; return { constants: ['geoTargetConstants/12345'], label: 'Jacksonville, Florida, United States', error: null }; });
+    const out = await runKeywords(ctx);
+    expect(mocks.executeTool).not.toHaveBeenCalled();
+    expect(out.demand_status).toBe('unavailable');
+  });
+  it('uses the matched business listing name for branded searches when intake omitted its word spacing', async () => {
+    const ctx = context({ maps: { business: { name: 'Wildly Primal', category: 'Health coach' } } });
+    ctx.audit.business_name = 'WildlyPrimal';
+    mocks.executeTool.mockResolvedValue({ organic_results: [] });
+    const out = await runSearch(ctx);
+    expect(out.serp.queries[0].query).toBe('Wildly Primal Fort Lauderdale, FL');
+  });
+  it('uses the verified city target for Planner rather than the old default geography', async () => {
+    vi.stubEnv('GROUNDSWELL_GEO_TARGETS', 'geoTargetConstants/200528');
+    const ctx = context({ maps: { business: { category: 'Health coach' } } });
+    ctx.audit.city = 'Jacksonville FL';
+    mocks.executeTool.mockResolvedValue({ results: [{ text: 'health coach', keyword_idea_metrics: { avg_monthly_searches: 100 } }] });
+    const out = await runKeywords(ctx);
+    expect(mocks.geography).toHaveBeenCalledWith('Jacksonville FL', expect.any(Number));
+    expect(mocks.executeTool).toHaveBeenCalledWith('GOOGLEADS_GENERATE_KEYWORD_IDEAS', expect.objectContaining({ geo_target_constants: ['geoTargetConstants/12345'] }), expect.any(Number));
+    expect(out).toMatchObject({ demand_status: 'measured', source: expect.stringContaining('Jacksonville, Florida'), geography: { constants: ['geoTargetConstants/12345'] } });
+  });
+
+  it('uses explicitly configured targets only when no business city was supplied', async () => {
+    vi.stubEnv('GROUNDSWELL_GEO_TARGETS', 'geoTargetConstants/2840');
+    const ctx = context();
+    ctx.audit.city = null as never;
+    mocks.executeTool.mockResolvedValue({ results: [{ text: 'health coach', keyword_idea_metrics: { avg_monthly_searches: 100 } }] });
+    const out = await runKeywords(ctx);
+    expect(mocks.geography).not.toHaveBeenCalled();
+    expect(mocks.executeTool).toHaveBeenCalledWith('GOOGLEADS_GENERATE_KEYWORD_IDEAS', expect.objectContaining({ geo_target_constants: ['geoTargetConstants/2840'] }), expect.any(Number));
+    expect(out).toMatchObject({ demand_status: 'measured', source: expect.stringContaining('Configured targets') });
+  });
+
+  it('keeps demand unavailable and never calls Planner when the business geography cannot be verified', async () => {
+    mocks.geography.mockResolvedValue({ constants: [], label: '', error: 'The city matches multiple states.' });
+    mocks.executeTool.mockResolvedValue(serp);
+    const out = await runKeywords(context({ maps: { business: { category: 'Health coach' } } }));
+    expect(out).toMatchObject({ demand_status: 'unavailable', error: expect.stringContaining('multiple states') });
+    expect(mocks.executeTool.mock.calls.some(([slug]) => slug === 'GOOGLEADS_GENERATE_KEYWORD_IDEAS')).toBe(false);
+    expect(out.ideas.every(idea => idea.monthly_searches === null)).toBe(true);
+  });
+  it.each(['Services', 'establishment', 'point_of_interest', 'LocalBusiness', 'Professional Service', 'Organization'])('rejects the generic category %s without rejecting specific service categories', (category) => {
+    expect(specificCategory(category)).toBeNull();
+    expect(specificCategory('Health coach')).toBe('Health coach');
+    expect(specificCategory('Auto repair service')).toBe('Auto repair service');
+  });
+
+  it('does not derive a category from an unavailable page or a business name alone', () => {
+    const site = parseSite('<title>Wildly Primal</title>', seed.website, seed.website, 200);
+    expect(categoryFromSite(site)).toBeNull();
+    expect(categoryFromSite({ ...site, title: 'Functional health coaching', error: 'Unavailable' })).toBeNull();
+  });
+
   it('keeps observed positions and query scope without creating metrics from result order', async () => {
     mocks.executeTool.mockResolvedValue({ data: serp });
     const out = await readGoogleSerp('health food Fort Lauderdale', seed.city);
@@ -58,6 +135,23 @@ describe('public Google research fallback', () => {
     expect(out).toMatchObject({ demand_status: 'unavailable', error: expect.stringContaining('Planner account unavailable'), ideas: [{ keyword: 'grass fed food near me', monthly_searches: null, low_bid_usd: null, high_bid_usd: null }] });
   });
 
+  it.each(['Services', 'Health food store'])('uses first-party health coaching wording for search and keyword seeds instead of the %s listing category', async (category) => {
+    const site = parseSite('<title>Wildly Primal | Functional Health Coaching</title><meta name="description" content="Functional health coaching and personalized support."><h1>Services</h1>', seed.website, seed.website, 200);
+    const ctx = context({ site: { business: site }, maps: { business: { category } }, competitors: { business: { category } } });
+    ctx.audit.city = 'Jacksonville, FL';
+    mocks.executeTool.mockImplementation(async (slug: string) => {
+      if (slug === 'GOOGLEADS_GENERATE_KEYWORD_IDEAS') return { results: [{ text: 'health coach', keyword_idea_metrics: { avg_monthly_searches: 100 } }] };
+      if (slug === 'SERPAPI_GOOGLE_LIGHT_SEARCH') return { organic_results: [], related_searches: [] };
+      throw new Error('Ahrefs unavailable');
+    });
+    const search = await runSearch(ctx);
+    const keywords = await runKeywords(ctx);
+    expect(search.serp.queries.map((result) => result.query)).toContain('Health coach Jacksonville, FL');
+    expect(search.serp.queries.some((result) => /^services\b/i.test(result.query))).toBe(false);
+    expect(keywords.seeds).toEqual(['Health coach', 'Health coach Jacksonville']);
+    expect(mocks.inspectWebsite).not.toHaveBeenCalled();
+  });
+
   it('reads a dated public Maps listing when Places fails, preserving ratings without rank claims', async () => {
     mocks.executeTool.mockImplementation(async (slug: string, args: Record<string, unknown>) => {
       if (slug === 'GOOGLE_MAPS_TEXT_SEARCH') throw new Error('Places quota');
@@ -76,6 +170,47 @@ describe('public Google research fallback', () => {
 });
 
 describe('competitor discovery', () => {
+  it.each(['fresh', 'stored'])('uses the %s worker website category before matching rivals when Google labels the business Services', async (websiteRead) => {
+    const city = 'Jacksonville, FL';
+    const site = parseSite('<title>Wildly Primal | Functional Health Coaching</title><meta name="description" content="Functional health coaching for lasting change.">', seed.website, seed.website, 200);
+    mocks.inspectWebsite.mockResolvedValue({ scan: site, business: { category: 'Health coach' }, sources: [{ name: 'Website', status: 'ok', url: seed.website }], warnings: [] });
+    const listing = { ...own, primaryTypeDisplayName: { text: 'Services' } };
+    const coach = { ...own, id: 'coach', displayName: { text: 'Jacksonville Health Coaching' }, primaryTypeDisplayName: { text: 'Health coach' }, websiteUri: 'https://healthcoach.example' };
+    const unrelated = { ...own, id: 'cleaner', displayName: { text: 'Jacksonville Cleaning Services' }, websiteUri: 'https://cleaner.example' };
+    mocks.executeTool.mockImplementation(async (slug: string, args: Record<string, unknown>) => {
+      if (slug !== 'GOOGLE_MAPS_TEXT_SEARCH') throw new Error('Unexpected provider');
+      if (String(args.textQuery).startsWith('Wildly Primal')) return { places: [listing] };
+      return { places: String(args.textQuery).startsWith('Health coach') ? [coach] : [unrelated] };
+    });
+    const ctx = context(websiteRead === 'stored' ? { site: { business: site } } : {});
+    ctx.audit.city = city;
+    const manual = { name: 'Reviewed direct competitor', website: 'https://reviewed.example', instagram: null };
+    ctx.audit.competitors = [manual] as never;
+    const result = await runCompetitors(ctx);
+    expect(result.business?.category).toBe('Health coach');
+    expect(result.competitors).toEqual([manual, { name: 'Jacksonville Health Coaching', website: 'https://healthcoach.example', instagram: null }]);
+    if (websiteRead === 'fresh') expect(mocks.inspectWebsite).toHaveBeenCalledWith(seed.website, expect.objectContaining({ timeoutMs: expect.any(Number) }));
+    else expect(mocks.inspectWebsite).not.toHaveBeenCalled();
+    expect(mocks.executeTool).toHaveBeenCalledWith('GOOGLE_MAPS_TEXT_SEARCH', expect.objectContaining({ textQuery: 'Health coach near Jacksonville, FL' }), expect.any(Number));
+  });
+
+  it('does not research generic Services competitors or start website reads after the worker deadline', async () => {
+    mocks.executeTool.mockImplementation(async (slug: string) => {
+      if (slug === 'GOOGLE_MAPS_TEXT_SEARCH') return { places: [{ ...own, primaryTypeDisplayName: { text: 'Services' } }] };
+      if (slug === 'SERPAPI_GOOGLE_LIGHT_SEARCH') return { organic_results: [{ title: 'Wildly Primal', link: seed.website, snippet: 'Welcome to our business.' }] };
+      throw new Error('Unavailable');
+    });
+    const result = await findCompetitors({ ...seed, category: 'Services' });
+    expect(result.competitors).toEqual([]);
+    expect(result.gaps.join(' ')).toMatch(/category could not be verified/);
+    expect(mocks.executeTool.mock.calls.some(([, args]) => /^services\s+near/i.test(String(args.textQuery)))).toBe(false);
+    mocks.executeTool.mockClear();
+    const expired = await runCompetitors({ ...context(), deadline: Date.now() - 1 });
+    expect(expired.competitors).toEqual([]);
+    expect(mocks.executeTool).not.toHaveBeenCalled();
+    expect(mocks.inspectWebsite).not.toHaveBeenCalled();
+  });
+
   it('suggests up to six relevant locals and preserves entered competitors during an audit', async () => {
     const rivals = Array.from({ length: 8 }, (_, i) => ({ ...own, id: `r${i}`, displayName: { text: `Local Health Foods ${i}` }, websiteUri: `https://local${i}.example`, userRatingCount: 10 + i, rating: 4.5 }));
     mocks.executeTool.mockImplementation(async (slug: string, args: Record<string, unknown>) => { if (slug === 'GOOGLE_MAPS_TEXT_SEARCH') return { places: String(args.textQuery).includes('Wildly') ? [own] : rivals }; throw new Error('unavailable'); });

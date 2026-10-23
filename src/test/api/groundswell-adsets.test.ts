@@ -195,7 +195,7 @@ describe('the writer’s words, held to the facts', () => {
   });
 
   it('a run with no plan has no ad sets, and says why', async () => {
-    await expect(runAdsets(ctxWith(sampleOutputs()))).rejects.toThrow(/There is no ad plan/);
+    await expect(runAdsets(ctxWith(sampleOutputs()))).rejects.toThrow(/No verified ad plan/);
   });
 });
 

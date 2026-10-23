@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const mocks = vi.hoisted(() => ({ executeTool: vi.fn() }));
+const mocks = vi.hoisted(() => ({ executeTool: vi.fn(), inspectWebsite: vi.fn() }));
 vi.mock('../../../api/_lib/groundswell/composio', async (original) => ({ ...(await original<object>()), executeTool: mocks.executeTool }));
+vi.mock('../../../api/_lib/groundswell/discoveryWebsite', () => ({ inspectBusinessWebsite: mocks.inspectWebsite }));
 
 import { cityOf, hostOf, persistCompetitors, pickFrom, runCompetitors } from '../../../api/_lib/groundswell/currents/competitors';
 
@@ -50,6 +51,7 @@ const audit = (competitors: { name: string; website: string | null; instagram: s
 const ctx = (competitors: { name: string; website: string | null; instagram: string | null }[] = []) => ({ audit: audit(competitors), outputs: {}, deadline: Date.now() + 250_000, attempt: 1 });
 
 beforeEach(() => {
+  mocks.inspectWebsite.mockReset().mockRejectedValue(new Error('Website unavailable in this test'));
   mocks.executeTool.mockReset().mockImplementation(async (slug: string, args: Record<string, unknown>) => {
     expect(slug).toBe('GOOGLE_MAPS_TEXT_SEARCH');
     const q = String(args.textQuery);
@@ -110,6 +112,7 @@ describe('Competitors Current: runCompetitors', () => {
     expect(out.competitors).toBe(entered);
     expect(out.note).toMatch(/6 competitors were entered/);
     expect(mocks.executeTool).not.toHaveBeenCalled();
+    expect(mocks.inspectWebsite).not.toHaveBeenCalled();
     expect(persistCompetitors(out, audit(entered))).toBeNull();
   });
 

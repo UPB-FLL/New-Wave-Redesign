@@ -378,4 +378,12 @@ describe('answering a held audit', () => {
     await expect(answerReview(db().client, ID, 'approve')).rejects.toBeInstanceOf(ReviewError);
     await expect(answerReview(db().client, '00000000-0000-4000-8000-000000000000', 'deliver')).rejects.toMatchObject({ status: 404 });
   });
+
+  it.each(['deliver', 'recheck'])('rejects %s for a missing-input delivery hold without stranding it as running', async (action) => {
+    const { fake, client } = db();
+    fake.tables.marketing_audit_steps = [{ id: 'finish', audit_id: ID, step: 'deliver_finish', status: 'done', output: { hold: 'The growth audit is missing.' } }];
+    await expect(answerReview(client, ID, action)).rejects.toMatchObject({ status: 409 });
+    expect(fake.tables.marketing_audits[0].status).toBe('review');
+    expect(fake.tables.marketing_audit_steps[0]).toMatchObject({ status: 'done', output: { hold: 'The growth audit is missing.' } });
+  });
 });
