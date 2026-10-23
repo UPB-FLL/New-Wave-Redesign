@@ -245,6 +245,20 @@ Notifications):
 | `docs/superops/ticket-created-template.html` | Ticket created ("New Ticket created - <number>") | When a ticket is opened, by email or the portal |
 | `docs/superops/ticket-reply-template.html` | Technician replies to the ticket | When a technician replies on the ticket |
 
+Staff notifications (Notification Center > Ticket Notifications > Technician
+Notifications), the same look with an accent bar per kind and "Not for
+customers" in the footer:
+
+| File | SuperOps notice |
+| --- | --- |
+| `docs/superops/technician/new-ticket.html` | A new ticket is created |
+| `docs/superops/technician/ticket-assigned.html` | A ticket is assigned to a technician |
+| `docs/superops/technician/requester-replied.html` | The requester replies |
+| `docs/superops/technician/sla-warning.html` | A ticket nears or breaches its SLA |
+
+The site's own new-ticket alert (section 4) is not a SuperOps template: its
+email is built in code (`alertEmailHtml` in `api/_lib/ticketAlerts.ts`).
+
 Both have New Wave's navy header and logo, a ticket summary card, "View
 your ticket", and a footer with phone, email, support page and address.
 Each file's header comment says which notice it goes in and how to swap each
