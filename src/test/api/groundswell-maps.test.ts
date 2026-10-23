@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({ executeTool: vi.fn(), isComposioConfigured: vi.fn(), withBrowser: vi.fn() }));
 vi.mock('../../../api/_lib/groundswell/composio', async (original) => ({
@@ -10,6 +10,7 @@ vi.mock('../../../api/_lib/groundswell/browser', () => ({ withBrowser: mocks.wit
 
 import { matchBusiness, placeRows, placesLookup, PLACES_FALLBACK_NOTE, runMaps, toMapsListing, toMapsPlace } from '../../../api/_lib/groundswell/currents/maps';
 import { PermanentStepError } from '../../../api/_lib/groundswell/types';
+import { parseSite } from '../../../api/_lib/groundswell/currents/site';
 
 /**
  * The Maps Current reads Google Places through Composio first and falls back
@@ -49,6 +50,7 @@ beforeEach(() => {
   mocks.isComposioConfigured.mockReset().mockReturnValue(true);
   mocks.withBrowser.mockReset().mockRejectedValue(new Error('no browser in tests'));
 });
+afterEach(() => vi.useRealTimers());
 
 describe('Maps Current: Places rows', () => {
   it('finds the places wherever Composio nests them', () => {
@@ -81,6 +83,94 @@ describe('Maps Current: Places rows', () => {
 });
 
 describe('Maps Current: runMaps', () => {
+  it.each(['Places', 'SerpApi'])('retains a matched %s listing when the secondary nearby request fails', async (provider) => {
+    const listing = { ...harbor, primaryTypeDisplayName: undefined, types: [] };
+    mocks.executeTool.mockImplementation(async (slug: string, args: Record<string, unknown>) => {
+      if (provider === 'SerpApi' && slug === 'GOOGLE_MAPS_TEXT_SEARCH') throw new Error('Places unavailable');
+      if (String(args.textQuery ?? args.q).includes('near')) throw new Error('Nearby query unavailable');
+      return slug === 'GOOGLE_MAPS_TEXT_SEARCH' ? { places: [listing] } : { local_results: [listing] };
+    });
+    const out = await runMaps({ ...ctx, outputs: { competitors: { business: { category: 'Health coach' } } } });
+    expect(out.business).toMatchObject({ name: audit.business_name, rating: 4.7, reviews: 183, category: null });
+    expect(out.nearby).toEqual([]);
+    expect(out.note).toMatch(/nearby.*unavailable/i);
+    expect(out.detail).toContain('Nearby query unavailable');
+    expect(mocks.withBrowser).not.toHaveBeenCalled();
+    expect(mocks.executeTool).toHaveBeenCalledTimes(provider === 'Places' ? 2 : 3);
+  });
+
+  it('retains the matched browser listing when its nearby page is unavailable', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout'] });
+    mocks.isComposioConfigured.mockReturnValue(false);
+    const page = {
+      setViewport: vi.fn(), setExtraHTTPHeaders: vi.fn(), goto: vi.fn().mockResolvedValueOnce(undefined).mockRejectedValueOnce(new Error('Nearby page unavailable')),
+      url: () => 'https://www.google.com/maps/search/business', title: async () => 'Google Maps', $: async () => ({}),
+      evaluate: vi.fn().mockResolvedValueOnce({ name: audit.business_name, category: null, rating: '4.7', reviews: '183', address: null, phone: null, website: audit.website, hours: [], url: 'https://maps.google.com/?cid=1' }),
+    };
+    mocks.withBrowser.mockImplementation(async (run) => run({ newPage: async () => page }));
+    const pending = runMaps({ ...ctx, outputs: { competitors: { business: { category: 'Health coach' } } } });
+    await vi.runAllTimersAsync();
+    const out = await pending;
+    expect(out.business).toMatchObject({ name: audit.business_name, rating: 4.7, reviews: 183, category: null });
+    expect(out.nearby).toEqual([]);
+    expect(out.note).toMatch(/nearby.*unavailable/i);
+    expect(out.detail).toContain('Nearby page unavailable');
+  });
+
+  it.each([
+    ['Places', 'website'], ['Places', 'competitors'], ['SerpApi', 'website'], ['SerpApi', 'competitors'],
+  ] as const)('uses the verified %s nearby category from %s while retaining a Services listing label', async (provider, categorySource) => {
+    const manual = [{ name: 'Reviewed coach', website: 'https://reviewed.example', instagram: null }];
+    const wellness = { ...audit, business_name: 'Wildly Primal', city: 'Jacksonville, FL', website: 'https://wildlyprimal.example', competitors: manual };
+    const listing = { ...harbor, displayName: { text: 'Wildly Primal' }, websiteUri: wellness.website, primaryTypeDisplayName: { text: 'Services' } };
+    const coach = rival('coach', 'Nearby Health Coach', 4.8, 30);
+    mocks.executeTool.mockImplementation(async (slug: string, args: Record<string, unknown>) => {
+      if (provider === 'SerpApi' && slug === 'GOOGLE_MAPS_TEXT_SEARCH') throw new Error('Places unavailable');
+      const query = String(args.textQuery ?? args.q);
+      const rows = query.startsWith('Wildly Primal') ? [listing] : [coach];
+      return slug === 'GOOGLE_MAPS_TEXT_SEARCH' ? { places: rows } : { local_results: rows };
+    });
+    const outputs = categorySource === 'website'
+      ? { site: { business: parseSite('<title>Functional Health Coaching</title>', wellness.website, wellness.website, 200) }, competitors: { business: { category: 'Services' } } }
+      : { competitors: { business: { category: 'Health coach' } } };
+    const out = await runMaps({ ...ctx, audit: wellness, outputs });
+    expect(out.business?.category).toBe('Services');
+    expect(out.nearby[0].name).toBe('Nearby Health Coach');
+    const queries = mocks.executeTool.mock.calls.map(([, args]) => String(args.textQuery ?? args.q));
+    expect(queries).toContain('Health coach near Jacksonville, FL');
+    expect(queries.some(query => /^Services near/i.test(query))).toBe(false);
+    expect(wellness.competitors).toBe(manual);
+  });
+
+  it('keeps a generic Services listing without querying irrelevant nearby businesses when no category is verified', async () => {
+    mocks.executeTool.mockResolvedValue({ places: [{ ...harbor, primaryTypeDisplayName: { text: 'Services' } }] });
+    const out = await runMaps(ctx);
+    expect(out.business?.category).toBe('Services');
+    expect(out.nearby).toEqual([]);
+    expect(mocks.executeTool).toHaveBeenCalledTimes(1);
+    expect(out.note).toMatch(/specific.*category.*verified/i);
+  });
+
+  it.each([true, false])('uses a verified category in the browser path and skips generic nearby searches (verified: %s)', async (verified) => {
+    vi.useFakeTimers({ toFake: ['setTimeout'] });
+    mocks.isComposioConfigured.mockReturnValue(false);
+    const page = {
+      setViewport: vi.fn(), setExtraHTTPHeaders: vi.fn(), goto: vi.fn(),
+      url: () => 'https://www.google.com/maps/search/business', title: async () => 'Google Maps', $: async () => ({}),
+      evaluate: vi.fn().mockResolvedValueOnce({ name: audit.business_name, category: 'Services', rating: '4.7', reviews: '183', address: null, phone: null, website: audit.website, hours: [], url: 'https://maps.google.com/?cid=1' })
+        .mockResolvedValueOnce([{ name: 'Nearby Health Coach', rating: '4.8', reviews: '30', info: 'Health coach', url: 'https://maps.google.com/?cid=2' }]),
+    };
+    mocks.withBrowser.mockImplementation(async (run) => run({ newPage: async () => page }));
+    const pending = runMaps({ ...ctx, outputs: verified ? { competitors: { business: { category: 'Health coach' } } } : {} });
+    await vi.runAllTimersAsync();
+    const out = await pending;
+    const urls = page.goto.mock.calls.map(([url]) => decodeURIComponent(String(url)));
+    expect(out.business?.category).toBe('Services');
+    expect(urls.some(url => url.includes('Services near'))).toBe(false);
+    expect(urls.some(url => url.includes('Health coach near Fort Lauderdale, FL'))).toBe(verified);
+    expect(out.nearby).toHaveLength(verified ? 1 : 0);
+  });
+
   it('reads the business and its rivals from Places, leaving the business out of the rivals', async () => {
     mocks.executeTool.mockImplementation(async (slug: string, args: Record<string, unknown>) => {
       expect(slug).toBe('GOOGLE_MAPS_TEXT_SEARCH');

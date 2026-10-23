@@ -9,6 +9,7 @@ import { benchAccounts, type BenchAccount } from '../benchmarkAccounts.js';
 import { withBrowser } from '../browser.js';
 import { executeTool, findKey } from '../composio.js';
 import { PermanentStepError, type StepContext } from '../types.js';
+import { isProviderCreditFailure } from '../providerBudget.js';
 import { numeric } from './serp.js';
 import type { FacebookSnapshot } from './social.js';
 
@@ -23,6 +24,14 @@ import type { FacebookSnapshot } from './social.js';
 
 const str = (v: unknown, max = 200) => (typeof v === 'string' ? v.replace(/\s+/g, ' ').trim().slice(0, max) : null);
 const TRANSPARENCY_WAIT_MS = 8_000;
+const errorText = (value: unknown): string => value instanceof Error ? value.message : typeof value === 'string' ? value : JSON.stringify(value ?? '') || '';
+const creditDenied = (value: unknown): boolean => isProviderCreditFailure(errorText(value)) || /\b402\b/.test(errorText(value));
+
+/** A query parameter alone does not establish which advertiser the rendered page describes. */
+function containsAdvertiserDomain(body: string, domain: string): boolean {
+  const escaped = domain.replace(/^www\./i, '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`(?:^|[^a-z0-9.-])(?:www\\.)?${escaped}(?=$|[^a-z0-9.-])`, 'i').test(body);
+}
 
 /** One ad from LIST_FACEBOOK_COMPANY_ADS, in the package's shape. */
 export function toMetaAd(r: Record<string, unknown>): MetaAd {
@@ -54,6 +63,7 @@ async function metaFor(a: BenchAccount, prior: FacebookSnapshot | null) {
   let statusText = prior?.ad_library_status ?? null;
   if (!pageId) {
     const profile = await executeTool('SCRAPECREATORS_GET_FACEBOOK_PROFILE', { url: a.facebook, include_gated_profile: true, cache_max_age: '7d' });
+    if (creditDenied(findKey(profile, 'error'))) throw new Error(errorText(findKey(profile, 'error')));
     const lib = findKey<Record<string, unknown>>(profile, 'adLibrary');
     pageId = lib?.pageId ? String(lib.pageId) : null;
     statusText = typeof lib?.adStatus === 'string' ? lib.adStatus : null;
@@ -61,6 +71,7 @@ async function metaFor(a: BenchAccount, prior: FacebookSnapshot | null) {
   if (!pageId) return { pageId, statusText, ads: [], note: 'Meta: The public Page returned no Ad Library id; advertising could not be determined.' };
   try {
     const list = await executeTool('SCRAPECREATORS_LIST_FACEBOOK_COMPANY_ADS', { page_id: pageId, status: 'ALL', country: 'ALL', trim: true });
+    if (creditDenied(findKey(list, 'error'))) throw new Error(errorText(findKey(list, 'error')));
     return { pageId, statusText, ads: adRows(list).map(toMetaAd), note: null };
   } catch (err) {
     if (err instanceof PermanentStepError && /API key/i.test(err.message)) throw err;
@@ -97,15 +108,20 @@ export function googleAdsFromSerp(list: unknown): { status: GoogleAdsStatus; cou
 
 async function googleAdsFor(domain: string, errors: string[]) {
   try {
-    const read = googleAdsFromList(await executeTool('SCRAPECREATORS_LIST_GOOGLE_COMPANY_ADS', { domain, get_ad_details: false }));
+    const list = await executeTool('SCRAPECREATORS_LIST_GOOGLE_COMPANY_ADS', { domain, get_ad_details: false });
+    if (creditDenied(findKey(list, 'error'))) throw new Error(errorText(findKey(list, 'error')));
+    const read = googleAdsFromList(list);
     if (read.status !== 'unknown') return read;
     errors.push('Google Ads Transparency: ScrapeCreators returned an incomplete or unrecognized answer.');
   } catch (err) {
     if (err instanceof PermanentStepError && /API key/i.test(err.message)) throw err;
     errors.push(`Google Ads Transparency: ${err instanceof Error ? err.message : String(err)}`);
+    if (creditDenied(err)) return { status: 'unknown' as GoogleAdsStatus, count: null };
   }
   try {
-    return googleAdsFromSerp(await executeTool('SERPAPI_SEARCH_PUBLIC_GOOGLE_ADS', { text: domain, num: 40 }, 45_000));
+    const list = await executeTool('SERPAPI_SEARCH_PUBLIC_GOOGLE_ADS', { text: domain, num: 40 }, 45_000);
+    if (creditDenied(findKey(list, 'error'))) throw new Error(errorText(findKey(list, 'error')));
+    return googleAdsFromSerp(list);
   } catch (err) {
     if (err instanceof PermanentStepError && /API key/i.test(err.message)) throw err;
     errors.push(`Public Google Ads search: ${err instanceof Error ? err.message : String(err)}`);
@@ -126,6 +142,7 @@ async function paidHistory(domain: string) {
     mode: 'subdomains',
     country: 'us',
   });
+  if (creditDenied(findKey(data, 'error'))) throw new Error(errorText(findKey(data, 'error')));
   const raw = findKey<unknown>(data, 'metrics');
   const rows = Array.isArray(raw) ? raw.filter((r): r is Record<string, unknown> => Boolean(r && typeof r === 'object')) : [];
   return rows.filter((r) => numeric(r.paid_traffic) !== null && numeric(r.paid_cost) !== null).slice(-12).map((r) => ({
@@ -139,6 +156,7 @@ async function paidHistory(domain: string) {
 export async function runAdsLibrary(ctx: StepContext) {
   const accounts = benchAccounts(ctx);
   const social = ctx.outputs.social as { facebook?: FacebookSnapshot | null; facebook_competitors?: (FacebookSnapshot & { name: string })[] } | undefined;
+  const billingDeniedAccounts = new Set<number>();
   const evidence: AdLibraryEvidence[] = await Promise.all(
     accounts.map(async (a, i): Promise<AdLibraryEvidence> => {
       const errors: string[] = [];
@@ -148,18 +166,23 @@ export async function runAdsLibrary(ctx: StepContext) {
         errors.push(`Meta: ${err instanceof Error ? err.message : String(err)}`);
         return { pageId: prior?.page_id ?? null, statusText: prior?.ad_library_status ?? null, ads: [] as MetaAd[], note: null };
       });
-      const history = a.domain
+      const metaBillingDenied = creditDenied(meta.note) || errors.some(creditDenied);
+      let billingDenied = metaBillingDenied;
+      const history = a.domain && !billingDenied
         ? await paidHistory(a.domain).catch((err) => {
             errors.push(`Ahrefs: ${err instanceof Error ? err.message : String(err)}`);
+            if (creditDenied(err)) billingDenied = true;
             return [];
           })
         : [];
-      const google = a.domain ? await googleAdsFor(a.domain, errors) : { status: 'unknown' as GoogleAdsStatus, count: null };
+      const googleErrorStart = errors.length;
+      const google = a.domain && !billingDenied ? await googleAdsFor(a.domain, errors) : { status: 'unknown' as GoogleAdsStatus, count: null };
+      if (billingDenied || errors.slice(googleErrorStart).some(creditDenied)) billingDeniedAccounts.add(i);
       return {
         name: a.name,
         domain: a.domain,
         facebook_page_id: meta.pageId,
-        meta_ad_status: metaAdStatus(meta.statusText, meta.ads, meta.pageId),
+        meta_ad_status: metaBillingDenied ? 'unknown' : metaAdStatus(meta.statusText, meta.ads, meta.pageId),
         meta_ads: meta.ads.slice(0, 10),
         meta_ads_inactive_n: meta.ads.filter((x) => !x.active).length,
         google_ads_status: google.status,
@@ -176,7 +199,7 @@ export async function runAdsLibrary(ctx: StepContext) {
   );
 
   // Fallback for the domains ScrapeCreators could not answer: one headless read of the Transparency Center each, in one browser.
-  const domains = evidence.filter((e) => (e.domain && e.google_ads_status === 'unknown') || (e.facebook_page_id && e.meta_ad_status === 'unknown'));
+  const domains = evidence.filter((e, i) => !billingDeniedAccounts.has(i) && ((e.domain && e.google_ads_status === 'unknown') || (e.facebook_page_id && e.meta_ad_status === 'unknown')));
   if (domains.length && ctx.deadline - Date.now() > 60_000) {
     await withBrowser(async (browser) => {
       for (const e of domains) {
@@ -191,7 +214,14 @@ export async function runAdsLibrary(ctx: StepContext) {
           if (!e.domain || e.google_ads_status !== 'unknown' || ctx.deadline - Date.now() < 25_000) continue;
           await page.goto(`https://adstransparency.google.com/?region=US&domain=${encodeURIComponent(e.domain!)}`, { waitUntil: 'domcontentloaded', timeout: 20_000 });
           await new Promise((r) => setTimeout(r, TRANSPARENCY_WAIT_MS));
-          const read = transparencyStatus(await page.evaluate(() => document.body?.innerText ?? ''));
+          const body = await page.evaluate(() => document.body?.innerText ?? '');
+          if (!containsAdvertiserDomain(body, e.domain)) {
+            e.google_ads_status = 'unknown';
+            e.google_ads_count = null;
+            e.error = [e.error, 'Google Ads browser results did not identify the requested advertiser domain.'].filter(Boolean).join(' ');
+            continue;
+          }
+          const read = transparencyStatus(body);
           e.google_ads_status = read.status;
           e.google_ads_count = read.count;
         } catch {
