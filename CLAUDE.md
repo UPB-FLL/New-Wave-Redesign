@@ -22,8 +22,10 @@
   docs/support-page.md section 4 has the call.
 - **Email templates**: `docs/superops/ticket-created-template.html` (the
   "New Ticket created" notice) and `ticket-reply-template.html` (technician
-  replies), pasted into SuperOps' Notification Center by hand (its API cannot
-  edit templates); logo PNG `public/brand/email/new-wave-it-logo-on-dark.png`.
+  replies), plus four staff notices in `docs/superops/technician/` (new
+  ticket, assigned, requester replied, SLA warning), pasted into SuperOps'
+  Notification Center by hand (its API cannot edit templates); logo PNG
+  `public/brand/email/new-wave-it-logo-on-dark.png`.
 - **Live on 2026-10-23**: webhook `8016098266579877888` (TICKET_CREATED);
   tickets #3265 and #3266 alerted by email. `SUPEROPS_API_URL` must stay
   unset (the portal host `newwave.superops.ai` answers 403). Texts wait on
