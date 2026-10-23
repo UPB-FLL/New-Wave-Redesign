@@ -221,23 +221,36 @@ with that id. Check it by raising a test ticket: the text and the email
 arrive within a few seconds. Test the route without SuperOps:
 `curl -X POST https://www.newwaveitfl.com/api/support/ticket-alerts -H "x-admin-key: $ADMIN_API_KEY"`.
 
+**Texts need Twilio.** Until `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` and a
+sender (`TWILIO_MESSAGING_SERVICE_SID` or `TWILIO_FROM_NUMBER`) are set, the
+route logs `TwilioNotConfiguredError` and sends the email alone (seen on
+2026-10-23).
+
 **Not built**: a cron fallback for a delivery SuperOps loses. The route
 already accepts `x-admin-key`, so a pg_cron job posting to it every few
 minutes (like the Groundswell worker) is all it would take.
 
 ---
 
-## 5. Ticket reply template
+## 5. Ticket email templates
 
-SuperOps sends the "technician replied" email itself, from its own
-templates, and its API has no call that edits them, so the branded template
-is pasted in by hand: `docs/superops/ticket-reply-template.html` (New Wave's
-navy header and logo, the reply, a ticket summary card, "View your ticket",
-the technician's name, and a footer with phone, email, support page and
-address). Its header comment says where it goes in SuperOps and how to swap
-each `#…` marker for SuperOps' own placeholder (type `#` in the editor). The
-logo is `public/brand/email/new-wave-it-logo-on-dark.png` (a PNG, since most
-mail clients do not show SVG), so it shows once the site is deployed.
+SuperOps sends the requester emails itself, from its own templates, and its
+API has no call that edits them, so the branded templates are pasted in by
+hand. Each one goes into a different requester notice in SuperOps (Settings >
+My Company > Notification Center > Ticket Notifications > Requester
+Notifications):
+
+| File | SuperOps notice | When it sends |
+| --- | --- | --- |
+| `docs/superops/ticket-created-template.html` | Ticket created ("New Ticket created - <number>") | When a ticket is opened, by email or the portal |
+| `docs/superops/ticket-reply-template.html` | Technician replies to the ticket | When a technician replies on the ticket |
+
+Both have New Wave's navy header and logo, a ticket summary card, "View
+your ticket", and a footer with phone, email, support page and address.
+Each file's header comment says which notice it goes in and how to swap each
+`#…` marker for SuperOps' own placeholder (type `#` in the editor). The logo
+is `public/brand/email/new-wave-it-logo-on-dark.png` (a PNG, since most mail
+clients do not show SVG).
 
 ---
 

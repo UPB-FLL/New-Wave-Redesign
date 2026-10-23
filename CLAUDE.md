@@ -20,9 +20,14 @@
   email through Resend (`SUPPORT_ALERT_EMAIL`, default josh@newwaveitfl.com).
   The webhook is created through SuperOps' API (`createWebhookSubscription`);
   docs/support-page.md section 4 has the call.
-- **Reply template**: `docs/superops/ticket-reply-template.html`, pasted into
-  SuperOps' Notification Center by hand (its API cannot edit templates);
-  logo PNG `public/brand/email/new-wave-it-logo-on-dark.png`.
+- **Email templates**: `docs/superops/ticket-created-template.html` (the
+  "New Ticket created" notice) and `ticket-reply-template.html` (technician
+  replies), pasted into SuperOps' Notification Center by hand (its API cannot
+  edit templates); logo PNG `public/brand/email/new-wave-it-logo-on-dark.png`.
+- **Live on 2026-10-23**: webhook `8016098266579877888` (TICKET_CREATED);
+  tickets #3265 and #3266 alerted by email. `SUPEROPS_API_URL` must stay
+  unset (the portal host `newwave.superops.ai` answers 403). Texts wait on
+  Twilio's settings in Vercel.
 - **Tests**: `src/test/api/support-ticket-alerts.test.ts`.
 
 ### Groundswell: age-gated Instagram profiles, the Facebook Page, and the public-sources plan (2026-10-22)
