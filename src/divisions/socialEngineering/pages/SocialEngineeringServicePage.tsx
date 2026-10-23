@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { DivisionLayout } from '../components/DivisionLayout';
 import { PILLAR_STYLE } from '../components/pillarStyle';
 import { ServiceIcon } from '../components/ServiceIcon';
+import { GroundswellEngine } from '../components/GroundswellEngine';
 import {
   Band,
   CheckList,
@@ -74,6 +75,8 @@ function ServicePageBody({ service }: { service: DivisionServiceContent }) {
         <GlanceStrip items={service.glance} labelledBy="nwse-glance" tone="dark" />
       </Band>
 
+      <GroundswellEngine service={service} />
+
       <Band tone="white" labelledBy="nwse-outcomes">
         <SectionIntro kicker="Outcomes" title="What changes for the business" id="nwse-outcomes" />
         <OutcomeList outcomes={service.outcomes} />
@@ -88,14 +91,14 @@ function ServicePageBody({ service }: { service: DivisionServiceContent }) {
         <SectionIntro
           kicker="How it works"
           title="How the work runs"
-          description="The same order as every engagement: audit, plan, build, then report every month."
+          description="GroundSwell provides the research and plan. The team reviews the priorities, carries out the work, and reports on the results."
           id="nwse-steps"
         />
         <StepList steps={service.process} />
       </Band>
 
       <Band labelledBy="nwse-deliverables">
-        <div className="grid gap-6 sm:gap-8 md:grid-cols-2 md:items-start">
+        <div className="grid grid-cols-1 gap-6 sm:gap-8 md:grid-cols-2 md:items-start">
           <div className="rounded-2xl p-5 sm:p-7 lg:p-8" style={{ background: 'var(--nw-current-navy)' }}>
             <SectionIntro tone="dark" kicker="Deliverables" title="What you receive" id="nwse-deliverables" />
             <CheckList items={service.deliverables} tone="dark" />
@@ -113,7 +116,7 @@ function ServicePageBody({ service }: { service: DivisionServiceContent }) {
         <SectionIntro
           kicker="Where it fits"
           title="One of six services in one growth system"
-          description="Every service serves one of the three pillars first and plugs into the same tracking and the same monthly report."
+          description="Every service uses GroundSwell’s findings alongside the team’s work on tracking, connected tools, and advertising. Reports stay together in the partner workspace."
           id="nwse-system"
         />
         <PillarStrip pillars={hubContent.pillars} active={service.pillar} />
@@ -130,7 +133,7 @@ function ServicePageBody({ service }: { service: DivisionServiceContent }) {
             summary beneath, the whole row the link (grouped into one list below
             md). From lg, the cards as before. minmax(0, …) tracks keep the rows
             inside the panel when text is enlarged. Each tile wears its pillar's colour. */}
-        <ul className="nwse-rowlist mt-6 grid grid-cols-1 gap-0 sm:mt-8 md:gap-4 md:grid-cols-2 lg:grid-cols-3 md:max-lg:[&>li:last-child:nth-child(odd)]:col-span-2">
+        <ul className="nwse-rowlist gs-service-grid mt-6 grid grid-cols-1 gap-0 sm:mt-8 md:gap-4 md:grid-cols-2 lg:grid-cols-3 md:max-lg:[&>li:last-child:nth-child(odd)]:col-span-2">
           {related.map((item) => (
             <li key={item.slug}>
               <Link

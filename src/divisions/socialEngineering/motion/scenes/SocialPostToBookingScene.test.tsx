@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { checkPath, sceneColor } from '../index';
+import { sceneColor } from '../index';
 import { SocialPostToBookingScene } from './SocialPostToBookingScene';
 import { bookedCalendarEntry } from './bookedCalendarEntry';
 
@@ -31,16 +31,16 @@ describe('SocialPostToBookingScene', () => {
     expect(paintOutsidePalette(svg)).toEqual([]);
 
     // Final frame: the amber path ends at the calendar's entry, and the dot rests there.
-    expect(bookedCalendarEntry(392, 176, 104)).toEqual([353, 169.5]);
+    expect(bookedCalendarEntry(392, 176, 104)).toEqual([355.17, 167.33]);
     const path = svg.querySelector('path[d^="M 160 168 C 200 168 206 240 256 240"]');
     expect(path).toHaveAttribute('stroke', sceneColor('accent'));
-    expect(path?.getAttribute('d')).toMatch(/ 353 169\.5$/);
+    expect(path?.getAttribute('d')).toMatch(/ 355\.17 167\.33$/);
     const dot = svg.querySelector('circle');
-    expect(dot).toHaveAttribute('cx', '353');
-    expect(dot).toHaveAttribute('cy', '169.5');
+    expect(dot).toHaveAttribute('cx', '355.17');
+    expect(dot).toHaveAttribute('cy', '167.33');
     // The story has landed: the calendar holds its check, and the only amber is
     // the winning post's wave, the path, and the calendar's header.
-    expect(svg.querySelector(`path[d="${checkPath([392, 193.33], 43.33)}"]`)).not.toBeNull();
+    expect(svg.querySelector('path[d="M8.5 15.5L11 18L16 13"]')).toHaveAttribute('stroke', sceneColor('line'));
     expect(svg.querySelectorAll(`[stroke="${sceneColor('accent')}"]`)).toHaveLength(3);
   });
 });

@@ -17,6 +17,7 @@ import {
   SceneFrame,
   Travel,
   fromIconGrid,
+  pathEndpoints,
   sceneColor,
   useSceneState,
   wavePath,
@@ -24,18 +25,19 @@ import {
   type SceneProps,
 } from '../index';
 import { dot, roundRect } from './shapes';
+import { iconPaint } from '../iconPaint';
 
 const round = (n: number, places = 2) => Math.round(n * 10 ** places) / 10 ** places;
 
-/** The megaphone (service-marketing), drawn as outlines: its amber accent is grown into the path below. */
+/** The megaphone (service-marketing), with its signal detail grown into the path below. */
 const MEGAPHONE = { x: 73, y: 164, size: 88 } as const;
 /**
  * Where the campaign's path begins: where the icon's own accent wave starts,
- * (15, 12) on its 24-unit grid, just clear of the megaphone's mouth. The icon's
- * short accent is not drawn; the path is that wave, grown, so there is one
- * wave from the mouth to the page instead of a small squiggle and a big one.
+ * taken from the source artwork, just clear of the megaphone's mouth. Its
+ * short signal arc is replaced by one continuous wave to the booking page.
  */
-const [PATH_X, PATH_Y] = fromIconGrid([MEGAPHONE.x, MEGAPHONE.y], MEGAPHONE.size, [15, 12]).map((n) => round(n));
+const SIGNAL = DIVISION_ICONS['service-marketing'].paths.find((path) => path.accent)!;
+const [PATH_X, PATH_Y] = fromIconGrid([MEGAPHONE.x, MEGAPHONE.y], MEGAPHONE.size, pathEndpoints(SIGNAL.d).start).map((n) => round(n));
 
 /** The campaign's path: two icon-wave cycles from the megaphone to the page's edge. */
 const PATH = wavePath({ variant: 'icon', x: PATH_X, y: PATH_Y, width: 352 - PATH_X, cycles: 2, amplitude: 12 });
@@ -89,12 +91,12 @@ function FadeTo({ to, delay, duration, children }: { to: number; delay: number; 
   );
 }
 
-/** Places an icon's 24-unit grid at scene scale with the scene's 3-unit stroke. */
+/** Places the source's 24-unit grid and line weight at scene scale. */
 function iconGroup(name: DivisionIconName, x: number, y: number, size: number) {
   const k = size / 24;
   return {
     transform: `translate(${round(x - size / 2)} ${round(y - size / 2)}) scale(${round(k, 4)})`,
-    strokeWidth: round(3 / k, 4),
+    strokeWidth: DIVISION_ICONS[name].strokeWidth ?? round(3 / k, 4),
     'data-scene-icon': name,
   };
 }
@@ -107,7 +109,7 @@ function IconOutline({ name, x, y, size, delay, duration }: { name: DivisionIcon
   return (
     <g {...iconGroup(name, x, y, size)}>
       {outlines.map((p, i) => (
-        <Draw key={p.d} d={p.d} delay={delay + i * step} duration={each} />
+        <Draw key={p.d} d={p.d} delay={delay + i * step} duration={each} color={iconPaint(p)} fill={p.fill ? iconPaint(p) : undefined} width={p.fill ? 0 : undefined} />
       ))}
     </g>
   );
@@ -118,7 +120,7 @@ function IconGlyph({ name, x, y, size }: { name: DivisionIconName; x: number; y:
   return (
     <g {...iconGroup(name, x, y, size)}>
       {DIVISION_ICONS[name].paths.map((p) => (
-        <path key={p.d} d={p.d} stroke={sceneColor(p.accent ? 'accent' : 'line')} />
+        <path key={p.d} d={p.d} fill={p.fill ? sceneColor(iconPaint(p)) : 'none'} stroke={p.fill ? 'none' : sceneColor(iconPaint(p))} />
       ))}
     </g>
   );

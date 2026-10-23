@@ -1,12 +1,11 @@
-// The division icon registry (iconData.ts): every entry follows the icon spec,
-// every name the code and content use exists, and the division no longer
-// draws with Lucide.
+// Source provenance, geometry, and stable consumer names for GroundSwell.
 
+import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { hubContent } from '../content';
-import { DIVISION_ICONS, DIVISION_ICON_NAMES, type DivisionIconGroup, type DivisionIconName } from './iconData';
+import { DIVISION_ICONS, DIVISION_ICON_NAMES, GROUNDSWELL_SOURCE_ICONS, type DivisionIconGroup, type DivisionIconName, type DivisionIconPath } from './iconData';
 
 const divisionDir = path.resolve(__dirname, '..');
 const divisionsRoot = path.resolve(__dirname, '../..');
@@ -21,8 +20,7 @@ function sourceFiles(dir: string): string[] {
 
 const entries = Object.entries(DIVISION_ICONS) as [DivisionIconName, (typeof DIVISION_ICONS)[DivisionIconName]][];
 
-/** UI glyphs the spec keeps accent-free: arrows, chevrons, close, and check. */
-const NO_ACCENT: DivisionIconName[] = ['arrow-right', 'arrow-up-right', 'chevron-down', 'chevron-right', 'close', 'check'];
+const sourceAssetDir = path.resolve(__dirname, '../../../../public/brand/social-engineering');
 
 const PARAMS: Record<string, number> = { m: 2, l: 2, h: 1, v: 1, c: 6, s: 4, q: 4, t: 2, a: 7, z: 0 };
 
@@ -79,8 +77,7 @@ function pathPoints(d: string): [number, number][] {
 
 describe('DIVISION_ICONS', () => {
   it('lists the 38 icons of the set in display order', () => {
-    // The kit's 35, plus the three pillar icons added with the national
-    // repositioning (2026-10-21); the kit's SVG files are to follow.
+    // Existing content, navigation and motion scenes retain their names.
     expect(DIVISION_ICON_NAMES).toHaveLength(38);
     expect(DIVISION_ICON_NAMES).toEqual(Object.keys(DIVISION_ICONS));
     const groups: DivisionIconGroup[] = ['services', 'pillars', 'phases', 'method', 'journey', 'metrics', 'ui'];
@@ -103,22 +100,54 @@ describe('DIVISION_ICONS', () => {
     }
   });
 
-  it.each(entries)('%s has at most one accent group: 1-2 curved paths, drawn last', (name, icon) => {
-    const flags = icon.paths.map((p) => Boolean(p.accent));
-    const accents = flags.filter(Boolean).length;
-    expect(accents).toBeLessThanOrEqual(2);
-    if (accents === 0) return;
-    expect(flags.slice(-accents).every(Boolean)).toBe(true);
-    expect(accents).toBeLessThan(flags.length); // never accent-only: the icon must read in one colour
-    for (const { d } of icon.paths.filter((p) => p.accent)) {
-      // The brand wave is built from cubic curves, never lines or arcs.
-      expect(d, name).toMatch(/^M[\d\s.,-]+(?:[CcSs][\d\s.,-]+)+$/);
+  it.each(entries)('%s preserves one primary detail for the scene animation API', (_name, icon) => {
+    expect(icon.paths.filter((p) => p.accent).length).toBeLessThanOrEqual(1);
+    for (const p of icon.paths) {
+      if (p.accent) expect(p.tone).toBe('signal');
+      if (p.tone) expect(['signal', 'tide', 'highlight']).toContain(p.tone);
     }
   });
 
-  it('keeps UI arrows, chevrons, close, and check accent-free', () => {
-    for (const name of NO_ACCENT) {
-      expect(DIVISION_ICONS[name].paths.some((p) => p.accent), name).toBe(false);
+  it('keeps every utility glyph monochrome', () => {
+    for (const [name, icon] of entries.filter(([, icon]) => icon.group === 'ui')) {
+      expect(icon.paths.some((p) => p.accent || p.tone), name).toBe(false);
+    }
+  });
+
+  it('restores all 36 supplied SVG variants without changing their bytes', () => {
+    const manifest = JSON.parse(readFileSync(path.join(sourceAssetDir, '00_Start_Here/File_Manifest.json'), 'utf8'));
+    const assets = manifest.files.filter((file: { path: string }) => /^03_Icons\/SVG\/.+\.svg$/.test(file.path));
+    expect(assets).toHaveLength(36);
+    for (const asset of assets) {
+      const bytes = readFileSync(path.join(sourceAssetDir, asset.path));
+      expect(bytes.length, asset.path).toBe(asset.bytes);
+      expect(createHash('sha256').update(bytes).digest('hex'), asset.path).toBe(asset.sha256);
+    }
+  });
+
+  it('uses every supplied subject and retains its native proportions and color roles', () => {
+    expect(Object.keys(GROUNDSWELL_SOURCE_ICONS)).toHaveLength(12);
+    const used = new Set(entries.map(([, icon]) => icon.source).filter(Boolean));
+    expect([...used].sort()).toEqual(Object.keys(GROUNDSWELL_SOURCE_ICONS).sort());
+    for (const [slug, drawing] of Object.entries(GROUNDSWELL_SOURCE_ICONS)) {
+      const svg = new DOMParser().parseFromString(readFileSync(path.join(sourceAssetDir, `03_Icons/SVG/color/groundswell-icon-${slug}-color.svg`), 'utf8'), 'image/svg+xml');
+      expect(svg.documentElement.getAttribute('viewBox'), slug).toBe('0 0 32 32');
+      expect(Number(svg.querySelector('g')!.getAttribute('stroke-width')) * 0.75, slug).toBe(drawing.strokeWidth);
+      const nativePaths: readonly DivisionIconPath[] = drawing.paths;
+      expect(nativePaths.some((p) => p.tone === 'highlight'), slug).toBe(true);
+      expect(nativePaths.some((p) => p.tone === 'signal'), slug).toBe(true);
+      // All native path points, including contour control points, keep the
+      // same proportions. Primitive circles/rects are converted to paths.
+      for (const original of svg.querySelectorAll('path')) {
+        const originalPoints = pathPoints(original.getAttribute('d')!);
+        const expected = originalPoints.map(([x, y]) => [x * 0.75, y * 0.75]);
+        const matching = drawing.paths.some((p) => {
+          const actual = pathPoints(p.d);
+          return actual.some((_, offset) => expected.every(([x, y], index) => actual[offset + index]
+            && Math.abs(actual[offset + index][0] - x) < 0.0001 && Math.abs(actual[offset + index][1] - y) < 0.0001));
+        });
+        expect(matching, `${slug}: ${original.getAttribute('d')}`).toBe(true);
+      }
     }
   });
 
@@ -159,12 +188,11 @@ describe('icon usage', () => {
     expectGroup(hubContent.pillars.map((pillar) => pillar.icon), 'pillars');
   });
 
-  it('draws each pillar icon to the spec: ink inside 2–22, parallel bars at least 2 apart, the wave last', () => {
+  it('keeps pillar geometry inside the compact drawing area', () => {
     for (const name of ['pillar-data', 'pillar-integrations', 'pillar-advertising'] as const) {
       const icon = DIVISION_ICONS[name];
       expect(icon.group).toBe('pillars');
-      // The accent wave is the last path, and the only one.
-      expect(icon.paths.map((p) => Boolean(p.accent))).toEqual([...icon.paths.slice(0, -1).map(() => false), true]);
+      expect(icon.paths.filter((p) => p.accent)).toHaveLength(1);
       for (const { d } of icon.paths) {
         for (const [px, py] of pathPoints(d)) {
           expect(px, `${name} ${d}`).toBeGreaterThanOrEqual(2);
@@ -174,9 +202,6 @@ describe('icon usage', () => {
         }
       }
     }
-    // The data bars stand 4.5 apart on the baseline.
-    const bars = DIVISION_ICONS['pillar-data'].paths.filter((p) => /^M[\d.]+ [\d.]+v/.test(p.d)).map((p) => Number(p.d.match(/^M([\d.]+)/)![1]));
-    expect(bars).toEqual([7.5, 12, 16.5]);
   });
 
   it('only names icons that exist', () => {

@@ -5,6 +5,7 @@ import { GrowthLoop } from '../components/GrowthLoop';
 import { GROWTH_LOOP_NODES, type GrowthLoopNodeKey } from '../components/growthLoop';
 import { PILLAR_STYLE } from '../components/pillarStyle';
 import { ServiceIcon } from '../components/ServiceIcon';
+import { GroundswellEngine } from '../components/GroundswellEngine';
 import {
   Band,
   CadenceRow,
@@ -74,12 +75,14 @@ export default function SocialEngineeringHubPage() {
         actions={
           <>
             <PrimaryCta />
-            <a href="#pillars" className="nwse-btn nwse-btn-ghost-dark">
-              How it works
+            <a href="#groundswell-engine" className="nwse-btn nwse-btn-ghost-dark">
+              Meet the engine
             </a>
           </>
         }
       />
+
+      <GroundswellEngine />
 
       <Band tone="white" labelledBy="nwse-intro">
         <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
@@ -95,7 +98,7 @@ export default function SocialEngineeringHubPage() {
           <figure className="rounded-2xl p-5 sm:p-7" style={{ background: 'var(--nw-current-navy)' }} data-role="growth-system">
             <GrowthLoop tone="dark" />
             <figcaption className="mt-4 border-t pt-4 sm:mt-5 sm:pt-5" style={{ borderColor: 'color-mix(in srgb, var(--nw-cloud-white) 14%, transparent)' }}>
-              <p className="nwse-type-kicker nwse-kicker-on-dark">The growth loop</p>
+              <p className="nwse-type-kicker nwse-kicker-on-dark">The growth loop, powered by GroundSwell</p>
               <ol className="mt-3 grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
                 {GROWTH_LOOP_NODES.map(({ key, icon }) => (
                   <li key={key} className="flex gap-3">
@@ -119,7 +122,7 @@ export default function SocialEngineeringHubPage() {
           tone="dark"
           kicker="What we’re built on"
           title="Data, integrations, and smart advertising, working as one system"
-          description="Each pillar is useful on its own. Together they are why the advertising budget can answer for sales: the data says where to spend, the integrations capture what it brings in, and the reporting shows it."
+          description="GroundSwell brings the research and plan together. Our team connects the tools and runs the campaigns, so the work follows the evidence and the reporting informs the next decision."
           id="nwse-pillars"
         />
         <PillarCards pillars={content.pillars} tone="dark" />
@@ -129,7 +132,7 @@ export default function SocialEngineeringHubPage() {
         <SectionIntro
           kicker="Services"
           title="Six services, one goal: more sales you can trace"
-          description="Take one, or the set. Every service plugs into the same tracking and the same monthly report."
+          description="Take one, or the set. Each service starts with GroundSwell’s findings and connects to the same plan and partner workspace."
           id="nwse-services"
         />
         {/* Below lg each service is a row (icon, title, and arrow on one line, the
@@ -137,7 +140,7 @@ export default function SocialEngineeringHubPage() {
             grouped into one list. From lg, the cards as before. The minmax(0, …)
             tracks let a row shrink to the panel when text is enlarged, so the
             panel's overflow never clips it. Each icon tile wears its pillar's colour. */}
-        <ul className="nwse-rowlist mt-6 grid grid-cols-1 gap-0 sm:mt-8 md:gap-4 md:grid-cols-2 lg:mt-10 lg:grid-cols-3">
+        <ul className="nwse-rowlist gs-service-grid mt-6 grid grid-cols-1 gap-0 sm:mt-8 md:gap-4 md:grid-cols-2 lg:mt-10 lg:grid-cols-3">
           {divisionServices.map((service) => (
             <li key={service.slug}>
               <Link

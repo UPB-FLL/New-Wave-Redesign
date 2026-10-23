@@ -112,7 +112,7 @@ describe('section grounds', () => {
     });
     // And every dark section carries the currents in its markup.
     sections
-      .filter((section) => section.classList.contains('nwse-dark'))
+      .filter((section) => section.classList.contains('nwse-dark') && !section.matches('[data-role="groundswell-engine"]'))
       .forEach((section) => expect(section.querySelector(':scope > svg[data-role="division-currents"]')).not.toBeNull());
   });
 
@@ -211,7 +211,7 @@ describe('section grounds', () => {
 
   it('gives the hub’s pillars and metrics bands the hero’s currents', () => {
     const { container } = renderAt(<SocialEngineeringHubPage />);
-    const dark = [...container.querySelectorAll('main > section.nwse-dark')];
+    const dark = [...container.querySelectorAll('main > section.nwse-dark:not(.gs-engine)')];
     // Hero, the pillars (Current Navy), the measures (Deep Current), and the closing call to action.
     expect(dark).toHaveLength(4);
     expect(dark[1]).toHaveAttribute('id', 'pillars');

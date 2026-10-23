@@ -11,13 +11,13 @@ import type { DivisionHubContent } from '../types';
 export const hubContent: DivisionHubContent = {
   metaTitle: 'Small business growth marketing | New Wave: Social Engineering',
   metaDescription:
-    'New Wave: Social Engineering helps small businesses nationwide grow sales through data, integrations, and smart advertising. Book a discovery call.',
+    'New Wave: Social Engineering uses GroundSwell research and planning to guide connected tools, websites, and advertising for small businesses nationwide.',
   keywords:
     'small business growth marketing, growth marketing agency for small business, data-driven marketing for small business, marketing integrations crm booking, paid search and social ads for small business, marketing analytics and attribution for small business, marketing agency united states remote',
   kicker: 'Growth marketing for small businesses, nationwide',
   headline: 'Growth decisions made on data, not guesswork.',
   summary:
-    'New Wave: Social Engineering is the growth division of New Wave IT. We help small businesses across the United States grow sales with three things working together: data you can trust, integrations that connect the tools you already use, and smart advertising that answers for the sales it brings in, not the clicks.',
+    'New Wave: Social Engineering helps small businesses across the United States turn research into practical growth work. GroundSwell is our engine: it brings the market, competitors, and plan together. Our team connects your tools, builds the work, and manages the campaigns.',
   intro: {
     heading: 'Most small businesses are one connected system away from steady growth',
     paragraphs: [
@@ -33,7 +33,7 @@ export const hubContent: DivisionHubContent = {
       icon: 'pillar-data',
       summary: 'Know what is working before you spend another dollar.',
       items: [
-        'GroundSwell, our audit: your market, your rivals, and real demand, from public data',
+        'GroundSwell, our growth engine: your market, rivals, and demand, with a sourced audit and plan',
         'Analytics and conversion tracking, tested before anyone relies on them',
         'Attribution from first click to sale, by channel and campaign',
         'One monthly report against revenue, ending with the next moves',
@@ -69,7 +69,7 @@ export const hubContent: DivisionHubContent = {
       title: 'Audit',
       icon: 'method-discover',
       detail:
-        'We run GroundSwell, our audit, on your business and your rivals from public data, then review your tracking, tools, and ad accounts. You see where the demand is, what it costs to reach, and what breaks between a click and a sale.',
+        'We use GroundSwell to research your business and rivals from public data. The team then reviews your tracking, tools, and ad accounts to understand the path from a first visit to a sale.',
     },
     {
       title: 'Plan',

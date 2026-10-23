@@ -362,11 +362,33 @@ describe('primitives in the static final frame', () => {
     const svg = renderScene(<Icon name="journey-book" x={120} y={80} size={64} />);
     const group = svg.querySelector('[data-scene-icon="journey-book"]')!;
     expect(group).toHaveAttribute('transform', 'translate(88 48) scale(2.6667)');
-    expect(group).toHaveAttribute('stroke-width', '1.125');
+    expect(group).toHaveAttribute('stroke-width', '1.5');
     const drawn = paths(group);
     expect(drawn.map((p) => p.getAttribute('d'))).toEqual(DIVISION_ICONS['journey-book'].paths.map((p) => p.d));
     expect(drawn.filter((p) => p.getAttribute('stroke') === 'var(--scene-accent)')).toHaveLength(1);
-    expect(drawn.filter((p) => p.getAttribute('stroke') === 'var(--scene-line)')).toHaveLength(drawn.length - 1);
+    expect(drawn.filter((p) => p.getAttribute('stroke') === 'var(--scene-tide)')).toHaveLength(1);
+    expect(drawn.filter((p) => p.getAttribute('stroke') === 'var(--scene-line)')).toHaveLength(1);
+  });
+
+  it.each(['draw', 'appear'] as const)('Icon preserves supplied solid details, secondary tones, and stroke width in %s mode', (mode) => {
+    const svg = renderScene(<Icon name="service-web" x={120} y={80} size={48} mode={mode} />);
+    const group = svg.querySelector('[data-scene-icon="service-web"]')!;
+    expect(group).toHaveAttribute('stroke-width', '1.35');
+    const drawn = paths(group);
+    expect(drawn[2]).toHaveAttribute('fill', 'var(--scene-accent)');
+    expect(drawn[2]).toHaveAttribute('stroke', 'none');
+    expect(drawn[3]).toHaveAttribute('fill', 'var(--scene-cyan)');
+    expect(drawn[3]).toHaveAttribute('stroke', 'none');
+    expect(drawn[4]).toHaveAttribute('stroke', 'var(--scene-accent)');
+    expect(drawn[5]).toHaveAttribute('stroke', 'var(--scene-tide)');
+  });
+
+  it('Icon retains explicit scene stroke and accent overrides', () => {
+    const svg = renderScene(<Icon name="service-web" x={120} y={80} size={48} strokeWidth={4} accentColor="line2" />);
+    const group = svg.querySelector('[data-scene-icon="service-web"]')!;
+    expect(group).toHaveAttribute('stroke-width', '2');
+    expect(paths(group)[4]).toHaveAttribute('stroke', 'var(--scene-line-2)');
+    expect(paths(group)[3]).toHaveAttribute('fill', 'var(--scene-cyan)');
   });
 
   it('warns in development when a primitive runs past the scene budget', () => {

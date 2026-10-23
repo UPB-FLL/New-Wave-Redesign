@@ -1,5 +1,6 @@
 import { DIVISION_ICONS, type DivisionIconName } from '../icons/iconData';
 import { GROWTH_LOOP_NODES, type GrowthLoopNodeKey } from './growthLoop';
+import { GROUNDSWELL_BRAND } from '../../../groundswell/brand';
 
 // The growth loop: the hub's one diagram. Four nodes on a clockwise loop, in
 // the icon style grown up (stroke 3 on a 480 × 320 canvas, round caps, ground
@@ -64,11 +65,13 @@ const RETURN = {
 /** An icon's 24-unit grid, scaled to `size` and centred on a node. */
 function NodeIcon({ icon, at: [cx, cy], size }: { icon: DivisionIconName; at: Point; size: number }) {
   const k = size / 24;
+  const definition = DIVISION_ICONS[icon];
   return (
-    <g transform={`translate(${round(cx - size / 2)} ${round(cy - size / 2)}) scale(${round(k)})`} strokeWidth={round(STROKE / k)}>
-      {DIVISION_ICONS[icon].paths.map((path) => (
-        <path key={path.d} d={path.d} stroke={path.accent ? 'var(--nwse-lure-amber)' : 'currentColor'} />
-      ))}
+    <g transform={`translate(${round(cx - size / 2)} ${round(cy - size / 2)}) scale(${round(k)})`} strokeWidth={definition.strokeWidth ?? round(STROKE / k)}>
+      {definition.paths.map((path) => {
+        const color = path.tone === 'highlight' ? 'var(--nwse-lure-amber)' : path.tone === 'tide' ? 'var(--nw-tide-blue)' : path.accent || path.tone === 'signal' ? 'var(--nw-signal-cyan)' : 'currentColor';
+        return <path key={path.d} d={path.d} fill={path.fill ? color : 'none'} stroke={path.fill ? 'none' : color} />;
+      })}
     </g>
   );
 }
@@ -118,6 +121,7 @@ export function GrowthLoop({ className, tone = 'light', ground }: { className?: 
           <path d={arrowhead(item.end, item.tangent)} />
         </g>
       ))}
+      <image href={tone === 'dark' ? GROUNDSWELL_BRAND.mark : GROUNDSWELL_BRAND.favicon} x={204} y={124} width={72} height={72} />
       {/* Sales data feeds the next decision: the brand wave, in amber. */}
       <g stroke="var(--nwse-lure-amber)">
         <path d={RETURN.d} />

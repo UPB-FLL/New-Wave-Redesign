@@ -268,7 +268,7 @@ describe('the growth system', () => {
     });
     // The hero's ghost button opens on the pillars, and its facts line is a line, not a list.
     const hero = screen.getByRole('heading', { level: 1 }).closest('section')!;
-    expect(within(hero).getByRole('link', { name: 'How it works' })).toHaveAttribute('href', '#pillars');
+    expect(within(hero).getByRole('link', { name: 'Meet the engine' })).toHaveAttribute('href', '#groundswell-engine');
     expect(hero.querySelector('[data-role="hero-facts"]')?.tagName).toBe('P');
     // The growth loop is decorative, drawn from the icon set, and explained beside it.
     const loop = container.querySelector('svg[data-role="growth-loop"]')!;
@@ -683,7 +683,7 @@ describe('SocialEngineeringCustomersPage', () => {
   it('shows no customer logos or screenshots, and ends with the discovery-call CTA', () => {
     renderAt(<SocialEngineeringCustomersPage />);
     const main = screen.getByRole('main');
-    expect(main.querySelectorAll('img, picture, video, iframe')).toHaveLength(0);
+    expect([...main.querySelectorAll('img, picture, video, iframe')].filter((element) => !element.closest('[aria-hidden="true"]'))).toHaveLength(0);
     const cta = screen.getByRole('heading', { level: 2, name: customersContent.cta.heading }).closest('section')!;
     expect(within(cta).getByRole('link', { name: DIVISION_PRIMARY_CTA })).toHaveAttribute('href', DIVISION_CONTACT_PATH);
   });
@@ -854,16 +854,16 @@ describe('header and footer links', () => {
     expect(within(row).getByRole('link', { name: 'Overview' })).not.toHaveAttribute('aria-current');
   });
 
-  it('adds GroundSwell, its partner portal, Customers, and Contact us to the footer’s division column', () => {
+  it('gives the engine and partner workspace a dedicated handoff beside the division links', () => {
     renderAt(<DivisionFooter />);
     const column = screen.getByRole('heading', { level: 2, name: 'NW Social Engineering' }).parentElement!;
     expect(within(column).getAllByRole('link').map((link) => [link.textContent, link.getAttribute('href')])).toEqual([
       ['Division overview', '/social-engineering'],
-      ['GroundSwell', DIVISION_GROUNDSWELL_PATH],
-      ['Partner portal', GROUNDSWELL_PATH],
       ['Customers', DIVISION_CUSTOMERS_PATH],
       ['Contact us', DIVISION_CONTACT_US_PATH],
       [DIVISION_PRIMARY_CTA, DIVISION_CONTACT_PATH],
     ]);
+    expect(screen.getByRole('link', { name: /Explore GroundSwell/ })).toHaveAttribute('href', DIVISION_GROUNDSWELL_PATH);
+    expect(screen.getByRole('link', { name: /Already a partner\? Open partner workspace/ })).toHaveAttribute('href', GROUNDSWELL_PATH);
   });
 });

@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { checkPath, sceneColor } from '../index';
+import { sceneColor } from '../index';
 import { IntegrationOnePathScene } from './IntegrationOnePathScene';
 import { bookedCalendarEntry } from './bookedCalendarEntry';
 
@@ -53,6 +53,6 @@ describe('IntegrationOnePathScene', () => {
       expect(dot).toHaveAttribute('cx', String(entryX));
       expect(dot).toHaveAttribute('cy', String(entryY));
     }
-    expect(svg.querySelector(`path[d="${checkPath([404, 185.33], 43.33)}"]`)).not.toBeNull();
+    expect(svg.querySelector('path[d="M8.5 15.5L11 18L16 13"]')).toHaveAttribute('stroke', sceneColor('line'));
   });
 });

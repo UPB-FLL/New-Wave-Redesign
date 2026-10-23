@@ -22,6 +22,7 @@ import {
 import { checkPath, pathEndpoints, pathSignature, ringPath, wavePath, type Point, type WaveGeometry } from './geometry';
 import { DIVISION_ICONS, type DivisionIconName } from '../icons/iconData';
 import { sceneColor, type SceneColor } from './palette';
+import { iconPaint } from './iconPaint';
 import { useSceneState, type SceneState } from './sceneState';
 
 const fmt = (n: number, places = 2) => {
@@ -99,7 +100,7 @@ export function Draw({
   morphEase = 'easeInOut',
 }: DrawProps) {
   const state = useSceneState();
-  const stroke = sceneColor(color ?? (accent ? 'accent' : 'line'));
+  const stroke = width === 0 ? 'none' : sceneColor(color ?? (accent ? 'accent' : 'line'));
   const fillColor = fill ? sceneColor(fill) : undefined;
   const morphAt = morphDelay ?? delay + duration;
   useBudgetCheck('Draw', to ? Math.max(delay + duration, morphAt + morphDuration) : delay + duration);
@@ -446,7 +447,7 @@ export interface IconProps {
   color?: SceneColor;
   /** Role for the icon's own accent path (default "accent"). */
   accentColor?: SceneColor;
-  /** Stroke width in scene units (default 3, the scene's line weight at any size). */
+  /** Override in scene units; otherwise uses the source width, or a 3-unit scene line for utility glyphs. */
   strokeWidth?: number;
 }
 
@@ -461,13 +462,13 @@ export function Icon({
   mode = 'draw',
   color = 'line',
   accentColor = 'accent',
-  strokeWidth = 3,
+  strokeWidth,
 }: IconProps) {
-  const { paths } = DIVISION_ICONS[name];
+  const { paths, strokeWidth: sourceWidth } = DIVISION_ICONS[name];
   const k = size / 24;
   const group = {
     transform: `translate(${fmt(x - size / 2)} ${fmt(y - size / 2)}) scale(${fmt(k, 4)})`,
-    strokeWidth: fmt(strokeWidth / k, 4),
+    strokeWidth: fmt(strokeWidth === undefined ? sourceWidth ?? 3 / k : strokeWidth / k, 4),
     'data-scene-icon': name,
   };
 
@@ -476,7 +477,7 @@ export function Icon({
       <Appear delay={delay} duration={duration}>
         <g {...group}>
           {paths.map((p, i) => (
-            <path key={i} d={p.d} stroke={sceneColor(p.accent ? accentColor : color)} />
+            <path key={i} d={p.d} fill={p.fill ? sceneColor(iconPaint(p, color, accentColor)) : 'none'} stroke={p.fill ? 'none' : sceneColor(iconPaint(p, color, accentColor))} />
           ))}
         </g>
       </Appear>
@@ -494,9 +495,9 @@ export function Icon({
     <g {...group}>
       {paths.map((p, i) =>
         p.accent ? (
-          <Draw key={i} d={p.d} delay={delay + duration * 0.55} duration={duration * 0.45} color={accentColor} />
+          <Draw key={i} d={p.d} delay={delay + duration * 0.55} duration={duration * 0.45} color={accentColor} fill={p.fill ? accentColor : undefined} width={p.fill ? 0 : undefined} />
         ) : (
-          <Draw key={i} d={p.d} delay={delay + outlineIndex[i] * step} duration={each} color={color} />
+          <Draw key={i} d={p.d} delay={delay + outlineIndex[i] * step} duration={each} color={iconPaint(p, color, accentColor)} fill={p.fill ? iconPaint(p, color, accentColor) : undefined} width={p.fill ? 0 : undefined} />
         ),
       )}
     </g>

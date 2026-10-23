@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState, type FocusEvent, type PointerEvent } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { divisionServices } from '../content';
+import { GROUNDSWELL_BRAND } from '../../../groundswell/brand';
+import { GROUNDSWELL_PATH } from '../../../groundswell/site';
+import './division-navigation.css';
 import {
   DIVISION_BASE_PATH,
   DIVISION_CONTACT_PATH,
@@ -17,20 +20,20 @@ import { DivisionLogo } from './DivisionLogo';
 import { ServiceIcon } from './ServiceIcon';
 
 const navLinkClass =
-  'text-sm font-medium text-[var(--nw-current-navy)] transition-colors hover:text-[var(--nwse-lure-amber-deep)]';
+  'gs-division-nav-link text-sm font-medium text-[var(--nw-current-navy)] transition-colors hover:text-[var(--nwse-lure-amber-deep)]';
 
 // Mobile-menu rows: 44px targets, the current page in Lure Amber Deep.
 const menuRowClass =
-  '-mx-2 flex min-h-11 items-center gap-3 rounded-md px-2 text-base font-medium text-[var(--nw-current-navy)] transition-colors hover:bg-[var(--nw-pure-white)] active:bg-[var(--nw-pure-white)] aria-[current=page]:text-[var(--nwse-lure-amber-deep)]';
+  'gs-division-menu-link -mx-2 flex min-h-11 items-center gap-3 rounded-md px-2 text-base font-medium text-[var(--nw-current-navy)] transition-colors hover:bg-[var(--nw-pure-white)] active:bg-[var(--nw-pure-white)] aria-[current=page]:text-[var(--nwse-lure-amber-deep)]';
 
 /** The router may report a trailing slash (prerendered URLs end in one). */
 const samePath = (pathname: string, path: string) => pathname.replace(/\/+$/, '') === path;
 
 /**
  * The desktop link row replaces the menu from 64em: 1024px at the default text
- * size (the same point as lg), later when the reader enlarges text, so the row
- * (and its Book a discovery call button) never runs past the fixed header's edge.
- * Keep in step with the [@media(min-width:64em)]: classes below.
+ * size (the same point as lg). The named container query in division-navigation.css
+ * also measures this threshold in the header's actual text size, so text-only
+ * enlargement keeps the compact menu. Keep the media classes in step below.
  */
 const DESKTOP_NAV_QUERY = '(min-width: 64em)';
 
@@ -84,13 +87,21 @@ export function DivisionHeader() {
     root.style.overflow = 'hidden';
     const desktop = typeof window.matchMedia === 'function' ? window.matchMedia(DESKTOP_NAV_QUERY) : null;
     const closeOnDesktop = () => {
-      if (desktop?.matches) setMenuOpen(false);
+      const toggle = menuButton.current;
+      if (toggle && window.getComputedStyle(toggle).display === 'none') setMenuOpen(false);
     };
+    // Container queries also keep the compact menu when only text is enlarged.
+    // Observe the toggle so hiding it releases inert/scroll locking immediately.
+    const toggleObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(closeOnDesktop) : null;
+    if (menuButton.current) toggleObserver?.observe(menuButton.current);
     desktop?.addEventListener('change', closeOnDesktop);
+    window.addEventListener('resize', closeOnDesktop);
     return () => {
       inerted.forEach((element) => element.removeAttribute('inert'));
       root.style.overflow = previousOverflow;
       desktop?.removeEventListener('change', closeOnDesktop);
+      window.removeEventListener('resize', closeOnDesktop);
+      toggleObserver?.disconnect();
     };
   }, [menuOpen]);
 
@@ -135,7 +146,7 @@ export function DivisionHeader() {
   };
 
   return (
-    <header ref={headerRef} className="fixed inset-x-0 top-0 z-50" onBlur={closeMenuOnFocusOut}>
+    <header ref={headerRef} className="gs-division-header fixed inset-x-0 top-0 z-50" onBlur={closeMenuOnFocusOut}>
       {/* Endorsement bar: the parent leads, the division follows (guidelines page 10).
           Tablets and desktop only; on phones, and on landscape phones (tablet
           widths no more than 500px tall), the endorsement closes the menu instead. */}
@@ -144,17 +155,28 @@ export function DivisionHeader() {
         style={{ background: 'var(--nw-deep-current)' }}
         data-role="endorsement-bar"
       >
-        <div className="mx-auto flex h-[32px] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:h-9 lg:px-8">
-          <p className="nwse-type-label truncate" style={{ color: 'var(--nw-mist-gray)' }}>
-            {DIVISION_ENDORSEMENT}
-          </p>
-          <Link
-            to="/"
-            className="flex shrink-0 items-center gap-1 text-xs font-medium text-[var(--nw-cloud-white)] transition-colors hover:text-[var(--nwse-lure-amber)] max-lg:h-full"
-          >
-            <span className="hidden sm:inline">Managed IT &amp; cybersecurity at</span> {PARENT_NAME}
-            <NwseIcon name="arrow-up-right" size={14} />
-          </Link>
+        <div className="mx-auto flex h-[32px] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:h-[36px] lg:px-8">
+          <div className="gs-division-endorsement">
+            <p className="nwse-type-label">{DIVISION_ENDORSEMENT}</p>
+            <Link to={DIVISION_GROUNDSWELL_PATH} className="gs-division-powered-link" onClick={closeMenus}>
+              <img src={GROUNDSWELL_BRAND.mark} width={21} height={21} alt="" aria-hidden="true" />
+              <span>Powered by <strong>GroundSwell</strong></span>
+            </Link>
+          </div>
+          <div className="gs-division-utility-links">
+            <Link to={GROUNDSWELL_PATH} className="gs-division-workspace-link" onClick={closeMenus}>
+              Partner workspace
+              <NwseIcon name="arrow-up-right" size={13} />
+            </Link>
+            <Link
+              to="/"
+              aria-label={`Managed IT & cybersecurity at ${PARENT_NAME}`}
+              className="gs-division-parent-link"
+            >
+              <span className="hidden xl:inline">Managed IT &amp; cybersecurity at </span>{PARENT_NAME}
+              <NwseIcon name="arrow-up-right" size={13} />
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -167,11 +189,10 @@ export function DivisionHeader() {
           boxShadow: scrolled ? '0 3px 14px rgba(9, 19, 29, 0.1)' : 'none',
         }}
       >
-        {/* Below lg the rows (this one and the endorsement bar's) are sized in px,
-            not rem: --nwse-header-height is a px value, and the header must
-            still match it when the reader enlarges text. */}
+        {/* Rows use px because --nwse-header-height is a px value. Enlarged
+            text changes the navigation mode, while fixed offsets stay exact. */}
         <div
-          className="mx-auto flex h-[56px] max-w-7xl items-center justify-between gap-5 px-4 sm:h-[64px] sm:px-6 lg:h-20 lg:px-8 max-lg:[@media(max-height:500px)]:h-[56px]"
+          className="mx-auto flex h-[56px] max-w-7xl items-center justify-between gap-5 px-4 sm:h-[64px] sm:px-6 lg:h-[80px] lg:px-8 max-lg:[@media(max-height:500px)]:h-[56px]"
           data-role="nav-row"
         >
           <Link onClick={closeMenus} to={DIVISION_BASE_PATH} className="flex shrink-0 items-center py-2" aria-label="New Wave: Social Engineering home">
@@ -180,7 +201,7 @@ export function DivisionHeader() {
             <DivisionLogo lockup="primary" ground="light" width={184} decorative className="max-sm:h-auto max-sm:w-[160px]" />
           </Link>
 
-          <div className="hidden items-center gap-6 [@media(min-width:64em)]:flex" data-role="desktop-links">
+          <div className="gs-division-desktop-links hidden items-center gap-4 [@media(min-width:64em)]:flex" data-role="desktop-links">
             <Link
               to={DIVISION_BASE_PATH}
               onClick={closeMenus}
@@ -212,23 +233,40 @@ export function DivisionHeader() {
                 />
               </button>
               {servicesOpen ? (
-                <div className="absolute left-1/2 top-full z-50 w-[340px] -translate-x-1/2 pt-3">
-                  <ul id="nwse-services-menu" className="nwse-card overflow-hidden p-2 shadow-xl">
-                    {divisionServices.map((service) => (
-                      <li key={service.slug}>
-                        <Link
-                          to={divisionServicePath(service.slug)}
-                          onClick={closeMenus}
-                          className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-[var(--nw-cloud-white)]"
-                        >
-                          <span className="nwse-icon h-8 w-8 shrink-0">
-                            <ServiceIcon icon={service.icon} size={20} />
-                          </span>
-                          <span className="text-sm font-medium text-[var(--nw-current-navy)]">{service.navLabel}</span>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
+                <div className="gs-division-services-dropdown absolute top-full z-50 pt-3">
+                  <div id="nwse-services-menu" className="gs-division-services-panel">
+                    <div className="gs-division-services-intro">
+                      <p className="gs-division-nav-eyebrow">One connected growth system</p>
+                      <p>Build the presence. Connect the data. Move the business forward.</p>
+                    </div>
+                    <ul className="gs-division-service-grid">
+                      {divisionServices.map((service) => (
+                        <li key={service.slug}>
+                          <Link
+                            to={divisionServicePath(service.slug)}
+                            onClick={closeMenus}
+                            className="gs-division-service-link"
+                            aria-label={service.navLabel}
+                            aria-describedby={`nwse-nav-${service.slug}-summary`}
+                            aria-current={samePath(pathname, divisionServicePath(service.slug)) ? 'page' : undefined}
+                          >
+                            <span className="gs-division-service-symbol" data-pillar={service.pillar}>
+                              <ServiceIcon icon={service.icon} size={25} />
+                            </span>
+                            <span>
+                              <span className="gs-division-service-title">{service.navLabel}</span>
+                              <span id={`nwse-nav-${service.slug}-summary`} className="gs-division-service-summary">{service.cardSummary}</span>
+                            </span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                    <Link to={DIVISION_GROUNDSWELL_PATH} onClick={closeMenus} className="gs-division-services-engine">
+                      <img src={GROUNDSWELL_BRAND.favicon} width={28} height={28} alt="" aria-hidden="true" />
+                      <span>GroundSwell connects the work</span>
+                      <NwseIcon name="arrow-right" size={18} />
+                    </Link>
+                  </div>
                 </div>
               ) : null}
             </div>
@@ -238,14 +276,15 @@ export function DivisionHeader() {
                 key={path}
                 to={path}
                 onClick={closeMenus}
-                className={navLinkClass}
+                className={`${navLinkClass}${path === DIVISION_GROUNDSWELL_PATH ? ' gs-division-engine-link' : ''}`}
                 aria-current={samePath(pathname, path) ? 'page' : undefined}
               >
+                {path === DIVISION_GROUNDSWELL_PATH ? <img src={GROUNDSWELL_BRAND.favicon} width={23} height={23} alt="" aria-hidden="true" /> : null}
                 {label}
               </Link>
             ))}
 
-            <Link onClick={closeMenus} to={DIVISION_CONTACT_PATH} className="nwse-btn nwse-btn-amber-deep min-h-10 px-4 py-2 text-sm">
+            <Link onClick={closeMenus} to={DIVISION_CONTACT_PATH} className="nwse-btn nwse-btn-amber-deep gs-division-primary-cta min-h-10 px-4 py-2 text-sm">
               {DIVISION_PRIMARY_CTA}
             </Link>
           </div>
@@ -253,7 +292,7 @@ export function DivisionHeader() {
           <button
             type="button"
             ref={menuButton}
-            className="-mr-2.5 rounded-md p-[10px] text-[var(--nw-current-navy)] transition-colors [@media(min-width:64em)]:hidden [@media(hover:hover)]:hover:bg-[var(--nw-mist-gray)]"
+            className="gs-division-menu-toggle -mr-2.5 rounded-md p-[10px] text-[var(--nw-current-navy)] transition-colors [@media(min-width:64em)]:hidden [@media(hover:hover)]:hover:bg-[var(--nw-mist-gray)]"
             onClick={() => setMenuOpen((open) => !open)}
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={menuOpen}
@@ -282,9 +321,10 @@ export function DivisionHeader() {
                     key={path}
                     to={path}
                     onClick={closeMenus}
-                    className={menuRowClass}
+                    className={`${menuRowClass}${path === DIVISION_GROUNDSWELL_PATH ? ' gs-division-menu-engine' : ''}`}
                     aria-current={samePath(pathname, path) ? 'page' : undefined}
                   >
+                    {path === DIVISION_GROUNDSWELL_PATH ? <img src={GROUNDSWELL_BRAND.favicon} width={23} height={23} alt="" aria-hidden="true" /> : null}
                     {label}
                   </Link>
                 ))}
@@ -312,8 +352,12 @@ export function DivisionHeader() {
                   );
                 })}
               </ul>
-              <Link onClick={closeMenus} to={DIVISION_CONTACT_PATH} className="nwse-btn nwse-btn-amber-deep mt-4 min-h-12 w-full">
+              <Link onClick={closeMenus} to={DIVISION_CONTACT_PATH} className="nwse-btn nwse-btn-amber-deep gs-division-primary-cta mt-4 min-h-12 w-full">
                 {DIVISION_PRIMARY_CTA}
+              </Link>
+              <Link to={GROUNDSWELL_PATH} onClick={closeMenus} className="gs-division-mobile-workspace min-h-11">
+                <span>Existing partner workspace</span>
+                <NwseIcon name="arrow-up-right" size={17} />
               </Link>
             </div>
             {/* Phones and landscape phones: the endorsement bar's content, which the
@@ -350,7 +394,7 @@ export function DivisionHeader() {
         // Tablets: dims the page under the menu panel; a tap outside closes it.
         <div
           aria-hidden="true"
-          className="fixed inset-x-0 bottom-0 top-[var(--nwse-header-height)] -z-10 hidden sm:block [@media(min-width:64em)]:hidden"
+          className="gs-division-menu-backdrop fixed inset-x-0 bottom-0 top-[var(--nwse-header-height)] -z-10 hidden sm:block [@media(min-width:64em)]:hidden"
           style={{ background: 'color-mix(in srgb, var(--nw-deep-current) 40%, transparent)' }}
           onClick={closeMenus}
         />

@@ -182,7 +182,7 @@ export default function Navbar() {
                       <span className="flex-1">
                         <span className="block text-sm font-semibold text-brand-navy">New Wave: Social Engineering</span>
                         <span className="block text-xs" style={{ color: 'var(--nw-slate)' }}>
-                          Our growth division: data, integrations, and smart advertising for small businesses
+                          Our growth division, powered by GroundSwell: data, integrations, and smart advertising
                         </span>
                       </span>
                       <ArrowRight size={15} className="shrink-0 text-brand-tide-blue" />
@@ -292,7 +292,10 @@ export default function Navbar() {
                     className="flex items-center gap-3 text-sm font-semibold text-brand-navy"
                   >
                     <img src={DIVISION_ASSETS.microMarkOnLight} width={24} height={21} alt="" aria-hidden="true" />
-                    New Wave: Social Engineering
+                    <span>
+                      <span className="block">New Wave: Social Engineering</span>
+                      <span className="block text-xs font-normal" style={{ color: 'var(--nw-slate)' }}>Powered by GroundSwell</span>
+                    </span>
                   </Link>
                   ) : null}
                 </div>

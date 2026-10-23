@@ -1,0 +1,424 @@
+/* GroundSwell's engine identity belongs inside the New Wave division masthead.
+   The fixed header's existing breakpoint heights remain in DivisionHeader. */
+.gs-division-header {
+  container: gs-division-navigation / inline-size;
+  font-size: 1rem;
+  --gs-nav-navy: var(--gs-navy, #09131d);
+  --gs-nav-foam: var(--gs-foam, #e7f5f5);
+  --gs-nav-cyan: var(--gs-cyan, #31c6cf);
+  --gs-nav-amber: var(--gs-amber, #f2a33a);
+}
+
+.gs-division-endorsement,
+.gs-division-utility-links {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.gs-division-endorsement > p {
+  color: #e8eff1;
+  white-space: nowrap;
+}
+
+.gs-division-powered-link,
+.gs-division-workspace-link,
+.gs-division-parent-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 28px;
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  color: #e8eff1;
+}
+
+.gs-division-powered-link {
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.gs-division-powered-link strong {
+  font-weight: 600;
+  color: #31c6cf;
+}
+
+.gs-division-powered-link img,
+.gs-division-engine-link img,
+.gs-division-menu-engine img,
+.gs-division-services-engine img,
+.gs-division-footer-engine-copy > img {
+  flex: none;
+  object-fit: contain;
+}
+.gs-division-footer-engine-copy h2 { overflow-wrap: anywhere; }
+
+.gs-division-workspace-link {
+  color: #31c6cf;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.gs-division-parent-link {
+  flex-shrink: 0;
+  gap: 0.25rem;
+}
+
+.gs-division-header :is(a, button):focus-visible,
+.gs-division-footer a:focus-visible {
+  outline: 2px solid #31c6cf;
+  outline-offset: 4px;
+}
+.gs-division-header :is(nav, #nwse-mobile-menu) :is(a, button):focus-visible { outline-color: var(--gs-nav-navy); }
+
+.gs-division-nav-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  white-space: nowrap;
+}
+
+.gs-division-engine-link {
+  gap: 0.375rem;
+  padding-inline: 0.625rem;
+  border: 1px solid #d3e4e7;
+  border-radius: 4px;
+  background: var(--gs-nav-foam);
+  font-weight: 650;
+}
+
+.gs-division-nav-link[aria-current='page'] {
+  text-decoration: underline;
+  text-decoration-color: var(--gs-nav-cyan);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 7px;
+}
+
+.gs-division-header .gs-division-primary-cta {
+  flex-shrink: 0;
+  background: var(--gs-nav-amber);
+  color: var(--gs-nav-navy);
+  border: 1px solid var(--gs-nav-amber);
+  border-radius: 5px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.gs-division-header .gs-division-primary-cta:hover {
+  background: var(--gs-nav-navy);
+  border-color: var(--gs-nav-navy);
+  color: #f7fafb;
+}
+
+.gs-division-services-dropdown {
+  left: -7rem;
+  width: min(47rem, calc(100vw - 3rem));
+}
+
+.gs-division-services-panel {
+  max-height: calc(100dvh - var(--nwse-header-height) - 1rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid #c9dde1;
+  border-radius: 7px;
+  background: #f7fafb;
+  box-shadow: 0 20px 36px rgb(9 19 29 / 16%);
+}
+
+.gs-division-services-intro {
+  padding: 1.125rem 1.375rem;
+  border-bottom: 1px solid #d4e5e8;
+  background: var(--gs-nav-foam);
+}
+
+.gs-division-nav-eyebrow {
+  font-family: var(--nw-font-technical, monospace);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.025em;
+  text-transform: none;
+}
+
+.gs-division-services-intro > p:first-child {
+  margin-bottom: 0.25rem;
+  color: var(--gs-nav-navy);
+}
+
+.gs-division-services-intro > p:last-child {
+  font-size: 0.875rem;
+  font-weight: 550;
+  line-height: 1.5;
+  color: var(--gs-nav-navy);
+}
+
+.gs-division-service-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: #e0eaed;
+}
+
+.gs-division-service-link {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+  min-height: 100%;
+  padding: 1.125rem;
+  background: #f7fafb;
+  color: var(--gs-nav-navy);
+  transition: background-color 150ms ease;
+}
+
+.gs-division-service-link:hover,
+.gs-division-service-link[aria-current='page'] {
+  background: var(--gs-nav-foam);
+}
+
+.gs-division-service-symbol {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.375rem;
+  height: 2.375rem;
+  border: 1px solid #c5e2e5;
+  border-radius: 5px;
+  color: #317b92;
+  background: #e7f5f5;
+}
+
+.gs-division-service-symbol[data-pillar='advertising'] {
+  border-color: #ecd4b0;
+  color: #8b571c;
+  background: #fbf1e1;
+}
+
+.gs-division-service-title,
+.gs-division-service-summary {
+  display: block;
+}
+
+.gs-division-service-title {
+  margin-bottom: 0.3rem;
+  font-size: 0.875rem;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.gs-division-service-summary {
+  color: #526271;
+  font-size: 0.75rem;
+  line-height: 1.55;
+}
+
+.gs-division-services-engine {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 56px;
+  padding: 0.75rem 1.375rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--gs-nav-navy);
+  background: #e7f5f5;
+}
+
+.gs-division-services-engine > svg {
+  margin-left: auto;
+}
+
+.gs-division-menu-engine {
+  gap: 0.375rem;
+  font-weight: 650;
+}
+
+.gs-division-mobile-workspace {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  padding-block: 0.5rem;
+  color: #317b92;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.gs-division-footer-engine {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 2.5rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #29404d;
+}
+
+.gs-division-footer-engine-copy {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  max-width: 40rem;
+}
+
+.gs-division-footer-engine-copy .gs-division-nav-eyebrow {
+  margin-bottom: 0.5rem;
+  color: #31c6cf;
+}
+
+.gs-division-footer-engine h2 {
+  margin-bottom: 0.625rem;
+  color: #f7fafb;
+  font-size: clamp(1.25rem, 2vw, 1.625rem);
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+}
+
+.gs-division-footer-engine-copy > div > p:last-child {
+  color: #c6d6dc;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.gs-division-footer-engine-actions {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.625rem;
+}
+
+.gs-division-footer-engine-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 44px;
+  color: #31c6cf;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.gs-division-footer-workspace {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  min-height: 60px;
+  padding: 0.625rem 1rem;
+  border: 1px solid #36515e;
+  border-radius: 5px;
+  color: #f7fafb;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: #101e2d;
+}
+
+.gs-division-footer-workspace small {
+  display: block;
+  margin-bottom: 0.15rem;
+  color: #b6cad2;
+  font-size: 0.625rem;
+  font-weight: 400;
+}
+
+.gs-division-footer-engine-link:hover,
+.gs-division-footer-workspace:hover {
+  color: #f2a33a;
+}
+
+@media (min-width: 64em) and (max-width: 74em) {
+  .gs-division-desktop-links {
+    gap: 0.875rem;
+  }
+
+  .gs-division-engine-link {
+    padding-inline: 0.375rem;
+  }
+
+  .gs-division-services-dropdown {
+    left: -10rem;
+    width: min(43rem, calc(100vw - 3rem));
+  }
+}
+
+@media (max-width: 63.999em) {
+  .gs-division-endorsement,
+  .gs-division-utility-links {
+    gap: 0.75rem;
+  }
+
+  .gs-division-endorsement > p {
+    font-size: 0.5625rem;
+  }
+
+  .gs-division-powered-link,
+  .gs-division-workspace-link,
+  .gs-division-parent-link {
+    font-size: 0.625rem;
+  }
+}
+
+@media (max-width: 47.999em) {
+  .gs-division-footer-engine {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+  }
+
+  .gs-division-footer-engine-copy {
+    gap: 0.875rem;
+  }
+
+  .gs-division-footer-engine-copy > img {
+    width: 40px;
+    height: 40px;
+  }
+
+  .gs-division-footer-engine-actions {
+    align-items: stretch;
+  }
+}
+
+/* Unlike media-query em units, these em units follow this header's computed
+   font size. Text-only zoom therefore uses the compact navigation before
+   the desktop links can run past the viewport. */
+@container gs-division-navigation (max-width: 63.999em) {
+  .gs-division-desktop-links { display: none; }
+  .gs-division-menu-toggle { display: block; }
+  #nwse-mobile-menu { display: flex; }
+  .gs-division-menu-backdrop { display: block; }
+}
+
+/* Inline-size containment makes this absolute layer relative to the header. */
+.gs-division-header .gs-division-menu-backdrop {
+  position: absolute;
+  bottom: auto;
+  height: calc(100dvh - var(--nwse-header-height));
+}
+
+.gs-division-endorsement { flex: 1; }
+.gs-division-endorsement > p {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gs-division-powered-link { flex-shrink: 0; }
+.gs-division-utility-links { flex-shrink: 0; }
+
+/* The parent home link and endorsement repeat in the menu/footer. Give the
+   engine and workspace the utility row when enlarged text needs the room. */
+@container gs-division-navigation (max-width: 36em) {
+  .gs-division-endorsement > p,
+  .gs-division-utility-links .gs-division-parent-link { display: none; }
+  .gs-division-endorsement { gap: 0; }
+}
+
+.gs-division-header #nwse-mobile-menu .gs-division-primary-cta {
+  white-space: normal;
+  text-align: center;
+}

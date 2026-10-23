@@ -1,15 +1,10 @@
-// Moving between service pages client-side. App.tsx renders every service
-// route with the same element type (<SocialEngineeringServiceRoute slug>), so
-// React keeps the page's component tree and only the slug changes: the hero's
-// scene slot must still start afresh on each page. Otherwise the next page's
-// scene suspends inside the previous page's visible Suspense, and React holds
-// the whole navigation (a transition) until that chunk arrives; and a scene
-// that failed on one page stays failed on every later one. Its own file,
-// because scene modules are mocked for the whole file.
+// App reuses the service route component across slugs. The branded engine
+// context must update immediately without waiting for the former illustration
+// chunks, including when a slow or broken chunk would once delay navigation.
 
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { findDivisionService } from './content';
@@ -99,30 +94,27 @@ describe('moving between service pages', () => {
     );
   });
 
-  it('shows the next page at once while its scene chunk is still loading, then its scene', async () => {
+  it('shows the next service and its engine immediately even while the former illustration chunk is unavailable', async () => {
     const { container } = renderServiceRoutes('social-media');
-    await waitFor(() => expect(heroScene(container, 'social-media')?.querySelector('[data-scene]')).toBeTruthy(), CHUNK_LOAD);
+    await waitFor(() => expect(heroScene(container, 'social-media')?.querySelector('[data-role="groundswell-signal"]')).toBeTruthy(), CHUNK_LOAD);
 
     clickServiceLink(container, 'marketing');
-    // The page changes straight away; the scene's box holds its place.
     await waitFor(() => expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(headline('marketing')), { timeout: 1000 });
-    const slot = heroScene(container, 'marketing')!.querySelector('[data-scene-slot]');
-    expect(slot).not.toBeNull();
-    expect(['waiting', 'loading']).toContain(slot!.getAttribute('data-scene-slot'));
-    expect(heroScene(container, 'marketing')!.querySelector('[data-scene]')).toBeNull();
+    const signal = heroScene(container, 'marketing')!.querySelector('[data-role="groundswell-signal"]');
+    expect(signal).toHaveTextContent('Search demand, advertising, and budget scenarios');
+    expect(screen.getByRole('heading', { level: 2, name: 'Smart advertising, informed by GroundSwell.' })).toBeInTheDocument();
+    expect(heroScene(container, 'marketing')!.querySelector('[data-scene-slot]')).toBeNull();
+  });
 
-    await act(async () => marketingChunk.release());
-    await waitFor(() => expect(heroScene(container, 'marketing')!.querySelector('[data-scene]')).not.toBeNull(), CHUNK_LOAD);
-  }, 30_000);
-
-  it('gives the next page its own scene after a scene failed on the previous one', async () => {
+  it('updates the engine context across services even when the previous illustration module is broken', async () => {
     const { container } = renderServiceRoutes('brand-development');
-    await waitFor(() => expect(heroScene(container, 'brand-development')?.querySelector('[data-scene-slot="failed"]')).toBeTruthy(), CHUNK_LOAD);
+    await waitFor(() => expect(heroScene(container, 'brand-development')?.querySelector('[data-role="groundswell-signal"]')).toBeTruthy(), CHUNK_LOAD);
 
     clickServiceLink(container, 'integration');
     await waitFor(() => expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(headline('integration')));
-    await waitFor(() => expect(heroScene(container, 'integration')!.querySelector('[data-scene]')).not.toBeNull(), CHUNK_LOAD);
+    expect(heroScene(container, 'integration')!.querySelector('[data-role="groundswell-signal"]')).toHaveTextContent('Public touchpoints, then authorized account data');
+    expect(screen.getByRole('heading', { level: 2, name: 'Integrations & data, informed by GroundSwell.' })).toBeInTheDocument();
     expect(container.querySelector('[data-scene-slot="failed"]')).toBeNull();
     expect(screen.queryByRole('alert')).toBeNull();
-  }, 30_000);
+  });
 });
