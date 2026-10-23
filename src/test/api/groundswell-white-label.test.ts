@@ -38,7 +38,7 @@ describe('who the reports are from', () => {
       '<footer>Prepared by New Wave: Social Engineering</footer>',
       '<p>NW Social Engineering and New Wave IT will set it up.</p>',
     ].join('');
-    expect(ownWording(html, NEW_WAVE_PREPARER)).toBe(html);
+    expect(ownWording(html, NEW_WAVE_PREPARER)).toBe(html.replace('GroundSwell estimate', 'Our estimate'));
     expect(ownWording(html, reef)).toBe(
       [
         '<li>Our working bands for small accounts</li>',
@@ -79,7 +79,8 @@ describe('a partner\'s reports', () => {
       expect(doc).toContain(`<img class="preparer" src="${LOGO}" alt="Reef Growth Co"`);
     }
     expect(html.audit).toContain('Reef Growth Co can set up the first campaign this month.');
-    expect(html.audit).toContain('You are already a client of Reef Growth Co');
+    expect(html.audit).toContain('These figures are before any management fee. Confirm scope and commercial terms before funding.');
+    expect(html.audit).not.toMatch(/fee-neutral|only new money/);
     expect(html.audit).toContain('our hourly cost');
   });
 
@@ -116,6 +117,13 @@ describe('the business\'s own look', () => {
   it('still needs the colour to carry text at 4.5:1, and the logo to be https', () => {
     // Mid grey passes neither white nor near-black text, so the website's colour stays.
     expect(brandFrom(site, { color: '#777777', logo: 'http://harbor.example/plain.png' })).toMatchObject({ primary: '#0b5394', logo: 'https://harbor.example/site-logo.png' });
+  });
+
+  it('uses the verified CSS brand colour ahead of neutral browser theme metadata while respecting manual overrides', () => {
+    const ranked = { ...site!, theme_color: '#ffffff', brand_primary: '#245c38', brand_colors: ['#245c38', '#c27924'] };
+    expect(brandFrom(ranked)).toMatchObject({ primary: '#245c38', logo: 'https://harbor.example/site-logo.png' });
+    expect(ranked.theme_color).toBe('#ffffff');
+    expect(brandFrom(ranked, { color: '#8c1f27' }).primary).toBe('#8c1f27');
   });
 });
 

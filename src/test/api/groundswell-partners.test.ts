@@ -268,7 +268,7 @@ describe('partner audits', () => {
   it('rejects a business with neither website nor Instagram', async () => {
     const res = await call(partnerAudits, 'POST', { business_name: 'Nothing' }, await partnerHeaders());
     expect(res.statusCode).toBe(400);
-    expect(res.body.error).toMatch(/website or an Instagram/);
+    expect(res.body.error).toMatch(/website, an Instagram handle, or a Facebook Page/);
   });
 });
 

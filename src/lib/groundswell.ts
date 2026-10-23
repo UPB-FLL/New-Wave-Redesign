@@ -22,7 +22,7 @@ export * from './groundswellValidation';
  */
 
 const COLUMNS =
-  'id,business_name,city,website,instagram,competitors,notes,status,error,drive_folder_url,summary_pdf_url,deck_pdf_url,audit_pdf_url,partner_id,created_at,completed_at';
+  'id,business_name,city,website,instagram,facebook,competitors,notes,status,error,drive_folder_url,summary_pdf_url,deck_pdf_url,audit_pdf_url,partner_id,created_at,completed_at';
 
 /** The benchmark columns (migration 20261022120000); read only where the database has them. */
 const BENCHMARK_COLUMNS = ',kind,benchmark_pdf_url';

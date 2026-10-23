@@ -26,6 +26,8 @@ export interface SiteScan {
   /** Body text only on new scans; older stored scans may also include head or noscript text. */
   word_count: number;
   theme_color: string | null;
+  /** Ranked business colour from explicit brand CSS/metadata; absent on older stored scans. */
+  brand_primary?: string | null;
   brand_colors: string[];
   logo: string | null;
   og_image: string | null;
@@ -178,13 +180,10 @@ export function parseSite(html: string, url: string, finalUrl: string, status: n
 
 export async function scanSite(url: string, timeoutMs = 20_000): Promise<SiteScan> {
   try {
-    const response = await fetch(url, {
-      headers: { 'User-Agent': UA, Accept: 'text/html,application/xhtml+xml', 'Accept-Language': 'en-US,en;q=0.9' },
-      redirect: 'follow',
-      signal: AbortSignal.timeout(timeoutMs),
-    });
-    const html = (await response.text()).slice(0, 3_000_000);
-    return parseSite(html, url, response.url || url, response.status, response.headers?.get('x-robots-tag') ?? null);
+    // Discovery uses this module's pure parser. Import it only when a scan runs
+    // so the worker and intake share safe reads and branding without a startup cycle.
+    const { inspectBusinessWebsite } = await import('../discoveryWebsite.js');
+    return (await inspectBusinessWebsite(url, { timeoutMs })).scan;
   } catch (err) {
     return {
       ...parseSite('', url, url, 0),
@@ -200,7 +199,7 @@ export const SITE_ATTEMPTS = 3;
 
 export async function runSite(ctx: StepContext) {
   const { audit } = ctx;
-  if (!audit.website && !audit.instagram) throw new PermanentStepError('The audit has neither a website nor an Instagram handle.');
+  if (!audit.website && !audit.instagram && !audit.facebook) throw new PermanentStepError('The audit has no website, Instagram handle, or Facebook Page.');
   const business = audit.website ? await scanSite(audit.website) : null;
   // A site that blocks or times out is retried; after the last attempt the audit
   // goes on with the scan's error recorded (Maps and Instagram may still find the business).

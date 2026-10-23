@@ -9,6 +9,8 @@ import { benchAccounts, type BenchAccount } from '../benchmarkAccounts.js';
 import { withBrowser } from '../browser.js';
 import { executeTool, findKey } from '../composio.js';
 import { PermanentStepError, type StepContext } from '../types.js';
+import { numeric } from './serp.js';
+import type { FacebookSnapshot } from './social.js';
 
 /**
  * Ads Current, from the ad libraries (benchmarks only): the Facebook Page's
@@ -42,20 +44,28 @@ export function toMetaAd(r: Record<string, unknown>): MetaAd {
 
 /** The ads in a LIST_FACEBOOK_COMPANY_ADS response, whatever it nests them under. */
 export function adRows(list: unknown): Record<string, unknown>[] {
-  const rows = findKey<unknown[]>(list, 'results') ?? findKey<unknown[]>(list, 'ads') ?? findKey<unknown[]>(list, 'searchResults') ?? findKey<unknown[]>(list, 'items') ?? [];
-  return (Array.isArray(rows) ? rows : []).map((r) => (r ?? {}) as Record<string, unknown>);
+  const rows = (Array.isArray(list) ? list : null) ?? findKey<unknown[]>(list, 'results') ?? findKey<unknown[]>(list, 'ads') ?? findKey<unknown[]>(list, 'searchResults') ?? findKey<unknown[]>(list, 'items') ?? [];
+  return (Array.isArray(rows) ? rows : []).filter((r): r is Record<string, unknown> => Boolean(r && typeof r === 'object' && !Array.isArray(r)));
 }
 
-async function metaFor(a: BenchAccount) {
-  if (!a.facebook) return { pageId: null, statusText: null, ads: [] as MetaAd[], note: 'No Facebook Page is linked from the website.' };
-  // Gated Pages (shown only to signed-in adults, as alcohol brands' are) still answer with their Ad Library id.
-  const profile = await executeTool('SCRAPECREATORS_GET_FACEBOOK_PROFILE', { url: a.facebook, include_gated_profile: true, cache_max_age: '7d' });
-  const lib = findKey<Record<string, unknown>>(profile, 'adLibrary');
-  const pageId = lib?.pageId ? String(lib.pageId) : null;
-  const statusText = typeof lib?.adStatus === 'string' ? lib.adStatus : null;
-  if (!pageId) return { pageId, statusText, ads: [], note: 'The Page has no Ad Library id.' };
-  const list = await executeTool('SCRAPECREATORS_LIST_FACEBOOK_COMPANY_ADS', { page_id: pageId, status: 'ALL', country: 'ALL', trim: true });
-  return { pageId, statusText, ads: adRows(list).map(toMetaAd), note: null };
+async function metaFor(a: BenchAccount, prior: FacebookSnapshot | null) {
+  if (!a.facebook && !prior?.page_id) return { pageId: null, statusText: null, ads: [] as MetaAd[], note: 'Meta: No Facebook Page was provided or discovered.' };
+  let pageId = prior?.page_id ?? null;
+  let statusText = prior?.ad_library_status ?? null;
+  if (!pageId) {
+    const profile = await executeTool('SCRAPECREATORS_GET_FACEBOOK_PROFILE', { url: a.facebook, include_gated_profile: true, cache_max_age: '7d' });
+    const lib = findKey<Record<string, unknown>>(profile, 'adLibrary');
+    pageId = lib?.pageId ? String(lib.pageId) : null;
+    statusText = typeof lib?.adStatus === 'string' ? lib.adStatus : null;
+  }
+  if (!pageId) return { pageId, statusText, ads: [], note: 'Meta: The public Page returned no Ad Library id; advertising could not be determined.' };
+  try {
+    const list = await executeTool('SCRAPECREATORS_LIST_FACEBOOK_COMPANY_ADS', { page_id: pageId, status: 'ALL', country: 'ALL', trim: true });
+    return { pageId, statusText, ads: adRows(list).map(toMetaAd), note: null };
+  } catch (err) {
+    if (err instanceof PermanentStepError && /API key/i.test(err.message)) throw err;
+    return { pageId, statusText, ads: [], note: `Meta ads: ${err instanceof Error ? err.message : String(err)}` };
+  }
 }
 
 /**
@@ -65,16 +75,42 @@ async function metaFor(a: BenchAccount) {
  * empty and complete.
  */
 export function googleAdsFromList(list: unknown): { status: GoogleAdsStatus; count: number | null } {
+  if (findKey(list, 'success') === false || findKey(list, 'successful') === false || findKey(list, 'error')) return { status: 'unknown', count: null };
   const items = findKey<unknown[]>(list, 'items');
   if (!Array.isArray(items)) return { status: 'unknown', count: null };
   const estimate = findKey<unknown>(list, 'total_estimate');
   const count = typeof estimate === 'number' && Number.isFinite(estimate) && estimate >= items.length ? Math.round(estimate) : items.length;
   if (count > 0) return { status: 'ads_found', count };
-  return findKey<unknown>(list, 'has_more') === true ? { status: 'unknown', count: null } : { status: 'none', count: 0 };
+  return findKey<unknown>(list, 'has_more') === false ? { status: 'none', count: 0 } : { status: 'unknown', count: null };
 }
 
-async function googleAdsFor(domain: string) {
-  return googleAdsFromList(await executeTool('SCRAPECREATORS_LIST_GOOGLE_COMPANY_ADS', { domain, get_ad_details: false }));
+/** SerpApi reads the public Transparency Center by domain, never a client's private Google Ads account. */
+export function googleAdsFromSerp(list: unknown): { status: GoogleAdsStatus; count: number | null } {
+  if (findKey(list, 'error') || findKey(list, 'success') === false) return { status: 'unknown', count: null };
+  const ads = findKey<unknown>(list, 'ad_creatives');
+  if (!Array.isArray(ads)) return { status: 'unknown', count: null };
+  if (ads.length) return { status: 'ads_found', count: ads.length };
+  // An empty page without an explicit total is inconclusive, even if the HTTP request succeeded.
+  const total = numeric(findKey(list, 'total_results'));
+  return total === 0 && !findKey(list, 'next_page_token') ? { status: 'none', count: 0 } : { status: 'unknown', count: null };
+}
+
+async function googleAdsFor(domain: string, errors: string[]) {
+  try {
+    const read = googleAdsFromList(await executeTool('SCRAPECREATORS_LIST_GOOGLE_COMPANY_ADS', { domain, get_ad_details: false }));
+    if (read.status !== 'unknown') return read;
+    errors.push('Google Ads Transparency: ScrapeCreators returned an incomplete or unrecognized answer.');
+  } catch (err) {
+    if (err instanceof PermanentStepError && /API key/i.test(err.message)) throw err;
+    errors.push(`Google Ads Transparency: ${err instanceof Error ? err.message : String(err)}`);
+  }
+  try {
+    return googleAdsFromSerp(await executeTool('SERPAPI_SEARCH_PUBLIC_GOOGLE_ADS', { text: domain, num: 40 }, 45_000));
+  } catch (err) {
+    if (err instanceof PermanentStepError && /API key/i.test(err.message)) throw err;
+    errors.push(`Public Google Ads search: ${err instanceof Error ? err.message : String(err)}`);
+    return { status: 'unknown' as GoogleAdsStatus, count: null };
+  }
 }
 
 async function paidHistory(domain: string) {
@@ -90,24 +126,27 @@ async function paidHistory(domain: string) {
     mode: 'subdomains',
     country: 'us',
   });
-  const rows = findKey<Record<string, unknown>[]>(data, 'metrics') ?? [];
-  return rows.slice(-12).map((r) => ({
+  const raw = findKey<unknown>(data, 'metrics');
+  const rows = Array.isArray(raw) ? raw.filter((r): r is Record<string, unknown> => Boolean(r && typeof r === 'object')) : [];
+  return rows.filter((r) => numeric(r.paid_traffic) !== null && numeric(r.paid_cost) !== null).slice(-12).map((r) => ({
     month: String(r.date ?? '').slice(0, 7),
-    paid_traffic: Number(r.paid_traffic ?? 0) || 0,
+    paid_traffic: numeric(r.paid_traffic)!,
     // Ahrefs money is in US cents.
-    paid_traffic_value_usd: (Number(r.paid_cost ?? 0) || 0) / 100,
+    paid_traffic_value_usd: numeric(r.paid_cost)! / 100,
   }));
 }
 
 export async function runAdsLibrary(ctx: StepContext) {
   const accounts = benchAccounts(ctx);
+  const social = ctx.outputs.social as { facebook?: FacebookSnapshot | null; facebook_competitors?: (FacebookSnapshot & { name: string })[] } | undefined;
   const evidence: AdLibraryEvidence[] = await Promise.all(
-    accounts.map(async (a): Promise<AdLibraryEvidence> => {
+    accounts.map(async (a, i): Promise<AdLibraryEvidence> => {
       const errors: string[] = [];
-      const meta = await metaFor(a).catch((err) => {
-        if (err instanceof PermanentStepError) throw err;
+      const prior = i === 0 ? social?.facebook ?? null : social?.facebook_competitors?.find((f) => f.name === a.name) ?? null;
+      const meta = await metaFor(a, prior).catch((err) => {
+        if (err instanceof PermanentStepError && /API key/i.test(err.message)) throw err;
         errors.push(`Meta: ${err instanceof Error ? err.message : String(err)}`);
-        return { pageId: null, statusText: null, ads: [] as MetaAd[], note: null };
+        return { pageId: prior?.page_id ?? null, statusText: prior?.ad_library_status ?? null, ads: [] as MetaAd[], note: null };
       });
       const history = a.domain
         ? await paidHistory(a.domain).catch((err) => {
@@ -115,13 +154,7 @@ export async function runAdsLibrary(ctx: StepContext) {
             return [];
           })
         : [];
-      const google = a.domain
-        ? await googleAdsFor(a.domain).catch((err) => {
-            if (err instanceof PermanentStepError && /API key/i.test(err.message)) throw err;
-            errors.push(`Google Ads Transparency: ${err instanceof Error ? err.message : String(err)}`);
-            return { status: 'unknown' as GoogleAdsStatus, count: null };
-          })
-        : { status: 'unknown' as GoogleAdsStatus, count: null };
+      const google = a.domain ? await googleAdsFor(a.domain, errors) : { status: 'unknown' as GoogleAdsStatus, count: null };
       return {
         name: a.name,
         domain: a.domain,
@@ -143,13 +176,19 @@ export async function runAdsLibrary(ctx: StepContext) {
   );
 
   // Fallback for the domains ScrapeCreators could not answer: one headless read of the Transparency Center each, in one browser.
-  const domains = evidence.filter((e) => e.domain && e.google_ads_status === 'unknown');
+  const domains = evidence.filter((e) => (e.domain && e.google_ads_status === 'unknown') || (e.facebook_page_id && e.meta_ad_status === 'unknown'));
   if (domains.length && ctx.deadline - Date.now() > 60_000) {
     await withBrowser(async (browser) => {
       for (const e of domains) {
         if (ctx.deadline - Date.now() < 25_000) break;
         const page = await browser.newPage();
         try {
+          if (e.facebook_page_id && e.meta_ad_status === 'unknown') {
+            await page.goto(`https://www.facebook.com/ads/library/?active_status=all&ad_type=all&country=ALL&view_all_page_id=${encodeURIComponent(e.facebook_page_id)}`, { waitUntil: 'domcontentloaded', timeout: 20_000 });
+            const body = await page.evaluate(() => document.body?.innerText ?? '');
+            if (!/log in to continue|sign in|captcha|access denied/i.test(body)) e.meta_ad_status = metaAdStatus(body, [], e.facebook_page_id);
+          }
+          if (!e.domain || e.google_ads_status !== 'unknown' || ctx.deadline - Date.now() < 25_000) continue;
           await page.goto(`https://adstransparency.google.com/?region=US&domain=${encodeURIComponent(e.domain!)}`, { waitUntil: 'domcontentloaded', timeout: 20_000 });
           await new Promise((r) => setTimeout(r, TRANSPARENCY_WAIT_MS));
           const read = transparencyStatus(await page.evaluate(() => document.body?.innerText ?? ''));
@@ -166,8 +205,10 @@ export async function runAdsLibrary(ctx: StepContext) {
 
   const [business, ...competitors] = evidence;
   return {
-    source: 'Meta Ad Library (by Page id) and Google Ads Transparency Center (by domain), via ScrapeCreators; Ahrefs paid-search history (US)',
+    source: 'Meta Ad Library (by Page id) and Google Ads Transparency Center (by domain), via ScrapeCreators, SerpApi and public browser fallback; Ahrefs paid-search history (US)',
     fetched_at: new Date().toISOString(),
+    scope: 'Public ad presence and historical creative only. A missing tag or unavailable library cannot establish that no campaigns are active. Public libraries do not expose account spend or performance.',
+    sources: evidence.map((e) => ({ name: e.name, captured_at: new Date().toISOString(), meta_url: e.facebook_page_id ? `https://www.facebook.com/ads/library/?active_status=all&ad_type=all&country=ALL&view_all_page_id=${encodeURIComponent(e.facebook_page_id)}` : null, google_url: e.domain ? `https://adstransparency.google.com/?domain=${encodeURIComponent(e.domain)}` : null, google_query: e.domain })),
     business,
     competitors,
   };

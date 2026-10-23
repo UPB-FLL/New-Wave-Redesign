@@ -186,7 +186,7 @@ async function loadSteps(
   return { outputs, inherited, steps: own.map((r) => r.step) };
 }
 
-const RUN_COLUMNS = 'id,business_name,city,website,instagram,competitors,notes';
+const RUN_COLUMNS = 'id,business_name,city,website,instagram,facebook,competitors,notes';
 /** Read only where the database has them (migrations 20261022120000, 20261024130000, 20261029120000). */
 const PHASE_COLUMNS = ',kind,partner_id,customer_id,phase,source_audit_id';
 

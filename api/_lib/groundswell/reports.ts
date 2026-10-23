@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { escapeHtml as esc } from '../http.js';
+import { logoBackground } from '../../../src/lib/groundswellBrandAssets.js';
 import { GROUNDSWELL_CONFIG } from '../../../packages/groundswell/groundswell.config.js';
 import type { PlanRow } from '../../../packages/groundswell/src/adplan.js';
 import type { ChangeArea, RankedChange } from '../../../packages/groundswell/src/changes.js';
@@ -10,7 +11,7 @@ import type { AuditBranding } from './branding.js';
 import type { BenchmarkOutput } from './benchmark.js';
 import type { Brand } from './brand.js';
 import { gapsFromMissing } from './gaps.js';
-import { AREAS, type AreaKey, type Facts, type runModel } from './model.js';
+import { AREAS, evidenceCoverage, scrubUnsupportedClaims, type AreaKey, type Facts, type ReportFinding, type runModel } from './model.js';
 import type { GaData, GoogleAdsData, GscData, InstagramData, LinkedOutput, MetaAdsData } from './currents/linked.js';
 import type { RoiScenarioResult } from './roi.js';
 
@@ -69,7 +70,7 @@ export function preparerFor(branding: AuditBranding | null | undefined): Prepare
 
 export const preparedBy = (p: Preparer) => `Prepared by ${esc(p.name)}`;
 /** The partner's logo beside "Prepared by" on a cover; New Wave's reports have none. */
-export const preparerLogo = (p: Preparer) => (p.logo ? `<img class="preparer" src="${esc(p.logo)}" alt="${esc(p.name)}" onerror="this.remove()">` : '');
+export const preparerLogo = (p: Preparer) => (p.logo ? `<img class="preparer" src="${esc(p.logo)}" alt="${esc(p.name)}" style="background:${logoBackground(p.logo)}" onerror="this.remove()">` : '');
 
 /** Lead-aware: "Our" at the start of a sentence or element, "our" inside one. */
 const OURS = /(>\s*|[.!?]\s+)?(?:New Wave(?:: Social Engineering| IT)?|NW Social Engineering|Groundswell)(?:’s|'s|’|')?\s?(?=estimate|rule|working|internal|smallest|cost|hourly|own)/gi;
@@ -82,7 +83,7 @@ const ENGINE_NAMES = /New Wave: Social Engineering|NW Social Engineering|New Wav
  * wording) becomes the partner's name. New Wave's own reports pass unchanged.
  */
 export function ownWording(html: string, p: Preparer): string {
-  if (!p.whiteLabel) return html;
+  if (!p.whiteLabel) return html.replace(/Groundswell(?:’s|'s)?\s+estimate/gi, 'Our estimate');
   const name = esc(p.name);
   return html.replace(OURS, (_m, lead: string | undefined) => (lead !== undefined ? `${lead}Our ` : 'our ')).replace(ENGINE_NAMES, () => name);
 }
@@ -154,7 +155,7 @@ h1,h2,h3{color:${b.heading};line-height:1.15}
 .muted{color:#4b5563}
 table{border-collapse:collapse;width:100%}
 th{background:${b.primary};color:${b.onPrimary};text-align:left;font-weight:600}
-td,th{border-bottom:1px solid #e5e7eb;vertical-align:top}
+td,th{border-bottom:1px solid #e5e7eb;vertical-align:top;overflow-wrap:anywhere}
 .kpis{display:grid;grid-template-columns:repeat(4,1fr)}
 .kpi{background:${b.tint};border-radius:10px}
 .kpi .v{font-weight:700;color:#111827}
@@ -166,7 +167,7 @@ ul{padding-left:1.1em}
 }
 
 export const logoImg = (b: Brand, cls: string) =>
-  b.logo ? `<img class="logo ${cls}" src="${esc(b.logo)}" alt="" onerror="this.remove()">` : '';
+  b.logo ? `<img class="logo ${cls}" src="${esc(b.logo)}" alt="" style="background:${logoBackground(b.logo)}" onerror="this.remove()">` : '';
 
 export const listHtml = (items: string[], trim = true) =>
   items.length ? `<ul>${items.map((i) => `<li${trim ? ' data-trim' : ''}>${esc(i)}</li>`).join('')}</ul>` : '';
@@ -180,24 +181,47 @@ export function kpis(f: Facts, m: ModelOutput, p: AdplanOutput | null = null): K
   const place = f.maps?.business;
   const base = m.roi?.scenarios.base;
   const planNet = p?.comparison.included.length ? p.comparison.with_plan.net_year.medium : null;
+  const available = new Map(evidenceCoverage(f).map(s => [s.key, s.status === 'checked']));
   return [
     {
       value: place?.rating !== null && place?.rating !== undefined ? `${place.rating} / 5` : NOT_CHECKED,
       label: place ? `Google rating · ${num(place.reviews)} reviews` : 'Google rating',
     },
-    { value: num(f.social?.business?.followers ?? null), label: 'Instagram followers' },
-    { value: num(f.search?.business?.organic_keywords ?? null), label: 'Keywords the website ranks for' },
+    { value: available.get('instagram') ? num(f.social?.business?.followers ?? null) : NOT_CHECKED, label: 'Instagram followers' },
+    { value: available.get('search') ? num(f.search?.business?.organic_keywords ?? null) : NOT_CHECKED, label: 'Organic keywords · Ahrefs US estimate' },
     // With a plan, the old search-ad model never shows, even when nothing in the plan pays back.
     planNet !== null
       ? { value: money(planNet), label: '12-month net with the plan, medium case' }
       : base && !p
         ? { value: money(base.year.net), label: 'Base case, 12-month net from search ads' }
         : { value: num(m.roi?.demand_monthly ?? null), label: 'Monthly searches in the area' },
-  ];
+  ].filter(k => k.value !== NOT_CHECKED && k.value !== '–');
 }
 
 const kpiHtml = (items: Kpi[]) =>
-  `<div class="kpis">${items.map((k) => `<div class="kpi"><div class="v">${esc(k.value)}</div><div class="l">${esc(k.label)}</div></div>`).join('')}</div>`;
+  items.length ? `<div class="kpis" style="grid-template-columns:repeat(${items.length},1fr)">${items.map((k) => `<div class="kpi"><div class="v">${esc(k.value)}</div><div class="l">${esc(k.label)}</div></div>`).join('')}</div>` : '';
+
+/** Legacy and manually released reports use the same evidence rules as newly modeled reports. */
+function safeReportData(d: ReportData): ReportData {
+  const hasDemand = evidenceCoverage(d.facts).some(s => s.key === 'keywords' && s.status === 'checked');
+  return { ...d, model: { ...d.model, writeup: scrubUnsupportedClaims(d.model.writeup, d.facts).writeup,
+    ...(!hasDemand ? { roi: null, roi_sources: [], core_keywords: [], roi_note: 'Keyword demand and bids could not be verified for this run, so ad spend and return were not modeled. This does not establish low or zero demand.' } : {}),
+  }, ...(!hasDemand ? { adplan: null, adcopy: null } : {}) };
+}
+
+const evidenceStatus = { checked: 'Checked', unavailable: 'Unavailable', not_checked: 'Not checked', not_found: 'Not found in this lookup' };
+
+function evidenceLimits(f: Facts, compact = false): string {
+  const missing = evidenceCoverage(f).filter(s => s.status !== 'checked' && s.key !== 'facebook');
+  if (compact) return missing.length ? `<p class="evidence-limit"><strong>Evidence limits:</strong> ${esc(missing.map(s => `${s.label}: ${evidenceStatus[s.status].toLowerCase()}`).join('; '))}. Missing reads do not establish zero activity or demand. See the full audit for scope and dates.</p>` : '';
+  return `<p>Public observations describe what the named source returned at the capture time. They do not measure revenue, leads, bookings or account performance.</p>${table(['Research area', 'Result / captured', 'Scope and decision limit'], evidenceCoverage(f).map(s => [s.label, `${evidenceStatus[s.status]}${s.captured_at ? ` · ${s.captured_at.slice(0, 10)}` : ''}`, `${s.scope} ${s.limitation}`]))}<p class="muted">Verified: directly returned observations. Derived: labelled calculations and model outputs. Hypothesis: an implication that still needs validation. Unavailable and not checked are never recorded as zero.</p>`;
+}
+
+function findingHtml(finding: ReportFinding): string {
+  return `<article class="finding"><h3>${esc(finding.title)}</h3><p class="note">${esc(finding.priority.toUpperCase())} PRIORITY · ${esc(AREA_TITLES[finding.area])} · ${esc(finding.basis)} · ${esc(finding.source.replace(/_/g, ' '))}</p>
+<p><strong>Evidence:</strong> ${esc(finding.evidence)}</p><p><strong>Business implication:</strong> ${esc(finding.implication)}</p><p><strong>Recommended action:</strong> ${esc(finding.action)}</p>
+<p><strong>Effort and dependencies:</strong> ${esc([finding.effort, finding.dependency].filter(Boolean).join(' ')) || 'Confirm scope and access before estimating implementation cost.'}</p><p><strong>How to verify:</strong> ${esc(finding.measure) || 'Confirm the change against the source and the business’s own measurement.'}</p></article>`;
+}
 
 function scenarioRows(m: ModelOutput) {
   const s = m.roi?.scenarios ?? {};
@@ -207,10 +231,9 @@ function scenarioRows(m: ModelOutput) {
 }
 
 export function feeLine(m: ModelOutput) {
-  if (m.estimates.is_nwse_client === true) return `You are already a client of ${PREPARED_BY}, so the only new money is ad spend.`;
-  return m.estimates.has_current_marketer === false
-    ? 'These figures are before any management fee.'
-    : 'Management is fee-neutral: our fee replaces what you pay your current marketing company, so the only new money is ad spend.';
+  // Keep the report API stable; relationship flags do not establish an agreed fee.
+  void m;
+  return 'These figures are before any management fee. Confirm scope and commercial terms before funding.';
 }
 
 function stopLoss(m: ModelOutput): string | null {
@@ -374,7 +397,7 @@ function areaTables(key: AreaKey, f: Facts): string {
         .map((r) => [r.name, `@${r.handle}`, num(r.followers), num(r.posts), num(r.posts_last_30_days), num(r.avg_likes_recent)]);
       const ig = rows.length
         ? table(['Business', 'Instagram', 'Followers', 'Posts', 'Posts, last 30 days', 'Avg. likes (recent)'], rows)
-        : '<p class="muted">No Instagram account was found or checked.</p>';
+        : '<p class="muted">Instagram was not verified for this run. Account presence and posting activity remain unknown.</p>';
       const note = f.social?.business?.note ? `<p class="muted">${esc(f.social.business.note)}</p>` : '';
       const pages = [f.social?.facebook ? { name: f.business.name, ...f.social.facebook } : null, ...(f.social?.facebook_competitors ?? [])]
         .filter((p): p is NonNullable<typeof p> => Boolean(p && p.exists))
@@ -386,6 +409,7 @@ function areaTables(key: AreaKey, f: Facts): string {
       const s = f.site?.business;
       const a = f.search?.business;
       if (!s) return '<p class="muted">No website was checked.</p>';
+      if (s.error || !s.status || s.status < 200 || s.status >= 400) return '<p class="muted">The website did not return a successful response for this run. Technical SEO could not be assessed. Content, tracking and booking features remain unverified.</p>';
       const tags = [
         s.tracking.google_analytics.length ? 'Google Analytics' : null,
         s.tracking.google_tag_manager.length ? 'Tag Manager' : null,
@@ -422,10 +446,16 @@ function areaTables(key: AreaKey, f: Facts): string {
     case 'ads': {
       const rows = [f.ads?.business, ...(f.ads?.competitors ?? [])]
         .filter((r): r is NonNullable<typeof r> => Boolean(r))
-        .map((r) => [r.name, yesNo(r.google_ads_tag), yesNo(r.meta_pixel), yesNo(r.tiktok_pixel), r.error ? NOT_CHECKED : num(r.paid_pages.length)]);
-      return rows.length
+        .map((r, i) => {
+          const site = i === 0 ? f.site?.business : f.site?.competitors.find(c => c.name === r.name)?.site;
+          const read = Boolean(site && !site.error && site.status && site.status >= 200 && site.status < 400 && r.website_checked !== false);
+          return [r.name, read ? yesNo(r.google_ads_tag) : NOT_CHECKED, read ? yesNo(r.meta_pixel) : NOT_CHECKED, read ? yesNo(r.tiktok_pixel) : NOT_CHECKED, r.error || !r.domain ? NOT_CHECKED : num(r.paid_pages.length)];
+        });
+      const tags = rows.length
         ? table(['Business', 'Google Ads tag', 'Meta pixel', 'TikTok pixel', 'Pages with paid search ads (Ahrefs)'], rows)
         : '<p class="muted">Ads could not be checked.</p>';
+      const libraries = f.ad_library ? table(['Business', 'Google Ads Transparency Center', 'Meta Ad Library'], [f.ad_library.business, ...f.ad_library.competitors].map(r => [r.name, r.google_ads_status === 'ads_found' ? `${num(r.google_ads_count)} ads on record` : r.google_ads_status === 'none' ? 'No ads returned in this lookup' : 'Unavailable', r.meta_ad_status === 'running' ? 'Active ads returned' : r.meta_ad_status === 'not_running' ? 'Page reported no active ads' : 'Unavailable'])) : '';
+      return tags + libraries + '<p class="muted">Tags and estimated paid pages are limited signals. A missing tag, zero estimated paid keywords or an unavailable library does not establish that no campaigns are running. Spend and results require authorized account data.</p>';
     }
     case 'competitors': {
       const ig = new Map((f.social?.competitors ?? []).map((c) => [c.name, c]));
@@ -448,14 +478,15 @@ function areaTables(key: AreaKey, f: Facts): string {
           k.keyword,
           num(k.monthly_searches),
           k.competition ?? '–',
-          k.low_bid_usd !== null && k.high_bid_usd !== null ? `$${k.low_bid_usd.toFixed(2)}–$${k.high_bid_usd.toFixed(2)}` : '–',
+          typeof k.low_bid_usd === 'number' && typeof k.high_bid_usd === 'number' ? `$${k.low_bid_usd.toFixed(2)}–$${k.high_bid_usd.toFixed(2)}` : '–',
         ])
       );
       const ranks = table(
         ['Keyword the website ranks for', 'Position', 'Monthly searches'],
         (f.search?.business?.top_keywords ?? []).slice(0, 10).map((k) => [k.keyword, num(k.position), num(k.volume)])
       );
-      return ideas + ranks || '<p class="muted">Keyword data could not be checked.</p>';
+      const unmeasured = evidenceCoverage(f).find(s => s.key === 'keywords')?.status !== 'checked';
+      return `${unmeasured ? '<p class="muted">Search-volume and bid estimates were unavailable. Any terms below are research suggestions, not measured demand; no ad spend or return is inferred from them.</p>' : '<p class="muted">Volumes and bids apply to the source geography and reporting window. Close variants can overlap; totals are not unique customers.</p>'}${ideas}${ranks}`;
     }
   }
 }
@@ -464,8 +495,8 @@ function areaWriteup(m: ModelOutput, key: AreaKey, trim: boolean) {
   const a = m.writeup.areas[key];
   return `${a.summary ? `<p class="summary">${esc(a.summary)}</p>` : ''}
 <div class="cols">
-  <div><h3>What's working</h3>${listHtml(a.working, trim) || '<p class="muted">Nothing stood out.</p>'}</div>
-  <div><h3>What it's costing you</h3>${listHtml(a.costing, trim) || '<p class="muted">Nothing stood out.</p>'}</div>
+  <div><h3>Observed strengths</h3>${listHtml(a.working, trim) || '<p class="muted">No additional supported strength was established by the available evidence.</p>'}</div>
+  <div><h3>Constraints and opportunities</h3>${listHtml(a.costing, trim) || '<p class="muted">No quantified loss was established; see the evidence limits.</p>'}</div>
 </div>
 ${a.fixes.length ? `<h3>Fixes, in order</h3>${listHtml(a.fixes, trim)}` : ''}`;
 }
@@ -535,7 +566,7 @@ export function linkedTables(l: LinkedOutput): string {
           return `<h3>${esc(s.label)}: ${esc(g.account)}</h3>${
             t
               ? table(['Spend', 'Impressions', 'Reach', 'Clicks', 'Cost per click', 'Leads', 'Messages'], [[money(t.spend), num(t.impressions), num(t.reach), num(t.clicks), t.cpc === null ? '–' : `$${num(t.cpc, 2)}`, num(t.leads), num(t.messages)]])
-              : '<p class="muted">No ads ran from this account in the last 30 days.</p>'
+              : '<p class="muted">The account returned no performance totals for this window; campaign activity was not established by this response.</p>'
           }${g.campaigns.length ? table(['Campaign', 'Spend', 'Clicks', 'Leads'], g.campaigns.slice(0, 10).map((c) => [c.name, money(c.spend), num(c.clicks), num(c.leads)])) : ''}`;
         }
       }
@@ -552,6 +583,7 @@ function linkedSection(l: LinkedOutput): string {
 }
 
 export function buildAuditHtml(d: ReportData): string {
+  d = safeReportData(d);
   const { facts: f, model: m, brand: b } = d;
   const p = hasPlan(d.adplan) ? d.adplan : null;
   // Copy only alongside its plan, and only when there is something to show.
@@ -560,6 +592,10 @@ export function buildAuditHtml(d: ReportData): string {
   const footer = `${esc(f.business.name)} · Marketing audit · ${preparedBy(who)} · ${esc(d.date)}`;
   const section = (kicker: string, title: string, body: string) =>
     `<section class="page"><div class="kicker">${esc(kicker)}</div><h2>${esc(title)}</h2>${body}<div class="foot">${footer}</div></section>`;
+  const findings = m.writeup.findings ?? [];
+  const priorityPages = [];
+  for (let i = 0; i < findings.length; i += 2) priorityPages.push(section('Recommended decisions', i ? 'Further priorities' : 'Priorities and next actions', findings.slice(i, i + 2).map(findingHtml).join('')));
+  const searchPages = (f.search?.serp?.queries ?? []).filter(q => !q.error && q.organic.length).slice(0, 4).map(q => section('Observed search results', `Search: ${q.query}`, `<p class="muted">${esc(q.location ?? 'Provider default location')} · ${esc(q.captured_at.slice(0, 10))}. These are observed positions for this query and capture, not a site-wide ranking.</p>${table(['Position', 'Result', 'Domain'], q.organic.slice(0, 10).map(r => [num(r.position), r.title, r.domain ?? r.url]))}<p class="note">Source: ${esc(q.source_url)}</p>`)).join('');
 
   const areas = AREAS.map((k, i) =>
     section(`${i + 2} · ${AREA_TITLES[k]}`, AREA_TITLES[k], `${areaTables(k, f)}${areaWriteup(m, k, false)}`)
@@ -600,7 +636,7 @@ export function buildAuditHtml(d: ReportData): string {
   return ownWording(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(f.business.name)} - Full Marketing Audit</title><style>
 ${baseCss(b)}
 @page{size:Letter;margin:0}
-.page{width:8.5in;min-height:11in;padding:0.6in 0.6in 0.8in;position:relative;page-break-after:always;font-size:10.5pt;line-height:1.45}
+.page{width:8.5in;min-height:11in;padding:0.6in 0.6in 0.8in;position:relative;page-break-after:always;font-size:10.5pt;line-height:1.4}
 .page:last-child{page-break-after:auto}
 .cover{padding:0;display:flex;flex-direction:column}
 .cover .band{padding:0.7in 0.6in 0.5in}
@@ -622,6 +658,7 @@ td,th{padding:5px 7px}
 .foot{position:absolute;left:0.6in;right:0.6in;bottom:0.35in;font-size:8pt;color:#6b7280;border-top:1px solid #e5e7eb;padding-top:6px}
 .ranked td,.ranked th{font-size:8.5pt;padding:4px 6px}
 .note{font-size:7.5pt;color:#4b5563;margin-top:2px}
+.finding{margin-bottom:18px;break-inside:avoid}.finding p{margin:4px 0}.finding h3{margin-top:0}.evidence-limit{font-size:9pt;color:#374151;margin:10px 0;padding:9px 11px;border-left:3px solid ${b.primary};background:${b.tint}}
 </style></head><body>
 <section class="page cover">
   <div class="band">${logoImg(b, '')}<h1>${esc(f.business.name)}</h1><div class="muted">Marketing audit${f.business.city ? ` · ${esc(f.business.city)}` : ''} · ${preparedBy(who)}${preparerLogo(who)} · ${esc(d.date)}</div>${dataLine ? `<div class="muted">${esc(dataLine)}</div>` : ''}</div>
@@ -629,15 +666,20 @@ td,th{padding:5px 7px}
     <p class="headline">${esc(m.writeup.headline)}</p>
     <p>${esc(m.writeup.verdict)}</p>
     ${kpiHtml(kpis(f, m, p))}
+    ${evidenceLimits(f, true)}
     <h3>The return we modeled</h3>
     <p>${esc(returnLine)}</p>
   </div>
   <div class="foot">${footer}</div>
 </section>
+${priorityPages.join('')}
 ${areas}
+${searchPages}
 ${linked ? section('8 · Your accounts', 'From the business’s own accounts', linkedSection(linked)) : ''}
 ${section(`${8 + o} · Plan`, 'The 90-day plan', `<h3>Weeks 1–2</h3>${listHtml(plan.weeks_1_2, false)}<h3>Weeks 3–6</h3>${listHtml(plan.weeks_3_6, false)}<h3>Weeks 7–12</h3>${listHtml(plan.weeks_7_12, false)}`)}
 ${returnSections}
+${section('Research coverage', 'Evidence and decision limits', evidenceLimits(f))}
+${m.writeup.assumptions?.length ? section('Planning basis', 'Assumptions that change the decision', `${listHtml(m.writeup.assumptions, false)}<h3>Business economics</h3><p>${esc(m.estimates.basis)}</p><p>Average order value, lead-to-customer close rate and gross margin are planning assumptions until the business confirms them. Public visibility cannot establish profit, conversion quality or a viable acquisition cost.</p><h3>Implementation costs</h3><p>Effort estimates depend on access, existing systems and approved scope. Any modeled team time and spend are planning estimates; confirm the commercial terms before funding work.</p>`) : ''}
 ${section(
   `${(p ? (copy ? 12 : 11) : 10) + o} · Sources`,
   'Sources and limits',
@@ -689,6 +731,7 @@ export function benchmarkSummaryLines(x: BenchmarkOutput): string[] {
 }
 
 export function buildDeckHtml(d: ReportData, links: { audit: string }): string {
+  d = safeReportData(d);
   const { facts: f, model: m, brand: b } = d;
   const p = hasPlan(d.adplan) ? d.adplan : null;
   const bench = d.benchmark ?? null;
@@ -703,7 +746,7 @@ export function buildDeckHtml(d: ReportData, links: { audit: string }): string {
       k,
       i + 3,
       AREA_TITLES[k],
-      `${a.summary ? `<p class="lead">${esc(a.summary)}</p>` : ''}<div class="cols"><div><h3>Working</h3>${listHtml(a.working.slice(0, 3)) || '<p class="muted">Nothing stood out.</p>'}</div><div><h3>Costing you</h3>${listHtml(a.costing.slice(0, 3)) || '<p class="muted">Nothing stood out.</p>'}</div></div>${a.fixes.length ? `<h3>Fix first</h3>${listHtml(a.fixes.slice(0, 2))}` : ''}`
+      `${a.summary ? `<p class="lead">${esc(a.summary)}</p>` : ''}<div class="cols"><div><h3>Observed strengths</h3>${listHtml(a.working.slice(0, 3)) || '<p class="muted">No additional supported strength established.</p>'}</div><div><h3>Constraints and opportunities</h3>${listHtml(a.costing.slice(0, 3)) || '<p class="muted">No quantified loss established.</p>'}</div></div>${a.fixes.length ? `<h3>Recommended action</h3>${listHtml(a.fixes.slice(0, 2))}` : ''}`
     );
   }).join('');
 
@@ -737,7 +780,7 @@ td,th{padding:14px 18px;font-size:30px}
 .cta{font-size:40px;font-weight:700}
 </style></head><body>
 <section class="slide band cover" id="cover">${logoImg(b, '')}<h1>${esc(f.business.name)}</h1><div class="sub">Marketing audit · ${preparedBy(who)}${preparerLogo(who)} · ${esc(d.date)}${linkedLine(f) ? ` · ${esc(linkedLine(f)!)}` : ''}</div></section>
-${slide('glance', 2, 'At a glance', `<p class="lead"><strong>${esc(m.writeup.headline)}</strong></p><p>${esc(m.writeup.verdict)}</p>${kpiHtml(kpis(f, m, p))}`)}
+${slide('glance', 2, 'At a glance', `<p class="lead"><strong>${esc(m.writeup.headline)}</strong></p><p>${esc(m.writeup.verdict)}</p>${kpiHtml(kpis(f, m, p))}${evidenceLimits(f, true)}`)}
 ${areaSlides}
 ${slide('plan', 9, 'The 90-day plan', `<div class="cols" style="grid-template-columns:1fr 1fr 1fr"><div><h3>Weeks 1–2</h3>${listHtml(plan.weeks_1_2.slice(0, 3))}</div><div><h3>Weeks 3–6</h3>${listHtml(plan.weeks_3_6.slice(0, 3))}</div><div><h3>Weeks 7–12</h3>${listHtml(plan.weeks_7_12.slice(0, 3))}</div></div>`)}
 ${
@@ -787,6 +830,7 @@ ${top.length ? `<table><thead><tr><th>Change</th><th>12-month net after team tim
 }
 
 export function buildSummaryHtml(d: ReportData, links: { deck: string; audit: string; folder: string }): string {
+  d = safeReportData(d);
   const { facts: f, model: m, brand: b } = d;
   const p = hasPlan(d.adplan) ? d.adplan : null;
   const benchLines = d.benchmark ? benchmarkSummaryLines(d.benchmark) : [];
@@ -794,7 +838,7 @@ export function buildSummaryHtml(d: ReportData, links: { deck: string; audit: st
   const audit = portalLink(links.audit);
   const folder = portalLink(links.folder);
   const who = d.preparer ?? NEW_WAVE_PREPARER;
-  const findings = (['google', 'social', 'website', 'ads', 'keywords'] as AreaKey[])
+  const findings = m.writeup.findings?.length ? m.writeup.findings.slice(0, 4).map(finding => ({ k: finding.area, text: `${finding.title}. ${finding.evidence} ${finding.action}` })) : (['google', 'social', 'website', 'ads', 'keywords'] as AreaKey[])
     .map((k) => {
       const seo = k === 'website' ? f.site?.business?.technical_seo?.findings[0] : null;
       return { k, text: seo ? `${seo.title} (initial HTML). ${seo.recommendation.split(/(?<=[.!?])\s+/)[0]}` : m.writeup.areas[k].costing[0] || m.writeup.areas[k].summary };
@@ -820,6 +864,7 @@ ${baseCss(b)}
 h3{font-size:10.5pt;margin:10px 0 4px}
 .findings li{margin:3px 0}
 .findings a{font-size:8pt;margin-left:4px}
+.evidence-limit{font-size:8pt;margin:8px 0;color:#374151;padding:7px 9px;border-left:3px solid ${b.primary};background:${b.tint}}
 table{font-size:9pt}
 td,th{padding:4px 6px}
 .sheet>footer{position:absolute;left:0.5in;right:0.5in;bottom:0.35in;border-top:1px solid #e5e7eb;padding-top:6px;font-size:8.5pt;display:flex;gap:18px}
@@ -829,7 +874,8 @@ td,th{padding:4px 6px}
 <p class="headline">${esc(m.writeup.headline)}</p>
 <p>${esc(m.writeup.verdict)}</p>
 ${kpiHtml(kpis(f, m, p))}
-<h3>Five findings</h3>
+${evidenceLimits(f, true)}
+<h3>Findings and priorities</h3>
 <ul class="findings">${findings.map(({ k, text }) => `<li data-trim><strong>${AREA_TITLES[k]}:</strong> ${esc(text)}${d.preparer ? '' : `<a href="${esc(deck)}">Slides ›</a>`}</li>`).join('')}</ul>
 ${p ? summaryPlan(p, m) : `<h3>What search ads could return</h3>
 ${roiRows ? `<table><thead><tr><th>Scenario</th><th>Ad spend</th><th>12-month net</th></tr></thead><tbody>${roiRows}</tbody></table><p class="muted">${esc(feeLine(m))}</p>` : `<p class="muted">${esc(m.roi_note ?? '')}</p>`}`}
@@ -837,6 +883,6 @@ ${benchLines.length ? `<h3>Against your competitors</h3>${listHtml(benchLines)}`
 <h3>Next 90 days</h3>
 ${listHtml(m.writeup.next_steps)}
 </div>
-<footer>${d.preparer ? '<span>Slides (PDF) · Full audit (PDF) · all reports in your portal</span>' : `<a href="${esc(deck)}">Slides (PDF)</a><a href="${esc(audit)}">Full audit (PDF)</a><a href="${esc(folder)}">All reports (GroundSwell portal)</a>`}</footer>
+<footer>${d.preparer ? '<span>Slides (PDF) · Full audit (PDF) · all reports in your portal</span>' : `<a href="${esc(deck)}">Slides (PDF)</a><a href="${esc(audit)}">Full audit (PDF)</a><a href="${esc(folder)}">All reports</a>`}</footer>
 </div></body></html>`, who);
 }

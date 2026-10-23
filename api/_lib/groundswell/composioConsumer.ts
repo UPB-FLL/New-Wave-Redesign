@@ -1,4 +1,5 @@
 import { PermanentStepError } from './types.js';
+import { assertPublicReadBudget, isProviderCreditFailure, pausePublicReadsForCredits } from './providerBudget.js';
 
 /**
  * Composio's consumer account (Composio "For You" / Connect), reached through
@@ -44,7 +45,7 @@ interface RpcMessage {
   jsonrpc?: string;
   id?: number | string | null;
   result?: unknown;
-  error?: { code?: number; message?: string };
+  error?: { code?: number; message?: string } | string;
 }
 
 /** The JSON-RPC message answering `id` in an event-stream body (`data:` lines, events split by a blank line). */
@@ -116,26 +117,39 @@ async function post(body: Record<string, unknown>, sessionId: string | null, tim
   return { status: response.status, sessionId: returned, message };
 }
 
-async function handshake(): Promise<string | null> {
+async function handshake(timeoutMs: number): Promise<string | null> {
+  const deadline = Date.now() + timeoutMs;
+  const remaining = (cap: number) => {
+    const ms = Math.min(cap, deadline - Date.now());
+    if (ms <= 0) throw new Error('Composio session setup exceeded the public-read time limit.');
+    return Math.ceil(ms);
+  };
   const id = nextId++;
   const { sessionId, message } = await post(
     { jsonrpc: '2.0', id, method: 'initialize', params: { protocolVersion: PROTOCOL_VERSION, capabilities: {}, clientInfo: { name: 'groundswell', version: '1.0.0' } } },
     null,
-    30_000
+    remaining(30_000)
   );
-  if (message?.error) throw new Error(`Composio's consumer endpoint refused the handshake: ${message.error.message ?? 'no reason given'}`);
-  await post({ jsonrpc: '2.0', method: 'notifications/initialized' }, sessionId, 15_000);
+  if (message?.error) throw new Error(`Composio's consumer endpoint refused the handshake: ${describeError(message.error)}`);
+  await post({ jsonrpc: '2.0', method: 'notifications/initialized' }, sessionId, remaining(15_000));
   return sessionId;
 }
 
-function sessionId(): Promise<string | null> {
+async function sessionId(timeoutMs: number): Promise<string | null> {
   if (!session) {
-    session = handshake();
+    session = handshake(timeoutMs);
     session.catch(() => {
       session = null;
     });
   }
-  return session;
+  const pending = session;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      pending,
+      new Promise<never>((_resolve, reject) => { timer = setTimeout(() => reject(new Error('Composio session setup exceeded the public-read time limit.')), timeoutMs); }),
+    ]);
+  } finally { clearTimeout(timer); }
 }
 
 /** The text of a tools/call result: `structuredContent` when given, else its text parts. */
@@ -160,13 +174,19 @@ function resultPayload(result: unknown): { payload: unknown; isError: boolean } 
  * a failed tool that way, and its reason is inside the envelope.
  */
 export async function callConsumerTool(name: string, args: Record<string, unknown>, timeoutMs = 90_000, { envelope = false } = {}): Promise<unknown> {
+  const deadline = Date.now() + timeoutMs;
+  const remaining = () => {
+    const ms = deadline - Date.now();
+    if (ms <= 0) throw new Error(`${name} exceeded the public-read time limit.`);
+    return Math.ceil(ms);
+  };
   for (let attempt = 1; ; attempt++) {
-    const sid = await sessionId();
+    const sid = await sessionId(remaining());
     const id = nextId++;
     try {
-      const { message } = await post({ jsonrpc: '2.0', id, method: 'tools/call', params: { name, arguments: args } }, sid, timeoutMs);
+      const { message } = await post({ jsonrpc: '2.0', id, method: 'tools/call', params: { name, arguments: args } }, sid, remaining());
       if (!message) throw new Error(`Composio's consumer endpoint gave no answer to ${name}.`);
-      if (message.error) throw new Error(`${name} failed: ${message.error.message ?? `error ${message.error.code ?? ''}`}`);
+      if (message.error) throw new Error(`${name} failed: ${describeError(message.error)}`);
       const { payload, isError } = resultPayload(message.result);
       if (isError && !(envelope && payload && typeof payload === 'object')) {
         throw new Error(`${name} failed: ${typeof payload === 'string' ? payload.slice(0, 300) : JSON.stringify(payload).slice(0, 300)}`);
@@ -199,41 +219,100 @@ const SANDBOX_PATH = /^\/mnt\/files\/[\w./-]+\.json$/;
 /**
  * Python for COMPOSIO_REMOTE_WORKBENCH: loads a saved answer and prints it
  * without what the Currents never read (the poster's profile on every post,
- * video renditions, every image size but the original), lists capped at 30
- * and long strings at 1,500 characters.
+ * video renditions, every image size but the original). Structural budgets
+ * keep the complete encoded answer and its markers below 20 KB.
  */
 export function prunerCode(path: string, index = 0): string {
   return [
     'import json',
-    'DROP = {"owner","user","polaris_ordered_timeline_connection","video_versions","additional_candidates","usertags","tagged_users","biography_with_entities","has_translation","friendship_status","clips_metadata","music_metadata"}',
-    'def prune(x, depth=0):',
+    'DROP = {"owner","polaris_ordered_timeline_connection","video_versions","additional_candidates","usertags","tagged_users","biography_with_entities","has_translation","friendship_status","clips_metadata","music_metadata"}',
+    'PRIORITY = {"data", "user", "profile", "graphql", "edge_followed_by", "edge_follow", "edge_owner_to_timeline_media", "count", "follower_count", "following_count", "media_count", "followersCount", "followsCount", "postsCount", "username", "full_name", "biography"}',
+    'def prune(x, budget, depth=0, limit=12):',
+    '    if depth > 12 or budget[0] <= 0: return None',
+    '    budget[0] -= 1',
     '    if isinstance(x, dict):',
     '        out = {}',
-    '        for k, v in x.items():',
+    '        ordered = sorted(x.items(), key=lambda kv: kv[0] not in PRIORITY)',
+    '        for k, v in ordered[:max(12, limit * 4)]:',
+    '            if len(k) > 128: continue',
     '            if k in DROP and depth > 0: continue',
-    '            if k == "candidates" and isinstance(v, list): out[k] = [prune(c, depth + 1) for c in v[:1]]; continue',
-    '            out[k] = prune(v, depth + 1)',
+    '            if budget[0] <= 0: break',
+    '            if k == "candidates" and isinstance(v, list): out[k] = [prune(c, budget, depth + 1, limit) for c in v[:1]]; continue',
+    '            out[k] = prune(v, budget, depth + 1, limit)',
     '        return out',
-    '    if isinstance(x, list): return [prune(v, depth + 1) for v in x[:30]]',
-    '    if isinstance(x, str) and len(x) > 1500: return x[:1500]',
+    '    if isinstance(x, list): return [prune(v, budget, depth + 1, limit) for v in x[:limit] if budget[0] > 0]',
+    '    if isinstance(x, str) and len(x) > limit * 100: return x[:limit * 100]',
     '    return x',
     `f = json.load(open(${JSON.stringify(path)}))`,
-    `print(json.dumps(prune(f["results"][${index}]["response"]["data"])))`,
+    `payload = f.get("data", f).get("results", [])[${index}]["response"]["data"]`,
+    'for limit in [12, 6, 3, 1]:',
+    '    encoded = json.dumps(prune(payload, [max(80, limit * 80)], limit=limit), ensure_ascii=True, separators=(",", ":"), allow_nan=False)',
+    '    if len(encoded) <= 19000: break',
+    'else: raise ValueError("Saved provider data could not fit within the output budget")',
+    'print("GROUNDSWELL_JSON_START\\n" + encoded + "\\nGROUNDSWELL_JSON_END")',
   ].join('\n');
+}
+
+/** Workbench may surround stdout with diagnostics; only complete JSON is accepted. */
+export function decodeWorkbenchJson(stdout: string): unknown {
+  const text = stdout.trim();
+  if (text.length > 250_000) throw new Error('The saved provider answer exceeded the output budget.');
+  try { return JSON.parse(text); } catch { /* Try the delimited data below. */ }
+  const candidate = /^[ \t]*(?:\{|\[(?!(?:INFO|WARN|WARNING|DEBUG|ERROR|TRACE)\](?:[ \t]|$)))/m.exec(text);
+  const markerStart = /^GROUNDSWELL_JSON_START[ \t]*\r?$/m.exec(text);
+  if (markerStart) {
+    if (candidate && candidate.index < markerStart.index) throw new Error('The saved provider answer contained an incomplete outer JSON response.');
+    const marker = text.match(/^GROUNDSWELL_JSON_START[ \t]*\r?\n([\s\S]*?)\r?\nGROUNDSWELL_JSON_END[ \t]*(?:\r?\n|$)/m);
+    if (!marker) throw new Error('The saved provider answer has incomplete JSON markers.');
+    return JSON.parse(marker[1]);
+  }
+  const fenceStart = /^```(?:json)?[ \t]*\r?$/m.exec(text);
+  if (fenceStart) {
+    if (candidate && candidate.index < fenceStart.index) throw new Error('The saved provider answer contained an incomplete outer JSON response.');
+    const fenced = text.match(/^```(?:json)?[ \t]*\r?\n([\s\S]*?)\r?\n```[ \t]*(?:\r?\n|$)/m);
+    if (!fenced) throw new Error('The saved provider answer has an incomplete JSON fence.');
+    return JSON.parse(fenced[1]);
+  }
+  // Inspect only the first root on its own line. Never retry inside a
+  // truncated object: a valid nested fragment is not a complete response.
+  if (!candidate) throw new Error('The saved provider answer did not contain complete JSON.');
+  const start = candidate.index + candidate[0].length - 1;
+  const stack: string[] = [];
+  let quoted = false, escaped = false;
+  for (let end = start; end < text.length; end += 1) {
+    const character = text[end];
+    if (quoted) { if (escaped) escaped = false; else if (character === '\\') escaped = true; else if (character === '"') quoted = false; continue; }
+    if (character === '"') quoted = true;
+    else if (character === '{' || character === '[') stack.push(character);
+    else if (character === '}' || character === ']') {
+      if (stack.pop() !== (character === '}' ? '{' : '[')) break;
+      if (!stack.length) {
+        const trailing = text.slice(end + 1);
+        if (/^[^\r\n]*\S/.test(trailing) || /^[ \t]*(?:\{|\[)/m.test(trailing)) break;
+        return JSON.parse(text.slice(start, end + 1));
+      }
+    }
+  }
+  throw new Error('The saved provider answer did not contain complete JSON.');
 }
 
 /** Reads an answer the endpoint cut to a preview back from the consumer sandbox, pruned to what the Currents read. */
 async function readSaved(path: string, slug: string, timeoutMs: number): Promise<unknown> {
-  if (!SANDBOX_PATH.test(path)) throw new Error(`${slug}: the consumer endpoint saved its answer somewhere unexpected.`);
+  if (!SANDBOX_PATH.test(path) || path.split('/').slice(1).some(part => !part || part === '..' || part === '.')) throw new Error(`${slug}: the consumer endpoint saved its answer somewhere unexpected.`);
   const out = (await callConsumerTool(
     'COMPOSIO_REMOTE_WORKBENCH',
     { code_to_execute: prunerCode(path), thought: 'Groundswell reads a large answer back, pruned.', current_step: 'GROUNDSWELL_READ_LARGE' },
     timeoutMs
-  )) as { data?: { stdout?: string; error?: string; stderr?: string }; error?: unknown };
-  const stdout = out?.data?.stdout ?? '';
-  if (out?.data?.error || !stdout.trim()) throw new Error(`${slug}: the large answer could not be read back (${(out?.data?.error || out?.data?.stderr || 'no output').toString().slice(0, 200)}).`);
+  )) as { data?: unknown; stdout?: unknown; error?: unknown; stderr?: unknown; successful?: boolean };
+  let result = out;
+  for (let depth = 0; depth < 4 && typeof result?.stdout !== 'string' && result?.data && typeof result.data === 'object'; depth += 1) {
+    if (result.error || result.successful === false) throw new Error(`${slug}: the saved provider answer could not be read back (${describeError(result.error)}).`);
+    result = result.data as typeof out;
+  }
+  const stdout = typeof result?.stdout === 'string' ? result.stdout : '';
+  if (result?.error || result?.successful === false || !stdout.trim()) throw new Error(`${slug}: the large answer could not be read back (${describeError(result?.error || result?.stderr || 'no output')}).`);
   try {
-    return JSON.parse(stdout);
+    return decodeWorkbenchJson(stdout);
   } catch {
     throw new Error(`${slug}: the large answer came back unreadable.`);
   }
@@ -245,6 +324,8 @@ async function readSaved(path: string, slug: string, timeoutMs: number): Promise
  * each answer: `{ data: { results: [{ response: { successful, data, error } }] } }`.
  */
 export async function executeConsumerTool(slug: string, args: Record<string, unknown>, timeoutMs = 90_000): Promise<unknown> {
+  assertPublicReadBudget();
+  const deadline = Date.now() + timeoutMs;
   const raw = (await callConsumerTool(
     'COMPOSIO_MULTI_EXECUTE_TOOL',
     {
@@ -255,7 +336,10 @@ export async function executeConsumerTool(slug: string, args: Record<string, unk
     },
     timeoutMs,
     { envelope: true }
-  )) as {
+  ).catch((err: unknown) => {
+    if (isProviderCreditFailure(err instanceof Error ? err.message : String(err))) pausePublicReadsForCredits();
+    throw err;
+  })) as {
     successful?: boolean;
     data?: {
       results?: { response?: { successful?: boolean; data?: unknown; data_preview?: unknown; error?: unknown }; error?: unknown }[];
@@ -266,6 +350,7 @@ export async function executeConsumerTool(slug: string, args: Record<string, unk
   const item = raw?.data?.results?.[0];
   const response = item?.response;
   const why = describeError(response?.error ?? item?.error ?? raw?.error);
+  if (isProviderCreditFailure(why)) pausePublicReadsForCredits();
   if (!response || response.successful === false || (raw?.successful === false && response.data === undefined && response.data_preview === undefined)) {
     if (NO_CONNECTION.test(why)) {
       throw new PermanentStepError(`Composio's consumer account has no active connection for ${slug.split('_')[0].toLowerCase()}: ${why}`);
@@ -276,7 +361,12 @@ export async function executeConsumerTool(slug: string, args: Record<string, unk
   // Too large to return inline: the endpoint sent a preview and saved the answer in the consumer sandbox.
   const path = raw?.data?.remote_file_info?.file_path;
   if (!path) throw new Error(`${slug}: the consumer endpoint sent only a preview of its answer.`);
-  return readSaved(path, slug, timeoutMs);
+  const remaining = deadline - Date.now();
+  if (remaining <= 0) throw new Error(`${slug}: no time remained to read the saved provider answer.`);
+  return readSaved(path, slug, remaining).catch((err: unknown) => {
+    if (isProviderCreditFailure(err instanceof Error ? err.message : String(err))) pausePublicReadsForCredits();
+    throw err;
+  });
 }
 
 export interface ConsumerToolkitState {

@@ -121,6 +121,7 @@ export function sampleModelOutput(): ModelOutput {
   const estimates = normalizeEstimates(sampleModelJson.estimates);
   const plan = roiInputsFrom(facts, estimates)!;
   return {
+    report_schema_version: 1,
     model: 'test-model',
     generated_at: '2026-10-21T12:00:00.000Z',
     writeup: normalizeWriteup(sampleModelJson),

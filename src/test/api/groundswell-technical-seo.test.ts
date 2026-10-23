@@ -1,4 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+vi.mock('../../../api/_lib/groundswell/publicFetch', () => ({ readPublicText: vi.fn() }));
+
+import { readPublicText } from '../../../api/_lib/groundswell/publicFetch';
 import { parseSite, scanSite } from '../../../api/_lib/groundswell/currents/site';
 import { factsForPrompt } from '../../../api/_lib/groundswell/model';
 import { buildAuditHtml, buildSummaryHtml } from '../../../api/_lib/groundswell/reports';
@@ -8,7 +11,8 @@ const URL = 'https://business.example/services';
 const scan = (html: string) => parseSite(html, URL, URL, 200);
 const healthyHead = '<title>Local repairs</title><meta name="description" content="Repairs for your home."><link rel="canonical" href="/services">';
 const plain = (html: string) => html.replace(/<style\b[\s\S]*?<\/style>/gi, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
-afterEach(() => vi.unstubAllGlobals());
+const read = vi.mocked(readPublicText);
+afterEach(() => read.mockReset());
 
 describe('Site Current technical SEO evidence', () => {
   it('measures body headings and words without counting head, scripts, comments, templates, or noscript copy', () => {
@@ -60,13 +64,9 @@ describe('Site Current technical SEO evidence', () => {
   });
 
   it('uses the HTTP robots header and does not apply another bot’s scoped noindex to Googlebot', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(`<head>${healthyHead}</head><h1>Repairs</h1>`, {
-      status: 200, headers: { 'X-Robots-Tag': 'googlebot: noindex' },
-    })));
+    read.mockResolvedValueOnce({ url: URL, status: 200, contentType: 'text/html', text: `<head>${healthyHead}</head><h1>Repairs</h1>`, xRobotsTag: 'googlebot: noindex' });
     expect((await scanSite(URL)).technical_seo?.findings).toContainEqual(expect.objectContaining({ code: 'noindex' }));
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(`<head>${healthyHead}</head><h1>Repairs</h1>`, {
-      status: 200, headers: { 'X-Robots-Tag': 'otherbot: noindex, googlebot: index' },
-    })));
+    read.mockResolvedValueOnce({ url: URL, status: 200, contentType: 'text/html', text: `<head>${healthyHead}</head><h1>Repairs</h1>`, xRobotsTag: 'otherbot: noindex, googlebot: index' });
     expect((await scanSite(URL)).technical_seo?.findings.some(f => f.code === 'noindex')).toBe(false);
   });
 
@@ -105,7 +105,7 @@ describe('Site Current technical SEO evidence', () => {
   });
 
   it('does not turn an unreachable response into claims that the website lacks metadata', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Timed out')));
+    read.mockRejectedValueOnce(new Error('Timed out'));
     const s = await scanSite(URL);
     expect(s.error).toBe('Timed out');
     expect(s.technical_seo?.findings).toEqual([]);
@@ -143,7 +143,7 @@ describe('technical SEO in audit facts and reports', () => {
   });
 
   it('does not label an unavailable website as passing its technical SEO checks', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Timed out')));
+    read.mockRejectedValueOnce(new Error('Timed out'));
     const d = sampleReportData();
     d.facts.site!.business = await scanSite(URL);
     const html = plain(buildAuditHtml(d));

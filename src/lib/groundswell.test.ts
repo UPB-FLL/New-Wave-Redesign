@@ -2,7 +2,8 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { buildAuditInsert, buildCompetitor, isDriveLink, normalizeInstagram, normalizeWebsite, type AuditDraft } from './groundswell';
-import { buildPartnerBranding, normalizeBrandColor, normalizeLogoUrl } from './groundswellValidation';
+import { buildCustomerInsert, buildPartnerBranding, normalizeBrandColor, normalizeFacebook, normalizeLogoUrl } from './groundswellValidation';
+import { logoBackground } from './groundswellBrandAssets';
 
 const draft = (over: Partial<AuditDraft> = {}): AuditDraft => ({
   business_name: 'Flow and Mills',
@@ -37,6 +38,31 @@ describe('normalizeInstagram', () => {
   });
 });
 
+describe('Facebook intake', () => {
+  it('normalizes public Page handles and numeric Page links without tracking', () => {
+    expect(normalizeFacebook(' @wildlyprimal ')).toBe('https://www.facebook.com/wildlyprimal');
+    expect(normalizeFacebook('m.facebook.com/wildlyprimal/?ref=share')).toBe('https://www.facebook.com/wildlyprimal');
+    expect(normalizeFacebook('https://www.facebook.com/profile.php?id=123456789&ref=share')).toBe('https://www.facebook.com/profile.php?id=123456789');
+    expect(normalizeFacebook('')).toBeNull();
+  });
+
+  it.each(['https://facebook.com.evil.example/shop', 'https://u:p@facebook.com/shop', 'https://facebook.com:8080/shop', 'https://facebook.com/groups/shop', 'https://facebook.com/profile.php?id=nope'])('rejects non-Page identities: %s', (value) => {
+    expect(() => normalizeFacebook(value)).toThrow();
+  });
+
+  it('queues a Facebook-only business and competitor', () => {
+    expect(buildAuditInsert(draft({ instagram: '', facebook: 'wildlyprimal', competitors: [{ name: 'Rival', website: '', instagram: '', facebook: 'rivalfitness' }] }))).toMatchObject({
+      website: null, instagram: null, facebook: 'https://www.facebook.com/wildlyprimal',
+      competitors: [{ name: 'Rival', website: null, instagram: null, facebook: 'https://www.facebook.com/rivalfitness' }],
+    });
+  });
+
+  it('clears an explicitly emptied saved Page without clearing one omitted by an older client', () => {
+    expect(buildCustomerInsert(draft({ facebook: '' }))).toHaveProperty('facebook', null);
+    expect(buildCustomerInsert(draft())).not.toHaveProperty('facebook');
+  });
+});
+
 describe('buildAuditInsert', () => {
   it('keeps filled competitors and drops empty rows', () => {
     const row = buildAuditInsert(draft({ competitors: [
@@ -49,7 +75,7 @@ describe('buildAuditInsert', () => {
   });
   it('needs a name and a website or Instagram', () => {
     expect(() => buildAuditInsert(draft({ business_name: ' ' }))).toThrow(/business name/);
-    expect(() => buildAuditInsert(draft({ instagram: '' }))).toThrow(/website or an Instagram/);
+    expect(() => buildAuditInsert(draft({ instagram: '' }))).toThrow(/website, an Instagram handle, or a Facebook Page/);
     expect(() => buildAuditInsert(draft({ competitors: [{ name: 'Rival', website: '', instagram: '' }] }))).toThrow(/Rival/);
   });
   it('names an unnamed competitor after its website or handle', () => {
@@ -59,6 +85,12 @@ describe('buildAuditInsert', () => {
 });
 
 describe('white-label branding input', () => {
+  it('gives reverse wordmarks a dark backing without using the domain name as a colour hint', () => {
+    expect(logoBackground('https://wildlyprimal.com/brand/wildly-primal-logo-light.svg')).toBe('#101e2d');
+    expect(logoBackground('https://brand.example/LOGO_WHITE.png')).toBe('#101e2d');
+    expect(logoBackground('https://white.example/logo.svg')).toBe('#ffffff');
+    expect(logoBackground(null)).toBe('#ffffff');
+  });
   it('takes an https logo on a public host, and nothing else', () => {
     expect(normalizeLogoUrl('')).toBeNull();
     expect(normalizeLogoUrl(' https://cdn.reef.example/logo.png ')).toBe('https://cdn.reef.example/logo.png');
