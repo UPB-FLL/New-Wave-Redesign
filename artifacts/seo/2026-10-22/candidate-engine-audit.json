@@ -1,0 +1,205 @@
+{
+  "observed_at": "2026-10-23T01:14:53.669Z",
+  "engine": "GroundSwell Site Current: api/_lib/groundswell/currents/site.ts",
+  "source": {
+    "kind": "built_html",
+    "file": "dist/social-engineering/groundswell/index.html",
+    "sha256": "693b6a5322f3645fd5e28007cf352402b79acc44d9c9b6c7969ca793b263f558",
+    "parser_status_context": 200
+  },
+  "raw_parse_site": {
+    "url": "https://www.newwaveitfl.com/social-engineering/groundswell",
+    "final_url": "https://www.newwaveitfl.com/social-engineering/groundswell",
+    "status": 200,
+    "https": true,
+    "fetched_at": "2026-10-23T01:14:53.676Z",
+    "error": null,
+    "title": "GroundSwell — Growth audits & partner workspace | New Wave",
+    "meta_description": "GroundSwell brings growth audits, competitor plans, branded reports, and a partner workspace together. Built by New Wave for agencies and businesses.",
+    "h1": [
+      "Built to move people."
+    ],
+    "canonical": "https://www.newwaveitfl.com/social-engineering/groundswell",
+    "has_viewport": true,
+    "word_count": 3658,
+    "theme_color": "#09131D",
+    "brand_colors": [
+      "#31c6cf",
+      "#317b92",
+      "#f2a33a"
+    ],
+    "logo": "https://www.newwaveitfl.com/brand/social-engineering/06_Digital/GroundSwell_Favicon_180.png",
+    "og_image": "https://www.newwaveitfl.com/brand/social-engineering/06_Digital/GroundSwell_OG_1200x630.png",
+    "schema_types": [
+      "Organization",
+      "Country",
+      "SoftwareApplication",
+      "WebPage",
+      "WebSite",
+      "BreadcrumbList",
+      "ListItem",
+      "FAQPage",
+      "Question",
+      "Answer"
+    ],
+    "technical_seo": {
+      "scope": "raw_http",
+      "limitation": "Initial HTML from a raw HTTP fetch; JavaScript was not rendered. Head, comments, scripts, styles, templates and noscript are excluded from body counts. Confirm rendered content and indexing with Search Console; these checks do not measure rankings, robots.txt access, or rich-result eligibility.",
+      "body_h1_count": 1,
+      "body_word_count": 3658,
+      "app_shell": false,
+      "robots": [
+        "index, follow"
+      ],
+      "x_robots_tag": null,
+      "canonical_url": "https://www.newwaveitfl.com/social-engineering/groundswell",
+      "json_ld": {
+        "blocks": 1,
+        "invalid_blocks": 0
+      },
+      "images": {
+        "total": 8,
+        "missing_alt": 0,
+        "empty_alt": 6
+      },
+      "findings": []
+    },
+    "tracking": {
+      "google_analytics": [],
+      "google_tag_manager": [],
+      "google_ads": [],
+      "meta_pixel": false,
+      "tiktok_pixel": false
+    },
+    "booking": [],
+    "phones": [],
+    "social": {
+      "instagram": [],
+      "facebook": [],
+      "tiktok": [],
+      "youtube": []
+    }
+  },
+  "limitations": [
+    "Plain HTTP and local browser observations only; no Search Console, ranking, traffic, or Google indexing evidence.",
+    "No PageSpeed API, Core Web Vitals, or Lighthouse scores were requested or estimated."
+  ],
+  "browser": {
+    "requested_url": "http://127.0.0.1:4181/social-engineering/groundswell/",
+    "final_url": "http://127.0.0.1:4181/social-engineering/groundswell/",
+    "status": 200,
+    "response_sha256": "693b6a5322f3645fd5e28007cf352402b79acc44d9c9b6c7969ca793b263f558",
+    "sha256": "7e43a13654d23471a8dc97e574f8a579a2e4c73420aa31c59537bed8c3c23e6e",
+    "page_errors": [],
+    "parser_url_context": "https://www.newwaveitfl.com/social-engineering/groundswell",
+    "parse_site": {
+      "url": "https://www.newwaveitfl.com/social-engineering/groundswell",
+      "final_url": "https://www.newwaveitfl.com/social-engineering/groundswell",
+      "status": 200,
+      "https": true,
+      "fetched_at": "2026-10-23T01:14:54.866Z",
+      "error": null,
+      "title": "GroundSwell — Growth audits & partner workspace | New Wave",
+      "meta_description": "GroundSwell brings growth audits, competitor plans, branded reports, and a partner workspace together. Built by New Wave for agencies and businesses.",
+      "h1": [
+        "Built to move people."
+      ],
+      "canonical": "https://www.newwaveitfl.com/social-engineering/groundswell",
+      "has_viewport": true,
+      "word_count": 3577,
+      "theme_color": "#09131D",
+      "brand_colors": [
+        "#31c6cf",
+        "#317b92",
+        "#f2a33a"
+      ],
+      "logo": "https://www.newwaveitfl.com/brand/social-engineering/06_Digital/GroundSwell_Favicon_180.png",
+      "og_image": "https://www.newwaveitfl.com/brand/social-engineering/06_Digital/GroundSwell_OG_1200x630.png",
+      "schema_types": [
+        "Organization",
+        "Country",
+        "SoftwareApplication",
+        "WebPage",
+        "WebSite",
+        "BreadcrumbList",
+        "ListItem",
+        "FAQPage",
+        "Question",
+        "Answer"
+      ],
+      "technical_seo": {
+        "scope": "raw_http",
+        "limitation": "Initial HTML from a raw HTTP fetch; JavaScript was not rendered. Head, comments, scripts, styles, templates and noscript are excluded from body counts. Confirm rendered content and indexing with Search Console; these checks do not measure rankings, robots.txt access, or rich-result eligibility.",
+        "body_h1_count": 1,
+        "body_word_count": 3577,
+        "app_shell": false,
+        "robots": [
+          "index, follow"
+        ],
+        "x_robots_tag": null,
+        "canonical_url": "https://www.newwaveitfl.com/social-engineering/groundswell",
+        "json_ld": {
+          "blocks": 1,
+          "invalid_blocks": 0
+        },
+        "images": {
+          "total": 8,
+          "missing_alt": 0,
+          "empty_alt": 6
+        },
+        "findings": []
+      },
+      "tracking": {
+        "google_analytics": [],
+        "google_tag_manager": [],
+        "google_ads": [],
+        "meta_pixel": false,
+        "tiktok_pixel": false
+      },
+      "booking": [],
+      "phones": [],
+      "social": {
+        "instagram": [],
+        "facebook": [],
+        "tiktok": [],
+        "youtube": []
+      }
+    },
+    "dom": {
+      "root_child_count": 1,
+      "main_word_count": 3086,
+      "h1": [
+        "Built to move people."
+      ],
+      "faq_count": 6,
+      "title_count": 1,
+      "canonical_count": 1,
+      "json_ld_count": 1
+    }
+  },
+  "saved_html_replay": {
+    "source": "Saved document response replayed; current built assets loaded normally.",
+    "h1_count": 1,
+    "main_count": 1,
+    "active_process_tab": "02Research",
+    "duplicate_fallback": false
+  },
+  "no_javascript": {
+    "h1": [
+      "Built to move people."
+    ],
+    "root_child_count": 1,
+    "main_count": 1,
+    "faq_count": 6,
+    "visible_main_words": 987
+  },
+  "no_javascript_320": {
+    "viewport_width": 320,
+    "document_width": 320,
+    "h1_count": 1,
+    "main_count": 1,
+    "faq_count": 6,
+    "native_faq_opened": true
+  },
+  "no_javascript_320_screenshot": "/tmp/candidate-engine-audit.no-js-320.png"
+}

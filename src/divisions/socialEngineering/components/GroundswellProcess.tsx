@@ -59,7 +59,7 @@ function ProcessPanel({ index, active }: { index: number; active: boolean }) {
       <figure className="gs-process-figure">
         <ProcessDrawing key={`${active}-${replay}`} step={index} active={active} />
         <figcaption>
-          <span>{step.caption} · Process illustration</span>
+          <span>{step.caption}</span>
           <button type="button" className="gs-process-replay" onClick={() => setReplay(value => value + 1)} aria-label={`Replay ${step.title.toLowerCase()} animation`}>
             <NwseIcon name="chevron-right" size={14} /> Replay
           </button>

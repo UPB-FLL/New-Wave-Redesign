@@ -2,12 +2,12 @@
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { defineConfig, type Plugin } from 'vite';
+import { createServer, defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { divisionPageModule, preloadTagsFor, type BundleChunk } from './src/divisions/socialEngineering/preload';
 import { renderDivisionPageHtml } from './src/divisions/socialEngineering/prerender';
 import { allDivisionPages } from './src/divisions/socialEngineering/seo';
-import { DIVISION_PUBLISHED } from './src/divisions/socialEngineering/site';
+import { DIVISION_GROUNDSWELL_PATH, DIVISION_PUBLISHED } from './src/divisions/socialEngineering/site';
 import { renderRouteHtml } from './src/lib/prerenderHead';
 import { prerenderedItRoutes } from './src/lib/routeMeta';
 
@@ -17,14 +17,16 @@ import { prerenderedItRoutes } from './src/lib/routeMeta';
  * tags (src/lib/prerenderHead.ts), so crawlers that don't run JavaScript never
  * read one page as a copy of the homepage. New Wave IT routes come from
  * src/lib/routeMeta.ts; division pages also get their own JSON-LD, icons, and
- * preload links. vercel.json rewrites each route to its file; the homepage and
- * data-driven routes keep the shell.
+ * preload links. GroundSwell's public marketing page also renders its actual
+ * React content into #root so reading the page does not require JavaScript.
+ * vercel.json rewrites each route to its file; the homepage and data-driven
+ * routes keep the shell.
  */
 function prerenderPages(): Plugin {
   return {
     name: 'nw-prerender-pages',
     apply: 'build',
-    writeBundle(options, bundle) {
+    async writeBundle(options, bundle) {
       const outDir = options.dir ?? path.resolve('dist');
       const shell = readFileSync(path.join(outDir, 'index.html'), 'utf8');
       const write = (route: string, html: string) => {
@@ -35,9 +37,32 @@ function prerenderPages(): Plugin {
       for (const route of prerenderedItRoutes()) {
         write(route.path, renderRouteHtml(shell, route.path, route.meta));
       }
-      for (const page of DIVISION_PUBLISHED ? allDivisionPages() : []) {
-        const headExtras = preloadTagsFor(bundle as unknown as Record<string, BundleChunk>, divisionPageModule(page.path));
-        write(page.path, renderDivisionPageHtml(shell, page, { headExtras }));
+      if (!DIVISION_PUBLISHED) return;
+      // Only this static public route needs a React server render. An isolated
+      // loader avoids importing browser entrypoints, credentials, or app APIs.
+      const renderer = await createServer({
+        configFile: false,
+        root: process.cwd(),
+        plugins: [react()],
+        // Router v7 re-exports its server components; transform both packages
+        // together rather than asking Node's CJS analyzer to infer re-exports.
+        ssr: {
+          noExternal: ['react-router-dom', 'react-router'],
+          resolve: { conditions: ['module-sync', 'module', 'import'] },
+        },
+        server: { middlewareMode: true, watch: null },
+        appType: 'custom',
+        logLevel: 'error',
+      });
+      try {
+        const { renderGroundswellBody } = await renderer.ssrLoadModule('/src/divisions/socialEngineering/prerenderBody.tsx');
+        for (const page of allDivisionPages()) {
+          const headExtras = preloadTagsFor(bundle as unknown as Record<string, BundleChunk>, divisionPageModule(page.path));
+          const bodyHtml = page.path === DIVISION_GROUNDSWELL_PATH ? renderGroundswellBody() as string : undefined;
+          write(page.path, renderDivisionPageHtml(shell, page, { headExtras, bodyHtml }));
+        }
+      } finally {
+        await renderer.close();
       }
     },
   };

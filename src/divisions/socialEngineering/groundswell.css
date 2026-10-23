@@ -5,11 +5,18 @@
   --nw-font-technical: 'IBM Plex Mono', monospace;
   --nw-current-navy: #09131D;
   --nw-deep-current: #09131D;
+  --nw-pure-white: var(--gs-white);
   --nw-signal-cyan: #31C6CF;
   --nw-continuity-green: #31C6CF;
   --nwse-lure-amber: #F2A33A;
   --nwse-lure-amber-deep: #317B92;
   --nwse-header-height: 0px;
+  /* A single family of tinted grounds, derived from the supplied identity. */
+  --gs-surface-navigation: color-mix(in srgb, var(--gs-cyan) 14%, var(--gs-foam));
+  --gs-surface-sample: color-mix(in srgb, var(--gs-tide) 16%, var(--gs-white));
+  --gs-surface-reports: color-mix(in srgb, var(--gs-amber) 19%, var(--gs-white));
+  --gs-hairline-light: color-mix(in srgb, var(--gs-tide) 28%, transparent);
+  --gs-hairline-dark: color-mix(in srgb, var(--gs-foam) 26%, transparent);
   font-family: var(--nw-font-body);
 }
 .gs-marketing :is(a,button,input,summary,[tabindex]):focus-visible { outline: 3px solid var(--gs-tide); outline-offset: 4px; }
@@ -97,3 +104,114 @@
 .gs-marketing .gs-marketing-breadcrumb a:hover { color: var(--gs-cyan); text-decoration: underline; }
 .gs-marketing .gs-marketing-sample-link { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin-top: 12px; font-size: 13px; font-weight: 500; }
 .gs-marketing .gs-marketing-sample-link:hover { color: var(--gs-cyan); }
+
+/* Section rhythm: foam process, navy sources, blue report viewer, warm
+   deliverables, navy growth, foam questions. Each section owns its copy and
+   controls; shared dark-text utilities never need a blanket inversion. */
+.gs-marketing .gs-section {
+  isolation: isolate;
+  color: var(--gs-navy);
+}
+.gs-marketing .gs-section-navigation { background: var(--gs-surface-navigation); }
+.gs-marketing .gs-section-foam { background: var(--gs-foam); }
+.gs-marketing .gs-section-navy { background: var(--gs-navy); color: var(--gs-white); }
+.gs-marketing .gs-section-sample { background: var(--gs-surface-sample); }
+.gs-marketing .gs-section-amber { background: var(--gs-surface-reports); }
+.gs-marketing .gs-section-navy::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: url('/brand/social-engineering/02_Graphics/GroundSwell_Contours_Dark.svg') right center / auto 140% no-repeat;
+  opacity: .12;
+  pointer-events: none;
+}
+.gs-marketing .gs-section-navigation .nwse-chip {
+  background: transparent;
+  border-color: var(--gs-hairline-light);
+}
+.gs-marketing .gs-section-navigation .nwse-chip:hover {
+  background: var(--gs-navy);
+  border-color: var(--gs-navy);
+  color: var(--gs-white);
+}
+/* Tide is a graphic colour on coloured light grounds; navy labels retain
+   AA contrast even where the tint becomes stronger. */
+.gs-marketing .gs-section :is(.nwse-kicker,.nwse-label) { color: var(--gs-navy); }
+.gs-marketing .gs-section-navy .nwse-kicker-on-dark { color: var(--gs-cyan); }
+.gs-marketing .gs-section-navy :is(a,button,summary,[tabindex]):focus-visible {
+  outline-color: var(--gs-cyan);
+}
+.gs-marketing .gs-section-navy .nwse-icon-on-dark {
+  background: color-mix(in srgb, var(--gs-cyan) 18%, var(--gs-navy2));
+  color: var(--gs-cyan);
+}
+
+/* The Currents explorer reads as a native dark interface, including every
+   selected, hover, and nested example state. */
+.gs-marketing #currents .nwse-tab-chip {
+  background: var(--gs-navy2);
+  border-color: var(--gs-hairline-dark);
+  color: var(--gs-white);
+  /* Switch foreground and fill together: interpolating both passes through
+     low-contrast grey-on-teal between the selected and resting states. */
+  transition: border-color 150ms;
+}
+.gs-marketing #currents .nwse-tab-chip:hover { border-color: var(--gs-cyan); }
+.gs-marketing #currents .nwse-tab-chip[aria-selected='true'] {
+  background: var(--gs-cyan);
+  border-color: var(--gs-cyan);
+  color: var(--gs-navy);
+}
+.gs-marketing #currents .nwse-tab-chip .nwse-icon {
+  background: var(--gs-foam);
+  color: var(--gs-navy);
+}
+.gs-marketing #currents .nwse-tab-chip[aria-selected='true'] .nwse-icon {
+  background: var(--gs-navy);
+  color: var(--gs-cyan);
+}
+.gs-marketing .gs-current-panel,
+.gs-marketing .gs-growth-panel {
+  background: var(--gs-navy2);
+  border: 1px solid var(--gs-hairline-dark);
+  border-radius: 12px;
+}
+.gs-marketing .gs-current-title { color: var(--gs-white); }
+.gs-marketing .gs-current-label { color: var(--gs-cyan); }
+.gs-marketing .gs-current-copy { color: var(--gs-mist); }
+.gs-marketing .gs-current-example {
+  background: color-mix(in srgb, var(--gs-tide) 22%, var(--gs-navy2));
+  border-radius: 8px;
+  border-left: 2px solid var(--gs-cyan);
+}
+.gs-marketing #growth .gs-growth-panel:nth-child(2) { border-top: 2px solid var(--gs-amber); }
+.gs-marketing #growth .gs-growth-panel:first-child { border-top: 2px solid var(--gs-cyan); }
+
+/* Light paper belongs to the sample itself. Surrounding panels carry their
+   section's hue, so the page no longer repeats white cards from top to bottom. */
+.gs-marketing #sample [data-role='sample-viewer'] { border-color: var(--gs-hairline-light); }
+.gs-marketing #sample [data-role='cta-strip'] {
+  background: var(--gs-navy2);
+  border-left: 3px solid var(--gs-cyan);
+}
+.gs-marketing #sample [data-role='cta-strip'] h3 { color: var(--gs-white); }
+.gs-marketing #sample [data-role='cta-strip'] p { color: var(--gs-mist); }
+.gs-marketing #sample [data-role='cta-strip'] :is(a,button):focus-visible { outline-color: var(--gs-cyan); }
+.gs-marketing #sample [data-role='cta-strip'] .nwse-btn:hover { background: var(--gs-white); color: var(--gs-navy); }
+.gs-marketing #reports .nwse-card {
+  background: color-mix(in srgb, var(--gs-amber) 8%, var(--gs-white));
+  border-color: color-mix(in srgb, var(--gs-amber) 42%, var(--gs-navy));
+}
+.gs-marketing #questions .nwse-faq {
+  background: transparent;
+  border-color: var(--gs-hairline-light);
+}
+.gs-marketing #questions .nwse-faq[open] {
+  background: color-mix(in srgb, var(--gs-cyan) 6%, var(--gs-foam));
+  border-color: var(--gs-tide);
+}
+.gs-marketing #questions .nwse-faq-chevron { color: var(--gs-navy); }
+@media (forced-colors: active), print {
+  .gs-marketing .gs-section-navy::before { content: none; }
+}

@@ -401,7 +401,7 @@ function areaTables(key: AreaKey, f: Facts): string {
           ['Secure (HTTPS)', s.error ? NOT_CHECKED : s.https ? 'Yes' : 'No'],
           ['Mobile viewport', s.error ? NOT_CHECKED : s.has_viewport ? 'Yes' : 'No'],
           ['Main heading', s.h1[0] ?? 'none found'],
-          ['Words on the homepage', num(s.word_count)],
+          [s.technical_seo ? 'Words in the initial HTML body' : 'Words in the fetched markup', num(s.word_count)],
           ['Structured data', s.schema_types.join(', ') || 'none found'],
           ['Tracking tags', tags.join(', ') || 'none found'],
           ['Online booking', s.booking.join(', ') || 'none found'],
@@ -409,7 +409,15 @@ function areaTables(key: AreaKey, f: Facts): string {
           ['Organic keywords (Ahrefs, US)', num(a?.organic_keywords ?? null)],
           ['Monthly organic visits (Ahrefs estimate)', num(a?.organic_traffic ?? null)],
         ]
-      );
+      ) + (s.technical_seo ? `<h3>Technical SEO checks</h3><p class="muted">${esc(s.technical_seo.limitation)}</p>${
+        s.technical_seo.findings.length
+          ? table(['Priority', 'Observed evidence', 'Recommended action'], s.technical_seo.findings.map(finding => [
+              finding.severity, `${finding.title}. ${finding.evidence}`, finding.recommendation,
+            ]))
+          : s.error || !s.status || s.status < 200 || s.status >= 300
+            ? '<p>Technical SEO could not be assessed from a successful website response.</p>'
+            : '<p>No issues were identified by these initial-response checks; rendered content, indexing and rich-result eligibility were not verified.</p>'
+      }` : '');
     }
     case 'ads': {
       const rows = [f.ads?.business, ...(f.ads?.competitors ?? [])]
@@ -578,7 +586,7 @@ export function buildAuditHtml(d: ReportData): string {
       ? `${m.roi.lever}: about ${money(m.roi.scenarios.base?.steady_month.spend)} a month in ad spend, ${money(m.roi.scenarios.base?.year.net)} net over 12 months in the base case (${money(m.roi.scenarios.conservative?.year.net)} to ${money(m.roi.scenarios.optimistic?.year.net)} across the scenarios).`
       : m.roi_note ?? '';
   const sources = [
-    f.site?.business ? `Website scan of ${f.site.business.final_url ?? f.site.business.url} (${f.site.business.fetched_at.slice(0, 10)})` : null,
+    f.site?.business ? `Website scan of ${f.site.business.final_url ?? f.site.business.url} (${f.site.business.fetched_at.slice(0, 10)}); raw HTTP response, JavaScript not rendered${f.site.business.technical_seo ? '; technical SEO checks included' : ''}` : null,
     f.maps ? `${f.maps.source} (${f.maps.fetched_at.slice(0, 10)})` : null,
     f.search ? `${f.search.source} (${f.search.fetched_at.slice(0, 10)})` : null,
     f.keywords?.source ? `${f.keywords.source} (${f.keywords.fetched_at?.slice(0, 10) ?? ''})` : null,
@@ -787,7 +795,10 @@ export function buildSummaryHtml(d: ReportData, links: { deck: string; audit: st
   const folder = portalLink(links.folder);
   const who = d.preparer ?? NEW_WAVE_PREPARER;
   const findings = (['google', 'social', 'website', 'ads', 'keywords'] as AreaKey[])
-    .map((k) => ({ k, text: m.writeup.areas[k].costing[0] || m.writeup.areas[k].summary }))
+    .map((k) => {
+      const seo = k === 'website' ? f.site?.business?.technical_seo?.findings[0] : null;
+      return { k, text: seo ? `${seo.title} (initial HTML). ${seo.recommendation.split(/(?<=[.!?])\s+/)[0]}` : m.writeup.areas[k].costing[0] || m.writeup.areas[k].summary };
+    })
     .filter((x) => x.text);
   const roiRows = scenarioRows(m)
     .map(({ key, label, r }) => `<tr${key === 'base' ? ' class="base"' : ''}><td>${label}</td><td>${money(r.steady_month.spend)}/mo</td><td>${money(r.year.net)}</td></tr>`)
