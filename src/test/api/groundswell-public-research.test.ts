@@ -281,3 +281,48 @@ describe('public Google research: the questions people ask', () => {
     expect(parseGoogleSerp({ organic_results: [] }, 'q', null).questions).toEqual([]);
   });
 });
+
+describe('public Google research: one provider after another', () => {
+  // Answer shapes recorded live on 2026-10-24 (SearchAPI's google and google_maps engines, Serper's web and maps).
+  const searchApi = { search_metadata: { id: 'search_1', status: 'Success', request_url: 'https://www.google.com/search?q=x' }, organic_results: [{ position: 2, title: 'Salt Functional Medicine', link: 'https://www.saltfunctionalmedicine.com/', domain: 'www.saltfunctionalmedicine.com', snippet: 'Jacksonville Beach, FL.' }], related_questions: [{ question: 'What is the average cost for a health coach?', is_ai_overview: true }], related_searches: [{ query: 'Best functional health coach jacksonville beach fl' }], local_results: [{ position: 1, title: 'Salt Functional Medicine', type: 'Medical clinic', rating: 5, reviews: 47, address: '1074 10th Ave S', place_id: 'ChIJs64' }] };
+  const serper = { query: 'q', has_more: true, organic_results: [{ position: 1, title: 'Serper hit', link: 'https://serper-hit.example/', snippet: 's' }], people_also_ask: [{ question: 'Does insurance pay for a functional medicine doctor?' }], related_searches: [{ query: 'functional health coach reviews' }] };
+
+  it('falls from SerpApi to SearchAPI, reading its results, questions and local pack in the same shape', async () => {
+    mocks.executeTool.mockImplementation(async (slug: string, args: Record<string, unknown>) => {
+      if (slug === 'SERPAPI_GOOGLE_LIGHT_SEARCH') throw new Error('SERPAPI_GOOGLE_LIGHT_SEARCH failed (401): Invalid API key.');
+      if (slug === 'SEARCH_API_SEARCH') { expect(args).toMatchObject({ engine: 'google', q: 'health coach Jacksonville FL' }); return searchApi; }
+      throw new Error(`unexpected ${slug}`);
+    });
+    const out = await readGoogleSerp('health coach Jacksonville FL', 'Jacksonville FL');
+    expect(out).toMatchObject({ provider: 'search_api', error: null, location: null, organic: [{ position: 2, domain: 'saltfunctionalmedicine.com' }], questions: ['What is the average cost for a health coach?'], related_searches: ['Best functional health coach jacksonville beach fl'], local: [{ title: 'Salt Functional Medicine', category: 'Medical clinic', reviews: 47 }] });
+    expect(mocks.executeTool).toHaveBeenCalledTimes(2);
+  });
+
+  it('falls to Serper when the linked providers cannot answer, and names every refusal when none can', async () => {
+    mocks.executeTool.mockImplementation(async (slug: string) => {
+      if (slug === 'SERPER_SEARCH_WEB') return serper;
+      throw new Error(`${slug} unavailable`);
+    });
+    const out = await readGoogleSerp('health coach Jacksonville FL', 'Jacksonville FL');
+    expect(out).toMatchObject({ provider: 'serper', organic: [{ title: 'Serper hit' }], questions: ['Does insurance pay for a functional medicine doctor?'] });
+    mocks.executeTool.mockRejectedValue(new Error('down'));
+    const none = await readGoogleSerp('q', null);
+    expect(none.error).toBe('SerpApi: down SearchAPI: down Serper: down');
+    expect(none.organic).toEqual([]);
+  });
+
+  it('reads Maps listings from SearchAPI or Serper when SerpApi refuses, in the shape the Maps step already reads', async () => {
+    const { mapsRowsFrom, serpMapsSearch, toMapsPlace } = await import('../../../api/_lib/groundswell/currents/maps');
+    const serperMaps = { has_more: false, places: [{ position: 1, title: 'JM Health & Performance', category: 'Personal trainer', rating: 5, rating_count: 46, address: '14255 Beach Blvd, Jacksonville Beach, FL 32250', website: 'http://www.jmhealthandperformance.com/', phone_number: '(904) 867-4788', place_id: 'ChIJh5w9' }] };
+    expect(toMapsPlace(mapsRowsFrom('serper', serperMaps)[0])).toMatchObject({ name: 'JM Health & Performance', category: 'Personal trainer', rating: 5, reviews: 46, website: 'http://www.jmhealthandperformance.com/', phone: '(904) 867-4788' });
+    mocks.executeTool.mockImplementation(async (slug: string, args: Record<string, unknown>) => {
+      if (slug === 'SEARCH_API_SEARCH' && args.engine === 'google_maps') return { local_results: [{ title: 'Flourish Wellness', type: 'Life coach', rating: 5, reviews: 15, website: 'https://flourishwellness.life/' }] };
+      throw new Error(`${slug} unavailable`);
+    });
+    expect((await serpMapsSearch('Health coach near Jacksonville FL')).map((r) => toMapsPlace(r).name)).toEqual(['Flourish Wellness']);
+    mocks.executeTool.mockImplementation(async (slug: string) => { if (slug === 'SERPER_SEARCH_MAPS') return serperMaps; throw new Error(`${slug} unavailable`); });
+    expect((await serpMapsSearch('Health coach near Jacksonville FL', 30_000)).map((r) => toMapsPlace(r).name)).toEqual(['JM Health & Performance']);
+    mocks.executeTool.mockRejectedValue(new Error('down'));
+    await expect(serpMapsSearch('q')).rejects.toThrow('SerpApi: down SearchAPI: down Serper: down');
+  });
+});

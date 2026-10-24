@@ -324,8 +324,19 @@ sourceURL, creditsUsed } } }` (one credit a page); `search` answers
 `{ data: { web: [{ position, title, url, description, links?, metadata? }] },
 creditsUsed }` (six credits for five results with scraping on).
 
-Next on the live side: credits at ScrapeCreators, a valid SerpApi key in the
-Composio connection (the "searchapi" and "serper" toolkits were only
-initiated, with no account), then Run again on the workspace card; the held
-run is unchanged. Then the remaining steps in section 4 (reviews, community,
+Later the same day: ScrapeCreators answered again (24,998 credits), and the
+owner linked SearchAPI (Composio toolkit `search_api`, account
+`search_api_drow-assman`, 100 credits). SerpApi's default account still
+answers 401 and the re-added one sits at "initiated". So the engine asks
+three providers in turn for every public search and Maps read: SerpApi,
+SearchAPI, then Serper on Composio's instant account (about a tenth of a
+cent a call). SearchAPI's `google` and `google_maps` engines answer in
+SerpApi's shape (`organic_results`, `related_questions`, `related_searches`,
+`local_results` with `title`, `type`, `rating`, `reviews`, `website`,
+`address`, `place_id`); Serper's web search uses the same keys with
+`people_also_ask`, and its Maps `places[]` carries `title`, `category`,
+`rating`, `rating_count`, `website`, `address`, `phone_number`, `place_id`.
+
+Next on the live side: Run again on the workspace card; the held run is
+unchanged. Then the remaining steps in section 4 (reviews, community,
 AI visibility, Facebook in depth, publishing).

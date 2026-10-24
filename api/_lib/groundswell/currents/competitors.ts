@@ -257,7 +257,7 @@ export async function findCompetitors(seed: CompetitorSeed, limit = PICKS_WANTED
   if (hasBudget()) try { const rows = await googlePlacesSearch(localQuery, RESULTS, timeoutMs()); placesCount = rows.length; candidates.push(...fromPlaces(rows, localQuery, 'places')); }
   catch (err) { gaps.push(`Google Places competitors: ${err instanceof Error ? err.message : String(err)}`); }
   if (!placesCount && hasBudget()) {
-    label = 'Google Maps public search, via SerpApi (query-specific listing order)';
+    label = 'Google Maps public search, via SerpApi, SearchAPI or Serper (query-specific listing order)';
     try { const rows = await serpMapsSearch(localQuery, timeoutMs()); placesCount = rows.length; candidates.push(...fromPlaces(rows, localQuery, 'maps_search')); }
     catch (err) { gaps.push(`Public Maps competitors: ${err instanceof Error ? err.message : String(err)}`); }
   }

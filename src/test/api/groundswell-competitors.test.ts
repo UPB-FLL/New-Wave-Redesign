@@ -161,7 +161,7 @@ describe('Competitors Current: runCompetitors', () => {
     const out = await runCompetitors(ctx());
     expect(out.competitors).toEqual([{ name: 'LauderAle Brewery', website: 'https://lauderale.example', instagram: null }]);
     expect(out.picks[0]).toMatchObject({ source: 'web_search' });
-    expect(out.gaps.join(' ')).toMatch(/Google search "Brewery Fort Lauderdale, FL": SERPAPI_GOOGLE_LIGHT_SEARCH unavailable/);
+    expect(out.gaps.join(' ')).toMatch(/Google search "Brewery Fort Lauderdale, FL": SerpApi: SERPAPI_GOOGLE_LIGHT_SEARCH unavailable in this test SearchAPI: .* Serper: /);
   });
 
   it('preserves all entered competitors when the six suggestion slots are already filled', async () => {

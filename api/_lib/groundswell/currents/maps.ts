@@ -2,7 +2,7 @@ import type { Page } from 'puppeteer-core';
 import { withBrowser } from '../browser.js';
 import { executeTool, findKey, isSharedLookupConfigured } from '../composio.js';
 import { PermanentStepError, type StepContext } from '../types.js';
-import { categoryFromSite, numeric, specificCategory } from './serp.js';
+import { categoryFromSite, composioKeyRefused, mapsSearchCall, numeric, SERP_PROVIDER_NAMES, SERP_PROVIDERS, specificCategory, type SerpProvider } from './serp.js';
 import { profileWords, sharesCategory } from '../businessProfile.js';
 import type { SiteScan } from './site.js';
 
@@ -211,16 +211,50 @@ export async function googlePlacesSearch(textQuery: string, maxResultCount = 20,
   return placeRows(payload);
 }
 
-/** Public Maps results, preserving Google's order without calling it an organic or local-pack ranking. */
-export async function serpMapsSearch(query: string, timeoutMs?: number): Promise<PlaceRow[]> {
-  const payload = await executeTool('SERPAPI_GOOGLE_MAPS_SEARCH', { q: query }, timeoutMs);
+/** Serper's `places[]` in the shape the other providers' `local_results` use (`title`, `rating`, `reviews`, `type`, `website`, `address`, `phone`, `place_id`). */
+export function serperPlaceRows(payload: unknown): PlaceRow[] {
+  const places = findKey<unknown[]>(payload, 'places') ?? [];
+  return (Array.isArray(places) ? places : []).filter((p): p is PlaceRow => Boolean(p && typeof p === 'object')).map((p) => ({
+    title: p.title, rating: p.rating, reviews: p.rating_count, type: p.category, website: p.website, address: p.address, phone: p.phone_number, place_id: p.place_id, position: p.position,
+  }));
+}
+
+/** The listing rows one provider's Maps answer carries, or a thrown error when it carries none. */
+export function mapsRowsFrom(provider: SerpProvider, payload: unknown): PlaceRow[] {
   const error = findKey<unknown>(payload, 'error');
-  if (error) throw new Error(`Google Maps search did not answer: ${String(error).slice(0, 300)}`);
+  if (error && typeof error === 'string') throw new Error(`Google Maps search did not answer: ${error.slice(0, 300)}`);
+  if (provider === 'serper') {
+    const rows = serperPlaceRows(payload);
+    if (rows.length || Array.isArray(findKey(payload, 'places'))) return rows;
+    throw new Error('Google Maps search returned no recognizable listing fields.');
+  }
   const list = findKey<unknown>(payload, 'local_results');
   const place = findKey<unknown>(payload, 'place_results');
   if (Array.isArray(list)) return list.filter((r): r is PlaceRow => Boolean(r && typeof r === 'object'));
   if (place && typeof place === 'object') return [place as PlaceRow];
   throw new Error('Google Maps search returned no recognizable listing fields.');
+}
+
+/**
+ * Public Maps results, preserving Google's order without calling it an organic
+ * or local-pack ranking: SerpApi, then SearchAPI, then Serper (serp.ts), the
+ * first that answers. Only a refused Composio key stops the read.
+ */
+export async function serpMapsSearch(query: string, timeoutMs?: number, providers: readonly SerpProvider[] = SERP_PROVIDERS): Promise<PlaceRow[]> {
+  const deadline = timeoutMs === undefined ? null : Date.now() + timeoutMs;
+  const errors: string[] = [];
+  for (const provider of providers) {
+    const remaining = deadline === null ? undefined : deadline - Date.now();
+    if (remaining !== undefined && remaining <= 500) { errors.push(`${SERP_PROVIDER_NAMES[provider]}: no time remained.`); break; }
+    const { slug, args } = mapsSearchCall(provider, query);
+    try {
+      return mapsRowsFrom(provider, await executeTool(slug, args, remaining));
+    } catch (err) {
+      if (composioKeyRefused(err)) throw err;
+      errors.push(`${SERP_PROVIDER_NAMES[provider]}: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+  throw new Error(errors.join(' ') || 'No public search provider answered.');
 }
 
 /** Google Places through Composio: the business, then rivals in its category near its area. */
@@ -324,7 +358,7 @@ async function lookupMaps(ctx: StepContext, categoryHint: string | null): Promis
         catch (err) { nearbyError = describeFailure(err); }
       }
       const detail = [...errors, nearbyError].filter(Boolean).join(' ').slice(0, 1000);
-      if (business) return { fetched_at: new Date().toISOString(), source: 'Google Maps public search results (query-specific order, not organic search rank), via SerpApi', business, nearby, note: nearbyError && category ? nearbyUnavailable(category) : category ? null : CATEGORY_UNVERIFIED, ...(detail ? { detail } : {}) };
+      if (business) return { fetched_at: new Date().toISOString(), source: 'Google Maps public search results (query-specific order, not organic search rank), via a public search provider (SerpApi, SearchAPI or Serper)', business, nearby, note: nearbyError && category ? nearbyUnavailable(category) : category ? null : CATEGORY_UNVERIFIED, ...(detail ? { detail } : {}) };
     } catch (err) {
       if (keyRefused(err)) throw err;
       errors.push(err instanceof Error ? err.message : String(err));

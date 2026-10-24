@@ -70,6 +70,20 @@ answers 401 "Invalid API key", and Firecrawl answers (1,045 credits).
   `hashtags_seen`. **SERP**: `questions` ("People also ask") beside
   `related_searches`. **Readiness**: a Firecrawl row. Gap lines and
   `STEP_LABELS` for both steps.
+- **Three public search providers** (`serp.ts`: `SERP_PROVIDERS`,
+  `serpSearchCall`, `mapsSearchCall`; `maps.ts`: `serpMapsSearch`,
+  `mapsRowsFrom`, `serperPlaceRows`): SerpApi, then SearchAPI (Composio
+  toolkit `search_api`, `SEARCH_API_SEARCH` with `engine: google` or
+  `google_maps`), then Serper (Composio's instant account,
+  `SERPER_SEARCH_WEB`, `SERPER_SEARCH_MAPS`), the first that answers; all
+  three answer in SerpApi's shape, so `parseGoogleSerp` reads them, and
+  Serper's `places[]` is mapped onto `local_results` keys. Only a refused
+  Composio key stops the read; every provider's refusal is named in the
+  error. `GoogleSerp.provider` records who answered. Readiness rows for
+  `search_api` and `serper` (instant). Checked live on 2026-10-24 in the
+  consumer account: SearchAPI (`search_api_drow-assman`, 100 credits) and
+  Serper answer; SerpApi's active account still answers 401 and the new
+  sign-in sits at "initiated".
 - **Tests**: `groundswell-site-pages`, `groundswell-business-profile`,
   `groundswell-plans` in `src/test/api/`, `packages/groundswell/test/plans`,
   the relevance and search cases in `groundswell-competitors`, the scoped
@@ -77,10 +91,11 @@ answers 401 "Invalid API key", and Firecrawl answers (1,045 credits).
   `relevantNearby` in `groundswell-maps`, the questions in
   `groundswell-public-research`; the step-order pins in the ad-copy and
   benchmark tests.
-- **Still on the live side** (not code): ScrapeCreators needs credits (the
-  402 stood with its dashboard saying 100 credits); the SerpApi connection
-  in Composio needs a valid key (its "search api" and "serper" toolkits were
-  only initiated, no account); then "Run again" on Wildly Primal's workspace
+- **Live side on 2026-10-24, 14:40 UTC**: ScrapeCreators answers again
+  (24,998 credits; Wildly Primal's profile and posts read); SearchAPI is
+  linked and answers; SerpApi's default account still answers 401 "Invalid
+  API key" and the re-added one never finished its sign-in (the engine now
+  falls through to SearchAPI). Then "Run again" on Wildly Primal's workspace
   card. The held run itself is unchanged.
 
 ### Support: SuperOps connected, new-ticket alerts, branded reply template (2026-10-23)

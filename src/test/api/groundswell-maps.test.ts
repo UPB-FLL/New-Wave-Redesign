@@ -96,7 +96,8 @@ describe('Maps Current: runMaps', () => {
     expect(out.note).toMatch(/nearby.*unavailable/i);
     expect(out.detail).toContain('Nearby query unavailable');
     expect(mocks.withBrowser).not.toHaveBeenCalled();
-    expect(mocks.executeTool).toHaveBeenCalledTimes(provider === 'Places' ? 2 : 3);
+    // The nearby query is asked of every public provider in turn (SerpApi, SearchAPI, Serper) before the step gives up on it.
+    expect(mocks.executeTool).toHaveBeenCalledTimes(provider === 'Places' ? 2 : 5);
   });
 
   it('retains the matched browser listing when its nearby page is unavailable', async () => {
