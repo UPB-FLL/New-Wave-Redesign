@@ -19,13 +19,16 @@ import {
   DIVISION_CUSTOMERS_PATH,
   DIVISION_GROUNDSWELL_PATH,
   DIVISION_SERVICE_SLUGS,
+  GROUNDSWELL_METRIC_SLUGS,
   divisionServicePath,
+  groundswellMetricPath,
 } from './site';
 
 export type DivisionPageModule =
   | 'SocialEngineeringHubPage'
   | 'SocialEngineeringServicePage'
   | 'SocialEngineeringGroundswellPage'
+  | 'SocialEngineeringGroundswellMetricPage'
   | 'SocialEngineeringCustomersPage'
   | 'SocialEngineeringContactUsPage'
   | 'SocialEngineeringContactPage';
@@ -34,6 +37,7 @@ const PAGE_MODULES = new Map<string, DivisionPageModule>([
   [DIVISION_BASE_PATH, 'SocialEngineeringHubPage'],
   ...DIVISION_SERVICE_SLUGS.map((slug): [string, DivisionPageModule] => [divisionServicePath(slug), 'SocialEngineeringServicePage']),
   [DIVISION_GROUNDSWELL_PATH, 'SocialEngineeringGroundswellPage'],
+  ...GROUNDSWELL_METRIC_SLUGS.map((slug): [string, DivisionPageModule] => [groundswellMetricPath(slug), 'SocialEngineeringGroundswellMetricPage']),
   [DIVISION_CUSTOMERS_PATH, 'SocialEngineeringCustomersPage'],
   [DIVISION_CONTACT_US_PATH, 'SocialEngineeringContactUsPage'],
   [DIVISION_CONTACT_PATH, 'SocialEngineeringContactPage'],

@@ -2,11 +2,11 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { parseSite } from '../../../api/_lib/groundswell/currents/site';
-import { auditContent } from './content';
+import { auditContent, groundswellMetricGroups } from './content';
 import { renderDivisionPageHtml } from './prerender';
-import { renderGroundswellBody } from './prerenderBody';
-import { groundswellPageSeo } from './seo';
-import { absoluteUrl } from './site';
+import { isGroundswellPublicPath, renderGroundswellBody } from './prerenderBody';
+import { groundswellMetricPageSeo, groundswellPageSeo } from './seo';
+import { DIVISION_CONTACT_US_PATH, absoluteUrl, groundswellMetricPath } from './site';
 
 const shell = readFileSync(new URL('../../../index.html', import.meta.url), 'utf8');
 
@@ -35,6 +35,24 @@ describe('GroundSwell public HTML content', () => {
     // FAQ schema and the crawlable page always use the same content source.
     const faq = page.jsonLd.find(node => node['@type'] === 'FAQPage');
     expect(faq?.mainEntity).toHaveLength(auditContent.faqs.length);
+  });
+
+  it('renders every metric page’s body with its H1, its metrics and no app shell', () => {
+    expect(isGroundswellPublicPath(DIVISION_CONTACT_US_PATH)).toBe(false);
+    expect(() => renderGroundswellBody(DIVISION_CONTACT_US_PATH)).toThrow(/No GroundSwell body/);
+    for (const group of groundswellMetricGroups) {
+      const page = groundswellMetricPageSeo(group);
+      expect(isGroundswellPublicPath(page.path)).toBe(true);
+      expect(page.path).toBe(groundswellMetricPath(group.slug));
+      const body = renderGroundswellBody(page.path);
+      const html = renderDivisionPageHtml(shell, page, { bodyHtml: body });
+      const scan = parseSite(html, absoluteUrl(page.path), absoluteUrl(page.path), 200);
+      expect(scan.h1).toEqual([group.headline]);
+      expect(scan.technical_seo?.app_shell).toBe(false);
+      expect(scan.technical_seo?.body_h1_count).toBe(1);
+      expect(scan.technical_seo?.findings).toEqual([]);
+      group.metrics.forEach((metric) => expect(body).toContain(metric.name));
+    }
   });
 
   it('fails a requested body render if it is empty or has lost its heading', () => {

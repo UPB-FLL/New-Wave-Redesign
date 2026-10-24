@@ -273,6 +273,19 @@ sheet) and the footer's division column. On a 320x568 phone the sheet's top
 row now wraps to two lines: the discovery-call button still fits the first
 screen, and the endorsement at the foot needs a short scroll.
 
+### Metrics first, with a page per group (2026-10-24)
+
+The GroundSwell page opens on "What it measures": one card per group of the
+metrics the engine gathers (`content/groundswellMetrics.ts`), each with why it
+matters and a link to its own page at `/social-engineering/groundswell/<slug>`.
+The sub pages follow the page checklist below with one difference: their slugs
+live in `site.ts` (`GROUNDSWELL_METRIC_SLUGS`) and one component renders them
+all (`SocialEngineeringGroundswellMetricPage`), so adding a group means a slug
+in `site.ts`, a group in the content file, a `vercel.json` rewrite and a
+sitemap entry; the tests name anything missed. List only metrics the engine
+reads or models (`api/_lib/groundswell`); the page's test forbids sources it
+does not use.
+
 ### Layout: one part at a time (2026-10-21)
 
 The first version put every table on the page at once. The page now shows

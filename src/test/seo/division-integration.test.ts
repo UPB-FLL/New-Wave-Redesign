@@ -13,9 +13,11 @@ import {
   DIVISION_GROUNDSWELL_PATH,
   DIVISION_PUBLISHED,
   DIVISION_SERVICE_SLUGS,
+  GROUNDSWELL_METRIC_SLUGS,
   RETIRED_SERVICE_SLUGS,
   SITE_URL,
   divisionServicePath,
+  groundswellMetricPath,
 } from '../../divisions/socialEngineering/site';
 import { prerenderedItRoutes } from '../../lib/routeMeta';
 import { GROUNDSWELL_CUSTOMERS_PATH, GROUNDSWELL_PATH, GROUNDSWELL_SET_PASSWORD_PATH, LEGACY_PARTNER_PATH } from '../../groundswell/site';
@@ -157,7 +159,7 @@ describe('index.html (the parent shell every New Wave IT URL is served)', () => 
 describe('division pages beyond the services', () => {
   // Listed by hand, so a page dropped from allDivisionPages() cannot quietly
   // take its sitemap entry, rewrite, and route with it.
-  const pages = [DIVISION_GROUNDSWELL_PATH, DIVISION_CUSTOMERS_PATH, DIVISION_CONTACT_US_PATH, DIVISION_CONTACT_PATH];
+  const pages = [DIVISION_GROUNDSWELL_PATH, ...GROUNDSWELL_METRIC_SLUGS.map(groundswellMetricPath), DIVISION_CUSTOMERS_PATH, DIVISION_CONTACT_US_PATH, DIVISION_CONTACT_PATH];
   const sitemap = read('public/sitemap.xml');
   const rewrites = (JSON.parse(read('vercel.json')) as { rewrites: { source: string; destination: string }[] }).rewrites;
   const app = read('src/App.tsx');
@@ -181,6 +183,10 @@ describe('division pages beyond the services', () => {
       expect(divisionRoutes).toContain(`<Route path={${constant}} element={<${route} />} />`);
       expect(routes).toContain(`import('./pages/${page}')`);
     });
+    // The metric pages: one route per slug, lazily loaded.
+    expect(divisionRoutes).toContain('GROUNDSWELL_METRIC_SLUGS.map((slug) => (');
+    expect(divisionRoutes).toContain('<Route key={slug} path={groundswellMetricPath(slug)} element={<SocialEngineeringGroundswellMetricRoute slug={slug} />} />');
+    expect(routes).toContain("import('./pages/SocialEngineeringGroundswellMetricPage')");
   });
 
   it('permanently redirects both old product URLs to GroundSwell', () => {

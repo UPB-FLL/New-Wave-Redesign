@@ -1,6 +1,6 @@
 import { Component, Suspense, lazy, type ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { DIVISION_GROUNDSWELL_PATH } from './site';
+import { DIVISION_GROUNDSWELL_PATH, type GroundswellMetricSlug } from './site';
 
 export function LegacyGroundswellPageRoute() {
   const { search, hash } = useLocation();
@@ -11,6 +11,7 @@ export function LegacyGroundswellPageRoute() {
 const HubPage = lazy(() => import('./pages/SocialEngineeringHubPage'));
 const ServicePage = lazy(() => import('./pages/SocialEngineeringServicePage'));
 const GroundSwellPage = lazy(() => import('./pages/SocialEngineeringGroundswellPage'));
+const GroundSwellMetricPage = lazy(() => import('./pages/SocialEngineeringGroundswellMetricPage'));
 const CustomersPage = lazy(() => import('./pages/SocialEngineeringCustomersPage'));
 const ContactUsPage = lazy(() => import('./pages/SocialEngineeringContactUsPage'));
 const ContactPage = lazy(() => import('./pages/SocialEngineeringContactPage'));
@@ -70,6 +71,14 @@ export function SocialEngineeringGroundswellRoute() {
   return (
     <Deferred>
       <GroundSwellPage />
+    </Deferred>
+  );
+}
+
+export function SocialEngineeringGroundswellMetricRoute({ slug }: { slug: GroundswellMetricSlug }) {
+  return (
+    <Deferred>
+      <GroundSwellMetricPage slug={slug} />
     </Deferred>
   );
 }

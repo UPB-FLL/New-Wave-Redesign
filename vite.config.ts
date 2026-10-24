@@ -7,7 +7,7 @@ import react from '@vitejs/plugin-react';
 import { divisionPageModule, preloadTagsFor, type BundleChunk } from './src/divisions/socialEngineering/preload';
 import { renderDivisionPageHtml } from './src/divisions/socialEngineering/prerender';
 import { allDivisionPages } from './src/divisions/socialEngineering/seo';
-import { DIVISION_GROUNDSWELL_PATH, DIVISION_PUBLISHED } from './src/divisions/socialEngineering/site';
+import { DIVISION_PUBLISHED } from './src/divisions/socialEngineering/site';
 import { renderRouteHtml } from './src/lib/prerenderHead';
 import { prerenderedItRoutes } from './src/lib/routeMeta';
 
@@ -55,10 +55,10 @@ function prerenderPages(): Plugin {
         logLevel: 'error',
       });
       try {
-        const { renderGroundswellBody } = await renderer.ssrLoadModule('/src/divisions/socialEngineering/prerenderBody.tsx');
+        const { isGroundswellPublicPath, renderGroundswellBody } = await renderer.ssrLoadModule('/src/divisions/socialEngineering/prerenderBody.tsx');
         for (const page of allDivisionPages()) {
           const headExtras = preloadTagsFor(bundle as unknown as Record<string, BundleChunk>, divisionPageModule(page.path));
-          const bodyHtml = page.path === DIVISION_GROUNDSWELL_PATH ? renderGroundswellBody() as string : undefined;
+          const bodyHtml = isGroundswellPublicPath(page.path) ? (renderGroundswellBody(page.path) as string) : undefined;
           write(page.path, renderDivisionPageHtml(shell, page, { headExtras, bodyHtml }));
         }
       } finally {

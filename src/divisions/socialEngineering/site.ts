@@ -21,6 +21,14 @@ export const DIVISION_CUSTOMERS_PATH = `${DIVISION_BASE_PATH}/customers`;
 /** GroundSwell, the division's growth audit (run by the GroundSwell engine), with sample data. */
 export const DIVISION_GROUNDSWELL_PATH = `${DIVISION_BASE_PATH}/groundswell`;
 export const LEGACY_CROISSANCE_PAGE_PATH = `${DIVISION_BASE_PATH}/croissance`;
+/**
+ * GroundSwell's metric pages, one per group of figures the engine gathers
+ * (content/groundswellMetrics.ts describes each): /social-engineering/groundswell/<slug>.
+ * Kept here, like the service slugs, so the router needs no page copy.
+ */
+export const GROUNDSWELL_METRIC_SLUGS = ['search', 'google-listing', 'competitors', 'social', 'website', 'ads', 'your-accounts'] as const;
+export type GroundswellMetricSlug = (typeof GROUNDSWELL_METRIC_SLUGS)[number];
+export const groundswellMetricPath = (slug: GroundswellMetricSlug) => `${DIVISION_GROUNDSWELL_PATH}/${slug}`;
 // The partner portal moved to /groundswell (src/groundswell/site.ts); vercel.json
 // redirects its old addresses under GroundSwell.
 
