@@ -569,11 +569,11 @@ describe('GroundSwell metrics', () => {
     expect(JSON.stringify([auditConnectors, auditContent.faqs])).not.toMatch(/PageSpeed|Wayback/i);
   });
 
-  it('shows every group on the GroundSwell page as a card with why it matters and a link to its own page', () => {
+  it('shows every group on the GroundSwell page as a ledger row with why it matters and a link to its own page', () => {
     renderAt(<SocialEngineeringGroundswellPage />);
     const region = screen.getByRole('region', { name: groundswellMetricsContent.heading });
     expect(region.id).toBe('metrics');
-    const cards = within(region.querySelector('[data-role="metric-groups"]') as HTMLElement).getAllByRole('listitem').filter((li) => li.classList.contains('nwse-card'));
+    const cards = [...region.querySelectorAll('[data-role="metric-group"]')] as HTMLElement[];
     expect(cards.map((card) => within(card).getByRole('heading', { level: 3 }).textContent)).toEqual(groundswellMetricGroups.map((group) => group.name));
     groundswellMetricGroups.forEach((group, index) => {
       const card = cards[index];

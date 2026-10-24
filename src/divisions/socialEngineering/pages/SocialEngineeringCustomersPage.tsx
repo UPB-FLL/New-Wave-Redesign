@@ -36,14 +36,14 @@ function SiteLink({ site }: { site: Pick<DivisionCustomer | DivisionApp, 'href' 
 }
 
 /**
- * One row per business: what it is, where it is, and a link to its site.
- * Phones stack each row in one grouped panel (the division's row-list
- * pattern); from md the rows share columns (subgrid), with the link under the
- * description; from xl the link gets a column of its own.
+ * One row per business: what it is, where it is, and a link to its site, as
+ * a ledger (hairlines, no panel). From md the rows share columns (subgrid),
+ * with the link under the description; from xl the link gets a column of its
+ * own.
  */
 const listClass =
-  'nwse-card overflow-hidden divide-y divide-[color:var(--nw-mist-gray)] md:grid md:grid-cols-[auto_minmax(0,1fr)] md:gap-x-10 xl:grid-cols-[auto_minmax(0,1fr)_auto] xl:gap-x-14';
-const rowClass = 'flex flex-col p-4 sm:p-6 md:col-span-full md:grid md:grid-cols-subgrid md:gap-y-3 lg:px-8 lg:py-7 xl:items-center';
+  'nwse-ledger divide-y divide-[color:var(--nw-mist-gray)] md:grid md:grid-cols-[auto_minmax(0,1fr)] md:gap-x-10 xl:grid-cols-[auto_minmax(0,1fr)_auto] xl:gap-x-14';
+const rowClass = 'flex flex-col py-5 sm:py-6 md:col-span-full md:grid md:grid-cols-subgrid md:gap-y-3 lg:py-7 xl:items-center';
 
 function CustomerList() {
   return (

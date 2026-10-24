@@ -171,11 +171,16 @@
   background: var(--gs-navy);
   color: var(--gs-cyan);
 }
-.gs-marketing .gs-current-panel,
-.gs-marketing .gs-growth-panel {
+.gs-marketing .gs-current-panel {
   background: var(--gs-navy2);
   border: 1px solid var(--gs-hairline-dark);
   border-radius: 12px;
+}
+/* The growth and limits panels: open columns under a rule, not boxes. */
+.gs-marketing .gs-growth-panel {
+  border-top: 2px solid var(--gs-hairline-dark);
+  padding-left: 0;
+  padding-right: 0;
 }
 .gs-marketing .gs-current-title { color: var(--gs-white); }
 .gs-marketing .gs-current-label { color: var(--gs-cyan); }

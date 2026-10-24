@@ -33,9 +33,6 @@
 .gs-division .nwse-kicker-on-dark { color: var(--gs-cyan); }
 .gs-division :is(.nwse-type-kicker,.nwse-type-label) { text-transform: none; letter-spacing: .025em; }
 .gs-division .nwse-rowlist .nwse-icon svg { width: 1.625rem; height: 1.625rem; }
-.gs-division .gs-service-grid { grid-template-columns: repeat(auto-fit,minmax(min(100%,22rem),1fr)); }
-.gs-division .gs-service-grid > li:last-child:nth-child(odd) { grid-column: auto; }
-.gs-division .gs-service-grid .nwse-card > span { min-width: 0; overflow-wrap: break-word; }
 .gs-division .nwse-cta-band { background: var(--gs-navy); }
 
 /* A signal path, rather than an unrelated scene, beside each page's introduction. */
