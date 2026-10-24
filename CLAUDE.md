@@ -2,6 +2,102 @@
 
 ## Recent Changes
 
+### Groundswell: competitors that compete, the site's pages, and the two plans (2026-10-24)
+
+From the Wildly Primal run of 2026-10-23 (audit `40b49eba…`, held in
+review): its Maps table listed SERVPRO and a plumber beside a health coach
+(the nearby query ran on the listing label "Services"), and Instagram,
+Facebook, the ad libraries and the later Ahrefs reads all came back with
+"Composio public-data reads are paused because the credit balance is empty".
+Checked live the same day: ScrapeCreators itself answers HTTP 402
+"insufficient credits" (its balance, not Composio's), the SerpApi connection
+answers 401 "Invalid API key", and Firecrawl answers (1,045 credits).
+
+- **Credit pauses are scoped** (`providerBudget.ts`): a provider's own
+  refusal (ScrapeCreators' 402, say) pauses only that toolkit for 30 s and
+  the error names it with its words ("ScrapeCreators has run out of credits
+  (…), so its reads are paused. Add credits at ScrapeCreators…"); only a
+  message naming Composio's wallet pauses every read. `executeTool` and the
+  consumer executor pass the slug through (`assertPublicReadBudget(slug)`,
+  `pausePublicReadsForCredits(message, slug)`).
+- **Business profile** (`api/_lib/groundswell/businessProfile.ts`): what the
+  business does from its own site, through one OpenAI call held to the
+  site's words (`checkProfile`: a category or service whose words are not on
+  the site is dropped; the wording rules in `serp.ts` stand in without
+  OpenAI). Relevance (`filterCompetitors`): a candidate must share the
+  profile's category wording (`sharesCategory`; directories such as Yelp,
+  Indeed and Facebook never pass), and the model then judges what passed,
+  with a reason each; nothing the words dropped comes back.
+- **Competitors step** (`currents/competitors.ts`): reads the business's own
+  pages (Firecrawl, up to six, within a budget) for the profile; candidates
+  from Places, from a public Google search of the profile's own queries
+  (SerpApi: the local pack and the organic results, `fromSerp`) and from
+  Firecrawl's web search when SerpApi cannot answer (`fromWebSearch`); one
+  candidate per website; then the relevance check. Output gains `profile`,
+  `pages`, `dropped` (name and reason, for staff and the reports) and each
+  pick's `source` and `reason`. The intake's discovery shares the lookup.
+  The Maps step keeps only nearby listings that share the category wording
+  (`relevantNearby`).
+- **Site pages step** `site_pages` (`currents/sitePages.ts`, Current Site,
+  after `site`, optional): Firecrawl `map` lists the site's URLs,
+  `choosePages` picks the ones that say what it sells (home, about, services,
+  programs, pricing, FAQ, contact, the blog; never legal or account pages),
+  each read as main-content markdown and summarised (`parseScrapedPage`:
+  title, headings, word count, calls to action, prices seen, excerpt), plus
+  each competitor's homepage. Pages the competitors step already read are
+  reused. Facts gain `site_pages`, `profile` and `competitor_picks`; the
+  write-up prompt sees `website_pages`, `business_profile` and
+  `competitor_picks`; the full audit's website section gains "Pages read",
+  the competitors section "Why it competes" and "Left out as not competing".
+- **Plans step** `plans` (`api/_lib/groundswell/plans.ts`, after `adcopy`,
+  optional; rules in `packages/groundswell/src/plans.ts`): one OpenAI call
+  writes the **website optimization plan** (page-by-page changes with
+  priority, reason and evidence; pages to add for measured searches; how to
+  tell it worked) and the **social media plan with its first week of posts**
+  (platforms and cadence, pillars, Monday to Sunday: platform, format, hook,
+  caption ready to paste, call to action, visual, hashtags). `checkPlans`
+  keeps only what the rules allow: a change names a page that was read (or
+  "site-wide"); a sentence with a number not in the data is dropped, and an
+  item left empty goes with it; a caption with an unsupported claim or a
+  competitor's name is dropped; one post a day; what went is named in
+  `dropped`. Reports: the full audit gains "Website optimization plan" and
+  "Social media plan: the first week" (plus the posts, four to a page) after
+  the 90-day plan, and the later sections move down (`next()` numbering);
+  the slides gain `content_week` before next steps; the summary lists the
+  week; the workspace gains `site_pages` and `plans` panels.
+- **Social step**: each profile keeps `recent_captions` and `hashtags`
+  (text only; a competitor's images are still never kept), and the output
+  `hashtags_seen`. **SERP**: `questions` ("People also ask") beside
+  `related_searches`. **Readiness**: a Firecrawl row. Gap lines and
+  `STEP_LABELS` for both steps.
+- **Three public search providers** (`serp.ts`: `SERP_PROVIDERS`,
+  `serpSearchCall`, `mapsSearchCall`; `maps.ts`: `serpMapsSearch`,
+  `mapsRowsFrom`, `serperPlaceRows`): SerpApi, then SearchAPI (Composio
+  toolkit `search_api`, `SEARCH_API_SEARCH` with `engine: google` or
+  `google_maps`), then Serper (Composio's instant account,
+  `SERPER_SEARCH_WEB`, `SERPER_SEARCH_MAPS`), the first that answers; all
+  three answer in SerpApi's shape, so `parseGoogleSerp` reads them, and
+  Serper's `places[]` is mapped onto `local_results` keys. Only a refused
+  Composio key stops the read; every provider's refusal is named in the
+  error. `GoogleSerp.provider` records who answered. Readiness rows for
+  `search_api` and `serper` (instant). Checked live on 2026-10-24 in the
+  consumer account: SearchAPI (`search_api_drow-assman`, 100 credits) and
+  Serper answer; SerpApi's active account still answers 401 and the new
+  sign-in sits at "initiated".
+- **Tests**: `groundswell-site-pages`, `groundswell-business-profile`,
+  `groundswell-plans` in `src/test/api/`, `packages/groundswell/test/plans`,
+  the relevance and search cases in `groundswell-competitors`, the scoped
+  pause in `groundswell-composio`, the captions in `groundswell-social`,
+  `relevantNearby` in `groundswell-maps`, the questions in
+  `groundswell-public-research`; the step-order pins in the ad-copy and
+  benchmark tests.
+- **Live side on 2026-10-24, 14:40 UTC**: ScrapeCreators answers again
+  (24,998 credits; Wildly Primal's profile and posts read); SearchAPI is
+  linked and answers; SerpApi's default account still answers 401 "Invalid
+  API key" and the re-added one never finished its sign-in (the engine now
+  falls through to SearchAPI). Then "Run again" on Wildly Primal's workspace
+  card. The held run itself is unchanged.
+
 ### Support: SuperOps connected, new-ticket alerts, branded reply template (2026-10-23)
 
 - **SuperOps account**: subdomain `newwave` (`newwave.superops.ai`, US). The

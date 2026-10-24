@@ -9,6 +9,7 @@ const GAP_WORDING: Record<string, string> = {
   maps: 'Google Maps could not be read for this audit.',
   search: 'Search rankings and backlinks (Ahrefs) were not available for this audit.',
   keywords: 'Keyword demand (Google Keyword Planner) was not available for this audit, so the ad plan and the ad copy are not included.',
+  site_pages: 'The website’s inner pages could not be read, so the website plan rests on the homepage alone.',
   social: 'Instagram and Facebook could not be read for this audit.',
   ads: 'Ad tags and paid search pages could not be checked for this audit.',
   linked: 'The business’s own accounts could not be read for this audit, so it is built from public data.',
@@ -17,6 +18,7 @@ const GAP_WORDING: Record<string, string> = {
   pricing: 'Offers and prices could not be read from the websites.',
   authority: 'Domain authority, press and owned channels could not be read for this audit.',
   benchmark: 'The competitive benchmark could not be built from the data available, so this audit has no benchmark report.',
+  plans: 'The website optimization plan and the first week of posts could not be written for this audit.',
 };
 
 /** The gap lines for the facts' `missing` list (callers without the audit's step list). */

@@ -53,7 +53,7 @@ const ctx = (competitors: { name: string; website: string | null; instagram: str
 beforeEach(() => {
   mocks.inspectWebsite.mockReset().mockRejectedValue(new Error('Website unavailable in this test'));
   mocks.executeTool.mockReset().mockImplementation(async (slug: string, args: Record<string, unknown>) => {
-    expect(slug).toBe('GOOGLE_MAPS_TEXT_SEARCH');
+    if (slug !== 'GOOGLE_MAPS_TEXT_SEARCH') throw new Error(`${slug} unavailable in this test`);
     const q = String(args.textQuery);
     if (q === 'Uncommon Path Brewing Fort Lauderdale, FL') return { data: { places: [self] } };
     if (q === 'Brewery near Fort Lauderdale, FL') return { data: { places: localRows } };
@@ -99,7 +99,69 @@ describe('Competitors Current: runCompetitors', () => {
     expect(out.local).toMatchObject({ name: 'Tarpon River Brewing' });
     expect(out.national).toBeNull();
     expect(out.competitors).toEqual([entered[0], { name: 'Tarpon River Brewing', website: 'https://tarpon.example', instagram: null }]);
-    expect(mocks.executeTool).toHaveBeenCalledTimes(2);
+    expect(mocks.executeTool.mock.calls.filter(([slug]) => slug === 'GOOGLE_MAPS_TEXT_SEARCH')).toHaveLength(2);
+  });
+
+  it('leaves out a listing that does not share the business’s category wording, and says why', async () => {
+    const servpro = place('servpro', 'SERVPRO of Arlington / Jacksonville East', '11215 St Johns Industrial Pkwy S, Jacksonville, FL 32246, USA', 2710, 5, 'https://servpro.example/', { primaryTypeDisplayName: { text: 'General Contractor' } });
+    const plumber = place('and', 'AND Services', '10550 Deerwood Park Blvd, Jacksonville, FL 32256, USA', 356, 4.7, 'https://andservices.example/', { primaryTypeDisplayName: { text: 'Plumber' } });
+    mocks.executeTool.mockImplementation(async (slug: string, args: Record<string, unknown>) => {
+      if (slug !== 'GOOGLE_MAPS_TEXT_SEARCH') throw new Error(`${slug} unavailable in this test`);
+      const q = String(args.textQuery);
+      if (q === 'Uncommon Path Brewing Fort Lauderdale, FL') return { data: { places: [self] } };
+      if (q === 'Brewery near Fort Lauderdale, FL') return { data: { places: [servpro, plumber, ...localRows] } };
+      throw new Error(`unexpected query ${q}`);
+    });
+    const out = await runCompetitors(ctx());
+    expect(out.competitors.map((c) => c.name)).toEqual(['Tarpon River Brewing', 'Gulf Stream Brewing Company']);
+    expect(out.dropped).toEqual([
+      { name: 'SERVPRO of Arlington / Jacksonville East', website: 'https://servpro.example', reason: expect.stringContaining('General Contractor') },
+      { name: 'AND Services', website: 'https://andservices.example', reason: expect.stringContaining('Plumber') },
+    ]);
+    expect(out.picks[0]).toMatchObject({ source: 'places', reason: expect.stringContaining('brewery') });
+    expect(out.profile).toMatchObject({ category: 'Brewery', source: 'listing' });
+  });
+
+  it('adds who a public Google search finds for the category, one candidate per website, and names the search as a source', async () => {
+    mocks.executeTool.mockImplementation(async (slug: string, args: Record<string, unknown>) => {
+      if (slug === 'SERPAPI_GOOGLE_LIGHT_SEARCH') {
+        return {
+          search_metadata: { google_url: 'https://www.google.com/search?q=brewery' },
+          local_results: [{ position: 1, title: 'Gulf Stream Brewing Company', type: 'Brewery', website: 'https://gulf.example/', rating: 4.7, reviews: 1200 }],
+          organic_results: [
+            { position: 1, title: 'THE BEST 10 BREWERIES in Fort Lauderdale - Yelp', link: 'https://www.yelp.com/search?x', snippet: 'Top 10' },
+            { position: 2, title: 'LauderAle Brewery | Craft brewery in Fort Lauderdale', link: 'https://lauderale.example/beers', snippet: 'A craft brewery and taproom.' },
+            { position: 3, title: 'Plumbing Pros - Fort Lauderdale plumbers', link: 'https://plumbers.example/', snippet: 'Drains and leaks.' },
+          ],
+        };
+      }
+      if (slug !== 'GOOGLE_MAPS_TEXT_SEARCH') throw new Error(`${slug} unavailable in this test`);
+      const q = String(args.textQuery);
+      if (q === 'Uncommon Path Brewing Fort Lauderdale, FL') return { data: { places: [self] } };
+      if (q === 'Brewery near Fort Lauderdale, FL') return { data: { places: localRows } };
+      throw new Error(`unexpected query ${q}`);
+    });
+    const out = await runCompetitors(ctx());
+    expect(out.competitors.map((c) => c.name)).toEqual(['Tarpon River Brewing', 'Gulf Stream Brewing Company', 'LauderAle Brewery']);
+    expect(out.picks.find((p) => p.name === 'LauderAle Brewery')).toMatchObject({ source: 'google_search', website: 'https://lauderale.example', query: 'Brewery Fort Lauderdale, FL' });
+    expect(out.dropped?.map((d) => d.name)).toEqual(['Plumbing Pros']);
+    expect(out.sources.map((s) => s.label)).toEqual(expect.arrayContaining([expect.stringContaining('Public Google search')]));
+    expect(mocks.executeTool.mock.calls.filter(([slug]) => slug === 'FIRECRAWL_SEARCH')).toHaveLength(0);
+  });
+
+  it('falls back to a web search for the category when the public Google search cannot answer', async () => {
+    mocks.executeTool.mockImplementation(async (slug: string, args: Record<string, unknown>) => {
+      if (slug === 'FIRECRAWL_SEARCH') return { success: true, data: { web: [{ position: 1, title: 'LauderAle Brewery | Fort Lauderdale', url: 'https://lauderale.example/', description: 'Craft brewery.' }, { position: 2, title: 'Breweries near me - Yelp', url: 'https://m.yelp.com/search', description: '' }] } };
+      if (slug !== 'GOOGLE_MAPS_TEXT_SEARCH') throw new Error(`${slug} unavailable in this test`);
+      const q = String(args.textQuery);
+      if (q === 'Uncommon Path Brewing Fort Lauderdale, FL') return { data: { places: [self] } };
+      if (q === 'Brewery near Fort Lauderdale, FL') return { data: { places: [] } };
+      throw new Error(`unexpected query ${q}`);
+    });
+    const out = await runCompetitors(ctx());
+    expect(out.competitors).toEqual([{ name: 'LauderAle Brewery', website: 'https://lauderale.example', instagram: null }]);
+    expect(out.picks[0]).toMatchObject({ source: 'web_search' });
+    expect(out.gaps.join(' ')).toMatch(/Google search "Brewery Fort Lauderdale, FL": SerpApi: SERPAPI_GOOGLE_LIGHT_SEARCH unavailable in this test SearchAPI: .* Serper: /);
   });
 
   it('preserves all entered competitors when the six suggestion slots are already filled', async () => {

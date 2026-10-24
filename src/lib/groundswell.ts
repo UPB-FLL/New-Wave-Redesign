@@ -80,6 +80,7 @@ export interface AuditStep {
 export const STEP_LABELS: Record<string, string> = {
   competitors: 'Top competitors',
   site: 'Website',
+  site_pages: 'Website pages',
   maps: 'Google Maps',
   search: 'Search rankings',
   keywords: 'Keyword demand',
@@ -89,6 +90,7 @@ export const STEP_LABELS: Record<string, string> = {
   model: 'Write-up and ROI',
   adplan: 'Ad plan and change ranking',
   adcopy: 'Ad copy',
+  plans: 'Website plan and first week of posts',
   social_depth: 'Instagram posts and reels',
   ads_library: 'Ad libraries',
   pricing: 'Offers and prices',

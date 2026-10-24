@@ -9,6 +9,8 @@ import type { AdcopyOutput } from './adcopy.js';
 import type { AdplanOutput } from './adplan.js';
 import type { AuditBranding } from './branding.js';
 import type { BenchmarkOutput } from './benchmark.js';
+import type { PlansOutput } from './plans.js';
+import { hasPlans, PLATFORM_LABELS, type SocialPost } from '../../../packages/groundswell/src/plans.js';
 import type { Brand } from './brand.js';
 import { gapsFromMissing } from './gaps.js';
 import { AREAS, evidenceCoverage, scrubUnsupportedClaims, type AreaKey, type Facts, type ReportFinding, type runModel } from './model.js';
@@ -44,6 +46,8 @@ export interface ReportData {
   adcopy?: AdcopyOutput | null;
   /** The benchmark step's output, for a competitor benchmark; absent for an audit. */
   benchmark?: BenchmarkOutput | null;
+  /** The plans step's output (the website optimization plan and the first week of posts); absent or null when it did not run. */
+  plans?: PlansOutput | null;
   /** Who the reports are from; absent means New Wave. */
   preparer?: Preparer;
   /** Shown as "Prepared by <preparer> · <date>". */
@@ -433,7 +437,7 @@ function areaTables(key: AreaKey, f: Facts): string {
           ['Organic keywords (Ahrefs, US)', num(a?.organic_keywords ?? null)],
           ['Monthly organic visits (Ahrefs estimate)', num(a?.organic_traffic ?? null)],
         ]
-      ) + (s.technical_seo ? `<h3>Technical SEO checks</h3><p class="muted">${esc(s.technical_seo.limitation)}</p>${
+      ) + pagesReadTable(f) + (s.technical_seo ? `<h3>Technical SEO checks</h3><p class="muted">${esc(s.technical_seo.limitation)}</p>${
         s.technical_seo.findings.length
           ? table(['Priority', 'Observed evidence', 'Recommended action'], s.technical_seo.findings.map(finding => [
               finding.severity, `${finding.title}. ${finding.evidence}`, finding.recommendation,
@@ -460,16 +464,21 @@ function areaTables(key: AreaKey, f: Facts): string {
     case 'competitors': {
       const ig = new Map((f.social?.competitors ?? []).map((c) => [c.name, c]));
       const se = new Map((f.search?.competitors ?? []).map((c) => [c.name, c]));
+      const why = new Map((f.competitor_picks?.picks ?? []).map((p) => [p.name, p.reason ?? null]));
+      const withWhy = [...why.values()].some(Boolean);
       const rows = (f.site?.competitors ?? []).map((c) => [
         c.name,
         num(se.get(c.name)?.domain_rating ?? null),
         num(se.get(c.name)?.organic_traffic ?? null),
         num(ig.get(c.name)?.followers ?? null),
         c.site?.booking.join(', ') || '–',
+        ...(withWhy ? [why.get(c.name) ?? 'Entered by hand'] : []),
       ]);
+      const dropped = (f.competitor_picks?.dropped ?? []).slice(0, 6);
+      const leftOut = dropped.length ? `<p class="muted">Left out as not competing: ${esc(dropped.map((d) => `${d.name} (${d.reason.replace(/\.$/, '')})`).join('; '))}.</p>` : '';
       return rows.length
-        ? table(['Competitor', 'Domain rating', 'Monthly organic visits', 'Instagram followers', 'Online booking'], rows)
-        : '<p class="muted">No competitors were named for this audit; nearby businesses are on the Google page.</p>';
+        ? table(['Competitor', 'Domain rating', 'Monthly organic visits', 'Instagram followers', 'Online booking', ...(withWhy ? ['Why it competes'] : [])], rows) + leftOut
+        : '<p class="muted">No competitors were named for this audit; nearby businesses are on the Google page.</p>' + leftOut;
     }
     case 'keywords': {
       const ideas = table(
@@ -489,6 +498,40 @@ function areaTables(key: AreaKey, f: Facts): string {
       return `${unmeasured ? '<p class="muted">Search-volume and bid estimates were unavailable. Any terms below are research suggestions, not measured demand; no ad spend or return is inferred from them.</p>' : '<p class="muted">Volumes and bids apply to the source geography and reporting window. Close variants can overlap; totals are not unique customers.</p>'}${ideas}${ranks}`;
     }
   }
+}
+
+/** The pages Firecrawl read, when the step ran: what each says and asks the reader to do. */
+function pagesReadTable(f: Facts): string {
+  const pages = (f.site_pages?.pages ?? []).filter((p) => !p.error);
+  if (!pages.length) return '';
+  return `<h3>Pages read</h3>${table(['Page', 'Title', 'Words', 'Calls to action', 'Prices seen'], pages.slice(0, 12).map((p) => [p.path, p.title ?? '–', num(p.word_count), p.ctas.map((c) => c.text).join(', ') || '–', p.prices.join(', ') || '–']))}<p class="muted">Main content as read on ${esc(f.site_pages!.fetched_at.slice(0, 10))}; pages that did not answer are not listed.</p>`;
+}
+
+/** A page as the plan names it: its path on the site. */
+const pageLabel = (page: string) => {
+  if (page === 'site-wide') return 'Site-wide';
+  try { return new URL(page).pathname.replace(/\/+$/, '') || '/'; } catch { return page; }
+};
+
+/** The website optimization plan: page-by-page changes, pages to add, and how to tell it worked. */
+function websitePlanSection(p: PlansOutput): string {
+  const w = p.website_plan;
+  const changes = w.changes.length ? table(['Page', 'Priority', 'Change', 'Why, and what was seen'], w.changes.map((c) => [pageLabel(c.page), c.priority, c.change, [c.reason, c.evidence].filter(Boolean).join(' ')])) : '<p class="muted">No page-level change was supported by the pages read.</p>';
+  const add = w.new_pages.length ? `<h3>Pages to add</h3>${listHtml(w.new_pages.map((n) => `${n.path}: ${n.purpose}${n.searches.length ? ` For the searches: ${n.searches.join(', ')}.` : ''}`), false)}` : '';
+  const measure = w.measurement.length ? `<h3>How to tell it worked</h3>${listHtml(w.measurement, false)}` : '';
+  return `${w.summary ? `<p class="summary">${esc(w.summary)}</p>` : ''}${changes}${add}${measure}`;
+}
+
+const postHtml = (post: SocialPost) =>
+  `<article class="post"><h3>${esc(post.day)} · ${esc(PLATFORM_LABELS[post.platform])} ${esc(post.format)}${post.topic ? ` · ${esc(post.topic)}` : ''}</h3>${post.pillar ? `<p class="note">${esc(post.pillar)}</p>` : ''}${post.hook ? `<p><strong>${esc(post.hook)}</strong></p>` : ''}<p class="caption">${esc(post.caption)}</p>${post.cta ? `<p><strong>Call to action:</strong> ${esc(post.cta)}</p>` : ''}${post.visual ? `<p class="muted"><strong>Visual:</strong> ${esc(post.visual)}</p>` : ''}${post.hashtags.length ? `<p class="muted">${esc(post.hashtags.map((h) => `#${h}`).join(' '))}</p>` : ''}</article>`;
+
+/** The social media plan's opening: where to post, the pillars, and the week at a glance. */
+function socialPlanSection(p: PlansOutput): string {
+  const s = p.social_plan;
+  const platforms = s.platforms.length ? table(['Platform', 'Role', 'Cadence'], s.platforms.map((x) => [PLATFORM_LABELS[x.platform], x.role, x.cadence])) : '';
+  const pillars = s.pillars.length ? `<h3>Content pillars</h3>${listHtml(s.pillars.map((x) => `${x.name}: ${x.why}`), false)}` : '';
+  const week = s.week.length ? `<h3>The week at a glance</h3>${table(['Day', 'Platform', 'Format', 'Topic'], s.week.map((x) => [x.day, PLATFORM_LABELS[x.platform], x.format, x.topic || x.hook]))}` : '<p class="muted">No post passed the rules this time.</p>';
+  return `${s.summary ? `<p class="summary">${esc(s.summary)}</p>` : ''}${platforms}${pillars}${week}`;
 }
 
 function areaWriteup(m: ModelOutput, key: AreaKey, trim: boolean) {
@@ -605,12 +648,24 @@ export function buildAuditHtml(d: ReportData): string {
   // A client's own accounts take a section of their own before the plan, and the later sections move down one.
   const linked = f.linked;
   const o = linked ? 1 : 0;
+  // The plans (when the step ran) sit after the 90-day plan, and the later sections move down after them.
+  const plans = d.plans && hasPlans(d.plans) ? d.plans : null;
+  const websitePlan = plans && (plans.website_plan.changes.length || plans.website_plan.new_pages.length) ? plans : null;
+  const socialPlan = plans && plans.social_plan.week.length ? plans : null;
+  let numbered = 8 + o;
+  const next = () => ++numbered;
+  const planSections =
+    (websitePlan ? section(`${next()} · Website plan`, 'Website optimization plan', websitePlanSection(websitePlan)) : '') +
+    (socialPlan
+      ? section(`${next()} · Social plan`, 'Social media plan: the first week', socialPlanSection(socialPlan)) +
+        [0, 4].filter((i) => socialPlan.social_plan.week.length > i).map((i) => section('Ready to paste', i ? 'The first week of posts, continued' : 'The first week of posts', socialPlan.social_plan.week.slice(i, i + 4).map(postHtml).join(''))).join('')
+      : '');
   const returnSections = p
-    ? section(`${9 + o} · Return`, 'What pays back first', returnSection(p, m)) +
-      section(`${10 + o} · Ad plan`, 'The ad plan', adPlanSection(p)) +
-      (copy ? section(`${11 + o} · Ad copy`, 'Ad copy, ready to paste', adCopySection(copy)) : '')
+    ? section(`${next()} · Return`, 'What pays back first', returnSection(p, m)) +
+      section(`${next()} · Ad plan`, 'The ad plan', adPlanSection(p)) +
+      (copy ? section(`${next()} · Ad copy`, 'Ad copy, ready to paste', adCopySection(copy)) : '')
     : section(
-        `${9 + o} · Return`,
+        `${next()} · Return`,
         'What search ads could return',
         `<p>${esc(m.roi?.lever ?? '')}</p>${roiTable(m)}<p>${esc(feeLine(m))}</p>${stopLoss(m) ? `<p><strong>${esc(stopLoss(m)!)}</strong></p>` : ''}
 <h3>Where the numbers come from</h3>${listHtml(m.roi_sources, false)}
@@ -628,6 +683,7 @@ export function buildAuditHtml(d: ReportData): string {
     f.keywords?.source ? `${f.keywords.source} (${f.keywords.fetched_at?.slice(0, 10) ?? ''})` : null,
     f.social ? `${f.social.source} (${f.social.fetched_at.slice(0, 10)})` : null,
     f.ads ? `${f.ads.source} (${f.ads.fetched_at.slice(0, 10)})` : null,
+    f.site_pages?.pages.some((x) => !x.error) ? `${f.site_pages.source} (${f.site_pages.fetched_at.slice(0, 10)})` : null,
     ...(linked?.services.filter((s) => s.ok).map((s) => `${s.source} (${linked.fetched_at.slice(0, 10)})`) ?? []),
   ].filter((s): s is string => Boolean(s));
   const missing = [...(d.gaps ?? gapsFromMissing(f.missing)), ...(linked?.services.filter((s) => !s.ok).map((s) => s.problem ?? `${s.label} could not be read this time.`) ?? [])];
@@ -658,7 +714,8 @@ td,th{padding:5px 7px}
 .foot{position:absolute;left:0.6in;right:0.6in;bottom:0.35in;font-size:8pt;color:#6b7280;border-top:1px solid #e5e7eb;padding-top:6px}
 .ranked td,.ranked th{font-size:8.5pt;padding:4px 6px}
 .note{font-size:7.5pt;color:#4b5563;margin-top:2px}
-.finding{margin-bottom:18px;break-inside:avoid}.finding p{margin:4px 0}.finding h3{margin-top:0}.evidence-limit{font-size:9pt;color:#374151;margin:10px 0;padding:9px 11px;border-left:3px solid ${b.primary};background:${b.tint}}
+.finding{margin-bottom:18px;break-inside:avoid}.finding p{margin:4px 0}.finding h3{margin-top:0}
+.post{margin-bottom:16px;break-inside:avoid;padding:10px 12px;border-left:3px solid ${b.primary};background:${b.tint}}.post p{margin:4px 0}.post h3{margin-top:0}.post .caption{white-space:pre-wrap}.evidence-limit{font-size:9pt;color:#374151;margin:10px 0;padding:9px 11px;border-left:3px solid ${b.primary};background:${b.tint}}
 </style></head><body>
 <section class="page cover">
   <div class="band">${logoImg(b, '')}<h1>${esc(f.business.name)}</h1><div class="muted">Marketing audit${f.business.city ? ` · ${esc(f.business.city)}` : ''} · ${preparedBy(who)}${preparerLogo(who)} · ${esc(d.date)}</div>${dataLine ? `<div class="muted">${esc(dataLine)}</div>` : ''}</div>
@@ -677,11 +734,12 @@ ${areas}
 ${searchPages}
 ${linked ? section('8 · Your accounts', 'From the business’s own accounts', linkedSection(linked)) : ''}
 ${section(`${8 + o} · Plan`, 'The 90-day plan', `<h3>Weeks 1–2</h3>${listHtml(plan.weeks_1_2, false)}<h3>Weeks 3–6</h3>${listHtml(plan.weeks_3_6, false)}<h3>Weeks 7–12</h3>${listHtml(plan.weeks_7_12, false)}`)}
+${planSections}
 ${returnSections}
 ${section('Research coverage', 'Evidence and decision limits', evidenceLimits(f))}
 ${m.writeup.assumptions?.length ? section('Planning basis', 'Assumptions that change the decision', `${listHtml(m.writeup.assumptions, false)}<h3>Business economics</h3><p>${esc(m.estimates.basis)}</p><p>Average order value, lead-to-customer close rate and gross margin are planning assumptions until the business confirms them. Public visibility cannot establish profit, conversion quality or a viable acquisition cost.</p><h3>Implementation costs</h3><p>Effort estimates depend on access, existing systems and approved scope. Any modeled team time and spend are planning estimates; confirm the commercial terms before funding work.</p>`) : ''}
 ${section(
-  `${(p ? (copy ? 12 : 11) : 10) + o} · Sources`,
+  `${next()} · Sources`,
   'Sources and limits',
   `<h3>Data used</h3>${listHtml(sources, false)}${missing.length ? `<h3>Not available this time</h3>${listHtml(missing, false)}` : ''}${m.writeup.cant_see.length ? `<h3>Needs owner access</h3>${listHtml(m.writeup.cant_see, false)}` : ''}<p class="muted">Ratings, followers and rankings change daily; figures are as of the dates above.</p>`
 )}
@@ -708,6 +766,13 @@ export const SLIDE_IDS = ['cover', 'glance', 'google', 'social', 'website', 'ads
 export const AD_PLAN_SLIDE_ID = 'adplan';
 /** The slides a competitor benchmark adds, before next steps. */
 export const BENCHMARK_SLIDE_IDS = ['benchmark_scorecard', 'benchmark_plan'] as const;
+/** The slide the plans step adds, before next steps: the first week of posts. */
+export const CONTENT_SLIDE_ID = 'content_week';
+
+/** The first-week slide: a line per day. */
+function contentWeekBody(p: PlansOutput) {
+  return `${p.website_plan.changes.length ? `<p class="lead" data-trim>Website: ${esc(p.website_plan.changes.slice(0, 2).map((c) => `${pageLabel(c.page)}, ${c.change}`).join('; '))}</p>` : ''}${table(['Day', 'Platform', 'Format', 'Topic and hook'], p.social_plan.week.map((x) => [x.day, PLATFORM_LABELS[x.platform], x.format, [x.topic, x.hook].filter(Boolean).join(': ')]))}<p class="muted" data-trim>Captions, calls to action, visuals and hashtags are in the full audit, ready to paste.</p>`;
+}
 
 const leaderWord = (x: BenchmarkOutput, l: number | 'even' | null) => (l === null ? '–' : l === 'even' ? 'Even' : x.names[l]);
 
@@ -735,6 +800,7 @@ export function buildDeckHtml(d: ReportData, links: { audit: string }): string {
   const { facts: f, model: m, brand: b } = d;
   const p = hasPlan(d.adplan) ? d.adplan : null;
   const bench = d.benchmark ?? null;
+  const week = d.plans && d.plans.social_plan.week.length ? d.plans : null;
   const auditLink = portalLink(links.audit);
   const who = d.preparer ?? NEW_WAVE_PREPARER;
   const slide = (id: string, n: number, title: string, body: string) =>
@@ -805,9 +871,10 @@ ${
       )
 }
 ${bench ? benchmarkSlides(bench, slide, p ? 12 : 11) : ''}
+${week ? slide(CONTENT_SLIDE_ID, (p ? 12 : 11) + (bench ? BENCHMARK_SLIDE_IDS.length : 0), 'The first week of posts', contentWeekBody(week)) : ''}
 ${slide(
   'next',
-  (p ? 12 : 11) + (bench ? BENCHMARK_SLIDE_IDS.length : 0),
+  (p ? 12 : 11) + (bench ? BENCHMARK_SLIDE_IDS.length : 0) + (week ? 1 : 0),
   'Next steps',
   `${listHtml(m.writeup.next_steps)}<p class="cta" style="margin-top:50px">${d.preparer ? 'Full audit (PDF) in your portal' : `<a href="${esc(auditLink)}">Full audit (PDF)</a>`}</p>`
 )}
@@ -880,6 +947,7 @@ ${evidenceLimits(f, true)}
 ${p ? summaryPlan(p, m) : `<h3>What search ads could return</h3>
 ${roiRows ? `<table><thead><tr><th>Scenario</th><th>Ad spend</th><th>12-month net</th></tr></thead><tbody>${roiRows}</tbody></table><p class="muted">${esc(feeLine(m))}</p>` : `<p class="muted">${esc(m.roi_note ?? '')}</p>`}`}
 ${benchLines.length ? `<h3>Against your competitors</h3>${listHtml(benchLines)}` : ''}
+${d.plans?.social_plan.week.length ? `<h3>The first week of posts</h3>${listHtml(d.plans.social_plan.week.map((x) => `${x.day}: ${PLATFORM_LABELS[x.platform]} ${x.format}, ${x.topic || x.hook}`))}` : ''}
 <h3>Next 90 days</h3>
 ${listHtml(m.writeup.next_steps)}
 </div>

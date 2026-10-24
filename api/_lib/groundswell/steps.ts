@@ -12,6 +12,8 @@ import { runMaps } from './currents/maps.js';
 import { runLinked } from './currents/linked.js';
 import { runKeywords, runSearch } from './currents/search.js';
 import { runSite } from './currents/site.js';
+import { runSitePages } from './currents/sitePages.js';
+import { runPlans } from './plans.js';
 import { runSocial } from './currents/social.js';
 import {
   runDeliverAudit,
@@ -45,6 +47,7 @@ const GATHER_AND_MODEL: StepDefinition[] = [
   // First, so the Site, Social and Search steps already see the picked competitors.
   { name: 'competitors', current: 'Maps', label: 'Local competitors (public Google listings)', optional: true, run: runCompetitors, persist: persistCompetitors },
   { name: 'site', current: 'Site', label: 'Website scan', optional: false, run: runSite },
+  { name: 'site_pages', current: 'Site', label: 'Website pages (Firecrawl)', optional: true, run: runSitePages },
   { name: 'maps', current: 'Maps', label: 'Google Maps', optional: true, run: runMaps },
   { name: 'search', current: 'Search', label: 'Search rankings (Ahrefs and public Google)', optional: true, run: runSearch },
   { name: 'keywords', current: 'Search', label: 'Keyword demand (Keyword Planner)', optional: true, run: runKeywords },
@@ -54,6 +57,7 @@ const GATHER_AND_MODEL: StepDefinition[] = [
   { name: 'model', current: 'Model', label: 'Write-up and ROI', optional: false, run: runModel },
   { name: 'adplan', current: 'Model', label: 'Ad plan and change ranking', optional: true, run: runAdplan },
   { name: 'adcopy', current: 'Model', label: 'Ad copy', optional: true, run: runAdcopy },
+  { name: 'plans', current: 'Model', label: 'Website optimization plan and the first week of posts', optional: true, run: runPlans },
 ];
 
 /** A client's own accounts (phase 3); runs started before the phases had it among their public-data steps. */

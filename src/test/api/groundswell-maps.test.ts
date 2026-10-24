@@ -96,7 +96,8 @@ describe('Maps Current: runMaps', () => {
     expect(out.note).toMatch(/nearby.*unavailable/i);
     expect(out.detail).toContain('Nearby query unavailable');
     expect(mocks.withBrowser).not.toHaveBeenCalled();
-    expect(mocks.executeTool).toHaveBeenCalledTimes(provider === 'Places' ? 2 : 3);
+    // The nearby query is asked of every public provider in turn (SerpApi, SearchAPI, Serper) before the step gives up on it.
+    expect(mocks.executeTool).toHaveBeenCalledTimes(provider === 'Places' ? 2 : 5);
   });
 
   it('retains the matched browser listing when its nearby page is unavailable', async () => {
@@ -220,5 +221,26 @@ describe('Maps Current: runMaps', () => {
     await runMaps(ctx);
     expect(mocks.executeTool).not.toHaveBeenCalled();
     expect(mocks.withBrowser).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('Maps Current: who sits in the nearby table', () => {
+  it('keeps only listings that share the category wording, so a general contractor never sits beside a health coach', async () => {
+    const { relevantNearby } = await import('../../../api/_lib/groundswell/currents/maps');
+    const out = {
+      fetched_at: '2026-10-23T22:12:09.971Z',
+      source: 'Google Places API text search (relevance order, not the Maps pack), via Composio',
+      business: { name: 'Wildly Primal', rating: null, reviews: null, category: 'Services', address: '409 18th St N, Jacksonville Beach, FL 32250, USA', phone: null, website: 'https://wildlyprimal.com/', hours: [], url: null },
+      nearby: [
+        { name: 'Service Experts Jacksonville', rating: 4.9, reviews: 3814, info: 'General Contractor · 8475 Western Way Ste 100, Jacksonville, FL 32256, USA', url: null },
+        { name: 'AND Services', rating: 4.7, reviews: 356, info: 'Plumber · 10550 Deerwood Park Blvd Ste 708, Jacksonville, FL 32256, USA', url: null },
+        { name: 'SERVPRO of Arlington / Jacksonville East', rating: 5, reviews: 271, info: 'General Contractor · 11215 St Johns Industrial Pkwy S #3, Jacksonville, FL 32246, USA', url: null },
+        { name: 'Wellspring Health and Sports Performance', rating: 5, reviews: 624, info: 'Health coach · 710 3rd St N, Jacksonville Beach, FL 32250, USA', url: null },
+      ],
+      note: null,
+    };
+    expect(relevantNearby(out, 'Health coach', ['Wildly Primal', 'Jacksonville FL']).nearby.map((l) => l.name)).toEqual(['Wellspring Health and Sports Performance']);
+    // With no specific category (the listing says "Services"), nothing can be checked and the table stays as read.
+    expect(relevantNearby(out, null).nearby).toHaveLength(4);
   });
 });

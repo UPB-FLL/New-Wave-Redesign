@@ -30,8 +30,11 @@ export const TOOLKIT_CHECKS = [
   { toolkit: 'scrapecreators', label: 'ScrapeCreators (Instagram, Facebook, ad libraries)', without: 'Instagram, Facebook and the ad libraries are left out of the reports' },
   { toolkit: 'apify', label: 'Apify (Instagram profiles shown only to signed-in adults, extra images)', without: 'an Instagram profile that hides from logged-out readers stays unread, and the ad images come from fewer posts' },
   { toolkit: 'google_maps', label: 'Google Places (Maps listing, competitor picks)', without: 'Maps listings and competitor suggestions use public Google search or browser fallbacks' },
-  { toolkit: 'serpapi', label: 'Public Google search (rankings, Maps and ad library fallback)', without: 'public search observations and fallback Maps and Google Ads Transparency reads are unavailable' },
+  { toolkit: 'serpapi', label: 'SerpApi (public Google search: rankings, Maps and ad library fallback)', without: 'public search observations fall to SearchAPI or Serper, and the Google Ads Transparency fallback is unavailable' },
+  { toolkit: 'search_api', label: 'SearchAPI (public Google search and Maps, the second provider)', without: 'public search observations fall to SerpApi or Serper' },
+  { toolkit: 'serper', label: 'Serper (public Google search and Maps, Composio’s instant account)', without: 'public search observations rest on SerpApi or SearchAPI alone' },
   { toolkit: 'googleads', label: 'Google Ads (Keyword Planner)', without: 'keyword demand, the ad plan and the ad copy are left out of the reports' },
+  { toolkit: 'firecrawl', label: 'Firecrawl (website pages, competitor sites, web search fallback)', without: 'the website plan rests on the homepage alone and competitors are checked from listings only' },
 ] as const;
 
 const TIMEOUT_MS = 15_000;
@@ -70,7 +73,7 @@ async function checkOpenAI(fetchImpl: typeof fetch): Promise<ReadinessCheck> {
 const SIGNIN_CHECKS = CLIENT_SERVICES.map((s) => ({ key: `authconfig:${s.toolkit}`, label: `Client sign-in: ${s.label}`, toolkit: s.toolkit, service: s.label }));
 
 /** Toolkits Composio serves from its instant account (billed per call) rather than one New Wave linked. */
-const INSTANT_TOOLKITS = ['ahrefs', 'google_maps', 'serpapi'];
+const INSTANT_TOOLKITS = ['ahrefs', 'google_maps', 'serpapi', 'serper'];
 
 /**
  * The consumer account (phases 1 and 2): its key, then one check per toolkit

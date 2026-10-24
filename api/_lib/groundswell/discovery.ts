@@ -90,7 +90,7 @@ export async function discoverPublicBusiness(seed: DiscoverySeed): Promise<Disco
       if (!business.category && found.business?.category) business.category = found.business.category;
       for (const candidate of found.competitors) {
         const pick = found.picks.find(item => item.website === candidate.website);
-        competitors.push({ ...candidate, source_url: pick?.url ?? found.sources.find(source => source.url)?.url ?? null, reason: pick?.market === 'local' ? 'Suggested from public results for the business’s market and category.' : 'Suggested from public category research; confirm that the businesses compete.' });
+        competitors.push({ ...candidate, source_url: pick?.url ?? found.sources.find(source => source.url)?.url ?? null, reason: pick?.reason ?? (pick?.market === 'local' ? 'Suggested from public results for the business’s market and category.' : 'Suggested from public category research; confirm that the businesses compete.') });
       }
       sources.push({ name: 'Competitor research', status: competitors.length ? 'ok' : found.gaps.length ? 'unavailable' : 'not_found', url: found.sources.find(source => source.url)?.url ?? null, detail: found.gaps.join(' ') || `${competitors.length} business suggestions from public category research. These are suggestions, not search ranking claims.` });
       warnings.push(...found.gaps);

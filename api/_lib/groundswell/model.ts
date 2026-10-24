@@ -9,6 +9,9 @@ import type { AdsEvidence } from './currents/ads.js';
 import { isLinkedOutput, type LinkedOutput } from './currents/linked.js';
 import type { AdLibraryEvidence } from '../../../packages/groundswell/src/benchmark/index.js';
 import type { GoogleSerp } from './currents/serp.js';
+import { isSitePagesOutput, type SitePagesOutput } from './currents/sitePages.js';
+import type { BusinessProfile } from './businessProfile.js';
+import type { CompetitorPick } from './currents/competitors.js';
 
 /**
  * Model step: turns the Currents' data into the audit's write-up (OpenAI) and
@@ -102,6 +105,12 @@ export interface Facts {
   ad_library: { source: string; fetched_at: string; business: AdLibraryEvidence; competitors: AdLibraryEvidence[] } | null;
   /** The client's own accounts, where a partner linked them and the run read (or tried to read) them; null for a prospect. */
   linked: LinkedOutput | null;
+  /** The website's pages beyond the homepage (Firecrawl); null when the step did not run. Missing on audits before 2026-10-24. */
+  site_pages?: SitePagesOutput | null;
+  /** What the business does, from its own site (the competitors step); null before 2026-10-24. */
+  profile?: BusinessProfile | null;
+  /** The competitors the engine picked, each with why it competes, and the candidates it left out. */
+  competitor_picks?: { picks: CompetitorPick[]; dropped: { name: string; website: string | null; reason: string }[] } | null;
   missing: string[];
 }
 
@@ -138,6 +147,12 @@ export function buildFacts(audit: AuditRow, outputs: Record<string, unknown>): F
     ads: (outputs.ads as AdsOut | undefined) ?? null,
     ad_library: (outputs.ads_library as Facts['ad_library'] | undefined) ?? null,
     linked: isLinkedOutput(outputs.linked) && outputs.linked.services.length ? outputs.linked : null,
+    site_pages: isSitePagesOutput(outputs.site_pages) ? outputs.site_pages : null,
+    profile: (outputs.competitors as { profile?: BusinessProfile } | undefined)?.profile ?? null,
+    competitor_picks: (() => {
+      const c = outputs.competitors as { picks?: CompetitorPick[]; dropped?: { name: string; website: string | null; reason: string }[] } | undefined;
+      return c && Array.isArray(c.picks) ? { picks: c.picks, dropped: Array.isArray(c.dropped) ? c.dropped : [] } : null;
+    })(),
     missing,
   };
 }
@@ -214,7 +229,16 @@ export function linkedForPrompt(l: LinkedOutput | null) {
 export function factsForPrompt(f: Facts) {
   return {
     business: f.business,
+    business_profile: f.profile ? { category: f.profile.category, offer: f.profile.offer, services: f.profile.services, audience: f.profile.audience, service_area: f.profile.service_area } : null,
     website: f.site && { business: slimSite(f.site.business), competitors: f.site.competitors.map((c) => ({ name: c.name, site: slimSite(c.site) })) },
+    website_pages: f.site_pages
+      ? {
+          source: f.site_pages.source,
+          pages: f.site_pages.pages.filter((p) => !p.error).map((p) => ({ url: p.url, title: p.title, description: p.description, h1: p.h1, headings: p.headings.slice(0, 8), word_count: p.word_count, ctas: p.ctas.map((c) => c.text), prices: p.prices })),
+          competitors: f.site_pages.competitors.map((c) => ({ name: c.name, title: c.page?.title ?? null, description: c.page?.description ?? null, headings: c.page?.headings.slice(0, 6) ?? [], ctas: c.page?.ctas.map((x) => x.text) ?? [], prices: c.page?.prices ?? [] })),
+        }
+      : null,
+    competitor_picks: f.competitor_picks ? { picks: f.competitor_picks.picks.map((p) => ({ name: p.name, website: p.website, rating: p.rating, reviews: p.reviews, reason: p.reason ?? null })), left_out: f.competitor_picks.dropped.map((d) => ({ name: d.name, reason: d.reason })) } : null,
     google_maps: f.maps,
     search_ahrefs: f.search,
     keyword_planner: f.keywords && { ...f.keywords, ideas: f.keywords.ideas.slice(0, 25) },
@@ -502,6 +526,7 @@ Write in plain words for a busy owner. Rules:
 - Tracking tags and Ahrefs paid_keywords:0 or empty paid_pages do not establish whether campaigns are active. Use ad_libraries for scoped public ad presence, and only linked client_accounts for spend, conversions and performance. Name the library and observed scope when reporting a negative; never write "no active campaigns detected" as a global conclusion.
 - Keyword suggestions with null monthly_searches/bids are unmeasured research ideas. Do not label their demand low or zero, quote a budget or extrapolate returns from them. Query-specific search results show only the supplied query, place and capture time.
 - Never describe as active something the data does not show.
+- business_profile, website_pages and competitor_picks, when present, come from the business's own website pages and its competitors' homepages (read as main content): use them for what the business sells, what each competitor offers, and why each competitor was chosen; competitor_picks.left_out names candidates that did not compete.
 - website.business.technical_seo contains verified observations and fixes from the initial HTTP response only. Prioritize its high-severity findings in the website area. JavaScript was not rendered: an empty app shell, missing raw-body heading or small raw-body word count does not prove that Google cannot index the page or that it ranks poorly. Preserve the stated verification steps; do not invent SEO scores, traffic effects, or ranking gains. noindex may be intentional on private pages.
 - When client_accounts is present, it is data from the business's own accounts (Google Analytics, Search Console, Google Ads, Instagram, Meta Ads). It outranks the public estimates: prefer it in every area it covers, say which figures come from the business's own accounts, and do not list those accounts under cant_see.
 - Use they/them for people. Do not name people.

@@ -324,7 +324,7 @@ async function readSaved(path: string, slug: string, timeoutMs: number): Promise
  * each answer: `{ data: { results: [{ response: { successful, data, error } }] } }`.
  */
 export async function executeConsumerTool(slug: string, args: Record<string, unknown>, timeoutMs = 90_000): Promise<unknown> {
-  assertPublicReadBudget();
+  assertPublicReadBudget(slug);
   const deadline = Date.now() + timeoutMs;
   const raw = (await callConsumerTool(
     'COMPOSIO_MULTI_EXECUTE_TOOL',
@@ -337,7 +337,8 @@ export async function executeConsumerTool(slug: string, args: Record<string, unk
     timeoutMs,
     { envelope: true }
   ).catch((err: unknown) => {
-    if (isProviderCreditFailure(err instanceof Error ? err.message : String(err))) pausePublicReadsForCredits();
+    const why = err instanceof Error ? err.message : String(err);
+    if (isProviderCreditFailure(why)) pausePublicReadsForCredits(why, slug);
     throw err;
   })) as {
     successful?: boolean;
@@ -350,7 +351,7 @@ export async function executeConsumerTool(slug: string, args: Record<string, unk
   const item = raw?.data?.results?.[0];
   const response = item?.response;
   const why = describeError(response?.error ?? item?.error ?? raw?.error);
-  if (isProviderCreditFailure(why)) pausePublicReadsForCredits();
+  if (isProviderCreditFailure(why)) pausePublicReadsForCredits(why, slug);
   if (!response || response.successful === false || (raw?.successful === false && response.data === undefined && response.data_preview === undefined)) {
     if (NO_CONNECTION.test(why)) {
       throw new PermanentStepError(`Composio's consumer account has no active connection for ${slug.split('_')[0].toLowerCase()}: ${why}`);
@@ -364,7 +365,8 @@ export async function executeConsumerTool(slug: string, args: Record<string, unk
   const remaining = deadline - Date.now();
   if (remaining <= 0) throw new Error(`${slug}: no time remained to read the saved provider answer.`);
   return readSaved(path, slug, remaining).catch((err: unknown) => {
-    if (isProviderCreditFailure(err instanceof Error ? err.message : String(err))) pausePublicReadsForCredits();
+    const why = err instanceof Error ? err.message : String(err);
+    if (isProviderCreditFailure(why)) pausePublicReadsForCredits(why, slug);
     throw err;
   });
 }
