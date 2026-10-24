@@ -11,8 +11,10 @@ import {
   divisionApps,
   divisionCustomers,
   divisionServices,
+  groundswellMetricGroups,
   hubContent,
 } from './content';
+import type { GroundswellMetricGroup } from './content';
 import {
   DIVISION_ASSETS,
   DIVISION_BASE_PATH,
@@ -31,6 +33,7 @@ import {
   SITE_URL,
   absoluteUrl,
   divisionServicePath,
+  groundswellMetricPath,
 } from './site';
 import type { PageMetaOptions } from '../../lib/pageMeta';
 import type { DivisionApp, DivisionCustomer, DivisionFaq, DivisionPageSeo, DivisionServiceContent } from './types';
@@ -282,6 +285,31 @@ export function groundswellPageSeo(): DivisionPageSeo {
   };
 }
 
+/** One group of the metrics GroundSwell gathers: a WebPage under the GroundSwell page, about the application. */
+export function groundswellMetricPageSeo(group: GroundswellMetricGroup): DivisionPageSeo {
+  const path = groundswellMetricPath(group.slug);
+  const breadcrumbs = [HUB_CRUMB, { name: auditContent.navLabel, path: DIVISION_GROUNDSWELL_PATH }, { name: group.name, path }];
+  return {
+    brand: 'groundswell',
+    ogImage: GROUNDSWELL_BRAND.ogImage,
+    path,
+    title: group.metaTitle,
+    description: group.metaDescription,
+    keywords: group.keywords,
+    h1: group.headline,
+    breadcrumbs,
+    jsonLd: [
+      divisionOrganizationNode(),
+      {
+        ...webPageNode(path, group.metaTitle, group.metaDescription),
+        about: { '@id': absoluteUrl(`${DIVISION_GROUNDSWELL_PATH}#application`) },
+        primaryImageOfPage: absoluteUrl(GROUNDSWELL_BRAND.ogImage),
+      },
+      breadcrumbNode(path, breadcrumbs),
+    ],
+  };
+}
+
 export function contactUsPageSeo(): DivisionPageSeo {
   const path = DIVISION_CONTACT_US_PATH;
   const breadcrumbs = [HUB_CRUMB, { name: contactUsContent.navLabel, path }];
@@ -322,12 +350,13 @@ export function contactPageSeo(): DivisionPageSeo {
   };
 }
 
-/** Every indexable division URL, in sitemap order (the header's order: overview, services, then GroundSwell, customers, contact us, discovery call). */
+/** Every indexable division URL, in sitemap order (the header's order: overview, services, then GroundSwell and its metric pages, customers, contact us, discovery call). */
 export function allDivisionPages(): DivisionPageSeo[] {
   return [
     hubPageSeo(),
     ...divisionServices.map(servicePageSeo),
     groundswellPageSeo(),
+    ...groundswellMetricGroups.map(groundswellMetricPageSeo),
     customersPageSeo(),
     contactUsPageSeo(),
     contactPageSeo(),

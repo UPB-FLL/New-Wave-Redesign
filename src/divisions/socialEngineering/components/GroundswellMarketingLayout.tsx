@@ -11,11 +11,17 @@ import '../type.css';
 import '../../../groundswell/brand.css';
 import '../groundswell.css';
 
-export function GroundswellMarketingLayout({ children }: { children: ReactNode }) {
+/**
+ * The GroundSwell marketing shell. `sectionsAt` is where the header's section
+ * links lead: nothing on the GroundSwell page itself (they jump within it),
+ * the GroundSwell page's path on its metric pages (they lead back to it).
+ */
+export function GroundswellMarketingLayout({ children, sectionsAt = '' }: { children: ReactNode; sectionsAt?: string }) {
   useGroundswellBrand();
   useParentJsonLdHidden();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
+  const section = (anchor: string) => `${sectionsAt}#${anchor}`;
   return (
     <div className="nwse-root gs-branding gs-marketing" data-division="social-engineering">
       <a href="#main" className="gs-marketing-skip">
@@ -52,8 +58,9 @@ export function GroundswellMarketingLayout({ children }: { children: ReactNode }
             className={menuOpen ? 'is-open' : ''}
             onClick={() => setMenuOpen(false)}
           >
-            <a href="#how-it-works">How it works</a>
-            <a href="#sample">Sample audit</a>
+            <a href={section('metrics')}>What it measures</a>
+            <a href={section('how-it-works')}>How it works</a>
+            <a href={section('sample')}>Sample audit</a>
             <Link to={GROUNDSWELL_PATH}>
               Partner sign-in <NwseIcon name="arrow-up-right" size={14} aria-hidden="true" />
             </Link>

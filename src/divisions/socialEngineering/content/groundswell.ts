@@ -40,43 +40,51 @@ export const auditConnectors: readonly AuditConnector[] = [
   {
     name: 'Search Current',
     icon: 'metric-search',
-    source: 'Google Keyword Planner and organic search data',
-    gathers: 'Monthly searches in your area, top-of-page bid ranges, the keywords and pages you rank for, and your domain strength.',
+    source: 'Google Ads Keyword Planner, Ahrefs, and a public Google search of the terms that describe your business',
+    gathers:
+      'Monthly searches and bid ranges for up to 60 terms in your area, the keywords and pages you rank for, your domain strength, who ranks for your searches, and the questions people ask.',
     example:
       'Keyword Planner put demand at 770 searches a month for 20 event-space terms, and about 746 of the brewery’s 850 organic visits a month come from people searching its name.',
   },
   {
     name: 'Maps Current',
     icon: 'map-pin',
-    source: 'Google Maps and your Business Profile, as any customer sees them',
-    gathers: 'Where you place for each search across your service area, ratings and reviews by platform, and listing gaps.',
-    example: 'A 4.8★ Google rating from about 283 reviews, and sixth place in Maps for “brewery near Fort Lauderdale”.',
+    source: 'The Google Places API and your Business Profile, as any customer sees them',
+    gathers: 'Your rating, review count, category, hours and website, and the listings in your category nearby with theirs.',
+    example: 'A 4.8★ Google rating from about 283 reviews.',
   },
   {
     name: 'Social Current',
     icon: 'metric-engagement',
-    source: 'Public Instagram profiles and posts',
-    gathers: 'Followers, typical engagement per post, your best-performing post, and the same for each rival.',
+    source: 'Public Instagram profiles and Facebook Pages',
+    gathers:
+      'Followers, posting cadence, likes and comments per recent post, your best post, your captions and hashtags, and the same for each competitor.',
   },
   {
     name: 'Site Current',
     icon: 'service-web',
-    source: 'Your website in a real browser, PageSpeed Insights, and the Wayback Machine',
-    gathers: 'The first screen on a phone, speed, tracking tags, and when the site and its offers last changed.',
-    example: 'Three pop-ups before the page on a phone: a 21+ gate, a cookie banner, and a promo.',
+    source: 'Your website’s HTML, and its pages read as text through Firecrawl',
+    gathers:
+      'What each page says and asks the visitor to do, prices seen, tracking tags, booking paths, and the technical checks that decide whether Google can read it.',
   },
   {
     name: 'Ads Current',
     icon: 'metric-cost-per-lead',
-    source: 'Google Ads Transparency Center and the tags on your site',
-    gathers: 'Ads on record for you and each rival, and evidence of past campaigns, kept apart from “no evidence found”.',
+    source: 'Google’s Ads Transparency Center, the Meta Ad Library, Ahrefs’ paid pages, and the tags on your site',
+    gathers: 'Ads on record for you and each competitor, kept apart from “no evidence found”; never a spend figure, which no library publishes.',
     example: 'Eight Google ads on record in the Transparency Center, with no spend made public.',
+  },
+  {
+    name: 'Accounts Current',
+    icon: 'pillar-integrations',
+    source: 'A client’s own Google Analytics 4, Search Console, Google Ads, Instagram and Meta Ads, linked with its sign-in',
+    gathers: 'Sessions, clicks, costs, conversions, reach and leads from the accounts themselves, which replace the public estimates wherever they overlap.',
   },
   {
     name: 'Delivery Current',
     icon: 'send',
     source: 'Your private GroundSwell portal',
-    gathers: 'The three finished reports, stored privately and opened from your portal sign-in; only your account and New Wave can see them.',
+    gathers: 'The finished reports and plans, stored privately and opened from your portal sign-in; only your account and New Wave can see them.',
     example: 'Three PDFs waiting under the brewery in its portal.',
   },
 ];
@@ -98,7 +106,7 @@ export const auditReports: readonly AuditReport[] = [
     name: 'Full audit',
     format: '11 boards',
     audience: 'For whoever does the work',
-    detail: 'Every finding with its source and date: history, rivals, keyword-to-page changes, and a 12-week plan.',
+    detail: 'Every finding with its source and date: rivals and why they compete, keyword-to-page changes, the website optimization plan, the social media plan with its first week of posts, and a 12-week plan.',
   },
 ];
 
@@ -178,6 +186,7 @@ export const auditContent = {
   jump: {
     label: 'On this page',
     items: [
+      { label: 'What it measures', href: '#metrics' },
       { label: 'How it works', href: '#how-it-works' },
       { label: `The ${AUDIT_CONNECTORS_NAME}`, href: '#currents' },
       { label: 'A real audit', href: '#sample' },
@@ -213,7 +222,7 @@ export const auditContent = {
       {
         title: 'Research',
         heading: 'See the whole picture.',
-        detail: 'The Currents gather your Google, social, website, ads, and keyword data, and the same for four to six nearby rivals.',
+        detail: 'The Currents gather your Google, social, website, ads, and keyword data, and the same for the competitors that actually compete with you, each named with why.',
         outcome: 'A sourced view of where you stand and who you’re up against.',
         caption: 'The evidence',
         icon: 'metric-search',
@@ -339,7 +348,7 @@ export const auditContent = {
     {
       question: 'Where does the data come from?',
       answer:
-        'The initial audit uses public sources: Google Search and Maps, Google Keyword Planner, your public Instagram, your website, PageSpeed Insights, the Wayback Machine, and the Google Ads Transparency Center. Each number in the reports names its source and date. The integrated plan can also use the client’s own figures from accounts they connect.',
+        'The initial audit uses public sources: Google Ads Keyword Planner, Ahrefs, a public Google search, the Google Places API, your public Instagram and Facebook, your website and its pages, Google’s Ads Transparency Center, and the Meta Ad Library. Each number in the reports names its source and date; “What it measures” lists every metric. The integrated plan can also use the client’s own figures from accounts they connect.',
     },
     {
       question: 'How is the return worked out?',

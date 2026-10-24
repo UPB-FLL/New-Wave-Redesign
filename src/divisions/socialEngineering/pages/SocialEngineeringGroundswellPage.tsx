@@ -1,13 +1,15 @@
-import type { ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import { GroundswellMarketingLayout } from '../components/GroundswellMarketingLayout';
+import { GroundswellSectionBand as SectionBand } from '../components/GroundswellSectionBand';
 import { GroundswellHero } from '../components/GroundswellHero';
 import { GroundswellProcess } from '../components/GroundswellProcess';
 import { accentAt } from '../components/pillarStyle';
 import { CheckList, CtaBand, CtaStrip, FaqList, PrimaryCta, SectionIntro } from '../components/sections';
 import { Tabs, type TabItem } from '../components/Tabs';
-import { auditConnectors, auditContent, auditReports, auditSample } from '../content';
+import { auditConnectors, auditContent, auditReports, auditSample, groundswellMetricGroups, groundswellMetricsContent } from '../content';
 import { NwseIcon } from '../icons/NwseIcon';
 import { groundswellPageSeo } from '../seo';
+import { groundswellMetricPath } from '../site';
 import { useDivisionMeta } from '../useDivisionMeta';
 import { GROUNDSWELL_CONFIG } from '../../../../packages/groundswell/groundswell.config';
 import {
@@ -22,31 +24,6 @@ import { compareWithToday, rankChanges, type RankedChange } from '../../../../pa
 
 const seo = groundswellPageSeo();
 
-/** Product-only surfaces leave the division's shared section colours intact. */
-function SectionBand({
-  children,
-  surface,
-  compact = false,
-  id,
-  labelledBy,
-}: {
-  children: ReactNode;
-  surface: 'navigation' | 'foam' | 'navy' | 'sample' | 'amber';
-  compact?: boolean;
-  id?: string;
-  labelledBy?: string;
-}) {
-  return (
-    <section
-      id={id}
-      aria-labelledby={labelledBy}
-      className={`gs-section gs-section-${surface} relative ${compact ? 'py-6 sm:py-8 lg:py-10' : 'py-10 sm:py-14 lg:py-20'}`}
-    >
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">{children}</div>
-    </section>
-  );
-}
-
 /** The row of in-page links under the hero: one pill per section, so a reader can go straight to the part they came for. */
 function JumpNav() {
   const c = auditContent.jump;
@@ -59,6 +36,49 @@ function JumpNav() {
         </a>
       ))}
     </nav>
+  );
+}
+
+/**
+ * The metrics the engine gathers, one card per group: its name, what it
+ * covers, why it matters, and a link to the group's own page with every metric.
+ */
+function MetricsGrid() {
+  const c = groundswellMetricsContent;
+  return (
+    <ul className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 md:grid-cols-2 md:gap-4 lg:mt-10 xl:grid-cols-3" data-role="metric-groups">
+      {groundswellMetricGroups.map((group, index) => {
+        const color = accentAt(index);
+        return (
+          <li key={group.slug} className="nwse-card relative flex flex-col overflow-hidden p-4 sm:p-5 lg:p-6">
+            <span className="absolute inset-x-0 top-0 h-1.5" style={{ background: color.accent }} aria-hidden="true" />
+            <div className="mt-1 flex items-center gap-3">
+              <span className={`nwse-icon ${color.tile} h-9 w-9 shrink-0`} aria-hidden="true">
+                <NwseIcon name={group.icon} size={18} />
+              </span>
+              <h3 className="nwse-type-title-1 text-[var(--nw-current-navy)]">{group.name}</h3>
+            </div>
+            <p className="nwse-type-body-small mt-3 text-[var(--nw-slate)]">{group.summary}</p>
+            <p className="nwse-type-label nwse-label mt-4">{c.mattersLabel}</p>
+            <p className="nwse-type-body-small mt-1 text-[var(--nw-current-navy)]">{group.matters}</p>
+            <ul className="mt-4 flex flex-wrap gap-2" aria-label={`${group.name}: metrics`}>
+              {group.metrics.slice(0, 3).map((metric) => (
+                <li key={metric.name} className="nwse-chip nwse-type-body-small">
+                  {metric.name}
+                </li>
+              ))}
+            </ul>
+            <Link
+              to={groundswellMetricPath(group.slug)}
+              className="nwse-type-body-small mt-auto inline-flex items-center gap-2 pt-5 font-semibold text-[var(--nw-current-navy)] hover:text-[var(--nw-tide-blue)]"
+              aria-label={`${c.cardLink(group.metrics.length)}: ${group.name}`}
+            >
+              {c.cardLink(group.metrics.length)} <NwseIcon name="arrow-right" size={15} aria-hidden="true" />
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 
@@ -515,7 +535,8 @@ function SampleViewer() {
 
 /**
  * The GroundSwell page: the audit explained one part at a time. Hero (with a
- * second button straight to the example); the in-page links; the five steps
+ * second button straight to the example); the in-page links; the metrics it
+ * gathers, one card per group, each linking to its own page; the five steps
  * as a stepper; the Currents as an explorer; the worked example as a report
  * viewer, then the call to action; the three reports; how the audit grows;
  * questions; the closing call. Brand surfaces distinguish each part of the audit.
@@ -530,6 +551,16 @@ export default function SocialEngineeringGroundswellPage() {
 
       <SectionBand surface="navigation" compact>
         <JumpNav />
+      </SectionBand>
+
+      <SectionBand surface="sample" id="metrics" labelledBy="nwse-audit-metrics">
+        <SectionIntro
+          kicker={groundswellMetricsContent.kicker}
+          title={groundswellMetricsContent.heading}
+          description={groundswellMetricsContent.intro}
+          id="nwse-audit-metrics"
+        />
+        <MetricsGrid />
       </SectionBand>
 
       <SectionBand surface="foam" id="how-it-works" labelledBy="nwse-audit-process">

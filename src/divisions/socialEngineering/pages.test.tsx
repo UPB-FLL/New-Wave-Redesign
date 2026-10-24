@@ -5,11 +5,12 @@ import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useContent } from '../../lib/useContent';
 import { FOOTER_EMAIL_FALLBACK, PLACEHOLDER_PHONE } from './contactDetails';
-import { appsContent, auditConnectors, auditContent, auditReports, auditSample, contactContent, contactUsContent, customersContent, divisionApps, divisionCustomers, divisionServices, hubContent } from './content';
+import { appsContent, auditConnectors, auditContent, auditReports, auditSample, contactContent, contactUsContent, customersContent, divisionApps, divisionCustomers, divisionServices, groundswellMetricGroups, groundswellMetricsContent, hubContent } from './content';
 import SocialEngineeringContactPage from './pages/SocialEngineeringContactPage';
 import SocialEngineeringContactUsPage from './pages/SocialEngineeringContactUsPage';
 import SocialEngineeringCustomersPage from './pages/SocialEngineeringCustomersPage';
 import SocialEngineeringHubPage from './pages/SocialEngineeringHubPage';
+import SocialEngineeringGroundswellMetricPage from './pages/SocialEngineeringGroundswellMetricPage';
 import SocialEngineeringGroundswellPage from './pages/SocialEngineeringGroundswellPage';
 import SocialEngineeringServicePage from './pages/SocialEngineeringServicePage';
 import { DIVISION_ICONS } from './icons/iconData';
@@ -24,8 +25,10 @@ import {
   DIVISION_GROUNDSWELL_PATH,
   DIVISION_NAME,
   DIVISION_PRIMARY_CTA,
+  GROUNDSWELL_METRIC_SLUGS,
   SITE_URL,
   divisionServicePath,
+  groundswellMetricPath,
 } from './site';
 import { GROUNDSWELL_PATH } from '../../groundswell/site';
 
@@ -193,6 +196,7 @@ describe('division positioning', () => {
     ['hub', <SocialEngineeringHubPage />],
     ...divisionServices.map((service): [string, React.ReactElement] => [service.slug, <SocialEngineeringServicePage slug={service.slug} />]),
     ['groundswell', <SocialEngineeringGroundswellPage />],
+    ...groundswellMetricGroups.map((group): [string, React.ReactElement] => [`groundswell/${group.slug}`, <SocialEngineeringGroundswellMetricPage slug={group.slug} />]),
     ['customers', <SocialEngineeringCustomersPage />],
     ['contact-us', <SocialEngineeringContactUsPage />],
     ['contact', <SocialEngineeringContactPage />],
@@ -324,6 +328,7 @@ describe('division icons', () => {
     ['hub', <SocialEngineeringHubPage />],
     ['integration', <SocialEngineeringServicePage slug="integration" />],
     ['groundswell', <SocialEngineeringGroundswellPage />],
+    ['groundswell/ads', <SocialEngineeringGroundswellMetricPage slug="ads" />],
     ['customers', <SocialEngineeringCustomersPage />],
     ['contact-us', <SocialEngineeringContactUsPage />],
     ['contact', <SocialEngineeringContactPage />],
@@ -543,6 +548,87 @@ describe('SocialEngineeringGroundswellPage', () => {
     expect(strip).toHaveTextContent(auditContent.sample.cta.heading);
     expect(within(strip as HTMLElement).getByRole('link', { name: DIVISION_PRIMARY_CTA })).toHaveAttribute('href', DIVISION_CONTACT_PATH);
   });
+});
+
+describe('GroundSwell metrics', () => {
+  it('keeps the metric slugs in site.ts and the groups in content in step, each group with a page, an icon and at least three metrics', () => {
+    expect(groundswellMetricGroups.map((group) => group.slug)).toEqual([...GROUNDSWELL_METRIC_SLUGS]);
+    groundswellMetricGroups.forEach((group) => {
+      expect(DIVISION_ICONS).toHaveProperty([group.icon]);
+      expect(group.metrics.length).toBeGreaterThanOrEqual(3);
+      expect(group.limits.length).toBeGreaterThan(0);
+      // Every metric says what it measures, where it comes from, and why it matters.
+      group.metrics.forEach((metric) => {
+        expect(metric.what.length).toBeGreaterThan(20);
+        expect(metric.source.length).toBeGreaterThan(3);
+        expect(metric.why.length).toBeGreaterThan(20);
+      });
+    });
+    // The page names only sources the engine reads: nothing it stopped using or never had.
+    expect(JSON.stringify(groundswellMetricGroups)).not.toMatch(/PageSpeed|Wayback|Google Drive|Maps rank|position in Maps pack/i);
+    expect(JSON.stringify([auditConnectors, auditContent.faqs])).not.toMatch(/PageSpeed|Wayback/i);
+  });
+
+  it('shows every group on the GroundSwell page as a card with why it matters and a link to its own page', () => {
+    renderAt(<SocialEngineeringGroundswellPage />);
+    const region = screen.getByRole('region', { name: groundswellMetricsContent.heading });
+    expect(region.id).toBe('metrics');
+    const cards = within(region.querySelector('[data-role="metric-groups"]') as HTMLElement).getAllByRole('listitem').filter((li) => li.classList.contains('nwse-card'));
+    expect(cards.map((card) => within(card).getByRole('heading', { level: 3 }).textContent)).toEqual(groundswellMetricGroups.map((group) => group.name));
+    groundswellMetricGroups.forEach((group, index) => {
+      const card = cards[index];
+      expect(card).toHaveTextContent(group.matters);
+      expect(within(card).getByRole('link')).toHaveAttribute('href', groundswellMetricPath(group.slug));
+      group.metrics.slice(0, 3).forEach((metric) => expect(card).toHaveTextContent(metric.name));
+    });
+    // The header and the in-page links both reach the section.
+    const header = screen.getByRole('navigation', { name: 'GroundSwell navigation' });
+    expect(within(header).getByRole('link', { name: 'What it measures' })).toHaveAttribute('href', '#metrics');
+    expect(within(header).getByRole('link', { name: 'How it works' })).toHaveAttribute('href', '#how-it-works');
+  });
+
+  it.each(groundswellMetricGroups.map((group) => [group.slug, group] as const))(
+    '%s has its own head, one H1, its breadcrumb, every metric with its source and why, its limits, and links to the other groups',
+    (_slug, group) => {
+      renderAt(<SocialEngineeringGroundswellMetricPage slug={group.slug} />);
+      const pagePath = groundswellMetricPath(group.slug);
+      expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(group.headline);
+      expect(document.title).toBe(group.metaTitle);
+      expect(document.head.querySelector('meta[name="description"]')?.getAttribute('content')).toBe(group.metaDescription);
+      expect(canonical()).toBe(`${SITE_URL}${pagePath}`);
+      expect(jsonLdBlocks()).toHaveLength(1);
+      const graph = JSON.parse(jsonLdBlocks()[0].textContent ?? '')['@graph'];
+      expect(graph.map((node: { '@type': string }) => node['@type'])).toEqual(['Organization', 'WebPage', 'BreadcrumbList']);
+      const breadcrumb = screen.getByRole('navigation', { name: 'Breadcrumb' });
+      expect(within(breadcrumb).getByText(group.name)).toHaveAttribute('aria-current', 'page');
+      expect(within(breadcrumb).getByRole('link', { name: auditContent.navLabel })).toHaveAttribute('href', DIVISION_GROUNDSWELL_PATH);
+      const main = screen.getByRole('main');
+      expect(main).toHaveTextContent(group.why);
+      expect(main.querySelector('[data-role="feeds"]')).toHaveTextContent(group.feeds);
+      const metrics = within(main.querySelector('[data-role="metrics"]') as HTMLElement).getAllByRole('listitem');
+      expect(metrics.map((item) => within(item).getByRole('heading', { level: 3 }).textContent)).toEqual(group.metrics.map((metric) => metric.name));
+      group.metrics.forEach((metric, index) => {
+        expect(metrics[index]).toHaveTextContent(metric.what);
+        expect(metrics[index]).toHaveTextContent(metric.source);
+        expect(metrics[index]).toHaveTextContent(metric.why);
+      });
+      group.limits.forEach((limit) => expect(within(main).getByText(limit)).toBeInTheDocument());
+      expect(main).toHaveTextContent(group.reports);
+      const example = main.querySelector('[data-role="example"]');
+      if (group.example) expect(example).toHaveTextContent(group.example);
+      else expect(example).toBeNull();
+      const others = screen.getByRole('navigation', { name: groundswellMetricsContent.page.othersLabel });
+      expect(within(others).getAllByRole('link').map((link) => link.getAttribute('href'))).toEqual(
+        groundswellMetricGroups.filter((other) => other.slug !== group.slug).map((other) => groundswellMetricPath(other.slug)),
+      );
+      // Back to the GroundSwell page, and the header's section links lead there too.
+      expect(within(main).getByRole('link', { name: new RegExp(groundswellMetricsContent.page.back) })).toHaveAttribute('href', `${DIVISION_GROUNDSWELL_PATH}#metrics`);
+      const header = screen.getByRole('navigation', { name: 'GroundSwell navigation' });
+      expect(within(header).getByRole('link', { name: 'How it works' })).toHaveAttribute('href', `${DIVISION_GROUNDSWELL_PATH}#how-it-works`);
+      expect(within(main).getAllByRole('link', { name: new RegExp(DIVISION_PRIMARY_CTA) })[0]).toHaveAttribute('href', DIVISION_CONTACT_PATH);
+    },
+  );
 });
 
 /** The sample audit's viewer with one of its parts open. */

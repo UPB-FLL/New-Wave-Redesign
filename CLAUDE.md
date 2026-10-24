@@ -2,6 +2,46 @@
 
 ## Recent Changes
 
+### GroundSwell page: the metrics it gathers, each with why it matters (2026-10-24)
+
+The public GroundSwell page (`/social-engineering/groundswell`) now opens on
+the metrics the engine actually pulls, grouped the way the reports group them,
+and each group has its own page.
+
+- **Content** `content/groundswellMetrics.ts`: `groundswellMetricGroups`, one
+  per group (search, google-listing, competitors, social, website, ads,
+  your-accounts; the slugs live in `site.ts` as `GROUNDSWELL_METRIC_SLUGS`,
+  with `groundswellMetricPath`, and a test holds the two in step). Each group
+  has its headline, summary, the card's one-line `matters`, the page's `why`,
+  what it `feeds` (which plan), its `metrics` (name, `what` is measured,
+  `source`, `why`), `limits` (what is not measured, printed, never hidden),
+  where it appears in the `reports`, the brewery's `example` only where the
+  engine measures it, and its own meta. Every metric is one
+  `api/_lib/groundswell` reads or models today; a test forbids sources the
+  engine does not use (PageSpeed, the Wayback Machine, a Maps rank).
+- **Main page**: a "What it measures" section (`#metrics`, first after the
+  jump nav; `MetricsGrid`: one card per group with why it matters, its first
+  three metrics and a link to its page). The Currents explorer names the
+  engine's real sources (Keyword Planner, Ahrefs, a public Google search, the
+  Places API, public Instagram and Facebook, the site's HTML and Firecrawl,
+  the Ads Transparency Center and the Meta Ad Library) and gains an Accounts
+  Current; the "Where does the data come from?" FAQ says the same. The
+  header's section links take `sectionsAt` (`GroundswellMarketingLayout`), so
+  they jump within the main page and lead back to it from a metric page.
+- **Metric pages** `pages/SocialEngineeringGroundswellMetricPage.tsx`
+  (`/social-engineering/groundswell/<slug>`): hero with the breadcrumb, why it
+  matters with what it feeds and the example, every metric as a card, limits
+  and where it appears on navy, links to the other groups, the CTA. Wired
+  through `seo.ts` (`groundswellMetricPageSeo`, in `allDivisionPages` after
+  the GroundSwell page), `routes.tsx`, `preload.ts`, `App.tsx`, `vercel.json`
+  rewrites, the sitemap, and the build-time body render (`prerenderBody.tsx`:
+  `renderGroundswellBody(path)`, `isGroundswellPublicPath`), so each page's
+  HTML carries its content. `GroundswellSectionBand` is the shared band.
+- **Tests**: the "GroundSwell metrics" cases in `pages.test.tsx`, the metric
+  pages in `prerenderBody.test.tsx`, `preload.test.ts` and
+  `division-integration.test.ts`; the positioning and icon sweeps include a
+  metric page.
+
 ### Groundswell: competitors that compete, the site's pages, and the two plans (2026-10-24)
 
 From the Wildly Primal run of 2026-10-23 (audit `40b49eba…`, held in

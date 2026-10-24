@@ -3,7 +3,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { divisionPageModule, preloadTagsFor, type BundleChunk } from './preload';
 import { allDivisionPages } from './seo';
-import { DIVISION_CONTACT_US_PATH, DIVISION_CUSTOMERS_PATH } from './site';
+import { DIVISION_CONTACT_US_PATH, DIVISION_CUSTOMERS_PATH, groundswellMetricPath } from './site';
 
 const bundle: Record<string, BundleChunk> = {
   'assets/index-main.js': { type: 'chunk', fileName: 'assets/index-main.js', isEntry: true, facadeModuleId: '/app/src/main.tsx', imports: [] },
@@ -44,6 +44,7 @@ describe('divisionPageModule', () => {
     });
     expect(divisionPageModule(DIVISION_CUSTOMERS_PATH)).toBe('SocialEngineeringCustomersPage');
     expect(divisionPageModule(DIVISION_CONTACT_US_PATH)).toBe('SocialEngineeringContactUsPage');
+    expect(divisionPageModule(groundswellMetricPath('search'))).toBe('SocialEngineeringGroundswellMetricPage');
   });
 
   it('fails the build for a URL with no page module, instead of preloading the wrong chunk', () => {

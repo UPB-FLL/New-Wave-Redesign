@@ -333,6 +333,34 @@
       "destination": "/social-engineering/groundswell/index.html"
     },
     {
+      "source": "/social-engineering/groundswell/search",
+      "destination": "/social-engineering/groundswell/search/index.html"
+    },
+    {
+      "source": "/social-engineering/groundswell/google-listing",
+      "destination": "/social-engineering/groundswell/google-listing/index.html"
+    },
+    {
+      "source": "/social-engineering/groundswell/competitors",
+      "destination": "/social-engineering/groundswell/competitors/index.html"
+    },
+    {
+      "source": "/social-engineering/groundswell/social",
+      "destination": "/social-engineering/groundswell/social/index.html"
+    },
+    {
+      "source": "/social-engineering/groundswell/website",
+      "destination": "/social-engineering/groundswell/website/index.html"
+    },
+    {
+      "source": "/social-engineering/groundswell/ads",
+      "destination": "/social-engineering/groundswell/ads/index.html"
+    },
+    {
+      "source": "/social-engineering/groundswell/your-accounts",
+      "destination": "/social-engineering/groundswell/your-accounts/index.html"
+    },
+    {
       "source": "/social-engineering/customers",
       "destination": "/social-engineering/customers/index.html"
     },
