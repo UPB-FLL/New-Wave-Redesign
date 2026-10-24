@@ -222,7 +222,7 @@ export async function connectionFor(slug: string, timeoutMs = 30_000): Promise<C
  * the project's shared connection for its toolkit.
  */
 export async function executeTool(slug: string, args: Record<string, unknown>, timeoutMs = 90_000): Promise<unknown> {
-  assertPublicReadBudget();
+  assertPublicReadBudget(slug);
   if (timeoutMs <= 0) throw new Error('Composio public lookup timed out.');
   if (isConsumerConfigured()) return executeConsumerTool(slug, args, timeoutMs);
   const deadline = Date.now() + timeoutMs;
@@ -234,7 +234,8 @@ export async function executeTool(slug: string, args: Record<string, unknown>, t
   if (remaining <= 0) throw new Error('Composio public lookup timed out.');
   try { return await executeToolAs(slug, args, account, remaining); }
   catch (err) {
-    if (isProviderCreditFailure(err instanceof Error ? err.message : String(err))) pausePublicReadsForCredits();
+    const why = err instanceof Error ? err.message : String(err);
+    if (isProviderCreditFailure(why)) pausePublicReadsForCredits(why, slug);
     throw err;
   }
 }

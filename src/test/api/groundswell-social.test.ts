@@ -245,3 +245,18 @@ describe('Social Current: a client’s own Instagram account', () => {
     ]);
   });
 });
+
+describe('Social Current: what the posts say', () => {
+  it('keeps the business’s captions and hashtags, a competitor’s captions and hashtags without its images, and the hashtags seen', async () => {
+    const rich = { items: [
+      { code: 'A1', like_count: 10, comment_count: 1, taken_at: 1_760_000_000, caption: { text: 'Brakes done same day #FortLauderdale #brakes' }, image_versions2: { candidates: [{ url: 'https://cdn.example/a1.jpg' }] } },
+      { code: 'A2', like_count: 12, comment_count: 0, taken_at: 1_759_900_000, caption: { text: 'Shop tour #fortlauderdale #shoplife' }, image_versions2: { candidates: [{ url: 'https://cdn.example/a2.jpg' }] } },
+    ] };
+    mocks.executeTool.mockImplementation(async (slug: string, args: { handle: string }) => (slug === 'SCRAPECREATORS_GET_INSTAGRAM_PROFILE' ? profile(args.handle === 'bayside' ? 500 : 1200) : rich));
+    const out = await runSocial(ctx, 0);
+    expect(out.business).toMatchObject({ recent_captions: ['Brakes done same day #FortLauderdale #brakes', 'Shop tour #fortlauderdale #shoplife'], hashtags: ['fortlauderdale', 'brakes', 'shoplife'] });
+    expect(out.business?.media).toHaveLength(2);
+    expect(out.competitors[0]).toMatchObject({ name: 'Bayside', media: [], recent_captions: ['Brakes done same day #FortLauderdale #brakes', 'Shop tour #fortlauderdale #shoplife'], hashtags: ['fortlauderdale', 'brakes', 'shoplife'] });
+    expect(out.hashtags_seen).toEqual({ business: ['fortlauderdale', 'brakes', 'shoplife'], competitors: ['fortlauderdale', 'brakes', 'shoplife'] });
+  });
+});

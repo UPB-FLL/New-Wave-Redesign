@@ -1,5 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { PHASE_INFO, PHASES, type Phase } from '../../../src/lib/groundswellValidation.js';
+import { isPlansOutput } from './plans.js';
+import { PLATFORM_LABELS } from '../../../packages/groundswell/src/plans.js';
 import { isAdplanOutput } from './adplan.js';
 import { isAdsetsOutput } from './adsets.js';
 import { assetsFor } from './assetStore.js';
@@ -127,6 +129,17 @@ export function panelsFor(outputs: Record<string, unknown>): DataPanel[] {
       table: { head: ['Competitor', 'Followers', 'Posts / 30 days', 'Avg likes'], rows: arr(social.competitors).map((c) => [`${text(c.name)} (@${text(c.handle)})`, n(c.followers), n(c.posts_last_30_days), n(c.avg_likes_recent)]) },
     });
   }
+  const pagesOut = obj(outputs.site_pages);
+  if (Array.isArray(pagesOut.pages)) {
+    const pages = arr(pagesOut.pages);
+    panels.push({
+      key: 'site_pages',
+      title: 'Website pages',
+      source: text(pagesOut.source) === '–' ? null : text(pagesOut.source),
+      table: { head: ['Page', 'Title', 'Words', 'Calls to action', 'Prices seen'], rows: pages.map((p) => [text(p.path), p.error ? `Not read: ${text(p.error)}` : text(p.title), n(p.word_count), arr(p.ctas).map((c) => text(c.text)).join(', ') || '–', (Array.isArray(p.prices) ? (p.prices as string[]) : []).join(', ') || '–']) },
+      note: arr(pagesOut.competitors).length ? `Competitor homepages read: ${arr(pagesOut.competitors).map((c) => `${text(c.name)}${obj(c.page).error ? ' (not read)' : ''}`).join(', ')}.` : null,
+    });
+  }
   const model = obj(outputs.model);
   const w = obj(model.writeup);
   if (w.headline) {
@@ -140,6 +153,19 @@ export function panelsFor(outputs: Record<string, unknown>): DataPanel[] {
       source: p.industry.label,
       rows: (['low', 'medium', 'high'] as const).map((s) => ({ label: `${s[0].toUpperCase()}${s.slice(1)} case`, value: `${usd(p.plan.budget[s])} a month, ${usd(p.plan.year_net[s])} net over 12 months` })),
       table: { head: ['Angle', 'Platform', 'Call', 'Spend (base)', 'ROI (base)'], rows: p.plan.rows.map((r) => [r.angle, r.platform_label, r.recommendation, usd(r.scenarios.medium.spend), pct(r.scenarios.medium.roi)]) },
+    });
+  }
+  if (isPlansOutput(outputs.plans)) {
+    const p = outputs.plans;
+    panels.push({
+      key: 'plans',
+      title: 'Website plan and the first week of posts',
+      source: p.sources.join('; ') || null,
+      list: [
+        ...p.website_plan.changes.slice(0, 6).map((c) => `${c.priority === 'high' ? 'High' : c.priority === 'medium' ? 'Medium' : 'Low'} · ${c.page}: ${c.change}`),
+        ...p.social_plan.week.map((post) => `${post.day} · ${PLATFORM_LABELS[post.platform]} ${post.format}: ${post.topic || post.hook}`),
+      ],
+      note: p.dropped.length ? `${p.dropped.length} item${p.dropped.length === 1 ? '' : 's'} left out by the rules.` : null,
     });
   }
   if (isBenchmarkOutput(outputs.benchmark)) {

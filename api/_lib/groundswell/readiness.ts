@@ -32,6 +32,7 @@ export const TOOLKIT_CHECKS = [
   { toolkit: 'google_maps', label: 'Google Places (Maps listing, competitor picks)', without: 'Maps listings and competitor suggestions use public Google search or browser fallbacks' },
   { toolkit: 'serpapi', label: 'Public Google search (rankings, Maps and ad library fallback)', without: 'public search observations and fallback Maps and Google Ads Transparency reads are unavailable' },
   { toolkit: 'googleads', label: 'Google Ads (Keyword Planner)', without: 'keyword demand, the ad plan and the ad copy are left out of the reports' },
+  { toolkit: 'firecrawl', label: 'Firecrawl (website pages, competitor sites, web search fallback)', without: 'the website plan rests on the homepage alone and competitors are checked from listings only' },
 ] as const;
 
 const TIMEOUT_MS = 15_000;

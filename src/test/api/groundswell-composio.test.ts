@@ -147,6 +147,20 @@ describe('Composio client', () => {
     expect(own).toHaveLength(1);
   });
 
+  it('pauses only the provider that ran out of credits, naming it, while the other toolkits keep reading', async () => {
+    vi.stubEnv('COMPOSIO_API_KEY', 'ak_1234567890');
+    const sc = fetchWith([{ ...maps('ca_sc', COMPOSIO_USER_ID, '2026-10-21'), toolkit: { slug: 'scrapecreators' } }], { status: 402, body: { successful: false, error: 'ScrapeCreators has insufficient credits for this profile lookup.' } });
+    const err = await executeTool('SCRAPECREATORS_GET_INSTAGRAM_PROFILE', {}).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(ProviderCreditError);
+    expect((err as Error).message).toBe('ScrapeCreators has run out of credits (ScrapeCreators has insufficient credits for this profile lookup), so its reads are paused. Add credits at ScrapeCreators, then retry the research.');
+    const afterFirst = sc.length;
+    await expect(executeTool('SCRAPECREATORS_LIST_INSTAGRAM_USER_POSTS', {})).rejects.toThrow(/ScrapeCreators has run out of credits/);
+    expect(sc).toHaveLength(afterFirst);
+    const places = fetchWith([maps('ca_public', COMPOSIO_USER_ID, '2026-10-21')], { status: 200, body: { successful: true, data: { places: [] } } });
+    await expect(executeTool('GOOGLE_MAPS_TEXT_SEARCH', {})).resolves.toEqual({ places: [] });
+    expect(places.length).toBeGreaterThan(0);
+  });
+
   it('never runs a shared scrape as a client\'s own account, and finds a client\'s account by its user id', async () => {
     vi.stubEnv('COMPOSIO_API_KEY', 'ak_1234567890');
     vi.stubEnv('COMPOSIO_USER_ID', 'groundswell');

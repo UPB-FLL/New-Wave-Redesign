@@ -285,3 +285,47 @@ and a `STEP_LABELS` entry.
 - Phase 2 for Uncommon Path has not run yet: both runs predate the phases.
   "Run again" on its workspace card starts phase 1 on the new code and
   queues phase 2 on its own.
+
+## 6. Seen on 2026-10-24: the Wildly Primal run, and what shipped for it
+
+The first run for Wildly Primal (functional health coach, Jacksonville
+Beach; audit `40b49eba…`, 2026-10-23 22:12 UTC) came back held for review
+with two problems the owner saw at once:
+
+- **No Instagram or Facebook data, and the later reads empty too.** Every
+  Composio read from the social step on recorded "Composio public-data reads
+  are paused because the credit balance is empty". Checked live on
+  2026-10-24 through the consumer account: `SCRAPECREATORS_GET_INSTAGRAM_PROFILE`
+  answers HTTP 402 "ScrapeCreators has insufficient credits for this profile
+  lookup" (ScrapeCreators' own balance; its connection listing said 100
+  credits at the same moment, so the plan or the lookup's price is the
+  question for ScrapeCreators), `SERPAPI_GOOGLE_LIGHT_SEARCH` answers 401
+  "Invalid API key", and Firecrawl answers (1,045 credits). The engine's
+  credit pause matched the 402 and paused every toolkit for 30 s, so Ahrefs,
+  Places and SerpApi went dark in the same steps. Shipped: the pause is per
+  provider and names it (`providerBudget.ts`).
+- **SERVPRO and a plumber in the nearby table.** The Maps step's nearby
+  query ran on the Places label "Services" (the run started minutes before
+  the first-party category rules of #153 deployed). Shipped: the business
+  profile from its own pages, the relevance check on every candidate (words,
+  then the model), the Maps table filtered the same way, and the reasons and
+  the left-out candidates printed in the reports.
+
+What the run makes now, with Firecrawl and SerpApi linked (the engine's
+entry for 2026-10-24 in CLAUDE.md has the code): the site's pages read as
+main content, the competitors chosen for what they sell, the website
+optimization plan page by page, and the social media plan with its first
+week of posts, ready to paste, every line held to the data.
+
+Firecrawl shapes read on 2026-10-24 (wildlyprimal.com): `map` answers
+`{ links: [{ url, title?, description? }], success }`; `scrape` answers
+`{ data: { markdown, links, metadata: { title, description, og:*, statusCode,
+sourceURL, creditsUsed } } }` (one credit a page); `search` answers
+`{ data: { web: [{ position, title, url, description, links?, metadata? }] },
+creditsUsed }` (six credits for five results with scraping on).
+
+Next on the live side: credits at ScrapeCreators, a valid SerpApi key in the
+Composio connection (the "searchapi" and "serper" toolkits were only
+initiated, with no account), then Run again on the workspace card; the held
+run is unchanged. Then the remaining steps in section 4 (reviews, community,
+AI visibility, Facebook in depth, publishing).

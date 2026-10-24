@@ -10,6 +10,8 @@ export interface GoogleSerp {
   organic: { position: number | null; title: string; url: string; domain: string | null; snippet: string | null }[];
   local: { position: number | null; title: string; rating: number | null; reviews: number | null; website: string | null; address: string | null; category: string | null; url: string | null }[];
   related_searches: string[];
+  /** "People also ask" questions on the page; missing on audits before 2026-10-24. */
+  questions?: string[];
   error: string | null;
 }
 
@@ -31,6 +33,7 @@ export function parseGoogleSerp(payload: unknown, query: string, location: strin
   const error = findKey<unknown>(payload, 'error');
   const metadata = findKey<Record<string, unknown>>(payload, 'search_metadata');
   const related = findKey<unknown>(payload, 'related_searches');
+  const asked = findKey<unknown>(payload, 'related_questions') ?? findKey<unknown>(payload, 'people_also_ask');
   const noResults = findKey<unknown>(payload, 'total_results') === 0;
   return {
     query,
@@ -40,6 +43,7 @@ export function parseGoogleSerp(payload: unknown, query: string, location: strin
     organic: rows(organic).map((r) => ({ position: position(r.position), title: str(r.title) ?? '', url: str(r.link) ?? '', domain: domain(str(r.link) ?? ''), snippet: str(r.snippet) })).filter((r) => /^https?:\/\//i.test(r.url)).slice(0, 20),
     local: rows(localRows).map((r) => ({ position: position(r.position), title: str(r.title) ?? '', rating: numeric(r.rating), reviews: numeric(r.reviews), website: str(r.website), address: str(r.address), category: str(r.type), url: str(r.link) ?? str(r.place_id_search) })).filter((r) => r.title).slice(0, 20),
     related_searches: rows(related).map((r) => str(r.query) ?? str(r.title)).filter((r): r is string => Boolean(r)).slice(0, 12),
+    questions: rows(asked).map((r) => str(r.question) ?? str(r.title)).filter((r): r is string => Boolean(r)).slice(0, 10),
     error: typeof error === 'string' && error ? error : metadata?.status === 'Error' ? 'Google search provider reported an error.' : !Array.isArray(organic) && !Array.isArray(localRows) && !Array.isArray(related) && !noResults ? 'Google search returned no recognizable result fields.' : null,
   };
 }

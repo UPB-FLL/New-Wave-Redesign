@@ -272,3 +272,12 @@ describe('public ads and social failure semantics', () => {
     expect(out.business).toMatchObject({ meta_ad_status: 'unknown', google_ads_status: 'ads_found', google_ads_count: 1, error: expect.stringContaining('Meta') });
   });
 });
+
+describe('public Google research: the questions people ask', () => {
+  it('reads "People also ask" beside the related searches', () => {
+    const out = parseGoogleSerp({ organic_results: [], related_questions: [{ question: 'How much does a health coach cost?' }, { title: 'Is health coaching worth it?' }], related_searches: [{ query: 'health coach near me' }] }, 'health coach', null);
+    expect(out.questions).toEqual(['How much does a health coach cost?', 'Is health coaching worth it?']);
+    expect(out.related_searches).toEqual(['health coach near me']);
+    expect(parseGoogleSerp({ organic_results: [] }, 'q', null).questions).toEqual([]);
+  });
+});

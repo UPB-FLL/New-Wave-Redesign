@@ -42,6 +42,10 @@ export interface InstagramSnapshot {
   bio_links?: string[];
   /** The business's recent posts with their images (the ad sets' creative); never kept for a competitor. Missing before phases. */
   media?: InstagramMedia[];
+  /** The newest captions, text only (a competitor's posts are read for what they say, never kept as creative); missing before 2026-10-24. */
+  recent_captions?: string[];
+  /** The hashtags its recent posts use, most used first; missing before 2026-10-24. */
+  hashtags?: string[];
   /** Which reader answered; missing on audits before 2026-10-23. `linked` is the business's own account (the Graph API). */
   read_via?: 'scrapecreators' | 'apify' | 'linked';
   /** Instagram turned the logged-out reader away (a profile shown only to signed-in adults, usually). */
@@ -141,6 +145,16 @@ export function mediaFrom(posts: unknown): InstagramMedia[] {
 }
 
 const n = numeric;
+
+/** The captions of a post list, newest first, trimmed. */
+export const captionsOf = (media: InstagramMedia[] | undefined): string[] => (media ?? []).map((m) => (m.caption ?? '').replace(/\s+/g, ' ').trim().slice(0, 220)).filter(Boolean).slice(0, 8);
+
+/** The hashtags in a set of captions, most used first, lower-case, without the sign. */
+export function hashtagsOf(captions: string[], limit = 15): string[] {
+  const counts = new Map<string, number>();
+  for (const c of captions) for (const m of c.matchAll(/#([\p{L}\p{N}_]{2,40})/gu)) counts.set(m[1].toLowerCase(), (counts.get(m[1].toLowerCase()) ?? 0) + 1);
+  return [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, limit).map(([tag]) => tag);
+}
 
 /** Post timestamps arrive as epoch seconds, epoch ms, or ISO strings. */
 function postTime(p: Record<string, unknown>): number | null {
@@ -501,6 +515,8 @@ export interface SocialOutput {
   facebook_competitors?: (FacebookSnapshot & { name: string })[];
   /** Why the business's own linked account was not used, when it was there to use (for staff). */
   linked_note?: string | null;
+  /** The hashtags seen on the business's and its competitors' recent posts; missing on audits before 2026-10-24. */
+  hashtags_seen?: { business: string[]; competitors: string[] };
 }
 
 export async function runSocial(ctx: StepContext, pauseMs = BLOCKED_RETRY_MS): Promise<SocialOutput> {
@@ -511,10 +527,15 @@ export async function runSocial(ctx: StepContext, pauseMs = BLOCKED_RETRY_MS): P
     .filter((c): c is { name: string; handle: string } => Boolean(c.handle))
     .slice(0, 6);
   const linked = await linkedInstagram(ctx, own);
-  const business = linked.snapshot ?? (own ? await instagram(own, pauseMs) : null);
-  if (business?.error && /API key/i.test(business.error)) throw new Error(business.error);
-  // A competitor's posts are never anyone's creative: only the business keeps its media.
-  const competitors = await Promise.all(rivals.map(async (c) => ({ name: c.name, ...(await instagram(c.handle, pauseMs)), media: [] })));
+  const read = linked.snapshot ?? (own ? await instagram(own, pauseMs) : null);
+  if (read?.error && /API key/i.test(read.error)) throw new Error(read.error);
+  const business = read ? { ...read, recent_captions: captionsOf(read.media), hashtags: hashtagsOf(captionsOf(read.media)) } : null;
+  // A competitor's posts are never anyone's creative: only the business keeps its media; a rival keeps its captions' words.
+  const competitors = await Promise.all(rivals.map(async (c) => {
+    const snap = await instagram(c.handle, pauseMs);
+    const captions = captionsOf(snap.media);
+    return { name: c.name, ...snap, recent_captions: captions, hashtags: hashtagsOf(captions), media: [] };
+  }));
 
   const ownPage = facebookPageUrl(ctx.audit.facebook || site?.business?.social.facebook[0]);
   const rivalPages = ctx.audit.competitors
@@ -537,5 +558,6 @@ export async function runSocial(ctx: StepContext, pauseMs = BLOCKED_RETRY_MS): P
     facebook: facebookPage,
     facebook_competitors: facebookRivals,
     linked_note: linked.note,
+    hashtags_seen: { business: business?.hashtags ?? [], competitors: hashtagsOf(competitors.flatMap((c) => c.recent_captions ?? [])) },
   };
 }

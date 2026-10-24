@@ -1,14 +1,31 @@
 import { normalizeWebsite } from '../../../../src/lib/groundswellValidation.js';
-import { readGoogleSerp, categoryFromSite, categoryFromText, specificCategory } from './serp.js';
+import { readGoogleSerp, categoryFromSite, categoryFromText, specificCategory, type GoogleSerp } from './serp.js';
 import { googlePlacesSearch, matchBusiness, serpMapsSearch, toMapsPlace } from './maps.js';
+import { executeTool, findKey } from '../composio.js';
+import { buildBusinessProfile, filterCompetitors, isDirectoryHost, type BusinessProfile, type Candidate } from '../businessProfile.js';
+import { readSitePages, type SitePage } from './sitePages.js';
 import { type AuditCompetitor, type AuditRow, type StepContext } from '../types.js';
 import type { SiteScan } from './site.js';
 
-/** Relevant local candidates from the same public category and area. Manual selections remain first. */
+/**
+ * Competitors Current: the businesses a customer might choose instead, from
+ * public sources, when fewer than six were entered. Manual selections stay
+ * first.
+ *
+ * The business's own website says what it does (businessProfile.ts: its
+ * category, offer, services and service area, from the pages Firecrawl reads).
+ * Candidates come from Google Places (the category near the area), from a
+ * public Google search of the profile's own queries (SerpApi; the local pack
+ * and the organic results), and from Firecrawl's web search when SerpApi
+ * cannot answer. Every candidate then has to compete: share the business's
+ * category wording, and pass the model's relevance check with a reason. What
+ * was dropped, and why, is kept for staff. Selection order is popularity
+ * (reviews), never a search ranking.
+ */
 
 export const PICKS_WANTED = 6;
 const RESULTS = 20;
-const SOURCE = 'Local competitor candidates from public Google listings; selection by review count, not search ranking';
+const SOURCE = 'Competitor candidates from public Google listings and search results, kept only when they compete with the business; selection by review count, not search ranking';
 
 export interface CompetitorPick {
   market: 'local' | 'national';
@@ -18,8 +35,12 @@ export interface CompetitorPick {
   reviews: number | null;
   address: string | null;
   url: string | null;
-  /** The Places query the pick came from. */
+  /** The Places or search query the pick came from. */
   query: string;
+  /** Where the candidate was found; missing on audits before 2026-10-24. */
+  source?: 'places' | 'maps_search' | 'google_search' | 'web_search';
+  /** Why it competes, in one sentence. */
+  reason?: string;
 }
 
 export interface CompetitorsOutput {
@@ -36,6 +57,12 @@ export interface CompetitorsOutput {
   picks: CompetitorPick[];
   sources: CompetitorDiscoverySource[];
   gaps: string[];
+  /** The business's profile from its own site; missing on audits before 2026-10-24. */
+  profile?: BusinessProfile;
+  /** The business's pages read for the profile (the site-pages step reuses them). */
+  pages?: SitePage[];
+  /** Candidates that did not compete, with the reason (for staff). */
+  dropped?: { name: string; website: string | null; reason: string }[];
 }
 
 type Row = Record<string, unknown>;
@@ -99,6 +126,8 @@ export interface CompetitorSeed {
   facebook?: string | null;
   /** A category derived from the business's own public profile or website. */
   category?: string | null;
+  /** The business's profile from its own site, when the caller built one. */
+  profile?: BusinessProfile | null;
   /** Absolute epoch-ms deadline for a short intake request. Omitted on worker calls. */
   deadline?: number;
 }
@@ -116,6 +145,75 @@ export interface CompetitorDiscovery {
   considered: CompetitorsOutput['considered'];
   sources: CompetitorDiscoverySource[];
   gaps: string[];
+  dropped: { name: string; website: string | null; reason: string }[];
+}
+
+/** A candidate with what the relevance check and the pick need. */
+interface Found extends Candidate {
+  website: string;
+  host: string;
+  rating: number | null;
+  reviews: number | null;
+  url: string | null;
+  query: string;
+  source: NonNullable<CompetitorPick['source']>;
+  placeId: string | null;
+  closed: boolean;
+}
+
+const normalizedSite = (raw: string | null | undefined): string | null => {
+  if (!raw) return null;
+  try { return normalizeWebsite(raw) || null; } catch { return null; }
+};
+
+/** Places rows as candidates (open, with a website). */
+function fromPlaces(rows: Row[], query: string, source: Found['source']): Found[] {
+  return rows.flatMap((r) => {
+    const place = toMapsPlace(r);
+    const website = normalizedSite(place.website);
+    const host = hostOf(website);
+    if (!place.name || !website || !host) return [];
+    return [{ name: place.name, website, host, category: place.category, title: null, snippet: null, address: place.address, rating: place.rating, reviews: place.reviews, url: place.url, query, source, placeId: typeof r.id === 'string' ? r.id : null, closed: /^CLOSED/i.test(String(r.businessStatus ?? '')) }];
+  });
+}
+
+/** A search result's business name: the title before " | ", " - " or " – ". */
+const nameFromTitle = (title: string) => title.split(/\s+[|–—]\s+|\s+-\s+/)[0].trim().slice(0, 80);
+
+/** The local pack and the organic results of a public Google search as candidates (directories left out). */
+export function fromSerp(serp: GoogleSerp): Found[] {
+  const out: Found[] = [];
+  for (const l of serp.local) {
+    const website = normalizedSite(l.website);
+    const host = hostOf(website);
+    if (!website || !host || isDirectoryHost(host)) continue;
+    out.push({ name: l.title, website, host, category: l.category, title: null, snippet: null, address: l.address, rating: l.rating, reviews: l.reviews, url: l.url, query: serp.query, source: 'google_search', placeId: null, closed: false });
+  }
+  for (const r of serp.organic) {
+    const host = r.domain ?? hostOf(r.url);
+    let website: string | null = null;
+    try { website = normalizedSite(`${new URL(r.url).protocol}//${new URL(r.url).hostname}`); } catch { website = null; }
+    if (!host || !website || isDirectoryHost(host) || !r.title) continue;
+    out.push({ name: nameFromTitle(r.title), website, host, category: null, title: r.title, snippet: r.snippet, address: null, rating: null, reviews: null, url: r.url, query: serp.query, source: 'google_search', placeId: null, closed: false });
+  }
+  return out;
+}
+
+/** Firecrawl's web search (`data.web[]`: title, url, description) as candidates, when SerpApi cannot answer. */
+export function fromWebSearch(payload: unknown, query: string): Found[] {
+  const web = findKey<unknown[]>(payload, 'web') ?? findKey<unknown[]>(payload, 'results') ?? findKey<unknown[]>(payload, 'data') ?? [];
+  const rows = (Array.isArray(web) ? web : []).filter((r): r is Row => Boolean(r && typeof r === 'object'));
+  const out: Found[] = [];
+  for (const r of rows) {
+    const url = typeof r.url === 'string' ? r.url : null;
+    const title = typeof r.title === 'string' ? r.title : null;
+    const host = hostOf(url);
+    let website: string | null = null;
+    try { website = url ? normalizedSite(`${new URL(url).protocol}//${new URL(url).hostname}`) : null; } catch { website = null; }
+    if (!url || !title || !host || !website || isDirectoryHost(host)) continue;
+    out.push({ name: nameFromTitle(title), website, host, category: null, title, snippet: typeof r.description === 'string' ? r.description.slice(0, 300) : null, address: null, rating: null, reviews: null, url, query, source: 'web_search', placeId: null, closed: false });
+  }
+  return out;
 }
 
 /** Intake and audit use the same public, read-only candidate lookup. No database or ad accounts are written. */
@@ -134,7 +232,8 @@ export async function findCompetitors(seed: CompetitorSeed, limit = PICKS_WANTED
     catch (err) { gaps.push(`Public Maps business lookup: ${err instanceof Error ? err.message : String(err)}`); }
   }
   const self = found ? toMapsPlace(found) : null;
-  let category = specificCategory(seed.category) || specificCategory(self?.category);
+  const profile: BusinessProfile = seed.profile ?? { category: null, offer: null, services: [], audience: null, service_area: null, competitor_queries: [], content_topics: [], source: 'none', evidence: [] };
+  let category = specificCategory(profile.category) || specificCategory(seed.category) || specificCategory(self?.category);
   if (!category && hasBudget()) {
     const web = await readGoogleSerp(query, seed.city, timeoutMs());
     const ownHost = hostOf(seed.website);
@@ -143,41 +242,85 @@ export async function findCompetitors(seed: CompetitorSeed, limit = PICKS_WANTED
     if (web.error) gaps.push(`Google business search: ${web.error}`);
     if (category) sources.push({ label: 'Business category from its own Google-indexed page', query, url: ownResults[0]?.url, captured_at: web.captured_at });
   }
+  if (!profile.category && category) { profile.category = category; profile.source = 'listing'; }
   const area = seed.city || cityOf(self?.address) || null;
-  const empty: CompetitorDiscovery = { competitors: [], picks: [], business: null, considered: { local: 0, national: 0 }, sources, gaps };
+  const empty: CompetitorDiscovery = { competitors: [], picks: [], business: null, considered: { local: 0, national: 0 }, sources, gaps, dropped: [] };
   if (!category || !area) {
     if (!hasBudget()) gaps.push('Public competitor lookup reached its time limit; review or retry the suggestions.');
     gaps.push(!category ? 'A relevant business category could not be verified, so competitors were not guessed.' : 'A city or service area is needed to verify relevant local competitors.');
     return empty;
   }
   const localQuery = `${category} near ${area}`;
-  let candidates: Row[] = [];
+  const candidates: Found[] = [];
+  let placesCount = 0;
   let label = 'Google Places API text search (relevance order; selections are not SERP rankings), via Composio';
-  if (hasBudget()) try { candidates = await googlePlacesSearch(localQuery, RESULTS, timeoutMs()); }
+  if (hasBudget()) try { const rows = await googlePlacesSearch(localQuery, RESULTS, timeoutMs()); placesCount = rows.length; candidates.push(...fromPlaces(rows, localQuery, 'places')); }
   catch (err) { gaps.push(`Google Places competitors: ${err instanceof Error ? err.message : String(err)}`); }
-  if (!candidates.length && hasBudget()) {
+  if (!placesCount && hasBudget()) {
     label = 'Google Maps public search, via SerpApi (query-specific listing order)';
-    try { candidates = await serpMapsSearch(localQuery, timeoutMs()); }
+    try { const rows = await serpMapsSearch(localQuery, timeoutMs()); placesCount = rows.length; candidates.push(...fromPlaces(rows, localQuery, 'maps_search')); }
     catch (err) { gaps.push(`Public Maps competitors: ${err instanceof Error ? err.message : String(err)}`); }
   }
   sources.push({ label, query: localQuery, url: `https://www.google.com/maps/search/${encodeURIComponent(localQuery)}`, captured_at: new Date().toISOString(), notes: 'Suggestions use the same category and area. Review counts describe popularity, not a Google ranking.' });
-  const rules: PickRules = {
-    excludeIds: new Set(typeof found?.id === 'string' ? [found.id] : []),
-    excludeHosts: new Set([hostOf(self?.website), hostOf(seed.website)].filter((h): h is string => Boolean(h))),
-    excludeNames: new Set([key(self?.name), key(seed.business_name)]),
-    excludeCity: null,
-  };
-  const picks: CompetitorPick[] = [];
-  while (picks.length < count) {
-    const next = pickFrom(candidates, rules, 'local', localQuery);
-    if (!next) break;
-    picks.push(next);
-    rules.excludeHosts.add(hostOf(next.website)!);
-    rules.excludeNames.add(key(next.name));
+
+  // The searches a customer would make: the local pack and the organic results name who is found online.
+  const searches = [...new Set([profile.competitor_queries[0], `${category} ${area}`].filter((q): q is string => Boolean(q)))].slice(0, 2);
+  let searchCount = 0;
+  for (const q of searches) {
+    if (!hasBudget()) break;
+    const serp = await readGoogleSerp(q, seed.city, timeoutMs());
+    if (!serp.error) {
+      const rows = fromSerp(serp);
+      searchCount += rows.length;
+      candidates.push(...rows);
+      sources.push({ label: 'Public Google search (query-specific, dated; the local pack and organic results)', query: q, url: serp.source_url, captured_at: serp.captured_at, notes: 'Who appears for the search; positions describe this query and capture only.' });
+      continue;
+    }
+    gaps.push(`Google search "${q}": ${serp.error}`);
+    if (!hasBudget()) break;
+    try {
+      const payload = await executeTool('FIRECRAWL_SEARCH', { q, limit: 8, country: 'us', lang: 'en' }, timeoutMs());
+      const rows = fromWebSearch(payload, q);
+      searchCount += rows.length;
+      candidates.push(...rows);
+      sources.push({ label: 'Web search, via Firecrawl (the top results for the query)', query: q, captured_at: new Date().toISOString(), notes: 'Who appears for the search; not a ranking claim.' });
+    } catch (err) { gaps.push(`Web search "${q}": ${err instanceof Error ? err.message : String(err)}`); }
   }
+
+  // One candidate per website: a listing's figures first, a search result's words added to it.
+  const ownHosts = new Set([hostOf(self?.website), hostOf(seed.website)].filter((h): h is string => Boolean(h)));
+  const ownNames = new Set([key(self?.name), key(seed.business_name)]);
+  const byHost = new Map<string, Found>();
+  for (const c of candidates) {
+    if (c.closed || ownHosts.has(c.host) || ownNames.has(key(c.name)) || (found && typeof found.id === 'string' && c.placeId === found.id)) continue;
+    const had = byHost.get(c.host);
+    if (!had) { byHost.set(c.host, { ...c }); continue; }
+    had.category ??= c.category; had.title ??= c.title; had.snippet ??= c.snippet; had.address ??= c.address; had.rating ??= c.rating; had.reviews ??= c.reviews; had.url ??= c.url;
+  }
+  const decisions = await filterCompetitors(profile, { name: seed.business_name, city: seed.city }, [...byHost.values()], hasBudget() ? Math.min(45_000, timeoutMs() ?? 45_000) : 0);
+  const dropped = decisions.filter((d) => !d.competes).map((d) => ({ name: d.candidate.name, website: d.candidate.website, reason: d.reason }));
+  const kept = decisions.filter((d) => d.competes).sort((a, b) => (b.candidate.reviews ?? -1) - (a.candidate.reviews ?? -1) || (b.candidate.rating ?? -1) - (a.candidate.rating ?? -1));
+  const picks: CompetitorPick[] = kept.slice(0, count).map(({ candidate: c, reason }) => ({ market: 'local', name: c.name, website: c.website, rating: c.rating, reviews: c.reviews, address: c.address, url: c.url, query: c.query, source: c.source, reason }));
   if (!hasBudget()) gaps.push('Public competitor lookup reached its time limit; review or retry the suggestions.');
   if (picks.length < count) gaps.push(`Only ${picks.length} relevant local competitor${picks.length === 1 ? '' : 's'} with a usable website could be verified.`);
-  return { ...empty, business: { name: self?.name ?? seed.business_name, category, area, place_id: typeof found?.id === 'string' ? found.id : null }, considered: { local: candidates.length, national: 0 }, competitors: picks.map(toCompetitor), picks };
+  return { ...empty, business: { name: self?.name ?? seed.business_name, category, area, place_id: typeof found?.id === 'string' ? found.id : null }, considered: { local: placesCount + searchCount, national: 0 }, competitors: picks.map(toCompetitor), picks, dropped };
+}
+
+/** The business's profile for the step: its site's pages through Firecrawl (within a budget), then the model. */
+async function profileFor(ctx: StepContext, scan: SiteScan | null | undefined, listingCategory: string | null): Promise<{ profile: BusinessProfile; pages: SitePage[]; gaps: string[] }> {
+  const gaps: string[] = [];
+  let pages: SitePage[] = [];
+  const website = scan?.final_url ?? ctx.audit.website;
+  const remaining = ctx.deadline - Date.now();
+  if (website && remaining > 60_000) {
+    try {
+      const read = await readSitePages(website, { limit: 6, deadline: Date.now() + Math.min(70_000, remaining - 45_000) });
+      pages = read.pages;
+      if (read.error) gaps.push(`Website pages: ${read.error}`);
+    } catch (err) { gaps.push(`Website pages: ${err instanceof Error ? err.message : String(err)}`); }
+  }
+  const profile = await buildBusinessProfile({ name: ctx.audit.business_name, city: ctx.audit.city, scan, pages, listingCategory, timeoutMs: Math.max(5_000, Math.min(45_000, ctx.deadline - Date.now() - 40_000)) });
+  return { profile, pages, gaps };
 }
 
 export async function runCompetitors(ctx: StepContext): Promise<CompetitorsOutput> {
@@ -199,9 +342,10 @@ export async function runCompetitors(ctx: StepContext): Promise<CompetitorsOutpu
       if (!category && scan.error) websiteGaps.push(`First-party website category: ${scan.error}`);
     } catch (err) { websiteGaps.push(`First-party website category: ${err instanceof Error ? err.message : String(err)}`); }
   }
-  const found = await findCompetitors({ ...ctx.audit, category, deadline: ctx.deadline });
-  if (category) found.sources.unshift({ label: 'Business category from its first-party website', query: category, url: scan?.final_url || ctx.audit.website || undefined, captured_at: scan?.fetched_at || new Date().toISOString(), notes: 'Specific service wording on the business website takes precedence over a generic listing label.' });
-  found.gaps.unshift(...websiteGaps);
+  const { profile, pages, gaps: profileGaps } = await profileFor(ctx, scan, category);
+  const found = await findCompetitors({ ...ctx.audit, category: profile.category ?? category, profile, deadline: ctx.deadline });
+  if (profile.category) found.sources.unshift({ label: profile.source === 'model' ? 'Business category and offer from its own website pages' : 'Business category from its first-party website', query: profile.category, url: scan?.final_url || ctx.audit.website || undefined, captured_at: scan?.fetched_at || new Date().toISOString(), notes: profile.source === 'model' ? `Read from ${profile.evidence.length} page${profile.evidence.length === 1 ? '' : 's'}; held to the site’s own words.` : 'Specific service wording on the business website takes precedence over a generic listing label.' });
+  found.gaps.unshift(...websiteGaps, ...profileGaps);
   const hosts = new Set(entered.map((c) => hostOf(c.website)).filter(Boolean));
   const names = new Set(entered.map((c) => key(c.name)));
   const picks = found.picks.filter((p) => !hosts.has(hostOf(p.website)) && !names.has(key(p.name))).slice(0, PICKS_WANTED - entered.length);
@@ -218,6 +362,9 @@ export async function runCompetitors(ctx: StepContext): Promise<CompetitorsOutpu
     sources: found.sources,
     gaps: found.gaps,
     note: found.gaps.length ? found.gaps.join(' ') : null,
+    profile,
+    pages,
+    dropped: found.dropped,
   };
 }
 

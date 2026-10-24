@@ -3,6 +3,7 @@ import { withBrowser } from '../browser.js';
 import { executeTool, findKey, isSharedLookupConfigured } from '../composio.js';
 import { PermanentStepError, type StepContext } from '../types.js';
 import { categoryFromSite, numeric, specificCategory } from './serp.js';
+import { profileWords, sharesCategory } from '../businessProfile.js';
 import type { SiteScan } from './site.js';
 
 /**
@@ -278,14 +279,29 @@ export async function browserLookup(audit: StepContext['audit'], note: string | 
   });
 }
 
+/** Only listings that share the category's wording stay in the "nearby" table: a general contractor never sits beside a health coach. */
+export function relevantNearby(out: MapsOutput, category: string | null, exclude: string[] = []): MapsOutput {
+  const c = specificCategory(category) || specificCategory(out.business?.category);
+  if (!c) return out;
+  const words = profileWords({ category: c, services: [], offer: null }, exclude);
+  if (!words.all.size) return out;
+  return { ...out, nearby: out.nearby.filter((l) => sharesCategory(words, `${l.name ?? ''} ${l.info}`, exclude).ok) };
+}
+
 /** The note a report carries when Places did not answer; the reason itself goes in `detail`, for staff. */
 export const PLACES_FALLBACK_NOTE = 'Google Places was not available for this audit, so the public Maps view was read instead.';
 
 export async function runMaps(ctx: StepContext): Promise<MapsOutput> {
   const { audit } = ctx;
   const site = ctx.outputs.site as { business?: SiteScan | null } | undefined;
-  const competitors = ctx.outputs.competitors as { business?: { category?: string | null } | null } | undefined;
-  const categoryHint = categoryFromSite(site?.business) || specificCategory(competitors?.business?.category);
+  const competitors = ctx.outputs.competitors as { business?: { category?: string | null } | null; profile?: { category?: string | null } | null } | undefined;
+  const categoryHint = specificCategory(competitors?.profile?.category) || categoryFromSite(site?.business) || specificCategory(competitors?.business?.category);
+  const out = await lookupMaps(ctx, categoryHint);
+  return relevantNearby(out, categoryHint, [audit.business_name, audit.city ?? '']);
+}
+
+async function lookupMaps(ctx: StepContext, categoryHint: string | null): Promise<MapsOutput> {
+  const { audit } = ctx;
   const errors: string[] = [];
   let places: MapsOutput | null = null;
   if (isSharedLookupConfigured()) {
