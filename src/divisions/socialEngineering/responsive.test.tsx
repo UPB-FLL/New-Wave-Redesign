@@ -356,8 +356,10 @@ describe('mobile menu', () => {
 describe('service rows', () => {
   it('lists every service on the hub as one whole-row link with its summary', () => {
     const { container } = renderAt(<SocialEngineeringHubPage />);
-    const list = container.querySelector('#services ul')!;
-    expect(classesOf(list)).toEqual(expect.arrayContaining(['nwse-rowlist', 'grid-cols-1']));
+    const list = container.querySelector('#services ol')!;
+    // A ledger (hairline rows), not a grid of cards; one column until lg.
+    expect(classesOf(list)).toEqual(expect.arrayContaining(['nwse-ledger', 'grid-cols-1']));
+    expect(list.querySelector('.nwse-card, .nwse-icon')).toBeNull();
     const items = [...list.children];
     expect(items).toHaveLength(divisionServices.length);
     items.forEach((item, index) => {
@@ -368,7 +370,7 @@ describe('service rows', () => {
       expect(links[0]).toHaveTextContent(service.navLabel);
       expect(links[0]).toHaveTextContent(service.cardSummary);
       // The title column can shrink below its longest word (enlarged text).
-      expect(classesOf(links[0])).toContain('grid-cols-[2.25rem_minmax(0,1fr)_1.125rem]');
+      expect(classesOf(links[0])).toContain('grid-cols-[2rem_minmax(0,1fr)_1.5rem]');
       // Title before summary in the DOM, as on screen.
       const title = within(links[0]).getByRole('heading', { level: 3 });
       expect(title.compareDocumentPosition(within(links[0]).getByText(service.cardSummary))).toBe(
@@ -381,14 +383,15 @@ describe('service rows', () => {
     const service = divisionServices[0];
     renderAt(<SocialEngineeringServicePage slug={service.slug} />);
     const section = screen.getByRole('region', { name: 'Works best alongside' });
-    const list = section.querySelector('ul')!;
-    expect(classesOf(list)).toEqual(expect.arrayContaining(['nwse-rowlist', 'grid-cols-1']));
+    const list = section.querySelector('ol')!;
+    expect(classesOf(list)).toEqual(expect.arrayContaining(['nwse-ledger', 'grid-cols-1']));
+    expect(list.querySelector('.nwse-card, .nwse-icon')).toBeNull();
     const others = divisionServices.filter((other) => other.slug !== service.slug);
     const links = within(list).getAllByRole('link');
     expect(links.map((link) => link.getAttribute('href'))).toEqual(others.map((other) => divisionServicePath(other.slug)));
     links.forEach((link, index) => {
       expect(link).toHaveTextContent(`${others[index].navLabel}${others[index].cardSummary}`);
-      expect(classesOf(link)).toContain('grid-cols-[2.25rem_minmax(0,1fr)_1rem]');
+      expect(classesOf(link)).toContain('grid-cols-[2rem_minmax(0,1fr)_1.5rem]');
     });
   });
 });
@@ -439,9 +442,8 @@ describe('content hidden below a breakpoint', () => {
       expect(within(services as HTMLElement).getByRole('link', { name: new RegExp(`^${service.navLabel}`) })).toBeInTheDocument();
     });
 
-    // "Learn more": the row's own link carries the title and summary.
-    expect(learnMore).toHaveLength(divisionServices.length);
-    learnMore.forEach((element) => expect(element.closest('a')).not.toBeNull());
+    // No "Learn more" line: the row's own link carries the title and summary.
+    expect(learnMore).toHaveLength(0);
 
     // The intro's growth loop shows at every width (nothing hidden), is
     // decorative, and the list beside it says the same in words.
@@ -663,10 +665,10 @@ describe('shared contact form hooks', () => {
 });
 
 describe('customer rows', () => {
-  it('groups the customers in one panel and gives each link a 44px target below lg', () => {
+  it('lists the customers as ledger rows and gives each link a 44px target below lg', () => {
     renderAt(<SocialEngineeringCustomersPage />);
     const list = screen.getByRole('region', { name: 'Customer list' }).querySelector('ul')!;
-    expect(classesOf(list)).toEqual(expect.arrayContaining(['nwse-card', 'overflow-hidden', 'divide-y']));
+    expect(classesOf(list)).toEqual(expect.arrayContaining(['nwse-ledger', 'divide-y']));
     const links = within(list).getAllByRole('link');
     expect(links).toHaveLength(divisionCustomers.length);
     links.forEach((link) => expect(classesOf(link)).toContain('max-lg:min-h-11'));

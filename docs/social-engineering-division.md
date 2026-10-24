@@ -273,6 +273,21 @@ sheet) and the footer's division column. On a 320x568 phone the sheet's top
 row now wraps to two lines: the discovery-call button still fits the first
 screen, and the endorsement at the foot needs a short scroll.
 
+### Ledgers and rule columns, not card grids (2026-10-24)
+
+The grids of identical bordered cards are gone. Lists of things (services,
+outcomes, questions, customers, metrics) are **ledgers**: rows under
+hairlines (`.nwse-ledger`), the whole row the link where there is one, an
+index or the item's icon in its colour role at the left, the arrow stepping
+toward the pointer on hover. Grids of points (what we gather, what's
+included, the pillars, the phases, the measures, the reports) are **rule
+columns**: open columns under a 2px rule in the colour role (`.nwse-rule`,
+`--nwse-rule`). Icons sit uncontained in their role's colour; the tinted
+square tile stays only for stepper and timeline markers and the check lists.
+The hairline card (`.nwse-card`) is for what is a thing in itself: a table,
+the sample viewer, an ad preview. Reference: the Laws of UX on common region
+and proximity; grouping by alignment and hairlines rather than by boxes.
+
 ### Metrics first, with a page per group (2026-10-24)
 
 The GroundSwell page opens on "What it measures": one card per group of the

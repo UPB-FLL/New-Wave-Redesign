@@ -135,38 +135,34 @@ export default function SocialEngineeringHubPage() {
           description="Take one, or the set. Each service starts with GroundSwell’s findings and connects to the same plan and partner workspace."
           id="nwse-services"
         />
-        {/* Below lg each service is a row (icon, title, and arrow on one line, the
-            summary beneath) and the whole row is the link; below md the rows are
-            grouped into one list. From lg, the cards as before. The minmax(0, …)
-            tracks let a row shrink to the panel when text is enlarged, so the
-            panel's overflow never clips it. Each icon tile wears its pillar's colour. */}
-        <ul className="nwse-rowlist gs-service-grid mt-6 grid grid-cols-1 gap-0 sm:mt-8 md:gap-4 md:grid-cols-2 lg:mt-10 lg:grid-cols-3">
-          {divisionServices.map((service) => (
-            <li key={service.slug}>
-              <Link
-                to={divisionServicePath(service.slug)}
-                className="nwse-card group grid h-full grid-cols-[2.25rem_minmax(0,1fr)_1.125rem] content-start items-center gap-x-3 gap-y-1.5 p-4 transition-colors hover:border-[var(--nwse-lure-amber)] sm:p-5 lg:flex lg:flex-col lg:items-stretch lg:gap-0 lg:p-6"
-              >
-                <div className="contents lg:flex lg:items-start lg:justify-between">
-                  <span className={`nwse-icon ${PILLAR_STYLE[service.pillar].tile} col-start-1 row-start-1 h-9 w-9 lg:h-11 lg:w-11`}>
-                    <ServiceIcon icon={service.icon} size={20} />
+        {/* A ledger, not a grid of cards: each service is one row under a
+            hairline (its icon in its pillar's colour, the title, the summary,
+            an arrow), the whole row the link; two columns of rows from lg. */}
+        <ol className="nwse-ledger mt-6 grid grid-cols-1 sm:mt-8 lg:mt-10 lg:grid-cols-2 lg:gap-x-12" data-role="service-ledger">
+          {divisionServices.map((service, index) => {
+            const color = PILLAR_STYLE[service.pillar];
+            return (
+              <li key={service.slug}>
+                <Link
+                  to={divisionServicePath(service.slug)}
+                  className="group grid grid-cols-[2rem_minmax(0,1fr)_1.5rem] items-start gap-x-4 gap-y-1.5 py-5 sm:py-6 lg:py-7"
+                >
+                  <span className="col-start-1 row-span-2 row-start-1 mt-0.5 flex flex-col items-start gap-1.5" aria-hidden="true">
+                    <span style={{ color: color.deep }}>
+                      <ServiceIcon icon={service.icon} size={22} />
+                    </span>
+                    <span className="nwse-type-label nwse-label tabular-nums">{String(index + 1).padStart(2, '0')}</span>
                   </span>
-                  <NwseIcon
-                    name="arrow-up-right"
-                    size={18}
-                    className="col-start-3 row-start-1 justify-self-end text-[var(--nw-slate)] transition-colors group-hover:text-[var(--nwse-lure-amber-deep)]"
-                  />
-                </div>
-                <h3 className="nwse-type-title-1 col-start-2 row-start-1 text-[var(--nw-current-navy)] max-lg:break-words lg:mt-5">{service.navLabel}</h3>
-                <p className="nwse-type-body-small col-span-3 flex-1 text-[var(--nw-slate)] lg:mt-2">{service.cardSummary}</p>
-                <span className="nwse-link mt-5 hidden items-center gap-1.5 text-sm lg:inline-flex">
-                  Learn more <span className="sr-only">about {service.navLabel.toLowerCase()}</span>
-                  <NwseIcon name="arrow-right" size={14} />
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+                  <h3 className="nwse-type-title-1 col-start-2 row-start-1 text-[var(--nw-current-navy)] transition-colors group-hover:text-[var(--nwse-lure-amber-deep)] max-lg:break-words">
+                    {service.navLabel}
+                  </h3>
+                  <NwseIcon name="arrow-up-right" size={20} className="nwse-ledger-arrow col-start-3 row-start-1 mt-1 justify-self-end text-[var(--nw-slate)]" />
+                  <p className="nwse-type-body-small col-start-2 row-start-2 text-[var(--nw-slate)]">{service.cardSummary}</p>
+                </Link>
+              </li>
+            );
+          })}
+        </ol>
       </Band>
 
       <Band labelledBy="nwse-data">
@@ -222,8 +218,8 @@ export default function SocialEngineeringHubPage() {
       </Band>
 
       <Band labelledBy="nwse-family">
-        {/* Phones: flush on the gutter like every other band (.nwse-familycard). */}
-        <div className="nwse-card nwse-familycard grid gap-0 p-5 sm:gap-8 sm:p-10 lg:grid-cols-[1fr_1.4fr] lg:items-center">
+        {/* An open two-column band under a hairline, not a card (phones: flush on the gutter, .nwse-familycard). */}
+        <div className="nwse-familycard grid gap-0 border-t pt-8 sm:gap-8 sm:pt-10 lg:grid-cols-[1fr_1.4fr] lg:items-center" style={{ borderColor: 'var(--nw-mist-gray)' }}>
           {/* Decorative (both logos alt=""), and on phones it would repeat the
               heading; the footer's family lockup is a scroll away. */}
           <div className="hidden sm:flex sm:justify-start">

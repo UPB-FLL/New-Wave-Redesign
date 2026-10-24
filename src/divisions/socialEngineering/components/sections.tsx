@@ -368,9 +368,10 @@ const FIVE_CENTRED_DIV =
   'md:grid-cols-4 md:[&>div]:col-span-2 md:[&>div:nth-child(5)]:col-start-2 lg:grid-cols-6 lg:[&>div:nth-child(4)]:col-start-2 lg:[&>div:nth-child(5)]:col-start-auto';
 
 /**
- * Cards for a list of points. A five-card, three-column grid centres its
- * second row under the first (FIVE_CENTRED_LI); otherwise an odd last card
- * spans the row on tablets.
+ * A list of points as open columns, each under a 2px rule in its colour (no
+ * card). A five-point, three-column grid centres its second row under the
+ * first (FIVE_CENTRED_LI); otherwise an odd last point spans the row on
+ * tablets. Below md the points are hairline rows (.nwse-hairlines).
  */
 export function PointGrid({
   points,
@@ -380,26 +381,29 @@ export function PointGrid({
 }: {
   points: readonly DivisionPoint[];
   columns?: 2 | 3;
-  /** `hairline`: the white card with a Mist Gray border; `soft`: a borderless white tile with a soft shadow (for Cloud White bands). */
+  /** Kept for callers; both read as the same open column now. */
   variant?: 'hairline' | 'soft';
-  /** The short bar over each title: amber on every card, or the colour roles in rotation. */
+  /** The rule over each title: amber on every column, or the colour roles in rotation. */
   accents?: 'amber' | 'cycle';
 }) {
+  void variant;
   const centred = columns === 3 && points.length === 5;
   const items = points.map((point, index) => (
-    <li key={point.title} className={`${variant === 'soft' ? 'nwse-soft' : 'nwse-card'} py-5 md:p-5 lg:p-6`}>
-      <span
-        className="block h-[3px] w-6 rounded-full md:h-1 md:w-10"
-        style={{ background: accents === 'cycle' ? accentAt(index).accent : 'var(--nwse-lure-amber)' }}
-        aria-hidden="true"
-      />
-      <h3 className="nwse-type-title-2 mt-3 text-[var(--nw-current-navy)] md:mt-4 lg:mt-5">{point.title}</h3>
+    <li
+      key={point.title}
+      className="nwse-rule py-5 md:pt-5 md:pb-2 lg:pt-6"
+      style={{ '--nwse-rule': accents === 'cycle' ? accentAt(index).accent : 'var(--nwse-lure-amber)' } as CSSProperties}
+    >
+      <p className="nwse-type-label nwse-label tabular-nums" aria-hidden="true">
+        {String(index + 1).padStart(2, '0')}
+      </p>
+      <h3 className="nwse-type-title-2 mt-3 text-[var(--nw-current-navy)]">{point.title}</h3>
       <p className="nwse-type-body-small mt-2 text-[var(--nw-slate)]">{point.detail}</p>
     </li>
   ));
   return (
     <ul
-      className={`nwse-hairlines mt-6 grid grid-cols-1 gap-0 sm:mt-8 md:gap-4 lg:mt-10 ${centred ? FIVE_CENTRED_LI : `md:grid-cols-2 ${columns === 3 ? 'lg:grid-cols-3' : ''} ${ODD_ORPHAN_LI}`}`}
+      className={`nwse-hairlines mt-6 grid grid-cols-1 gap-0 sm:mt-8 md:gap-x-8 md:gap-y-6 lg:mt-10 lg:gap-x-10 ${centred ? FIVE_CENTRED_LI : `md:grid-cols-2 ${columns === 3 ? 'lg:grid-cols-3' : ''} ${ODD_ORPHAN_LI}`}`}
       data-centred={centred ? 'true' : undefined}
     >
       {items}
@@ -420,16 +424,29 @@ function CardLabel({
   marker = false,
   color,
   rail = false,
+  plain = false,
   children,
 }: {
   icon?: DivisionIconName;
   marker?: boolean;
   color?: SurfaceColor;
   rail?: boolean;
+  /** The icon uncontained, in the role's colour, instead of in a tile (the roadmap's open columns). */
+  plain?: boolean;
   children?: ReactNode;
 }) {
   const label = children ? <p className="nwse-type-label nwse-label">{children}</p> : null;
   if (!icon && !marker) return label;
+  if (plain && icon) {
+    return (
+      <div className="nwse-cardlabel flex items-center gap-3">
+        <span className="shrink-0" style={{ color: color?.deep ?? 'var(--nw-current-navy)' }} aria-hidden="true">
+          <NwseIcon name={icon} size={24} />
+        </span>
+        {label}
+      </div>
+    );
+  }
   // Below lg: a 40px tile with a 20px icon. Below md division.css pins the
   // tile to the timeline rail (StepList) or beside the title (RoadmapGrid).
   return (
@@ -556,15 +573,18 @@ export function JourneyStrip({ stages }: { stages: readonly string[] }) {
  */
 export function RoadmapGrid({ phases }: { phases: readonly DivisionRoadmapPhase[] }) {
   return (
-    <ol className="nwse-roadmap mt-6 grid grid-cols-1 gap-3 sm:mt-8 sm:gap-4 md:grid-cols-3 lg:mt-10 md:max-lg:grid-rows-[auto_auto_1fr] md:max-lg:gap-y-0">
+    <ol className="nwse-roadmap mt-6 grid grid-cols-1 gap-6 sm:mt-8 md:grid-cols-3 md:gap-8 lg:mt-10 lg:gap-10 md:max-lg:grid-rows-[auto_auto_1fr] md:max-lg:gap-y-0">
       {phases.map((phase, index) => {
-        // Capped cards: each phase wears the next colour role (cyan, green,
-        // amber) as a tinted header, so the three read as a progression.
+        // Open columns: each phase sits under a rule in the next colour role
+        // (cyan, green, amber), so the three read as a progression.
         const color = accentAt(index);
         return (
-          <li key={phase.phase} className="nwse-card relative overflow-hidden p-4 md:p-5 lg:p-6 md:max-lg:row-span-3 md:max-lg:grid md:max-lg:grid-rows-subgrid">
-            <span className="absolute inset-x-0 top-0 h-1.5" style={{ background: color.accent }} aria-hidden="true" />
-            <CardLabel icon={phase.icon} color={color}>
+          <li
+            key={phase.phase}
+            className="nwse-rule relative pt-4 md:pt-5 lg:pt-6 md:max-lg:row-span-3 md:max-lg:grid md:max-lg:grid-rows-subgrid"
+            style={{ '--nwse-rule': color.accent } as CSSProperties}
+          >
+            <CardLabel icon={phase.icon} color={color} plain>
               {phase.phase}
             </CardLabel>
             <h3 className={`nwse-type-title-1 ${phase.icon ? 'mt-0.5 md:mt-4' : 'mt-3'} text-[var(--nw-current-navy)]`}>{phase.title}</h3>
@@ -623,14 +643,14 @@ export function MetricLabels({ labels }: { labels: readonly string[] }) {
 
 export function FaqList({ faqs }: { faqs: readonly DivisionFaq[] }) {
   return (
-    <div className="nwse-rowlist mt-6 flex flex-col gap-0 sm:mt-8 md:gap-3 lg:mt-10">
+    <div className="nwse-ledger mt-6 flex max-w-4xl flex-col gap-0 sm:mt-8 lg:mt-10">
       {faqs.map((faq) => (
-        <details key={faq.question} className="nwse-faq nwse-card group">
-          <summary className="flex items-center justify-between gap-4 p-4 text-left sm:p-5">
-            <h3 className="text-base font-semibold text-[var(--nw-current-navy)]">{faq.question}</h3>
+        <details key={faq.question} className="nwse-faq group">
+          <summary className="flex items-center justify-between gap-4 py-4 text-left sm:py-5">
+            <h3 className="nwse-type-title-2 text-[var(--nw-current-navy)]">{faq.question}</h3>
             <NwseIcon name="chevron-down" size={18} className="nwse-faq-chevron shrink-0 text-[var(--nwse-lure-amber-deep)] transition-transform" />
           </summary>
-          <p className="nwse-type-body-small px-4 pb-4 text-[var(--nw-slate)] sm:px-5 sm:pb-5">{faq.answer}</p>
+          <p className="nwse-type-body-small max-w-3xl pb-5 text-[var(--nw-slate)] sm:pb-6">{faq.answer}</p>
         </details>
       ))}
     </div>
@@ -722,27 +742,27 @@ export function Band({
 /**
  * The hub's three pillars, each in its own colour role (cyan, green, amber):
  * on a dark band (`tone="dark"`, the hub), glass tiles with a coloured cap,
- * a coloured icon tile; on a light band,
- * the same card washed in the role's tint. One column on phones, three from
- * lg; on tablets the third card spans the row rather than standing alone.
+ * its icon in the role's colour, under a rule in that colour; no card. One
+ * column on phones, three from lg; on tablets the third spans the row rather
+ * than standing alone.
  */
 export function PillarCards({ pillars, tone = 'light' }: { pillars: readonly DivisionPillar[]; tone?: SurfaceTone }) {
   const dark = tone === 'dark';
   return (
-    <ol className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 sm:gap-4 md:grid-cols-2 lg:mt-10 lg:grid-cols-3 md:max-lg:[&>li:last-child:nth-child(odd)]:col-span-2" data-role="pillars">
+    <ol className="mt-6 grid grid-cols-1 gap-8 sm:mt-8 md:grid-cols-2 md:gap-x-8 lg:mt-10 lg:grid-cols-3 lg:gap-x-10 md:max-lg:[&>li:last-child:nth-child(odd)]:col-span-2" data-role="pillars">
       {pillars.map((pillar) => {
         const color = PILLAR_STYLE[pillar.key];
         return (
           <li
             key={pillar.key}
             id={`pillar-${pillar.key}`}
-            className={`${dark ? 'nwse-glass' : `nwse-tint ${color.tint}`} relative flex flex-col overflow-hidden p-5 sm:p-6 lg:p-7`}
+            className="nwse-rule relative flex flex-col pt-5 sm:pt-6"
+            style={{ '--nwse-rule': color.accent } as CSSProperties}
           >
-            <span className="absolute inset-x-0 top-0 h-1.5" style={{ background: color.accent }} aria-hidden="true" />
-            <span className={`nwse-icon ${color.tile} ${dark ? 'nwse-icon-on-dark' : ''} h-14 w-14 shrink-0`}>
+            <span className="flex h-8 items-center" style={{ color: dark ? color.onDark : color.deep }} aria-hidden="true">
               <NwseIcon name={pillar.icon} size={28} />
             </span>
-            <h3 className={`nwse-type-title-1 mt-5 ${TEXT[tone].heading}`}>{pillar.title}</h3>
+            <h3 className={`nwse-type-title-1 mt-4 ${TEXT[tone].heading}`}>{pillar.title}</h3>
             <p className={`nwse-type-body mt-2 ${TEXT[tone].body}`}>{pillar.summary}</p>
             <div className="mt-4 border-t pt-4" style={{ borderColor: dark ? TEXT.dark.hairline : color.accent }}>
               <CheckList items={pillar.items} tone={tone} color={color} />
@@ -767,12 +787,13 @@ export function GlanceStrip({ items, labelledBy, tone = 'light' }: { items: read
     <dl
       aria-labelledby={labelledBy}
       data-role="glance"
-      className={`${dark ? 'nwse-glass' : 'nwse-card'} grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`}
+      className="grid grid-cols-1 border-y sm:grid-cols-2 lg:grid-cols-4"
+      style={{ borderColor: hairline }}
     >
       {items.map((item, index) => (
         <div
           key={item.label}
-          className={`flex flex-col gap-1.5 px-5 py-4 sm:py-5 lg:px-6 ${index > 0 ? 'max-sm:border-t' : ''} ${index % 2 === 1 ? 'sm:border-l' : ''} ${index >= 2 ? 'sm:border-t lg:border-t-0' : ''} ${index > 0 ? 'lg:border-l' : ''}`}
+          className={`flex flex-col gap-1.5 py-4 sm:py-5 ${index > 0 ? 'max-sm:border-t' : ''} ${index % 2 === 1 ? 'sm:border-l sm:pl-5 lg:pl-6' : ''} ${index >= 2 ? 'sm:border-t lg:border-t-0' : ''} ${index > 0 ? 'lg:border-l lg:pl-6' : ''} ${index % 2 === 0 ? 'sm:pr-5 lg:pr-6' : ''} ${index > 0 ? 'lg:pr-6' : ''}`}
           style={{ borderColor: hairline }}
         >
           <dt className={`nwse-type-label ${dark ? '' : 'nwse-label'}`} style={dark ? { color: 'var(--nwse-lure-amber)' } : undefined}>
@@ -786,23 +807,19 @@ export function GlanceStrip({ items, labelledBy, tone = 'light' }: { items: read
 }
 
 /**
- * What changes for the business: three statements, each a panel washed in
- * the next colour role (cyan, green, amber) with a check icon in the
- * role's text colour. One grouped list on phones (.nwse-rowlist), three
- * panels from md.
+ * What changes for the business: three statements as ledger rows, each led
+ * by a check icon in the next colour role (cyan, green, amber). No panels:
+ * the hairlines group them.
  */
 export function OutcomeList({ outcomes }: { outcomes: readonly string[] }) {
   return (
-    <ol className="nwse-rowlist mt-6 grid grid-cols-1 gap-0 sm:mt-8 md:grid-cols-3 md:gap-4 lg:mt-10" data-role="outcomes">
+    <ol className="nwse-ledger mt-6 flex max-w-4xl flex-col sm:mt-8 lg:mt-10" data-role="outcomes">
       {outcomes.map((outcome, index) => {
         const color = accentAt(index);
         return (
-          <li key={outcome} className={`nwse-tint ${color.tint} flex flex-col gap-3 p-5 sm:p-6 lg:p-7`}>
-            <span className="flex items-center gap-3" aria-hidden="true">
-              <span style={{ color: color.deep }}>
-                <NwseIcon name="check-circle" size={32} />
-              </span>
-              <span className="h-1 w-8 rounded-full" style={{ background: color.accent }} />
+          <li key={outcome} className="flex items-start gap-4 py-5 sm:gap-5 sm:py-6">
+            <span className="shrink-0" style={{ color: color.deep }} aria-hidden="true">
+              <NwseIcon name="check-circle" size={28} />
             </span>
             <p className="nwse-type-body text-[var(--nw-current-navy)]">{outcome}</p>
           </li>
@@ -813,14 +830,15 @@ export function OutcomeList({ outcomes }: { outcomes: readonly string[] }) {
 }
 
 /**
- * Where a service sits in the system: the three pillars as a row, each in its
- * tint, the one the service serves first outlined in its colour and tagged,
- * then a link to the hub's pillars. Stacked on phones, three across from md.
+ * Where a service sits in the system: the three pillars as columns under a
+ * rule, the one the service serves first in its own colour and tagged, the
+ * others under a hairline; then a link to the hub's pillars. Stacked on
+ * phones, three across from md.
  */
 export function PillarStrip({ pillars, active }: { pillars: readonly DivisionPillar[]; active: DivisionPillarKey }) {
   return (
     <>
-      <ol className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 md:grid-cols-3 md:gap-4 lg:mt-10" data-role="pillar-strip" data-active={active}>
+      <ol className="mt-6 grid grid-cols-1 gap-6 sm:mt-8 md:grid-cols-3 md:gap-8 lg:mt-10 lg:gap-10" data-role="pillar-strip" data-active={active}>
         {pillars.map((pillar) => {
           const current = pillar.key === active;
           const color = PILLAR_STYLE[pillar.key];
@@ -828,10 +846,10 @@ export function PillarStrip({ pillars, active }: { pillars: readonly DivisionPil
             <li
               key={pillar.key}
               aria-current={current ? 'true' : undefined}
-              className={`nwse-tint ${color.tint} flex items-start gap-4 border-2 p-4 sm:p-5`}
-              style={{ borderColor: current ? color.accent : 'transparent' }}
+              className="nwse-rule flex items-start gap-4 pt-4 sm:pt-5"
+              style={{ '--nwse-rule': current ? color.accent : undefined } as CSSProperties}
             >
-              <span className={`nwse-icon ${color.tile} h-11 w-11 shrink-0`}>
+              <span className="mt-0.5 shrink-0" style={{ color: current ? color.deep : 'var(--nw-slate)' }} aria-hidden="true">
                 <NwseIcon name={pillar.icon} size={22} />
               </span>
               <div className="min-w-0">
@@ -889,26 +907,26 @@ export function CadenceRow({ cadence }: { cadence: readonly DivisionPoint[] }) {
 }
 
 /**
- * What the work is measured against, on a dark band: glass tiles, each led by
- * its icon in a tile of the next colour role and a label in that colour. Five
- * tiles centre their second row under the first (FIVE_CENTRED_DIV); any other
- * count runs two columns from md and three from lg.
+ * What the work is measured against, on a dark band: open columns under a
+ * rule in the next colour role, each led by its icon and a label in that
+ * colour. Five columns centre their second row under the first
+ * (FIVE_CENTRED_DIV); any other count runs two from md and three from lg.
  */
 export function MetricTiles({ metrics }: { metrics: readonly DivisionPoint[] }) {
   const centred = metrics.length === 5;
   return (
     <dl
-      className={`mt-6 grid grid-cols-1 gap-3 sm:mt-8 sm:gap-4 lg:mt-10 ${centred ? FIVE_CENTRED_DIV : 'md:grid-cols-2 lg:grid-cols-3 md:max-lg:[&>div:last-child:nth-child(odd)]:col-span-2'}`}
+      className={`mt-6 grid grid-cols-1 gap-6 sm:mt-8 md:gap-x-8 lg:mt-10 lg:gap-x-10 ${centred ? FIVE_CENTRED_DIV : 'md:grid-cols-2 lg:grid-cols-3 md:max-lg:[&>div:last-child:nth-child(odd)]:col-span-2'}`}
       data-role="metric-tiles"
       data-centred={centred ? 'true' : undefined}
     >
       {metrics.map((metric, index) => {
         const color = accentAt(index);
         return (
-          <div key={metric.title} className="nwse-glass p-5 lg:p-6">
+          <div key={metric.title} className="nwse-rule pt-4 lg:pt-5" style={{ '--nwse-rule': color.accent } as CSSProperties}>
             <dt className="flex items-center gap-3">
               {metric.icon ? (
-                <span className={`nwse-icon ${color.tile} nwse-icon-on-dark h-11 w-11 shrink-0`}>
+                <span className="shrink-0" style={{ color: color.onDark }} aria-hidden="true">
                   <NwseIcon name={metric.icon} size={24} className="max-sm:h-5 max-sm:w-5" />
                 </span>
               ) : null}
