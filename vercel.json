@@ -377,6 +377,10 @@
       "destination": "/groundswell/index.html"
     },
     {
+      "source": "/",
+      "destination": "/_home/index.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

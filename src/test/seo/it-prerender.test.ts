@@ -108,6 +108,36 @@ describe('prerendered New Wave IT routes', () => {
   });
 });
 
+describe('prerendered page bodies', () => {
+  const meta = IT_PAGE_META['/about'];
+
+  it('keeps the root element empty when no body is supplied', () => {
+    const doc = new DOMParser().parseFromString(renderRouteHtml(shell, '/about', meta), 'text/html');
+    expect(doc.getElementById('root')?.innerHTML).toBe('');
+  });
+
+  it('puts a rendered body inside the root element, leaving the head as before', () => {
+    const body = '<main><h1>About New Wave IT</h1><p>Copy.</p></main>';
+    const html = renderRouteHtml(shell, '/about', meta, { bodyHtml: body });
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    expect(doc.getElementById('root')?.innerHTML).toBe(body);
+    expect(head(html)).toEqual(head(renderRouteHtml(shell, '/about', meta)));
+  });
+
+  it('refuses a body without the page H1', () => {
+    expect(() => renderRouteHtml(shell, '/about', meta, { bodyHtml: '<p>only a paragraph</p>' })).toThrow(/H1/);
+    expect(() => renderRouteHtml(shell, '/about', meta, { bodyHtml: '  ' })).toThrow(/H1/);
+  });
+
+  it('rewrites the homepage to its own prerendered file in vercel.json, before the catch-all', () => {
+    const config = JSON.parse(readFileSync(path.resolve(__dirname, '../../../vercel.json'), 'utf8')) as { rewrites: { source: string; destination: string }[] };
+    const home = config.rewrites.findIndex((r) => r.source === '/');
+    const catchAll = config.rewrites.findIndex((r) => r.source === '/(.*)');
+    expect(config.rewrites[home]?.destination).toBe('/_home/index.html');
+    expect(home).toBeLessThan(catchAll);
+  });
+});
+
 describe('prerender tag scanner', () => {
   const meta = IT_PAGE_META['/pricing'];
   const withGt = (tag: string) => shell.replace(/<meta name="twitter:title"[^>]*>/, tag);

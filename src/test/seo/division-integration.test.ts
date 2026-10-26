@@ -129,16 +129,21 @@ describe('vercel.json rewrites', () => {
     });
   });
 
-  it('rewrites exactly the prerendered URLs, plus the routes functions serve — never the homepage', () => {
+  it('rewrites exactly the prerendered URLs, plus the routes functions serve and the prerendered homepage', () => {
     // Five rewrites go to functions rather than files: the content sitemap
     // (api/sitemap-content.ts), blog posts, whose head comes from the database
     // (api/blog-page.ts, pinned in src/test/api/blog-page.test.ts), the
     // single-post API (api/blog/post.ts, pinned in blog-routes.test.ts), and the
     // audit routes' old addresses (api/groundswell/*, pinned in groundswell-routes.test.ts).
+    // The homepage is served from its own prerendered file (vite.config.ts
+    // HOME_PRERENDER_ROUTE), so the shell at /index.html stays empty for the
+    // SPA fallback routes.
     const functionRoutes = ['/api/(.*)', '/api/blog/:id', '/api/audits/run', '/api/audits/worker', '/(.*)', '/sitemap-content.xml', '/blog/:slug'];
-    const extra = rewrites.filter((rule) => !functionRoutes.includes(rule.source));
+    const extra = rewrites.filter((rule) => !functionRoutes.includes(rule.source) && rule.source !== '/');
     expect(extra.map((rule) => rule.source).sort()).toEqual([...prerenderedPaths].sort());
-    expect(extra.map((rule) => rule.source)).not.toContain('/');
+    const home = rewrites.find((rule) => rule.source === '/');
+    expect(home?.destination).toBe('/_home/index.html');
+    expect(rewrites.indexOf(home!)).toBeLessThan(rewrites.findIndex((rule) => rule.source === '/(.*)'));
   });
 });
 

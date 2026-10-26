@@ -117,6 +117,28 @@ describe('GET /blog/:slug (api/blog-page.ts)', () => {
     expect(page.meta('property', 'og:type')).toBe('article');
   });
 
+  it('serves the article itself in the root element, so a reader without JavaScript gets the post', async () => {
+    env.getPostBySlug.mockResolvedValue(POST);
+    const html = (await get(POST.slug)).body as string;
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const root = doc.getElementById('root');
+    expect(root?.querySelectorAll('h1')).toHaveLength(1);
+    expect(root?.querySelector('h1')?.textContent).toBe(POST.title);
+    expect(root?.textContent).toContain(POST.author);
+    expect(root?.querySelector('article')?.textContent).toContain('Intro paragraph.');
+    expect(root?.querySelector('article h3')?.textContent).toBe('How often should we test?');
+    expect(root?.querySelector('script')).toBeNull();
+  });
+
+  it('leaves the root element empty for a missing post and for an outage', async () => {
+    env.getPostBySlug.mockResolvedValue(null);
+    const missing = new DOMParser().parseFromString((await get('nope')).body as string, 'text/html');
+    expect(missing.getElementById('root')?.innerHTML).toBe('');
+    env.getPostBySlug.mockRejectedValue(new Error('down'));
+    const outage = new DOMParser().parseFromString((await get(POST.slug)).body as string, 'text/html');
+    expect(outage.getElementById('root')?.innerHTML).toBe('');
+  });
+
   it('writes the post JSON-LD into a #page-jsonld block for usePageMeta to take over', async () => {
     env.getPostBySlug.mockResolvedValue(POST);
     const page = head((await get(POST.slug)).body as string);

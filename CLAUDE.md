@@ -2,6 +2,41 @@
 
 ## Recent Changes
 
+### Every New Wave IT page renders its body at build time (2026-10-26)
+
+From the GEO audit baseline (`docs/geo/baseline-2026-10-26.md`): all 41 New
+Wave IT pages and the 8 blog posts served an empty `<body>` to a reader
+without JavaScript; only the GroundSwell pages carried copy.
+
+- **Static routes**: `src/lib/prerenderBody.tsx` (`renderItBody`,
+  `isPrerenderedItPath`) renders the real page component for every route in
+  `prerenderedItRoutes()` plus the homepage with `StaticRouter`, the same way
+  the GroundSwell prerender does; `vite.config.ts` loads it through the Vite
+  SSR loader and `renderRouteHtml` (`injectRootBody`) puts the markup in
+  `#root`. The homepage is written to `dist/_home/index.html`
+  (`HOME_PRERENDER_ROUTE`), which `vercel.json` rewrites `/` to, so the shell
+  at `dist/index.html` stays empty for the SPA fallback routes; `robots.txt`
+  disallows `/_home`. `/groundswell` (a lazy chunk) and `/status` (its
+  figures have no source; owner decision pending) keep the shell.
+- **CMS copy**: `readCmsContentForBuild` (`src/lib/prerenderContent.ts`)
+  reads every `site_content` row with the anon key at build time and
+  `seedContentCache` (`content.ts`) hands it to `useContent`, so the static
+  HTML carries the saved copy, not the code fallbacks. Without credentials
+  (a local build) the fallbacks render with a warning; with credentials a
+  failed read fails the build. A CMS publish shows on the live page as
+  before, but reaches the static HTML only at the next deploy.
+- **Reveal animations**: `FadeIn` renders a plain div on the server, and
+  `revealInitial` (`animation.ts`) starts `Hero`'s and `Services`'
+  `motion.div`s from their visible state there, so no static copy sits at
+  opacity 0.
+- **Blog posts**: `api/_lib/blogPostBody.ts` renders the post's Markdown
+  (react-markdown, `renderToStaticMarkup`) into `#root` from
+  `blogPageHtml`; a missing post or an outage keeps the root empty.
+- **Tests**: `src/lib/prerenderBody.test.tsx` (every literal `<Route>` in
+  `App.tsx` has a row; one H1 per page; the seed shows), `prerenderContent.test.ts`,
+  the body cases in `it-prerender.test.ts`, `blog-page.test.ts` and the
+  homepage rewrite in `division-integration.test.ts`.
+
 ### Groundswell: a toolkit with several linked accounts (2026-10-26)
 
 SerpApi was re-linked in Composio with a working key beside the old account

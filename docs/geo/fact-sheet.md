@@ -31,7 +31,7 @@ log, and the Google Business Profile as returned by a Google Maps search on
 | Fact | Value | Source | Status |
 |---|---|---|---|
 | Street address | 710 NW 5th Ave, Suite 1072, Fort Lauderdale, FL 33311 | CMS `contact.address` + `contact.address_city`, `footer.address`; `index.html` JSON-LD; code fallbacks in `Footer.tsx`, `Contact.tsx`, `contactDetails.ts` | source-backed on the site; **the Google listing shows no street address and its pin is at 26.9412, −81.4974 (Highlands County), not Fort Lauderdale** → contradicted |
-| Phone | (561) 564-1846 / +1 561-564-1846 | CMS `contact.phone`, `footer.phone`, `hero.phone`; Google listing; `CLAUDE.md` 2026-10-21 ("the Google Business Profile's") | source-backed (CMS = GBP) |
+| Phone | (561) 564-1846 / +1 561-564-1846 | CMS `contact.phone`, `footer.phone`, `hero.phone`; Google listing; `CLAUDE.md` 2026-10-21 ("the Google Business Profile's") | owner-confirmed, 2026-10-26 |
 | Email | support@newwaveitfl.com | CMS `contact.email`, `footer.email`; JSON-LD | source-backed (site) |
 | Geo coordinates | 26.1224, −80.1373 | `index.html` JSON-LD | site-only; GBP pin differs (see address) |
 | Stale phone fallback | (954) 372-5100 | `src/pages/SupportPage.tsx:60` code fallback (masked by CMS) | not a fact; code defect, parked |
@@ -154,5 +154,7 @@ and the schema `foundingDate`.
 
 ## 11. Owner-confirmed answers
 
-(none yet; filled in as "owner-confirmed, <date>" after the Phase 1 questions
-are answered)
+| Date | Question | Answer |
+|---|---|---|
+| 2026-10-26 | A1 business and site | New Wave IT, www.newwaveitfl.com |
+| 2026-10-26 | Contact number | 561-564-1846 |

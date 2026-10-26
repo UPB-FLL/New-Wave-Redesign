@@ -18,3 +18,13 @@ export const STAGGER_CONTAINER = {
   hidden: {},
   visible: { transition: { staggerChildren: 0.1 } },
 } as const;
+
+/**
+ * True in the build-time page render (src/lib/prerenderBody.tsx), which has
+ * no viewport: reveal animations start from their visible state there, so
+ * the static HTML never carries copy at opacity 0.
+ */
+export const PRERENDERING = typeof window === 'undefined';
+
+/** The `initial` prop for a reveal: its hidden variant in the browser, the resting state in the prerender. */
+export const revealInitial = (hidden: string): string | false => (PRERENDERING ? false : hidden);
