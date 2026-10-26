@@ -48,8 +48,11 @@ log, and the Google Business Profile as returned by a Google Maps search on
 | Mon 8 AM–6 PM, Tue 8 AM–6 PM, Wed 8 PM–12 AM, Thu 12 AM–6 PM & 8 PM–12 AM, Fri 12 AM–6 PM, Sat 8 PM–12 AM, Sun 12 AM–6 PM | Google Business Profile (2026-10-26) | contradicted; looks mis-entered |
 | Support tiers: "8am-5pm M-F" (Standard), "7am-9pm M-F" (Priority), "24/7/365" (Premium) | CMS `pricing.tiers` | contradicted with the 8am–6pm line |
 
-Owner must settle: office hours, emergency-line hours, what the schema should
-say, and what the Google profile should say.
+**Settled, owner-confirmed 2026-10-26**: office hours Mon–Fri 8am–6pm; a 24/7
+emergency line. The CMS lines already say this. The schema's
+`openingHoursSpecification` now reads Mon–Fri 08:00–18:00 and a `contactPoint`
+of type "emergency" carries the 24/7 line. The Google Business Profile's
+schedule still has to be corrected by the owner in the profile itself.
 
 ## 4. Services and service area
 
@@ -102,7 +105,7 @@ Two independent price lists exist and neither cites the other.
 
 ## 9. Contradictions in the live copy (summary)
 
-1. **Hours**: schema 24/7 vs CMS "Mon–Fri, 8am–6pm" vs GBP's broken schedule vs pricing tiers' per-tier hours.
+1. **Hours** (settled 2026-10-26): office Mon–Fri 8am–6pm with a 24/7 emergency line. Schema corrected in this PR; the CMS already said so; the Google Business Profile schedule is the owner's to fix.
 2. **Address / location**: site says 710 NW 5th Ave, Suite 1072, Fort Lauderdale; the Google listing shows no address and a pin ~100 miles away.
 3. **Website on GBP**: apex `newwaveitfl.com` vs the site's canonical `www.`.
 4. **Pricing** (settled 2026-10-26): `pricing_units` is the published price list and feeds the quote builder on `/pricing`; the CMS `pricing.tiers` row was a dormant list the page never rendered, and is retired by migration `20261101120000`. Still open: `pricing.subheadline` ("Choose the perfect plan for your business. All plans include 24/7 support and regular updates.") is shown on `/pricing` and still talks about plans.
@@ -159,3 +162,4 @@ and the schema `foundingDate`.
 | 2026-10-26 | A1 business and site | New Wave IT, www.newwaveitfl.com |
 | 2026-10-26 | Contact number | 561-564-1846 |
 | 2026-10-26 | Q2 price list | `pricing_units` is current; drop the SaaS/HaaS/Support tiers (CMS `pricing.tiers`) |
+| 2026-10-26 | Q3 hours | Office Mon–Fri 8am–6pm; a 24/7 emergency line |

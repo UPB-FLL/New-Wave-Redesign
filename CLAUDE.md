@@ -2,6 +2,16 @@
 
 ## Recent Changes
 
+### Schema hours from the owner (2026-10-26)
+
+GEO audit, fact sheet Q3: the office is open Mon–Fri 8am–6pm and there is a
+24/7 emergency line. `index.html`'s LocalBusiness `openingHoursSpecification`
+says Mon–Fri 08:00–18:00 (it claimed 24 hours a day), and two `contactPoint`s
+carry the support line's hours and the emergency line's 24/7 availability;
+the CMS `contact.address_sub` / `contact.phone_sub` lines already said this.
+Pinned in `division-integration.test.ts`. The Google Business Profile's
+schedule is the owner's to correct in the profile.
+
 ### Pricing tiers retired (2026-10-26)
 
 Owner's answer in the GEO audit (`docs/geo/fact-sheet.md`, Q2): the

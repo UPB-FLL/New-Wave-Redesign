@@ -148,6 +148,17 @@ describe('vercel.json rewrites', () => {
 describe('index.html (the parent shell every New Wave IT URL is served)', () => {
   const shell = read('index.html');
 
+  it("states the owner-confirmed hours: office Mon–Fri 8am–6pm, a 24/7 emergency line (fact sheet Q3, 2026-10-26)", () => {
+    const block = shell.match(/<script type="application\/ld\+json">\s*(\[[\s\S]*?\])\s*<\/script>/)?.[1] ?? '[]';
+    const [business] = JSON.parse(block) as { openingHoursSpecification: { dayOfWeek: string[]; opens: string; closes: string }[]; contactPoint: { contactType: string; hoursAvailable: { dayOfWeek: string[]; opens: string; closes: string } }[] }[];
+    expect(business.openingHoursSpecification).toEqual([
+      { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], opens: '08:00', closes: '18:00' },
+    ]);
+    const emergency = business.contactPoint.find((c) => c.contactType === 'emergency');
+    expect(emergency?.hoursAvailable.dayOfWeek).toHaveLength(7);
+    expect(emergency?.hoursAvailable.opens).toBe('00:00');
+  });
+
   it('keeps the parent homepage identity untouched', () => {
     expect(shell).toContain(
       '<title>New Wave IT — 24/7 Managed IT, Cybersecurity & Cloud in Fort Lauderdale</title>',
