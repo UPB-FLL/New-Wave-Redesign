@@ -159,6 +159,14 @@ describe('index.html (the parent shell every New Wave IT URL is served)', () => 
     expect(emergency?.hoursAvailable.opens).toBe('00:00');
   });
 
+  it('states the owner-confirmed founding year and headcount (fact sheet Q5, 2026-10-26)', () => {
+    const block = shell.match(/<script type="application\/ld\+json">\s*(\[[\s\S]*?\])\s*<\/script>/)?.[1] ?? '[]';
+    const graph = JSON.parse(block) as { '@type': string | string[]; foundingDate?: string; numberOfEmployees?: { minValue: number; maxValue: number } }[];
+    const organization = graph.find((node) => node['@type'] === 'Organization');
+    expect(organization?.foundingDate).toBe('2022');
+    expect(organization?.numberOfEmployees).toEqual({ '@type': 'QuantitativeValue', minValue: 5, maxValue: 10 });
+  });
+
   it('keeps the parent homepage identity untouched', () => {
     expect(shell).toContain(
       '<title>New Wave IT — 24/7 Managed IT, Cybersecurity & Cloud in Fort Lauderdale</title>',

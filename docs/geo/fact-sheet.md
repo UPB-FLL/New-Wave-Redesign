@@ -22,8 +22,8 @@ log, and the Google Business Profile as returned by a Google Maps search on
 | What it is | Managed service provider (MSP): managed IT, cybersecurity, cloud, 24/7 support, network infrastructure for South Florida businesses | `index.html` JSON-LD descriptions; CMS `services.cards` | source-backed (site) |
 | Google category | Computer support and services | Google listing (SearchAPI google_maps, 2026-10-26) | source-backed (GBP) |
 | Website | https://www.newwaveitfl.com | canonical on every page | source-backed; the Google listing links the apex `https://newwaveitfl.com/`, which 307s to www (works, but not identical) |
-| Founding year | 2009 | `index.html` JSON-LD `foundingDate` only | site-only, **unsourced** |
-| Employees | 10–50 | `index.html` JSON-LD `numberOfEmployees` only | site-only, **unsourced** |
+| Founding year | 2022 | `index.html` JSON-LD `foundingDate` (was 2009, unsourced) | owner-confirmed, 2026-10-26 |
+| Employees | 5–10 | `index.html` JSON-LD `numberOfEmployees` (was 10–50, unsourced) | owner-confirmed, 2026-10-26 |
 | Divisions | "New Wave: Social Engineering" (growth marketing), GroundSwell (its research engine) | `src/divisions/socialEngineering/` | source-backed (site) |
 
 ## 2. Contact (NAP)
@@ -164,3 +164,4 @@ and the schema `foundingDate`.
 | 2026-10-26 | Q2 price list | `pricing_units` is current; drop the SaaS/HaaS/Support tiers (CMS `pricing.tiers`) |
 | 2026-10-26 | Q3 hours | Office Mon–Fri 8am–6pm; a 24/7 emergency line |
 | 2026-10-26 | Q4 address | 710 NW 5th Ave, Suite 1072 is a staffed office; the Google listing is to be updated to show it (owner's action in the profile; no tool in this session can edit a Business Profile) |
+| 2026-10-26 | Q5 founding and size | Founded 2022; 5–10 employees |

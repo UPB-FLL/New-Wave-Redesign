@@ -2,6 +2,12 @@
 
 ## Recent Changes
 
+### Schema founding year and headcount from the owner (2026-10-26)
+
+GEO audit, fact sheet Q5: New Wave IT was founded in 2022 and has 5–10
+employees. `index.html`'s Organization said 2009 and 10–50, with no source;
+both are corrected and pinned in `division-integration.test.ts`.
+
 ### Schema hours from the owner (2026-10-26)
 
 GEO audit, fact sheet Q3: the office is open Mon–Fri 8am–6pm and there is a
