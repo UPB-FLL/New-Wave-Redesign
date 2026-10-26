@@ -2,6 +2,37 @@
 
 ## Recent Changes
 
+### Division pages: ledgers and rule columns in place of card grids (2026-10-24)
+
+Owner's ask: the grids of identical bordered white cards (icon tile top-left,
+arrow top-right, "Learn more") read as machine-made. Two editorial patterns
+replace them across the division and the GroundSwell pages (`division.css`):
+
+- **`.nwse-ledger`**: rows under hairlines, no fill or radius
+  (`.nwse-ledger-dark` on navy). Used by the hub's services and a service
+  page's related services (one `<ol>` each, `data-role="service-ledger"`:
+  the service icon in its pillar's colour, an index, the title, the summary,
+  an arrow that steps on hover; the whole row is the link; two columns of
+  rows from lg; no "Learn more"), `OutcomeList`, `FaqList`, the customers
+  and apps lists, and GroundSwell's metric groups (`MetricsGrid`,
+  `data-role="metric-group"`) and each metric page's metrics.
+- **`.nwse-rule`**: an open column under a 2px rule in its colour role
+  (`--nwse-rule`; `.nwse-rule-dark` for the light hairline on navy). Used by
+  `PointGrid` (now numbered; `variant` is kept for callers but ignored),
+  `RoadmapGrid` (`CardLabel plain`: the icon uncontained), `PillarCards`,
+  `PillarStrip` (the active pillar's rule in its colour), `MetricTiles`,
+  GroundSwell's `ReportGrid`, today-vs-plan, the metric pages' feeds and
+  example, and the navy `gs-growth-panel`s (`groundswell.css`).
+- `GlanceStrip` sits between two hairlines; the hub's family band is an open
+  two-column band under a hairline. `.nwse-card` keeps its shape (a test pins
+  it) for what is a thing in itself: tables, the sample viewer, ad previews.
+  `.nwse-soft`, `.nwse-tint` and `.nwse-glass` stay defined; nothing in the
+  division uses `.nwse-soft` or `.nwse-glass` now. The `.gs-service-grid`
+  rules are gone with the grid.
+- **Tests**: the service-row, customer-row and metric-group pins in
+  `responsive.test.tsx` and `pages.test.tsx` follow (no `.nwse-card` or
+  `.nwse-icon` inside a service ledger; "Learn more" is gone).
+
 ### GroundSwell page: the metrics it gathers, each with why it matters (2026-10-24)
 
 The public GroundSwell page (`/social-engineering/groundswell`) now opens on

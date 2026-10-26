@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { GroundswellMarketingLayout } from '../components/GroundswellMarketingLayout';
 import { GroundswellSectionBand as SectionBand } from '../components/GroundswellSectionBand';
@@ -40,45 +41,55 @@ function JumpNav() {
 }
 
 /**
- * The metrics the engine gathers, one card per group: its name, what it
- * covers, why it matters, and a link to the group's own page with every metric.
+ * The metrics the engine gathers as a ledger, one row per group: its icon
+ * and index, its name, what it covers, why it matters, its first three
+ * metrics, and a link to the group's own page with every metric.
  */
 function MetricsGrid() {
   const c = groundswellMetricsContent;
   return (
-    <ul className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 md:grid-cols-2 md:gap-4 lg:mt-10 xl:grid-cols-3" data-role="metric-groups">
+    <ol className="nwse-ledger mt-6 flex flex-col sm:mt-8 lg:mt-10" data-role="metric-groups">
       {groundswellMetricGroups.map((group, index) => {
         const color = accentAt(index);
         return (
-          <li key={group.slug} className="nwse-card relative flex flex-col overflow-hidden p-4 sm:p-5 lg:p-6">
-            <span className="absolute inset-x-0 top-0 h-1.5" style={{ background: color.accent }} aria-hidden="true" />
-            <div className="mt-1 flex items-center gap-3">
-              <span className={`nwse-icon ${color.tile} h-9 w-9 shrink-0`} aria-hidden="true">
-                <NwseIcon name={group.icon} size={18} />
-              </span>
+          <li
+            key={group.slug}
+            className="grid grid-cols-[2rem_minmax(0,1fr)] gap-x-4 gap-y-3 py-6 sm:py-7 lg:grid-cols-[2.5rem_minmax(0,1.1fr)_minmax(0,1fr)_minmax(0,1fr)] lg:gap-x-8 lg:py-8"
+            data-role="metric-group"
+          >
+            <span className="col-start-1 row-start-1 flex flex-col items-start gap-2" style={{ color: color.deep }} aria-hidden="true">
+              <NwseIcon name={group.icon} size={22} />
+              <span className="nwse-type-label nwse-label tabular-nums">{String(index + 1).padStart(2, '0')}</span>
+            </span>
+            <div className="col-start-2 row-start-1">
               <h3 className="nwse-type-title-1 text-[var(--nw-current-navy)]">{group.name}</h3>
+              <p className="nwse-type-body-small mt-2 text-[var(--nw-slate)]">{group.summary}</p>
             </div>
-            <p className="nwse-type-body-small mt-3 text-[var(--nw-slate)]">{group.summary}</p>
-            <p className="nwse-type-label nwse-label mt-4">{c.mattersLabel}</p>
-            <p className="nwse-type-body-small mt-1 text-[var(--nw-current-navy)]">{group.matters}</p>
-            <ul className="mt-4 flex flex-wrap gap-2" aria-label={`${group.name}: metrics`}>
-              {group.metrics.slice(0, 3).map((metric) => (
-                <li key={metric.name} className="nwse-chip nwse-type-body-small">
-                  {metric.name}
-                </li>
-              ))}
-            </ul>
-            <Link
-              to={groundswellMetricPath(group.slug)}
-              className="nwse-type-body-small mt-auto inline-flex items-center gap-2 pt-5 font-semibold text-[var(--nw-current-navy)] hover:text-[var(--nw-tide-blue)]"
-              aria-label={`${c.cardLink(group.metrics.length)}: ${group.name}`}
-            >
-              {c.cardLink(group.metrics.length)} <NwseIcon name="arrow-right" size={15} aria-hidden="true" />
-            </Link>
+            <div className="col-start-2 lg:col-start-3 lg:row-start-1">
+              <p className="nwse-type-label nwse-label">{c.mattersLabel}</p>
+              <p className="nwse-type-body-small mt-1 text-[var(--nw-current-navy)]">{group.matters}</p>
+            </div>
+            <div className="col-start-2 flex flex-col items-start gap-3 lg:col-start-4 lg:row-start-1">
+              <ul className="nwse-type-body-small flex flex-col gap-1 text-[var(--nw-slate)]" aria-label={`${group.name}: metrics`}>
+                {group.metrics.slice(0, 3).map((metric) => (
+                  <li key={metric.name} className="flex items-baseline gap-2">
+                    <span className="h-1.5 w-1.5 shrink-0 translate-y-[-1px] rounded-full" style={{ background: color.accent }} aria-hidden="true" />
+                    {metric.name}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                to={groundswellMetricPath(group.slug)}
+                className="nwse-link inline-flex items-center gap-1.5 text-sm font-semibold max-lg:min-h-11"
+                aria-label={`${c.cardLink(group.metrics.length)}: ${group.name}`}
+              >
+                {c.cardLink(group.metrics.length)} <NwseIcon name="arrow-right" size={14} aria-hidden="true" />
+              </Link>
+            </div>
           </li>
         );
       })}
-    </ul>
+    </ol>
   );
 }
 
@@ -123,16 +134,15 @@ function CurrentsExplorer() {
   return <Tabs items={items} label={c.explorerLabel} look="chips" className="mt-6 sm:mt-8 lg:mt-10" bodyClassName="mt-4" />;
 }
 
-/** The three report formats share warm paper and a brand-colour cap. */
+/** The three report formats as open columns, each under a rule in the next colour role. */
 function ReportGrid() {
   return (
-    <ol className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 md:grid-cols-3 md:gap-4 lg:mt-10">
+    <ol className="mt-6 grid grid-cols-1 gap-6 sm:mt-8 md:grid-cols-3 md:gap-8 lg:mt-10 lg:gap-10">
       {auditReports.map((report, index) => {
         const color = accentAt(index);
         return (
-          <li key={report.name} className="nwse-card relative flex flex-col overflow-hidden p-4 sm:p-5 lg:p-6">
-            <span className="absolute inset-x-0 top-0 h-1.5" style={{ background: color.accent }} aria-hidden="true" />
-            <p className="nwse-type-label nwse-label mt-1">{report.audience}</p>
+          <li key={report.name} className="nwse-rule relative flex flex-col pt-4 sm:pt-5" style={{ '--nwse-rule': color.accent } as CSSProperties}>
+            <p className="nwse-type-label nwse-label">{report.audience}</p>
             <h3 className="nwse-type-title-1 mt-1 text-[var(--nw-current-navy)]">{report.name}</h3>
             <p className="nwse-type-body-small mt-1 font-semibold text-[var(--gs-navy)]">
               {report.format}
@@ -441,8 +451,8 @@ function TodayVsPlan() {
     </div>
   );
   return (
-    <div className="mt-5 grid grid-cols-1 gap-3 sm:mt-6 md:grid-cols-2 md:gap-4">
-      <div className="nwse-card p-4 sm:p-5 lg:p-6">
+    <div className="mt-5 grid grid-cols-1 gap-6 sm:mt-6 md:grid-cols-2 md:gap-8">
+      <div className="nwse-rule pt-4">
         <h4 className="nwse-type-title-2 text-[var(--nw-current-navy)]">{c.todayHeading}</h4>
         <dl className="mt-3">
           {cell(c.labels.adSpend, UPB_BASELINE.monthly_ad_spend === null ? 'Not public' : dollars(UPB_BASELINE.monthly_ad_spend))}
@@ -451,7 +461,7 @@ function TodayVsPlan() {
         </dl>
         <p className="nwse-type-body-small mt-2 text-[var(--nw-slate)]">{UPB_BASELINE.ad_spend_basis}</p>
       </div>
-      <div className="nwse-card p-4 sm:p-5 lg:p-6" style={{ borderColor: 'var(--nwse-lure-amber-deep)', borderWidth: 2 }}>
+      <div className="nwse-rule pt-4" style={{ '--nwse-rule': 'var(--nwse-lure-amber-deep)' } as CSSProperties}>
         <h4 className="nwse-type-title-2 text-[var(--nw-current-navy)]">{c.planHeading}</h4>
         <dl className="mt-3">
           {cell(c.labels.addedSpend, dollars(w.added_monthly_spend.medium))}

@@ -464,6 +464,53 @@
   border-radius: 12px;
 }
 
+/* Editorial surfaces (2026-10-24). The pages used to repeat one shape: a
+   bordered white rectangle with an icon tile top-left, an arrow top-right and
+   a "Learn more" line, in grids of identical cards. Lists and columns now do
+   that work without boxes:
+   - .nwse-ledger: rows under hairlines (a list of services, metrics, outcomes,
+     questions): one rule above the list, one under each row, no fill, no
+     radius; .nwse-ledger-dark on a dark band.
+   - .nwse-rule: an open column under a 2px rule in its colour role
+     (--nwse-rule; Mist Gray by default, a light hairline with .nwse-rule-dark),
+     for grids of points, phases, pillars, reports and measures.
+   The hairline card (.nwse-card) stays for what is a thing in itself: a table,
+   a report viewer, an ad preview. */
+.nwse-ledger {
+  border-top: 1px solid var(--nwse-ledger-line, var(--nw-mist-gray));
+}
+
+.nwse-ledger > li,
+.nwse-ledger > details {
+  border-bottom: 1px solid var(--nwse-ledger-line, var(--nw-mist-gray));
+}
+
+.nwse-ledger-dark {
+  --nwse-ledger-line: color-mix(in srgb, var(--nw-cloud-white) 16%, transparent);
+}
+
+.nwse-rule {
+  border-top: 2px solid var(--nwse-rule, var(--nw-mist-gray));
+}
+
+.nwse-rule-dark {
+  --nwse-rule: color-mix(in srgb, var(--nw-cloud-white) 16%, transparent);
+}
+
+/* A ledger row's arrow: it steps toward the pointer on hover. */
+.nwse-ledger a .nwse-ledger-arrow {
+  transition: transform 150ms, color 150ms;
+}
+
+.nwse-ledger a:hover .nwse-ledger-arrow {
+  color: var(--nwse-lure-amber-deep);
+  transform: translate(2px, -2px);
+}
+
+.nwse-ledger-dark a:hover .nwse-ledger-arrow {
+  color: var(--nwse-lure-amber);
+}
+
 /* Steps from 768px: a stepper on a rail. After each step's icon or dot tile a
    hairline (.nwse-rail, a flex item in the marker row; StepList in
    sections.tsx) runs to the next step's tile, across the item's right
@@ -625,9 +672,11 @@
 
   .nwse-hairlines > li {
     background: none;
+    border-color: var(--nw-mist-gray);
     border-radius: 0;
     border-width: 0 0 1px;
     box-shadow: none;
+    padding-top: 1.25rem;
   }
 
   /* Steps: a timeline instead of a stepper. Each step's icon or dot tile
