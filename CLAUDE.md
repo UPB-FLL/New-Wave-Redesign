@@ -200,6 +200,12 @@ answers 401 "Invalid API key", and Firecrawl answers (1,045 credits).
   tickets #3265 and #3266 alerted by email. `SUPEROPS_API_URL` must stay
   unset (the portal host `newwave.superops.ai` answers 403). Texts wait on
   Twilio's settings in Vercel.
+- **Portal links (2026-10-26)**: the client portal is `https://newwave.superops.ai`
+  (requesters sign in there; SuperOps' own emails link there). The site's
+  default `super-ops.newwaveitfl.com` had no DNS record, so `/support`'s portal
+  link failed; `CustomerPortalCard` now defaults to the real portal. Template
+  buttons link to it as a fixed address: a `#` placeholder cannot sit inside
+  an `href`, and the pasted `#Ticket Link` button went out as a dead link.
 - **Tests**: `src/test/api/support-ticket-alerts.test.ts`.
 
 ### Groundswell: age-gated Instagram profiles, the Facebook Page, and the public-sources plan (2026-10-22)

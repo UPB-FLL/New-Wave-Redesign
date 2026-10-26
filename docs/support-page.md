@@ -55,7 +55,7 @@ the verified session — never one supplied in the request body.
 | `SUPEROPS_SUBDOMAIN` | yes | Sent as the `CustomerSubDomain` header |
 | `SUPEROPS_DATA_CENTER` | no | `us` (default) or `eu` |
 | `SUPEROPS_API_URL` | no | Overrides the data-centre default |
-| `VITE_SUPEROPS_PORTAL_URL` | no | Full client portal link. Default `https://super-ops.newwaveitfl.com` |
+| `VITE_SUPEROPS_PORTAL_URL` | no | Full client portal link. Default `https://newwave.superops.ai` (the old default, `super-ops.newwaveitfl.com`, has no DNS record) |
 
 New Wave's account is the subdomain **`newwave`** (`getCompanyInfo`:
 `newwave.superops.ai`, US data centre, America/New_York).
