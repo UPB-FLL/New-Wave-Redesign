@@ -11,14 +11,14 @@ replace them across the division and the GroundSwell pages (`division.css`):
 - **`.nwse-ledger`**: rows under hairlines, no fill or radius
   (`.nwse-ledger-dark` on navy). Used by the hub's services and a service
   page's related services (one `<ol>` each, `data-role="service-ledger"`:
-  the service icon in its pillar's colour, an index, the title, the summary,
+  the service icon in its pillar's colour, the title, the summary,
   an arrow that steps on hover; the whole row is the link; two columns of
   rows from lg; no "Learn more"), `OutcomeList`, `FaqList`, the customers
   and apps lists, and GroundSwell's metric groups (`MetricsGrid`,
   `data-role="metric-group"`) and each metric page's metrics.
 - **`.nwse-rule`**: an open column under a 2px rule in its colour role
   (`--nwse-rule`; `.nwse-rule-dark` for the light hairline on navy). Used by
-  `PointGrid` (now numbered; `variant` is kept for callers but ignored),
+  `PointGrid` (`variant` is kept for callers but ignored),
   `RoadmapGrid` (`CardLabel plain`: the icon uncontained), `PillarCards`,
   `PillarStrip` (the active pillar's rule in its colour), `MetricTiles`,
   GroundSwell's `ReportGrid`, today-vs-plan, the metric pages' feeds and

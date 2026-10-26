@@ -41,8 +41,8 @@ function JumpNav() {
 }
 
 /**
- * The metrics the engine gathers as a ledger, one row per group: its icon
- * and index, its name, what it covers, why it matters, its first three
+ * The metrics the engine gathers as a ledger, one row per group: its icon,
+ * its name, what it covers, why it matters, its first three
  * metrics, and a link to the group's own page with every metric.
  */
 function MetricsGrid() {
@@ -57,9 +57,8 @@ function MetricsGrid() {
             className="grid grid-cols-[2rem_minmax(0,1fr)] gap-x-4 gap-y-3 py-6 sm:py-7 lg:grid-cols-[2.5rem_minmax(0,1.1fr)_minmax(0,1fr)_minmax(0,1fr)] lg:gap-x-8 lg:py-8"
             data-role="metric-group"
           >
-            <span className="col-start-1 row-start-1 flex flex-col items-start gap-2" style={{ color: color.deep }} aria-hidden="true">
+            <span className="col-start-1 row-start-1 mt-0.5" style={{ color: color.deep }} aria-hidden="true">
               <NwseIcon name={group.icon} size={22} />
-              <span className="nwse-type-label nwse-label tabular-nums">{String(index + 1).padStart(2, '0')}</span>
             </span>
             <div className="col-start-2 row-start-1">
               <h3 className="nwse-type-title-1 text-[var(--nw-current-navy)]">{group.name}</h3>

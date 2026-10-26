@@ -137,9 +137,9 @@ export default function SocialEngineeringHubPage() {
         />
         {/* A ledger, not a grid of cards: each service is one row under a
             hairline (its icon in its pillar's colour, the title, the summary,
-            an arrow), the whole row the link; two columns of rows from lg. */}
+            an arrow; no index), the whole row the link; two columns of rows from lg. */}
         <ol className="nwse-ledger mt-6 grid grid-cols-1 sm:mt-8 lg:mt-10 lg:grid-cols-2 lg:gap-x-12" data-role="service-ledger">
-          {divisionServices.map((service, index) => {
+          {divisionServices.map((service) => {
             const color = PILLAR_STYLE[service.pillar];
             return (
               <li key={service.slug}>
@@ -147,11 +147,8 @@ export default function SocialEngineeringHubPage() {
                   to={divisionServicePath(service.slug)}
                   className="group grid grid-cols-[2rem_minmax(0,1fr)_1.5rem] items-start gap-x-4 gap-y-1.5 py-5 sm:py-6 lg:py-7"
                 >
-                  <span className="col-start-1 row-span-2 row-start-1 mt-0.5 flex flex-col items-start gap-1.5" aria-hidden="true">
-                    <span style={{ color: color.deep }}>
-                      <ServiceIcon icon={service.icon} size={22} />
-                    </span>
-                    <span className="nwse-type-label nwse-label tabular-nums">{String(index + 1).padStart(2, '0')}</span>
+                  <span className="col-start-1 row-start-1 mt-0.5" style={{ color: color.deep }} aria-hidden="true">
+                    <ServiceIcon icon={service.icon} size={22} />
                   </span>
                   <h3 className="nwse-type-title-1 col-start-2 row-start-1 text-[var(--nw-current-navy)] transition-colors group-hover:text-[var(--nwse-lure-amber-deep)] max-lg:break-words">
                     {service.navLabel}

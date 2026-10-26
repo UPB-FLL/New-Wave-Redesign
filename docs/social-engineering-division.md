@@ -277,9 +277,9 @@ screen, and the endorsement at the foot needs a short scroll.
 
 The grids of identical bordered cards are gone. Lists of things (services,
 outcomes, questions, customers, metrics) are **ledgers**: rows under
-hairlines (`.nwse-ledger`), the whole row the link where there is one, an
-index or the item's icon in its colour role at the left, the arrow stepping
-toward the pointer on hover. Grids of points (what we gather, what's
+hairlines (`.nwse-ledger`), the whole row the link where there is one, the
+item's icon in its colour role at the left, the arrow stepping toward the
+pointer on hover. Nothing is numbered: index labels read as filler. Grids of points (what we gather, what's
 included, the pillars, the phases, the measures, the reports) are **rule
 columns**: open columns under a 2px rule in the colour role (`.nwse-rule`,
 `--nwse-rule`). Icons sit uncontained in their role's colour; the tinted
