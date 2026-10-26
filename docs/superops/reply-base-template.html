@@ -1,0 +1,49 @@
+<!--
+  New Wave IT: base for a technician's reply to a ticket.
+
+  SuperOps sends a technician's reply as whatever is typed in the reply box
+  (it does not wrap replies in a notification template), so this is a
+  SuperOps Reply Template: inserted into the reply box, with the space at the
+  top for the message and the signature below.
+
+  Where it goes: SuperOps > Settings > Advanced Configuration > Reply
+  Templates > Create. Name it "New Wave reply". Paste everything below this
+  comment into the HTML (source) view of the editor. If the editor has no
+  HTML view, open this file in a browser, select all, copy, and paste into
+  the editor instead.
+
+  Using it: on a ticket, start a reply, insert the "New Wave reply" template,
+  then replace the grey line with your message.
+
+  Placeholders: every #… below stands for a SuperOps placeholder. After
+  pasting, delete each one and insert the real placeholder from the editor's
+  "#" list (type # in the editor), so SuperOps fills it in:
+
+    #Requester First Name   the requester's first name
+    #Ticket ID              the ticket's display number
+    #Technician Name        the technician sending the reply
+
+  If SuperOps has no placeholder for one of them, delete it.
+  Kept light so the rich-text editor keeps it: no page background, one
+  signature table, inline styles, a PNG logo.
+-->
+<div style="font-family:Segoe UI,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6;color:#101E2D;">
+  <p style="margin:0 0 14px;">Hi #Requester First Name,</p>
+  <p style="margin:0 0 14px;color:#526271;">Type your reply here.</p>
+  <p style="margin:0 0 22px;">Thank you,</p>
+  <table role="presentation" cellpadding="0" cellspacing="0" style="border-top:3px solid #31C6CF;padding-top:14px;min-width:300px;">
+    <tr>
+      <td style="padding:14px 18px 0 0;vertical-align:top;">
+        <img src="https://www.newwaveitfl.com/brand/email/new-wave-it-logo-on-light.png" width="135" height="45" alt="New Wave IT" style="display:block;border:0;">
+      </td>
+      <td style="padding:14px 0 0;vertical-align:top;font-size:13px;line-height:1.55;color:#526271;">
+        <strong style="color:#101E2D;font-size:14px;">#Technician Name</strong><br>
+        New Wave IT Support<br>
+        <a href="tel:+15615641846" style="color:#317B92;text-decoration:none;">(561) 564-1846</a> ·
+        <a href="mailto:support@newwaveitfl.com" style="color:#317B92;text-decoration:none;">support@newwaveitfl.com</a><br>
+        <a href="https://www.newwaveitfl.com/support" style="color:#317B92;text-decoration:none;">newwaveitfl.com/support</a>
+      </td>
+    </tr>
+  </table>
+  <p style="margin:16px 0 0;font-size:12px;line-height:1.5;color:#526271;">Ticket #Ticket ID · Reply to this email to add to your ticket. Please keep the ticket number in the subject line.</p>
+</div>
