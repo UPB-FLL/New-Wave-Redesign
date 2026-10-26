@@ -13,11 +13,13 @@ without JavaScript; only the GroundSwell pages carried copy.
   `prerenderedItRoutes()` plus the homepage with `StaticRouter`, the same way
   the GroundSwell prerender does; `vite.config.ts` loads it through the Vite
   SSR loader and `renderRouteHtml` (`injectRootBody`) puts the markup in
-  `#root`. The homepage is written to `dist/_home/index.html`
-  (`HOME_PRERENDER_ROUTE`), which `vercel.json` rewrites `/` to, so the shell
-  at `dist/index.html` stays empty for the SPA fallback routes; `robots.txt`
-  disallows `/_home`. `/groundswell` (a lazy chunk) and `/status` (its
-  figures have no source; owner decision pending) keep the shell.
+  `#root`. The homepage is `dist/index.html` itself (Vercel serves that file
+  for `/` from the filesystem before any rewrite, checked on the preview), and
+  the empty shell moves to `dist/_shell.html` (`SHELL_FILE`), which the
+  `vercel.json` catch-all rewrites the SPA fallback routes to and
+  `api/_lib/spaShell.ts` reads for blog posts; `robots.txt` disallows it.
+  `/groundswell` (a lazy chunk) and `/status` (its figures have no source;
+  owner decision pending) keep the shell.
 - **CMS copy**: `readCmsContentForBuild` (`src/lib/prerenderContent.ts`)
   reads every `site_content` row with the anon key at build time and
   `seedContentCache` (`content.ts`) hands it to `useContent`, so the static

@@ -1,5 +1,8 @@
+// @vitest-environment node
 // Every static New Wave IT page renders its real body at build time, so a
-// reader that never runs the bundle gets the page, not an empty shell.
+// reader that never runs the bundle gets the page, not an empty shell. Run
+// under Node, as the build does: no window, no localStorage, so a component
+// that touches either at render time fails here instead of in the build.
 
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -34,6 +37,9 @@ describe('renderItBody', () => {
     expect(html.match(/<h1\b/g)).toHaveLength(1);
     expect(text(html).split(' ').filter(Boolean).length).toBeGreaterThan(100);
     expect(html).not.toContain('<script');
+    // Reveal animations start visible in the prerender; no copy sits hidden.
+    expect(html).not.toMatch(/opacity:\s*0[;"]/);
+    expect(html).not.toMatch(/translateY\(\d+px\)/);
   });
 
   it('renders the CMS copy it is seeded with, and only for that render', () => {

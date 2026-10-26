@@ -129,12 +129,15 @@ describe('prerendered page bodies', () => {
     expect(() => renderRouteHtml(shell, '/about', meta, { bodyHtml: '  ' })).toThrow(/H1/);
   });
 
-  it('rewrites the homepage to its own prerendered file in vercel.json, before the catch-all', () => {
-    const config = JSON.parse(readFileSync(path.resolve(__dirname, '../../../vercel.json'), 'utf8')) as { rewrites: { source: string; destination: string }[] };
-    const home = config.rewrites.findIndex((r) => r.source === '/');
-    const catchAll = config.rewrites.findIndex((r) => r.source === '/(.*)');
-    expect(config.rewrites[home]?.destination).toBe('/_home/index.html');
-    expect(home).toBeLessThan(catchAll);
+  it('sends the SPA fallback routes to the empty shell beside the prerendered homepage, and keeps that file out of robots', () => {
+    const config = JSON.parse(readFileSync(path.resolve(__dirname, '../../../vercel.json'), 'utf8')) as {
+      rewrites: { source: string; destination: string }[];
+      functions: Record<string, { includeFiles?: string }>;
+    };
+    expect(config.rewrites.find((r) => r.source === '/(.*)')?.destination).toBe('/_shell.html');
+    expect(config.rewrites.some((r) => r.source === '/')).toBe(false);
+    expect(config.functions['api/blog-page.ts']?.includeFiles).toBe('dist/_shell.html');
+    expect(readFileSync(path.resolve(__dirname, '../../../public/robots.txt'), 'utf8')).toContain('Disallow: /_shell.html');
   });
 });
 

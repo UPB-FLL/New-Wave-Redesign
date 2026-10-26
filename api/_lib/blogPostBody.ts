@@ -10,15 +10,19 @@ import { escapeHtmlText } from '../../src/lib/prerenderHead.js';
  * the article. The app replaces it with BlogPostPage at startup.
  */
 export function blogPostBodyHtml(post: BlogPost): string {
-  const published = new Date(post.published_at);
-  const date = Number.isNaN(published.getTime()) ? '' : published.toISOString().slice(0, 10);
-  const article = renderToStaticMarkup(createElement(ReactMarkdown, null, post.content));
+  // The columns are typed as strings but only `title`, `slug` and `content`
+  // are NOT NULL in the table; a null elsewhere must not turn the post into a 503.
+  const published = post.published_at ? new Date(post.published_at) : null;
+  const date = published && !Number.isNaN(published.getTime()) ? published.toISOString().slice(0, 10) : '';
+  const author = post.author ?? '';
+  const category = post.category ?? '';
+  const article = renderToStaticMarkup(createElement(ReactMarkdown, null, post.content ?? ''));
   return (
     `<main><article>` +
     `<nav aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/blog">Blog</a> / ${escapeHtmlText(post.title)}</nav>` +
-    `<p>${escapeHtmlText(post.category)}</p>` +
+    (category ? `<p>${escapeHtmlText(category)}</p>` : '') +
     `<h1>${escapeHtmlText(post.title)}</h1>` +
-    `<p>By ${escapeHtmlText(post.author)}${date ? ` · <time datetime="${date}">${date}</time>` : ''}</p>` +
+    (author || date ? `<p>${author ? `By ${escapeHtmlText(author)}` : ''}${author && date ? ' · ' : ''}${date ? `<time datetime="${date}">${date}</time>` : ''}</p>` : '') +
     (post.excerpt ? `<p>${escapeHtmlText(post.excerpt)}</p>` : '') +
     article +
     `</article></main>`

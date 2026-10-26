@@ -12,8 +12,13 @@ import { readCmsContentForBuild } from './src/lib/prerenderContent';
 import { renderRouteHtml } from './src/lib/prerenderHead';
 import { HOME_PAGE_META, prerenderedItRoutes } from './src/lib/routeMeta';
 
-/** Where the prerendered homepage lives; vercel.json rewrites "/" to it. The shell itself stays empty for every other fallback route. */
-export const HOME_PRERENDER_ROUTE = '/_home';
+/**
+ * The empty SPA shell, kept beside the prerendered homepage: Vercel serves
+ * dist/index.html for "/" from the filesystem before any rewrite, so the
+ * homepage has to be that file, and vercel.json rewrites the fallback routes
+ * (and api/blog-page.ts reads its shell) from this one instead.
+ */
+export const SHELL_FILE = '_shell.html';
 
 /**
  * Writes dist/<route>/index.html for every static page: the built SPA shell
@@ -21,11 +26,11 @@ export const HOME_PRERENDER_ROUTE = '/_home';
  * tags (src/lib/prerenderHead.ts), so crawlers that don't run JavaScript never
  * read one page as a copy of the homepage. New Wave IT routes come from
  * src/lib/routeMeta.ts; division pages also get their own JSON-LD, icons, and
- * preload links. Every New Wave IT route, the homepage (written to
- * HOME_PRERENDER_ROUTE) and GroundSwell's public pages also render their
- * actual React content into #root, with the CMS copy read at build time, so
- * reading a page does not require JavaScript. vercel.json rewrites each route
- * to its file; the data-driven routes keep the shell.
+ * preload links. Every New Wave IT route, the homepage (dist/index.html
+ * itself, the empty shell moving to SHELL_FILE) and GroundSwell's public pages
+ * also render their actual React content into #root, with the CMS copy read
+ * at build time, so reading a page does not require JavaScript. vercel.json
+ * rewrites each route to its file; the data-driven routes get the shell.
  */
 function prerenderPages(): Plugin {
   return {
@@ -69,7 +74,8 @@ function prerenderPages(): Plugin {
         for (const route of prerenderedItRoutes()) {
           write(route.path, renderRouteHtml(shell, route.path, route.meta, { bodyHtml: itBody(route.path) }));
         }
-        write(HOME_PRERENDER_ROUTE, renderRouteHtml(shell, '/', HOME_PAGE_META, { bodyHtml: itBody('/') }));
+        writeFileSync(path.join(outDir, SHELL_FILE), shell);
+        writeFileSync(path.join(outDir, 'index.html'), renderRouteHtml(shell, '/', HOME_PAGE_META, { bodyHtml: itBody('/') }));
         if (!DIVISION_PUBLISHED) return;
         const { isGroundswellPublicPath, renderGroundswellBody } = await renderer.ssrLoadModule('/src/divisions/socialEngineering/prerenderBody.tsx');
         for (const page of allDivisionPages()) {

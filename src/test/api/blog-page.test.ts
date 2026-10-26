@@ -16,7 +16,7 @@ vi.mock('../../../api/_lib/supabasePublic', () => ({ isSupabasePublicConfigured:
 vi.mock('../../../api/_lib/blogStore', () => ({ getPostBySlug: env.getPostBySlug }));
 vi.mock('../../../api/_lib/spaShell', () => ({
   readSpaShell: () => {
-    if (env.shell === null) throw new Error('ENOENT: dist/index.html');
+    if (env.shell === null) throw new Error('ENOENT: dist/_shell.html');
     return env.shell;
   },
 }));
@@ -130,6 +130,16 @@ describe('GET /blog/:slug (api/blog-page.ts)', () => {
     expect(root?.querySelector('script')).toBeNull();
   });
 
+  it('still serves a post whose nullable columns are null', async () => {
+    env.getPostBySlug.mockResolvedValue({ ...POST, author: null, category: null, excerpt: null, published_at: null } as unknown as BlogPost);
+    const res = await get(POST.slug);
+    expect(res.statusCode).toBe(200);
+    const root = new DOMParser().parseFromString(res.body as string, 'text/html').getElementById('root');
+    expect(root?.querySelector('h1')?.textContent).toBe(POST.title);
+    expect(root?.textContent).not.toContain('1970');
+    expect(root?.querySelector('time')).toBeNull();
+  });
+
   it('leaves the root element empty for a missing post and for an outage', async () => {
     env.getPostBySlug.mockResolvedValue(null);
     const missing = new DOMParser().parseFromString((await get('nope')).body as string, 'text/html');
@@ -236,6 +246,6 @@ describe('vercel.json wiring for /blog/:slug', () => {
   });
 
   it('ships the built shell with the function', () => {
-    expect(config.functions['api/blog-page.ts']?.includeFiles).toBe('dist/index.html');
+    expect(config.functions['api/blog-page.ts']?.includeFiles).toBe('dist/_shell.html');
   });
 });

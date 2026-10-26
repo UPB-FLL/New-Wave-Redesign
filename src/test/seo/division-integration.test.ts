@@ -117,7 +117,7 @@ describe('vercel.json rewrites', () => {
   it('keeps the API passthrough first and the SPA catch-all last', () => {
     expect(rewrites[0]).toEqual({ source: '/api/(.*)', destination: '/api/$1' });
     expect(catchAll).toBe(rewrites.length - 1);
-    expect(rewrites[catchAll].destination).toBe('/index.html');
+    expect(rewrites[catchAll].destination).toBe('/_shell.html');
   });
 
   it('serves each prerendered URL its own file, ahead of the catch-all', () => {
@@ -129,21 +129,19 @@ describe('vercel.json rewrites', () => {
     });
   });
 
-  it('rewrites exactly the prerendered URLs, plus the routes functions serve and the prerendered homepage', () => {
+  it('rewrites exactly the prerendered URLs, plus the routes functions serve — never the homepage', () => {
     // Five rewrites go to functions rather than files: the content sitemap
     // (api/sitemap-content.ts), blog posts, whose head comes from the database
     // (api/blog-page.ts, pinned in src/test/api/blog-page.test.ts), the
     // single-post API (api/blog/post.ts, pinned in blog-routes.test.ts), and the
     // audit routes' old addresses (api/groundswell/*, pinned in groundswell-routes.test.ts).
-    // The homepage is served from its own prerendered file (vite.config.ts
-    // HOME_PRERENDER_ROUTE), so the shell at /index.html stays empty for the
-    // SPA fallback routes.
+    // The homepage is dist/index.html itself (prerendered, served from the
+    // filesystem ahead of any rewrite); the fallback routes get the empty
+    // shell vite.config.ts writes beside it (SHELL_FILE).
     const functionRoutes = ['/api/(.*)', '/api/blog/:id', '/api/audits/run', '/api/audits/worker', '/(.*)', '/sitemap-content.xml', '/blog/:slug'];
-    const extra = rewrites.filter((rule) => !functionRoutes.includes(rule.source) && rule.source !== '/');
+    const extra = rewrites.filter((rule) => !functionRoutes.includes(rule.source));
     expect(extra.map((rule) => rule.source).sort()).toEqual([...prerenderedPaths].sort());
-    const home = rewrites.find((rule) => rule.source === '/');
-    expect(home?.destination).toBe('/_home/index.html');
-    expect(rewrites.indexOf(home!)).toBeLessThan(rewrites.findIndex((rule) => rule.source === '/(.*)'));
+    expect(extra.map((rule) => rule.source)).not.toContain('/');
   });
 });
 
