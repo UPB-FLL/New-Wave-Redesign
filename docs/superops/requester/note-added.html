@@ -1,0 +1,89 @@
+<!--
+  New Wave IT: SuperOps requester email sent when
+  a technician adds a note the requester can see.
+
+  Where it goes: SuperOps > Settings > My Company > Notification Center >
+  Ticket Notifications > Requester Notifications >
+  Note Added > Edit > the HTML (source) view. Paste everything below this comment. See
+  docs/support-page.md, "Ticket email templates".
+
+  Placeholders: every #… below stands for a SuperOps placeholder. After
+  pasting, delete each one and insert the real placeholder from the editor's
+  "#" list (type # in the editor), so SuperOps fills it in:
+
+    #Requester First Name    the requester's first name
+    #Ticket ID               the ticket's display number
+    #Ticket Subject          the ticket's subject
+    #Technician Name         the technician who added the note
+    #Note                    the note the technician shared
+
+  The button links to the client portal (https://newwave.superops.ai), where the
+  requester signs in and sees their tickets. It is a fixed address because
+  a "#" placeholder cannot be inserted inside a link's address.
+
+  If SuperOps has no placeholder for one of them, delete that line.
+  Built for mail clients: tables, inline styles, a PNG logo, no web fonts.
+-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F7FAFB;padding:24px 12px;font-family:Segoe UI,Helvetica,Arial,sans-serif;">
+  <tr>
+    <td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#FFFFFF;border:1px solid #E8EFF1;border-radius:12px;overflow:hidden;">
+        <tr>
+          <td style="background:#09131D;padding:20px 28px;">
+            <img src="https://www.newwaveitfl.com/brand/email/new-wave-it-logo-on-dark.png" width="180" height="60" alt="New Wave IT" style="display:block;border:0;">
+          </td>
+        </tr>
+        <tr><td style="height:4px;background:#31C6CF;line-height:4px;font-size:0;">&nbsp;</td></tr>
+        <tr>
+          <td style="padding:28px 28px 8px;">
+            <p style="margin:0 0 6px;color:#317B92;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">Ticket #Ticket ID · update</p>
+            <p style="margin:0 0 14px;color:#101E2D;font-size:16px;line-height:1.5;">Hi #Requester First Name,</p>
+            <p style="margin:0;color:#101E2D;font-size:15px;line-height:1.6;">#Technician Name added an update to your ticket.</p>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding:20px 28px 0;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F7FAFB;border:1px solid #E8EFF1;border-left:4px solid #31C6CF;border-radius:8px;">
+              <tr>
+                <td style="padding:14px 18px;">
+                  <p style="margin:0 0 4px;color:#526271;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;">Your ticket</p>
+                  <p style="margin:0 0 4px;color:#101E2D;font-size:15px;font-weight:600;">#Ticket Subject</p>
+                  <p style="margin:0;color:#526271;font-size:13px;">Ticket #Ticket ID</p>
+                  <p style="margin:12px 0 4px;color:#526271;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;">The update</p>
+                  <div style="color:#101E2D;font-size:14px;line-height:1.55;">#Note</div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:22px 28px 4px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" style="margin-bottom:14px;">
+              <tr>
+                <td style="background:#317B92;border-radius:8px;">
+                  <a href="https://newwave.superops.ai" style="display:inline-block;padding:12px 22px;color:#FFFFFF;font-size:14px;font-weight:600;text-decoration:none;">View your ticket</a>
+                </td>
+              </tr>
+            </table>
+            <p style="margin:0;color:#526271;font-size:13px;line-height:1.5;">To reply, answer this email and keep the ticket number in the subject line. For anything urgent, call us at <a href="tel:+15615641846" style="color:#317B92;text-decoration:none;font-weight:600;">(561) 564-1846</a>.</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:22px 28px 26px;">
+            <p style="margin:0;color:#101E2D;font-size:14px;line-height:1.5;">Thank you,<br><span style="color:#526271;">New Wave IT Support</span></p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:18px 28px;background:#09131D;color:#C9D6DC;font-size:12px;line-height:1.7;">
+            <strong style="color:#FFFFFF;">New Wave IT</strong> · Managed IT &amp; cybersecurity<br>
+            <a href="tel:+15615641846" style="color:#31C6CF;text-decoration:none;">(561) 564-1846</a> ·
+            <a href="mailto:support@newwaveitfl.com" style="color:#31C6CF;text-decoration:none;">support@newwaveitfl.com</a> ·
+            <a href="https://www.newwaveitfl.com/support" style="color:#31C6CF;text-decoration:none;">newwaveitfl.com/support</a><br>
+            710 NW 5th Ave, Suite 1072, Fort Lauderdale, FL 33311
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>

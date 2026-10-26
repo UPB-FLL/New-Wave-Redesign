@@ -187,9 +187,9 @@ answers 401 "Invalid API key", and Firecrawl answers (1,045 credits).
   email through Resend (`SUPPORT_ALERT_EMAIL`, default josh@newwaveitfl.com).
   The webhook is created through SuperOps' API (`createWebhookSubscription`);
   docs/support-page.md section 4 has the call.
-- **Email templates**: `docs/superops/ticket-created-template.html` (the
-  "New Ticket created" notice), `ticket-closed-template.html` (the closed
-  notice) and `reply-base-template.html` (a SuperOps Reply Template the
+- **Email templates**: eight requester notices in `docs/superops/requester/`
+  (created, requester replied, note added, resolved, closed, and the portal
+  account's Welcome, Password Reset and Profile Update) and `docs/superops/reply-base-template.html` (a SuperOps Reply Template the
   technician types above: SuperOps sends a reply as typed, with no notice
   wrapping it, so the old `#Reply` notice template was removed), plus four
   staff notices in `docs/superops/technician/` (new
