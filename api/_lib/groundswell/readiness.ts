@@ -27,6 +27,7 @@ export interface ReadinessCheck {
 /** The Composio toolkits the Currents read, and what a prospect's audit loses without each. */
 export const TOOLKIT_CHECKS = [
   { toolkit: 'ahrefs', label: 'Ahrefs (search rankings, paid pages, authority)', without: 'search rankings, paid pages and domain authority are left out of the reports' },
+  { toolkit: 'ahrefs_mcp', label: 'Ahrefs MCP (Brand Radar: AI mentions, share of voice, citations)', without: 'the AI search reading rests on the site’s own files and the Brand Radar figures are left out of the reports and the developer brief' },
   { toolkit: 'scrapecreators', label: 'ScrapeCreators (Instagram, Facebook, ad libraries)', without: 'Instagram, Facebook and the ad libraries are left out of the reports' },
   { toolkit: 'apify', label: 'Apify (Instagram profiles shown only to signed-in adults, extra images)', without: 'an Instagram profile that hides from logged-out readers stays unread, and the ad images come from fewer posts' },
   { toolkit: 'google_maps', label: 'Google Places (Maps listing, competitor picks)', without: 'Maps listings and competitor suggestions use public Google search or browser fallbacks' },
@@ -73,7 +74,7 @@ async function checkOpenAI(fetchImpl: typeof fetch): Promise<ReadinessCheck> {
 const SIGNIN_CHECKS = CLIENT_SERVICES.map((s) => ({ key: `authconfig:${s.toolkit}`, label: `Client sign-in: ${s.label}`, toolkit: s.toolkit, service: s.label }));
 
 /** Toolkits Composio serves from its instant account (billed per call) rather than one New Wave linked. */
-const INSTANT_TOOLKITS = ['ahrefs', 'google_maps', 'serpapi', 'serper'];
+const INSTANT_TOOLKITS = ['ahrefs', 'ahrefs_mcp', 'google_maps', 'serpapi', 'serper'];
 
 /**
  * The consumer account (phases 1 and 2): its key, then one check per toolkit
