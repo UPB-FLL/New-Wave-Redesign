@@ -30,7 +30,7 @@ log, and the Google Business Profile as returned by a Google Maps search on
 
 | Fact | Value | Source | Status |
 |---|---|---|---|
-| Street address | 710 NW 5th Ave, Suite 1072, Fort Lauderdale, FL 33311 | CMS `contact.address` + `contact.address_city`, `footer.address`; `index.html` JSON-LD; code fallbacks in `Footer.tsx`, `Contact.tsx`, `contactDetails.ts` | source-backed on the site; **the Google listing shows no street address and its pin is at 26.9412, −81.4974 (Highlands County), not Fort Lauderdale** → contradicted |
+| Street address | 710 NW 5th Ave, Suite 1072, Fort Lauderdale, FL 33311 | CMS `contact.address` + `contact.address_city`, `footer.address`; `index.html` JSON-LD; code fallbacks in `Footer.tsx`, `Contact.tsx`, `contactDetails.ts` | owner-confirmed, 2026-10-26 (a staffed office). The Google listing still shows no street address and a pin at 26.9412, −81.4974 (Highlands County); the owner is updating the profile |
 | Phone | (561) 564-1846 / +1 561-564-1846 | CMS `contact.phone`, `footer.phone`, `hero.phone`; Google listing; `CLAUDE.md` 2026-10-21 ("the Google Business Profile's") | owner-confirmed, 2026-10-26 |
 | Email | support@newwaveitfl.com | CMS `contact.email`, `footer.email`; JSON-LD | source-backed (site) |
 | Geo coordinates | 26.1224, −80.1373 | `index.html` JSON-LD | site-only; GBP pin differs (see address) |
@@ -106,7 +106,7 @@ Two independent price lists exist and neither cites the other.
 ## 9. Contradictions in the live copy (summary)
 
 1. **Hours** (settled 2026-10-26): office Mon–Fri 8am–6pm with a 24/7 emergency line. Schema corrected in this PR; the CMS already said so; the Google Business Profile schedule is the owner's to fix.
-2. **Address / location**: site says 710 NW 5th Ave, Suite 1072, Fort Lauderdale; the Google listing shows no address and a pin ~100 miles away.
+2. **Address / location** (settled 2026-10-26): the suite is a staffed office; the site is right. The Google listing (no address, pin ~100 miles away, apex website URL) is being corrected by the owner in the profile.
 3. **Website on GBP**: apex `newwaveitfl.com` vs the site's canonical `www.`.
 4. **Pricing** (settled 2026-10-26): `pricing_units` is the published price list and feeds the quote builder on `/pricing`; the CMS `pricing.tiers` row was a dormant list the page never rendered, and is retired by migration `20261101120000`. Still open: `pricing.subheadline` ("Choose the perfect plan for your business. All plans include 24/7 support and regular updates.") is shown on `/pricing` and still talks about plans.
 5. **Response times**: "within one business day" (contact) vs tier promises of 24 h / 4 h / 2 h / 1 h.
@@ -163,3 +163,4 @@ and the schema `foundingDate`.
 | 2026-10-26 | Contact number | 561-564-1846 |
 | 2026-10-26 | Q2 price list | `pricing_units` is current; drop the SaaS/HaaS/Support tiers (CMS `pricing.tiers`) |
 | 2026-10-26 | Q3 hours | Office Mon–Fri 8am–6pm; a 24/7 emergency line |
+| 2026-10-26 | Q4 address | 710 NW 5th Ave, Suite 1072 is a staffed office; the Google listing is to be updated to show it (owner's action in the profile; no tool in this session can edit a Business Profile) |
