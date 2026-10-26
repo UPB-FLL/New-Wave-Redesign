@@ -2,6 +2,21 @@
 
 ## Recent Changes
 
+### Pricing tiers retired (2026-10-26)
+
+Owner's answer in the GEO audit (`docs/geo/fact-sheet.md`, Q2): the
+published price list is the `pricing_units` table (the quote builder on
+`/pricing` and the two Fort Lauderdale landing pages); the SaaS / HaaS /
+Support tiers in `site_content` (`pricing.tiers`) were never rendered by
+`/pricing` and are retired. Migration `20261101120000` deletes the row,
+guarded on the md5 of the snapshot
+(`docs/geo/evidence/2026-10-26/site_content-pricing-tiers.snapshot.json`),
+idempotent; the exact restore is `supabase/rollbacks/20261101120000_restore_pricing_tiers_row.sql`
+(that folder is never applied on its own). The admin's `pricing` descriptor
+keeps only the headline block ("Pricing page"); `PRICING_TIERS` and the nav
+keywords for tiers are gone, and the "unreadable stored list" test uses the
+service cards instead.
+
 ### Every New Wave IT page renders its body at build time (2026-10-26)
 
 From the GEO audit baseline (`docs/geo/baseline-2026-10-26.md`): all 41 New

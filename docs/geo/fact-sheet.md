@@ -67,7 +67,7 @@ Two independent price lists exist and neither cites the other.
 | Fact | Value | Source | Status |
 |---|---|---|---|
 | Per-unit rates (cents → dollars/month) | Employees (user accounts) $5.00 · Server $175.00 · Computers $105.00 · Location network monitoring $50.00 · Office 365 licensing only $32.00 · Office 365 licensing and email $38.00 | table `pricing_units` (all `active`, updated 2026-08-15); the same four figures are written into `src/pages/ITSupportFortLauderdalePage.tsx:41-43` and `ManagedITFortLauderdalePage.tsx:40-42` as "from our published price list" | source-backed (DB = landing pages). The repo's seed migration `20260503000000_create_pricing_units.sql` holds older values ($50 computers, $20 locations, no server); the live table is the truth. |
-| Tiers | SaaS Starter $199/mo (≤5 users), Professional $599 (≤25), Enterprise $1,299 (unlimited); HaaS Basic $299 (≤10 devices), Professional $699 (≤50), Enterprise $1,499; Support Standard $85–150/hr (8am–5pm M–F), Priority $125–200/hr (7am–9pm M–F), 24/7 Premium $175–300/hr | CMS `pricing.tiers` (updated 2026-05-03) | site-only; carry response-time promises ("24h response", "4h response", "1-hour emergency response", "2h response") that have no other source |
+| Tiers | SaaS Starter $199/mo (≤5 users), Professional $599 (≤25), Enterprise $1,299 (unlimited); HaaS Basic $299 (≤10 devices), Professional $699 (≤50), Enterprise $1,499; Support Standard $85–150/hr (8am–5pm M–F), Priority $125–200/hr (7am–9pm M–F), 24/7 Premium $175–300/hr | CMS `pricing.tiers` (updated 2026-05-03); **never rendered**: `PricingPage.tsx` reads only the pricing headline keys and shows the quote builder | **retired, owner-confirmed 2026-10-26**: migration `20261101120000` deletes the row (guarded on its md5; snapshot and exact-restore SQL in `docs/geo/evidence/2026-10-26/` and `supabase/rollbacks/`), and the admin editor's Tiers block is gone |
 | "Flat-rate transparent pricing"; "Published per-device rates"; "No long-term contracts required" | CMS `trustbar.items`, `whyus.proof_points`, `hero.stats` | site-only |
 
 ## 6. Partnerships, credentials, claims
@@ -105,7 +105,7 @@ Two independent price lists exist and neither cites the other.
 1. **Hours**: schema 24/7 vs CMS "Mon–Fri, 8am–6pm" vs GBP's broken schedule vs pricing tiers' per-tier hours.
 2. **Address / location**: site says 710 NW 5th Ave, Suite 1072, Fort Lauderdale; the Google listing shows no address and a pin ~100 miles away.
 3. **Website on GBP**: apex `newwaveitfl.com` vs the site's canonical `www.`.
-4. **Pricing**: `pricing_units` ($5/employee, $105/computer, …) vs `pricing.tiers` (bundled SaaS/HaaS/Support tiers); the page shows the CMS tiers (`PricingPage.tsx` reads `useContent('pricing')`), the units table feeds the quote builder. Which list is current is unknown.
+4. **Pricing** (settled 2026-10-26): `pricing_units` is the published price list and feeds the quote builder on `/pricing`; the CMS `pricing.tiers` row was a dormant list the page never rendered, and is retired by migration `20261101120000`. Still open: `pricing.subheadline` ("Choose the perfect plan for your business. All plans include 24/7 support and regular updates.") is shown on `/pricing` and still talks about plans.
 5. **Response times**: "within one business day" (contact) vs tier promises of 24 h / 4 h / 2 h / 1 h.
 6. **Service list**: schema `hasOfferCatalog` has seven offers (adds Healthcare IT & HIPAA Compliance); the CMS shows six cards; the sitemap has ten category pages.
 
@@ -158,3 +158,4 @@ and the schema `foundingDate`.
 |---|---|---|
 | 2026-10-26 | A1 business and site | New Wave IT, www.newwaveitfl.com |
 | 2026-10-26 | Contact number | 561-564-1846 |
+| 2026-10-26 | Q2 price list | `pricing_units` is current; drop the SaaS/HaaS/Support tiers (CMS `pricing.tiers`) |
