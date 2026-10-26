@@ -18,6 +18,7 @@ import {
   DIVISION_CONTACT_US_PATH,
   DIVISION_CUSTOMERS_PATH,
   DIVISION_GROUNDSWELL_PATH,
+  DIVISION_HEADWAY_PATH,
   DIVISION_SERVICE_SLUGS,
   GROUNDSWELL_METRIC_SLUGS,
   divisionServicePath,
@@ -29,6 +30,7 @@ export type DivisionPageModule =
   | 'SocialEngineeringServicePage'
   | 'SocialEngineeringGroundswellPage'
   | 'SocialEngineeringGroundswellMetricPage'
+  | 'SocialEngineeringHeadwayPage'
   | 'SocialEngineeringCustomersPage'
   | 'SocialEngineeringContactUsPage'
   | 'SocialEngineeringContactPage';
@@ -38,6 +40,7 @@ const PAGE_MODULES = new Map<string, DivisionPageModule>([
   ...DIVISION_SERVICE_SLUGS.map((slug): [string, DivisionPageModule] => [divisionServicePath(slug), 'SocialEngineeringServicePage']),
   [DIVISION_GROUNDSWELL_PATH, 'SocialEngineeringGroundswellPage'],
   ...GROUNDSWELL_METRIC_SLUGS.map((slug): [string, DivisionPageModule] => [groundswellMetricPath(slug), 'SocialEngineeringGroundswellMetricPage']),
+  [DIVISION_HEADWAY_PATH, 'SocialEngineeringHeadwayPage'],
   [DIVISION_CUSTOMERS_PATH, 'SocialEngineeringCustomersPage'],
   [DIVISION_CONTACT_US_PATH, 'SocialEngineeringContactUsPage'],
   [DIVISION_CONTACT_PATH, 'SocialEngineeringContactPage'],

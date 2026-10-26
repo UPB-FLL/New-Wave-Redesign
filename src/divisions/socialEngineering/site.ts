@@ -21,6 +21,8 @@ export const DIVISION_CUSTOMERS_PATH = `${DIVISION_BASE_PATH}/customers`;
 /** GroundSwell, the division's growth audit (run by the GroundSwell engine), with sample data. */
 export const DIVISION_GROUNDSWELL_PATH = `${DIVISION_BASE_PATH}/groundswell`;
 export const LEGACY_CROISSANCE_PAGE_PATH = `${DIVISION_BASE_PATH}/croissance`;
+/** Headway, GroundSwell's implementation service: the six services are listed under it (content/headway.ts). */
+export const DIVISION_HEADWAY_PATH = `${DIVISION_BASE_PATH}/headway`;
 /**
  * GroundSwell's metric pages, one per group of figures the engine gathers
  * (content/groundswellMetrics.ts describes each): /social-engineering/groundswell/<slug>.

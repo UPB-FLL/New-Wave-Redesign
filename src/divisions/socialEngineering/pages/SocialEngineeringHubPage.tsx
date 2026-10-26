@@ -25,7 +25,8 @@ import {
 import { divisionServices, hubContent } from '../content';
 import { NwseIcon } from '../icons/NwseIcon';
 import { hubPageSeo } from '../seo';
-import { PARENT_NAME, divisionServicePath } from '../site';
+import { DIVISION_HEADWAY_PATH, PARENT_NAME, divisionServicePath } from '../site';
+import { HEADWAY_NAME } from '../../../lib/headway';
 import { useDivisionMeta } from '../useDivisionMeta';
 
 const seo = hubPageSeo();
@@ -130,9 +131,9 @@ export default function SocialEngineeringHubPage() {
 
       <Band tone="white" id="services" labelledBy="nwse-services">
         <SectionIntro
-          kicker="Services"
-          title="Six services, one goal: more sales you can trace"
-          description="Take one, or the set. Each service starts with GroundSwell’s findings and connects to the same plan and partner workspace."
+          kicker={`${HEADWAY_NAME} · the implementation service`}
+          title="One service that carries the plan out, six kinds of work under it"
+          description={`GroundSwell finds and plans; ${HEADWAY_NAME} does. Take one kind of work, or the set: each starts from the same plan, runs through your own accounts where a tool can and our team where it should, and every action is approved first.`}
           id="nwse-services"
         />
         {/* A ledger, not a grid of cards: each service is one row under a
@@ -160,6 +161,9 @@ export default function SocialEngineeringHubPage() {
             );
           })}
         </ol>
+        <Link to={DIVISION_HEADWAY_PATH} className="nwse-link mt-6 inline-flex items-center gap-1.5 text-sm font-semibold max-lg:min-h-11 sm:mt-8" data-role="headway-link">
+          How {HEADWAY_NAME} works <NwseIcon name="arrow-right" size={14} />
+        </Link>
       </Band>
 
       <Band labelledBy="nwse-data">

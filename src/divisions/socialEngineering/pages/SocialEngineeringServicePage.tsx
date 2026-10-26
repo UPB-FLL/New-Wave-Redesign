@@ -22,7 +22,8 @@ import { divisionServices, findDivisionService, hubContent } from '../content';
 import { NwseIcon } from '../icons/NwseIcon';
 import { isScenePageKey } from '../motion/scenes';
 import { servicePageSeo } from '../seo';
-import { DIVISION_BASE_PATH, divisionServicePath } from '../site';
+import { DIVISION_HEADWAY_PATH, divisionServicePath } from '../site';
+import { HEADWAY_NAME } from '../../../lib/headway';
 import type { DivisionServiceContent } from '../types';
 import { useDivisionMeta } from '../useDivisionMeta';
 
@@ -61,8 +62,8 @@ function ServicePageBody({ service }: { service: DivisionServiceContent }) {
         actions={
           <>
             <PrimaryCta />
-            <Link to={DIVISION_BASE_PATH} className="nwse-btn nwse-btn-ghost-dark">
-              All services
+            <Link to={DIVISION_HEADWAY_PATH} className="nwse-btn nwse-btn-ghost-dark">
+              All six, under {HEADWAY_NAME}
             </Link>
           </>
         }
@@ -91,7 +92,7 @@ function ServicePageBody({ service }: { service: DivisionServiceContent }) {
         <SectionIntro
           kicker="How it works"
           title="How the work runs"
-          description="GroundSwell provides the research and plan. The team reviews the priorities, carries out the work, and reports on the results."
+          description={`GroundSwell provides the research and plan. ${HEADWAY_NAME} lists the actions for approval, carries them out through your accounts and the team, and reports on the results.`}
           id="nwse-steps"
         />
         <StepList steps={service.process} />
@@ -115,8 +116,8 @@ function ServicePageBody({ service }: { service: DivisionServiceContent }) {
       <Band tone="white" labelledBy="nwse-system">
         <SectionIntro
           kicker="Where it fits"
-          title="One of six services in one growth system"
-          description="Every service uses GroundSwell’s findings alongside the team’s work on tracking, connected tools, and advertising. Reports stay together in the partner workspace."
+          title={`One of six kinds of work under ${HEADWAY_NAME}`}
+          description={`${HEADWAY_NAME}, GroundSwell’s implementation service, carries out every service from the same plan: through your own accounts where a tool can, through the team where it should, each action approved first. Reports stay together in the partner workspace.`}
           id="nwse-system"
         />
         <PillarStrip pillars={hubContent.pillars} active={service.pillar} />

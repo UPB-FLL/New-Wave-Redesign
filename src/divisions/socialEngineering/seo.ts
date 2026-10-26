@@ -1,4 +1,5 @@
 import { GROUNDSWELL_BRAND } from '../../groundswell/brand';
+import { HEADWAY_BRAND } from '../../groundswell/headwayBrand';
 // Per-URL SEO records and schema.org builders for the division. Pure data —
 // shared by the runtime meta hook and the build-time prerenderer so the two can
 // never disagree about a page's title, canonical, or structured data.
@@ -12,6 +13,8 @@ import {
   divisionCustomers,
   divisionServices,
   groundswellMetricGroups,
+  headwayContent,
+  headwayServices,
   hubContent,
 } from './content';
 import type { GroundswellMetricGroup } from './content';
@@ -22,6 +25,7 @@ import {
   DIVISION_CONTACT_US_PATH,
   DIVISION_CUSTOMERS_PATH,
   DIVISION_GROUNDSWELL_PATH,
+  DIVISION_HEADWAY_PATH,
   DIVISION_NAME,
   DIVISION_ORGANIZATION_ID,
   DIVISION_SERVICE_AREA,
@@ -285,6 +289,52 @@ export function groundswellPageSeo(): DivisionPageSeo {
   };
 }
 
+/**
+ * Headway, the implementation service: one Service with the six services as
+ * its offer catalogue (each pointing at its own page), provided by the
+ * division, under the GroundSwell brand.
+ */
+export function headwayPageSeo(): DivisionPageSeo {
+  const path = DIVISION_HEADWAY_PATH;
+  const breadcrumbs = [HUB_CRUMB, { name: headwayContent.navLabel, path }];
+  return {
+    brand: 'groundswell',
+    ogImage: HEADWAY_BRAND.ogImage,
+    path,
+    title: headwayContent.metaTitle,
+    description: headwayContent.metaDescription,
+    keywords: headwayContent.keywords,
+    h1: headwayContent.headline,
+    breadcrumbs,
+    jsonLd: [
+      divisionOrganizationNode(),
+      {
+        '@type': 'Service',
+        '@id': absoluteUrl(`${path}#service`),
+        name: HEADWAY_BRAND.name,
+        serviceType: 'Marketing implementation',
+        description: headwayContent.metaDescription,
+        provider: { '@id': DIVISION_ORGANIZATION_ID },
+        areaServed: AREA_SERVED,
+        url: absoluteUrl(path),
+        image: absoluteUrl(HEADWAY_BRAND.ogImage),
+        isRelatedTo: { '@id': absoluteUrl(`${DIVISION_GROUNDSWELL_PATH}#application`) },
+        hasOfferCatalog: {
+          '@type': 'OfferCatalog',
+          name: `${HEADWAY_BRAND.name} services`,
+          itemListElement: headwayServices.map((service, index) => {
+            const page = divisionServices.find((s) => s.slug === service.key);
+            return { '@type': 'Offer', position: index + 1, itemOffered: { '@type': 'Service', name: service.label, url: absoluteUrl(divisionServicePath(service.key)), ...(page ? { serviceType: page.serviceType } : {}) } };
+          }),
+        },
+      },
+      { ...webPageNode(path, headwayContent.metaTitle, headwayContent.metaDescription), mainEntity: { '@id': absoluteUrl(`${path}#service`) }, primaryImageOfPage: absoluteUrl(HEADWAY_BRAND.ogImage) },
+      breadcrumbNode(path, breadcrumbs),
+      faqNode(path, headwayContent.faqs),
+    ],
+  };
+}
+
 /** One group of the metrics GroundSwell gathers: a WebPage under the GroundSwell page, about the application. */
 export function groundswellMetricPageSeo(group: GroundswellMetricGroup): DivisionPageSeo {
   const path = groundswellMetricPath(group.slug);
@@ -357,6 +407,7 @@ export function allDivisionPages(): DivisionPageSeo[] {
     ...divisionServices.map(servicePageSeo),
     groundswellPageSeo(),
     ...groundswellMetricGroups.map(groundswellMetricPageSeo),
+    headwayPageSeo(),
     customersPageSeo(),
     contactUsPageSeo(),
     contactPageSeo(),

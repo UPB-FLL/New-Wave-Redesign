@@ -31,7 +31,7 @@ describe('GroundSwell division navigation', () => {
   it('gives each service a readable summary, its own route, and a current page state', () => {
     const current = divisionServices[2];
     renderHeader(`${divisionServicePath(current.slug)}/`);
-    const trigger = screen.getByRole('button', { name: 'Services' });
+    const trigger = screen.getByRole('button', { name: 'Headway' });
     fireEvent.click(trigger);
     const panel = document.getElementById('nwse-services-menu')!;
     divisionServices.forEach((service) => {

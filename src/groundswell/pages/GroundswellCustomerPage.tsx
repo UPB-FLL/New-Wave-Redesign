@@ -21,6 +21,7 @@ import { usePageMeta } from '../../lib/usePageMeta';
 import { PartnerApp } from '../PartnerApp';
 import { GROUNDSWELL_NAME, GROUNDSWELL_PATH, groundswellStagePath } from '../site';
 import { CustomerWorkspace } from '../workspace/CustomerWorkspace';
+import { HeadwayPanel } from '../workspace/HeadwayPanel';
 import { CustomerForm } from './CustomerForm';
 import { AUDIT_STATUS, customerStatus, STAGE_LABELS } from './customerStatus';
 
@@ -436,6 +437,8 @@ function Customer({ id }: { id: string }) {
           <div className="gs-portal-workspace-grid">
             <div className="gs-portal-customer-work">
               <CustomerWorkspace viewer="partner" customerId={data.customer.id} onSignedOut={signedOut} />
+              {/* Headway, for a client: the services it pays for, the setup checklist, and the actions to approve. */}
+              {stage === 'client' ? <HeadwayPanel viewer="partner" customerId={data.customer.id} onSignedOut={signedOut} /> : null}
               {legacy.length ? (
                 <section aria-labelledby="customer-audits-heading" className="mt-8">
                   <h2 id="customer-audits-heading" className="text-xl font-bold">

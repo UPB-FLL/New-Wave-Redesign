@@ -205,7 +205,7 @@ describe('mobile menu', () => {
     expect(classesOf(toggle)).toContain('p-[10px]');
     const menu = openMenu();
     const links = within(menu).getAllByRole('link');
-    expect(links).toHaveLength(1 + divisionServices.length + 3 + 1 + 1 + 1); // overview, services, page links, CTA, workspace, parent
+    expect(links).toHaveLength(1 + 3 + 1 + divisionServices.length + 1 + 1 + 1); // overview, page links, Headway, services, CTA, workspace, parent
     links.forEach((link) => {
       const classes = classesOf(link);
       expect(classes.includes('min-h-11') || classes.includes('min-h-12'), link.textContent ?? '').toBe(true);
@@ -293,6 +293,7 @@ describe('mobile menu', () => {
       'GroundSwell',
       'Customers',
       'Contact us',
+      'Headway',
       ...divisionServices.map((service) => service.navLabel),
       DIVISION_PRIMARY_CTA,
       'Existing partner workspace',
