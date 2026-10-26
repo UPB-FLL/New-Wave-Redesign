@@ -80,7 +80,7 @@ Two independent price lists exist and neither cites the other.
 | Huntress partner, Microsoft partner, Cisco partner | CMS `trustbar.items`, `whyus.feature_cards[1]`; `CLAUDE.md` 2026-10-21: "only documented partnerships are claimed" | owner-confirmed, 2026-10-21 (per CLAUDE.md; the documents themselves are not in the repo) |
 | "Certified engineers" / "Industry-certified technicians" / "Certified engineers on standby 24/7" | CMS `about.paragraph1`, `hero.subheadline`, `about.team_sub` | site-only (which certifications is unstated) |
 | "Dedicated project manager" on every engagement; "Dedicated account manager for every client" | CMS `whyus.feature_cards[2]`, `whyus.proof_points[3]` | site-only |
-| "We respond within one business day" (contact form) | CMS `contact.email_sub`, `contact.subheadline`, `contact.success_body` | site-only |
+| "We respond within one business day" (contact form) | CMS `contact.email_sub`, `contact.subheadline`, `contact.success_body`; code fallbacks in `Contact.tsx`; `routeMeta.ts` /contact description; `ITSupportFortLauderdalePage.tsx` CTA | **dropped, owner-confirmed 2026-10-26**: migration `20261102120000` rewrites the three rows (guarded on their md5; snapshot and restore SQL kept), the code says "will reach out" / "will contact you" with no time, and `src/test/copy/response-time-claims.test.ts` forbids a promise coming back |
 | "Trusted by businesses across South Florida" | CMS `trustbar.heading` | site-only |
 | "Enterprise-grade" security; "Compliance audits"; "HIPAA readiness", "SOC 2 audit prep" | CMS `services.cards`, cybersecurity hero (code) | site-only; `CLAUDE.md` 2026-10-21 removed certification claims (no SOC 2 Type II, "HIPAA Compliant" etc.), so only *work offered* is claimed |
 | Industries served: healthcare, legal, finance | CMS `about.paragraph3` | site-only |
@@ -108,8 +108,8 @@ Two independent price lists exist and neither cites the other.
 1. **Hours** (settled 2026-10-26): office Mon–Fri 8am–6pm with a 24/7 emergency line. Schema corrected in this PR; the CMS already said so; the Google Business Profile schedule is the owner's to fix.
 2. **Address / location** (settled 2026-10-26): the suite is a staffed office; the site is right. The Google listing (no address, pin ~100 miles away, apex website URL) is being corrected by the owner in the profile.
 3. **Website on GBP**: apex `newwaveitfl.com` vs the site's canonical `www.`.
-4. **Pricing** (settled 2026-10-26): `pricing_units` is the published price list and feeds the quote builder on `/pricing`; the CMS `pricing.tiers` row was a dormant list the page never rendered, and is retired by migration `20261101120000`. Still open: `pricing.subheadline` ("Choose the perfect plan for your business. All plans include 24/7 support and regular updates.") is shown on `/pricing` and still talks about plans.
-5. **Response times**: "within one business day" (contact) vs tier promises of 24 h / 4 h / 2 h / 1 h.
+4. **Pricing** (settled 2026-10-26): `pricing_units` is the published price list and feeds the quote builder on `/pricing`; the CMS `pricing.tiers` row was a dormant list the page never rendered, and is retired by migration `20261101120000`. `pricing.subheadline` takes the code default ("Select the services you need and get an instant estimate. Our team will follow up with a customized proposal.") by migration `20261102120000`.
+5. **Response times** (settled 2026-10-26): every promise is dropped; the tiers that carried the hourly ones are retired.
 6. **Service list**: schema `hasOfferCatalog` has seven offers (adds Healthcare IT & HIPAA Compliance); the CMS shows six cards; the sitemap has ten category pages.
 
 
@@ -124,7 +124,7 @@ commit `00eb73e`.
 | "Real-time service status … Updated every 5 minutes"; a table of named SaaS and ISP services with uptime figures (Microsoft 365 99.95 %, Google Workspace 99.98 %, AWS 99.99 %, … Spectrum 99.45 % "degraded") and "2 min ago" / "5 min ago" check times | `src/pages/StatusPage.tsx:16-28, 60-66` | **Hard-coded fallbacks with no data source**; the CMS has no `status` rows, so this is what `/status` shows. The page presents invented figures as live monitoring. |
 | "99.7 % detection rate", "15M+ emails scanned daily", "10 Tbps mitigation capacity", "<60s mean detection time", "5M+ packets inspected/sec", "100 % audit readiness" | `src/components/cybersecurity/ThreatProtection.tsx:17-24` (rendered on `/cybersecurity`) | Unsourced figures. |
 | "The average breach costs organizations $4.45 million." | `src/pages/CybersecurityServicePage.tsx:31` | Matches IBM's 2023 Cost of a Data Breach global average, but no citation is given and the figure is now out of date. |
-| "dedicated engineers responding in minutes"; "Sub-hour response times" | `src/pages/LiveITSupportServicePage.tsx:10, 13` | Response-time promise with no SLA document. |
+| "dedicated engineers responding in minutes"; "Sub-hour response times" | `src/pages/LiveITSupportServicePage.tsx:10, 13` | **dropped 2026-10-26** ("from dedicated engineers"; "Priority handling for critical issues", which the page's own details already state) |
 | "Results in 5 days"; "90-Day Roadmap"; "from certified analysts" | `src/components/cybersecurity/CyberSecurityCTA.tsx:7, 20, 26` | |
 | "Week 1", "Week 1-2", "Week 2-4"; "Certified engineers handle implementation" | `src/components/cybersecurity/SecurityProcess.tsx:5-8` | |
 | HIPAA, PCI-DSS, SOC 2 (Type I & II audit prep), GDPR ("72-hour breach notification"), ISO 27001 ("Annual surveillance audits"), NIST CSF; "Audit-ready from day one." | `src/components/cybersecurity/ComplianceFrameworks.tsx:5-20` | Framework *work offered*, not certifications held; consistent with the 2026-10-21 rule. |
@@ -165,3 +165,4 @@ and the schema `foundingDate`.
 | 2026-10-26 | Q3 hours | Office Mon–Fri 8am–6pm; a 24/7 emergency line |
 | 2026-10-26 | Q4 address | 710 NW 5th Ave, Suite 1072 is a staffed office; the Google listing is to be updated to show it (owner's action in the profile; no tool in this session can edit a Business Profile) |
 | 2026-10-26 | Q5 founding and size | Founded 2022; 5–10 employees |
+| 2026-10-26 | Q6 response times | Drop every response-time promise (no SLA backs them); the pricing subheadline takes the code default |

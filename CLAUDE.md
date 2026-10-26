@@ -2,6 +2,21 @@
 
 ## Recent Changes
 
+### No response-time promises; pricing subheadline to the code default (2026-10-26)
+
+GEO audit, fact sheet Q6 and Q2: no SLA backs "within one business day",
+"sub-hour response times" or "responding in minutes", so the copy promises no
+response time. Migration `20261102120000` rewrites `contact.email_sub`,
+`contact.subheadline`, `contact.success_body` (and sets `pricing.subheadline`
+to the code default now that the tiers are gone), each guarded on the md5 of
+the snapshot in `docs/geo/evidence/2026-10-26/`; the exact restore is in
+`supabase/rollbacks/`. The code fallbacks in `Contact.tsx`, the `/contact`
+description in `routeMeta.ts`, the Fort Lauderdale IT support CTA and the live
+support page's description and highlight say the same without a time.
+`src/test/copy/response-time-claims.test.ts` scans the public pages,
+components, route registry and shell for a promise coming back (the service
+guides' generic industry figures and the two unrouted pages are skipped).
+
 ### Schema founding year and headcount from the owner (2026-10-26)
 
 GEO audit, fact sheet Q5: New Wave IT was founded in 2022 and has 5–10
