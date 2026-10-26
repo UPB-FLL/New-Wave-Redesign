@@ -369,7 +369,7 @@ const FIVE_CENTRED_DIV =
 
 /**
  * A list of points as open columns, each under a 2px rule in its colour (no
- * card). A five-point, three-column grid centres its second row under the
+ * card, no index). A five-point, three-column grid centres its second row under the
  * first (FIVE_CENTRED_LI); otherwise an odd last point spans the row on
  * tablets. Below md the points are hairline rows (.nwse-hairlines).
  */
@@ -394,10 +394,7 @@ export function PointGrid({
       className="nwse-rule py-5 md:pt-5 md:pb-2 lg:pt-6"
       style={{ '--nwse-rule': accents === 'cycle' ? accentAt(index).accent : 'var(--nwse-lure-amber)' } as CSSProperties}
     >
-      <p className="nwse-type-label nwse-label tabular-nums" aria-hidden="true">
-        {String(index + 1).padStart(2, '0')}
-      </p>
-      <h3 className="nwse-type-title-2 mt-3 text-[var(--nw-current-navy)]">{point.title}</h3>
+      <h3 className="nwse-type-title-2 text-[var(--nw-current-navy)]">{point.title}</h3>
       <p className="nwse-type-body-small mt-2 text-[var(--nw-slate)]">{point.detail}</p>
     </li>
   ));

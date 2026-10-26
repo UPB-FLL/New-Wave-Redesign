@@ -131,6 +131,61 @@ describe('Composio consumer account', () => {
     expect((flaky as Error).message).toMatch(/GOOGLEADS_GENERATE_KEYWORD_IDEAS failed \(consumer account\): Upstream timed out/);
   });
 
+  it('a toolkit with several linked accounts: the default is chosen once and every later call names it', async () => {
+    vi.stubEnv('COMPOSIO_CONSUMER_API_KEY', 'ck_consumer_secret');
+    const serp = { organic_results: [{ position: 1, link: 'https://example.com', title: 'Example' }] };
+    const sent = mcp((req) => {
+      const { name, arguments: args } = req.body.params as { name: string; arguments: Record<string, unknown> };
+      if (name === 'COMPOSIO_MANAGE_CONNECTIONS') {
+        return {
+          body: {
+            jsonrpc: '2.0',
+            id: req.body.id,
+            result: toolResult({
+              successful: true,
+              data: {
+                results: {
+                  serpapi: {
+                    toolkit: 'serpapi',
+                    status: 'active',
+                    accounts: [
+                      { id: 'serpapi_cove-still', status: 'active', is_default: false },
+                      { id: 'serpapi_boyd-weism', status: 'active', is_default: true },
+                    ],
+                  },
+                },
+              },
+            }),
+          },
+        };
+      }
+      const tool = (args.tools as { account?: string }[])[0];
+      // Composio refuses a call that names no account while two are linked.
+      const body = tool.account
+        ? multi({ successful: true, data: serp }, 'SERPAPI_GOOGLE_LIGHT_SEARCH')
+        : {
+            successful: false,
+            data: {
+              results: [{ error: 'Multiple serpapi accounts connected. Specify which to use via the \'account\' field:\n- "serpapi_boyd-weism"\n- "serpapi_cove-still"', tool_slug: 'SERPAPI_GOOGLE_LIGHT_SEARCH', index: 0 }],
+              total_count: 1,
+              success_count: 0,
+              error_count: 1,
+            },
+            error: '1 out of 1 tools failed',
+          };
+      return { body: { jsonrpc: '2.0', id: req.body.id, result: toolResult(body) } };
+    });
+
+    expect(await executeConsumerTool('SERPAPI_GOOGLE_LIGHT_SEARCH', { q: 'brewery' })).toEqual(serp);
+    expect(await executeConsumerTool('SERPAPI_GOOGLE_MAPS_SEARCH', { q: 'brewery' })).toEqual(serp);
+    const calls = sent.filter((s) => s.body.method === 'tools/call').map((s) => s.body.params!);
+    expect(calls.map((c) => c.name)).toEqual(['COMPOSIO_MULTI_EXECUTE_TOOL', 'COMPOSIO_MANAGE_CONNECTIONS', 'COMPOSIO_MULTI_EXECUTE_TOOL', 'COMPOSIO_MULTI_EXECUTE_TOOL']);
+    expect(calls[1].arguments).toEqual({ toolkits: [{ name: 'serpapi', action: 'list' }] });
+    // The default account, not the first listed, and remembered for the next SerpApi call.
+    expect((calls[2].arguments!.tools as { account?: string }[])[0].account).toBe('serpapi_boyd-weism');
+    expect((calls[3].arguments!.tools as { account?: string }[])[0].account).toBe('serpapi_boyd-weism');
+  });
+
   it('reads a failed tool\'s reason out of an answer the endpoint flags as an error', async () => {
     vi.stubEnv('COMPOSIO_CONSUMER_API_KEY', 'ck_consumer_secret');
     // As the live endpoint answers a blocked Instagram read: the MCP result is an error, the reason is inside.

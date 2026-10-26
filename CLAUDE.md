@@ -2,6 +2,20 @@
 
 ## Recent Changes
 
+### Groundswell: a toolkit with several linked accounts (2026-10-26)
+
+SerpApi was re-linked in Composio with a working key beside the old account
+that answers 401, and a Composio call that names no account while two are
+linked is refused ("Multiple serpapi accounts connected. Specify which to use
+via the 'account' field"), so the engine treated SerpApi as failed and fell
+through to SearchAPI. `executeConsumerTool` (`composioConsumer.ts`) now reads
+that refusal, lists the toolkit's accounts once (`defaultAccount`:
+`COMPOSIO_MANAGE_CONNECTIONS` `list`, the `is_default` account, else the first
+active one), runs the call again naming it, and keeps the choice per toolkit
+for the function instance (`chosenAccounts`, cleared with the session). The
+old 401 account can stay or go; the default is the one that answers. Test:
+the "several linked accounts" case in `groundswell-composio-consumer.test.ts`.
+
 ### Division pages: ledgers and rule columns in place of card grids (2026-10-24)
 
 Owner's ask: the grids of identical bordered white cards (icon tile top-left,
@@ -11,14 +25,14 @@ replace them across the division and the GroundSwell pages (`division.css`):
 - **`.nwse-ledger`**: rows under hairlines, no fill or radius
   (`.nwse-ledger-dark` on navy). Used by the hub's services and a service
   page's related services (one `<ol>` each, `data-role="service-ledger"`:
-  the service icon in its pillar's colour, an index, the title, the summary,
+  the service icon in its pillar's colour, the title, the summary,
   an arrow that steps on hover; the whole row is the link; two columns of
   rows from lg; no "Learn more"), `OutcomeList`, `FaqList`, the customers
   and apps lists, and GroundSwell's metric groups (`MetricsGrid`,
   `data-role="metric-group"`) and each metric page's metrics.
 - **`.nwse-rule`**: an open column under a 2px rule in its colour role
   (`--nwse-rule`; `.nwse-rule-dark` for the light hairline on navy). Used by
-  `PointGrid` (now numbered; `variant` is kept for callers but ignored),
+  `PointGrid` (`variant` is kept for callers but ignored),
   `RoadmapGrid` (`CardLabel plain`: the icon uncontained), `PillarCards`,
   `PillarStrip` (the active pillar's rule in its colour), `MetricTiles`,
   GroundSwell's `ReportGrid`, today-vs-plan, the metric pages' feeds and

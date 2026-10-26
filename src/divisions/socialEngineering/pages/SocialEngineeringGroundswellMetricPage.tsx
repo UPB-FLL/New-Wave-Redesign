@@ -77,25 +77,22 @@ export default function SocialEngineeringGroundswellMetricPage({ slug }: { slug:
 
       <SectionBand surface="sample" id="metrics" labelledBy="gs-metric-list">
         <SectionIntro kicker={c.metricsKicker} title={c.metricsHeading} id="gs-metric-list" />
-        {/* A ledger: one row per metric, its index and name in the first column, what is measured and its source in the second, why it matters in the third. */}
+        {/* A ledger: one row per metric, its name in the first column, what is measured and its source in the second, why it matters in the third. */}
         <ol className="nwse-ledger mt-6 flex flex-col sm:mt-8 lg:mt-10" data-role="metrics">
-          {group.metrics.map((metric, index) => (
+          {group.metrics.map((metric) => (
             <li
               key={metric.name}
-              className="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-x-4 gap-y-3 py-5 sm:py-6 lg:grid-cols-[2.5rem_minmax(0,0.9fr)_minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-x-8"
+              className="grid grid-cols-1 gap-y-3 py-5 sm:py-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-x-8"
             >
-              <p className="nwse-type-label nwse-label col-start-1 row-start-1 tabular-nums" aria-hidden="true">
-                {String(index + 1).padStart(2, '0')}
-              </p>
-              <h3 className="nwse-type-title-2 col-start-2 row-start-1 text-[var(--nw-current-navy)]">{metric.name}</h3>
-              <dl className="col-start-2 contents">
-                <div className="col-start-2 lg:col-start-3 lg:row-start-1">
+              <h3 className="nwse-type-title-2 lg:col-start-1 lg:row-start-1 text-[var(--nw-current-navy)]">{metric.name}</h3>
+              <dl className="contents">
+                <div className="lg:col-start-2 lg:row-start-1">
                   <dt className="nwse-type-label nwse-label">{c.whatLabel}</dt>
                   <dd className="nwse-type-body-small mt-1 text-[var(--nw-current-navy)]">{metric.what}</dd>
                   <dt className="nwse-type-label nwse-label mt-3">{c.sourceLabel}</dt>
                   <dd className="nwse-type-body-small mt-1 text-[var(--nw-slate)]">{metric.source}</dd>
                 </div>
-                <div className="col-start-2 lg:col-start-4 lg:row-start-1">
+                <div className="lg:col-start-3 lg:row-start-1">
                   <dt className="nwse-type-label nwse-label">{c.whyLabel}</dt>
                   <dd className="nwse-type-body-small mt-1 text-[var(--nw-current-navy)]">{metric.why}</dd>
                 </div>
