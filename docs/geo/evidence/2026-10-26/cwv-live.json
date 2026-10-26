@@ -1,0 +1,38 @@
+{
+ "/": {
+  "ttfb": 691,
+  "fcp": 1740,
+  "domContentLoaded": 1474,
+  "load": 1474,
+  "lcp": 2564,
+  "cls": 0.048,
+  "transferKB": 286,
+  "requests": 18,
+  "h1": 1,
+  "words": 673
+ },
+ "/services": {
+  "ttfb": 151,
+  "fcp": 624,
+  "domContentLoaded": 529,
+  "load": 529,
+  "lcp": 1156,
+  "cls": 0,
+  "transferKB": 282,
+  "requests": 8,
+  "h1": 1,
+  "words": 500
+ },
+ "/blog/cloud-cost-optimization": {
+  "ttfb": 385,
+  "fcp": 704,
+  "domContentLoaded": 665,
+  "load": 666,
+  "lcp": 2080,
+  "cls": 0.237,
+  "transferKB": 283,
+  "requests": 8,
+  "h1": 1,
+  "words": 1533
+ }
+}
