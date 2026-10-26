@@ -188,15 +188,24 @@ answers 401 "Invalid API key", and Firecrawl answers (1,045 credits).
   The webhook is created through SuperOps' API (`createWebhookSubscription`);
   docs/support-page.md section 4 has the call.
 - **Email templates**: `docs/superops/ticket-created-template.html` (the
-  "New Ticket created" notice) and `ticket-reply-template.html` (technician
-  replies), plus four staff notices in `docs/superops/technician/` (new
+  "New Ticket created" notice), `ticket-closed-template.html` (the closed
+  notice) and `reply-base-template.html` (a SuperOps Reply Template the
+  technician types above: SuperOps sends a reply as typed, with no notice
+  wrapping it, so the old `#Reply` notice template was removed), plus four
+  staff notices in `docs/superops/technician/` (new
   ticket, assigned, requester replied, SLA warning), pasted into SuperOps'
-  Notification Center by hand (its API cannot edit templates); logo PNG
-  `public/brand/email/new-wave-it-logo-on-dark.png`.
+  Notification Center by hand (its API cannot edit templates); logo PNGs
+  `public/brand/email/new-wave-it-logo-on-{dark,light}.png`.
 - **Live on 2026-10-23**: webhook `8016098266579877888` (TICKET_CREATED);
   tickets #3265 and #3266 alerted by email. `SUPEROPS_API_URL` must stay
   unset (the portal host `newwave.superops.ai` answers 403). Texts wait on
   Twilio's settings in Vercel.
+- **Portal links (2026-10-26)**: the client portal is `https://newwave.superops.ai`
+  (requesters sign in there; SuperOps' own emails link there). The site's
+  default `super-ops.newwaveitfl.com` had no DNS record, so `/support`'s portal
+  link failed; `CustomerPortalCard` now defaults to the real portal. Template
+  buttons link to it as a fixed address: a `#` placeholder cannot sit inside
+  an `href`, and the pasted `#Ticket Link` button went out as a dead link.
 - **Tests**: `src/test/api/support-ticket-alerts.test.ts`.
 
 ### Groundswell: age-gated Instagram profiles, the Facebook Page, and the public-sources plan (2026-10-22)

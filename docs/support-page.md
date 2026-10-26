@@ -55,7 +55,7 @@ the verified session — never one supplied in the request body.
 | `SUPEROPS_SUBDOMAIN` | yes | Sent as the `CustomerSubDomain` header |
 | `SUPEROPS_DATA_CENTER` | no | `us` (default) or `eu` |
 | `SUPEROPS_API_URL` | no | Overrides the data-centre default |
-| `VITE_SUPEROPS_PORTAL_URL` | no | Full client portal link. Default `https://super-ops.newwaveitfl.com` |
+| `VITE_SUPEROPS_PORTAL_URL` | no | Full client portal link. Default `https://newwave.superops.ai` (the old default, `super-ops.newwaveitfl.com`, has no DNS record) |
 
 New Wave's account is the subdomain **`newwave`** (`getCompanyInfo`:
 `newwave.superops.ai`, US data centre, America/New_York).
@@ -236,14 +236,26 @@ minutes (like the Groundswell worker) is all it would take.
 
 SuperOps sends the requester emails itself, from its own templates, and its
 API has no call that edits them, so the branded templates are pasted in by
-hand. Each one goes into a different requester notice in SuperOps (Settings >
-My Company > Notification Center > Ticket Notifications > Requester
-Notifications):
+hand (Settings > My Company > Notification Center > Ticket Notifications >
+Requester Notifications for the notices):
 
-| File | SuperOps notice | When it sends |
+| File | Where it goes in SuperOps | When it sends |
 | --- | --- | --- |
-| `docs/superops/ticket-created-template.html` | Ticket created ("New Ticket created - <number>") | When a ticket is opened, by email or the portal |
-| `docs/superops/ticket-reply-template.html` | Technician replies to the ticket | When a technician replies on the ticket |
+| `docs/superops/ticket-created-template.html` | Requester notice: ticket created ("New Ticket created - <number>") | When a ticket is opened, by email or the portal |
+| `docs/superops/ticket-closed-template.html` | Requester notice: ticket closed (suits "resolved" too) | When a ticket is closed |
+| `docs/superops/reply-base-template.html` | Settings > Advanced Configuration > Reply Templates (not a notice) | Inserted by the technician into a reply, who types above the signature |
+
+A technician's reply is sent as exactly what is typed in the reply box:
+SuperOps does not wrap it in a notification template (seen on 2026-10-26:
+the ticket's `TECH_REPLY` entry is the typed text alone, with no notice after
+it). So the reply's branding is a Reply Template, and the earlier
+`ticket-reply-template.html` (a notice built around `#Reply`) was removed.
+
+Each file's header comment says where it goes and how to swap each `#…`
+marker for SuperOps' own placeholder (type `#` in the editor). The notices
+use `public/brand/email/new-wave-it-logo-on-dark.png` and the reply's
+signature `new-wave-it-logo-on-light.png` (PNGs, since most mail clients do
+not show SVG).
 
 Staff notifications (Notification Center > Ticket Notifications > Technician
 Notifications), the same look with an accent bar per kind and "Not for

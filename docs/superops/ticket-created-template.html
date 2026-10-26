@@ -16,7 +16,11 @@
     #Ticket ID              the ticket's display number
     #Ticket Subject         the ticket's subject
     #Ticket Description     what the requester wrote
-    #Ticket Link            the link to the ticket in the client portal
+
+  The button links to the client portal (https://newwave.superops.ai), where the
+  requester signs in and sees their tickets. It is a fixed address because
+  a "#" placeholder cannot be inserted inside a link's address (an earlier
+  version's #Ticket Link button sent people nowhere).
 
   If SuperOps has no placeholder for one of them, delete that line.
   Built for mail clients: tables, inline styles, a PNG logo, no web fonts.
@@ -57,7 +61,7 @@
             <table role="presentation" cellpadding="0" cellspacing="0">
               <tr>
                 <td style="background:#317B92;border-radius:8px;">
-                  <a href="#Ticket Link" style="display:inline-block;padding:12px 22px;color:#FFFFFF;font-size:14px;font-weight:600;text-decoration:none;">View your ticket</a>
+                  <a href="https://newwave.superops.ai" style="display:inline-block;padding:12px 22px;color:#FFFFFF;font-size:14px;font-weight:600;text-decoration:none;">View your ticket</a>
                 </td>
               </tr>
             </table>

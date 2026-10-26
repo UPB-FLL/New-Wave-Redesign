@@ -25,7 +25,7 @@ import {
 } from '../../lib/supportApi';
 import FormPrivacyNotice from '../legal/FormPrivacyNotice';
 
-const superOpsPortalUrl = import.meta.env.VITE_SUPEROPS_PORTAL_URL || 'https://super-ops.newwaveitfl.com';
+const superOpsPortalUrl = import.meta.env.VITE_SUPEROPS_PORTAL_URL || 'https://newwave.superops.ai';
 
 const statusStyles: Record<PortalTicket['status'], { label: string; color: string; icon: typeof Clock }> = {
   open: { label: 'Open', color: 'var(--nw-signal-cyan)', icon: AlertCircle },
