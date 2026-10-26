@@ -2,6 +2,20 @@
 
 ## Recent Changes
 
+### Groundswell: a toolkit with several linked accounts (2026-10-26)
+
+SerpApi was re-linked in Composio with a working key beside the old account
+that answers 401, and a Composio call that names no account while two are
+linked is refused ("Multiple serpapi accounts connected. Specify which to use
+via the 'account' field"), so the engine treated SerpApi as failed and fell
+through to SearchAPI. `executeConsumerTool` (`composioConsumer.ts`) now reads
+that refusal, lists the toolkit's accounts once (`defaultAccount`:
+`COMPOSIO_MANAGE_CONNECTIONS` `list`, the `is_default` account, else the first
+active one), runs the call again naming it, and keeps the choice per toolkit
+for the function instance (`chosenAccounts`, cleared with the session). The
+old 401 account can stay or go; the default is the one that answers. Test:
+the "several linked accounts" case in `groundswell-composio-consumer.test.ts`.
+
 ### Division pages: ledgers and rule columns in place of card grids (2026-10-24)
 
 Owner's ask: the grids of identical bordered white cards (icon tile top-left,

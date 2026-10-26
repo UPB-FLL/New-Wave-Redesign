@@ -74,7 +74,25 @@ let nextId = 1;
 let session: Promise<string | null> | null = null;
 export const forgetConsumerSession = () => {
   session = null;
+  chosenAccounts.clear();
 };
+
+/**
+ * The account each toolkit's calls name, once Composio has asked for one: a
+ * toolkit with several linked accounts (SerpApi after a key was replaced,
+ * say) refuses a call that names none. Picked once per function instance.
+ */
+const chosenAccounts = new Map<string, string>();
+const MULTIPLE_ACCOUNTS = /multiple (\w+) accounts connected/i;
+
+/** The toolkit's default linked account, else its first active one; null when the list says nothing. */
+async function defaultAccount(toolkit: string, timeoutMs: number): Promise<string | null> {
+  const raw = (await callConsumerTool('COMPOSIO_MANAGE_CONNECTIONS', { toolkits: [{ name: toolkit, action: 'list' }] }, timeoutMs)) as {
+    data?: { results?: Record<string, { accounts?: { id?: string; status?: string; is_default?: boolean }[] }> };
+  };
+  const accounts = (raw?.data?.results?.[toolkit]?.accounts ?? []).filter((a) => a.id && (a.status ?? 'active').toLowerCase() === 'active');
+  return accounts.find((a) => a.is_default)?.id ?? accounts[0]?.id ?? null;
+}
 
 async function post(body: Record<string, unknown>, sessionId: string | null, timeoutMs: number): Promise<{ status: number; sessionId: string | null; message: RpcMessage | null }> {
   const key = consumerKey();
@@ -326,21 +344,7 @@ async function readSaved(path: string, slug: string, timeoutMs: number): Promise
 export async function executeConsumerTool(slug: string, args: Record<string, unknown>, timeoutMs = 90_000): Promise<unknown> {
   assertPublicReadBudget(slug);
   const deadline = Date.now() + timeoutMs;
-  const raw = (await callConsumerTool(
-    'COMPOSIO_MULTI_EXECUTE_TOOL',
-    {
-      tools: [{ tool_slug: slug, arguments: args }],
-      sync_response_to_workbench: false,
-      thought: 'Groundswell reads public data for a marketing audit.',
-      current_step: 'GROUNDSWELL_READ',
-    },
-    timeoutMs,
-    { envelope: true }
-  ).catch((err: unknown) => {
-    const why = err instanceof Error ? err.message : String(err);
-    if (isProviderCreditFailure(why)) pausePublicReadsForCredits(why, slug);
-    throw err;
-  })) as {
+  type Envelope = {
     successful?: boolean;
     data?: {
       results?: { response?: { successful?: boolean; data?: unknown; data_preview?: unknown; error?: unknown }; error?: unknown }[];
@@ -348,9 +352,41 @@ export async function executeConsumerTool(slug: string, args: Record<string, unk
     };
     error?: unknown;
   };
+  const run = (account: string | undefined) =>
+    callConsumerTool(
+      'COMPOSIO_MULTI_EXECUTE_TOOL',
+      {
+        tools: [{ tool_slug: slug, arguments: args, ...(account ? { account } : {}) }],
+        sync_response_to_workbench: false,
+        thought: 'Groundswell reads public data for a marketing audit.',
+        current_step: 'GROUNDSWELL_READ',
+      },
+      Math.max(1, deadline - Date.now()),
+      { envelope: true }
+    ).catch((err: unknown) => {
+      const why = err instanceof Error ? err.message : String(err);
+      if (isProviderCreditFailure(why)) pausePublicReadsForCredits(why, slug);
+      throw err;
+    }) as Promise<Envelope>;
+  const failure = (raw: Envelope) => {
+    const item = raw?.data?.results?.[0];
+    return describeError(item?.response?.error ?? item?.error ?? raw?.error);
+  };
+  const toolkitOf = (why: string) => MULTIPLE_ACCOUNTS.exec(why)?.[1]?.toLowerCase() ?? null;
+  const known = [...chosenAccounts.entries()].find(([toolkit]) => slug.toLowerCase().startsWith(`${toolkit.replace(/_/g, '')}_`) || slug.toLowerCase().startsWith(`${toolkit}_`));
+  let raw = await run(known?.[1]);
+  // Several accounts on the toolkit and none named: choose its default once and run again.
+  const several = toolkitOf(failure(raw));
+  if (several && !known) {
+    const account = await defaultAccount(several, Math.max(1, deadline - Date.now())).catch(() => null);
+    if (account) {
+      chosenAccounts.set(several, account);
+      raw = await run(account);
+    }
+  }
   const item = raw?.data?.results?.[0];
   const response = item?.response;
-  const why = describeError(response?.error ?? item?.error ?? raw?.error);
+  const why = failure(raw);
   if (isProviderCreditFailure(why)) pausePublicReadsForCredits(why, slug);
   if (!response || response.successful === false || (raw?.successful === false && response.data === undefined && response.data_preview === undefined)) {
     if (NO_CONNECTION.test(why)) {
