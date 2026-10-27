@@ -1,0 +1,47 @@
+{
+ "table": "site_content",
+ "project": "edtwdybotkatgsglqrpw",
+ "read_at": "2026-10-26T22:59:00Z",
+ "rows": [
+  {
+   "section": "contact",
+   "key": "email_sub",
+   "id": "5c651d9a-1672-414e-97bb-6a7c31ed0a0e",
+   "updated_at": "2026-04-09 15:21:14.537467+00",
+   "old": "We respond within one business day",
+   "old_md5": "a4945aab0df28714e004a8225347cdbd",
+   "value": "We respond within one business day",
+   "value_md5": "a4945aab0df28714e004a8225347cdbd"
+  },
+  {
+   "section": "contact",
+   "key": "subheadline",
+   "id": "1f16008e-bc07-4df7-973a-8163cd99db0c",
+   "updated_at": "2026-04-09 15:21:14.537467+00",
+   "old": "Fill out the form below and one of our technicians will reach out within one business day \u2014 or call us now for immediate assistance.",
+   "old_md5": "44c9361f5301c5c0a6f72bcd71145b0f",
+   "value": "Fill out the form below and one of our technicians will reach out within one business day \u2014 or call us now for immediate assistance.",
+   "value_md5": "44c9361f5301c5c0a6f72bcd71145b0f"
+  },
+  {
+   "section": "contact",
+   "key": "success_body",
+   "id": "ece54fde-ea63-4162-b3a3-20a95fb21707",
+   "updated_at": "2026-04-09 15:21:14.537467+00",
+   "old": "Thanks for reaching out. A member of our team will contact you within one business day. For urgent issues, please call us directly.",
+   "old_md5": "08a183a7a779e0e8bda6446cea927fef",
+   "value": "Thanks for reaching out. A member of our team will contact you within one business day. For urgent issues, please call us directly.",
+   "value_md5": "08a183a7a779e0e8bda6446cea927fef"
+  },
+  {
+   "section": "pricing",
+   "key": "subheadline",
+   "id": "b384c3cf-d8ec-4430-9a5f-5a43d90c468d",
+   "updated_at": "2026-05-03 22:50:56.459+00",
+   "old": "Choose the perfect plan for your business. All plans include 24/7 support and regular updates.",
+   "old_md5": "9ab651aed2ae15efcb26f30a9d44761d",
+   "value": "Choose the perfect plan for your business. All plans include 24/7 support and regular updates.",
+   "value_md5": "9ab651aed2ae15efcb26f30a9d44761d"
+  }
+ ]
+}

@@ -16,7 +16,7 @@ vi.mock('../../../api/_lib/supabasePublic', () => ({ isSupabasePublicConfigured:
 vi.mock('../../../api/_lib/blogStore', () => ({ getPostBySlug: env.getPostBySlug }));
 vi.mock('../../../api/_lib/spaShell', () => ({
   readSpaShell: () => {
-    if (env.shell === null) throw new Error('ENOENT: dist/index.html');
+    if (env.shell === null) throw new Error('ENOENT: dist/_shell.html');
     return env.shell;
   },
 }));
@@ -117,6 +117,38 @@ describe('GET /blog/:slug (api/blog-page.ts)', () => {
     expect(page.meta('property', 'og:type')).toBe('article');
   });
 
+  it('serves the article itself in the root element, so a reader without JavaScript gets the post', async () => {
+    env.getPostBySlug.mockResolvedValue(POST);
+    const html = (await get(POST.slug)).body as string;
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const root = doc.getElementById('root');
+    expect(root?.querySelectorAll('h1')).toHaveLength(1);
+    expect(root?.querySelector('h1')?.textContent).toBe(POST.title);
+    expect(root?.textContent).toContain(POST.author);
+    expect(root?.querySelector('article')?.textContent).toContain('Intro paragraph.');
+    expect(root?.querySelector('article h3')?.textContent).toBe('How often should we test?');
+    expect(root?.querySelector('script')).toBeNull();
+  });
+
+  it('still serves a post whose nullable columns are null', async () => {
+    env.getPostBySlug.mockResolvedValue({ ...POST, author: null, category: null, excerpt: null, published_at: null } as unknown as BlogPost);
+    const res = await get(POST.slug);
+    expect(res.statusCode).toBe(200);
+    const root = new DOMParser().parseFromString(res.body as string, 'text/html').getElementById('root');
+    expect(root?.querySelector('h1')?.textContent).toBe(POST.title);
+    expect(root?.textContent).not.toContain('1970');
+    expect(root?.querySelector('time')).toBeNull();
+  });
+
+  it('leaves the root element empty for a missing post and for an outage', async () => {
+    env.getPostBySlug.mockResolvedValue(null);
+    const missing = new DOMParser().parseFromString((await get('nope')).body as string, 'text/html');
+    expect(missing.getElementById('root')?.innerHTML).toBe('');
+    env.getPostBySlug.mockRejectedValue(new Error('down'));
+    const outage = new DOMParser().parseFromString((await get(POST.slug)).body as string, 'text/html');
+    expect(outage.getElementById('root')?.innerHTML).toBe('');
+  });
+
   it('writes the post JSON-LD into a #page-jsonld block for usePageMeta to take over', async () => {
     env.getPostBySlug.mockResolvedValue(POST);
     const page = head((await get(POST.slug)).body as string);
@@ -214,6 +246,6 @@ describe('vercel.json wiring for /blog/:slug', () => {
   });
 
   it('ships the built shell with the function', () => {
-    expect(config.functions['api/blog-page.ts']?.includeFiles).toBe('dist/index.html');
+    expect(config.functions['api/blog-page.ts']?.includeFiles).toBe('dist/_shell.html');
   });
 });

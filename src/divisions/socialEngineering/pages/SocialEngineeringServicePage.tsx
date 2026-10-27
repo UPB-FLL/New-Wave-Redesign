@@ -54,7 +54,8 @@ function ServicePageBody({ service }: { service: DivisionServiceContent }) {
         breadcrumbs={seo.breadcrumbs}
         // Every service slug has a scene (a test holds the registry to DIVISION_SERVICE_SLUGS).
         scene={isScenePageKey(service.slug) ? service.slug : undefined}
-        sceneOnPhones="wide"
+        // The GroundSwell panel: beside the text only, as on the hub.
+        sceneOnPhones="hide"
         sceneSize={service.heroSceneSize ?? 'large'}
         kicker={service.kicker}
         headline={service.headline}

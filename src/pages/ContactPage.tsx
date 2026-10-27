@@ -25,7 +25,7 @@ export default function ContactPage() {
       <PageHeader
         breadcrumbs={IT_PAGE_META['/contact'].breadcrumbs}
         title={content.headline || 'Ready to get started?'}
-        description={content.subheadline || 'Fill out the form and a technician will reach out within one business day. For urgent issues, call us now.'}
+        description={content.subheadline || 'Fill out the form and a technician will reach out. For urgent issues, call us now.'}
       />
       <main>
         <Contact showIntro={false} />

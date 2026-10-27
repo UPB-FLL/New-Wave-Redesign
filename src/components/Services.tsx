@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useContent } from '../lib/useContent';
 import { FadeIn } from './ui/fade-in';
-import { FADE_UP, DURATION, EASE, STAGGER_CONTAINER } from '../lib/animation';
+import { FADE_UP, DURATION, EASE, STAGGER_CONTAINER, revealInitial } from '../lib/animation';
 import { cmsHeadline } from './brand/cmsHeadline';
 import { SectionHeading } from './brand/SectionHeading';
 
@@ -292,7 +292,7 @@ export default function Services({
           <motion.div
             data-testid="service-bento-grid"
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
-            initial="hidden"
+            initial={revealInitial('hidden')}
             whileInView="visible"
             viewport={{ once: true, margin: '-80px' }}
             variants={STAGGER_CONTAINER}
@@ -338,7 +338,7 @@ export default function Services({
           <motion.div
             data-testid="industry-service-grid"
             className="grid grid-cols-1 items-stretch gap-3 sm:gap-4 md:grid-cols-2"
-            initial="hidden"
+            initial={revealInitial('hidden')}
             whileInView="visible"
             viewport={{ once: true, margin: '-60px' }}
             variants={STAGGER_CONTAINER}

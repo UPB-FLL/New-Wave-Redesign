@@ -8,7 +8,6 @@ import { COPY_SYSTEM, copyInput, isAdcopyOutput, runAdcopy, type AdcopyOutput } 
 import { buildFacts } from '../../../api/_lib/groundswell/model';
 import { buildAuditHtml, buildDeckHtml, buildSummaryHtml } from '../../../api/_lib/groundswell/reports';
 import { BENCHMARK_STEPS, STEPS } from '../../../api/_lib/groundswell/steps';
-import { PermanentStepError } from '../../../api/_lib/groundswell/types';
 import { STEP_LABELS } from '../../../src/lib/groundswell';
 import { GROUNDSWELL_CONFIG } from '../../../packages/groundswell/groundswell.config';
 import { copyTargets, type CopyTarget } from '../../../packages/groundswell/src/adcopy';
@@ -79,11 +78,19 @@ describe('the ad-copy step', () => {
     expect(isAdcopyOutput(out)).toBe(true);
   });
 
-  it('is skipped without an ad plan, or when the plan runs no rows', async () => {
-    await expect(runAdcopy(ctx({ ...outputs(), adplan: undefined }))).rejects.toBeInstanceOf(PermanentStepError);
+  it('finishes with no ads and a note, not a fault, without an ad plan or when the plan runs no rows', async () => {
+    // Seen on Uncommon Path's run of 2026-10-27: one angle, every row a skip (the searches lose money at the
+    // published rates; TikTok alcohol ads are not self-serve). Nothing failed, so the run card shows no error.
+    const none = await runAdcopy(ctx({ ...outputs(), adplan: undefined }));
+    expect(none).toMatchObject({ ads: [], not_written: [], dropped: [], note: 'There is no ad plan, so no ad copy was written.' });
     const skipped = { ...plan, plan: { ...plan.plan, rows: plan.plan.rows.map((r) => ({ ...r, recommendation: 'skip' as const })) } };
-    await expect(runAdcopy(ctx({ ...outputs(), adplan: skipped }))).rejects.toThrow(/runs no rows/);
+    const noRows = await runAdcopy(ctx({ ...outputs(), adplan: skipped }));
+    expect(noRows).toMatchObject({ ads: [], not_written: [], note: expect.stringMatching(/runs no rows/) });
+    expect(isAdcopyOutput(noRows)).toBe(true);
     expect(openai.chatJson).not.toHaveBeenCalled();
+    // The full audit shows the plan without an ad-copy section.
+    const html = buildAuditHtml({ ...sampleReportDataWithPlan(), adcopy: noRows });
+    expect(html).not.toMatch(/Ad copy, ready to paste/);
   });
 });
 

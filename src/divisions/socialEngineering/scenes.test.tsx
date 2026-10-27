@@ -153,19 +153,22 @@ describe('scene placement', () => {
     expect(classesOf(scene)).toEqual(expect.arrayContaining([`${GRID}col-start-2`, `${GRID}row-span-2`, `${GRID}self-center`, LANDSCAPE_HIDDEN]));
   });
 
-  it('shows the hub hero scene on every phone, a service or contact us scene from 375px, and the contact scene only beside the text', () => {
+  it('shows the GroundSwell panel (hub and service heroes) only beside the text, the contact us scene from 375px, and the contact scene only beside the text', () => {
+    // The branded panel is a block of text and a logo, not line art: under the
+    // buttons on a phone it stood as a second hero, its caption wrapping in
+    // the 18rem box. So it shows where the grid puts it beside the text.
     const hub = renderAt(<SocialEngineeringHubPage />);
     const hubHero = classesOf(hub.container.querySelector('[data-page-scene="hub"]'));
     expect(hubHero).not.toContain(SMALL_PHONE_HIDDEN);
-    expect(hubHero).not.toContain(BELOW_GRID_HIDDEN);
-    expect(hubHero.filter((name) => name.endsWith(':hidden'))).toEqual([LANDSCAPE_HIDDEN]);
+    expect(hubHero.filter((name) => name.endsWith(':hidden'))).toEqual([LANDSCAPE_HIDDEN, BELOW_GRID_HIDDEN]);
+    expect(hub.container.querySelector('[data-page-scene="hub"] [data-role="groundswell-signal"]')).not.toBeNull();
     hub.unmount();
 
     for (const service of divisionServices) {
       const page = renderAt(<SocialEngineeringServicePage slug={service.slug} />);
       const classes = classesOf(page.container.querySelector(`[data-page-scene="${service.slug}"]`));
-      expect(classes).toContain(SMALL_PHONE_HIDDEN);
-      expect(classes).not.toContain(BELOW_GRID_HIDDEN);
+      expect(classes).not.toContain(SMALL_PHONE_HIDDEN);
+      expect(classes).toContain(BELOW_GRID_HIDDEN);
       page.unmount();
     }
 

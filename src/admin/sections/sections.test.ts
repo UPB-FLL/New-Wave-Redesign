@@ -92,7 +92,7 @@ describe('section descriptors', () => {
       const f = SECTIONS[section].blocks.flatMap((b) => b.fields).find((x) => x.key === key);
       return f && isListField(f) ? f.fields.map((x) => `${x.key}:${x.kind}`) : undefined;
     };
-    expect(list('pricing', 'tiers')).toEqual(['name:text', 'description:text', 'price:text', 'period:text', 'features:strings', 'highlight:checkbox', 'accent:color']);
+    expect(list('pricing', 'tiers')).toBeUndefined(); // retired 2026-10-26; migration 20261103120000 drops the row
     // 2026-10-27: the link replaces the status, uptime and check time /status no longer shows.
     expect(list('status', 'services')).toEqual(['name:text', 'category:select', 'url:text']);
     expect(list('threats-detail', 'threats_list')).toContain('mitigation_strategies:strings');

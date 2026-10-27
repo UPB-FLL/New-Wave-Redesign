@@ -115,13 +115,37 @@ export function applyPageHead(shell: string, meta: ResolvedPageMeta): string {
   return html;
 }
 
+export interface RouteRenderOptions {
+  /** The page's own markup from the build-only React renderer (src/lib/prerenderBody.tsx); the app replaces it at startup. */
+  bodyHtml?: string;
+}
+
+const EMPTY_ROOT = /<div id="root"><\/div>/g;
+
+/**
+ * Puts server-rendered page markup inside the shell's empty root element, so
+ * plain HTTP readers and crawlers that never run the bundle still read the
+ * page. The markup must be the whole page (it has to carry the H1).
+ */
+export function injectRootBody(html: string, path: string, bodyHtml: string): string {
+  if (!bodyHtml.trim() || !/<h1\b/i.test(bodyHtml)) {
+    throw new Error(`Prerender: ${path} body must contain the rendered page and its H1.`);
+  }
+  const roots = html.match(EMPTY_ROOT)?.length ?? 0;
+  if (roots !== 1) throw new Error(`Prerender: expected one empty root element in the shell for ${path}, found ${roots}.`);
+  return html.replace(EMPTY_ROOT, () => `<div id="root">${bodyHtml}</div>`);
+}
+
 /**
  * The prerendered HTML for one static page: the shell with that page's head,
- * plus its BreadcrumbList (the same block usePageMeta writes at runtime).
+ * plus its BreadcrumbList (the same block usePageMeta writes at runtime), and
+ * the page's rendered body when the build supplies one.
  */
-export function renderRouteHtml(shell: string, path: string, meta: PageMetaOptions): string {
-  const html = applyPageHead(shell, resolvePageMeta(meta, path));
-  if (!meta.breadcrumbs?.length) return html;
-  const json = escapeJsonForScript(JSON.stringify(breadcrumbListNode(meta.breadcrumbs)));
-  return insertBeforeHeadClose(html, `<script type="application/ld+json" id="${BREADCRUMBS_ELEMENT_ID}">${json}</script>`);
+export function renderRouteHtml(shell: string, path: string, meta: PageMetaOptions, options: RouteRenderOptions = {}): string {
+  let html = applyPageHead(shell, resolvePageMeta(meta, path));
+  if (meta.breadcrumbs?.length) {
+    const json = escapeJsonForScript(JSON.stringify(breadcrumbListNode(meta.breadcrumbs)));
+    html = insertBeforeHeadClose(html, `<script type="application/ld+json" id="${BREADCRUMBS_ELEMENT_ID}">${json}</script>`);
+  }
+  return options.bodyHtml === undefined ? html : injectRootBody(html, path, options.bodyHtml);
 }

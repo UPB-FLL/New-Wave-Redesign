@@ -178,7 +178,7 @@ export default function Contact({
     {
       icon: icons?.mail ?? <Mail size={18} />,
       title: 'Email us',
-      sub: content.email_sub || 'We respond within one business day',
+      sub: content.email_sub || 'Email the support team',
       content: <a href={`mailto:${email}`} className="font-medium text-brand-tide-blue hover:underline">{email}</a>,
       accent: 'var(--nw-tide-blue)',
     },
@@ -210,7 +210,7 @@ export default function Contact({
               as={HeadlineTag}
               className="mb-8 sm:mb-10"
               title={content.headline || 'Ready to get started?'}
-              description={content.subheadline || 'Fill out the form and a technician will reach out within one business day. For urgent issues, call us now.'}
+              description={content.subheadline || 'Fill out the form and a technician will reach out. For urgent issues, call us now.'}
             />
           </FadeIn>
         ) : null}
@@ -230,7 +230,7 @@ export default function Contact({
             </HeadlineTag>
             <p className="mx-auto max-w-xl text-sm text-[var(--nw-slate)] sm:text-base">
               {intro?.subheadline ??
-                (content.subheadline || 'Fill out the form and a technician will reach out within one business day. For urgent issues, call us now.')}
+                (content.subheadline || 'Fill out the form and a technician will reach out. For urgent issues, call us now.')}
             </p>
           </div>
         </FadeIn>
@@ -261,7 +261,7 @@ export default function Contact({
                 <h3 className="nw-display mb-3 text-2xl text-brand-navy">{content.success_title || 'Message received'}</h3>
                 <p className="max-w-sm text-[var(--nw-slate)]">
                   {intro?.successBody ??
-                    (content.success_body || 'Thanks for reaching out. A member of our team will contact you within one business day. For urgent issues, please call us directly.')}
+                    (content.success_body || 'Thanks for reaching out. A member of our team will contact you. For urgent issues, please call us directly.')}
                 </p>
                 <button type="button" onClick={() => setSubmitted(false)} className="mt-6 text-sm font-semibold text-brand-tide-blue hover:underline">
                   Send another message

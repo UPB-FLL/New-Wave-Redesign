@@ -3,7 +3,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useContent } from '../lib/useContent';
-import { FADE_UP, DURATION, EASE } from '../lib/animation';
+import { FADE_UP, DURATION, EASE, revealInitial } from '../lib/animation';
 import { CurrentField } from './brand/CurrentField';
 import { HeroVideoRotator } from './hero/HeroVideoRotator';
 
@@ -31,7 +31,7 @@ function MotionDiv({
   return (
     <motion.div
       className={className}
-      initial="hidden"
+      initial={revealInitial('hidden')}
       animate="visible"
       variants={{
         hidden: FADE_UP.hidden,

@@ -56,7 +56,7 @@ const defaultTrustItems: TrustItem[] = [
   requiredTrustItem,
 ];
 
-const partnerLogos = [
+const toolLogos = [
   { name: 'Microsoft 365', src: '/logos/microsoft-365.svg' },
   { name: 'SentinelOne', src: '/logos/sentinelone.svg' },
   { name: 'Huntress', src: '/logos/huntress.svg' },
@@ -153,8 +153,12 @@ function TrustedSlide({ items }: { items: TrustItem[] }) {
         })}
       </div>
 
-      <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-4 border-t pt-6" style={{ borderColor: 'var(--nw-mist-gray)' }}>
-        {partnerLogos.map((logo) => (
+      {/* Platforms the team runs for clients; not partnerships (owner, 2026-10-27). The documented partners are the cards above. */}
+      <p className="mb-3 border-t pt-6 text-center text-[11px] font-semibold uppercase tracking-wide text-[var(--nw-slate)]" style={{ borderColor: 'var(--nw-mist-gray)' }}>
+        Tools we run
+      </p>
+      <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-4">
+        {toolLogos.map((logo) => (
           <div key={logo.name} data-testid="partner-logo-tile" className="rounded-md bg-[var(--nw-pure-white)] px-3 py-2">
             <img
               src={logo.src}

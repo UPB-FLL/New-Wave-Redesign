@@ -3,7 +3,7 @@
   "outputDirectory": "dist",
   "functions": {
     "api/blog-page.ts": {
-      "includeFiles": "dist/index.html"
+      "includeFiles": "dist/_shell.html"
     },
     "api/seo/research-competitors.ts": {
       "maxDuration": 60
@@ -26,6 +26,10 @@
       "includeFiles": "{node_modules/@sparticuz/chromium/bin/**,public/brand/social-engineering/fonts/inter-latin-var.woff2}"
     },
     "api/groundswell/workspace.ts": {
+      "maxDuration": 300,
+      "includeFiles": "{node_modules/@sparticuz/chromium/bin/**,public/brand/social-engineering/fonts/inter-latin-var.woff2}"
+    },
+    "api/groundswell/agent.ts": {
       "maxDuration": 300,
       "includeFiles": "{node_modules/@sparticuz/chromium/bin/**,public/brand/social-engineering/fonts/inter-latin-var.woff2}"
     }
@@ -386,7 +390,7 @@
     },
     {
       "source": "/(.*)",
-      "destination": "/index.html"
+      "destination": "/_shell.html"
     }
   ]
 }

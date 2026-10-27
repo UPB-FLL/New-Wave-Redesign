@@ -56,7 +56,7 @@ export const IT_PAGE_META = withBreadcrumbs({
   },
   '/contact': {
     title: 'Contact New Wave IT — Free IT Assessment Fort Lauderdale',
-    description: 'Get a free IT assessment from New Wave IT in Fort Lauderdale for managed IT, cybersecurity, and cloud. We reply within one business day, or call us 24/7.',
+    description: 'Get a free IT assessment from New Wave IT in Fort Lauderdale for managed IT, cybersecurity, and cloud. Send the form, or call us 24/7.',
     keywords: 'contact IT company Fort Lauderdale, free IT assessment South Florida, IT consultation Fort Lauderdale, managed IT services quote, New Wave IT contact',
     canonical: 'https://www.newwaveitfl.com/contact',
     crumb: 'Contact',

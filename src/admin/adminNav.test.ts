@@ -60,7 +60,8 @@ describe('admin navigation model', () => {
 
   it('finds editors by label, field, or page', () => {
     expect(searchAdminNav('phone').map((e) => e.label)).toEqual(['Hero', 'Contact', 'Footer']);
-    expect(searchAdminNav('tiers').map((e) => e.path)).toEqual(['/admin/pricing']);
+    expect(searchAdminNav('estimate').map((e) => e.path)).toEqual(['/admin/pricing']);
+    expect(searchAdminNav('tiers')).toEqual([]); // the retired SaaS/HaaS tiers (2026-10-26)
     expect(searchAdminNav('quote builder').map((e) => e.path)).toEqual(['/admin/pricing-units']);
     expect(searchAdminNav('threat details')).toHaveLength(1);
     expect(searchAdminNav('  ')).toHaveLength(allNavEntries().length);

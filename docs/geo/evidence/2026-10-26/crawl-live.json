@@ -1,0 +1,1266 @@
+[
+ {
+  "url": "https://www.newwaveitfl.com/",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/",
+  "canonical": "https://www.newwaveitfl.com/",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "New Wave IT \u2014 24/7 Managed IT, Cybersecurity & Cloud in Fort Lauderdale",
+  "title_len": 71,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 1,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/services",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/services",
+  "canonical": "https://www.newwaveitfl.com/services",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "IT Services Fort Lauderdale: Managed IT, Security &amp; Cloud | New Wave IT",
+  "title_len": 75,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BreadcrumbList"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/blog",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/blog",
+  "canonical": "https://www.newwaveitfl.com/blog",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "IT Support Blog Fort Lauderdale - MSP Guides | New Wave IT",
+  "title_len": 58,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BreadcrumbList"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/pricing",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/pricing",
+  "canonical": "https://www.newwaveitfl.com/pricing",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Managed IT Pricing Fort Lauderdale \u2014 Flat-Rate Plans | New Wave IT",
+  "title_len": 66,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BreadcrumbList"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/contact",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/contact",
+  "canonical": "https://www.newwaveitfl.com/contact",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Contact New Wave IT \u2014 Free IT Assessment Fort Lauderdale",
+  "title_len": 56,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BreadcrumbList"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/it-support-fort-lauderdale",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/it-support-fort-lauderdale",
+  "canonical": "https://www.newwaveitfl.com/it-support-fort-lauderdale",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "IT Support Fort Lauderdale \u2014 Local Help Desk &amp; On-Site | New Wave IT",
+  "title_len": 72,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BreadcrumbList"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/managed-it-services-fort-lauderdale",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/managed-it-services-fort-lauderdale",
+  "canonical": "https://www.newwaveitfl.com/managed-it-services-fort-lauderdale",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Managed IT Services Fort Lauderdale \u2014 Flat-Rate MSP | New Wave IT",
+  "title_len": 65,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BreadcrumbList"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/why-us",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/why-us",
+  "canonical": "https://www.newwaveitfl.com/why-us",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Why Choose New Wave IT \u2014 Trusted MSP in Fort Lauderdale",
+  "title_len": 55,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BreadcrumbList"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/about",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/about",
+  "canonical": "https://www.newwaveitfl.com/about",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "About New Wave IT \u2014 Fort Lauderdale Managed IT Services",
+  "title_len": 55,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BreadcrumbList"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/support",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/support",
+  "canonical": "https://www.newwaveitfl.com/support",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "IT Support - Email, Customer Login &amp; Live Chat | New Wave IT",
+  "title_len": 64,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BreadcrumbList"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/service-category/cybersecurity",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/service-category/cybersecurity",
+  "canonical": "https://www.newwaveitfl.com/service-category/cybersecurity",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Cybersecurity Services Fort Lauderdale \u2014 SOC &amp; Compliance | New Wave IT",
+  "title_len": 75,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BreadcrumbList"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/service-category/managed-it-services",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/service-category/managed-it-services",
+  "canonical": "https://www.newwaveitfl.com/service-category/managed-it-services",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Managed IT Services \u2014 Monitoring, Patching &amp; Backup | New Wave IT",
+  "title_len": 69,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BreadcrumbList"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/service-category/live-it-support",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/service-category/live-it-support",
+  "canonical": "https://www.newwaveitfl.com/service-category/live-it-support",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "24/7 IT Support &amp; Help Desk in Fort Lauderdale | New Wave IT",
+  "title_len": 64,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BreadcrumbList"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/service-category/cloud-solutions",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/service-category/cloud-solutions",
+  "canonical": "https://www.newwaveitfl.com/service-category/cloud-solutions",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Cloud Migration &amp; Microsoft 365 in Fort Lauderdale | New Wave IT",
+  "title_len": 68,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BreadcrumbList"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/service-category/network-infrastructure",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/service-category/network-infrastructure",
+  "canonical": "https://www.newwaveitfl.com/service-category/network-infrastructure",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Network Infrastructure &amp; WiFi in Fort Lauderdale | New Wave IT",
+  "title_len": 66,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BreadcrumbList"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/service-category/it-repair-upgrades",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/service-category/it-repair-upgrades",
+  "canonical": "https://www.newwaveitfl.com/service-category/it-repair-upgrades",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "IT Hardware Repair &amp; Upgrades in Fort Lauderdale | New Wave IT",
+  "title_len": 66,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BreadcrumbList"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/service-category/healthcare",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/service-category/healthcare",
+  "canonical": "https://www.newwaveitfl.com/service-category/healthcare",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Healthcare IT &amp; HIPAA Compliance in Fort Lauderdale | New Wave IT",
+  "title_len": 69,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BreadcrumbList"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/service-category/family-offices",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/service-category/family-offices",
+  "canonical": "https://www.newwaveitfl.com/service-category/family-offices",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Family Office IT Services in South Florida | New Wave IT",
+  "title_len": 56,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BreadcrumbList"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/service-category/luxury",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/service-category/luxury",
+  "canonical": "https://www.newwaveitfl.com/service-category/luxury",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Luxury Property IT &amp; Smart Home Tech, South Florida | New Wave IT",
+  "title_len": 69,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BreadcrumbList"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/service-category/cellular-das-and-public-safety",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/service-category/cellular-das-and-public-safety",
+  "canonical": "https://www.newwaveitfl.com/service-category/cellular-das-and-public-safety",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Cellular DAS &amp; Public Safety Coverage in South Florida | New Wave IT",
+  "title_len": 72,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BreadcrumbList"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/cybersecurity",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/cybersecurity",
+  "canonical": "https://www.newwaveitfl.com/cybersecurity",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Cyber Threat Center \u2014 Ransomware, Phishing &amp; Defenses | New Wave IT",
+  "title_len": 71,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BreadcrumbList"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/status",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/status",
+  "canonical": "https://www.newwaveitfl.com/status",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Service Status - New Wave IT",
+  "title_len": 28,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BreadcrumbList"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/codenest",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/codenest",
+  "canonical": "https://www.newwaveitfl.com/codenest",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "CodeNest - Launch Your Coding Career",
+  "title_len": 36,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BreadcrumbList"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/l/cybersecurity-guide",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/l/cybersecurity-guide",
+  "canonical": "https://www.newwaveitfl.com/l/cybersecurity-guide",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Complete Cybersecurity Guide | New Wave IT",
+  "title_len": 42,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BreadcrumbList"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/l/it-support-guide",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/l/it-support-guide",
+  "canonical": "https://www.newwaveitfl.com/l/it-support-guide",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "IT Support Excellence Guide | New Wave IT",
+  "title_len": 41,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BreadcrumbList"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/l/it-repair-guide",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/l/it-repair-guide",
+  "canonical": "https://www.newwaveitfl.com/l/it-repair-guide",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "IT Repair &amp; Upgrade Strategy Guide | New Wave IT",
+  "title_len": 52,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BreadcrumbList"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/l/managed-it-guide",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/l/managed-it-guide",
+  "canonical": "https://www.newwaveitfl.com/l/managed-it-guide",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Managed IT Services Strategy Guide | New Wave IT",
+  "title_len": 48,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BreadcrumbList"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/l/cloud-solutions-guide",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/l/cloud-solutions-guide",
+  "canonical": "https://www.newwaveitfl.com/l/cloud-solutions-guide",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Cloud Solutions Strategy Guide | New Wave IT",
+  "title_len": 44,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BreadcrumbList"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/l/network-infrastructure-guide",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/l/network-infrastructure-guide",
+  "canonical": "https://www.newwaveitfl.com/l/network-infrastructure-guide",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Network Infrastructure Design Guide | New Wave IT",
+  "title_len": 49,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BreadcrumbList"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/social-engineering",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/social-engineering",
+  "canonical": "https://www.newwaveitfl.com/social-engineering",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Small business growth marketing | New Wave: Social Engineering",
+  "title_len": 62,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 1,
+  "jsonld_valid": true,
+  "types": [
+   null
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/social-engineering/social-media",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/social-engineering/social-media",
+  "canonical": "https://www.newwaveitfl.com/social-engineering/social-media",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Social media that drives sales | New Wave: Social Engineering",
+  "title_len": 61,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 1,
+  "jsonld_valid": true,
+  "types": [
+   null
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/social-engineering/brand-development",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/social-engineering/brand-development",
+  "canonical": "https://www.newwaveitfl.com/social-engineering/brand-development",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Small business brand development | New Wave: Social Engineering",
+  "title_len": 63,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 1,
+  "jsonld_valid": true,
+  "types": [
+   null
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/social-engineering/website-design",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/social-engineering/website-design",
+  "canonical": "https://www.newwaveitfl.com/social-engineering/website-design",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Conversion-focused website design | New Wave: Social Engineering",
+  "title_len": 64,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 1,
+  "jsonld_valid": true,
+  "types": [
+   null
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/social-engineering/marketing",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/social-engineering/marketing",
+  "canonical": "https://www.newwaveitfl.com/social-engineering/marketing",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Paid search &amp; social advertising | New Wave: Social Engineering",
+  "title_len": 67,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 1,
+  "jsonld_valid": true,
+  "types": [
+   null
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/social-engineering/integration",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/social-engineering/integration",
+  "canonical": "https://www.newwaveitfl.com/social-engineering/integration",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Marketing integrations &amp; tracking | New Wave: Social Engineering",
+  "title_len": 68,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 1,
+  "jsonld_valid": true,
+  "types": [
+   null
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/social-engineering/digital-oversight",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/social-engineering/digital-oversight",
+  "canonical": "https://www.newwaveitfl.com/social-engineering/digital-oversight",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Marketing analytics &amp; oversight | New Wave: Social Engineering",
+  "title_len": 66,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 1,
+  "jsonld_valid": true,
+  "types": [
+   null
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/social-engineering/groundswell",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/social-engineering/groundswell",
+  "canonical": "https://www.newwaveitfl.com/social-engineering/groundswell",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "GroundSwell \u2014 Growth audits &amp; partner workspace | New Wave",
+  "title_len": 62,
+  "body_words": 4290,
+  "h1": 1,
+  "jsonld_blocks": 1,
+  "jsonld_valid": true,
+  "types": [
+   null
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/social-engineering/groundswell/search",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/social-engineering/groundswell/search",
+  "canonical": "https://www.newwaveitfl.com/social-engineering/groundswell/search",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Search demand and visibility \u00b7 GroundSwell | New Wave",
+  "title_len": 53,
+  "body_words": 748,
+  "h1": 1,
+  "jsonld_blocks": 1,
+  "jsonld_valid": true,
+  "types": [
+   null
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/social-engineering/groundswell/google-listing",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/social-engineering/groundswell/google-listing",
+  "canonical": "https://www.newwaveitfl.com/social-engineering/groundswell/google-listing",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Google listing and local market \u00b7 GroundSwell | New Wave",
+  "title_len": 56,
+  "body_words": 551,
+  "h1": 1,
+  "jsonld_blocks": 1,
+  "jsonld_valid": true,
+  "types": [
+   null
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/social-engineering/groundswell/competitors",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/social-engineering/groundswell/competitors",
+  "canonical": "https://www.newwaveitfl.com/social-engineering/groundswell/competitors",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Competitors that compete \u00b7 GroundSwell | New Wave",
+  "title_len": 49,
+  "body_words": 695,
+  "h1": 1,
+  "jsonld_blocks": 1,
+  "jsonld_valid": true,
+  "types": [
+   null
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/social-engineering/groundswell/social",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/social-engineering/groundswell/social",
+  "canonical": "https://www.newwaveitfl.com/social-engineering/groundswell/social",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Social reach and engagement \u00b7 GroundSwell | New Wave",
+  "title_len": 52,
+  "body_words": 652,
+  "h1": 1,
+  "jsonld_blocks": 1,
+  "jsonld_valid": true,
+  "types": [
+   null
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/social-engineering/groundswell/website",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/social-engineering/groundswell/website",
+  "canonical": "https://www.newwaveitfl.com/social-engineering/groundswell/website",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Website and pages metrics \u00b7 GroundSwell | New Wave",
+  "title_len": 50,
+  "body_words": 631,
+  "h1": 1,
+  "jsonld_blocks": 1,
+  "jsonld_valid": true,
+  "types": [
+   null
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/social-engineering/groundswell/ads",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/social-engineering/groundswell/ads",
+  "canonical": "https://www.newwaveitfl.com/social-engineering/groundswell/ads",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Advertising on record and cost \u00b7 GroundSwell | New Wave",
+  "title_len": 55,
+  "body_words": 713,
+  "h1": 1,
+  "jsonld_blocks": 1,
+  "jsonld_valid": true,
+  "types": [
+   null
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/social-engineering/groundswell/your-accounts",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/social-engineering/groundswell/your-accounts",
+  "canonical": "https://www.newwaveitfl.com/social-engineering/groundswell/your-accounts",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Your own accounts \u00b7 GroundSwell metrics | New Wave",
+  "title_len": 50,
+  "body_words": 594,
+  "h1": 1,
+  "jsonld_blocks": 1,
+  "jsonld_valid": true,
+  "types": [
+   null
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/groundswell",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/groundswell",
+  "canonical": "https://www.newwaveitfl.com/groundswell",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "GroundSwell \u2014 Partner &amp; Staff Sign-In | New Wave IT",
+  "title_len": 55,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BreadcrumbList"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/social-engineering/customers",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/social-engineering/customers",
+  "canonical": "https://www.newwaveitfl.com/social-engineering/customers",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Our customers | New Wave: Social Engineering",
+  "title_len": 44,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 1,
+  "jsonld_valid": true,
+  "types": [
+   null
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/social-engineering/contact-us",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/social-engineering/contact-us",
+  "canonical": "https://www.newwaveitfl.com/social-engineering/contact-us",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Contact us | New Wave: Social Engineering",
+  "title_len": 41,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 1,
+  "jsonld_valid": true,
+  "types": [
+   null
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/social-engineering/contact",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/social-engineering/contact",
+  "canonical": "https://www.newwaveitfl.com/social-engineering/contact",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Book a discovery call | New Wave: Social Engineering",
+  "title_len": 52,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 1,
+  "jsonld_valid": true,
+  "types": [
+   null
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/privacy-policy",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/privacy-policy",
+  "canonical": "https://www.newwaveitfl.com/privacy-policy",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Privacy Policy \u2014 New Wave IT",
+  "title_len": 28,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BreadcrumbList"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/terms-and-conditions",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/terms-and-conditions",
+  "canonical": "https://www.newwaveitfl.com/terms-and-conditions",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Terms and Conditions \u2014 New Wave IT",
+  "title_len": 34,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BreadcrumbList"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/cookie-policy",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/cookie-policy",
+  "canonical": "https://www.newwaveitfl.com/cookie-policy",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Cookie Policy \u2014 New Wave IT",
+  "title_len": 27,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BreadcrumbList"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/blog/network-infrastructure-for-small-businesses",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/blog/network-infrastructure-for-small-businesses",
+  "canonical": "https://www.newwaveitfl.com/blog/network-infrastructure-for-small-businesses",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Optimizing Network Infrastructure for Small Businesses in | New Wave IT",
+  "title_len": 71,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BlogPosting",
+   "BreadcrumbList",
+   "FAQPage"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/blog/microsoft-365-implementation",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/blog/microsoft-365-implementation",
+  "canonical": "https://www.newwaveitfl.com/blog/microsoft-365-implementation",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Microsoft 365 Implementation Fort Lauderdale | New Wave IT",
+  "title_len": 58,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BlogPosting",
+   "BreadcrumbList",
+   "FAQPage"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/blog/cloud-cost-optimization",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/blog/cloud-cost-optimization",
+  "canonical": "https://www.newwaveitfl.com/blog/cloud-cost-optimization",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Cloud Cost Optimization Fort Lauderdale | New Wave IT",
+  "title_len": 53,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BlogPosting",
+   "BreadcrumbList",
+   "FAQPage"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/blog/cybersecurity-best-practices",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/blog/cybersecurity-best-practices",
+  "canonical": "https://www.newwaveitfl.com/blog/cybersecurity-best-practices",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Cybersecurity Best Practices Fort Lauderdale | New Wave IT",
+  "title_len": 58,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BlogPosting",
+   "BreadcrumbList",
+   "FAQPage"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/blog/network-security-solutions",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/blog/network-security-solutions",
+  "canonical": "https://www.newwaveitfl.com/blog/network-security-solutions",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Network Security Solutions Fort Lauderdale | New Wave IT",
+  "title_len": 56,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BlogPosting",
+   "BreadcrumbList",
+   "FAQPage"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/blog/data-backup-solutions",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/blog/data-backup-solutions",
+  "canonical": "https://www.newwaveitfl.com/blog/data-backup-solutions",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Data Backup Solutions for Fort Lauderdale | New Wave IT",
+  "title_len": 55,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BlogPosting",
+   "BreadcrumbList",
+   "FAQPage"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/blog/cloud-migration-services",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/blog/cloud-migration-services",
+  "canonical": "https://www.newwaveitfl.com/blog/cloud-migration-services",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Cloud Migration Services South Florida | New Wave IT",
+  "title_len": 52,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BlogPosting",
+   "BreadcrumbList",
+   "FAQPage"
+  ]
+ },
+ {
+  "url": "https://www.newwaveitfl.com/blog/disaster-recovery-solutions",
+  "status": 200,
+  "final": "https://www.newwaveitfl.com/blog/disaster-recovery-solutions",
+  "canonical": "https://www.newwaveitfl.com/blog/disaster-recovery-solutions",
+  "canonical_ok": true,
+  "robots": "index, follow",
+  "title": "Disaster Recovery Solutions for Fort Lauderdale | New Wave IT",
+  "title_len": 61,
+  "body_words": 1,
+  "h1": 0,
+  "jsonld_blocks": 2,
+  "jsonld_valid": true,
+  "types": [
+   [
+    "LocalBusiness",
+    "ProfessionalService"
+   ],
+   "Organization",
+   "WebSite",
+   "BlogPosting",
+   "BreadcrumbList",
+   "FAQPage"
+  ]
+ }
+]

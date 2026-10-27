@@ -51,8 +51,9 @@ search skill to confirm nothing measured moved.
   `Contact` renders exactly as before.
 - **Figures removed** under the owner's no-unverified-figures rule: the threat
   cards' stats (99.7%, 15M+, 10 Tbps, <60s, 5M+, 100%), "Results in 5 days",
-  "Sub-hour response times", and the uncited "$4.45 million". Severity is a
-  plain "Critical risk" label, not a red, amber, or sky pill.
+  and the uncited "$4.45 million". Severity is a plain "Critical risk" label,
+  not a red, amber, or sky pill. The fact sheet (`docs/geo/fact-sheet.md`
+  §2 and §10) marks each as removed or fixed.
 - **Status** (owner's choice: make it honest): /status printed made-up figures
   as live data (an uptime per service, "Last checked: 2 min ago", Spectrum
   "Degraded", "Updated every 5 minutes"; production's CMS has no `status` rows,
@@ -65,15 +66,25 @@ search skill to confirm nothing measured moved.
   The admin's Status editor stores `url` in place of status, uptime and last
   checked (`last_updated` is gone too), with the built-in list as its
   defaults. The description (`IT_PAGE_META['/status']`) no longer says
-  "Real-time … Monitor uptime".
-- **Unchanged**: 61 of the 62 prerendered files (heads, division bodies,
-  sitemap, robots) are identical but for asset hashes; /status differs only in
-  its description, og:description and twitter:description. Routes, JSON-LD,
-  and analytics hooks are as before; every division and GroundSwell page
-  renders the same DOM and pixels. The skill's re-run against the production
-  CMS: no change to raw HTML or to any title, canonical, robots, keyword,
-  JSON-LD type, or breadcrumb, and none to a description but /status's;
-  heading-level skips 5 → 0; pages with navigation 32 → 34.
+  "Real-time … Monitor uptime". Held out of the body prerender until the
+  owner decided what the page is, /status is now in `IT_ROUTE_ELEMENTS`.
+- **With main's GEO audit (#161)**: the page bodies it prerenders are this
+  layout, so a reader without JavaScript gets it too. Kept from main: no
+  response-time promise in the contact fallbacks (`Contact`, `ContactPage`),
+  the live support highlight "Priority handling for critical issues", and the
+  trust slide's "Tools we run" caption (owner, Q8: tools, not partners) under
+  its one title, "Partners and commitments", in place of the kicker.
+- **Unchanged against main (`a2d4d52`), both built on the production CMS**:
+  every head but /status's (its description, og:description and
+  twitter:description), the sitemap, robots, routes, JSON-LD and analytics
+  hooks; all 20 division files byte-identical, and every division and
+  GroundSwell page the same DOM and screenshot. The skill's re-run (raw HTML
+  with JavaScript off, and rendered): heading-level skips 5 → 0, internal
+  links in page content 71 → 84 raw (89 → 101 rendered), FAQ items 24 → 24,
+  images without alt 0 → 0, pages with one H1 in the raw HTML 31 → 32 of 34
+  (/status; the other two are the blog post, written by `api/blog-page.ts`,
+  and the 404 shell), words 11,864 → 11,780 raw. The only links gone are the
+  four buttons to guides that do not exist.
 - **Tests**: `src/test/it-page-layout.test.tsx` (every IT route: one H1 in the
   header, the breadcrumb's current crumb, no `.nw-kicker`, no level skips, no
   repeated phrase, no word chips, the production CMS rows, the guide and
@@ -81,6 +92,83 @@ search skill to confirm nothing measured moved.
   no status of its own, a CMS list and its links), and updated pins in
   `HomeOriginalSections`, `TrustBarLayout`, `LegalPageLayout`, `Hero`,
   `BlogPostPage`, and `sections.test.ts` (the status entry's shape).
+
+### Groundswell: the operations agent, a 4-hour report, approval from the email (2026-10-27)
+
+Owner's ask: a local, agnostic agent that feeds back errors, resolves them
+on approval, sends a 4-hour report and waits for approval from the email,
+and learns from logs, data and results. Full notes: `docs/groundswell-agent.md`.
+
+- **Library** `api/_lib/groundswell/agent/`: `types.ts` (Observation,
+  IssueRow, Collector, Resolver), `collectors.ts` (runs: failed, held,
+  stalled, long-queued, data steps skipped on delivered runs grouped by
+  `errorKey`; headway: failed and waiting actions; readiness: the live
+  checks; `collectAll` keeps one failure from stopping the rest),
+  `resolvers.ts` (`requeue_step`, `release_review`, `recheck_review`,
+  `wake_worker`, `retry_action`, `acknowledge`; each with `applies`,
+  `describe` (change and rollback in words), `apply`, `verify`),
+  `store.ts` (`foldObservations`: open, count, clear, reopen with a lesson;
+  `observed_at` makes old history the same sighting; tokens hashed, 7 days;
+  lessons, reports and the consultation log), `consult.ts` (Claude through
+  `@anthropic-ai/sdk`: `claude-opus-5-5`, effort high, JSON schema output,
+  server-side fallback on a decline; `ANTHROPIC_API_KEY`), `propose.ts`
+  (one question to Claude with the issues, the allowed keys, the lessons and
+  `priorAdvice`, the log of its earlier advice with outcomes; `checkProposal`
+  holds the answer to the registry; every ask logged in
+  `groundswell_agent_consultations` with what was kept or rejected and why,
+  outcomes written back when checked; OpenAI stands in without the key,
+  `ruleProposal` without either; a resolver failed twice with no success is
+  ruled out), `report.ts`
+  (the email and the confirmation page), `agent.ts` (`runAgentPass`:
+  verify, collect, fold, propose, report every 4 h while anything is open,
+  else daily; `decide`: approve applies now and wakes the worker, dismiss
+  mutes 7 days).
+- **Route** `api/groundswell/agent.ts`: email links (`?token=&decision=`,
+  GET shows the page, POST from its button applies); staff (admin key or
+  Bearer): GET the view, POST `report` (202, runs on), `observe` (outside
+  observations under `external:<name>`), `approve` | `dismiss` | `reopen`.
+- **Migration** `20261104120000`: `groundswell_agent_issues`, `_lessons`,
+  `_reports`, `_consultations` (RLS on, no policies) and the cron `groundswell-agent-report`
+  (`0 */4 * * *`). Additive: the route answers 503 until applied.
+- **Screen** `/groundswell/admin/agent` (`GroundswellAgent.tsx`, nav
+  "Agent"; `src/lib/groundswellAgent.ts`).
+- **Tests**: `src/test/api/groundswell-agent.test.ts`,
+  `GroundswellAgent.test.tsx`.
+- **Not verified live**: no pass has run against production; the migration
+  is not applied yet; no Claude call has been made. Setup in Vercel:
+  `ANTHROPIC_API_KEY`; optional `GROUNDSWELL_AGENT_MODEL`,
+  `GROUNDSWELL_AGENT_EFFORT`, `GROUNDSWELL_AGENT_ADVISOR`,
+  `GROUNDSWELL_AGENT_EMAIL`, `GROUNDSWELL_BASE_URL`,
+  `GROUNDSWELL_AGENT_LIVE_CHECKS=off`.
+### Groundswell: the three faults on Uncommon Path's run of 2026-10-27 (2026-10-27)
+
+Run `4afe409b…` (queued 00:05 UTC) failed on its GEO brief, skipped its
+social step after eight leases, and showed the ad-copy skip in red.
+
+- **GEO brief**: fixed on main by #165 (`geoDelivery.ts` stores the brief
+  as `text/plain` under its `.md` name, and a storage failure on the last
+  attempt goes in the step's `note` instead of failing the audit); this
+  branch's own version (a `text/markdown` type with a bucket migration) was
+  dropped in favour of it at the merge.
+- **Social step**: #164 already caps every read by the deadline. The eight
+  leases came from the step being claimed about two minutes into each call
+  (after the six gathering steps), with too little left for the Apify
+  fallback. `StepDefinition.needsMs` names the time a step wants
+  (`SOCIAL_NEEDS_MS`, 180 s, on `social`); when an earlier step used the
+  call's time and less than that is left, `runWorker` hands the step back
+  uncounted (`pending`, the claim's attempt undone, outcome `deferred`) and
+  ends the call, so the next heartbeat runs it with a whole call. A call's
+  first step always runs, so no step waits for ever.
+- **Ad copy**: every row of the brewery's plan was a skip (the searches lose
+  money at the published rates; TikTok alcohol ads are not self-serve), so
+  `copyTargets` was empty and the step threw a `PermanentStepError`, which
+  the run card prints in red. Nothing failed: `runAdcopy` now finishes with
+  no ads and a `note` (`noCopy`), the full audit shows the plan without a
+  copy section as before, and the card shows the step done.
+- **Tests**: the hand-back and the budget pin in `groundswell-engine.test.ts`,
+  the note in `groundswell-adcopy.test.ts`.
+- The failed run itself is not resumed by a deploy: "Run again" on the
+  workspace card queues a fresh run once this is live.
 
 ### Groundswell: a step cut off mid-call is given up after three leases; social reads keep to the deadline (2026-10-27)
 
@@ -101,7 +189,17 @@ only in the catch path.
   dying silently.
 - **Tests**: the reclaimed-lease case in `groundswell-engine.test.ts` and
   the deadline case in `groundswell-social.test.ts`.
-- The stuck run itself (`4afe409b…`) had its social step skipped by hand.
+- The run then finished every step in three minutes, and showed two more
+  faults, fixed the same day: the assets bucket allows `text/plain`, not
+  `text/markdown`, so `deliver_geo` failed three times and, being a delivery
+  step, failed the audit after its three PDFs were printed (`GEO_BRIEF_TYPE`
+  is `text/plain` now, the `.md` name stays, and the last attempt records a
+  storage failure in `note` instead of failing the run); Ahrefs' prompt set
+  has no Claude source ("models do not support Ahrefs dataset"), so every
+  Brand Radar call was refused (`ASSISTANTS` drops `claude`; the Site
+  Explorer citation count had answered: 2 citations of the brewery's site,
+  both on Google AI Mode); and an llms-full.txt larger than the read cap
+  now counts as present with its size unknown (`bytes: null`).
 
 ### Headway: the implementation service, its page, and the agent that carries the plan out (2026-10-26)
 
@@ -249,6 +347,88 @@ after `ads_library`, before `model`) and the delivery step `deliver_geo`
 - **Not verified live**: no run has read Brand Radar through Composio yet;
   the readiness row and the first run will confirm the `ahrefs_mcp` account
   answers (the consumer account lists it as linked).
+### No response-time promises; pricing subheadline to the code default (2026-10-26)
+
+GEO audit, fact sheet Q6 and Q2: no SLA backs "within one business day",
+"sub-hour response times" or "responding in minutes", so the copy promises no
+response time. Migration `20261102120000` rewrites `contact.email_sub`,
+`contact.subheadline`, `contact.success_body` (and sets `pricing.subheadline`
+to the code default now that the tiers are gone), each guarded on the md5 of
+the snapshot in `docs/geo/evidence/2026-10-26/`; the exact restore is in
+`supabase/rollbacks/`. The code fallbacks in `Contact.tsx`, the `/contact`
+description in `routeMeta.ts`, the Fort Lauderdale IT support CTA and the live
+support page's description and highlight say the same without a time.
+`src/test/copy/response-time-claims.test.ts` scans the public pages,
+components, route registry and shell for a promise coming back (the service
+guides' generic industry figures and the two unrouted pages are skipped).
+
+### Schema founding year and headcount from the owner (2026-10-26)
+
+GEO audit, fact sheet Q5: New Wave IT was founded in 2022 and has 5–10
+employees. `index.html`'s Organization said 2009 and 10–50, with no source;
+both are corrected and pinned in `division-integration.test.ts`.
+
+### Schema hours from the owner (2026-10-26)
+
+GEO audit, fact sheet Q3: the office is open Mon–Fri 8am–6pm and there is a
+24/7 emergency line. `index.html`'s LocalBusiness `openingHoursSpecification`
+says Mon–Fri 08:00–18:00 (it claimed 24 hours a day), and two `contactPoint`s
+carry the support line's hours and the emergency line's 24/7 availability;
+the CMS `contact.address_sub` / `contact.phone_sub` lines already said this.
+Pinned in `division-integration.test.ts`. The Google Business Profile's
+schedule is the owner's to correct in the profile.
+
+### Pricing tiers retired (2026-10-26)
+
+Owner's answer in the GEO audit (`docs/geo/fact-sheet.md`, Q2): the
+published price list is the `pricing_units` table (the quote builder on
+`/pricing` and the two Fort Lauderdale landing pages); the SaaS / HaaS /
+Support tiers in `site_content` (`pricing.tiers`) were never rendered by
+`/pricing` and are retired. Migration `20261103120000` deletes the row,
+guarded on the md5 of the snapshot
+(`docs/geo/evidence/2026-10-26/site_content-pricing-tiers.snapshot.json`),
+idempotent; the exact restore is `supabase/rollbacks/20261103120000_restore_pricing_tiers_row.sql`
+(that folder is never applied on its own). The admin's `pricing` descriptor
+keeps only the headline block ("Pricing page"); `PRICING_TIERS` and the nav
+keywords for tiers are gone, and the "unreadable stored list" test uses the
+service cards instead.
+
+### Every New Wave IT page renders its body at build time (2026-10-26)
+
+From the GEO audit baseline (`docs/geo/baseline-2026-10-26.md`): all 41 New
+Wave IT pages and the 8 blog posts served an empty `<body>` to a reader
+without JavaScript; only the GroundSwell pages carried copy.
+
+- **Static routes**: `src/lib/prerenderBody.tsx` (`renderItBody`,
+  `isPrerenderedItPath`) renders the real page component for every route in
+  `prerenderedItRoutes()` plus the homepage with `StaticRouter`, the same way
+  the GroundSwell prerender does; `vite.config.ts` loads it through the Vite
+  SSR loader and `renderRouteHtml` (`injectRootBody`) puts the markup in
+  `#root`. The homepage is `dist/index.html` itself (Vercel serves that file
+  for `/` from the filesystem before any rewrite, checked on the preview), and
+  the empty shell moves to `dist/_shell.html` (`SHELL_FILE`), which the
+  `vercel.json` catch-all rewrites the SPA fallback routes to and
+  `api/_lib/spaShell.ts` reads for blog posts; `robots.txt` disallows it.
+  `/groundswell` (a lazy chunk) keeps the shell; `/status` did while its
+  figures had no source, until the owner's call on 2026-10-27 (above).
+- **CMS copy**: `readCmsContentForBuild` (`src/lib/prerenderContent.ts`)
+  reads every `site_content` row with the anon key at build time and
+  `seedContentCache` (`content.ts`) hands it to `useContent`, so the static
+  HTML carries the saved copy, not the code fallbacks. Without credentials
+  (a local build) the fallbacks render with a warning; with credentials a
+  failed read fails the build. A CMS publish shows on the live page as
+  before, but reaches the static HTML only at the next deploy.
+- **Reveal animations**: `FadeIn` renders a plain div on the server, and
+  `revealInitial` (`animation.ts`) starts `Hero`'s and `Services`'
+  `motion.div`s from their visible state there, so no static copy sits at
+  opacity 0.
+- **Blog posts**: `api/_lib/blogPostBody.ts` renders the post's Markdown
+  (react-markdown, `renderToStaticMarkup`) into `#root` from
+  `blogPageHtml`; a missing post or an outage keeps the root empty.
+- **Tests**: `src/lib/prerenderBody.test.tsx` (every literal `<Route>` in
+  `App.tsx` has a row; one H1 per page; the seed shows), `prerenderContent.test.ts`,
+  the body cases in `it-prerender.test.ts`, `blog-page.test.ts` and the
+  homepage rewrite in `division-integration.test.ts`.
 
 ### Groundswell: a toolkit with several linked accounts (2026-10-26)
 
