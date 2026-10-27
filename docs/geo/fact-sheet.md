@@ -78,8 +78,8 @@ Two independent price lists exist and neither cites the other.
 | Claim | Source | Status |
 |---|---|---|
 | Huntress partner, Microsoft partner, Cisco partner | CMS `trustbar.items`, `whyus.feature_cards[1]`; `CLAUDE.md` 2026-10-21: "only documented partnerships are claimed" | owner-confirmed, 2026-10-21 (per CLAUDE.md; the documents themselves are not in the repo) |
-| "Certified engineers" / "Industry-certified technicians" / "Certified engineers on standby 24/7" | CMS `about.paragraph1`, `hero.subheadline`, `about.team_sub` | site-only (which certifications is unstated) |
-| "Dedicated project manager" on every engagement; "Dedicated account manager for every client" | CMS `whyus.feature_cards[2]`, `whyus.proof_points[3]` | site-only |
+| "Certified engineers" / "Industry-certified technicians" / "Certified engineers on standby 24/7" | CMS `about.paragraph1`, `hero.subheadline`, `about.team_sub` | owner-confirmed, 2026-10-27 (kept as a general description; no certification is named, and none may be added without a document) |
+| "Dedicated project manager" on every engagement; "Dedicated account manager for every client" | CMS `whyus.feature_cards[2]`, `whyus.proof_points[3]` | owner-confirmed, 2026-10-27 |
 | "We respond within one business day" (contact form) | CMS `contact.email_sub`, `contact.subheadline`, `contact.success_body`; code fallbacks in `Contact.tsx`; `routeMeta.ts` /contact description; `ITSupportFortLauderdalePage.tsx` CTA | **dropped, owner-confirmed 2026-10-26**: migration `20261102120000` rewrites the three rows (guarded on their md5; snapshot and restore SQL kept), the code says "will reach out" / "will contact you" with no time, and `src/test/copy/response-time-claims.test.ts` forbids a promise coming back |
 | "Trusted by businesses across South Florida" | CMS `trustbar.heading` | site-only |
 | "Enterprise-grade" security; "Compliance audits"; "HIPAA readiness", "SOC 2 audit prep" | CMS `services.cards`, cybersecurity hero (code) | site-only; `CLAUDE.md` 2026-10-21 removed certification claims (no SOC 2 Type II, "HIPAA Compliant" etc.), so only *work offered* is claimed |
@@ -166,3 +166,4 @@ and the schema `foundingDate`.
 | 2026-10-26 | Q4 address | 710 NW 5th Ave, Suite 1072 is a staffed office; the Google listing is to be updated to show it (owner's action in the profile; no tool in this session can edit a Business Profile) |
 | 2026-10-26 | Q5 founding and size | Founded 2022; 5–10 employees |
 | 2026-10-26 | Q6 response times | Drop every response-time promise (no SLA backs them); the pricing subheadline takes the code default |
+| 2026-10-27 | Q7 credentials and managers | Keep both: "certified engineers" and the dedicated project manager / account manager claims. No specific certification named; none is added without a document |
