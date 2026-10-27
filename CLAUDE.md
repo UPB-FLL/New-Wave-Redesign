@@ -2,6 +2,16 @@
 
 ## Recent Changes
 
+### Social Engineering hub: no "remote-first" in the copy (2026-10-27)
+
+Owner's call: "remote-first" says how the team works, not what a client gets,
+so the hub says what the client gets instead. The hero's facts line is
+"Nationwide · Calls in your time zone · Reported against revenue"; the
+industries note and the "Where do you work?" FAQ (also in the FAQPage JSON-LD)
+keep "based in Florida … calls in your time zone" without it; the keyword
+"marketing agency united states remote" is "small business marketing agency
+united states". `pages.test.tsx` forbids the phrase in the division's copy.
+
 ### New Wave IT pages: one page header, one title per section (2026-10-27)
 
 Owner's ask: rework the layout of every New Wave IT page (nothing on the Social
