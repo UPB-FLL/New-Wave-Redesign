@@ -289,6 +289,69 @@ async function read(handle: string, timeoutMs = SCRAPE_TIMEOUT_MS): Promise<Prof
     executeTool('SCRAPECREATORS_LIST_INSTAGRAM_USER_POSTS', { handle, trim: true }, timeoutMs)
   );
 }
+/**
+ * The reader for profiles Instagram shows only to signed-in adults: the
+ * IntroPix actor on Apify (`intropix/instagram-posts-reels-scraper`), which
+ * runs sessions of its own, so no login or cookie of the business's is
+ * needed. Checked live on 2026-10-27 on an age-gated brewery profile:
+ * followers, posts, likes, comments, reel views, captions and full-size
+ * image links, where ScrapeCreators and Apify's stock scraper read nothing.
+ * Priced per post (about two tenths of a cent each) plus a few tenths of a
+ * cent per run; GATED_CHARGE_CAP_USD caps one read.
+ */
+export const GATED_ACTOR = 'intropix/instagram-posts-reels-scraper';
+export const GATED_POSTS = 12;
+export const GATED_CHARGE_CAP_USD = 1;
+const GATED_TIMEOUT_MS = 180_000;
+
+/** The actor's items, one per post with the profile on each, as a post list `mediaFrom` and `summarizeInstagram` read. */
+export function gatedPosts(answer: unknown): Record<string, unknown>[] {
+  const list = Array.isArray(answer) ? answer : findKey<unknown[]>(answer, 'items') ?? (Array.isArray(findKey(answer, 'data')) ? findKey<unknown[]>(answer, 'data') : null) ?? [];
+  const out: Record<string, unknown>[] = [];
+  for (const raw of list) {
+    if (!raw || typeof raw !== 'object') continue;
+    const it = raw as Record<string, unknown>;
+    const media = Array.isArray(it.media) ? (it.media as Record<string, unknown>[]) : [];
+    const first = media[0] ?? {};
+    const kind = String(it.post_type ?? '').toLowerCase();
+    const video = kind === 'reel' || kind === 'video' || first.media_type === 'video';
+    const image = video ? (first.cover_url ?? first.media_url) : (first.media_url ?? first.cover_url);
+    if (typeof image !== 'string') continue;
+    out.push({
+      code: it.shortcode,
+      url: it.permalink,
+      display_url: image,
+      media_type: video ? 2 : kind === 'carousel' || media.length > 1 ? 8 : 1,
+      like_count: it.like_count,
+      comment_count: it.comment_count,
+      play_count: it.view_count,
+      taken_at: it.taken_at,
+      caption: it.caption,
+    });
+  }
+  return out;
+}
+
+/** The profile fields the actor repeats on every item. */
+export function gatedProfile(answer: unknown): Record<string, unknown> | null {
+  const list = Array.isArray(answer) ? answer : findKey<unknown[]>(answer, 'items') ?? (Array.isArray(findKey(answer, 'data')) ? findKey<unknown[]>(answer, 'data') : null) ?? [];
+  const it = list.find((x) => x && typeof x === 'object' && typeof (x as Record<string, unknown>).username === 'string') as Record<string, unknown> | undefined;
+  if (!it) return null;
+  return { username: it.username, follower_count: it.follower_count, following_count: it.following_count, biography: it.biography, full_name: it.full_name, is_private: it.is_private };
+}
+
+async function readGated(handle: string, timeoutMs = GATED_TIMEOUT_MS): Promise<ProfilePair> {
+  const seconds = Math.max(30, Math.min(300, Math.floor(timeoutMs / 1000) - 5));
+  const answer = await executeTool(
+    'APIFY_RUN_ACTOR_SYNC_GET_DATASET_ITEMS',
+    { actorId: GATED_ACTOR, input: { usernames: [handle], maxPosts: GATED_POSTS, includeViews: true }, maxTotalChargeUsd: GATED_CHARGE_CAP_USD, waitForFinish: seconds, timeout: seconds, limit: GATED_POSTS, format: 'json' },
+    timeoutMs
+  );
+  const profile = gatedProfile(answer);
+  if (!profile) throw new Error('The signed-in reader answered with no posts for this profile.');
+  return [profile, gatedPosts(answer), null];
+}
+
 async function readApify(handle: string, timeoutMs = APIFY_TIMEOUT_MS): Promise<ProfilePair> {
   return readPair(
     executeTool('APIFY_SCRAPE_INSTAGRAM_PROFILES', { usernames: [handle], maxTotalChargeUsd: 0.05 }, timeoutMs),
@@ -318,13 +381,23 @@ async function instagram(handle: string, pauseMs = BLOCKED_RETRY_MS, budget: Bud
     if (/API key|wallet|out of credits|insufficient (?:credit|balance)/i.test(message(err))) return { ...summarizeInstagram(handle, null, null), error: message(err) };
     if (!restricted && !/not connected|no active connection|unavailable|502|503|504/i.test(message(err))) return { ...summarizeInstagram(handle, null, null), error: message(err) };
     const first = message(err);
+    // The signed-in reader first (it is what reads an age-gated profile), then Apify's stock scraper.
+    let gatedFailure = '';
+    try {
+      pair = await readGated(handle, budget(GATED_TIMEOUT_MS));
+      const snap = summarizeInstagram(handle, pair[0], pair[1]);
+      if (snap.exists) return { ...snap, read_via: 'apify', restricted, note: null, error: null };
+      gatedFailure = 'The signed-in reader answered with no recognizable profile.';
+    } catch (gated) {
+      gatedFailure = message(gated).slice(0, 200);
+    }
     try {
       pair = await readApify(handle, budget(APIFY_TIMEOUT_MS));
       const snap = summarizeInstagram(handle, pair[0], pair[1]);
       if (snap.exists) return { ...snap, read_via: 'apify', restricted, note: null, error: pair[2] };
-      return { ...snap, read_via: 'apify', restricted, note: restricted ? RESTRICTED_NOTE : null, error: `${first} Apify answered with no recognizable profile either.` };
+      return { ...snap, read_via: 'apify', restricted, note: restricted ? RESTRICTED_NOTE : null, error: `${first} Apify (signed-in reader): ${gatedFailure}; Apify answered with no recognizable profile either.` };
     } catch (fallback) {
-      return { ...summarizeInstagram(handle, null, null), restricted, note: restricted ? RESTRICTED_NOTE : null, error: `${first} Apify: ${message(fallback).slice(0, 200)}` };
+      return { ...summarizeInstagram(handle, null, null), restricted, note: restricted ? RESTRICTED_NOTE : null, error: `${first} Apify (signed-in reader): ${gatedFailure}; Apify: ${message(fallback).slice(0, 200)}` };
     }
   }
 }

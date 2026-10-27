@@ -10,7 +10,7 @@ vi.mock('../../../api/_lib/groundswell/composio', async (original) => ({
 vi.mock('../../../api/_lib/supabaseAdmin', () => ({ getSupabaseAdmin: () => ({}), isSupabaseConfigured: () => true }));
 vi.mock('../../../api/_lib/groundswell/currents/linked', async (original) => ({ ...(await original<object>()), loadLinkedAccounts: mocks.loadLinkedAccounts }));
 
-import { facebookEngagement, facebookPageUrl, LINKED_MEDIA_FIELDS, mediaFromGraph, PRIVATE_NOTE, refusal, RESTRICTED_NOTE, runSocial, summarizeFacebook, summarizeInstagram, timeBudget } from '../../../api/_lib/groundswell/currents/social';
+import { facebookEngagement, facebookPageUrl, GATED_ACTOR, gatedPosts, gatedProfile, LINKED_MEDIA_FIELDS, mediaFromGraph, PRIVATE_NOTE, refusal, RESTRICTED_NOTE, runSocial, summarizeFacebook, summarizeInstagram, timeBudget } from '../../../api/_lib/groundswell/currents/social';
 
 /** The Social Current when Instagram turns the scraper away: one more try, then the gap is recorded, never a failed audit. */
 
@@ -25,6 +25,16 @@ const apifyPosts = [
   { shortCode: 'C1', type: 'Image', likesCount: 40, commentsCount: 3, timestamp: '2026-10-20T15:00:00.000Z', caption: 'Brakes done same day.', displayUrl: 'https://cdn.example/C1.jpg' },
   { shortCode: 'C2', type: 'Video', likesCount: 20, commentsCount: 1, timestamp: '2026-10-18T15:00:00.000Z', caption: 'Shop tour', displayUrl: 'https://cdn.example/C2.jpg', videoViewCount: 900 },
 ];
+
+/** The signed-in reader's items, one per post with the profile repeated, as the actor answered on 2026-10-27 (figures made up). */
+const gatedItem = (post: Record<string, unknown>) => ({ username: 'harborautocare', user_pk: '44', full_name: 'Harbor Auto Care', follower_count: 11990, following_count: 1709, biography: 'Brakes & tires', is_private: false, is_verified: false, coauthors: [], hashtags: [], mentions: [], is_paid_partnership: false, is_off_grid: false, ...post });
+const gatedItems = {
+  items: [
+    gatedItem({ post_pk: '1', shortcode: 'G1', permalink: 'https://www.instagram.com/p/G1/', post_type: 'image', taken_at: '2026-10-26T14:26:47Z', caption: 'Packed house.', like_count: 59, comment_count: 1, view_count: null, media: [{ media_url: 'https://cdn.example/G1.jpg', cover_url: null, media_type: 'image', width: 1328, height: 1760, video_duration: null }] }),
+    gatedItem({ post_pk: '2', shortcode: 'G2', permalink: 'https://www.instagram.com/p/G2/', post_type: 'reel', taken_at: '2026-10-22T12:39:59Z', caption: 'Two new stouts.', like_count: 69, comment_count: 2, view_count: 1251, media: [{ media_url: 'https://cdn.example/G2.mp4', cover_url: 'https://cdn.example/G2-cover.jpg', media_type: 'video', width: 1080, height: 1920, video_duration: 19.6 }] }),
+    gatedItem({ post_pk: '3', shortcode: 'G3', permalink: 'https://www.instagram.com/p/G3/', post_type: 'carousel', taken_at: '2026-10-13T18:31:17Z', caption: 'Tacos.', like_count: 68, comment_count: 4, view_count: null, media: [{ media_url: 'https://cdn.example/G3a.jpg', cover_url: null, media_type: 'image', width: 1320, height: 1760, video_duration: null }, { media_url: 'https://cdn.example/G3b.jpg', cover_url: null, media_type: 'image', width: 1317, height: 1757, video_duration: null }] }),
+  ],
+};
 
 // A function returned from beforeEach is a cleanup hook to vitest, so the reset stays inside braces.
 beforeEach(() => {
@@ -60,9 +70,41 @@ describe('Social Current: blocked profiles', () => {
     expect(out.competitors[0]).toMatchObject({ followers: 500 });
   });
 
-  it('a profile Instagram hides from logged-out readers (the two reads turned away) is read through Apify instead', async () => {
+  it('a profile Instagram hides from logged-out readers (the two reads turned away) is read through the signed-in reader on Apify', async () => {
     mocks.executeTool.mockImplementation(async (slug: string, args: Record<string, unknown>) => {
       if (slug.startsWith('SCRAPECREATORS_') && args.handle === 'harborautocare') throw new Error(blockedProfile);
+      if (slug === 'APIFY_RUN_ACTOR_SYNC_GET_DATASET_ITEMS') return gatedItems;
+      return slug === 'SCRAPECREATORS_GET_INSTAGRAM_PROFILE' ? profile(500) : posts;
+    });
+    const out = await runSocial(ctx, 0);
+    expect(out.business).toMatchObject({ handle: 'harborautocare', exists: true, followers: 11990, following: 1709, biography: 'Brakes & tires', read_via: 'apify', restricted: true, note: null, error: null });
+    expect(out.business?.avg_likes_recent).toBe(65);
+    expect(out.business?.avg_comments_recent).toBe(2);
+    expect(out.business?.last_post_at).toBe('2026-10-26T14:26:47.000Z');
+    expect(out.business?.media?.map((m) => [m.code, m.type, m.image_url, m.plays, m.permalink])).toEqual([
+      ['G1', 'image', 'https://cdn.example/G1.jpg', null, 'https://www.instagram.com/p/G1/'],
+      ['G2', 'video', 'https://cdn.example/G2-cover.jpg', 1251, 'https://www.instagram.com/p/G2/'],
+      ['G3', 'carousel', 'https://cdn.example/G3a.jpg', null, 'https://www.instagram.com/p/G3/'],
+    ]);
+    expect(out.source).toMatch(/via Apify where Instagram hides a profile/);
+    const apify = mocks.executeTool.mock.calls.filter(([slug]) => slug.startsWith('APIFY_'));
+    expect(apify).toHaveLength(1);
+    expect(apify[0][1]).toMatchObject({ actorId: GATED_ACTOR, input: { usernames: ['harborautocare'], maxPosts: 12 }, maxTotalChargeUsd: 1 });
+    // The competitor's profile was public: no Apify run for it.
+    expect(apify.some(([, a]) => JSON.stringify(a).includes('bayside'))).toBe(false);
+  });
+
+  it('maps the signed-in reader’s items to a profile and a post list', () => {
+    expect(gatedProfile(gatedItems)).toMatchObject({ username: 'harborautocare', follower_count: 11990 });
+    expect(gatedProfile({ items: [] })).toBeNull();
+    expect(gatedPosts(gatedItems).map((p) => [p.code, p.media_type, p.display_url])).toEqual([['G1', 1, 'https://cdn.example/G1.jpg'], ['G2', 2, 'https://cdn.example/G2-cover.jpg'], ['G3', 8, 'https://cdn.example/G3a.jpg']]);
+    expect(gatedPosts(gatedItems.items)).toHaveLength(3);
+  });
+
+  it('when the signed-in reader answers with nothing, Apify’s stock scraper is tried next', async () => {
+    mocks.executeTool.mockImplementation(async (slug: string, args: Record<string, unknown>) => {
+      if (slug.startsWith('SCRAPECREATORS_') && args.handle === 'harborautocare') throw new Error(blockedProfile);
+      if (slug === 'APIFY_RUN_ACTOR_SYNC_GET_DATASET_ITEMS') return { items: [] };
       if (slug === 'APIFY_SCRAPE_INSTAGRAM_PROFILES') return apifyProfile;
       if (slug === 'APIFY_SCRAPE_INSTAGRAM_POSTS') return apifyPosts;
       return slug === 'SCRAPECREATORS_GET_INSTAGRAM_PROFILE' ? profile(500) : posts;
@@ -77,7 +119,8 @@ describe('Social Current: blocked profiles', () => {
     ]);
     expect(out.source).toMatch(/via Apify where Instagram hides a profile/);
     const apify = mocks.executeTool.mock.calls.filter(([slug]) => slug.startsWith('APIFY_'));
-    expect(apify.map(([slug, a]) => [slug, (a as { usernames?: string[]; username?: string[] }).usernames ?? (a as { username?: string[] }).username])).toEqual([
+    expect(apify.map(([slug, a]) => [slug, (a as { usernames?: string[]; username?: string[]; input?: { usernames: string[] } }).input?.usernames ?? (a as { usernames?: string[] }).usernames ?? (a as { username?: string[] }).username])).toEqual([
+      ['APIFY_RUN_ACTOR_SYNC_GET_DATASET_ITEMS', ['harborautocare']],
       ['APIFY_SCRAPE_INSTAGRAM_PROFILES', ['harborautocare']],
       ['APIFY_SCRAPE_INSTAGRAM_POSTS', ['harborautocare']],
     ]);
@@ -93,7 +136,7 @@ describe('Social Current: blocked profiles', () => {
     });
     const out = await runSocial(ctx, 0);
     expect(out.business).toMatchObject({ exists: false, followers: null, restricted: true, note: RESTRICTED_NOTE });
-    expect(out.business?.error).toMatch(/age restricted.*Apify: The paid Actor/);
+    expect(out.business?.error).toMatch(/age restricted.*Apify \(signed-in reader\): The paid Actor.*Apify: The paid Actor/);
     expect(out.competitors[0]).toMatchObject({ followers: 500, restricted: false, note: null });
   });
 

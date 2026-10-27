@@ -66,6 +66,7 @@ export const RESEARCH_SYSTEM = `You are the research assistant of GroundSwell's 
 Rules:
 - Search the web and read what you find. Report only things published or changed recently (the question says how far back), that the agent does not already know (the question lists what it knows), and that a small growth agency could act on or should watch.
 - Every learning needs the link of the page you read it on. Never report a learning without a source you actually opened; never invent a figure, a date, a product or a result. If you found nothing new, say so with an empty list.
+- A learning is an article, a study or an announcement dated inside the window, with its date given. Never a vendor's product page or homepage, and never a vendor's own claims about its results: a figure must come from the article's own reporting.
 - Plain words for a business owner: what it is, why it matters for an agency like this one, and what to do about it if anything.
 - Answer with JSON only, as the last thing you write: { "learnings": [ { "title": "...", "summary": "...", "why_it_matters": "...", "action": "...", "url": "https://...", "source": "the site or publisher", "published": "YYYY-MM-DD or null", "confidence": "low|medium|high" } ] }.`;
 
@@ -99,8 +100,20 @@ export function normalizeUrl(raw: string): string | null {
 /** A title as it is compared: lower case, letters and digits only. */
 export const titleKey = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().slice(0, 80);
 
-/** The learnings an answer holds that pass the rules and are not already known. */
-export function checkLearnings(raw: unknown, topic: string, known: Pick<LearningRow, 'url' | 'title'>[]): { kept: Omit<LearningRow, 'id' | 'found_at' | 'status' | 'consultation_id'>[]; dropped: string[] } {
+/** Days of slack on the window: a piece dated just before `since` may still be what the window asked for. */
+export const WINDOW_SLACK_DAYS = 2;
+
+/** True for a bare site address (no path beyond the host): a homepage, not an article. */
+export const isHomepage = (url: string) => new URL(url).pathname.replace(/\/+$/, '') === '' && !new URL(url).search;
+
+/**
+ * The learnings an answer holds that pass the rules and are not already
+ * known. With `since` (YYYY-MM-DD), a dated learning older than the window
+ * (less the slack) is dropped, and an undated one is kept only when its link
+ * is a page, not a homepage.
+ */
+export function checkLearnings(raw: unknown, topic: string, known: Pick<LearningRow, 'url' | 'title'>[], opts: { since?: string } = {}): { kept: Omit<LearningRow, 'id' | 'found_at' | 'status' | 'consultation_id'>[]; dropped: string[] } {
+  const floor = opts.since && /^\d{4}-\d{2}-\d{2}$/.test(opts.since) ? new Date(Date.parse(opts.since) - WINDOW_SLACK_DAYS * 24 * 60 * 60_000).toISOString().slice(0, 10) : null;
   const kept: Omit<LearningRow, 'id' | 'found_at' | 'status' | 'consultation_id'>[] = [];
   const dropped: string[] = [];
   const seenUrls = new Set(known.map((k) => normalizeUrl(k.url) ?? k.url));
@@ -122,9 +135,17 @@ export function checkLearnings(raw: unknown, topic: string, known: Pick<Learning
       dropped.push(`${title}: already known.`);
       continue;
     }
+    const published = /^\d{4}-\d{2}-\d{2}$/.test(clip(item?.published, 10)) ? clip(item?.published, 10) : null;
+    if (published && floor && published < floor) {
+      dropped.push(`${title}: published ${published}, before ${opts.since}.`);
+      continue;
+    }
+    if (!published && isHomepage(url)) {
+      dropped.push(`${title}: a homepage, not an article.`);
+      continue;
+    }
     seenUrls.add(url);
     seenTitles.add(titleKey(title));
-    const published = /^\d{4}-\d{2}-\d{2}$/.test(clip(item?.published, 10)) ? clip(item?.published, 10) : null;
     const confidence = ['low', 'medium', 'high'].includes(clip(item?.confidence, 10)) ? (clip(item?.confidence, 10) as LearningRow['confidence']) : 'low';
     kept.push({ topic, title, summary, why_it_matters: clip(item?.why_it_matters, 600) || null, action: clip(item?.action, 400) || null, url, source: clip(item?.source, 120) || new URL(url).hostname, published_at: published, confidence });
     if (kept.length >= LEARNINGS_PER_TOPIC) break;
@@ -183,16 +204,17 @@ export async function researchTopics(db: Db, opts: ResearchOptions): Promise<Res
       continue;
     }
     const known = await readLearnings(db, { topic: topic.key, limit: KNOWN_LIMIT });
+    const since = new Date(opts.now.getTime() - sinceDays * 24 * 60 * 60_000).toISOString().slice(0, 10);
     const question = JSON.stringify({
       topic: topic.label,
       look_for: topic.brief,
       today: opts.now.toISOString().slice(0, 10),
-      since: new Date(opts.now.getTime() - sinceDays * 24 * 60 * 60_000).toISOString().slice(0, 10),
+      since,
       at_most: LEARNINGS_PER_TOPIC,
       already_known: known.map((k) => ({ title: k.title, url: k.url, found: k.found_at.slice(0, 10) })),
     });
     const result = viaClaude ? await (opts.consult ?? consultClaude)(RESEARCH_SYSTEM, question, { webSearch: { maxUses: SEARCHES_PER_TOPIC } }) : await openaiResearch(RESEARCH_SYSTEM, question, opts.search ?? researchWithSearch);
-    const { kept, dropped } = result.parsed ? checkLearnings(result.parsed, topic.key, known) : { kept: [], dropped: [] as string[] };
+    const { kept, dropped } = result.parsed ? checkLearnings(result.parsed, topic.key, known, { since }) : { kept: [], dropped: [] as string[] };
     if (result.error) report.skipped[topic.key] = result.error;
     report.dropped[topic.key] = dropped;
     let consultationId: string | null = null;

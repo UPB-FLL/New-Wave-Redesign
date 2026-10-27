@@ -361,10 +361,11 @@ Search, Reddit and TikTok**.
 
 - **Instagram, Uncommon Path**: the profile is shown only to signed-in
   adults (the brewery's 21+ setting), and so is its Facebook Page; no
-  logged-out reader sees either, Apify included. The fix is the linked
-  account: on the staff customer page, "Became a client", link Instagram
-  (and Meta Ads), then Run again; the social step reads the linked account
-  first. The Oct 27 run's separate timeout on the social step is fixed on
+  logged-out reader sees either. The signed-in reader shipped on main the
+  same day (#172: the IntroPix actor on Apify) reads the Instagram profile;
+  the linked account (on the staff customer page, "Became a client", link
+  Instagram and Meta Ads, then Run again) stays the way to the account's own
+  insights and the gated Facebook Page, and the social step reads it first. The Oct 27 run's separate timeout on the social step is fixed on
   main (the deadline-capped reads and the `needsMs` hand-back).
 - **Yelp** (step `reviews`, Current Maps): Composio's Yelp toolkit answers on
   the instant account (no key of our own): `YELP_SEARCH_BY_PHONE`, then

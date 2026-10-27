@@ -13,9 +13,11 @@ Search, Reddit and TikTok. Full notes: section 7 of
 `docs/groundswell-public-sources-plan.md`.
 
 - **Instagram**: Uncommon Path's profile and Facebook Page are shown only to
-  signed-in adults (its 21+ setting), so no logged-out reader sees them; the
-  fix is linking the account (staff customer page: "Became a client", link
-  Instagram and Meta Ads, Run again). Not a code fault.
+  signed-in adults (its 21+ setting), so no logged-out reader sees them. The
+  signed-in reader on main (#172, below) now reads the Instagram profile;
+  linking the account (staff customer page: "Became a client", link
+  Instagram and Meta Ads, Run again) stays the way to the account's own
+  insights and the gated Facebook Page. Not a code fault.
 - **Steps** (all optional): `reviews` (Yelp toolkit on the instant account:
   phone, then name and city; details, three review excerpts, highlights when
   the plan allows; up to three competitors; `currents/reviews.ts`),
@@ -57,6 +59,17 @@ Search, Reddit and TikTok. Full notes: section 7 of
 - **Not verified live**: no run has used any of it; fal has never generated
   an image from this code (billed per call); the Reddit and TikTok files
   follow the platforms' published fields, not a live import.
+
+### Social Engineering hub: no "remote-first" in the copy (2026-10-27)
+
+Owner's call: "remote-first" says how the team works, not what a client gets,
+so the hub says what the client gets instead. The hero's facts line is
+"Nationwide · Calls in your time zone · Reported against revenue"; the
+industries note and the "Where do you work?" FAQ (also in the FAQPage JSON-LD)
+keep "based in Florida … calls in your time zone" without it; the keyword
+"marketing agency united states remote" is "small business marketing agency
+united states". `pages.test.tsx` forbids the phrase in the division's copy.
+
 ### New Wave IT pages: one page header, one title per section (2026-10-27)
 
 Owner's ask: rework the layout of every New Wave IT page (nothing on the Social
@@ -178,7 +191,8 @@ and learns from logs, data and results. Full notes: `docs/groundswell-agent.md`.
   in `openai.ts`), what is new in `DEFAULT_TOPICS` AI agent marketing and social media marketing, or
   `GROUNDSWELL_AGENT_TOPICS`; the ask carries the learnings already held so
   only new ones come back; `checkLearnings` needs a title, a summary and a
-  real link, never one known by link or title; stored in
+  real link, never one known by link or title, never one dated before the
+  window, and no undated homepage; stored in
   `groundswell_agent_learnings`, logged with purpose `research`, reported
   once under "What the agent learned"), `report.ts`
   (the email and the confirmation page), `agent.ts` (`runAgentPass`:
@@ -263,6 +277,34 @@ only in the catch path.
   Explorer citation count had answered: 2 citations of the brewery's site,
   both on Google AI Mode); and an llms-full.txt larger than the read cap
   now counts as present with its size unknown (`bytes: null`).
+
+### Groundswell: a signed-in reader for age-gated Instagram profiles (2026-10-27)
+
+Owner's ask: a scraper that gets past Instagram's age gate, so the
+brewery's own posts and figures are read without linking the account.
+Found and checked live on 2026-10-27: the IntroPix actor on Apify
+(`intropix/instagram-posts-reels-scraper`, `GATED_ACTOR` in
+`currents/social.ts`), which runs sessions of its own (no login or cookie
+from the business) and answered for `uncommonpathbrewing` with followers,
+posts, likes, comments, reel views, captions and full-size image links,
+where ScrapeCreators was refused and Apify's stock scraper listed nothing.
+Run through Composio's generic `APIFY_RUN_ACTOR_SYNC_GET_DATASET_ITEMS`
+(`maxPosts` 12, `maxTotalChargeUsd` 1; about two tenths of a cent a post).
+
+- **Social step**: a profile turned away as age-restricted, restricted or
+  blocked is read by the signed-in reader first (`readGated`; `gatedProfile`
+  and `gatedPosts` map its items, one per post with the profile repeated,
+  onto what `summarizeInstagram` and `mediaFrom` read), then by Apify's
+  stock scraper as before; `read_via` stays `apify`. A private account is
+  still never read.
+- **Creative step**: the signed-in reader sits between ScrapeCreators and
+  the stock scraper for the business's own images.
+- Readiness row label; tests in `groundswell-social.test.ts` (the actor's
+  item shape as answered that day) and the call order in
+  `groundswell-adsets.test.ts`.
+- The actor's terms forbid scraping private individuals and keeping raw
+  data past transient use (30 days); the engine reads businesses only and
+  stores summaries and the images it renders ads from.
 
 ### Headway: the measurement never waits on a link (2026-10-27)
 
