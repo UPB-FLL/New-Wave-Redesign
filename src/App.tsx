@@ -73,6 +73,7 @@ import {
   DIVISION_CONTACT_US_PATH,
   DIVISION_CUSTOMERS_PATH,
   DIVISION_GROUNDSWELL_PATH,
+  DIVISION_HEADWAY_PATH,
   LEGACY_CROISSANCE_PAGE_PATH,
   DIVISION_PUBLISHED,
   DIVISION_SERVICE_SLUGS,
@@ -88,6 +89,7 @@ import {
   SocialEngineeringHubRoute,
   SocialEngineeringGroundswellRoute,
   SocialEngineeringGroundswellMetricRoute,
+  SocialEngineeringHeadwayRoute,
   LegacyGroundswellPageRoute,
   SocialEngineeringServiceRoute,
 } from './divisions/socialEngineering/routes';
@@ -208,6 +210,7 @@ export default function App() {
             {GROUNDSWELL_METRIC_SLUGS.map((slug) => (
               <Route key={slug} path={groundswellMetricPath(slug)} element={<SocialEngineeringGroundswellMetricRoute slug={slug} />} />
             ))}
+            <Route path={DIVISION_HEADWAY_PATH} element={<SocialEngineeringHeadwayRoute />} />
             <Route path={LEGACY_CROISSANCE_PAGE_PATH} element={<LegacyGroundswellPageRoute />} />
             <Route path={DIVISION_CUSTOMERS_PATH} element={<SocialEngineeringCustomersRoute />} />
             <Route path={DIVISION_CONTACT_US_PATH} element={<SocialEngineeringContactUsRoute />} />

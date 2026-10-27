@@ -5,10 +5,11 @@ import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useContent } from '../../lib/useContent';
 import { FOOTER_EMAIL_FALLBACK, PLACEHOLDER_PHONE } from './contactDetails';
-import { appsContent, auditConnectors, auditContent, auditReports, auditSample, contactContent, contactUsContent, customersContent, divisionApps, divisionCustomers, divisionServices, groundswellMetricGroups, groundswellMetricsContent, hubContent } from './content';
+import { appsContent, auditConnectors, auditContent, auditReports, auditSample, contactContent, contactUsContent, customersContent, divisionApps, divisionCustomers, divisionServices, groundswellMetricGroups, groundswellMetricsContent, headwayContent, hubContent } from './content';
 import SocialEngineeringContactPage from './pages/SocialEngineeringContactPage';
 import SocialEngineeringContactUsPage from './pages/SocialEngineeringContactUsPage';
 import SocialEngineeringCustomersPage from './pages/SocialEngineeringCustomersPage';
+import SocialEngineeringHeadwayPage from './pages/SocialEngineeringHeadwayPage';
 import SocialEngineeringHubPage from './pages/SocialEngineeringHubPage';
 import SocialEngineeringGroundswellMetricPage from './pages/SocialEngineeringGroundswellMetricPage';
 import SocialEngineeringGroundswellPage from './pages/SocialEngineeringGroundswellPage';
@@ -23,14 +24,18 @@ import {
   DIVISION_CONTACT_US_PATH,
   DIVISION_CUSTOMERS_PATH,
   DIVISION_GROUNDSWELL_PATH,
+  DIVISION_HEADWAY_PATH,
   DIVISION_NAME,
   DIVISION_PRIMARY_CTA,
+  DIVISION_SERVICE_SLUGS,
   GROUNDSWELL_METRIC_SLUGS,
   SITE_URL,
   divisionServicePath,
   groundswellMetricPath,
 } from './site';
 import { GROUNDSWELL_PATH } from '../../groundswell/site';
+import { HEADWAY_BRAND } from '../../groundswell/headwayBrand';
+import { SETUP_ITEMS } from '../../lib/headway';
 
 vi.mock('../../lib/useContent', () => ({ useContent: vi.fn(() => ({})) }));
 
@@ -409,9 +414,9 @@ describe('SocialEngineeringContactPage', () => {
 describe('DivisionHeader menus', () => {
   const openMenu = () => screen.queryByRole('link', { name: divisionServices[0].navLabel });
 
-  it('toggles Services on click/tap and ignores emulated (non-mouse) hover', () => {
+  it('toggles the Headway (services) menu on click/tap and ignores emulated (non-mouse) hover', () => {
     renderAt(<DivisionHeader />);
-    const services = screen.getByRole('button', { name: /Services/ });
+    const services = screen.getByRole('button', { name: /Headway/ });
     const container = services.parentElement!;
 
     fireEvent.pointerEnter(container, { pointerType: 'touch' });
@@ -422,9 +427,9 @@ describe('DivisionHeader menus', () => {
     expect(openMenu()).toBeInTheDocument();
   });
 
-  it('closes on Escape and returns focus to the Services button', () => {
+  it('closes on Escape and returns focus to the Headway button', () => {
     renderAt(<DivisionHeader />);
-    const services = screen.getByRole('button', { name: /Services/ });
+    const services = screen.getByRole('button', { name: /Headway/ });
     fireEvent.click(services);
     expect(openMenu()).toBeInTheDocument();
 
@@ -435,7 +440,7 @@ describe('DivisionHeader menus', () => {
 
   it('closes when focus leaves the dropdown', () => {
     renderAt(<DivisionHeader />);
-    const services = screen.getByRole('button', { name: /Services/ });
+    const services = screen.getByRole('button', { name: /Headway/ });
     fireEvent.click(services);
     fireEvent.blur(services, { relatedTarget: screen.getByRole('link', { name: DIVISION_PRIMARY_CTA }) });
     expect(openMenu()).toBeNull();
@@ -911,13 +916,13 @@ describe('the two contact pages', () => {
 });
 
 describe('header and footer links', () => {
-  it('lists Overview, Services, GroundSwell, Customers, and Contact us before the discovery-call button on desktop', () => {
+  it('lists Overview, Headway (the services menu), GroundSwell, Customers, and Contact us before the discovery-call button on desktop', () => {
     renderAt(<DivisionHeader />);
     const nav = screen.getByRole('navigation', { name: DIVISION_NAME });
     const row = nav.querySelector('[data-role="nav-row"] > [data-role="desktop-links"]')!;
     expect([...row.querySelectorAll(':scope > a, :scope > div > button')].map((item) => item.textContent?.trim())).toEqual([
       'Overview',
-      'Services',
+      'Headway',
       'GroundSwell',
       'Customers',
       'Contact us',
@@ -951,5 +956,59 @@ describe('header and footer links', () => {
     ]);
     expect(screen.getByRole('link', { name: /Explore GroundSwell/ })).toHaveAttribute('href', DIVISION_GROUNDSWELL_PATH);
     expect(screen.getByRole('link', { name: /Already a partner\? Open partner workspace/ })).toHaveAttribute('href', GROUNDSWELL_PATH);
+    // The services column is Headway's: the implementation service first, the six kinds of work under it.
+    const services = screen.getByRole('heading', { level: 2, name: 'Headway' }).parentElement!;
+    expect(within(services).getAllByRole('link').map((link) => link.getAttribute('href'))).toEqual([DIVISION_HEADWAY_PATH, ...divisionServices.map((s) => divisionServicePath(s.slug))]);
+  });
+});
+
+describe('SocialEngineeringHeadwayPage', () => {
+  it('renders its own head, one H1, its breadcrumb, and its FAQs under the GroundSwell brand', () => {
+    renderAt(<SocialEngineeringHeadwayPage />);
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(headwayContent.headline);
+    expect(document.title).toBe(headwayContent.metaTitle);
+    expect(canonical()).toBe(`${SITE_URL}${DIVISION_HEADWAY_PATH}`);
+    expect(document.head.querySelector('meta[property="og:image"]')).toHaveAttribute('content', `${SITE_URL}${HEADWAY_BRAND.ogImage}`);
+    const breadcrumb = screen.getByRole('navigation', { name: 'Breadcrumb' });
+    expect(within(breadcrumb).getByText('Headway')).toHaveAttribute('aria-current', 'page');
+    headwayContent.faqs.forEach((faq) => expect(screen.getByText(faq.question)).toBeInTheDocument());
+    expect(jsonLdBlocks()).toHaveLength(1);
+  });
+
+  it('lists the six services under Headway, each linking to its page, with what runs through the accounts and what the team does', () => {
+    renderAt(<SocialEngineeringHeadwayPage />);
+    const ledger = document.querySelector('[data-role="headway-services"]') as HTMLElement;
+    const rows = [...ledger.querySelectorAll(':scope > li')];
+    expect(rows.map((row) => row.getAttribute('data-service'))).toEqual([...DIVISION_SERVICE_SLUGS]);
+    divisionServices.forEach((service) => {
+      expect(within(ledger).getByRole('link', { name: `About the service: ${service.navLabel}` })).toHaveAttribute('href', divisionServicePath(service.slug));
+    });
+    expect(within(ledger).getByRole('list', { name: 'Smart advertising: runs through the linked accounts' })).toHaveTextContent('Google Ads search campaign (paused)');
+    expect(within(ledger).getByRole('list', { name: 'Brand development: the team carries out' })).toBeInTheDocument();
+    // The setup checklist names every item of the shared catalogue, grouped by kind.
+    const setup = document.querySelector('[data-role="headway-setup"]') as HTMLElement;
+    SETUP_ITEMS.forEach((item) => expect(within(setup).getByText(item.label, { exact: false })).toBeInTheDocument());
+    expect(screen.getByRole('link', { name: /About GroundSwell/ })).toHaveAttribute('href', DIVISION_GROUNDSWELL_PATH);
+  });
+
+  it('is where the hub sends readers for the implementation service', () => {
+    renderAt(<SocialEngineeringHubPage />);
+    expect(screen.getByRole('link', { name: /How Headway works/ })).toHaveAttribute('href', DIVISION_HEADWAY_PATH);
+    expect(screen.getByRole('heading', { name: 'One service that carries the plan out, six kinds of work under it' })).toBeInTheDocument();
+  });
+
+  it('is where every service page places itself: one of six kinds of work under Headway', () => {
+    renderAt(<SocialEngineeringServicePage slug={divisionServices[0].slug} />);
+    expect(screen.getByRole('link', { name: 'All six, under Headway' })).toHaveAttribute('href', DIVISION_HEADWAY_PATH);
+    expect(screen.getByRole('heading', { name: 'One of six kinds of work under Headway' })).toBeInTheDocument();
+  });
+
+  it('heads the services menu, with the six kinds of work under it', () => {
+    renderAt(<DivisionHeader />);
+    fireEvent.click(screen.getByRole('button', { name: 'Headway' }));
+    const menu = document.getElementById('nwse-services-menu')!;
+    expect(within(menu).getByRole('link', { name: /Headway · the implementation service/ })).toHaveAttribute('href', DIVISION_HEADWAY_PATH);
+    divisionServices.forEach((service) => expect(within(menu).getByRole('link', { name: service.navLabel })).toHaveAttribute('href', divisionServicePath(service.slug)));
   });
 });

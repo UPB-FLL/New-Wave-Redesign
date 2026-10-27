@@ -2,6 +2,86 @@
 
 ## Recent Changes
 
+### Headway: the implementation service, its page, and the agent that carries the plan out (2026-10-26)
+
+Owner's ask: with GroundSwell largely done, the division sells one
+implementation service with the six services listed under it; a name and
+brand for it; the admin switches each customer's services on by what it
+pays for; a setup checklist (ids, API keys, or logins when a client would
+rather not link); and the agent that applies the recommendations through
+Composio and the client's accounts. The name is **Headway** ("Progress you
+can measure."; `docs/headway-branding.md` has the rules, the masters under
+`public/brand/social-engineering/headway/`, and the alternatives weighed;
+not trademark-cleared). GroundSwell finds and plans; Headway carries it out.
+
+- **Catalogue** `src/lib/headway.ts` (pure, shared by the browser and the
+  API): the six services (the division's slugs; a test holds them in
+  step), `HEADWAY_SERVICE_INFO` (what runs through the linked accounts,
+  what the team carries out, what each needs), `SETUP_ITEMS` (four kinds:
+  `link` = a Composio-linked account, `id`, `access`, `secret` = a login
+  held encrypted; an `alternative` lets a login stand in for a link),
+  action shapes and statuses.
+- **Migration** `20261101120000`: `groundswell_customer_services` (what a
+  customer pays for, staff-set), `groundswell_setup_items` (typed items;
+  ids in `value_hint` in clear, logins AES-256-GCM under
+  `GROUNDSWELL_SECRETS_KEY` in `value_encrypted` with the last four
+  characters as the hint; reveals recorded), `groundswell_headway_plans`,
+  `groundswell_headway_actions` (proposed → approved → applying → applied |
+  failed, or declined; a brief → done; `depends_on`, `scheduled_for`,
+  `blocked_by`, a lease). RLS on, no policies. The worker cron also fires
+  while an approved action is due. Additive: the route answers 503 until
+  the tables exist.
+- **Engine** `api/_lib/groundswell/headway/`: `plan.ts` turns the newest
+  delivered run's outputs into actions, one per thing to do, in the plan's
+  own words (Instagram posts from the social plan's week, JPEG images
+  rotating from the creative step, each on its next weekday; the Google
+  search campaign and each Meta set, built paused, with a second "turn on"
+  action that waits on the first; the website changes and new pages as
+  briefs plus the sitemap through Search Console; the scan's tracking gaps;
+  the benchmark's differences; the integrated plan queued 30 days on; the
+  monthly report), only for the services switched on; `checklist.ts` builds
+  the setup checklist from the enabled services, the client-accounts table
+  and the setup rows; `apply.ts` runs approved automatic actions as the
+  client's linked account (`executeToolAs`, never the shared lookup):
+  `INSTAGRAM_POST_IG_USER_MEDIA` + `…_PUBLISH`, one `GOOGLEADS_BATCH_MUTATE`
+  (budget, campaign paused, geo target when Google has the city, negatives,
+  ad groups, keywords, RSAs; enable = `GOOGLEADS_MUTATE_CAMPAIGNS`),
+  `METAADS_CREATE_CAMPAIGN` (paused) + `…_AD_SET` + `…_AD` (live under the
+  paused campaign, ZIP-radius targeting from the listing; enable =
+  `METAADS_UPDATE_CAMPAIGN`), `GOOGLE_SEARCH_CONSOLE_SUBMIT_SITEMAP` once
+  the sitemap answers, and `queuePhase('integrated')`. Three tries for a
+  hiccup, one for a plain problem (`ApplyProblem`); a still-blocked action
+  stays approved saying what it waits on. `background.ts` applies due
+  actions after the audit worker and right after an approval.
+- **Route** `api/groundswell/headway.ts` (partner for its own customer, or
+  a Groundswell admin): GET the view; `?reveal=` (staff) a stored login,
+  recorded; PATCH services (staff); PUT a typed item; POST plan | approve |
+  decline | done | retry. Payloads never leave the server; a partner sees
+  no error text.
+- **Portal**: `HeadwayPanel` (`src/groundswell/workspace/`) on the staff
+  customer page (always) and a client's partner page: services with
+  switches (staff), the checklist with Add / Mark as given / Not needed /
+  Reveal, Build the plan, the actions grouped by service with Approve /
+  Mark done / Try again / Decline, polling while something applies.
+  `src/lib/groundswellHeadway.ts` is the browser side.
+- **Site**: `/social-engineering/headway` (`content/headway.ts`,
+  `SocialEngineeringHeadwayPage`, `headwayPageSeo`: a Service with the six
+  as its offer catalogue), wired through site.ts, seo.ts, preload.ts,
+  routes.tsx, App.tsx, vercel.json, the sitemap. The services menu is the
+  Headway menu, the footer column is headed Headway, the hub band and every
+  service page place the six under it. The six URLs are unchanged.
+- **Tests**: `src/test/api/groundswell-headway.test.ts` (catalogue,
+  checklist, planner, route, every tool against fake answers, the loop),
+  `HeadwayPanel.test.tsx`, the Headway cases in `pages.test.tsx`, and the
+  navigation, responsive, preload and integration pins.
+- **Not verified live**: no tool has run against a real account; the
+  Composio payload shapes follow the tools' published schemas (read on
+  2026-10-26) and want one live run per tool. Setup in Vercel:
+  `GROUNDSWELL_SECRETS_KEY` (any long random string) before a login is
+  stored. Meta interests are not set by the tool (named in the result);
+  Facebook, TikTok, LinkedIn and YouTube posts, GBP changes and website
+  edits are briefs for the team.
+
 ### Groundswell: AI search reading and the GEO developer brief (2026-10-26)
 
 Owner's ask: in the reporting and analytics, gather the current AI search

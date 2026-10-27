@@ -190,6 +190,11 @@ async function loadSteps(
   return { outputs, inherited, steps: own.map((r) => r.step) };
 }
 
+/** A run's outputs laid over its sources' (Headway plans from them), by step name. */
+export async function loadRunOutputs(db: SupabaseClient, auditId: string, sourceId?: string | null): Promise<Record<string, unknown>> {
+  return (await loadSteps(db, auditId, sourceId)).outputs;
+}
+
 const RUN_COLUMNS = 'id,business_name,city,website,instagram,facebook,competitors,notes';
 /** Read only where the database has them (migrations 20261022120000, 20261024130000, 20261029120000). */
 const PHASE_COLUMNS = ',kind,partner_id,customer_id,phase,source_audit_id';

@@ -6,6 +6,7 @@ import { STAGE_LABELS } from '../pages/customerStatus';
 import { AccountsCard } from '../pages/GroundswellCustomerPage';
 import { GROUNDSWELL_ADMIN_CUSTOMERS_PATH } from '../site';
 import { CustomerWorkspace } from '../workspace/CustomerWorkspace';
+import { HeadwayPanel } from '../workspace/HeadwayPanel';
 import { PHASE_INFO } from '../../lib/groundswellValidation';
 
 /** Staff customer workspace, including stage controls and client account linking. */
@@ -105,6 +106,8 @@ export default function GroundswellCustomer() {
       <div className="gs-admin-customer-workspace">
         <CustomerWorkspace key={id} viewer="admin" customerId={id} />
       </div>
+      {/* Headway: what the customer pays for, its setup checklist, and the actions to approve (staff switch the services on). */}
+      {summary ? <HeadwayPanel key={`headway-${id}`} viewer="admin" customerId={id} /> : null}
     </div>
   );
 }

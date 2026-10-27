@@ -7,6 +7,7 @@ import { hubContent } from './hub';
 import { integration } from './integration';
 import { auditConnectors, auditContent, auditReports, auditSample } from './groundswell';
 import { findGroundswellMetricGroup, groundswellMetricGroups, groundswellMetricsContent } from './groundswellMetrics';
+import { headwayContent, headwayServices, headwaySetupItems } from './headway';
 import { marketing } from './marketing';
 import { socialMedia } from './social-media';
 import { websiteDesign } from './website-design';
@@ -15,6 +16,7 @@ export { auditConnectors, auditContent, auditReports, auditSample };
 export { findGroundswellMetricGroup, groundswellMetricGroups, groundswellMetricsContent };
 export type { GroundswellMetric, GroundswellMetricGroup } from './groundswellMetrics';
 export { appsContent, contactUsContent, customersContent, divisionApps, divisionCustomers, hubContent };
+export { headwayContent, headwayServices, headwaySetupItems };
 
 /** Display order for navigation, the hub's service grid, and the sitemap. */
 export const divisionServices: readonly DivisionServiceContent[] = [

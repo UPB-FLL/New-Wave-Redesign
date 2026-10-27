@@ -12,6 +12,7 @@ const HubPage = lazy(() => import('./pages/SocialEngineeringHubPage'));
 const ServicePage = lazy(() => import('./pages/SocialEngineeringServicePage'));
 const GroundSwellPage = lazy(() => import('./pages/SocialEngineeringGroundswellPage'));
 const GroundSwellMetricPage = lazy(() => import('./pages/SocialEngineeringGroundswellMetricPage'));
+const HeadwayPage = lazy(() => import('./pages/SocialEngineeringHeadwayPage'));
 const CustomersPage = lazy(() => import('./pages/SocialEngineeringCustomersPage'));
 const ContactUsPage = lazy(() => import('./pages/SocialEngineeringContactUsPage'));
 const ContactPage = lazy(() => import('./pages/SocialEngineeringContactPage'));
@@ -79,6 +80,14 @@ export function SocialEngineeringGroundswellMetricRoute({ slug }: { slug: Ground
   return (
     <Deferred>
       <GroundSwellMetricPage slug={slug} />
+    </Deferred>
+  );
+}
+
+export function SocialEngineeringHeadwayRoute() {
+  return (
+    <Deferred>
+      <HeadwayPage />
     </Deferred>
   );
 }

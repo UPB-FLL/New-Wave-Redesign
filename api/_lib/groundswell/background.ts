@@ -1,6 +1,8 @@
 import { waitUntil } from '@vercel/functions';
 import { getSupabaseAdmin } from '../supabaseAdmin.js';
 import { autoStartEnabled, runWorker, startWithinCapacity } from './engine.js';
+import { applyDueActions } from './headway/apply.js';
+import { decryptSecret } from './headway/secrets.js';
 import { ALL_STEPS, PHASE_STEPS } from './steps.js';
 
 /**
@@ -27,5 +29,23 @@ export function runWorkerInBackground(startedAt: number): void {
         if (report.ran.length) console.log('Groundswell worker:', JSON.stringify(report));
       })
       .catch((err) => console.error('Groundswell worker failed:', err))
+      // Then Headway: the approved actions that are due (api/_lib/groundswell/headway/apply.ts).
+      .then(() => applyDueActions(db, { deadline, decrypt: decryptSecret }))
+      .then((report) => {
+        if (report.ran.length) console.log('Headway:', JSON.stringify(report));
+      })
+      .catch((err) => console.error('Headway failed:', err))
+  );
+}
+
+/** After an approval: applies what is due now, without waiting for the heartbeat. */
+export function applyHeadwayInBackground(startedAt: number): void {
+  const deadline = startedAt + FUNCTION_SECONDS * 1000 - 10_000;
+  waitUntil(
+    applyDueActions(getSupabaseAdmin(), { deadline, decrypt: decryptSecret })
+      .then((report) => {
+        if (report.ran.length) console.log('Headway:', JSON.stringify(report));
+      })
+      .catch((err) => console.error('Headway failed:', err))
   );
 }

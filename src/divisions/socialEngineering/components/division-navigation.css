@@ -132,6 +132,20 @@
   background: var(--gs-nav-foam);
 }
 
+/* Headway at the head of the menu: the mark, the eyebrow and one line, the whole row the link. */
+.gs-division-headway-intro {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  color: var(--gs-nav-navy);
+  text-decoration: none;
+}
+.gs-division-headway-intro > img { flex: none; }
+.gs-division-headway-intro > span { display: flex; flex: 1 1 auto; flex-direction: column; gap: 0.25rem; }
+.gs-division-headway-intro > svg { flex: none; margin-left: auto; transition: transform 0.2s; }
+.gs-division-headway-intro:hover > svg, .gs-division-headway-intro:focus-visible > svg { transform: translateX(3px); }
+.gs-division-headway-intro[aria-current='page'] { color: var(--nwse-lure-amber-deep); }
+
 .gs-division-nav-eyebrow {
   font-family: var(--nw-font-technical, monospace);
   font-size: 0.75rem;

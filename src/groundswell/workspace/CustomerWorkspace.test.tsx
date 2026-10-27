@@ -13,6 +13,8 @@ const ws = vi.hoisted(() => ({
 }));
 
 vi.mock('../../lib/groundswellWorkspace', async (orig) => ({ ...(await orig<typeof import('../../lib/groundswellWorkspace')>()), ...ws }));
+// Headway's panel sits on the customer pages; its own test covers it.
+vi.mock('../../lib/groundswellHeadway', async (orig) => ({ ...(await orig<typeof import('../../lib/groundswellHeadway')>()), getHeadway: vi.fn(async () => ({ available: true, secrets_available: false, can_manage: false, services: [], checklist: [], plans: [], actions: [], source: null, source_note: 'Nothing delivered yet.' })) }));
 
 import { PartnerSignedOut } from '../../lib/groundswellPartner';
 import GroundswellCustomer from '../admin/GroundswellCustomer';

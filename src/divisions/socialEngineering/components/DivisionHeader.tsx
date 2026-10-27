@@ -2,13 +2,16 @@ import { useEffect, useRef, useState, type FocusEvent, type PointerEvent } from 
 import { Link, useLocation } from 'react-router-dom';
 import { divisionServices } from '../content';
 import { GROUNDSWELL_BRAND } from '../../../groundswell/brand';
+import { HEADWAY_BRAND } from '../../../groundswell/headwayBrand';
 import { GROUNDSWELL_PATH } from '../../../groundswell/site';
+import { HEADWAY_NAME } from '../../../lib/headway';
 import './division-navigation.css';
 import {
   DIVISION_BASE_PATH,
   DIVISION_CONTACT_PATH,
   DIVISION_CONTACT_US_PATH,
   DIVISION_GROUNDSWELL_PATH,
+  DIVISION_HEADWAY_PATH,
   DIVISION_CUSTOMERS_PATH,
   DIVISION_ENDORSEMENT,
   DIVISION_PRIMARY_CTA,
@@ -37,7 +40,7 @@ const samePath = (pathname: string, path: string) => pathname.replace(/\/+$/, ''
  */
 const DESKTOP_NAV_QUERY = '(min-width: 64em)';
 
-/** Page links: after the Services menu on desktop, beside Overview in the phone and tablet sheet. */
+/** Page links: after the Headway menu on desktop, beside Overview in the phone and tablet sheet. */
 const pageLinks = [
   { label: 'GroundSwell', path: DIVISION_GROUNDSWELL_PATH },
   { label: 'Customers', path: DIVISION_CUSTOMERS_PATH },
@@ -225,7 +228,7 @@ export function DivisionHeader() {
                 aria-expanded={servicesOpen}
                 aria-controls="nwse-services-menu"
               >
-                Services
+                {HEADWAY_NAME}
                 <NwseIcon
                   name="chevron-down"
                   size={16}
@@ -235,10 +238,15 @@ export function DivisionHeader() {
               {servicesOpen ? (
                 <div className="gs-division-services-dropdown absolute top-full z-50 pt-3">
                   <div id="nwse-services-menu" className="gs-division-services-panel">
-                    <div className="gs-division-services-intro">
-                      <p className="gs-division-nav-eyebrow">One connected growth system</p>
-                      <p>Build the presence. Connect the data. Move the business forward.</p>
-                    </div>
+                    {/* Headway, the one service the division sells; the six kinds of work are listed under it. */}
+                    <Link to={DIVISION_HEADWAY_PATH} onClick={closeMenus} className="gs-division-services-intro gs-division-headway-intro" aria-current={samePath(pathname, DIVISION_HEADWAY_PATH) ? 'page' : undefined}>
+                      <img src={HEADWAY_BRAND.mark} width={34} height={34} alt="" aria-hidden="true" />
+                      <span>
+                        <span className="gs-division-nav-eyebrow">{HEADWAY_NAME} · the implementation service</span>
+                        <span>The plan, carried out through your own accounts, every action approved. Six kinds of work under it:</span>
+                      </span>
+                      <NwseIcon name="arrow-right" size={18} />
+                    </Link>
                     <ul className="gs-division-service-grid">
                       {divisionServices.map((service) => (
                         <li key={service.slug}>
@@ -263,7 +271,7 @@ export function DivisionHeader() {
                     </ul>
                     <Link to={DIVISION_GROUNDSWELL_PATH} onClick={closeMenus} className="gs-division-services-engine">
                       <img src={GROUNDSWELL_BRAND.favicon} width={28} height={28} alt="" aria-hidden="true" />
-                      <span>GroundSwell connects the work</span>
+                      <span>GroundSwell finds and plans; {HEADWAY_NAME} carries it out</span>
                       <NwseIcon name="arrow-right" size={18} />
                     </Link>
                   </div>
@@ -329,7 +337,11 @@ export function DivisionHeader() {
                   </Link>
                 ))}
               </div>
-              <p className="nwse-type-kicker nwse-kicker mb-1 mt-3">Services</p>
+              <Link to={DIVISION_HEADWAY_PATH} onClick={closeMenus} className={`${menuRowClass} mt-3 gs-division-menu-engine`} aria-current={samePath(pathname, DIVISION_HEADWAY_PATH) ? 'page' : undefined}>
+                <img src={HEADWAY_BRAND.mark} width={23} height={23} alt="" aria-hidden="true" />
+                {HEADWAY_NAME}
+              </Link>
+              <p className="nwse-type-kicker nwse-kicker mb-1 mt-1">Services under {HEADWAY_NAME}</p>
               {/* Landscape phones: two columns (row by row, in reading order), so the
                   call to action fits the short screen without scrolling the menu. */}
               <ul className="flex flex-col max-lg:[@media(max-height:500px)]:grid max-lg:[@media(max-height:500px)]:grid-cols-2 max-lg:[@media(max-height:500px)]:gap-x-6">
