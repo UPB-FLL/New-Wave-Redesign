@@ -1,4 +1,5 @@
 import { getSupabaseAdmin } from '../../supabaseAdmin.js';
+import { cut } from '../storable.js';
 import { executeTool, executeToolAs, findKey, isComposioConfigured } from '../composio.js';
 import { PermanentStepError, type StepContext } from '../types.js';
 import { loadLinkedAccounts } from './linked.js';
@@ -138,7 +139,7 @@ export function mediaFrom(posts: unknown): InstagramMedia[] {
       comments: n(p.comment_count) ?? n(p.commentsCount) ?? n(findKey(p.edge_media_to_comment, 'count')),
       plays: n(p.play_count) ?? n(p.ig_play_count) ?? n(p.videoPlayCount) ?? n(p.videoViewCount),
       taken_at: time ? new Date(time).toISOString() : null,
-      caption: caption ? caption.slice(0, 400) : null,
+      caption: caption ? cut(caption, 400) : null,
     });
   }
   return out.slice(0, 12);
@@ -147,7 +148,7 @@ export function mediaFrom(posts: unknown): InstagramMedia[] {
 const n = numeric;
 
 /** The captions of a post list, newest first, trimmed. */
-export const captionsOf = (media: InstagramMedia[] | undefined): string[] => (media ?? []).map((m) => (m.caption ?? '').replace(/\s+/g, ' ').trim().slice(0, 220)).filter(Boolean).slice(0, 8);
+export const captionsOf = (media: InstagramMedia[] | undefined): string[] => (media ?? []).map((m) => cut((m.caption ?? '').replace(/\s+/g, ' ').trim(), 220)).filter(Boolean).slice(0, 8);
 
 /** The hashtags in a set of captions, most used first, lower-case, without the sign. */
 export function hashtagsOf(captions: string[], limit = 15): string[] {
@@ -407,7 +408,7 @@ export function mediaFromGraph(items: unknown): InstagramMedia[] {
       comments: n(m.comments_count),
       plays: type === 'VIDEO' ? n(m.view_count) : null,
       taken_at: time && Number.isFinite(time) ? new Date(time).toISOString() : null,
-      caption: typeof m.caption === 'string' ? m.caption.slice(0, 400) : null,
+      caption: typeof m.caption === 'string' ? cut(m.caption, 400) : null,
     });
   }
   return out.slice(0, 12);

@@ -243,8 +243,9 @@ const SANDBOX_PATH = /^\/mnt\/files\/[\w./-]+\.json$/;
 export function prunerCode(path: string, index = 0): string {
   return [
     'import json',
-    'DROP = {"owner","polaris_ordered_timeline_connection","video_versions","additional_candidates","usertags","tagged_users","biography_with_entities","has_translation","friendship_status","clips_metadata","music_metadata"}',
-    'PRIORITY = {"data", "user", "profile", "graphql", "edge_followed_by", "edge_follow", "edge_owner_to_timeline_media", "count", "follower_count", "following_count", "media_count", "followersCount", "followsCount", "postsCount", "username", "full_name", "biography"}',
+    'DROP = {"owner","polaris_ordered_timeline_connection","video_versions","additional_candidates","usertags","tagged_users","biography_with_entities","has_translation","friendship_status","clips_metadata","music_metadata","hd_profile_pic_url_info","profile_pic_genai_tool_info","meta_verified_benefits_info","regulated_news_in_locations","account_badges","bio_links"}',
+    'NESTED_DROP = {"user"}',
+    'PRIORITY = {"data", "items", "posts", "reels", "edges", "user", "profile", "graphql", "edge_followed_by", "edge_follow", "edge_owner_to_timeline_media", "count", "follower_count", "following_count", "media_count", "followersCount", "followsCount", "postsCount", "username", "full_name", "biography", "external_url", "is_business", "is_private", "code", "shortcode", "caption", "like_count", "comment_count", "play_count", "taken_at", "media_type", "product_type", "display_uri", "display_url", "image_versions2", "candidates", "url"}',
     'def prune(x, budget, depth=0, limit=12):',
     '    if depth > 12 or budget[0] <= 0: return None',
     '    budget[0] -= 1',
@@ -254,6 +255,7 @@ export function prunerCode(path: string, index = 0): string {
     '        for k, v in ordered[:max(12, limit * 4)]:',
     '            if len(k) > 128: continue',
     '            if k in DROP and depth > 0: continue',
+    '            if k in NESTED_DROP and depth > 1: continue',
     '            if budget[0] <= 0: break',
     '            if k == "candidates" and isinstance(v, list): out[k] = [prune(c, budget, depth + 1, limit) for c in v[:1]]; continue',
     '            out[k] = prune(v, budget, depth + 1, limit)',
@@ -264,7 +266,7 @@ export function prunerCode(path: string, index = 0): string {
     `f = json.load(open(${JSON.stringify(path)}))`,
     `payload = f.get("data", f).get("results", [])[${index}]["response"]["data"]`,
     'for limit in [12, 6, 3, 1]:',
-    '    encoded = json.dumps(prune(payload, [max(80, limit * 80)], limit=limit), ensure_ascii=True, separators=(",", ":"), allow_nan=False)',
+    '    encoded = json.dumps(prune(payload, [max(80, limit * 200)], limit=limit), ensure_ascii=True, separators=(",", ":"), allow_nan=False)',
     '    if len(encoded) <= 19000: break',
     'else: raise ValueError("Saved provider data could not fit within the output budget")',
     'print("GROUNDSWELL_JSON_START\\n" + encoded + "\\nGROUNDSWELL_JSON_END")',
