@@ -10,7 +10,7 @@ vi.mock('../../../api/_lib/groundswell/composio', async (original) => ({
 vi.mock('../../../api/_lib/supabaseAdmin', () => ({ getSupabaseAdmin: () => ({}), isSupabaseConfigured: () => true }));
 vi.mock('../../../api/_lib/groundswell/currents/linked', async (original) => ({ ...(await original<object>()), loadLinkedAccounts: mocks.loadLinkedAccounts }));
 
-import { facebookPageUrl, LINKED_MEDIA_FIELDS, mediaFromGraph, PRIVATE_NOTE, refusal, RESTRICTED_NOTE, runSocial, summarizeFacebook, summarizeInstagram } from '../../../api/_lib/groundswell/currents/social';
+import { facebookPageUrl, LINKED_MEDIA_FIELDS, mediaFromGraph, PRIVATE_NOTE, refusal, RESTRICTED_NOTE, runSocial, summarizeFacebook, summarizeInstagram, timeBudget } from '../../../api/_lib/groundswell/currents/social';
 
 /** The Social Current when Instagram turns the scraper away: one more try, then the gap is recorded, never a failed audit. */
 
@@ -115,6 +115,27 @@ describe('Social Current: blocked profiles', () => {
     expect(refusal(new Error('Profile is restricted'))).toBe('restricted');
     expect(refusal(new Error('Profile is private'))).toBe('private');
     expect(refusal(new Error('Composio refused the API key (401).'))).toBeNull();
+  });
+
+  it('never lets one read wait past the worker deadline: every call is capped by the time left', async () => {
+    mocks.executeTool.mockImplementation(async (slug: string) => {
+      if (slug === 'SCRAPECREATORS_GET_INSTAGRAM_PROFILE') throw new Error('Instagram blocked access to this public profile');
+      if (slug.startsWith('APIFY_')) return { username: 'harborautocare', followersCount: 10 };
+      return { data: {} };
+    });
+    const soon = { ...ctx, deadline: Date.now() + 40_000 };
+    await runSocial(soon, 0);
+    const timeouts = mocks.executeTool.mock.calls.map(([slug, , t]) => [slug, t] as [string, unknown]);
+    expect(timeouts.length).toBeGreaterThan(0);
+    for (const [slug, t] of timeouts) {
+      expect(typeof t, slug).toBe('number');
+      expect(t as number, slug).toBeLessThanOrEqual(35_000);
+      expect(t as number, slug).toBeGreaterThanOrEqual(5_000);
+    }
+    // With time to spare, Apify keeps its own cap and ScrapeCreators its shorter one; past the deadline, the floor.
+    expect(timeBudget({ deadline: Date.now() + 1_000_000 }, 300_000)).toBe(300_000);
+    expect(timeBudget({ deadline: Date.now() + 1_000_000 }, 90_000)).toBe(90_000);
+    expect(timeBudget({ deadline: Date.now() - 1 }, 90_000)).toBe(5_000);
   });
 
   it('does not retry other failures, and still stops the step for a refused key', async () => {

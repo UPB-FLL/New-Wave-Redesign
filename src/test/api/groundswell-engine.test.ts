@@ -151,6 +151,28 @@ describe('runWorker', () => {
     expect(rows.map((r) => r.status)).toEqual(['skipped', 'done']);
   });
 
+  it('gives up a step whose calls died mid-flight MAX_ATTEMPTS times instead of claiming it for ever', async () => {
+    // A call cut off by the function's time limit writes nothing: the lease runs out and the claim hands the
+    // step out again with attempts + 1. Three such leases are the limit, like three failures.
+    const ran: string[] = [];
+    const steps = [def('social', async () => { ran.push('social'); return 'x'; }, true), def('after', async () => 'ok')];
+    const { db, steps: rows } = fakeDb(['social', 'after']);
+    rows[0].attempts = MAX_ATTEMPTS;
+    const r = await runWorker(db, steps, { deadline: plenty() });
+    expect(ran).toEqual([]);
+    expect(rows.map((x) => x.status)).toEqual(['skipped', 'done']);
+    expect(rows[0].error).toBe("The step ran out the worker's time limit 3 times without finishing.");
+    expect(r.ran[0]).toEqual({ audit_id: sampleAudit.id, step: 'social', outcome: 'skipped', error: rows[0].error });
+
+    const required = [def('model', async () => { ran.push('model'); return 'x'; }), def('after', async () => 'ok')];
+    const second = fakeDb(['model', 'after']);
+    second.steps[0].attempts = MAX_ATTEMPTS;
+    await runWorker(second.db, required, { deadline: plenty() });
+    expect(ran).toEqual([]);
+    expect(second.steps.map((x) => x.status)).toEqual(['failed', 'pending']);
+    expect(second.audits.get(sampleAudit.id)).toMatchObject({ status: 'failed', error: "model failed: The step ran out the worker's time limit 3 times without finishing." });
+  });
+
   it('fails the audit at once on a permanent error in a required step', async () => {
     const steps = [def('site', async () => { throw new PermanentStepError('No website.'); }), def('after', async () => 'never')];
     const { db, steps: rows, audits } = fakeDb(['site', 'after']);
