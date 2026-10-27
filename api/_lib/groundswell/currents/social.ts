@@ -316,13 +316,21 @@ export function gatedProfile(answer: unknown): Record<string, unknown> | null {
   return { username: it.username, follower_count: it.follower_count, following_count: it.following_count, biography: it.biography, full_name: it.full_name, is_private: it.is_private };
 }
 
-async function readGated(handle: string, timeoutMs = GATED_TIMEOUT_MS): Promise<ProfilePair> {
+/** The actor's answer for a handle (one item per post, the profile on each), for any Current that reads a gated profile. */
+export async function readGatedItems(handle: string, timeoutMs = GATED_TIMEOUT_MS, maxPosts = GATED_POSTS): Promise<unknown> {
   const seconds = Math.max(30, Math.min(300, Math.floor(timeoutMs / 1000) - 5));
-  const answer = await executeTool(
+  return executeTool(
     'APIFY_RUN_ACTOR_SYNC_GET_DATASET_ITEMS',
-    { actorId: GATED_ACTOR, input: { usernames: [handle], maxPosts: GATED_POSTS, includeViews: true }, maxTotalChargeUsd: GATED_CHARGE_CAP_USD, waitForFinish: seconds, timeout: seconds, limit: GATED_POSTS, format: 'json' },
+    { actorId: GATED_ACTOR, input: { usernames: [handle], maxPosts, includeViews: true }, maxTotalChargeUsd: GATED_CHARGE_CAP_USD, waitForFinish: seconds, timeout: seconds, limit: maxPosts, format: 'json' },
     timeoutMs
   );
+}
+
+/** A refusal the signed-in reader gets past: the profile is shown only to signed-in adults, or the public reader was turned away. */
+export const gatedRefusal = (err: unknown) => refusal(err) !== null && refusal(err) !== 'private';
+
+async function readGated(handle: string, timeoutMs = GATED_TIMEOUT_MS): Promise<ProfilePair> {
+  const answer = await readGatedItems(handle, timeoutMs);
   const profile = gatedProfile(answer);
   if (!profile) throw new Error('The signed-in reader answered with no posts for this profile.');
   return [profile, gatedPosts(answer), null];

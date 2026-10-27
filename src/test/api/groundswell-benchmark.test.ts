@@ -157,6 +157,33 @@ describe('social depth', () => {
     mocks.executeTool.mockRejectedValue(new PermanentStepError('Composio has no active connection for scrapecreators'));
     await expect(runSocialDepth(ctx(benchmarkOutputs()))).rejects.toBeInstanceOf(PermanentStepError);
   });
+
+  it('reads a profile Instagram hides from logged-out readers through the signed-in reader, reels and posts told apart', async () => {
+    const item = (post: Record<string, unknown>) => ({ username: 'harborautocare', follower_count: 11990, following_count: 1709, biography: 'Brakes', is_private: false, is_verified: false, is_paid_partnership: false, coauthors: [], hashtags: [], mentions: [], ...post });
+    const gated = { items: [
+      item({ shortcode: 'G1', permalink: 'https://www.instagram.com/p/G1/', post_type: 'image', taken_at: '2026-10-26T14:26:47Z', caption: 'Comment BRAKES for the checklist', like_count: 59, comment_count: 8, view_count: null, media: [{ media_url: 'https://cdn.example/G1.jpg', cover_url: null, media_type: 'image' }] }),
+      item({ shortcode: 'G2', permalink: 'https://www.instagram.com/p/G2/', post_type: 'reel', taken_at: '2026-10-22T12:39:59Z', caption: 'Shop tour', like_count: 69, comment_count: 2, view_count: 1254, media: [{ media_url: 'https://cdn.example/G2.mp4', cover_url: 'https://cdn.example/G2.jpg', media_type: 'video', video_duration: 19.6 }] }),
+      item({ shortcode: 'G3', permalink: 'https://www.instagram.com/p/G3/', post_type: 'carousel', taken_at: '2026-10-13T18:31:17Z', caption: 'Tacos', like_count: 68, comment_count: 4, view_count: null, media: [{ media_url: 'https://cdn.example/G3a.jpg', media_type: 'image' }, { media_url: 'https://cdn.example/G3b.jpg', media_type: 'image' }] }),
+    ] };
+    mocks.executeTool.mockImplementation(async (slug: string, args: Record<string, unknown>) => {
+      if (slug.startsWith('SCRAPECREATORS_LIST_INSTAGRAM') && args.handle === 'harborautocare') throw new Error('SCRAPECREATORS_LIST_INSTAGRAM_USER_POSTS failed (403): Profile is age restricted');
+      if (slug === 'APIFY_RUN_ACTOR_SYNC_GET_DATASET_ITEMS') return gated;
+      return composio(slug, args);
+    });
+    const out = await runSocialDepth(ctx(benchmarkOutputs()));
+    expect(out.business_read_via).toBe('apify');
+    expect(out.business_error).toBeNull();
+    expect(out.business?.items_n).toBe(3);
+    // The audit's own follower count comes first; the actor's (11,990) only stands in when the audit has none.
+    expect(out.business?.followers).toBe(1250);
+    expect(out.business?.reel_plays_max).toBe(1254);
+    expect(out.business?.format_mix).toMatchObject({ reel: 1, carousel: 1, image: 1 });
+    expect(out.source).toMatch(/signed-in reader/);
+    // The competitor's profile was public: read as before, no Apify run for it.
+    expect(out.competitors[0]).toMatchObject({ read_via: 'scrapecreators' });
+    expect(mocks.executeTool.mock.calls.filter(([slug]) => slug === 'APIFY_RUN_ACTOR_SYNC_GET_DATASET_ITEMS')).toHaveLength(1);
+    expect(mocks.executeTool.mock.calls.find(([slug]) => slug === 'APIFY_RUN_ACTOR_SYNC_GET_DATASET_ITEMS')![1]).toMatchObject({ input: { usernames: ['harborautocare'], maxPosts: 24 } });
+  });
 });
 
 describe('ad libraries', () => {
