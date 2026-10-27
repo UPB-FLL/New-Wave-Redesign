@@ -38,7 +38,9 @@ const view = (issues: AgentIssue[]): AgentView => ({
   issues,
   lessons: [{ source: 'runs', kind: 'run_failed', resolver: 'requeue_step', worked: 2, failed: 0, last: 'Run the failed step again: held.' }],
   last_report: { id: 'r1', sent_at: '2026-10-27T04:00:00Z', to_email: 'josh@newwaveitfl.com', issue_ids: ['i1'], subject: 'GroundSwell agent: 1 resolution waiting on you', summary: '', status: 'sent' },
-  consultations: [{ id: 'c1', advisor: 'claude', model: 'claude-opus-5-5', created_at: '2026-10-27T04:00:00Z', issues: 3, kept: 2, rejected: ['Named "x", which is not an allowed resolver for this issue (allowed: requeue_step, needs_developer, none).'], outcomes: { i3: { resolver: 'requeue_step', result: 'worked', note: 'held', at: '2026-10-27T08:00:00Z' } }, usage: { input_tokens: 1200, output_tokens: 300, cache_read_input_tokens: 900 }, latency_ms: 2100, error: null }],
+  consultations: [{ id: 'c1', advisor: 'claude', purpose: 'proposals', model: 'claude-opus-5-5', created_at: '2026-10-27T04:00:00Z', issues: 3, kept: 2, rejected: ['Named "x", which is not an allowed resolver for this issue (allowed: requeue_step, needs_developer, none).'], outcomes: { i3: { resolver: 'requeue_step', result: 'worked', note: 'held', at: '2026-10-27T08:00:00Z' } }, usage: { input_tokens: 1200, output_tokens: 300, cache_read_input_tokens: 900 }, latency_ms: 2100, error: null }],
+  learnings: [{ id: 'l1', topic: 'social-media-marketing', title: 'Instagram now ranks original content above reposts', summary: 'Reposted reels get less reach.', why_it_matters: 'Clients’ reposts will fall off.', action: 'Post originals; stop reposting.', url: 'https://example.test/instagram-originals', source: 'example.test', published_at: '2026-10-25', confidence: 'high', status: 'new', found_at: '2026-10-27T04:00:00Z' }],
+  topics: [{ key: 'ai-agent-marketing', label: 'AI agent marketing' }, { key: 'social-media-marketing', label: 'Social media marketing' }],
   resolvers: [{ key: 'requeue_step', label: 'Run the failed step again' }],
   config: { email: 'josh@newwaveitfl.com', email_ready: true, advisor: 'claude', model: 'claude-opus-5-5', claude_ready: true, model_ready: false, live_checks: true, base: 'https://www.newwaveitfl.com' },
 });
@@ -64,6 +66,9 @@ describe('the agent screen', () => {
     expect(screen.getByText(/Advisor: Claude \(claude-opus-5-5\)/)).toBeInTheDocument();
     expect(screen.getByText(/asked about 3 issues, kept 2, rejected 1/)).toBeInTheDocument();
     expect(screen.getByText(/outcomes: 1 held, 0 did not/)).toBeInTheDocument();
+    expect(screen.getByText('Instagram now ranks original content above reposts')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'example.test' })).toHaveAttribute('href', 'https://example.test/instagram-originals');
+    expect(screen.getByText(/AI agent marketing and Social media marketing/)).toBeInTheDocument();
     expect(screen.getByText(/held 2, did not hold 0/)).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: 'Approve' })).toHaveLength(1);
 

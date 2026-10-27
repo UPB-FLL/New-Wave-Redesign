@@ -132,6 +132,8 @@ export interface LessonSummary {
 export interface ConsultationRow {
   id: string;
   advisor: 'claude' | 'openai';
+  /** Which ask: the resolutions, or the research. */
+  purpose: 'proposals' | 'research';
   model: string;
   issue_ids: string[];
   question: Record<string, unknown>;
@@ -145,6 +147,24 @@ export interface ConsultationRow {
   latency_ms: number | null;
   error: string | null;
   created_at: string;
+}
+
+/** One thing the agent learned on a research pass (groundswell_agent_learnings). */
+export interface LearningRow {
+  id: string;
+  topic: string;
+  title: string;
+  summary: string;
+  why_it_matters: string | null;
+  action: string | null;
+  /** The page it was read on. */
+  url: string;
+  source: string;
+  published_at: string | null;
+  confidence: Confidence;
+  status: 'new' | 'kept' | 'dismissed';
+  consultation_id: string | null;
+  found_at: string;
 }
 
 export type Db = Pick<SupabaseClient, 'from'>;

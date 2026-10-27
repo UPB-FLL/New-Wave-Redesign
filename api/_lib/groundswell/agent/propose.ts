@@ -200,7 +200,7 @@ export async function proposeAll(db: Db, issues: IssueRow[], lessons: LessonSumm
       kept[issue.id] = { kept: Boolean(proposal), resolver: proposal?.resolver ?? (clip(answers.get(issue.id)?.resolver, 40) || null), reason };
     }
     try {
-      consultationId = await recordConsultation(db, { advisor, model: result.model || agentModel(), issue_ids: batch.map((i) => i.id), question, answer_text: result.text, answer: result.parsed, kept, usage: result.usage, latency_ms: result.latency_ms, error: result.error });
+      consultationId = await recordConsultation(db, { advisor, purpose: 'proposals', model: result.model || agentModel(), issue_ids: batch.map((i) => i.id), question, answer_text: result.text, answer: result.parsed, kept, usage: result.usage, latency_ms: result.latency_ms, error: result.error });
     } catch (err) {
       console.error('Agent consultation log failed:', err instanceof Error ? err.message : err);
     }

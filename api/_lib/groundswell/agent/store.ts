@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto';
-import type { CollectResult, ConsultationRow, Db, IssueRow, IssueStatus, LessonRow, LessonSummary, Observation, Outcome, Proposal } from './types.js';
+import type { CollectResult, ConsultationRow, Db, IssueRow, IssueStatus, LearningRow, LessonRow, LessonSummary, Observation, Outcome, Proposal } from './types.js';
 
 /**
  * The agent's memory (migration 20261104120000): one issue per fingerprint,
@@ -148,7 +148,36 @@ export async function issueForToken(db: Db, token: string, now: Date): Promise<I
   return row;
 }
 
-export const CONSULTATION_COLUMNS = 'id,advisor,model,issue_ids,question,answer_text,answer,kept,outcomes,usage,latency_ms,error,created_at';
+export const CONSULTATION_COLUMNS = 'id,advisor,purpose,model,issue_ids,question,answer_text,answer,kept,outcomes,usage,latency_ms,error,created_at';
+export const LEARNING_COLUMNS = 'id,topic,title,summary,why_it_matters,action,url,source,published_at,confidence,status,consultation_id,found_at';
+
+/** The newest learnings, on one topic or all; empty before the migration. */
+export async function readLearnings(db: Db, opts: { topic?: string; limit?: number; since?: string } = {}): Promise<LearningRow[]> {
+  let q = db.from('groundswell_agent_learnings').select(LEARNING_COLUMNS);
+  if (opts.topic) q = q.eq('topic', opts.topic);
+  if (opts.since) q = q.gt('found_at', opts.since);
+  const result = await q.order('found_at', { ascending: false }).limit(opts.limit ?? 50);
+  if (result.error) {
+    if (missingTable(result.error.message)) return [];
+    throw new Error(result.error.message);
+  }
+  return (result.data ?? []) as LearningRow[];
+}
+
+/** Stores the learnings a pass kept; one the table already holds by link is skipped. Empty before the migration. */
+export async function recordLearnings(db: Db, rows: Omit<LearningRow, 'id'>[]): Promise<LearningRow[]> {
+  const out: LearningRow[] = [];
+  for (const row of rows) {
+    const { data, error } = await db.from('groundswell_agent_learnings').insert(row).select(LEARNING_COLUMNS).single();
+    if (error) {
+      if (missingTable(error.message)) return out;
+      if (/duplicate key|23505/i.test(error.message)) continue;
+      throw new Error(error.message);
+    }
+    if (data) out.push(data as LearningRow);
+  }
+  return out;
+}
 
 /** Logs one ask of the advisor; answers the row's id (null before the migration). */
 export async function recordConsultation(db: Db, row: Omit<ConsultationRow, 'id' | 'created_at' | 'outcomes'>): Promise<string | null> {

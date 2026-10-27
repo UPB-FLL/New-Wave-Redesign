@@ -52,7 +52,19 @@ on (`runAgentPass` in `agent.ts`):
    and the same log (`GROUNDSWELL_AGENT_ADVISOR=claude|openai|rule` forces
    one); without either, `ruleProposal`: the first allowed resolver, or a
    developer brief.
-5. **Report** by email (Resend, from `GroundSwell agent <support@newwaveitfl.com>`,
+5. **Research** (`research.ts`): one ask per topic to Claude with its web
+   search turned on (`consultClaude(…, { webSearch })`, up to 8 searches,
+   the answer's JSON parsed from the text), carrying the topic's brief, the
+   date window (7 days) and the newest 30 learnings the agent already holds
+   on that topic, so only what is new comes back. `checkLearnings` keeps a
+   learning only with a title, a summary and a real link, and never one
+   already known by link (tracking parameters stripped) or by title; up to 5
+   per topic. Kept learnings go in `groundswell_agent_learnings`; the ask is
+   logged with purpose `research`. Topics: `DEFAULT_TOPICS` (AI agent
+   marketing, social media marketing) or `GROUNDSWELL_AGENT_TOPICS`
+   (`key=what to look for; key=…`, up to six). Without `ANTHROPIC_API_KEY`
+   the research is skipped and the report says so.
+6. **Report** by email (Resend, from `GroundSwell agent <support@newwaveitfl.com>`,
    to `GROUNDSWELL_AGENT_EMAIL`, default josh@newwaveitfl.com) whenever
    anything is open or was resolved since the last report, and once a day
    when nothing is, so silence never means the agent stopped. Sections:
@@ -60,7 +72,10 @@ on (`runAgentPass` in `agent.ts`):
    what will change, what happens if it does not help, why, confidence, an
    **Approve** and a **Dismiss for a week** link each), needs a developer
    (the brief), resolved since the last report (held / did not hold / not
-   checked yet), watching, sources not read. Each report is recorded in
+   checked yet), watching, **what the agent learned** (by topic: title,
+   summary, why it matters, what to do, the source link, confidence; each
+   learning reported once), research not done, sources not read. New
+   learnings count as something to say. Each report is recorded in
    `groundswell_agent_reports`.
 
 Nothing is applied by the pass. A resolution runs only from `decide`:
@@ -130,8 +145,9 @@ Three records, all the agent's own:
 
 ## Setup
 
-- Apply migration `20261104120000` (tables, indexes, the cron job; the
-  Vault secret `blog_admin_api_key` is the one the other jobs use).
+- Apply migrations `20261104120000` (the four tables, indexes, the cron
+  job; the Vault secret `blog_admin_api_key` is the one the other jobs use)
+  and `20261105120000` (the learnings table, the consultations' `purpose`).
 - Vercel: `ANTHROPIC_API_KEY` (the advisor; new), `RESEND_API_KEY` (already
   set for the alerts), optional `GROUNDSWELL_AGENT_MODEL` (default
   `claude-opus-5-5`), `GROUNDSWELL_AGENT_EFFORT` (default `high`),
@@ -141,6 +157,13 @@ Three records, all the agent's own:
   stand-in advisor.
 - The route runs with `maxDuration: 300` and the Chromium files, since an
   approval wakes the worker inside the same function.
+
+## Research
+
+The staff screen's "What the agent learned" lists the newest 40 learnings
+with their links; the consultations list shows research asks with how many
+learnings each kept and how many web searches it ran. Each pass costs one
+Claude call per topic with up to 8 searches.
 
 ## Tests
 
