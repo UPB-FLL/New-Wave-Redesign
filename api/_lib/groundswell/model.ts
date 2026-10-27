@@ -13,6 +13,9 @@ import type { GoogleSerp } from './currents/serp.js';
 import { isSitePagesOutput, type SitePagesOutput } from './currents/sitePages.js';
 import type { BusinessProfile } from './businessProfile.js';
 import type { CompetitorPick } from './currents/competitors.js';
+import { isReviewsOutput, type ReviewsOutput } from './currents/reviews.js';
+import { isCommunityOutput, type CommunityOutput } from './currents/community.js';
+import { isAiAnswersOutput, type AiAnswersOutput } from './currents/aiAnswers.js';
 
 /**
  * Model step: turns the Currents' data into the audit's write-up (OpenAI) and
@@ -114,6 +117,12 @@ export interface Facts {
   competitor_picks?: { picks: CompetitorPick[]; dropped: { name: string; website: string | null; reason: string }[] } | null;
   /** AI search: crawler access, citability and Brand Radar (the ai_search step); null when it did not run. Missing on audits before 2026-10-26. */
   ai_search?: AiSearchOutput | null;
+  /** The Yelp listings (the reviews step); null when it did not run. Missing on audits before 2026-10-27. */
+  reviews?: ReviewsOutput | null;
+  /** Reddit mentions, communities and the category's questions (the community step). */
+  community?: CommunityOutput | null;
+  /** Google AI Mode's answers for the category, the busiest search and the business by name (the ai_answers step). */
+  ai_answers?: AiAnswersOutput | null;
   missing: string[];
 }
 
@@ -152,6 +161,9 @@ export function buildFacts(audit: AuditRow, outputs: Record<string, unknown>): F
     linked: isLinkedOutput(outputs.linked) && outputs.linked.services.length ? outputs.linked : null,
     site_pages: isSitePagesOutput(outputs.site_pages) ? outputs.site_pages : null,
     ai_search: isAiSearchOutput(outputs.ai_search) ? outputs.ai_search : null,
+    reviews: isReviewsOutput(outputs.reviews) ? outputs.reviews : null,
+    community: isCommunityOutput(outputs.community) ? outputs.community : null,
+    ai_answers: isAiAnswersOutput(outputs.ai_answers) ? outputs.ai_answers : null,
     profile: (outputs.competitors as { profile?: BusinessProfile } | undefined)?.profile ?? null,
     competitor_picks: (() => {
       const c = outputs.competitors as { picks?: CompetitorPick[]; dropped?: { name: string; website: string | null; reason: string }[] } | undefined;
@@ -248,6 +260,37 @@ export function aiSearchForPrompt(a: AiSearchOutput | null) {
   };
 }
 
+/** The Yelp, Reddit and AI-answer reads as the model sees them: figures, short excerpts and names, never links it might copy. */
+export function presenceForPrompt(f: Pick<Facts, 'reviews' | 'community' | 'ai_answers'>) {
+  const y = f.reviews;
+  const r = f.community;
+  const a = f.ai_answers;
+  return {
+    yelp: y
+      ? {
+          business: y.business && { rating: y.business.rating, reviews: y.business.reviews, price: y.business.price, categories: y.business.categories, claimed: y.business.claimed },
+          not_found: y.business ? null : y.business_error,
+          newest_reviews: y.reviews.map((x) => ({ rating: x.rating, date: x.posted_at?.slice(0, 10) ?? null, excerpt: x.text })),
+          highlights: y.highlights,
+          competitors: y.competitors.map((c) => ({ name: c.name, rating: c.listing?.rating ?? null, reviews: c.listing?.reviews ?? null })),
+        }
+      : null,
+    reddit: r
+      ? {
+          mentions_found: r.business.mentions.length,
+          mentions: r.business.mentions.slice(0, 8).map((m) => ({ community: m.subreddit, title: m.title, excerpt: m.excerpt.slice(0, 160), date: m.posted_at?.slice(0, 10) ?? null })),
+          communities: r.business.communities.slice(0, 6),
+          recurring_words: r.business.topics,
+          category_questions: r.category.questions.slice(0, 6).map((q) => ({ community: q.subreddit, question: q.title })),
+          competitor_mentions: r.competitors.map((c) => ({ name: c.name, mentions: c.mentions })),
+        }
+      : null,
+    ai_answers: a
+      ? a.answers.filter((x) => !x.error).map((x) => ({ question: x.prompt, named: x.named, position: x.position, led_with: x.top, businesses_named: x.businesses_named.slice(0, 6), says_about_business: x.description, sources_cited: x.references.map((c) => c.title).slice(0, 5) }))
+      : null,
+  };
+}
+
 /** What the model sees: the facts without bulky or brand-only fields. */
 export function factsForPrompt(f: Facts) {
   return {
@@ -269,6 +312,7 @@ export function factsForPrompt(f: Facts) {
     ads: f.ads,
     ad_libraries: f.ad_library,
     ai_search: aiSearchForPrompt(f.ai_search ?? null),
+    ...presenceForPrompt(f),
     evidence_coverage: evidenceCoverage(f),
     client_accounts: linkedForPrompt(f.linked),
     not_available: f.missing,
@@ -552,6 +596,7 @@ Write in plain words for a busy owner. Rules:
 - Never describe as active something the data does not show.
 - business_profile, website_pages and competitor_picks, when present, come from the business's own website pages and its competitors' homepages (read as main content): use them for what the business sells, what each competitor offers, and why each competitor was chosen; competitor_picks.left_out names candidates that did not compete.
 - ai_search, when present, is what AI crawlers and assistants see: crawlers_blocked and gptbot_blocked are read from robots.txt and a fetch as GPTBot; citability is a rubric score per page (0–100), not a ranking; ai_visibility holds Ahrefs Brand Radar mentions and share of voice for the business and its competitors across the named assistants, and site_citations how often they cite the site. Use it in the search and website areas; zero mentions means the assistants did not name the business in Ahrefs’ prompt set, not that nobody asks. Never invent an AI traffic figure.
+- yelp, reddit and ai_answers, when present: yelp is the Yelp listing (its rating, count, whether it is claimed, three newest review excerpts, the competitors' ratings); reddit is the posts and comments found that name the business, its communities and the category questions asked locally (politics and boycott threads are left out before you see them); ai_answers is what Google's AI Mode answered for each question, whether it named the business, in what place, what it led with and the sources it cited. Use them in the Google profile and social areas; quote a review only as a short excerpt with "a Yelp reviewer"; never name a Reddit user; not being named in an AI answer is a finding about that answer at that time, not a ranking.
 - website.business.technical_seo contains verified observations and fixes from the initial HTTP response only. Prioritize its high-severity findings in the website area. JavaScript was not rendered: an empty app shell, missing raw-body heading or small raw-body word count does not prove that Google cannot index the page or that it ranks poorly. Preserve the stated verification steps; do not invent SEO scores, traffic effects, or ranking gains. noindex may be intentional on private pages.
 - When client_accounts is present, it is data from the business's own accounts (Google Analytics, Search Console, Google Ads, Instagram, Meta Ads). It outranks the public estimates: prefer it in every area it covers, say which figures come from the business's own accounts, and do not list those accounts under cant_see.
 - Use they/them for people. Do not name people.

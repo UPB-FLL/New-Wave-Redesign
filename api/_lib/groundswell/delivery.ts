@@ -15,6 +15,7 @@ import { verifiedOutputs } from './verify.js';
 import { PHASE_INFO, type Phase } from '../../../src/lib/groundswellValidation.js';
 import { isAdsetsOutput, type AdsetsOutput } from './adsets.js';
 import { isPlansOutput } from './plans.js';
+import { isPresenceOutput } from './presence.js';
 import type { AdsetsDelivery } from './adsetsDelivery.js';
 import { isLinkedOutput } from './currents/linked.js';
 import type { SiteScan } from './currents/site.js';
@@ -47,6 +48,7 @@ export function reportData(ctx: StepContext): ReportData {
   const adcopy = isAdcopyOutput(outputs.adcopy) ? outputs.adcopy : null;
   const benchmark = isBenchmarkOutput(outputs.benchmark) ? outputs.benchmark : null;
   const plans = isPlansOutput(outputs.plans) ? outputs.plans : null;
+  const presence = isPresenceOutput(outputs.presence) ? outputs.presence : null;
   const branding = ctx.audit.branding;
   return {
     facts,
@@ -56,6 +58,7 @@ export function reportData(ctx: StepContext): ReportData {
     adcopy,
     benchmark,
     plans,
+    presence,
     preparer: preparerFor(branding),
     date: formatDate(new Date(model.generated_at)),
     gaps: gapsFor(outputs, ctx.steps),

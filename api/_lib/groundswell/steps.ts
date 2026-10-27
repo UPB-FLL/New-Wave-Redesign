@@ -4,6 +4,10 @@ import { runAdplan } from './adplan.js';
 import { runBenchmark } from './benchmark.js';
 import { runAdsLibrary } from './currents/adsLibrary.js';
 import { runAiSearch } from './currents/aiSearch.js';
+import { runAiAnswers } from './currents/aiAnswers.js';
+import { runCommunity } from './currents/community.js';
+import { runReviews } from './currents/reviews.js';
+import { runPresence } from './presence.js';
 import { runDeliverGeo } from './geoDelivery.js';
 import { runAuthority } from './currents/authority.js';
 import { persistCompetitors, runCompetitors } from './currents/competitors.js';
@@ -65,10 +69,14 @@ const GATHER_AND_MODEL: StepDefinition[] = [
   { name: 'ads', current: 'Ads', label: 'Ads', optional: true, run: runAds },
   { name: 'ads_library', current: 'Ads', label: 'Meta Ad Library and Google Ads Transparency', optional: true, run: runAdsLibrary },
   { name: 'ai_search', current: 'Search', label: 'AI search: crawler access, citability, Brand Radar', optional: true, run: runAiSearch },
+  { name: 'reviews', current: 'Maps', label: 'Yelp listing and reviews', optional: true, run: runReviews },
+  { name: 'community', current: 'Social', label: 'Reddit mentions and questions', optional: true, run: runCommunity },
+  { name: 'ai_answers', current: 'Search', label: 'Google AI Mode answers', optional: true, run: runAiAnswers },
   { name: 'model', current: 'Model', label: 'Write-up and ROI', optional: false, run: runModel },
   { name: 'adplan', current: 'Model', label: 'Ad plan and change ranking', optional: true, run: runAdplan },
   { name: 'adcopy', current: 'Model', label: 'Ad copy', optional: true, run: runAdcopy },
   { name: 'plans', current: 'Model', label: 'Website optimization plan and the first week of posts', optional: true, run: runPlans },
+  { name: 'presence', current: 'Model', label: 'Reviews, Reddit and AI answers plan', optional: true, run: runPresence },
 ];
 
 /** A client's own accounts (phase 3); runs started before the phases had it among their public-data steps. */

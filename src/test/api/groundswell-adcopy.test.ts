@@ -46,7 +46,7 @@ describe('where the step runs', () => {
     expect(names.indexOf('adcopy')).toBe(names.indexOf('adplan') + 1);
     expect(STEPS.find((s) => s.name === 'adcopy')?.optional).toBe(true);
     const bench = BENCHMARK_STEPS.map((s) => s.name);
-    expect(bench.slice(bench.indexOf('adplan'), bench.indexOf('adplan') + 4)).toEqual(['adplan', 'adcopy', 'plans', 'social_depth']);
+    expect(bench.slice(bench.indexOf('adplan'), bench.indexOf('adplan') + 5)).toEqual(['adplan', 'adcopy', 'plans', 'presence', 'social_depth']);
     expect(STEP_LABELS.adcopy).toBe('Ad copy');
   });
 });

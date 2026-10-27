@@ -10,6 +10,7 @@ import type { AdplanOutput } from './adplan.js';
 import type { AuditBranding } from './branding.js';
 import type { BenchmarkOutput } from './benchmark.js';
 import type { PlansOutput } from './plans.js';
+import type { PresenceOutput } from './presence.js';
 import { hasPlans, PLATFORM_LABELS, type SocialPost } from '../../../packages/groundswell/src/plans.js';
 import type { Brand } from './brand.js';
 import { gapsFromMissing } from './gaps.js';
@@ -50,6 +51,8 @@ export interface ReportData {
   benchmark?: BenchmarkOutput | null;
   /** The plans step's output (the website optimization plan and the first week of posts); absent or null when it did not run. */
   plans?: PlansOutput | null;
+  /** The plan for reviews, Reddit and AI answers (the presence step); absent or null when it did not run. */
+  presence?: PresenceOutput | null;
   /** Who the reports are from; absent means New Wave. */
   preparer?: Preparer;
   /** Shown as "Prepared by <preparer> · <date>". */
@@ -671,6 +674,42 @@ function linkedSection(l: LinkedOutput): string {
   }`;
 }
 
+const PRESENCE_AREAS = { reviews: 'Reviews', reddit: 'Reddit', ai_answers: 'AI answers' } as const;
+
+/** Reviews (Google beside Yelp), Reddit, what Google's AI answers, and the plan for them. Empty when none of the three was read. */
+export function presenceSection(f: Facts, plan: PresenceOutput | null | undefined): string {
+  const y = f.reviews;
+  const r = f.community;
+  const a = f.ai_answers;
+  if (!y && !r && !a) return '';
+  const rating = (x: { rating: number | null; reviews: number | null } | null | undefined) => (x ? `${x.rating ?? '–'}★ · ${num(x.reviews)}` : 'Not found');
+  const parts: string[] = [];
+  if (y || f.maps?.business) {
+    const rows = [[f.business.name, f.maps?.business ? rating(f.maps.business) : NOT_CHECKED, y ? rating(y.business) : NOT_CHECKED, y?.business ? (y.business.claimed === null ? '–' : y.business.claimed ? 'Yes' : 'No') : '–']];
+    for (const c of y?.competitors ?? []) rows.push([c.name, '–', rating(c.listing), c.listing ? (c.listing.claimed === null ? '–' : c.listing.claimed ? 'Yes' : 'No') : '–']);
+    parts.push(`<h3>Reviews</h3>${table(['Business', 'Google', 'Yelp', 'Yelp claimed'], rows)}${y?.reviews.length ? `<p class="muted">Newest Yelp excerpts:</p>${listHtml(y.reviews.map((x) => `${x.rating ?? '–'}★ (${x.posted_at?.slice(0, 10) ?? ''}): “${x.text}”`), false)}` : ''}`);
+  }
+  if (r) {
+    parts.push(
+      `<h3>Reddit</h3><p>${r.business.mentions.length ? `${r.business.mentions.length} post${r.business.mentions.length === 1 ? '' : 's'} and comment${r.business.mentions.length === 1 ? '' : 's'} found name the business, in ${r.business.communities.map((c) => `r/${esc(c.name)}`).join(', ')}.` : 'No Reddit post or comment found names the business.'}</p>` +
+        table(['Community', 'Post', 'Score', 'Date'], r.business.mentions.slice(0, 6).map((m) => [m.subreddit ? `r/${m.subreddit}` : '–', m.title ?? m.excerpt.slice(0, 90), num(m.score), m.posted_at?.slice(0, 10) ?? '–'])) +
+        (r.category.questions.length ? `<p class="muted">Questions asked about the category${r.category.term ? ` (${esc(r.category.term)})` : ''}:</p>${listHtml(r.category.questions.slice(0, 5).map((q) => `${q.subreddit ? `r/${q.subreddit}: ` : ''}${q.title ?? ''}`), false)}` : '') +
+        (r.tags.length ? `<p class="note">Tags: ${esc(r.tags.join(', '))}</p>` : '')
+    );
+  }
+  if (a) {
+    parts.push(
+      `<h3>What Google’s AI answers</h3>${table(['Question', 'Named', 'Place', 'Led with'], a.answers.map((x) => [x.prompt, x.error ? 'Not read' : x.named ? 'Yes' : 'No', x.position === null ? '–' : String(x.position), x.top ?? '–']))}` +
+        a.answers.filter((x) => x.description).map((x) => `<p class="muted">Asked “${esc(x.prompt)}”, it says: “${esc(x.description!)}”</p>`).join('') +
+        `<p class="note">${esc(a.note)}</p>`
+    );
+  }
+  if (plan?.actions.length) {
+    parts.push(`<h3>What to do</h3>${plan.actions.slice(0, 10).map((x) => `<div class="finding"><h3>${esc(x.priority === 'high' ? 'High' : x.priority === 'medium' ? 'Medium' : 'Low')} · ${esc(PRESENCE_AREAS[x.area])}: ${esc(x.action)}</h3><p>${esc(x.reason)}</p>${x.evidence.length ? `<p class="note">${esc(x.evidence.join(' '))}</p>` : ''}</div>`).join('')}${plan.measures.length ? `<h3>How to tell it worked</h3>${listHtml(plan.measures, false)}` : ''}`);
+  }
+  return parts.join('');
+}
+
 export function buildAuditHtml(d: ReportData): string {
   d = safeReportData(d);
   const { facts: f, model: m, brand: b } = d;
@@ -732,6 +771,9 @@ export function buildAuditHtml(d: ReportData): string {
     f.site_pages?.pages.some((x) => !x.error) ? `${f.site_pages.source} (${f.site_pages.fetched_at.slice(0, 10)})` : null,
     f.ai_search ? `${f.ai_search.source} (${f.ai_search.fetched_at.slice(0, 10)})` : null,
     f.ai_search?.visibility && (f.ai_search.visibility.business.mentions !== null || f.ai_search.visibility.citations.length) ? `${f.ai_search.visibility.source} (${f.ai_search.fetched_at.slice(0, 10)})` : null,
+    f.reviews ? `${f.reviews.source} (${f.reviews.fetched_at.slice(0, 10)})` : null,
+    f.community ? `${f.community.source} (${f.community.fetched_at.slice(0, 10)})` : null,
+    f.ai_answers ? `${f.ai_answers.source} (${f.ai_answers.fetched_at.slice(0, 10)})` : null,
     ...(linked?.services.filter((s) => s.ok).map((s) => `${s.source} (${linked.fetched_at.slice(0, 10)})`) ?? []),
   ].filter((s): s is string => Boolean(s));
   const missing = [...(d.gaps ?? gapsFromMissing(f.missing)), ...(linked?.services.filter((s) => !s.ok).map((s) => s.problem ?? `${s.label} could not be read this time.`) ?? [])];
@@ -781,6 +823,7 @@ ${priorityPages.join('')}
 ${areas}
 ${searchPages}
 ${f.ai_search ? section('AI answers', 'AI search: can the assistants read and cite you?', aiSearchSection(f.ai_search)) : ''}
+${(() => { const body = presenceSection(f, d.presence); return body ? section('Reputation and community', 'Reviews, Reddit and AI answers', body) : ''; })()}
 ${linked ? section('8 · Your accounts', 'From the business’s own accounts', linkedSection(linked)) : ''}
 ${section(`${8 + o} · Plan`, 'The 90-day plan', `<h3>Weeks 1–2</h3>${listHtml(plan.weeks_1_2, false)}<h3>Weeks 3–6</h3>${listHtml(plan.weeks_3_6, false)}<h3>Weeks 7–12</h3>${listHtml(plan.weeks_7_12, false)}`)}
 ${planSections}

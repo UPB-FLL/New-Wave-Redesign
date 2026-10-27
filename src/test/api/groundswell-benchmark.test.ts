@@ -76,7 +76,7 @@ describe('the benchmark run', () => {
     const names = BENCHMARK_STEPS.map((s) => s.name);
     const audit = STEPS.map((s) => s.name);
     expect(names.slice(0, names.indexOf('adcopy') + 1)).toEqual(audit.slice(0, audit.indexOf('adcopy') + 1));
-    expect(names.slice(names.indexOf('adcopy') + 1, names.indexOf('benchmark') + 1)).toEqual(['plans', 'social_depth', 'pricing', 'authority', 'benchmark']);
+    expect(names.slice(names.indexOf('adcopy') + 1, names.indexOf('benchmark') + 1)).toEqual(['plans', 'presence', 'social_depth', 'pricing', 'authority', 'benchmark']);
     expect(names.indexOf('deliver_benchmark')).toBeLessThan(names.indexOf('deliver_deck'));
     expect(names[names.length - 1]).toBe('deliver_finish');
     // The write-up and its PDF are optional: with no benchmark data at all, the audit still delivers its three reports and names the gap.
