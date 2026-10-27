@@ -5,12 +5,12 @@ import { IT_PAGE_META } from '../lib/routeMeta';
 import { usePageMeta } from '../lib/usePageMeta';
 
 const SECTION_CLASS = 'space-y-3';
-const HEADING_CLASS = 'text-2xl font-semibold tracking-tight text-slate-900';
+const HEADING_CLASS = 'nw-display text-2xl text-[var(--nw-current-navy)]';
 const LIST_CLASS = 'list-disc space-y-2 pl-6';
-const LINK_CLASS = 'font-medium text-teal-700 underline decoration-teal-300 underline-offset-4 hover:text-teal-900';
-const CODE_CLASS = 'rounded bg-slate-100 px-1.5 py-0.5 text-sm';
-const TH_CLASS = 'border-b border-slate-300 px-3 py-2 text-left align-top font-semibold text-slate-900';
-const TD_CLASS = 'border-b border-slate-200 px-3 py-2 align-top';
+const LINK_CLASS = 'font-medium text-[var(--nw-tide-blue)] underline decoration-[var(--nw-signal-cyan)] underline-offset-4 hover:text-[var(--nw-current-navy)]';
+const CODE_CLASS = 'rounded bg-[var(--nw-mist-gray)] px-1.5 py-0.5 text-sm';
+const TH_CLASS = 'border-b border-[var(--nw-slate)] px-3 py-2 text-left align-top font-semibold text-[var(--nw-current-navy)]';
+const TD_CLASS = 'border-b border-[var(--nw-mist-gray)] px-3 py-2 align-top';
 
 /**
  * The date the live website was last scanned (headless browser, unauthenticated,
@@ -133,7 +133,7 @@ function InventoryTable({ caption, rows }: { caption: string; rows: InventoryRow
         <tbody>
           {rows.map((row) => (
             <tr key={row.technology}>
-              <th scope="row" className={`${TD_CLASS} font-medium text-slate-900`}>
+              <th scope="row" className={`${TD_CLASS} font-medium text-[var(--nw-current-navy)]`}>
                 <code className={CODE_CLASS}>{row.technology}</code>
               </th>
               <td className={TD_CLASS}>{row.provider}</td>
@@ -152,7 +152,7 @@ export default function CookiePolicyPage() {
   usePageMeta(IT_PAGE_META['/cookie-policy']);
 
   return (
-    <LegalPageLayout title="Cookie Policy" effectiveDate="October 15, 2026">
+    <LegalPageLayout title="Cookie Policy" effectiveDate="October 15, 2026" breadcrumbs={IT_PAGE_META['/cookie-policy'].breadcrumbs}>
       <p>
         This Cookie Policy explains the cookies, browser storage, and similar technologies used on the
         New Wave IT LLC website, including the New Wave: Social Engineering pages. Our website and
@@ -201,13 +201,13 @@ export default function CookiePolicyPage() {
           cookies and storage, and the behavior you see may depend on your browser, its settings, and
           the features you use.
         </p>
-        <h3 className="text-lg font-semibold text-slate-900">Storage set by this website</h3>
+        <h3 className="text-lg font-semibold text-[var(--nw-current-navy)]">Storage set by this website</h3>
         <InventoryTable caption="Browser storage set by the New Wave IT website" rows={FIRST_PARTY_STORAGE} />
-        <h3 className="text-lg font-semibold text-slate-900">Third-party services and their cookies</h3>
+        <h3 className="text-lg font-semibold text-[var(--nw-current-navy)]">Third-party services and their cookies</h3>
         <InventoryTable caption="Third-party services loaded by the New Wave IT website and the cookies they set" rows={THIRD_PARTY_SERVICES} />
         {GOOGLE_TAG_ROWS.length > 0 && (
           <>
-            <h3 className="text-lg font-semibold text-slate-900">Google measurement cookies</h3>
+            <h3 className="text-lg font-semibold text-[var(--nw-current-navy)]">Google measurement cookies</h3>
             <InventoryTable caption="Google Analytics and Google Ads cookies" rows={GOOGLE_TAG_ROWS} />
           </>
         )}

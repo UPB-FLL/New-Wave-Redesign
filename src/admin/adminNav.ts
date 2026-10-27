@@ -100,7 +100,7 @@ export const SITE_PAGES: AdminNavPage[] = [
     url: '/status',
     description: 'The system status page',
     entries: [
-      { label: 'Status page', path: '/admin/status', section: 'status', keywords: ['services', 'uptime', 'incidents', 'operational'] },
+      { label: 'Status page', path: '/admin/status', section: 'status', keywords: ['services', 'status page links', 'providers', 'outages'] },
     ],
   },
 ];

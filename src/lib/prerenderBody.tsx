@@ -30,6 +30,7 @@ import PricingPage from '../pages/PricingPage';
 import PrivacyPolicyPage from '../pages/PrivacyPolicyPage';
 import ServiceGuidePage from '../pages/ServiceGuidePage';
 import ServicesPage from '../pages/ServicesPage';
+import StatusPage from '../pages/StatusPage';
 import SupportPage from '../pages/SupportPage';
 import TermsAndConditionsPage from '../pages/TermsAndConditionsPage';
 import WhyUsPage from '../pages/WhyUsPage';
@@ -81,10 +82,10 @@ const IT_ROUTE_ELEMENTS: Record<string, ReactElement> = {
   '/managed-it-services-fort-lauderdale': <ManagedITFortLauderdalePage />,
   '/service-category/luxury': <LuxuryServicePage />,
   '/service-category/cellular-das-and-public-safety': <CellularDASPublicSafetyServicePage />,
+  // The owner's call (2026-10-27): /status links each provider's own status
+  // page and states no figures of its own, so it is written in like the rest.
+  '/status': <StatusPage />,
   // /groundswell (the partner sign-in) is a lazy chunk and keeps the shell.
-  // /status keeps the shell too: its service table and uptime figures are
-  // code constants with no data source (docs/geo/fact-sheet.md §10), so they
-  // are not written into static HTML until the owner decides what the page is.
 };
 
 const GUIDE_PATTERN = '/l/:slug';

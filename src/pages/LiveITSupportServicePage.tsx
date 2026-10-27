@@ -12,8 +12,7 @@ const service: ServiceCategoryPageData = {
   details: 'Our live support team is available 24/7 via phone, email, chat, and on-site. We prioritize critical issues and maintain detailed ticket tracking throughout the process.',
   highlights: ['Dedicated account management & priority routing', 'Priority handling for critical issues', 'Remote & on-site support', 'Advanced ticket tracking', 'Comprehensive knowledge base', 'Escalation management & executive reporting', 'Phone/email/chat/in-person support', 'Technician training & mentoring'],
   seoLink: '/l/it-support-guide',
-  eyebrow: 'Live IT Support',
-  assessmentLabel: 'Talk to Support',
+  assessmentLabel: 'Talk to support',
   featureTitle: 'Support that is always ready',
   featureDescription: 'Clear escalation paths and multiple contact methods give your team a reliable way to get help.',
   featureCards: [
@@ -48,7 +47,7 @@ const service: ServiceCategoryPageData = {
   ],
   ctaTitle: 'Need dependable IT support?',
   ctaDescription: 'Talk to the New Wave IT team about support coverage that matches the way your organization works.',
-  ctaLabel: 'Contact Support',
+  ctaLabel: 'Contact support',
 };
 
 export default function LiveITSupportServicePage() {
@@ -66,5 +65,5 @@ export default function LiveITSupportServicePage() {
     },
   });
 
-  return <ServiceCategoryPage data={service} />;
+  return <ServiceCategoryPage data={service} breadcrumbs={IT_PAGE_META['/service-category/live-it-support'].breadcrumbs} />;
 }

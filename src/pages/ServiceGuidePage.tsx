@@ -3,7 +3,10 @@ import { useParams, Link } from 'react-router-dom';
 import { ArrowRight, AlertCircle, TrendingUp, Shield, Users, Zap, BarChart3, ChevronDown } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { PublicPageHero } from '../components/brand/PublicPageHero';
+import { CheckList } from '../components/brand/CheckList';
+import { CtaBand } from '../components/brand/CtaBand';
+import { PageHeader } from '../components/brand/PageHeader';
+import { Section } from '../components/brand/Section';
 import { SectionHeading } from '../components/brand/SectionHeading';
 import { SERVICE_GUIDE_SUMMARIES, serviceGuideMeta, type ServiceGuideSlug } from '../lib/serviceGuides';
 import { usePageMeta } from '../lib/usePageMeta';
@@ -466,12 +469,11 @@ export default function ServiceGuidePage() {
     return (
       <div className="min-h-screen bg-[var(--nw-cloud-white)]">
         <Navbar />
-        <main className="mx-auto max-w-3xl px-6 pb-20 pt-32 text-center">
-          <p className="nw-kicker text-[var(--nw-tide-blue)]">Service Guides</p>
-          <h1 className="nw-display mt-3 text-3xl text-[var(--nw-current-navy)]">Guide not found</h1>
-          <p className="mt-4 text-[var(--nw-slate)]">This service guide is not available.</p>
-          <Link to="/services" className="btn-primary mt-8">Back to services <ArrowRight size={16} aria-hidden="true" /></Link>
-        </main>
+        <PageHeader
+          title="Guide not found"
+          description="This service guide is not available."
+          actions={<Link to="/services" className="btn-primary">Back to services <ArrowRight size={16} aria-hidden="true" /></Link>}
+        />
         <Footer />
       </div>
     );
@@ -480,59 +482,71 @@ export default function ServiceGuidePage() {
   return (
     <div className="min-h-screen bg-[var(--nw-cloud-white)]">
       <Navbar />
-      <PublicPageHero title={guide.title} description={guide.subtitle} eyebrow="New Wave IT Guide" backTo="/services" backLabel="All services" />
-      <main className="mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-20">
-        <section>
-          <SectionHeading eyebrow="Overview" title="A practical guide for your next decision." />
-          <p className="mt-6 text-base leading-relaxed text-[var(--nw-slate)] sm:text-lg">{guide.overview}</p>
-          <div className="mt-10 grid gap-4 md:grid-cols-2">
-            {guide.keyBenefits.map((benefit) => (
-              <article key={benefit.title} className="rounded-lg border p-5" style={{ background: 'var(--nw-pure-white)', borderColor: 'var(--nw-mist-gray)' }}>
-                <h3 className="font-bold text-[var(--nw-current-navy)]">{benefit.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-[var(--nw-slate)]">{benefit.description}</p>
-              </article>
-            ))}
+      <PageHeader
+        breadcrumbs={serviceGuideMeta(slug ?? '', guide).breadcrumbs}
+        title={guide.title}
+        description={guide.subtitle}
+        actions={
+          <Link to="/contact" className="btn-primary">
+            Request an assessment
+            <ArrowRight size={17} aria-hidden="true" />
+          </Link>
+        }
+      />
+      <main>
+        <Section tone="white">
+          <div className="max-w-4xl">
+            <SectionHeading title="Overview" />
+            <p className="mt-5 text-base leading-relaxed text-[var(--nw-slate)] sm:text-lg">{guide.overview}</p>
+            <h3 className="mt-10 text-lg font-bold text-[var(--nw-current-navy)]">Key benefits</h3>
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              {guide.keyBenefits.map((benefit) => (
+                <article key={benefit.title} className="rounded-lg border p-5" style={{ background: 'var(--nw-cloud-white)', borderColor: 'var(--nw-mist-gray)' }}>
+                  <h4 className="font-bold text-[var(--nw-current-navy)]">{benefit.title}</h4>
+                  <p className="mt-2 text-sm leading-relaxed text-[var(--nw-slate)]">{benefit.description}</p>
+                </article>
+              ))}
+            </div>
           </div>
-        </section>
+        </Section>
 
-        <div className="mt-20 space-y-16">
-          {guide.sections.map((section) => (
-            <section key={section.title}>
-              <div className="flex items-center gap-3"><span className="nw-icon-signal h-10 w-10 text-[var(--nw-tide-blue)]">{section.icon}</span><h2 className="nw-display text-3xl text-[var(--nw-current-navy)]">{section.title}</h2></div>
+        {guide.sections.map((section, index) => (
+          <Section key={section.title} tone={index % 2 ? 'white' : 'base'}>
+            <div className="max-w-4xl">
+              <div className="flex items-center gap-3">
+                <span className="nw-icon-signal h-10 w-10 shrink-0">{section.icon}</span>
+                <SectionHeading title={section.title} />
+              </div>
               <div className="mt-6 space-y-4 text-base leading-relaxed text-[var(--nw-slate)]">{section.content.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}</div>
-            </section>
-          ))}
-        </div>
+            </div>
+          </Section>
+        ))}
 
-        <section className="mt-20">
-          <SectionHeading title="Implementation roadmap" description="Use these steps to turn the guidance into a sequence your team can work through." />
-          <ol className="mt-8 space-y-3">
-            {guide.implementationSteps.map((step) => (
-              <li key={step} className="flex items-start gap-4 rounded-md border p-4" style={{ background: 'var(--nw-pure-white)', borderColor: 'var(--nw-mist-gray)' }}>
-                <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[var(--nw-tide-blue)]" aria-hidden="true" />
-                <p className="pt-1 text-sm leading-relaxed text-[var(--nw-current-navy)]">{step}</p>
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        <section className="mt-20">
-          <SectionHeading title="Frequently asked questions" />
-          <div className="mt-8 space-y-3">
-            {guide.faq.map((item) => (
-              <details key={item.question} className="group rounded-lg border p-5 transition-colors hover:border-[var(--nw-tide-blue)]" style={{ background: 'var(--nw-pure-white)', borderColor: 'var(--nw-mist-gray)' }}>
-                <summary className="flex cursor-pointer list-none items-start gap-3 font-semibold text-[var(--nw-current-navy)]"><ChevronDown size={19} className="mt-0.5 shrink-0 text-[var(--nw-tide-blue)] transition-transform group-open:rotate-180" aria-hidden="true" />{item.question}</summary>
-                <p className="mt-4 pl-8 text-sm leading-relaxed text-[var(--nw-slate)]">{item.answer}</p>
-              </details>
-            ))}
+        <Section tone={guide.sections.length % 2 ? 'white' : 'base'}>
+          <div className="max-w-4xl">
+            <SectionHeading title="Implementation roadmap" description="Use these steps to turn the guidance into a sequence your team can work through." />
+            <CheckList items={guide.implementationSteps} ordered className="mt-8" />
           </div>
-        </section>
+        </Section>
 
-        <section className="mt-20 px-6 py-12 text-center sm:px-10" style={{ background: 'var(--nw-deep-current)', borderRadius: 'var(--nw-radius-panel)' }}>
-          <h2 className="nw-display text-3xl text-[var(--nw-cloud-white)]">Ready to implement these strategies?</h2>
-          <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-[var(--nw-mist-gray)]">Our team can help you develop and execute a customized implementation plan.</p>
-          <Link to="/contact" className="btn-primary mt-8">Schedule a Consultation <ArrowRight size={17} aria-hidden="true" /></Link>
-        </section>
+        <Section tone={guide.sections.length % 2 ? 'base' : 'white'}>
+          <div className="max-w-4xl">
+            <SectionHeading title="Frequently asked questions" />
+            <div className="mt-8 space-y-3">
+              {guide.faq.map((item) => (
+                <details key={item.question} className="group rounded-lg border p-5 transition-colors hover:border-[var(--nw-tide-blue)]" style={{ background: 'var(--nw-pure-white)', borderColor: 'var(--nw-mist-gray)' }}>
+                  <summary className="flex cursor-pointer list-none items-start gap-3 font-semibold text-[var(--nw-current-navy)]"><ChevronDown size={19} className="mt-0.5 shrink-0 text-[var(--nw-tide-blue)] transition-transform group-open:rotate-180" aria-hidden="true" />{item.question}</summary>
+                  <p className="mt-4 pl-8 text-sm leading-relaxed text-[var(--nw-slate)]">{item.answer}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </Section>
+
+        <CtaBand
+          title="Ready to implement these strategies?"
+          description="Our team can help you develop and execute a customized implementation plan."
+        />
       </main>
 
       <Footer />

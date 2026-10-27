@@ -9,7 +9,6 @@ import { usePageMeta } from '../lib/usePageMeta';
 const page: ServiceCategoryPageData = {
   icon: Headphones,
   name: 'IT Support in Fort Lauderdale',
-  eyebrow: 'IT Support · Fort Lauderdale, FL',
   heroTitle: 'IT support for Fort Lauderdale businesses',
   description: 'Help desk, remote, and on-site IT support from a local Fort Lauderdale team.',
   heroDescription:
@@ -26,7 +25,7 @@ const page: ServiceCategoryPageData = {
   ],
   seoLink: '/pricing',
   guideLabel: 'See our pricing',
-  assessmentLabel: 'Get a Free IT Assessment',
+  assessmentLabel: 'Get a free IT assessment',
   featureTitle: 'What IT support covers',
   featureDescription: 'Day-to-day help for the people and devices your business runs on.',
   featureCards: [
@@ -45,6 +44,7 @@ const page: ServiceCategoryPageData = {
     },
     {
       title: 'How getting started works',
+      ordered: true,
       items: [
         'A free assessment of your devices, accounts, and the problems your staff report most.',
         'A written quote from the published rates, with no long-term contract.',
@@ -78,5 +78,5 @@ export default function ITSupportFortLauderdalePage() {
     },
   });
 
-  return <ServiceCategoryPage data={page} />;
+  return <ServiceCategoryPage data={page} breadcrumbs={IT_PAGE_META['/it-support-fort-lauderdale'].breadcrumbs} />;
 }

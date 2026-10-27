@@ -3,6 +3,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { BlogPost } from '../../types/blog';
 import { fetchBlogPostBySlug } from '../lib/blog';
+import BlogPage from './BlogPage';
 import BlogPostPage from './BlogPostPage';
 
 vi.mock('../lib/blog', () => ({
@@ -54,6 +55,9 @@ describe('BlogPostPage', () => {
     renderAt(post.slug);
 
     expect(await screen.findByRole('heading', { level: 1, name: post.title })).toBeInTheDocument();
+    // The site navigation and the trail back to the blog (the page used to render with neither).
+    expect(screen.getByRole('link', { name: 'New Wave IT home' })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).toContainElement(screen.getByRole('link', { name: 'Blog' }));
     expect(consoleError.mock.calls.map((call) => String(call[0])).join('\n')).not.toMatch(/hooks/i);
     await waitFor(() => expect(document.title).toBe(`${post.title} | New Wave IT`));
     expect(robots()).toBe('index, follow');
@@ -91,5 +95,17 @@ describe('BlogPostPage', () => {
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Blog Post Not Found' })).toBeInTheDocument();
     expect(robots()).toBe('index, follow');
+  });
+});
+
+describe('BlogPage', () => {
+  it('renders the site navigation above the list of posts', async () => {
+    render(
+      <MemoryRouter initialEntries={['/blog']}>
+        <BlogPage />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByRole('heading', { level: 1, name: 'Recent IT support guides' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'New Wave IT home' })).toHaveAttribute('href', '/');
   });
 });

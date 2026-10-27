@@ -12,8 +12,7 @@ const service: ServiceCategoryPageData = {
   details: 'Our cybersecurity program provides threat monitoring, advanced detection capabilities, and response protocols designed to protect the way your organization works.',
   highlights: ['24/7 SOC monitoring', 'Zero-trust architecture', 'Advanced threat detection & behavioral analysis', 'Comprehensive vulnerability assessment & penetration testing', 'Regulatory compliance management', 'Incident response & forensic investigation', 'Employee security awareness training', 'Multi-layer endpoint & network protection'],
   seoLink: '/l/cybersecurity-guide',
-  eyebrow: 'Cybersecurity Services',
-  assessmentLabel: 'Schedule Security Assessment',
+  assessmentLabel: 'Schedule a security assessment',
   featureTitle: 'Security framework',
   featureCards: [
     { icon: Lock, title: 'Zero-Trust Architecture', description: 'Continuous authentication and authorization help remove implicit trust from users, devices, and systems.' },
@@ -28,7 +27,7 @@ const service: ServiceCategoryPageData = {
         { icon: Shield, title: 'Endpoint Protection', description: 'Layered endpoint controls support behavior-based detection, sandboxing, and automated response across devices.' },
         { icon: Lock, title: 'Network Segmentation', description: 'Isolation of critical systems and sensitive data can limit lateral movement and contain breaches.' },
       ],
-      callout: 'The average breach costs organizations $4.45 million. Proactive security investments can reduce exposure and support long-term resilience.',
+      callout: 'Proactive security investments can reduce exposure and support long-term resilience.',
     },
     {
       title: 'Incident response & forensics',
@@ -58,5 +57,5 @@ export default function CybersecurityServicePage() {
     },
   });
 
-  return <ServiceCategoryPage data={service} />;
+  return <ServiceCategoryPage data={service} breadcrumbs={IT_PAGE_META['/service-category/cybersecurity'].breadcrumbs} />;
 }

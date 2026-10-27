@@ -12,8 +12,7 @@ const service: ServiceCategoryPageData = {
   details: 'Leverage Azure, AWS, and Google Cloud for scalability, cost control, and business agility. We handle migration planning, optimization, and ongoing management.',
   highlights: ['Multi-cloud architecture design', 'Cloud migration planning & execution', 'Microsoft 365 & productivity tools', 'Hybrid cloud environments', 'Cloud security & compliance', 'Cost optimization & FinOps', 'Backup & disaster recovery', 'Continuous monitoring & optimization'],
   seoLink: '/l/cloud-solutions-guide',
-  eyebrow: 'Cloud Solutions',
-  assessmentLabel: 'Plan Your Cloud Roadmap',
+  assessmentLabel: 'Plan your cloud roadmap',
   featureTitle: 'Cloud platforms & services',
   featureCards: [
     { icon: Cloud, title: 'Microsoft Azure', description: 'Cloud infrastructure, identity, application, and productivity support designed around Microsoft environments.' },
@@ -23,6 +22,7 @@ const service: ServiceCategoryPageData = {
   sections: [
     {
       title: 'Migration planning & execution',
+      ordered: true,
       items: ['Assess applications, data, dependencies, and operational requirements.', 'Build a phased migration plan with clear ownership, validation, and communication.', 'Move workloads in a controlled sequence and confirm performance after each stage.'],
     },
     {
@@ -61,5 +61,5 @@ export default function CloudSolutionsServicePage() {
     },
   });
 
-  return <ServiceCategoryPage data={service} />;
+  return <ServiceCategoryPage data={service} breadcrumbs={IT_PAGE_META['/service-category/cloud-solutions'].breadcrumbs} />;
 }

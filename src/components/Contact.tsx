@@ -3,6 +3,7 @@ import { CheckCircle, Mail, MapPin, Phone, Send } from 'lucide-react';
 import { useContent } from '../lib/useContent';
 import { FadeIn } from './ui/fade-in';
 import FormPrivacyNotice from './legal/FormPrivacyNotice';
+import { SectionHeading } from './brand/SectionHeading';
 import { trackLead } from '../lib/analytics';
 
 interface FormData {
@@ -77,6 +78,7 @@ export default function Contact({
   intro,
   icons,
   details,
+  showIntro = true,
 }: {
   headlineAs?: 'h1' | 'h2';
   /** Lead-routing tag the API allow-lists (e.g. 'social-engineering'). */
@@ -85,6 +87,8 @@ export default function Contact({
   /** Replacement icons, sized by the caller (18px cards and button, 32px success). */
   icons?: Partial<Record<ContactIconSlot, ReactNode>>;
   details?: ContactDetails;
+  /** False where the page header already says what the section would (/contact). */
+  showIntro?: boolean;
 } = {}) {
   const content = useContent('contact');
   const [form, setForm] = useState<FormData>(initialForm);
@@ -198,6 +202,21 @@ export default function Contact({
       style={{ background: 'var(--nw-cloud-white)', borderTop: '1px solid var(--nw-mist-gray)', zIndex: 10 }}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* New Wave IT pages title the section the way every other section is titled;
+            a division page passes its own intro and keeps its own layout. */}
+        {!intro && showIntro ? (
+          <FadeIn>
+            <SectionHeading
+              as={HeadlineTag}
+              className="mb-8 sm:mb-10"
+              title={content.headline || 'Ready to get started?'}
+              description={content.subheadline || 'Fill out the form and a technician will reach out. For urgent issues, call us now.'}
+            />
+          </FadeIn>
+        ) : null}
+        {/* Under a page header (/contact) the options still need a section title above their cards. */}
+        {!intro && !showIntro ? <SectionHeading className="mb-8" title="How to reach us" /> : null}
+        {intro ? (
         <FadeIn>
           <div className="mb-8 text-center sm:mb-10" data-contact-intro="">
             <span className="nw-kicker">{intro?.label ?? (content.section_label || 'Get in touch')}</span>
@@ -215,6 +234,7 @@ export default function Contact({
             </p>
           </div>
         </FadeIn>
+        ) : null}
 
         <div className="grid gap-5 sm:gap-8 lg:grid-cols-5">
           <FadeIn className="lg:col-span-2">

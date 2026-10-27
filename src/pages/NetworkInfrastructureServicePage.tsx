@@ -12,8 +12,7 @@ const service: ServiceCategoryPageData = {
   details: 'From fiber installation to firewall configuration to wireless deployment, we design networks that are fast, secure, and built with appropriate redundancy.',
   highlights: ['Network architecture & design', 'Fiber cabling & installation', 'WiFi 6 mesh deployment', 'Firewall & intrusion prevention', 'Network segmentation & VLANs', 'VPN & remote access', 'Redundancy & failover', 'Network monitoring & analytics'],
   seoLink: '/l/network-infrastructure-guide',
-  eyebrow: 'Network Infrastructure',
-  assessmentLabel: 'Plan Your Network',
+  assessmentLabel: 'Plan your network',
   featureTitle: 'Network architecture principles',
   featureCards: [
     { icon: Network, title: 'Layered Architecture', description: 'Well-defined core, distribution, and access layers make the environment easier to operate and evolve.' },
@@ -70,5 +69,5 @@ export default function NetworkInfrastructureServicePage() {
     },
   });
 
-  return <ServiceCategoryPage data={service} />;
+  return <ServiceCategoryPage data={service} breadcrumbs={IT_PAGE_META['/service-category/network-infrastructure'].breadcrumbs} />;
 }

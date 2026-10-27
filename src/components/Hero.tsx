@@ -1,4 +1,4 @@
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Phone } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -130,7 +130,8 @@ export default function Hero() {
             <h1 className="nw-display mb-5 text-4xl leading-[1.05] text-[var(--nw-cloud-white)] sm:mb-6 sm:text-6xl lg:text-7xl">
               {content.headline_part1 || 'Technology that keeps business moving.'}{' '}
               {content.headline_accent ? <span className="text-[var(--nw-signal-cyan)]">{content.headline_accent}</span> : null}
-              {content.headline_part2 ? ` ${content.headline_part2}` : null}
+              {/* A second part that opens with punctuation (", make sure…") follows the accent without a space. */}
+              {content.headline_part2 ? `${/^[,.;:!?]/.test(content.headline_part2) ? '' : ' '}${content.headline_part2}` : null}
               {content.headline_accent2 ? <span className="text-[var(--nw-tide-blue)]"> {content.headline_accent2}</span> : null}
             </h1>
           </MotionDiv>
@@ -147,14 +148,17 @@ export default function Hero() {
                 {content.cta_primary || 'Request an assessment'}
                 <ArrowRight size={16} />
               </button>
-              <button
-                type="button"
-                onClick={secondaryAction}
-                className="inline-flex items-center justify-center gap-2 rounded-md border px-5 py-3 font-semibold text-[var(--nw-cloud-white)] transition-colors hover:border-[var(--nw-signal-cyan)] hover:text-[var(--nw-signal-cyan)]"
-                style={{ borderColor: 'var(--nw-slate)', background: 'transparent' }}
-              >
-                {content.cta_secondary || 'Get support'}
-              </button>
+              {/* With a phone in the CMS the second button calls it (its label reads "Call Us Now"). */}
+              {content.phone ? (
+                <a href={`tel:${content.phone.replace(/[^\d+]/g, '')}`} className="btn-ghost-dark">
+                  <Phone size={16} aria-hidden="true" />
+                  {content.cta_secondary || 'Call us'}
+                </a>
+              ) : (
+                <button type="button" onClick={secondaryAction} className="btn-ghost-dark">
+                  {content.cta_secondary || 'Get support'}
+                </button>
+              )}
             </div>
           </MotionDiv>
 

@@ -131,10 +131,7 @@ export default function DynamicPricingBuilder() {
     <form onSubmit={handleSubmit} className="nw-surface rounded-lg p-4 sm:p-6">
       <section aria-labelledby="pricing-options-title">
         <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <p className="nw-kicker text-[var(--nw-tide-blue)]">Build Your Estimate</p>
-            <h2 id="pricing-options-title" className="mt-2 text-lg font-bold text-[var(--nw-current-navy)]">Select your options</h2>
-          </div>
+          <h2 id="pricing-options-title" className="nw-display text-xl text-[var(--nw-current-navy)]">Select your options</h2>
           <p className="text-sm text-[var(--nw-slate)]">Adjust quantities to suit your team.</p>
         </div>
         <div className="mt-5 grid gap-3 md:grid-cols-2">
@@ -161,15 +158,14 @@ export default function DynamicPricingBuilder() {
           })}
         </div>
         <div className="mt-5 rounded-md border p-5 text-center" style={{ background: 'var(--nw-current-navy)', borderColor: 'var(--nw-tide-blue)' }}>
-          <p className="nw-meta text-xs text-[var(--nw-mist-gray)]">Your First-Look Estimate</p>
+          <p className="nw-meta text-xs text-[var(--nw-mist-gray)]">Your first-look estimate</p>
           <p className="nw-display mt-2 text-4xl text-[var(--nw-signal-cyan)]">${estimatedTotal.toFixed(2)}</p>
           <p className="mt-2 text-xs text-[var(--nw-mist-gray)]">Final pricing may vary based on your specific needs.</p>
         </div>
       </section>
 
       <section className="mt-8 border-t pt-6" style={{ borderColor: 'var(--nw-mist-gray)' }} aria-labelledby="quote-contact-title">
-        <p className="nw-kicker text-[var(--nw-tide-blue)]">Contact Details</p>
-        <h2 id="quote-contact-title" className="mt-2 text-lg font-bold text-[var(--nw-current-navy)]">Tell us about your organization</h2>
+        <h2 id="quote-contact-title" className="nw-display text-xl text-[var(--nw-current-navy)]">Tell us about your organization</h2>
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           <div><label htmlFor="quote-name" className="mb-1.5 block text-sm font-medium text-[var(--nw-current-navy)]">Full name <span className="text-[var(--nw-tide-blue)]">*</span></label><input id="quote-name" type="text" name="name" value={formData.name} onChange={handleFormChange} required placeholder="John Smith" className="input-light" /></div>
           <div><label htmlFor="quote-email" className="mb-1.5 block text-sm font-medium text-[var(--nw-current-navy)]">Email <span className="text-[var(--nw-tide-blue)]">*</span></label><input id="quote-email" type="email" name="email" value={formData.email} onChange={handleFormChange} required placeholder="john@company.com" className="input-light" /></div>
@@ -179,7 +175,7 @@ export default function DynamicPricingBuilder() {
         <div className="mt-4"><label htmlFor="quote-message" className="mb-1.5 block text-sm font-medium text-[var(--nw-current-navy)]">Additional details</label><textarea id="quote-message" name="message" value={formData.message} onChange={handleFormChange} rows={4} placeholder="Tell us about your specific needs..." className="input-light resize-y" /></div>
         {error ? <p className="mt-4 text-sm text-red-700" role="alert">{error}</p> : null}
         <button type="submit" disabled={loading} className="btn-primary mt-6 w-full disabled:cursor-not-allowed disabled:opacity-60">
-          {loading ? 'Sending...' : <><Send size={17} aria-hidden="true" />Get Your Quote</>}
+          {loading ? 'Sending...' : <><Send size={17} aria-hidden="true" />Get your quote</>}
         </button>
       </section>
     </form>

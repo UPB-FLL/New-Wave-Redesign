@@ -7,40 +7,32 @@ type Threat = {
   icon: LucideIcon;
   name: string;
   slug: string;
-  severity: 'CRITICAL' | 'HIGH' | 'MEDIUM';
+  severity: 'Critical' | 'High' | 'Medium';
   description: string;
-  stat: string;
-  statLabel: string;
 };
 
+// No figures on these cards (detection rates, volumes, timings): the owner's
+// rule is that the site states none it cannot back up.
 const threats: Threat[] = [
-  { icon: Bug, name: 'Ransomware', slug: 'ransomware', severity: 'CRITICAL', description: 'Behavior analysis can identify encryption attempts and isolate affected endpoints quickly.', stat: '99.7%', statLabel: 'detection rate' },
-  { icon: Mail, name: 'Phishing', slug: 'phishing', severity: 'HIGH', description: 'Email defenses can combine URL rewriting, attachment sandboxing, and impersonation detection.', stat: '15M+', statLabel: 'emails scanned daily' },
-  { icon: AlertTriangle, name: 'DDoS Attacks', slug: 'ddos-attacks', severity: 'HIGH', description: 'Layered mitigation with edge-network filtering and automatic traffic scrubbing.', stat: '10 Tbps', statLabel: 'mitigation capacity' },
-  { icon: Lock, name: 'Data Breaches', slug: 'data-breaches', severity: 'CRITICAL', description: 'Encryption, DLP policies, and monitoring for sensitive data flows.', stat: 'AES-256', statLabel: 'encryption standard' },
-  { icon: Zap, name: 'Zero-Day Exploits', slug: 'zero-day-exploits', severity: 'CRITICAL', description: 'Behavioral detection can recognize unfamiliar attack patterns before traditional signatures exist.', stat: '<60s', statLabel: 'mean detection time' },
-  { icon: ShieldOff, name: 'Insider Threats', slug: 'insider-threats', severity: 'MEDIUM', description: 'User behavior analytics can flag anomalous access patterns and policy violations.', stat: '24/7', statLabel: 'continuous monitoring' },
-  { icon: Wifi, name: 'Network Intrusions', slug: 'network-intrusions', severity: 'HIGH', description: 'Next-generation firewalls with deep packet inspection and intrusion prevention.', stat: '5M+', statLabel: 'packets inspected/sec' },
-  { icon: CheckCircle, name: 'Compliance Violations', slug: 'compliance-violations', severity: 'MEDIUM', description: 'Automated reviews can map an environment to HIPAA, PCI-DSS, SOC 2, and GDPR requirements.', stat: '100%', statLabel: 'audit readiness' },
+  { icon: Bug, name: 'Ransomware', slug: 'ransomware', severity: 'Critical', description: 'Behavior analysis can identify encryption attempts and isolate affected endpoints quickly.' },
+  { icon: Mail, name: 'Phishing', slug: 'phishing', severity: 'High', description: 'Email defenses can combine URL rewriting, attachment sandboxing, and impersonation detection.' },
+  { icon: AlertTriangle, name: 'DDoS Attacks', slug: 'ddos-attacks', severity: 'High', description: 'Layered mitigation with edge-network filtering and automatic traffic scrubbing.' },
+  { icon: Lock, name: 'Data Breaches', slug: 'data-breaches', severity: 'Critical', description: 'Encryption, DLP policies, and monitoring for sensitive data flows.' },
+  { icon: Zap, name: 'Zero-Day Exploits', slug: 'zero-day-exploits', severity: 'Critical', description: 'Behavioral detection can recognize unfamiliar attack patterns before traditional signatures exist.' },
+  { icon: ShieldOff, name: 'Insider Threats', slug: 'insider-threats', severity: 'Medium', description: 'User behavior analytics can flag anomalous access patterns and policy violations.' },
+  { icon: Wifi, name: 'Network Intrusions', slug: 'network-intrusions', severity: 'High', description: 'Next-generation firewalls with deep packet inspection and intrusion prevention.' },
+  { icon: CheckCircle, name: 'Compliance Violations', slug: 'compliance-violations', severity: 'Medium', description: 'Automated reviews can map an environment to HIPAA, PCI-DSS, SOC 2, and GDPR requirements.' },
 ];
-
-const severityClasses: Record<Threat['severity'], string> = {
-  CRITICAL: 'border-red-200 bg-red-50 text-red-700',
-  HIGH: 'border-amber-200 bg-amber-50 text-amber-800',
-  MEDIUM: 'border-sky-200 bg-sky-50 text-sky-800',
-};
 
 export default function ThreatProtection() {
   // /threat/:slug pages come from the CMS; a card links only to one that exists.
   const detailSlugs = useDetailSlugs('threats-detail', 'threats_list');
 
   return (
-    <section className="relative z-10 py-16 sm:py-20">
+    <section className="relative z-10 border-t py-16 sm:py-20" style={{ borderColor: 'var(--nw-mist-gray)' }}>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
-          align="center"
-          eyebrow="Threat Coverage"
-          title={<>Defense against every <span className="text-[var(--nw-tide-blue)]">attack vector.</span></>}
+          title="Threats we protect against"
           description="A practical view of common risks facing businesses and the safeguards that help address them."
         />
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -49,16 +41,12 @@ export default function ThreatProtection() {
             const cardStyle = { background: 'var(--nw-pure-white)', borderColor: 'var(--nw-mist-gray)' };
             const body = (
               <>
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center justify-between gap-3">
                   <span className="nw-icon-signal h-9 w-9"><Icon size={17} aria-hidden="true" /></span>
-                  <span className={`rounded border px-2 py-1 text-[10px] font-bold ${severityClasses[threat.severity]}`}>{threat.severity}</span>
+                  <span className="nw-meta text-xs text-[var(--nw-slate)]">{threat.severity} risk</span>
                 </div>
                 <h3 className="mt-5 font-bold text-[var(--nw-current-navy)]">{threat.name}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-[var(--nw-slate)]">{threat.description}</p>
-                <div className="mt-5 border-t pt-4" style={{ borderColor: 'var(--nw-mist-gray)' }}>
-                  <p className="nw-display text-2xl text-[var(--nw-tide-blue)]">{threat.stat}</p>
-                  <p className="nw-meta mt-1 text-xs text-[var(--nw-slate)]">{threat.statLabel}</p>
-                </div>
               </>
             );
             return detailSlugs.has(threat.slug) ? (

@@ -1,6 +1,10 @@
 import { ArrowRight } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
-import { PublicPageHero } from '../components/brand/PublicPageHero';
+import { CheckList } from '../components/brand/CheckList';
+import { CtaBand } from '../components/brand/CtaBand';
+import { PageHeader } from '../components/brand/PageHeader';
+import { Section } from '../components/brand/Section';
+import { SectionHeading } from '../components/brand/SectionHeading';
 import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
 import { useContentWithStatus } from '../lib/useContent';
@@ -56,11 +60,11 @@ export default function ServiceDetailPage() {
     return (
       <div className="min-h-screen" style={{ background: 'var(--nw-cloud-white)' }}>
         <Navbar />
-        <main className="mx-auto max-w-3xl px-6 pb-20 pt-32 text-center">
-          <h1 className="nw-display mb-3 text-3xl text-brand-navy">Service not found</h1>
-          <p className="mb-6 text-[var(--nw-slate)]">This service detail page is not available.</p>
-          <Link to="/services" className="btn-primary">Back to services <ArrowRight size={14} /></Link>
-        </main>
+        <PageHeader
+          title="Service not found"
+          description="This service detail page is not available."
+          actions={<Link to="/services" className="btn-primary">Back to services <ArrowRight size={14} /></Link>}
+        />
         <Footer />
       </div>
     );
@@ -69,43 +73,40 @@ export default function ServiceDetailPage() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--nw-cloud-white)' }}>
       <Navbar />
-      <PublicPageHero title={service.name} description={service.description} eyebrow="New Wave IT service" backTo="/services" backLabel="Back to services">
-        <Link to="/contact" className="btn-primary">Request an assessment <ArrowRight size={14} /></Link>
-        <Link to="/pricing" className="btn-secondary">See pricing</Link>
-      </PublicPageHero>
+      <PageHeader
+        breadcrumbs={[{ name: 'Services', path: '/services' }, { name: service.name, path: `/service/${service.slug}` }]}
+        title={service.name}
+        description={service.description}
+        actions={
+          <>
+            <Link to="/contact" className="btn-primary">Request an assessment <ArrowRight size={14} /></Link>
+            <Link to="/pricing" className="btn-ghost-dark">See pricing</Link>
+          </>
+        }
+      />
 
-      <main className="mx-auto max-w-5xl space-y-12 px-4 py-12 sm:px-6 sm:py-14">
-        {service.features.length > 0 ? <ServiceList title="Key features" items={service.features} accent="var(--nw-signal-cyan)" /> : null}
-        {service.benefits.length > 0 ? <ServiceList title="Benefits" items={service.benefits} accent="var(--nw-tide-blue)" /> : null}
-        {service.pricing_note ? (
-          <section className="rounded-lg border p-6 sm:p-8" style={{ background: 'var(--nw-pure-white)', borderColor: 'var(--nw-tide-blue)' }}>
-            <h2 className="nw-display mb-3 text-2xl text-brand-navy">Pricing and integration</h2>
-            <p className="leading-relaxed text-[var(--nw-current-navy)]">{service.pricing_note}</p>
-          </section>
+      <main>
+        {service.features.length > 0 ? (
+          <Section tone="white">
+            <SectionHeading title="Key features" />
+            <CheckList items={service.features} columns={2} className="mt-8 max-w-4xl" />
+          </Section>
         ) : null}
-        <section className="border-t py-8 text-center" style={{ borderColor: 'var(--nw-mist-gray)' }}>
-          <h2 className="nw-display mb-3 text-2xl text-brand-navy">Ready to get started?</h2>
-          <p className="mx-auto mb-6 max-w-xl text-[var(--nw-slate)]">Contact our team for a free assessment and implementation plan.</p>
-          <Link to="/contact" className="btn-primary">Schedule a consultation <ArrowRight size={14} /></Link>
-        </section>
+        {service.benefits.length > 0 ? (
+          <Section tone="base">
+            <SectionHeading title="Benefits" />
+            <CheckList items={service.benefits} columns={2} className="mt-8 max-w-4xl" />
+          </Section>
+        ) : null}
+        {service.pricing_note ? (
+          <Section tone="white">
+            <SectionHeading title="Pricing and integration" />
+            <p className="mt-5 max-w-3xl text-base leading-relaxed text-[var(--nw-slate)] sm:text-lg">{service.pricing_note}</p>
+          </Section>
+        ) : null}
+        <CtaBand title="Ready to get started?" description="Contact our team for a free assessment and implementation plan." />
       </main>
       <Footer />
     </div>
-  );
-}
-
-function ServiceList({ title, items, accent }: { title: string; items: string[]; accent: string }) {
-  return (
-    <section>
-      <h2 className="nw-display mb-6 text-3xl text-brand-navy">{title}</h2>
-      <div className="grid gap-4 sm:grid-cols-2">
-        {items.map((item) => (
-          <div key={item} className="flex gap-3 rounded-lg p-4 nw-surface">
-            <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: accent }} aria-hidden="true" />
-            <p className="text-[var(--nw-current-navy)]">{item}</p>
-          </div>
-        ))}
-      </div>
-    </section>
   );
 }

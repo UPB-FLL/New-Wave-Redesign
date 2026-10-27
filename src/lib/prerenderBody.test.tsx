@@ -15,18 +15,18 @@ const bodyRoutes = ['/', ...prerenderedItRoutes().map((route) => route.path)].fi
 const text = (html: string) => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
 
 describe('renderItBody', () => {
-  it('renders every static route but the lazy partner sign-in and the unsourced status board', () => {
+  it('renders every static route but the lazy partner sign-in', () => {
     const paths = prerenderedItRoutes().map((route) => route.path);
-    expect(bodyRoutes).toHaveLength(paths.length - 1); // 32 routes + "/" - "/groundswell" - "/status"
+    expect(bodyRoutes).toHaveLength(paths.length); // 32 routes + "/" - "/groundswell"
     expect(isPrerenderedItPath('/groundswell')).toBe(false);
-    expect(isPrerenderedItPath('/status')).toBe(false);
+    expect(isPrerenderedItPath('/status')).toBe(true);
     expect(isPrerenderedItPath('/service/some-cms-page')).toBe(false);
     expect(() => renderItBody('/groundswell')).toThrow(/No New Wave IT body/);
   });
 
   it('covers every literal public route App.tsx mounts', () => {
     const literal = [...appSource.matchAll(/<Route path="(\/[^":]*)" element=/g)].map((m) => m[1]);
-    const expectedShell = new Set(['/groundswell', '/status', '/admin']);
+    const expectedShell = new Set(['/groundswell', '/admin']);
     for (const routePath of literal.filter((p) => !expectedShell.has(p))) {
       expect(isPrerenderedItPath(routePath), `${routePath} needs a row in IT_ROUTE_ELEMENTS`).toBe(true);
     }

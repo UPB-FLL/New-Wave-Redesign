@@ -84,7 +84,7 @@ export const IT_PAGE_META = withBreadcrumbs({
   },
   '/status': {
     title: 'Service Status - New Wave IT',
-    description: 'Real-time status of critical services and ISPs. Monitor uptime for cloud services your business depends on.',
+    description: 'Official status pages for Microsoft 365, Google Workspace, AWS, and the other cloud services and internet providers your business depends on, in one place.',
     canonical: 'https://www.newwaveitfl.com/status',
     crumb: 'Status',
   },

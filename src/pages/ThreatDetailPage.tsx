@@ -1,6 +1,9 @@
 import { AlertTriangle, ArrowRight, Shield } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
-import { PublicPageHero } from '../components/brand/PublicPageHero';
+import { CtaBand } from '../components/brand/CtaBand';
+import { PageHeader } from '../components/brand/PageHeader';
+import { Section } from '../components/brand/Section';
+import { SectionHeading } from '../components/brand/SectionHeading';
 import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
 import { useContentWithStatus } from '../lib/useContent';
@@ -16,13 +19,9 @@ interface ThreatDetail {
   impact: string;
 }
 
-function severityColor(severity: string): string {
-  switch (severity) {
-    case 'CRITICAL': return '#b42318';
-    case 'HIGH': return '#b54708';
-    case 'MEDIUM': return 'var(--nw-tide-blue)';
-    default: return 'var(--nw-slate)';
-  }
+/** CRITICAL → Critical, as the CMS stores severities in capitals. */
+function severityLabel(severity: string): string {
+  return severity ? severity.charAt(0) + severity.slice(1).toLowerCase() : '';
 }
 
 export default function ThreatDetailPage() {
@@ -66,65 +65,76 @@ export default function ThreatDetailPage() {
     return (
       <div className="min-h-screen" style={{ background: 'var(--nw-cloud-white)' }}>
         <Navbar />
-        <main className="mx-auto max-w-3xl px-6 pb-20 pt-32 text-center">
-          <h1 className="nw-display mb-3 text-3xl text-brand-navy">Threat not found</h1>
-          <p className="mb-6 text-[var(--nw-slate)]">This threat detail page is not available.</p>
-          <Link to="/cybersecurity" className="btn-primary">Back to threat coverage <ArrowRight size={14} /></Link>
-        </main>
+        <PageHeader
+          title="Threat not found"
+          description="This threat detail page is not available."
+          actions={<Link to="/cybersecurity" className="btn-primary">Back to threat coverage <ArrowRight size={14} /></Link>}
+        />
         <Footer />
       </div>
     );
   }
 
-  const color = severityColor(threat.severity);
   return (
     <div className="min-h-screen" style={{ background: 'var(--nw-cloud-white)' }}>
       <Navbar />
-      <PublicPageHero title={threat.name} description={threat.description} eyebrow="Threat protection" backTo="/cybersecurity" backLabel="Back to threats">
-        <span className="rounded-md px-3 py-2 text-xs font-semibold" style={{ background: color, color: 'var(--nw-cloud-white)' }}>{threat.severity}</span>
-        <Link to="/contact" className="btn-primary">Get a threat assessment <ArrowRight size={14} /></Link>
-        <Link to="/pricing" className="btn-secondary">See protection plans</Link>
-      </PublicPageHero>
+      <PageHeader
+        breadcrumbs={[{ name: 'Threat Center', path: '/cybersecurity' }, { name: threat.name, path: `/threat/${threat.slug}` }]}
+        title={threat.name}
+        description={threat.description}
+        actions={
+          <>
+            <Link to="/contact" className="btn-primary">Get a threat assessment <ArrowRight size={14} /></Link>
+            <Link to="/pricing" className="btn-ghost-dark">See protection plans</Link>
+          </>
+        }
+      >
+        {threat.severity ? <p className="nw-meta mt-4 text-sm text-[var(--nw-mist-gray)]">Severity: {severityLabel(threat.severity)}</p> : null}
+      </PageHeader>
 
-      <main className="mx-auto max-w-5xl space-y-12 px-4 py-12 sm:px-6 sm:py-14">
+      <main>
         {threat.details ? (
-          <section>
-            <h2 className="nw-display mb-6 text-3xl text-brand-navy">Understanding this threat</h2>
-            {threat.details.split(/\n\n+/).map((paragraph) => <p key={paragraph} className="mb-4 leading-relaxed text-[var(--nw-current-navy)]">{paragraph}</p>)}
-          </section>
+          <Section tone="white">
+            <div className="max-w-3xl">
+              <SectionHeading title="Understanding this threat" />
+              <div className="mt-6 space-y-4 text-base leading-relaxed text-[var(--nw-slate)] sm:text-lg">
+                {threat.details.split(/\n\n+/).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+              </div>
+            </div>
+          </Section>
         ) : null}
 
         {threat.impact ? (
-          <section className="rounded-lg border-l-4 p-6" style={{ background: 'var(--nw-pure-white)', borderColor: color }}>
-            <div className="flex gap-4">
-              <AlertTriangle size={24} style={{ color, flexShrink: 0 }} />
+          <Section tone="base">
+            <div className="flex max-w-3xl gap-4 rounded-lg border-l-4 p-6" style={{ background: 'var(--nw-pure-white)', borderColor: 'var(--nw-tide-blue)' }}>
+              <AlertTriangle size={24} className="shrink-0 text-[var(--nw-tide-blue)]" aria-hidden="true" />
               <div>
                 <h2 className="nw-display mb-2 text-xl text-brand-navy">Impact</h2>
                 <p className="text-[var(--nw-current-navy)]">{threat.impact}</p>
               </div>
             </div>
-          </section>
+          </Section>
         ) : null}
 
         {threat.mitigation_strategies.length > 0 ? (
-          <section>
-            <h2 className="nw-display mb-6 text-3xl text-brand-navy">Our defense strategy</h2>
-            <div className="grid gap-4 sm:grid-cols-2">
+          <Section tone="white">
+            <SectionHeading title="Our defense strategy" />
+            <div className="mt-8 grid gap-4 sm:grid-cols-2">
               {threat.mitigation_strategies.map((strategy) => (
-                <div key={strategy} className="flex gap-3 rounded-lg p-5 nw-surface" style={{ borderColor: 'var(--nw-continuity-green)' }}>
+                <div key={strategy} className="flex gap-3 rounded-lg border p-5" style={{ background: 'var(--nw-cloud-white)', borderColor: 'var(--nw-mist-gray)' }}>
                   <Shield size={20} className="mt-0.5 shrink-0 text-[var(--nw-tide-blue)]" aria-hidden="true" />
                   <p className="text-[var(--nw-current-navy)]">{strategy}</p>
                 </div>
               ))}
             </div>
-          </section>
+          </Section>
         ) : null}
 
-        <section className="border-t py-8 text-center" style={{ borderColor: 'var(--nw-mist-gray)' }}>
-          <h2 className="nw-display mb-3 text-2xl text-brand-navy">Protect against {threat.name}</h2>
-          <p className="mx-auto mb-6 max-w-xl text-[var(--nw-slate)]">Our security experts can help you build defenses against this threat.</p>
-          <Link to="/contact" className="btn-primary">Schedule security audit <ArrowRight size={14} /></Link>
-        </section>
+        <CtaBand
+          title={`Protect against ${threat.name}`}
+          description="Our security experts can help you build defenses against this threat."
+          actionLabel="Schedule a security audit"
+        />
       </main>
       <Footer />
     </div>

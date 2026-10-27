@@ -12,8 +12,7 @@ const service: ServiceCategoryPageData = {
   details: 'Our managed services team monitors systems, applies patches, manages backups, and provides strategic planning for IT growth.',
   highlights: ['Continuous infrastructure monitoring', 'Strategic planning & roadmapping', 'Patch management & updates', 'Backup & disaster recovery', 'Cloud integration & management', 'Performance optimization', 'Transparent billing', 'Quarterly business reviews'],
   seoLink: '/l/managed-it-guide',
-  eyebrow: 'Managed IT Services',
-  assessmentLabel: 'Schedule an IT Assessment',
+  assessmentLabel: 'Schedule an IT assessment',
   featureTitle: 'What managed IT services include',
   featureDescription: 'A practical operating model that covers daily maintenance, protection, and long-term technology planning.',
   featureCards: [
@@ -24,6 +23,7 @@ const service: ServiceCategoryPageData = {
   sections: [
     {
       title: 'The transition process',
+      ordered: true,
       items: ['Assess current systems, support history, risks, and priorities.', 'Create a practical onboarding plan with clear ownership and timelines.', 'Move into steady-state support with ongoing improvement and communication.'],
     },
     {
@@ -61,5 +61,5 @@ export default function ManagedITServicePage() {
     },
   });
 
-  return <ServiceCategoryPage data={service} />;
+  return <ServiceCategoryPage data={service} breadcrumbs={IT_PAGE_META['/service-category/managed-it-services'].breadcrumbs} />;
 }

@@ -12,8 +12,7 @@ const service: ServiceCategoryPageData = {
   details: 'Deploy reliable cellular coverage, FirstNet integration, and communication systems designed around the operational needs of emergency responders, public safety agencies, and large facilities.',
   highlights: ['DAS design & installation', 'FirstNet responder network', 'In-building cellular coverage', 'Large venue connectivity', 'Redundant communication systems', 'Emergency response support', 'Network monitoring & maintenance', 'Compliance & certification'],
   seoLink: '/l/cellular-das-public-safety-guide',
-  eyebrow: 'Critical Communications',
-  assessmentLabel: 'Plan Your Coverage',
+  assessmentLabel: 'Plan your coverage',
   featureTitle: 'Communications solutions',
   featureCards: [
     { icon: Radio, title: 'Distributed Antenna Systems', description: 'In-building DAS design and installation support stronger, more consistent cellular coverage where it is needed.' },
@@ -23,6 +22,7 @@ const service: ServiceCategoryPageData = {
   sections: [
     {
       title: 'Building reliable coverage',
+      ordered: true,
       items: ['Assess the facility, current coverage, building materials, and operational requirements.', 'Design a coverage and capacity approach that fits the space and its critical users.', 'Install, validate, document, and maintain the system as the facility evolves.'],
     },
     {
@@ -52,5 +52,5 @@ const SERVICE_JSON_LD = {
 export default function CellularDASPublicSafetyServicePage() {
   usePageMeta({ ...IT_PAGE_META['/service-category/cellular-das-and-public-safety'], jsonLd: SERVICE_JSON_LD });
 
-  return <ServiceCategoryPage data={service} />;
+  return <ServiceCategoryPage data={service} breadcrumbs={IT_PAGE_META['/service-category/cellular-das-and-public-safety'].breadcrumbs} />;
 }

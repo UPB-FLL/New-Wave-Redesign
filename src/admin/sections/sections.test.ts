@@ -93,7 +93,8 @@ describe('section descriptors', () => {
       return f && isListField(f) ? f.fields.map((x) => `${x.key}:${x.kind}`) : undefined;
     };
     expect(list('pricing', 'tiers')).toBeUndefined(); // retired 2026-10-26; migration 20261103120000 drops the row
-    expect(list('status', 'services')).toEqual(['name:text', 'category:select', 'status:select', 'uptime:number', 'lastChecked:text']);
+    // 2026-10-27: the link replaces the status, uptime and check time /status no longer shows.
+    expect(list('status', 'services')).toEqual(['name:text', 'category:select', 'url:text']);
     expect(list('threats-detail', 'threats_list')).toContain('mitigation_strategies:strings');
     expect(list('services-detail', 'services_list')).toEqual(['name:text', 'slug:text', 'description:textarea', 'features:strings', 'benefits:strings', 'pricing_note:textarea']);
     expect(list('trustbar', 'items')).toEqual(['icon:select', 'label:text', 'sub:text']);

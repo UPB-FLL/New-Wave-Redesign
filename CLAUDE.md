@@ -2,6 +2,97 @@
 
 ## Recent Changes
 
+### New Wave IT pages: one page header, one title per section (2026-10-27)
+
+Owner's ask: rework the layout of every New Wave IT page (nothing on the Social
+Engineering side) with the same colours and flow, less disorganized: no
+double-labelled sections, no pill clutter, page headers that match, standard
+section titles; a site that instils confidence. Then re-run the SEO and AI
+search skill to confirm nothing measured moved.
+
+- **Header** (`components/brand/PageHeader.tsx`, replacing `PublicPageHero`):
+  every inner page opens on the same Deep Current band: a visible breadcrumb
+  (the trail its BreadcrumbList already states: `IT_PAGE_META[path].breadcrumbs`,
+  `serviceGuideMeta`, or the page's own for posts and CMS details), the H1, the
+  lede, the actions (`btn-primary`, and `btn-ghost-dark` beside it), optional
+  facts. No label above the title, no icon tile. H1 texts are the pages' own.
+- **Sections**: `Section` (one band rhythm and hairline), `SectionHeading` (one
+  size, no eyebrow on IT pages; `tone="dark"`), `CheckList` (checks, or
+  numbered steps with `ordered`), `CtaBand` (the closing band: one action and
+  the footer's phone). Titles are plain sentence case ("Overview", "How it
+  works", "Core services", "Industry solutions", "Threats we protect against"),
+  without two-tone accents.
+- **CMS headlines** (`cmsHeadline`): a stored headline shows as stored, with its
+  accent only when the CMS sets one. The code's default accent was being
+  appended: production printed "Fort Lauderdale's trusted IT partner trusted IT
+  partner" (/about) and "…lost in the current. need continuity." (/why-us,
+  home). `section_label` values are no longer shown on IT pages (the admin still
+  lists them). Pricing keeps `headline + (accent || 'plans')`: the stored
+  "Simple, Scalable" needs it.
+- **Home** (the owner-approved bento and carousel stay): the carousel has two
+  slides (the services slide repeated the Services band below it), icon tiles
+  hide on phones, where names were cut off ("Huntress Pa…"); the Services title
+  is Plus Jakarta (it named an unloaded 'Staatliches', so browsers drew Impact),
+  highlights are check lists (the pills measured 2.65:1 and 2.44:1), industry
+  cards lose their fixed height; the hero joins ", make sure…" without a space
+  and, with a CMS phone, its "Call Us Now" button calls (it scrolled to
+  #services).
+- **Pages**: /services, /why-us, /about, /pricing, /contact (`Contact
+  showIntro={false}` and a "How to reach us" title), /support (phone fallback
+  now (561) 564-1846), /cybersecurity, /codenest, the 12 service
+  pages (`ServiceCategoryPage`: "Overview" replaces the identical "Technology
+  designed around your operation." on all 12; process sections numbered; the
+  guide button only for an `/l/` guide that exists, else "See pricing" (four
+  industry pages opened "Guide not found"); "See all IT services" under the
+  highlights), the guides, the legal pages (brand tokens for their headings,
+  links and tables; text unchanged), /blog and posts (both now render the
+  Navbar; post bodies use `.nw-prose`, as the typography plugin is not
+  installed), the CMS detail pages and the 404. With `intro` (the division)
+  `Contact` renders exactly as before.
+- **Figures removed** under the owner's no-unverified-figures rule: the threat
+  cards' stats (99.7%, 15M+, 10 Tbps, <60s, 5M+, 100%), "Results in 5 days",
+  and the uncited "$4.45 million". Severity is a plain "Critical risk" label,
+  not a red, amber, or sky pill. The fact sheet (`docs/geo/fact-sheet.md`
+  §2 and §10) marks each as removed or fixed.
+- **Status** (owner's choice: make it honest): /status printed made-up figures
+  as live data (an uptime per service, "Last checked: 2 min ago", Spectrum
+  "Degraded", "Updated every 5 minutes"; production's CMS has no `status` rows,
+  so these were the code's defaults). It now links each service to its
+  provider's own status page (`src/lib/statusPages.ts`: `STATUS_SERVICES`,
+  every link opened on 2026-10-27; Comcast is left out, as Xfinity has no
+  public one) and states no status of its own; `StatusIndicator` is gone. A
+  CMS list still overrides (`statusServices`): an entry keeps its own https
+  link or takes the built-in one for its name, and is not shown with neither.
+  The admin's Status editor stores `url` in place of status, uptime and last
+  checked (`last_updated` is gone too), with the built-in list as its
+  defaults. The description (`IT_PAGE_META['/status']`) no longer says
+  "Real-time … Monitor uptime". Held out of the body prerender until the
+  owner decided what the page is, /status is now in `IT_ROUTE_ELEMENTS`.
+- **With main's GEO audit (#161)**: the page bodies it prerenders are this
+  layout, so a reader without JavaScript gets it too. Kept from main: no
+  response-time promise in the contact fallbacks (`Contact`, `ContactPage`),
+  the live support highlight "Priority handling for critical issues", and the
+  trust slide's "Tools we run" caption (owner, Q8: tools, not partners) under
+  its one title, "Partners and commitments", in place of the kicker.
+- **Unchanged against main (`a2d4d52`), both built on the production CMS**:
+  every head but /status's (its description, og:description and
+  twitter:description), the sitemap, robots, routes, JSON-LD and analytics
+  hooks; all 20 division files byte-identical, and every division and
+  GroundSwell page the same DOM and screenshot. The skill's re-run (raw HTML
+  with JavaScript off, and rendered): heading-level skips 5 → 0, internal
+  links in page content 71 → 84 raw (89 → 101 rendered), FAQ items 24 → 24,
+  images without alt 0 → 0, pages with one H1 in the raw HTML 31 → 32 of 34
+  (/status; the other two are the blog post, written by `api/blog-page.ts`,
+  and the 404 shell), words 11,864 → 11,780 raw. The only links gone are the
+  four buttons to guides that do not exist.
+- **Tests**: `src/test/it-page-layout.test.tsx` (every IT route: one H1 in the
+  header, the breadcrumb's current crumb, no `.nw-kicker`, no level skips, no
+  repeated phrase, no word chips, the production CMS rows, the guide and
+  services links), `cmsHeadline.test.tsx`, `StatusPage.test.tsx` (the links,
+  no status of its own, a CMS list and its links), and updated pins in
+  `HomeOriginalSections`, `TrustBarLayout`, `LegalPageLayout`, `Hero`,
+  `BlogPostPage`, and `sections.test.ts` (the status entry's shape).
+
 ### Groundswell: the operations agent, a 4-hour report, approval from the email (2026-10-27)
 
 Owner's ask: a local, agnostic agent that feeds back errors, resolves them
@@ -325,8 +416,8 @@ without JavaScript; only the GroundSwell pages carried copy.
   the empty shell moves to `dist/_shell.html` (`SHELL_FILE`), which the
   `vercel.json` catch-all rewrites the SPA fallback routes to and
   `api/_lib/spaShell.ts` reads for blog posts; `robots.txt` disallows it.
-  `/groundswell` (a lazy chunk) and `/status` (its figures have no source;
-  owner decision pending) keep the shell.
+  `/groundswell` (a lazy chunk) keeps the shell; `/status` did while its
+  figures had no source, until the owner's call on 2026-10-27 (above).
 - **CMS copy**: `readCmsContentForBuild` (`src/lib/prerenderContent.ts`)
   reads every `site_content` row with the anon key at build time and
   `seedContentCache` (`content.ts`) hands it to `useContent`, so the static

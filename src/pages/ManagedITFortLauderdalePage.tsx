@@ -8,7 +8,6 @@ import { usePageMeta } from '../lib/usePageMeta';
 const page: ServiceCategoryPageData = {
   icon: Monitor,
   name: 'Managed IT Services in Fort Lauderdale',
-  eyebrow: 'Managed IT · Fort Lauderdale, FL',
   heroTitle: 'Managed IT services for Fort Lauderdale businesses',
   description: 'Fully managed IT for Fort Lauderdale offices at a flat monthly rate per device.',
   heroDescription:
@@ -25,7 +24,7 @@ const page: ServiceCategoryPageData = {
   ],
   seoLink: '/l/managed-it-guide',
   guideLabel: 'Read the managed IT guide',
-  assessmentLabel: 'Get a Free IT Assessment',
+  assessmentLabel: 'Get a free IT assessment',
   featureTitle: 'What managed IT includes',
   featureDescription: 'One provider responsible for keeping your technology running, secure, and planned.',
   featureCards: [
@@ -44,6 +43,7 @@ const page: ServiceCategoryPageData = {
     },
     {
       title: 'Switching to New Wave IT',
+      ordered: true,
       items: [
         'Free assessment of your systems, support history, and risks.',
         'An onboarding plan with clear owners and dates.',
@@ -77,5 +77,5 @@ export default function ManagedITFortLauderdalePage() {
     },
   });
 
-  return <ServiceCategoryPage data={page} />;
+  return <ServiceCategoryPage data={page} breadcrumbs={IT_PAGE_META['/managed-it-services-fort-lauderdale'].breadcrumbs} />;
 }

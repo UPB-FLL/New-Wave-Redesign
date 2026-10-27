@@ -34,7 +34,7 @@ log, and the Google Business Profile as returned by a Google Maps search on
 | Phone | (561) 564-1846 / +1 561-564-1846 | CMS `contact.phone`, `footer.phone`, `hero.phone`; Google listing; `CLAUDE.md` 2026-10-21 ("the Google Business Profile's") | owner-confirmed, 2026-10-26 |
 | Email | support@newwaveitfl.com | CMS `contact.email`, `footer.email`; JSON-LD | source-backed (site) |
 | Geo coordinates | 26.1224, −80.1373 | `index.html` JSON-LD | site-only; GBP pin differs (see address) |
-| Stale phone fallback | (954) 372-5100 | `src/pages/SupportPage.tsx:60` code fallback (masked by CMS) | not a fact; code defect, parked |
+| Stale phone fallback | (954) 372-5100 | `src/pages/SupportPage.tsx:60` code fallback (masked by CMS) | not a fact; code defect, **fixed 2026-10-27** (the fallback is (561) 564-1846) |
 | Fictional placeholder | (954) 555-0100 | `Contact.tsx` input placeholder; `contactDetails.ts` `PLACEHOLDER_PHONE` | not a fact; by design |
 
 ## 3. Hours
@@ -121,11 +121,11 @@ commit `00eb73e`.
 
 | Claim | Where | Note |
 |---|---|---|
-| "Real-time service status … Updated every 5 minutes"; a table of named SaaS and ISP services with uptime figures (Microsoft 365 99.95 %, Google Workspace 99.98 %, AWS 99.99 %, … Spectrum 99.45 % "degraded") and "2 min ago" / "5 min ago" check times | `src/pages/StatusPage.tsx:16-28, 60-66` | **Hard-coded fallbacks with no data source**; the CMS has no `status` rows, so this is what `/status` shows. The page presents invented figures as live monitoring. |
-| "99.7 % detection rate", "15M+ emails scanned daily", "10 Tbps mitigation capacity", "<60s mean detection time", "5M+ packets inspected/sec", "100 % audit readiness" | `src/components/cybersecurity/ThreatProtection.tsx:17-24` (rendered on `/cybersecurity`) | Unsourced figures. |
-| "The average breach costs organizations $4.45 million." | `src/pages/CybersecurityServicePage.tsx:31` | Matches IBM's 2023 Cost of a Data Breach global average, but no citation is given and the figure is now out of date. |
+| "Real-time service status … Updated every 5 minutes"; a table of named SaaS and ISP services with uptime figures (Microsoft 365 99.95 %, Google Workspace 99.98 %, AWS 99.99 %, … Spectrum 99.45 % "degraded") and "2 min ago" / "5 min ago" check times | `src/pages/StatusPage.tsx:16-28, 60-66` | **Hard-coded fallbacks with no data source**; the CMS has no `status` rows, so this is what `/status` shows. The page presents invented figures as live monitoring. **Replaced 2026-10-27** (owner's call, §11): each service links to its provider's own status page (`src/lib/statusPages.ts`); the page states no status, uptime or check time. |
+| "99.7 % detection rate", "15M+ emails scanned daily", "10 Tbps mitigation capacity", "<60s mean detection time", "5M+ packets inspected/sec", "100 % audit readiness" | `src/components/cybersecurity/ThreatProtection.tsx:17-24` (rendered on `/cybersecurity`) | Unsourced figures. **Removed 2026-10-27.** |
+| "The average breach costs organizations $4.45 million." | `src/pages/CybersecurityServicePage.tsx:31` | Matches IBM's 2023 Cost of a Data Breach global average, but no citation is given and the figure is now out of date. **Removed 2026-10-27.** |
 | "dedicated engineers responding in minutes"; "Sub-hour response times" | `src/pages/LiveITSupportServicePage.tsx:10, 13` | **dropped 2026-10-26** ("from dedicated engineers"; "Priority handling for critical issues", which the page's own details already state) |
-| "Results in 5 days"; "90-Day Roadmap"; "from certified analysts" | `src/components/cybersecurity/CyberSecurityCTA.tsx:7, 20, 26` | |
+| "Results in 5 days"; "90-Day Roadmap"; "from certified analysts" | `src/components/cybersecurity/CyberSecurityCTA.tsx:7, 20, 26` | "Results in 5 days" **removed 2026-10-27**; the other two stand. |
 | "Week 1", "Week 1-2", "Week 2-4"; "Certified engineers handle implementation" | `src/components/cybersecurity/SecurityProcess.tsx:5-8` | |
 | HIPAA, PCI-DSS, SOC 2 (Type I & II audit prep), GDPR ("72-hour breach notification"), ISO 27001 ("Annual surveillance audits"), NIST CSF; "Audit-ready from day one." | `src/components/cybersecurity/ComplianceFrameworks.tsx:5-20` | Framework *work offered*, not certifications held; consistent with the 2026-10-21 rule. |
 | "Support for HIPAA, PCI-DSS, SOC 2"; "24/7 SOC monitoring", "penetration testing", "forensic investigation" | `src/pages/CybersecurityServicePage.tsx:13, 21, 54` | |
@@ -138,7 +138,7 @@ commit `00eb73e`.
 | "Transparent billing", "Quarterly business reviews", "Fixed Monthly Fee" | `src/pages/ManagedITServicePage.tsx:13, 40` | |
 | "Warranty & support coverage", "Emergency on-site repair" | `src/pages/ITRepairServicePage.tsx:13` | |
 | "supports offices across Fort Lauderdale and Broward County from 710 NW 5th Ave"; "on-site visits across Broward County and South Florida"; "A technician will reply within one business day" | `src/pages/ITSupportFortLauderdalePage.tsx:18, 58, 63` | |
-| Managed stack logos and names: Microsoft 365, Azure & Entra ID, Google Workspace, SentinelOne "Managed EDR", Huntress, Cloudflare, NinjaOne, ConnectWise | `src/components/TrustBar.tsx` | owner-confirmed, 2026-10-27: tools the team runs, not partnerships. The slide's kicker now reads "Partners and tools" and the logo strip is captioned "Tools we run"; the partner cards (Huntress, Microsoft, Cisco) are unchanged. |
+| Managed stack logos and names: Microsoft 365, Azure & Entra ID, Google Workspace, SentinelOne "Managed EDR", Huntress, Cloudflare, NinjaOne, ConnectWise | `src/components/TrustBar.tsx` | owner-confirmed, 2026-10-27: tools the team runs, not partnerships. The slide's title reads "Partners and commitments" (no kicker since the 2026-10-27 layout pass) and the logo strip is captioned "Tools we run"; the partner cards (Huntress, Microsoft, Cisco) are unchanged. |
 | "Business down? Call us 24/7." "A real technician picks up, day or night."; "texts an on-call technician"; "live SuperOps tickets" | `src/pages/SupportPage.tsx:32-39, 89-90`; `SupportChatCard.tsx:157` | SuperOps is connected (CLAUDE.md 2026-10-23); on-call texting depends on Twilio settings "waiting in Vercel". |
 | Legal entity "New Wave IT LLC"; Florida law, Broward County venue; Terms effective August 11, 2026; Privacy and Cookie policies effective October 15, 2026 | `src/pages/TermsAndConditionsPage.tsx:15, 19, 197-237`; `PrivacyPolicyPage.tsx:16`; `CookiePolicyPage.tsx:21` | Legal pages are off-limits for edits; listed as sources only. |
 | "career-ready curriculum shaped by working engineers" (CodeNest) | `src/pages/CodeNestPage.tsx:14`, `CodeNestHero.tsx:21` | A separate programme; owner to say whether it is current. |
@@ -168,3 +168,4 @@ and the schema `foundingDate`.
 | 2026-10-26 | Q6 response times | Drop every response-time promise (no SLA backs them); the pricing subheadline takes the code default |
 | 2026-10-27 | Q7 credentials and managers | Keep both: "certified engineers" and the dedicated project manager / account manager claims. No specific certification named; none is added without a document |
 | 2026-10-27 | Q8 logos | Microsoft 365, SentinelOne, Huntress, NinjaOne, ConnectWise, Cloudflare are tools the team runs, not partnerships; partners stay Huntress, Microsoft, Cisco |
+| 2026-10-27 | `/status` | Make it honest: no real-time, last-checked or uptime figures; each service links to its provider's official status page |

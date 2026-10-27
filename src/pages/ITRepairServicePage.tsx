@@ -12,8 +12,7 @@ const service: ServiceCategoryPageData = {
   details: 'From laptop repairs to server upgrades, we diagnose issues, replace failed components, and optimize hardware for dependable performance.',
   highlights: ['Comprehensive hardware diagnostics', 'Component replacement & repair', 'Data preservation & recovery', 'Performance testing & validation', 'Warranty & support coverage', 'Environmental assessment', 'Lifecycle management', 'Emergency on-site repair'],
   seoLink: '/l/it-repair-guide',
-  eyebrow: 'IT Repair & Upgrades',
-  assessmentLabel: 'Request a Hardware Review',
+  assessmentLabel: 'Request a hardware review',
   featureTitle: 'The right time to repair or replace',
   featureCards: [
     { icon: Wrench, title: 'Repair When It Makes Sense', description: 'Repair is often practical when a single component has failed, the cost is contained, or data recovery is the priority.' },
@@ -31,6 +30,7 @@ const service: ServiceCategoryPageData = {
     },
     {
       title: 'Our repair process',
+      ordered: true,
       items: ['Diagnose the issue and explain the available options.', 'Protect data and document the planned repair or upgrade.', 'Complete the work, validate performance, and return the equipment with clear next steps.'],
       callout: 'Every repair starts with a data-safety plan. We preserve critical files where possible and confirm performance before the device returns to service.',
     },
@@ -53,5 +53,5 @@ const SERVICE_JSON_LD = {
 export default function ITRepairServicePage() {
   usePageMeta({ ...IT_PAGE_META['/service-category/it-repair-upgrades'], jsonLd: SERVICE_JSON_LD });
 
-  return <ServiceCategoryPage data={service} />;
+  return <ServiceCategoryPage data={service} breadcrumbs={IT_PAGE_META['/service-category/it-repair-upgrades'].breadcrumbs} />;
 }

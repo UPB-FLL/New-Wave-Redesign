@@ -12,8 +12,7 @@ const service: ServiceCategoryPageData = {
   details: 'White-glove IT services for luxury residential properties, resorts, and hospitality venues support seamless experiences and focused operations.',
   highlights: ['Smart home & building automation', 'Premium guest WiFi & networking', 'Concierge technology platforms', 'Integrated entertainment systems', 'Luxury brand security solutions', 'Seamless guest connectivity', 'Discreet 24/7 technical support', 'Custom automation & integration'],
   seoLink: '/l/luxury-guide',
-  eyebrow: 'Luxury Technology',
-  assessmentLabel: 'Discuss Your Property',
+  assessmentLabel: 'Discuss your property',
   featureTitle: 'Luxury technology solutions',
   featureCards: [
     { icon: Home, title: 'Smart Automation', description: 'Intuitive home and building automation coordinated around comfort, operations, and the property experience.' },
@@ -55,5 +54,5 @@ const SERVICE_JSON_LD = {
 export default function LuxuryServicePage() {
   usePageMeta({ ...IT_PAGE_META['/service-category/luxury'], jsonLd: SERVICE_JSON_LD });
 
-  return <ServiceCategoryPage data={service} />;
+  return <ServiceCategoryPage data={service} breadcrumbs={IT_PAGE_META['/service-category/luxury'].breadcrumbs} />;
 }
