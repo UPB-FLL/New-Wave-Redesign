@@ -5,20 +5,28 @@ import { baseCss } from './reports.js';
 
 /**
  * The ad images and the carousel, as HTML printed to images in headless
- * Chromium: 1080 × 1350 (Meta's 4:5 feed size), like the hand-made sets New
- * Wave runs. An ad image is the business's own photo above a band of its
- * colour carrying the ad's words and its Instagram handle: a business's
- * posts often have words of their own baked in, so the ad's words never sit
- * on the photo. Without a photo, the colour carries the words alone. A
- * carousel slide is type on the business's tint.
+ * Chromium: 1080 × 1350 (Meta's 4:5 feed size, Reddit's feed), like the
+ * hand-made sets New Wave runs, or 1080 × 1920 (9:16, TikTok's vertical).
+ * An ad image is the business's own photo above a band of its colour
+ * carrying the ad's words and its Instagram handle: a business's posts often
+ * have words of their own baked in, so the ad's words never sit on the
+ * photo. Without a photo, the colour carries the words alone. A carousel
+ * slide is type on the business's tint.
  */
 
 export const IMAGE_WIDTH = 1080;
 export const IMAGE_HEIGHT = 1350;
 
-const page = (b: Brand, body: string, extra: string) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><style>
+/** The sizes an ad image is printed at: feed 4:5 (Meta, Reddit), vertical 9:16 (TikTok). */
+export const IMAGE_SIZES = {
+  feed: { width: IMAGE_WIDTH, height: IMAGE_HEIGHT },
+  vertical: { width: 1080, height: 1920 },
+} as const;
+export type ImageSize = keyof typeof IMAGE_SIZES;
+
+const page = (b: Brand, body: string, extra: string, size: ImageSize = 'feed') => `<!doctype html><html lang="en"><head><meta charset="utf-8"><style>
 ${baseCss(b)}
-html,body{width:${IMAGE_WIDTH}px;height:${IMAGE_HEIGHT}px;overflow:hidden}
+html,body{width:${IMAGE_SIZES[size].width}px;height:${IMAGE_SIZES[size].height}px;overflow:hidden}
 ${extra}
 </style></head><body>${body}</body></html>`;
 
@@ -32,16 +40,20 @@ export function headlineSize(text: string, band = false): number {
   return n <= 28 ? 104 : n <= 44 ? 88 : n <= 60 ? 74 : 62;
 }
 
-export function adImageHtml(b: Brand, opts: { headline: string; handle: string | null; photo: string | null }): string {
+export function adImageHtml(b: Brand, opts: { headline: string; handle: string | null; photo: string | null; size?: ImageSize }): string {
+  const format = opts.size ?? 'feed';
+  // Vertical: the words stay clear of the bottom quarter and the right edge, where TikTok lays its caption and buttons over the ad.
+  const vertical = format === 'vertical';
   const size = headlineSize(opts.headline);
   const handle = opts.handle ? `<div class="handle">@${esc(opts.handle.toUpperCase())}</div>` : '';
   if (!opts.photo) {
     return page(
       b,
       `<main class="plain"><h1>${esc(opts.headline)}</h1>${handle}</main>`,
-      `.plain{width:100%;height:100%;background:${b.primary};color:${b.onPrimary};display:flex;flex-direction:column;align-items:center;justify-content:center;padding:120px;text-align:center}
+      `.plain{width:100%;height:100%;background:${b.primary};color:${b.onPrimary};display:flex;flex-direction:column;align-items:center;justify-content:center;padding:${vertical ? '220px 180px 520px 120px' : '120px'};text-align:center}
 .plain h1{color:${b.onPrimary};font-size:${size}px;font-weight:800;letter-spacing:-0.02em;line-height:1.08}
-.handle{margin-top:48px;font-size:34px;letter-spacing:0.12em;opacity:.9}`
+.handle{margin-top:48px;font-size:34px;letter-spacing:0.12em;opacity:.9}`,
+      format
     );
   }
   const band = headlineSize(opts.headline, true);
@@ -49,11 +61,12 @@ export function adImageHtml(b: Brand, opts: { headline: string; handle: string |
     b,
     `<main class="photo"><div class="frame"><img src="${opts.photo}" alt=""></div><div class="band"><h1>${esc(opts.headline)}</h1>${handle}</div></main>`,
     `.photo{width:100%;height:100%;display:flex;flex-direction:column;background:${b.primary}}
-.frame{position:relative;height:70%;overflow:hidden;background:#111}
+.frame{position:relative;height:${vertical ? 56 : 70}%;overflow:hidden;background:#111}
 .frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.band{flex:1;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:44px 80px;color:${b.onPrimary}}
+.band{flex:1;display:flex;flex-direction:column;align-items:flex-start;justify-content:${vertical ? 'flex-start' : 'center'};padding:${vertical ? '56px 180px 480px 80px' : '44px 80px'};color:${b.onPrimary}}
 .band h1{color:${b.onPrimary};font-size:${band}px;font-weight:800;letter-spacing:-0.02em;line-height:1.08}
-.handle{margin-top:22px;font-size:28px;letter-spacing:0.12em;opacity:.9}`
+.handle{margin-top:22px;font-size:28px;letter-spacing:0.12em;opacity:.9}`,
+    format
   );
 }
 
@@ -80,16 +93,17 @@ footer{position:absolute;left:90px;right:90px;bottom:80px;display:flex;justify-c
   );
 }
 
-/** Prints a page to a JPEG (ad images) or PNG (carousel slides) at 1080 × 1350. */
-export async function renderImage(browser: Browser, html: string, type: 'jpeg' | 'png'): Promise<Uint8Array> {
+/** Prints a page to a JPEG (ad images) or PNG (carousel slides), at 1080 × 1350 unless a size is named. */
+export async function renderImage(browser: Browser, html: string, type: 'jpeg' | 'png', size: ImageSize = 'feed'): Promise<Uint8Array> {
+  const { width, height } = IMAGE_SIZES[size];
   const tab = await browser.newPage();
   try {
-    await tab.setViewport({ width: IMAGE_WIDTH, height: IMAGE_HEIGHT, deviceScaleFactor: 1 });
+    await tab.setViewport({ width, height, deviceScaleFactor: 1 });
     await tab.setContent(html, { waitUntil: 'load', timeout: 30_000 });
     await tab.evaluate(async () => {
       await document.fonts.ready;
     });
-    const shot = await tab.screenshot({ type, ...(type === 'jpeg' ? { quality: 88 } : {}), clip: { x: 0, y: 0, width: IMAGE_WIDTH, height: IMAGE_HEIGHT } });
+    const shot = await tab.screenshot({ type, ...(type === 'jpeg' ? { quality: 88 } : {}), clip: { x: 0, y: 0, width, height } });
     return new Uint8Array(shot);
   } finally {
     await tab.close().catch(() => {});

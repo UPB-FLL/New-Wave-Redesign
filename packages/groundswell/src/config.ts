@@ -183,6 +183,11 @@ export interface AdSetRules {
   budget_basis: string;
   /** Phase 3: the account's own cost per click (and Meta's cost per lead) replaces the published one past these counts. */
   actuals: { min_clicks: number; min_leads: number; basis: string };
+  /** Reddit and TikTok sets without a priced plan row: the platform's smallest test times these (low, medium, high). Default 1, 2, 4. */
+  channel_multipliers?: Triple;
+  channel_basis?: string;
+  /** When an ad may state the business's rating: at least this rating on at least this many reviews, the platform named. */
+  proof?: { min_rating: number; min_reviews: number; basis: string };
 }
 
 export interface GroundswellConfig {

@@ -283,6 +283,12 @@ export function panelsFor(outputs: Record<string, unknown>): DataPanel[] {
         rows: [
           ...s.meta.map((m) => [`Meta · ${m.name}`, m.goal, `${usd(m.tiers.low.monthly)} · ${m.modeled ? pct(m.tiers.low.roi) : '–'}`, `${usd(m.tiers.medium.monthly)} · ${m.modeled ? pct(m.tiers.medium.roi) : '–'}`, `${usd(m.tiers.high.monthly)} · ${m.modeled ? pct(m.tiers.high.roi) : '–'}`]),
           ...(s.google?.ad_groups ?? []).map((g) => [`Google · ${g.name}`, g.goal, `${usd(g.tiers.low.monthly)} · ${g.modeled ? pct(g.tiers.low.roi) : '–'}`, `${usd(g.tiers.medium.monthly)} · ${g.modeled ? pct(g.tiers.medium.roi) : '–'}`, `${usd(g.tiers.high.monthly)} · ${g.modeled ? pct(g.tiers.high.roi) : '–'}`]),
+          // Reddit and TikTok, outside the totals above; a set for the platform's sales team says so.
+          ...[...(s.reddit ?? []), ...(s.tiktok ?? [])].map((c) => [
+            `${c.platform_label} · ${c.name}${c.availability === 'sales_team' ? ' (sales team)' : ''}`,
+            c.goal,
+            ...(['low', 'medium', 'high'] as const).map((b) => `${usd(c.spend[b].monthly)} · ${c.tiers && c.modeled ? pct(c.tiers[b].roi) : '–'}`),
+          ]),
         ],
       },
       note: s.notes.join(' ') || null,

@@ -2,6 +2,7 @@ import { GROUNDSWELL_CONFIG } from '../../../packages/groundswell/groundswell.co
 import { PHASE_INFO } from '../../../src/lib/groundswellValidation.js';
 import { SCENARIOS, type Scenario } from '../../../packages/groundswell/src/config.js';
 import type { GoogleAdGroup, MetaAdSet, OutcomeRange, TierForecast } from '../../../packages/groundswell/src/adsets.js';
+import { DATA_SET_WORDS, type AdBasis, type ChannelAdSet } from '../../../packages/groundswell/src/channels.js';
 import type { RankedChange } from '../../../packages/groundswell/src/changes.js';
 import { escapeHtml as esc } from '../http.js';
 import type { AdsetsOutput } from './adsets.js';
@@ -12,10 +13,13 @@ import { baseCss, logoImg, money, NEW_WAVE_PREPARER, num, ownWording, preparedBy
 /**
  * The ad sets as handed over: the PDF a person reads (what each set is for,
  * how it works, what to watch, its spend and return at three budgets, the
- * ads with their images, the keywords and negatives, how to import), and the
- * rows of the import files: Meta's bulk sheet (the columns of New Wave's own
- * Wildly Primal import), a sheet of ad-set settings, a forecast sheet, and a
- * Google Ads Editor CSV. Every number comes from the step's output.
+ * ads with their images and the data each rests on, the keywords and
+ * negatives, how to import), and the rows of the import files: Meta's bulk
+ * sheet (the columns of New Wave's own Wildly Primal import), a sheet of
+ * ad-set settings, a forecast sheet, a Google Ads Editor CSV, and the Reddit
+ * and TikTok plan (ads, settings, forecast; neither platform takes a bulk
+ * file New Wave has checked, so it is a plan to build from or to hand to the
+ * platform's sales team). Every number comes from the step's output.
  */
 
 export const META_COLUMNS = [
@@ -147,6 +151,84 @@ export function forecastRows(out: AdsetsOutput): Cell[][] {
   return rows;
 }
 
+const channelSets = (out: AdsetsOutput): ChannelAdSet[] => [...(out.sets.reddit ?? []), ...(out.sets.tiktok ?? [])];
+const AVAILABILITY_WORDS: Record<ChannelAdSet['availability'], string> = { self_serve: 'Self-serve', sales_team: 'Through the platform’s sales team' };
+
+/** The Reddit and TikTok ads, one row each, with the data each was written from. */
+export function channelAdRows(out: AdsetsOutput, files: CreativeFiles): Cell[][] {
+  const rows: Cell[][] = [['Platform', 'Availability', 'Campaign', 'Ad set', 'Ad name', 'Status', 'Headline', 'Text', 'Call to action', 'Words on the image', 'Image file', 'Image size', 'Link', 'Built on', 'Evidence']];
+  for (const c of channelSets(out)) {
+    for (const ad of c.ads) {
+      rows.push([
+        c.platform_label,
+        AVAILABILITY_WORDS[c.availability],
+        c.campaign,
+        c.name,
+        ad.name,
+        'PAUSED',
+        ad.headline,
+        ad.text,
+        ad.call_to_action,
+        ad.image_headline,
+        files[ad.name]?.file ? `${c.platform}/${files[ad.name].file}` : '',
+        ad.format === 'vertical' ? '1080 × 1920' : '1080 × 1350',
+        ad.link,
+        DATA_SET_WORDS[ad.basis.data],
+        ad.basis.evidence,
+      ]);
+    }
+  }
+  return rows;
+}
+
+/** The settings each Reddit and TikTok set is created with, at all three budgets. */
+export function channelSetupRows(out: AdsetsOutput): Cell[][] {
+  return [
+    ['Platform', 'Availability', 'Platform rule', 'Campaign', 'Ad set', 'Goal', 'Recommendation', 'Daily budget (low)', 'Daily budget (medium)', 'Daily budget (high)', 'Location', 'Age min', 'Communities', 'Interests', 'What to watch', 'Why'],
+    ...channelSets(out).map((c) => [
+      c.platform_label,
+      AVAILABILITY_WORDS[c.availability],
+      c.availability_note ?? '',
+      c.campaign,
+      c.name,
+      c.goal,
+      c.recommendation === 'sales_team' ? 'sales team' : c.recommendation,
+      ...SCENARIOS.map((s) => c.spend[s].daily),
+      c.targeting.location,
+      c.targeting.age_min,
+      c.targeting.communities.join('; '),
+      c.targeting.interests.join('; '),
+      c.kpi,
+      c.why,
+    ]),
+  ];
+}
+
+/** Spend per Reddit and TikTok set and budget; clicks and return only where the platform publishes rates. */
+export function channelForecastRows(out: AdsetsOutput): Cell[][] {
+  const rows: Cell[][] = [['Platform', 'Set', 'Budget', 'Monthly spend', 'Daily budget', 'Clicks', 'Leads', 'Monthly net', '12-month net', 'ROI', 'Note']];
+  for (const c of channelSets(out)) {
+    for (const s of SCENARIOS) {
+      const t = c.tiers?.[s];
+      const modeled = Boolean(t) && c.modeled;
+      rows.push([
+        c.platform_label,
+        c.name,
+        s,
+        c.spend[s].monthly,
+        c.spend[s].daily,
+        t ? t.clicks : '',
+        modeled ? t!.leads : '',
+        modeled ? t!.net : '',
+        modeled ? t!.year_net : '',
+        modeled && t!.roi !== null ? t!.roi : 'not modeled',
+        c.not_modeled ?? '',
+      ]);
+    }
+  }
+  return rows;
+}
+
 const HEADLINES = 15;
 const DESCRIPTIONS = 4;
 
@@ -238,6 +320,8 @@ function rangeLine(r: OutcomeRange | null) {
   return `<p class="note">At the medium budget the 12-month net runs from ${money(r.conservative.year_net)} in the conservative case to ${money(r.upside.year_net)} in the upside case (${money(r.base.year_net)} in the base case).</p>`;
 }
 
+const basisLine = (b: AdBasis | undefined) => (b ? `<p class="note" data-role="basis"><b>Built on:</b> ${esc(DATA_SET_WORDS[b.data])} · ${esc(b.evidence)}</p>` : '');
+
 function metaCard(m: MetaAdSet, images: Record<string, string>) {
   const ads = m.ads
     .map(
@@ -249,7 +333,7 @@ function metaCard(m: MetaAdSet, images: Record<string, string>) {
     .join('');
   return `<div class="card" data-goal="${m.goal}"><div class="kicker">Meta · ${esc(GOAL_WORDS[m.goal])} · ${esc(m.recommendation)}</div><h3>${esc(m.name)}</h3>
 <p class="note">Campaign ${esc(m.campaign)} · ${esc(m.objective)} · optimised for ${esc(m.optimization_goal.toLowerCase().replace(/_/g, ' '))}</p>
-<p>${esc(m.why)}</p><p><b>How it works.</b> ${esc(m.mechanism)}</p><p><b>What to watch.</b> ${esc(m.kpi)}</p>
+<p>${esc(m.why)}</p><p><b>How it works.</b> ${esc(m.mechanism)}</p><p><b>What to watch.</b> ${esc(m.kpi)}</p>${basisLine(m.basis)}
 ${budgetTable(m.tiers, m.modeled)}${rangeLine(m.range)}
 <p class="note">Audience: ${esc(m.audience.location)}, ${m.audience.radius_miles} miles, ages ${m.audience.age_min} to ${m.audience.age_max}${m.audience.interests.length ? `; ${esc(m.audience.interests.join(', '))}` : ''}. Placements: ${esc(m.placements.join(', '))}.</p>
 ${m.stop_loss ? `<p class="note">Stop-loss: ${esc(m.stop_loss)}</p>` : ''}${ads}</div>`;
@@ -257,7 +341,7 @@ ${m.stop_loss ? `<p class="note">Stop-loss: ${esc(m.stop_loss)}</p>` : ''}${ads}
 
 function googleCard(g: GoogleAdGroup) {
   return `<div class="card" data-goal="${g.goal}"><div class="kicker">Google Search · ${esc(GOAL_WORDS[g.goal])} · ${esc(g.recommendation)}</div><h3>${esc(g.name)}</h3>
-<p>${esc(g.why)}</p><p><b>How it works.</b> ${esc(g.mechanism)}</p><p><b>What to watch.</b> ${esc(g.kpi)}</p>
+<p>${esc(g.why)}</p><p><b>How it works.</b> ${esc(g.mechanism)}</p><p><b>What to watch.</b> ${esc(g.kpi)}</p>${basisLine(g.basis)}
 ${budgetTable(g.tiers, g.modeled)}${rangeLine(g.range)}
 ${table(
   ['Keyword', 'Match', 'Searches / mo', 'Top-of-page bid', 'Site ranks'],
@@ -265,6 +349,62 @@ ${table(
 )}
 ${g.headlines.length ? `<p class="note"><b>Headlines:</b> ${g.headlines.map(esc).join(' · ')}</p><p class="note"><b>Descriptions:</b> ${g.descriptions.map(esc).join(' · ')}</p>` : '<p class="note">No ad written yet for this group.</p>'}
 <p class="note">Lands on ${esc(g.final_url || 'the website')}${g.stop_loss ? ` · Stop-loss: ${esc(g.stop_loss)}` : ''}</p></div>`;
+}
+
+function spendTable(c: ChannelAdSet) {
+  if (c.tiers) return budgetTable(c.tiers, c.modeled);
+  return table(
+    ['Budget', 'Daily', 'Monthly', 'Return'],
+    SCENARIOS.map((s) => [BUDGET_WORDS[s], dollars(c.spend[s].daily), money(c.spend[s].monthly), 'not modeled'])
+  );
+}
+
+function channelCard(c: ChannelAdSet, images: Record<string, string>) {
+  const ads = c.ads
+    .map(
+      (ad) => `<div class="ad${ad.format === 'vertical' ? ' vertical' : ''}">${images[ad.name] ? `<img src="${images[ad.name]}" alt="">` : '<div class="noimg">No image</div>'}<div>
+<div class="adname">${esc(ad.name)}</div>
+<p><b>${esc(ad.headline)}</b></p>${ad.text ? `<p>${esc(ad.text)}</p>` : ''}
+<p class="note">Button: ${esc(ad.call_to_action)} · ${esc(ad.format === 'vertical' ? 'vertical 1080 × 1920' : 'feed 1080 × 1350')}</p>${basisLine(ad.basis)}</div></div>`
+    )
+    .join('');
+  const access =
+    c.availability === 'sales_team'
+      ? `<p class="note" data-role="sales-team"><b>Self-serve is closed to this business’s category.</b> ${esc(c.availability_note ?? '')} The targeting, ads and budgets below are the plan to take to ${esc(c.platform_label)}’s sales team; the budgets are the test New Wave would run, and any minimum the platform names in its rule comes first.</p>`
+      : '';
+  return `<div class="card" data-platform="${c.platform}"><div class="kicker">${esc(c.platform_label)} · ${esc(GOAL_WORDS[c.goal])} · ${esc(c.recommendation === 'sales_team' ? 'sales team' : c.recommendation)}</div><h3>${esc(c.name)}</h3>
+<p class="note">Campaign ${esc(c.campaign)}</p>${access}
+<p>${esc(c.why)}</p><p><b>How it works.</b> ${esc(c.mechanism)}</p><p><b>What to watch.</b> ${esc(c.kpi)}</p>
+${spendTable(c)}${c.not_modeled ? `<p class="note">${esc(c.not_modeled)}</p>` : ''}
+<p class="note">Audience: ${esc(c.targeting.location)}, ages ${c.targeting.age_min} and older${c.targeting.communities.length ? `; communities ${esc(c.targeting.communities.join(', '))}` : ''}${c.targeting.interests.length ? `; ${esc(c.targeting.interests.join(', '))}` : ''}.</p>
+${ads || '<p class="note">No ad written yet for this set.</p>'}</div>`;
+}
+
+function channelHowTo(channels: ChannelAdSet[]): string {
+  const part = (platform: ChannelAdSet['platform'], title: string, selfServe: string[]) => {
+    const sets = channels.filter((c) => c.platform === platform);
+    if (!sets.length) return '';
+    const sales = sets.filter((c) => c.availability === 'sales_team');
+    const steps = sales.length
+      ? [
+          `Self-serve ads are closed to this business’s category on ${title}: ${sales[0].availability_note ?? ''}`,
+          `Send the “Reddit and TikTok Ad Plan” workbook and the images to ${title}’s sales team: its “Ad sets” sheet carries the targeting and budgets, its “Ads” sheet the words and image files.`,
+          'Nothing runs until the platform has approved the account and the ads.',
+        ]
+      : selfServe;
+    return `<h3>${esc(title)}</h3><ol>${steps.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>`;
+  };
+  return (
+    part('reddit', 'Reddit Ads', [
+      'In Reddit Ads Manager, create a Traffic campaign and one ad group per row of the “Ad sets” sheet in the Reddit and TikTok workbook: the location, the age, the communities under community targeting, and the daily budget for the low, medium or high case.',
+      'Upload each ad’s image from the reddit folder of the images download and paste its headline, text and button from the “Ads” sheet; keep each ad paused until it is checked.',
+      'Reply to comments on the promoted posts as the business: Reddit readers expect an answer, not an advert.',
+    ]) +
+    part('tiktok', 'TikTok Ads', [
+      'In TikTok Ads Manager, create a Traffic campaign and one ad group per TikTok row of the “Ad sets” sheet: the location, the age and the daily budget.',
+      'Upload each vertical image from the tiktok folder of the images download (or a short clip of the same scene), and paste the ad text and button from the “Ads” sheet; keep each ad paused until it is checked.',
+    ])
+  );
 }
 
 export function buildAdsetsHtml(d: AdsetsReportData): string {
@@ -276,6 +416,7 @@ export function buildAdsetsHtml(d: AdsetsReportData): string {
   const section = (kicker: string, title: string, body: string) =>
     `<section class="page"><div class="kicker">${esc(kicker)}</div><h2>${esc(title)}</h2>${body}<div class="foot">${footer}</div></section>`;
   const t = s.totals;
+  const channels = [...(s.reddit ?? []), ...(s.tiktok ?? [])];
   const tiles = [
     { v: `${money(t.low.monthly)} – ${money(t.high.monthly)}`, l: 'Monthly ad spend, low to high budget' },
     { v: money(t.medium.monthly), l: `Medium budget (${dollars(t.medium.daily)} a day)` },
@@ -291,9 +432,14 @@ ${table(
   [
     ...s.meta.map((m) => [`Meta · ${m.name}`, GOAL_WORDS[m.goal], tierCell(m.tiers.low, m.modeled), tierCell(m.tiers.medium, m.modeled), tierCell(m.tiers.high, m.modeled)]),
     ...(s.google?.ad_groups ?? []).map((g) => [`Google · ${g.name}`, GOAL_WORDS[g.goal], tierCell(g.tiers.low, g.modeled), tierCell(g.tiers.medium, g.modeled), tierCell(g.tiers.high, g.modeled)]),
-    ['All sets', '', `${money(t.low.monthly)}/mo`, `${money(t.medium.monthly)}/mo`, `${money(t.high.monthly)}/mo`],
+    ['All Meta and Google sets', '', `${money(t.low.monthly)}/mo`, `${money(t.medium.monthly)}/mo`, `${money(t.high.monthly)}/mo`],
+    ...channels.map((c) => [
+      `${c.platform_label} · ${c.name}${c.availability === 'sales_team' ? ' (sales team)' : ''}`,
+      GOAL_WORDS[c.goal],
+      ...SCENARIOS.map((x) => (c.tiers ? tierCell(c.tiers[x], c.modeled) : `${dollars(c.spend[x].daily)}/day · ${money(c.spend[x].monthly)}/mo · return not modeled`)),
+    ]),
   ]
-)}</div><div class="foot">${footer}</div></section>`;
+)}${channels.length ? '<p class="note">The Reddit and TikTok sets are priced on their own and are not in the totals above.</p>' : ''}</div><div class="foot">${footer}</div></section>`;
 
   const metaPages = s.meta.length ? section('Meta · Facebook and Instagram', 'The Meta ad sets', s.meta.map((m) => metaCard(m, d.images)).join('')) : '';
   const google = s.google
@@ -302,6 +448,13 @@ ${table(
         `The search campaign: ${s.google.name}`,
         `${s.google.ad_groups.map(googleCard).join('')}
 <h3>Negative keywords (phrase match, whole campaign)</h3>${table(['Negative', 'Why'], s.google.negatives.map((n) => [n.text, n.reason]))}`
+      )
+    : '';
+  const channelPage = channels.length
+    ? section(
+        'Reddit and TikTok',
+        'The Reddit and TikTok sets',
+        `<p>Each ad names the data it was written from. ${channels.some((c) => c.availability === 'sales_team') ? 'Where a platform keeps the business’s category off self-serve, the set is the plan to take to its sales team.' : 'Every ad arrives paused.'}</p>${channels.map((c) => channelCard(c, d.images)).join('')}`
       )
     : '';
   const carousel = d.carousel.length
@@ -333,8 +486,9 @@ ${table(
 <li>In Google Ads Editor, open the account and import the CSV (Account › Import › From file). Editor shows every change before anything is posted.</li>
 <li>The campaign comes in paused at the medium budget; set the low or high budget from this report before posting if that is the one being run.</li>
 <li>Set the location to ${esc(s.google?.location ?? 'the business’s area')} and turn on call tracking before the campaign goes live.</li></ol>
+${channelHowTo(channels)}
 ${s.notes.length ? `<h3>Notes</h3><ul>${s.notes.map((n) => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}
-<h3>Where the numbers come from</h3><ul><li class="note">${esc(GROUNDSWELL_CONFIG.adsets.budget_basis)}</li>${[...new Set([...s.meta.flatMap((m) => m.sources), ...(s.google?.ad_groups ?? []).flatMap((g) => g.sources)])].map((x) => `<li class="note">${esc(x)}</li>`).join('')}</ul>`
+<h3>Where the numbers come from</h3><ul><li class="note">${esc(GROUNDSWELL_CONFIG.adsets.budget_basis)}</li>${[...new Set([...s.meta.flatMap((m) => m.sources), ...(s.google?.ad_groups ?? []).flatMap((g) => g.sources), ...channels.flatMap((c) => c.sources)])].map((x) => `<li class="note">${esc(x)}</li>`).join('')}</ul>`
   );
 
   return ownWording(
@@ -361,6 +515,7 @@ td,th{padding:4px 6px;word-break:break-word}
 .card{border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;margin:0 0 14px;page-break-inside:avoid}
 .ad{display:grid;grid-template-columns:1.6in 1fr;gap:12px;margin-top:10px;page-break-inside:avoid}
 .ad img,.noimg{width:1.6in;height:2in;object-fit:cover;border-radius:6px;background:#f3f4f6}
+.ad.vertical img,.ad.vertical .noimg{height:2.84in}
 .noimg{display:flex;align-items:center;justify-content:center;color:#6b7280;font-size:8pt}
 .adname{font-size:8pt;color:#6b7280;letter-spacing:.04em}
 .slides{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
@@ -369,7 +524,7 @@ td,th{padding:4px 6px;word-break:break-word}
 .note{font-size:8pt;color:#4b5563}
 ol{padding-left:1.2em}li{margin:2px 0}
 .foot{position:absolute;left:0.6in;right:0.6in;bottom:0.35in;font-size:8pt;color:#6b7280;border-top:1px solid #e5e7eb;padding-top:6px}
-</style></head><body>${cover}${metaPages}${google}${carousel}${changes}${howTo}</body></html>`,
+</style></head><body>${cover}${metaPages}${google}${channelPage}${carousel}${changes}${howTo}</body></html>`,
     who
   );
 }
