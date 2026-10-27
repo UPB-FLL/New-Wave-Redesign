@@ -410,8 +410,16 @@ function areaTables(key: AreaKey, f: Facts): string {
       const note = f.social?.business?.note ? `<p class="muted">${esc(f.social.business.note)}</p>` : '';
       const pages = [f.social?.facebook ? { name: f.business.name, ...f.social.facebook } : null, ...(f.social?.facebook_competitors ?? [])]
         .filter((p): p is NonNullable<typeof p> => Boolean(p && p.exists))
-        .map((p): string[] => [p.name, num(p.followers), num(p.likes), p.rating === null ? "–" : `${p.rating}${p.rating_count === null ? "" : ` (${num(p.rating_count)})`}`, p.posts[0]?.posted_at ? p.posts[0].posted_at.slice(0, 10) : "–"]);
-      const fb = pages.length ? table(['Facebook Page', 'Followers', 'Likes', 'Rating (reviews)', 'Newest post'], pages) : '';
+        .map((p): string[] => [
+          p.name,
+          num(p.followers),
+          num(p.likes),
+          p.rating === null ? "–" : `${p.rating}${p.rating_count === null ? "" : ` (${num(p.rating_count)})`}`,
+          p.posts[0]?.posted_at ? p.posts[0].posted_at.slice(0, 10) : "–",
+          p.engagement ? `${num(p.engagement.posts_read)}${p.engagement.posts_last_30_days === null ? '' : ` (${num(p.engagement.posts_last_30_days)} in 30 days)`}` : "–",
+          p.engagement ? `${num(p.engagement.avg_reactions, 1)} / ${num(p.engagement.avg_comments, 1)}` : "–",
+        ]);
+      const fb = pages.length ? table(['Facebook Page', 'Followers', 'Likes', 'Rating (reviews)', 'Newest post', 'Posts read', 'Avg. reactions / comments'], pages) : '';
       return ig + note + fb;
     }
     case 'website': {

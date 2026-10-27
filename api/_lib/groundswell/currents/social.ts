@@ -72,9 +72,34 @@ export interface FacebookSnapshot {
   ad_library_status: string | null;
   /** Meta shows this Page only to signed-in adults; the fields above are what it still lists. */
   restricted: boolean;
-  /** The newest public posts (the business only; a page of three), with their images. */
+  /** The newest public posts (one page), with their images for the business only; a competitor's keep their words and figures. */
   posts: FacebookPost[];
+  /** What the posts read show: how many, the average reactions and comments, and how many in the 30 days before the read. Missing on audits before 2026-10-27. */
+  engagement?: FacebookEngagement | null;
   error: string | null;
+}
+
+export interface FacebookEngagement {
+  posts_read: number;
+  avg_reactions: number | null;
+  avg_comments: number | null;
+  posts_last_30_days: number | null;
+}
+
+/** Averages over the posts that carry each figure; a Page's posts without figures give nulls, never zeros. */
+export function facebookEngagement(posts: FacebookPost[], now = Date.now()): FacebookEngagement | null {
+  if (!posts.length) return null;
+  const avg = (xs: (number | null)[]) => {
+    const known = xs.filter((x): x is number => x !== null);
+    return known.length ? Math.round((known.reduce((a, b) => a + b, 0) / known.length) * 10) / 10 : null;
+  };
+  const dated = posts.filter((p) => p.posted_at && Number.isFinite(Date.parse(p.posted_at)));
+  return {
+    posts_read: posts.length,
+    avg_reactions: avg(posts.map((p) => p.reactions)),
+    avg_comments: avg(posts.map((p) => p.comments)),
+    posts_last_30_days: dated.length ? dated.filter((p) => now - Date.parse(p.posted_at!) <= 30 * 86_400_000).length : null,
+  };
 }
 
 export interface FacebookPost {
@@ -472,6 +497,7 @@ export function summarizeFacebook(url: string, profile: unknown, posts: unknown)
     ad_library_status: typeof lib?.adStatus === 'string' ? lib.adStatus : null,
     restricted,
     posts: facebookPostRows(posts).map(toFacebookPost).slice(0, 6),
+    engagement: facebookEngagement(facebookPostRows(posts).map(toFacebookPost).slice(0, 6)),
     error: null,
   };
 }
@@ -488,6 +514,9 @@ export function facebookPageUrl(ref: string | null | undefined): string | null {
   }
   return `https://www.facebook.com/${clean.replace(/^\/+/, '')}`;
 }
+
+/** How many competitors' Facebook Pages are read with a page of posts (one ScrapeCreators credit each). */
+export const FACEBOOK_RIVAL_POSTS = 3;
 
 /** One Page read (gated Pages answer with what they still show), plus one page of posts when asked. */
 async function facebook(url: string, withPosts: boolean, budget: Budget = unbounded): Promise<FacebookSnapshot> {
@@ -553,7 +582,11 @@ export async function runSocial(ctx: StepContext, pauseMs = BLOCKED_RETRY_MS): P
     .slice(0, 6);
   const [facebookPage, facebookRivals] = await Promise.all([
     ownPage ? facebook(ownPage, true, budget) : Promise.resolve(null),
-    Promise.all(rivalPages.map(async (c) => ({ name: c.name, ...(await facebook(c.url, false, budget)) }))),
+    // The first three rivals' posts are read for their engagement; their images are never kept (a competitor's posts are no one's creative).
+    Promise.all(rivalPages.map(async (c, i) => {
+      const page = await facebook(c.url, i < FACEBOOK_RIVAL_POSTS, budget);
+      return { name: c.name, ...page, posts: page.posts.map((p) => ({ ...p, image_url: null })) };
+    })),
   ]);
 
   const viaApify = [business, ...competitors].some((s) => s?.read_via === 'apify');
