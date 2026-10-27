@@ -424,6 +424,73 @@ export const groundswellMetricGroups: readonly GroundswellMetricGroup[] = [
     keywords: 'ads transparency center, meta ad library, competitor ads, cost per click estimate, cost per lead, ad plan, groundswell',
   },
   {
+    slug: 'ai-search',
+    name: 'AI search: read, trusted and cited',
+    icon: 'pillar-data',
+    headline: 'Whether ChatGPT, Perplexity and Google’s AI answers can read you, and whether they name you',
+    summary:
+      'What the assistants’ crawlers get from your site (robots.txt, llms.txt, the sitemap, the homepage without JavaScript), how quotable each page is, and how often the assistants mention and cite you against your competitors.',
+    matters: 'More questions get answered by an assistant than by a results page; a site its crawlers cannot read, or that gives them nothing worth quoting, is never the answer.',
+    why:
+      'A growing share of “where should I go” and “how much does it cost” questions is answered by ChatGPT, Perplexity, Gemini, Copilot or Google’s AI Overviews rather than ten blue links. Those answers are built from pages their crawlers can fetch and quote. So the first questions are plain: does robots.txt let them in, is there an llms.txt that says what the business is, does the HTML carry the facts without JavaScript, and does the entity schema name, place and phone the business the same way the Google listing does. The second is whether they name you today, and whom they name instead. Every figure here is read, not guessed, and every fix goes to a developer brief that never asserts a fact the owner has not confirmed.',
+    feeds: 'The website optimization plan, the listings changes in the change ranking, and the GEO developer brief delivered with the run.',
+    metrics: [
+      {
+        name: 'Crawler access in robots.txt',
+        what: 'For GPTBot, OAI-SearchBot, ChatGPT-User, ClaudeBot, PerplexityBot, Google-Extended, Googlebot, Bingbot and CCBot: allowed, blocked, or allowed with some paths kept out.',
+        source: 'Your site’s robots.txt, read the way each crawler reads it',
+        why: 'A crawler robots.txt turns away never sees the page, so the assistant it feeds cannot cite you. One line decides it.',
+      },
+      {
+        name: 'The homepage as GPTBot sees it',
+        what: 'The status the site answers an AI crawler’s user agent with, compared with an ordinary fetch, and whether the HTML carries the content without JavaScript.',
+        source: 'The site’s own HTML, fetched twice',
+        why: 'A host or firewall can block an AI crawler without a word in robots.txt, and an app shell gives a crawler that runs no JavaScript an empty page.',
+      },
+      {
+        name: 'Files for assistants',
+        what: 'Whether /llms.txt and /llms-full.txt exist and how large they are, and how many URLs the sitemap lists.',
+        source: SITE_HTML,
+        why: 'llms.txt is the plain-text summary assistants are starting to read first; a sitemap of live pages is how every crawler finds the rest.',
+      },
+      {
+        name: 'Entity schema',
+        what: 'The JSON-LD types on the homepage; whether the business node has a stable @id, an address, a telephone, opening hours and sameAs profile links; whether the phone matches the Google listing.',
+        source: `${SITE_HTML}, against ${PLACES.toLowerCase()}`,
+        why: 'An assistant trusts a business it can pin to one entity with one name, address and phone everywhere; a mismatch reads as two businesses, or none.',
+      },
+      {
+        name: 'Citability score per page',
+        what: 'A rubric out of 100 for the homepage and every page read: an answer-first opening, question-style headings, enough words to quote, specific facts, a FAQ, a title and description, a next step, JSON-LD, readability without JavaScript, a canonical URL. Checks the reading cannot answer are named and left out of the denominator.',
+        source: `${FIRECRAWL}, and the homepage’s HTML`,
+        why: 'Assistants quote the page that answers the question in the first sentence with a fact in it. The score says which pages give them that and which do not, so the rewrite list is not a guess.',
+      },
+      {
+        name: 'AI mentions and share of voice',
+        what: 'How many answers across ChatGPT, Perplexity, Gemini, Google AI Overviews, Copilot and Claude name the business, and its share of those mentions against up to five competitors, on Ahrefs’ prompt set for the United States.',
+        source: `${AHREFS} Brand Radar`,
+        why: 'This is the baseline the work is measured against: who the assistants recommend today, and by how much you trail.',
+      },
+      {
+        name: 'Citations of your site, and whose pages get cited',
+        what: 'How often each platform cites your own pages, and the domains the assistants cite in answers that name you or a competitor (directories, review sites, press).',
+        source: `${AHREFS} Brand Radar and Site Explorer`,
+        why: 'The cited domains are where the answers come from. A listing missing from one of them is a change the ranking can price.',
+      },
+    ],
+    limits: [
+      'Brand Radar reads Ahrefs’ own prompt set, not every question people ask; zero mentions means the assistants did not name the business there, not that nobody asks.',
+      'The citability score is a rubric over what was read; it is not a ranking, an AI traffic figure or a promise of being cited.',
+      'Inner pages are read as text, so JSON-LD, canonical and readability without JavaScript are scored on the homepage only and named as not answerable elsewhere.',
+      'Nothing here writes to the site: every change goes into the developer brief as a draft for the owner to approve, and no fact the owner has not confirmed is asserted.',
+    ],
+    reports: 'The full audit’s “AI search” section, the AI search panel on the workspace, and the GEO developer brief (a Markdown file downloaded with the run).',
+    metaTitle: 'AI search metrics · GroundSwell | New Wave',
+    metaDescription:
+      'What GroundSwell reads for AI search: crawler access, llms.txt, entity schema, a citability score per page, AI mentions and share of voice, and why each counts.',
+    keywords: 'ai search optimization, generative engine optimization, geo audit, llms.txt, gptbot robots.txt, brand radar, ai citations, groundswell',
+  },
+  {
     slug: 'your-accounts',
     name: 'Your own accounts',
     icon: 'pillar-integrations',

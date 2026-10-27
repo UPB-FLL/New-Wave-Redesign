@@ -279,7 +279,7 @@ export const FOOTER: SectionDescriptor = {
 // The SaaS / HaaS / Support tiers that used to sit here were never rendered
 // by /pricing (the page shows the quote builder, fed by pricing_units) and
 // were retired on 2026-10-26 (GEO audit, owner's call); migration
-// 20261101120000 removes the stored row.
+// 20261103120000 removes the stored row.
 export const PRICING: SectionDescriptor = {
   section: 'pricing',
   title: 'Pricing page',

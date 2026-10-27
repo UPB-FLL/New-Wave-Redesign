@@ -190,6 +190,11 @@ async function loadSteps(
   return { outputs, inherited, steps: own.map((r) => r.step) };
 }
 
+/** A run's outputs laid over its sources' (Headway plans from them), by step name. */
+export async function loadRunOutputs(db: SupabaseClient, auditId: string, sourceId?: string | null): Promise<Record<string, unknown>> {
+  return (await loadSteps(db, auditId, sourceId)).outputs;
+}
+
 const RUN_COLUMNS = 'id,business_name,city,website,instagram,facebook,competitors,notes';
 /** Read only where the database has them (migrations 20261022120000, 20261024130000, 20261029120000). */
 const PHASE_COLUMNS = ',kind,partner_id,customer_id,phase,source_audit_id';
@@ -266,6 +271,22 @@ export async function runWorker(
       await db.from('marketing_audit_steps').update({ status: 'failed', error: why, finished_at: new Date().toISOString() }).eq('id', claimed.id);
       await failAudit(db, claimed.audit_id, why);
       report.ran.push({ audit_id: claimed.audit_id, step: claimed.step, outcome: 'failed', error: why });
+      continue;
+    }
+
+    // A step whose call died mid-flight (the function's time limit, a lost worker) leaves no error: the lease
+    // runs out and the claim hands it out again. After MAX_ATTEMPTS such leases it is given up like any other
+    // failure, never claimed for ever.
+    if (claimed.attempts > MAX_ATTEMPTS) {
+      const why = `The step ran out the worker's time limit ${MAX_ATTEMPTS} times without finishing.`;
+      if (def.optional) {
+        await db.from('marketing_audit_steps').update({ status: 'skipped', error: why, finished_at: new Date().toISOString() }).eq('id', claimed.id);
+        report.ran.push({ audit_id: claimed.audit_id, step: claimed.step, outcome: 'skipped', error: why });
+      } else {
+        await db.from('marketing_audit_steps').update({ status: 'failed', error: why, finished_at: new Date().toISOString() }).eq('id', claimed.id);
+        await failAudit(db, claimed.audit_id, `${def.label} failed: ${why}`);
+        report.ran.push({ audit_id: claimed.audit_id, step: claimed.step, outcome: 'failed', error: why });
+      }
       continue;
     }
 

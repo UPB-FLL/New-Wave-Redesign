@@ -19,6 +19,7 @@ const GAP_WORDING: Record<string, string> = {
   authority: 'Domain authority, press and owned channels could not be read for this audit.',
   benchmark: 'The competitive benchmark could not be built from the data available, so this audit has no benchmark report.',
   plans: 'The website optimization plan and the first week of posts could not be written for this audit.',
+  ai_search: 'AI search (crawler access, citability and Brand Radar) could not be read for this audit, so the developer brief is not included.',
 };
 
 /** The gap lines for the facts' `missing` list (callers without the audit's step list). */

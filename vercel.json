@@ -357,8 +357,16 @@
       "destination": "/social-engineering/groundswell/ads/index.html"
     },
     {
+      "source": "/social-engineering/groundswell/ai-search",
+      "destination": "/social-engineering/groundswell/ai-search/index.html"
+    },
+    {
       "source": "/social-engineering/groundswell/your-accounts",
       "destination": "/social-engineering/groundswell/your-accounts/index.html"
+    },
+    {
+      "source": "/social-engineering/headway",
+      "destination": "/social-engineering/headway/index.html"
     },
     {
       "source": "/social-engineering/customers",

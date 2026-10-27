@@ -1,5 +1,5 @@
 -- Exact restore of the site_content row deleted by
--- supabase/migrations/20261101120000_drop_pricing_tiers_row.sql, from the
+-- supabase/migrations/20261103120000_drop_pricing_tiers_row.sql, from the
 -- snapshot docs/geo/evidence/2026-10-26/site_content-pricing-tiers.snapshot.json
 -- (value md5 37fddba690c01d11138151f5dff1653e, 3314 bytes). Not a migration: this
 -- folder is outside supabase/migrations, so nothing applies it on its own.

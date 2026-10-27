@@ -7,6 +7,7 @@ import type { AhrefsSnapshot, KeywordIdea } from './currents/search.js';
 import type { SocialOutput } from './currents/social.js';
 import type { AdsEvidence } from './currents/ads.js';
 import { isLinkedOutput, type LinkedOutput } from './currents/linked.js';
+import { isAiSearchOutput, type AiSearchOutput } from './currents/aiSearch.js';
 import type { AdLibraryEvidence } from '../../../packages/groundswell/src/benchmark/index.js';
 import type { GoogleSerp } from './currents/serp.js';
 import { isSitePagesOutput, type SitePagesOutput } from './currents/sitePages.js';
@@ -111,6 +112,8 @@ export interface Facts {
   profile?: BusinessProfile | null;
   /** The competitors the engine picked, each with why it competes, and the candidates it left out. */
   competitor_picks?: { picks: CompetitorPick[]; dropped: { name: string; website: string | null; reason: string }[] } | null;
+  /** AI search: crawler access, citability and Brand Radar (the ai_search step); null when it did not run. Missing on audits before 2026-10-26. */
+  ai_search?: AiSearchOutput | null;
   missing: string[];
 }
 
@@ -148,6 +151,7 @@ export function buildFacts(audit: AuditRow, outputs: Record<string, unknown>): F
     ad_library: (outputs.ads_library as Facts['ad_library'] | undefined) ?? null,
     linked: isLinkedOutput(outputs.linked) && outputs.linked.services.length ? outputs.linked : null,
     site_pages: isSitePagesOutput(outputs.site_pages) ? outputs.site_pages : null,
+    ai_search: isAiSearchOutput(outputs.ai_search) ? outputs.ai_search : null,
     profile: (outputs.competitors as { profile?: BusinessProfile } | undefined)?.profile ?? null,
     competitor_picks: (() => {
       const c = outputs.competitors as { picks?: CompetitorPick[]; dropped?: { name: string; website: string | null; reason: string }[] } | undefined;
@@ -225,6 +229,25 @@ export function linkedForPrompt(l: LinkedOutput | null) {
   };
 }
 
+/** The AI search reading as the model sees it: the verdicts and figures, not the rubric's notes or the brief's question list. */
+export function aiSearchForPrompt(a: AiSearchOutput | null) {
+  if (!a) return null;
+  const v = a.visibility;
+  return {
+    source: a.source,
+    crawlers_blocked: a.crawlers.agents.filter((x) => x.verdict === 'blocked').map((x) => x.agent),
+    robots_found: a.crawlers.robots_found,
+    gptbot_blocked: a.crawlers.gptbot_fetch?.blocked ?? null,
+    llms_txt: a.files?.llms_txt.found ?? null,
+    sitemap_urls: a.files?.sitemap.urls ?? null,
+    entity: a.entity && { types: a.entity.types, has_id: a.entity.has_id, has_address: a.entity.has_address, telephone: a.entity.telephone, has_opening_hours: a.entity.has_opening_hours, same_as: a.entity.same_as.length },
+    phone_consistent_with_listing: a.nap.consistent,
+    citability: a.pages.map((p) => ({ path: p.path, score: p.score })),
+    ai_visibility: v && !v.error ? { assistants: v.assistants, business_mentions: v.business.mentions, business_share_of_voice: v.business.share_of_voice, competitors: v.competitors, site_citations: v.citations.find((c) => c.platform === 'all_platforms')?.citations ?? null, most_cited_domains: v.cited_domains.slice(0, 6).map((d) => d.domain) } : v ? { partly: v.error, business_mentions: v.business.mentions, competitors: v.competitors } : null,
+    improvements: a.improvements.map((i) => ({ priority: i.priority, title: i.title })),
+  };
+}
+
 /** What the model sees: the facts without bulky or brand-only fields. */
 export function factsForPrompt(f: Facts) {
   return {
@@ -245,6 +268,7 @@ export function factsForPrompt(f: Facts) {
     instagram: f.social,
     ads: f.ads,
     ad_libraries: f.ad_library,
+    ai_search: aiSearchForPrompt(f.ai_search ?? null),
     evidence_coverage: evidenceCoverage(f),
     client_accounts: linkedForPrompt(f.linked),
     not_available: f.missing,
@@ -527,6 +551,7 @@ Write in plain words for a busy owner. Rules:
 - Keyword suggestions with null monthly_searches/bids are unmeasured research ideas. Do not label their demand low or zero, quote a budget or extrapolate returns from them. Query-specific search results show only the supplied query, place and capture time.
 - Never describe as active something the data does not show.
 - business_profile, website_pages and competitor_picks, when present, come from the business's own website pages and its competitors' homepages (read as main content): use them for what the business sells, what each competitor offers, and why each competitor was chosen; competitor_picks.left_out names candidates that did not compete.
+- ai_search, when present, is what AI crawlers and assistants see: crawlers_blocked and gptbot_blocked are read from robots.txt and a fetch as GPTBot; citability is a rubric score per page (0–100), not a ranking; ai_visibility holds Ahrefs Brand Radar mentions and share of voice for the business and its competitors across the named assistants, and site_citations how often they cite the site. Use it in the search and website areas; zero mentions means the assistants did not name the business in Ahrefs’ prompt set, not that nobody asks. Never invent an AI traffic figure.
 - website.business.technical_seo contains verified observations and fixes from the initial HTTP response only. Prioritize its high-severity findings in the website area. JavaScript was not rendered: an empty app shell, missing raw-body heading or small raw-body word count does not prove that Google cannot index the page or that it ranks poorly. Preserve the stated verification steps; do not invent SEO scores, traffic effects, or ranking gains. noindex may be intentional on private pages.
 - When client_accounts is present, it is data from the business's own accounts (Google Analytics, Search Console, Google Ads, Instagram, Meta Ads). It outranks the public estimates: prefer it in every area it covers, say which figures come from the business's own accounts, and do not list those accounts under cant_see.
 - Use they/them for people. Do not name people.

@@ -83,7 +83,8 @@ national growth division for small businesses, built on three pillars.
 | Smart advertising (the `marketing` slug) | `/social-engineering/marketing` |
 | Integrations & data (the `integration` slug) | `/social-engineering/integration` |
 | Analytics & oversight (the `digital-oversight` slug) | `/social-engineering/digital-oversight` |
-| Croissance (the audit, run by the Groundswell engine) | `/social-engineering/croissance` |
+| GroundSwell (the audit and app; `/croissance` redirects here) | `/social-engineering/groundswell` |
+| Headway (the implementation service; the six services are listed under it) | `/social-engineering/headway` |
 | Customers | `/social-engineering/customers` |
 | Contact us (clients, questions, partnerships) | `/social-engineering/contact-us` |
 | Book a discovery call (new projects) | `/social-engineering/contact` |
@@ -348,6 +349,30 @@ The partner portal is no longer a division page. It lives at `/groundswell`
 "Partner portal" link points there. `/social-engineering/croissance/partners`,
 `/partners/dashboard` and `/partners/set-password` redirect permanently
 (`vercel.json`; `division-integration.test.ts` pins them).
+
+## Headway (`/social-engineering/headway`, 2026-10-26)
+
+Headway is the one service the division sells: GroundSwell's implementation
+service, with the six kinds of work listed under it. The page says what it
+is (GroundSwell finds and plans; Headway carries it out), lists the six
+services as a ledger (each linking to its own page, with what runs through
+the client's linked accounts and what the team carries out), how it works
+(switch on, set up, approve, carry out and measure), the setup checklist in
+plain words (accounts to sign in to, ids, access, logins), the ground rules
+(nothing without an approval; campaigns built paused; nothing invented;
+the accounts stay the client's; logins held encrypted), questions, and the
+call. Copy: `content/headway.ts`; the service catalogue, the automatic/team
+split and the setup items come from `src/lib/headway.ts`, which the
+platform itself runs on, so the page can never describe something Headway
+does not do. Brand: `docs/headway-branding.md`.
+
+Navigation: the desktop "Services" menu is now the **Headway** menu (the
+page at its head, the six services under it, and GroundSwell's line at its
+foot); the phone sheet has a Headway row above "Services under Headway"; the
+footer's services column is headed Headway with the page first; the hub's
+services band and every service page's "Where it fits" place the work under
+Headway, and the service hero's second button goes to the Headway page. The
+six service URLs are unchanged.
 
 ## Customers and Contact us
 

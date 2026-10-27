@@ -2,6 +2,173 @@
 
 ## Recent Changes
 
+### Groundswell: a step cut off mid-call is given up after three leases; social reads keep to the deadline (2026-10-27)
+
+Seen on the first Uncommon Path run after the AI search PR: the `social` step
+was claimed at 00:08, 00:18, 00:29 and 00:39 UTC, ten minutes apart, with no
+error text: each call was cut off by the function's time limit (the Apify
+fallback for the age-gated profile alone may wait 300 s), nothing was
+written, the 600 s lease ran out, and `claim_next_audit_step` handed the step
+out again with `attempts + 1`, for ever, since `MAX_ATTEMPTS` was checked
+only in the catch path.
+
+- **Engine** (`runWorker`): a claimed step with `attempts > MAX_ATTEMPTS` is
+  not run: an optional one is skipped and a required one fails the audit,
+  with "The step ran out the worker's time limit 3 times without finishing."
+- **Social step**: `timeBudget(ctx, cap)` caps every ScrapeCreators (90 s)
+  and Apify (300 s) read at the time left before the worker's deadline, so
+  a read can time out with an error (and retry or skip) instead of the call
+  dying silently.
+- **Tests**: the reclaimed-lease case in `groundswell-engine.test.ts` and
+  the deadline case in `groundswell-social.test.ts`.
+- The stuck run itself (`4afe409b…`) had its social step skipped by hand.
+
+### Headway: the implementation service, its page, and the agent that carries the plan out (2026-10-26)
+
+Owner's ask: with GroundSwell largely done, the division sells one
+implementation service with the six services listed under it; a name and
+brand for it; the admin switches each customer's services on by what it
+pays for; a setup checklist (ids, API keys, or logins when a client would
+rather not link); and the agent that applies the recommendations through
+Composio and the client's accounts. The name is **Headway** ("Progress you
+can measure."; `docs/headway-branding.md` has the rules, the masters under
+`public/brand/social-engineering/headway/`, and the alternatives weighed;
+not trademark-cleared). GroundSwell finds and plans; Headway carries it out.
+
+- **Catalogue** `src/lib/headway.ts` (pure, shared by the browser and the
+  API): the six services (the division's slugs; a test holds them in
+  step), `HEADWAY_SERVICE_INFO` (what runs through the linked accounts,
+  what the team carries out, what each needs), `SETUP_ITEMS` (four kinds:
+  `link` = a Composio-linked account, `id`, `access`, `secret` = a login
+  held encrypted; an `alternative` lets a login stand in for a link),
+  action shapes and statuses.
+- **Migration** `20261101120000`: `groundswell_customer_services` (what a
+  customer pays for, staff-set), `groundswell_setup_items` (typed items;
+  ids in `value_hint` in clear, logins AES-256-GCM under
+  `GROUNDSWELL_SECRETS_KEY` in `value_encrypted` with the last four
+  characters as the hint; reveals recorded), `groundswell_headway_plans`,
+  `groundswell_headway_actions` (proposed → approved → applying → applied |
+  failed, or declined; a brief → done; `depends_on`, `scheduled_for`,
+  `blocked_by`, a lease). RLS on, no policies. The worker cron also fires
+  while an approved action is due. Additive: the route answers 503 until
+  the tables exist.
+- **Engine** `api/_lib/groundswell/headway/`: `plan.ts` turns the newest
+  delivered run's outputs into actions, one per thing to do, in the plan's
+  own words (Instagram posts from the social plan's week, JPEG images
+  rotating from the creative step, each on its next weekday; the Google
+  search campaign and each Meta set, built paused, with a second "turn on"
+  action that waits on the first; the website changes and new pages as
+  briefs plus the sitemap through Search Console; the scan's tracking gaps;
+  the benchmark's differences; the integrated plan queued 30 days on; the
+  monthly report), only for the services switched on; `checklist.ts` builds
+  the setup checklist from the enabled services, the client-accounts table
+  and the setup rows; `apply.ts` runs approved automatic actions as the
+  client's linked account (`executeToolAs`, never the shared lookup):
+  `INSTAGRAM_POST_IG_USER_MEDIA` + `…_PUBLISH`, one `GOOGLEADS_BATCH_MUTATE`
+  (budget, campaign paused, geo target when Google has the city, negatives,
+  ad groups, keywords, RSAs; enable = `GOOGLEADS_MUTATE_CAMPAIGNS`),
+  `METAADS_CREATE_CAMPAIGN` (paused) + `…_AD_SET` + `…_AD` (live under the
+  paused campaign, ZIP-radius targeting from the listing; enable =
+  `METAADS_UPDATE_CAMPAIGN`), `GOOGLE_SEARCH_CONSOLE_SUBMIT_SITEMAP` once
+  the sitemap answers, and `queuePhase('integrated')`. Three tries for a
+  hiccup, one for a plain problem (`ApplyProblem`); a still-blocked action
+  stays approved saying what it waits on. `background.ts` applies due
+  actions after the audit worker and right after an approval.
+- **Route** `api/groundswell/headway.ts` (partner for its own customer, or
+  a Groundswell admin): GET the view; `?reveal=` (staff) a stored login,
+  recorded; PATCH services (staff); PUT a typed item; POST plan | approve |
+  decline | done | retry. Payloads never leave the server; a partner sees
+  no error text.
+- **Portal**: `HeadwayPanel` (`src/groundswell/workspace/`) on the staff
+  customer page (always) and a client's partner page: services with
+  switches (staff), the checklist with Add / Mark as given / Not needed /
+  Reveal, Build the plan, the actions grouped by service with Approve /
+  Mark done / Try again / Decline, polling while something applies.
+  `src/lib/groundswellHeadway.ts` is the browser side.
+- **Site**: `/social-engineering/headway` (`content/headway.ts`,
+  `SocialEngineeringHeadwayPage`, `headwayPageSeo`: a Service with the six
+  as its offer catalogue), wired through site.ts, seo.ts, preload.ts,
+  routes.tsx, App.tsx, vercel.json, the sitemap. The services menu is the
+  Headway menu, the footer column is headed Headway, the hub band and every
+  service page place the six under it. The six URLs are unchanged.
+- **Tests**: `src/test/api/groundswell-headway.test.ts` (catalogue,
+  checklist, planner, route, every tool against fake answers, the loop),
+  `HeadwayPanel.test.tsx`, the Headway cases in `pages.test.tsx`, and the
+  navigation, responsive, preload and integration pins.
+- **Not verified live**: no tool has run against a real account; the
+  Composio payload shapes follow the tools' published schemas (read on
+  2026-10-26) and want one live run per tool. Setup in Vercel:
+  `GROUNDSWELL_SECRETS_KEY` (any long random string) before a login is
+  stored. Meta interests are not set by the tool (named in the result);
+  Facebook, TikTok, LinkedIn and YouTube posts, GBP changes and website
+  edits are briefs for the team.
+
+### Groundswell: AI search reading and the GEO developer brief (2026-10-26)
+
+Owner's ask: in the reporting and analytics, gather the current AI search
+stats, pull what is needed to improve, and make a developer file that can be
+applied to the site. Shipped as step `ai_search` (Current "Search", optional,
+after `ads_library`, before `model`) and the delivery step `deliver_geo`
+(phase 1, after the summary; the plan doc's section 2.4 is this).
+
+- **Rules** (`packages/groundswell/src/aiSearch.ts`, pure): `AI_CRAWLERS`
+  (GPTBot, OAI-SearchBot, ChatGPT-User, ClaudeBot, PerplexityBot,
+  Google-Extended, Googlebot, Bingbot, CCBot), `parseRobots` and
+  `robotsAccess` (RFC 9309 reading: the crawler's own group over `*`, the
+  longest matching rule, `$` anchors; allowed | blocked | restricted |
+  no_robots), the citability rubric `CITABILITY_RUBRIC` and `scorePage`
+  (100 points: answer-first opening, question headings, depth, facts, FAQ,
+  title and description, a next step, JSON-LD, readable without JavaScript,
+  canonical; a check the evidence cannot answer is named as unknown and left
+  out of that page's denominator), `unsupportedClaims` ("award-winning",
+  "voted best", "#1"…), `improvementsFrom` (each with evidence and action,
+  highest priority first; CSP only ever report-only), `ownerQuestions`, and
+  `buildGeoBrief` (the developer file).
+- **Step** (`api/_lib/groundswell/currents/aiSearch.ts`): robots.txt,
+  /llms.txt, /llms-full.txt and /sitemap.xml read through `readPublicText`
+  (which now takes `userAgent` and `acceptStatuses`, and returns the kept
+  security `headers`); the homepage fetched as GPTBot (`GPTBOT_UA`) and
+  compared with the ordinary scan; the JSON-LD entity (`readEntity`:
+  LocalBusiness or any subtype, @id, address, telephone, hours, sameAs,
+  FAQPage); the site's phones against the Google listing's; the security
+  headers; a score for the homepage (raw) and every page the site-pages step
+  read (as text); then Ahrefs Brand Radar through Composio toolkit
+  `ahrefs_mcp` (`readAiVisibility`: `…MENTIONS_OVERVIEW_ENTITIES`,
+  `…SOV_OVERVIEW_ENTITIES`, `…AI_RESPONSES_ENTITIES`,
+  `…CITED_DOMAINS_ENTITIES`, `AHREFS_MCP_SITE_EXPLORER_AI_RESPONSES_COUNT`;
+  brands by name and domain, the business against up to five competitors,
+  across ChatGPT, Perplexity, Gemini, Google AI Overviews, Copilot and Claude,
+  US, Ahrefs' prompt set), each read best-effort with what failed in
+  `visibility.error`. `toolkitOf` maps `AHREFS_MCP_…` to `ahrefs_mcp`;
+  readiness gains its row (instant account).
+- **Reports**: the full audit gains an unnumbered "AI answers" section after
+  the observed search results (`aiSearchSection`: crawler access, the files,
+  the entity, citability by page, mentions and share of voice, citations of
+  the site, the cited domains, the questions where a brand was named, what to
+  change) and two source lines; the write-up prompt sees `ai_search`
+  (`aiSearchForPrompt`: verdicts and figures, never the rubric notes) with
+  a rule that zero mentions is not "nobody asks". The workspace gains an
+  `ai_search` panel; `gaps.ts` and `STEP_LABELS` know both steps.
+- **Developer brief** (`api/_lib/groundswell/geoDelivery.ts`): `deliver_geo`
+  stores `<Business> - GEO Developer Brief (<date>).md` as an `export` asset
+  (`text/markdown`; it shows under the workspace's downloads with the import
+  files). It is the owner's GEO prompt template filled from the run: inputs
+  (with the owner's own entries left as `{{…}}`), ground rules, the measured
+  baseline (robots table, files, entity and NAP, headers, the score per page
+  with the rubric, Brand Radar), the improvements, the owner's question list,
+  and phases 0 to 5 (recon, fact sheet, one draft PR, factual copy, guarded
+  data migrations, the weekly runbook). Every delivery step stays required:
+  without an `ai_search` reading the step writes nothing and says so.
+- **Public page**: metric group `ai-search` (`groundswellMetrics.ts`,
+  `/social-engineering/groundswell/ai-search`, in the sitemap and
+  `vercel.json`), its sources being what the engine reads.
+- **Tests**: `packages/groundswell/test/aiSearch.test.ts` and
+  `src/test/api/groundswell-ai-search.test.ts` (provider-shaped Brand Radar
+  answers as the Ahrefs API v3 documents them on 2026-10-26, the step, the
+  facts, the audit section, the panel, the delivery against `fakeSupabase`).
+- **Not verified live**: no run has read Brand Radar through Composio yet;
+  the readiness row and the first run will confirm the `ahrefs_mcp` account
+  answers (the consumer account lists it as linked).
 ### No response-time promises; pricing subheadline to the code default (2026-10-26)
 
 GEO audit, fact sheet Q6 and Q2: no SLA backs "within one business day",
@@ -39,10 +206,10 @@ Owner's answer in the GEO audit (`docs/geo/fact-sheet.md`, Q2): the
 published price list is the `pricing_units` table (the quote builder on
 `/pricing` and the two Fort Lauderdale landing pages); the SaaS / HaaS /
 Support tiers in `site_content` (`pricing.tiers`) were never rendered by
-`/pricing` and are retired. Migration `20261101120000` deletes the row,
+`/pricing` and are retired. Migration `20261103120000` deletes the row,
 guarded on the md5 of the snapshot
 (`docs/geo/evidence/2026-10-26/site_content-pricing-tiers.snapshot.json`),
-idempotent; the exact restore is `supabase/rollbacks/20261101120000_restore_pricing_tiers_row.sql`
+idempotent; the exact restore is `supabase/rollbacks/20261103120000_restore_pricing_tiers_row.sql`
 (that folder is never applied on its own). The admin's `pricing` descriptor
 keeps only the headline block ("Pricing page"); `PRICING_TIERS` and the nav
 keywords for tiers are gone, and the "unreadable stored list" test uses the

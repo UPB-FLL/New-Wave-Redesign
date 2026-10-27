@@ -28,3 +28,7 @@ Portal branding is separate from report branding. Customer reports keep the busi
 The Social Engineering hub and its six service pages use GroundSwell as their shared research and planning engine. The public engine explorer follows the existing Growth audit, Competitor plan, and Integrated plan phases; its links lead to the real sample audit and the existing partner workspace. It explains the workflow without starting runs or reading client accounts. The division remains New Wave: Social Engineering; GroundSwell identifies the engine behind the work.
 
 Division surfaces use the supplied navy, foam, cyan, tide, and amber palette, original font families, and unchanged contour master. The original icon SVGs are restored under `03_Icons`; the website's accessible icon component normalizes their geometry, retaining their colors at larger sizes and using a legible single color for compact controls. The navigation, service cards, engine flow, and related diagrams share that family. See `public/brand/social-engineering/03_Icons/website-provenance.md` for source and adaptation details.
+
+## Headway
+
+Headway is GroundSwell's implementation service (2026-10-26): the plan, carried out. Its name, masters, colour role and placements are in `docs/headway-branding.md`; its masters live under `headway/` in this folder. GroundSwell finds and plans; Headway carries it out.

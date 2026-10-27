@@ -7,7 +7,7 @@
 -- Guarded on the md5 of the row as snapshotted
 -- (docs/geo/evidence/2026-10-26/site_content-pricing-tiers.snapshot.json):
 -- an edited row is left alone. Idempotent; never raises. Exact restore:
--- supabase/rollbacks/20261101120000_restore_pricing_tiers_row.sql.
+-- supabase/rollbacks/20261103120000_restore_pricing_tiers_row.sql.
 
 delete from public.site_content
 where section = 'pricing'

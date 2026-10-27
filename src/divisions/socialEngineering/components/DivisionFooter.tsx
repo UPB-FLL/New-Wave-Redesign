@@ -12,6 +12,7 @@ import {
   DIVISION_DESCRIPTOR,
   DIVISION_LOGO_MIN_WIDTH,
   DIVISION_GROUNDSWELL_PATH,
+  DIVISION_HEADWAY_PATH,
   DIVISION_NAME,
   DIVISION_PRIMARY_CTA,
   DIVISION_SHORT_NAME,
@@ -20,6 +21,7 @@ import {
 } from '../site';
 import { GROUNDSWELL_PATH } from '../../../groundswell/site';
 import { GROUNDSWELL_BRAND } from '../../../groundswell/brand';
+import { HEADWAY_NAME } from '../../../lib/headway';
 import './division-navigation.css';
 
 import { DivisionCurrents } from './DivisionCurrents';
@@ -68,7 +70,7 @@ export function DivisionFooter() {
             <div>
               <p className="gs-division-nav-eyebrow">The engine behind the division</p>
               <h2>GroundSwell connects the work.</h2>
-              <p>Connected data, clear priorities, and a shared workspace for your growth.</p>
+              <p>Connected data, clear priorities, a shared workspace, and {HEADWAY_NAME} to carry the plan out.</p>
             </div>
           </div>
           <div className="gs-division-footer-engine-actions">
@@ -126,8 +128,13 @@ export function DivisionFooter() {
           </div>
 
           <div>
-            <h2 className={headingClass}>Services</h2>
+            <h2 className={headingClass}>{HEADWAY_NAME}</h2>
             <ul className={listClass}>
+              <li>
+                <Link to={DIVISION_HEADWAY_PATH} className={`${linkClass} font-semibold`}>
+                  The implementation service
+                </Link>
+              </li>
               {divisionServices.map((service) => (
                 <li key={service.slug}>
                   <Link to={divisionServicePath(service.slug)} className={linkClass}>
