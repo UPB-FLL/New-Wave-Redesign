@@ -221,7 +221,7 @@ describe('division positioning', () => {
     expect(readFileSync(path.resolve(__dirname, '../../../public/brand/social-engineering/site.webmanifest'), 'utf8')).not.toMatch(SECURITY_WORDING);
   });
 
-  // The division is a national, remote-first growth team for small businesses
+  // The division is a national growth team for small businesses
   // (2026-10-21). No page, title, description, or keyword set may position it
   // as a home-market agency again. The Customers page's facts (where each
   // business is) and the GroundSwell example's audit data are facts about
@@ -255,7 +255,11 @@ describe('division positioning', () => {
     const copy = JSON.stringify([hubContent, divisionServices, contactContent, contactUsContent, customersContent, auditPositioning]);
     expect(copy).not.toMatch(LOCAL_POSITIONING);
     expect(hubContent.summary).toMatch(/across the United States/);
-    expect(hubContent.industries.note).toMatch(/Remote-first/);
+    expect(hubContent.industries.note).toMatch(/calls in your time zone/i);
+    // Owner's call (2026-10-27): how the team works is not a selling point, so
+    // no copy says "remote-first"; what the client gets (calls in their time
+    // zone) is said instead.
+    expect(copy).not.toMatch(/remote[- ]first/i);
     renderAt(<SocialEngineeringHubPage />);
     const graph = JSON.parse(jsonLdBlocks()[0].textContent ?? '')['@graph'];
     const organization = graph.find((node: { '@type': string }) => node['@type'] === 'Organization');

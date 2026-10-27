@@ -2,6 +2,16 @@
 
 ## Recent Changes
 
+### Social Engineering hub: no "remote-first" in the copy (2026-10-27)
+
+Owner's call: "remote-first" says how the team works, not what a client gets,
+so the hub says what the client gets instead. The hero's facts line is
+"Nationwide · Calls in your time zone · Reported against revenue"; the
+industries note and the "Where do you work?" FAQ (also in the FAQPage JSON-LD)
+keep "based in Florida … calls in your time zone" without it; the keyword
+"marketing agency united states remote" is "small business marketing agency
+united states". `pages.test.tsx` forbids the phrase in the division's copy.
+
 ### New Wave IT pages: one page header, one title per section (2026-10-27)
 
 Owner's ask: rework the layout of every New Wave IT page (nothing on the Social
@@ -123,7 +133,8 @@ and learns from logs, data and results. Full notes: `docs/groundswell-agent.md`.
   in `openai.ts`), what is new in `DEFAULT_TOPICS` AI agent marketing and social media marketing, or
   `GROUNDSWELL_AGENT_TOPICS`; the ask carries the learnings already held so
   only new ones come back; `checkLearnings` needs a title, a summary and a
-  real link, never one known by link or title; stored in
+  real link, never one known by link or title, never one dated before the
+  window, and no undated homepage; stored in
   `groundswell_agent_learnings`, logged with purpose `research`, reported
   once under "What the agent learned"), `report.ts`
   (the email and the confirmation page), `agent.ts` (`runAgentPass`:

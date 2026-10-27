@@ -205,7 +205,7 @@ export function DivisionHero({
   summary: string;
   breadcrumbs?: DivisionPageSeo['breadcrumbs'];
   actions?: ReactNode;
-  /** Short facts under the summary ("Nationwide, remote-first"), as one dotted line, never a list. */
+  /** Short facts under the summary ("Nationwide", "Calls in your time zone"), as one dotted line, never a list. */
   facts?: readonly string[];
   /** Render the kicker as the first line of the H1 (keeps a brand-line headline topical). */
   kickerInHeading?: boolean;

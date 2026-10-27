@@ -1,6 +1,6 @@
 # New Wave: Social Engineering — division
 
-New Wave IT's growth division: a national, remote-first team that helps small
+New Wave IT's growth division: a national team that helps small
 businesses grow sales through data, integrations, and smart advertising,
 served from www.newwaveitfl.com without changing any existing New Wave IT URL.
 
@@ -49,14 +49,14 @@ national growth division for small businesses, built on three pillars.
   compact Current Navy band with the four facts in one glass tile) and as the
   first section (`OutcomeList`, three tinted panels).
 - **Hub** (`SocialEngineeringHubPage`), in order: hero (with a facts line:
-  nationwide, remote-first, reported against revenue; a `<p>`, never a list,
+  nationwide, calls in your time zone, reported against revenue; a `<p>`, never a list,
   each fact carrying its own trailing dot so a wrapped line ends on one), the
   opportunity with the growth loop (in a Current Navy panel), the three
   pillars (a Current Navy band), the six services, discovery (the journey
   strip and the five data points, with the journey scene), how we work (three
   steps with the method icons), the first 90 days (three phases and the
   weekly/monthly/quarterly `CadenceRow`), what we measure (Deep Current),
-  who we work with (`ChipList` of business types, with the remote-first
+  who we work with (`ChipList` of business types, with the time-zone
   note), part of New Wave IT, FAQ, and the call to the audit. Dark sections
   are four (hero, pillars, metrics, closing CTA), as `grounds.test.tsx`
   expects; see "Surfaces and colour roles" under "Brand implementation".

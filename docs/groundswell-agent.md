@@ -61,9 +61,11 @@ on (`runAgentPass` in `agent.ts`):
    answer's JSON parsed from the text, carrying the topic's brief, the
    date window (7 days) and the newest 30 learnings the agent already holds
    on that topic, so only what is new comes back. `checkLearnings` keeps a
-   learning only with a title, a summary and a real link, and never one
-   already known by link (tracking parameters stripped) or by title; up to 5
-   per topic. Kept learnings go in `groundswell_agent_learnings`; the ask is
+   learning only with a title, a summary and a real link, never one
+   already known by link (tracking parameters stripped) or by title, never
+   one dated before the window (2 days of slack), and an undated one only
+   when its link is a page, not a homepage (the first live pass kept a March
+   paper and a vendor's homepage); up to 5 per topic. Kept learnings go in `groundswell_agent_learnings`; the ask is
    logged with purpose `research`. Topics: `DEFAULT_TOPICS` (AI agent
    marketing, social media marketing) or `GROUNDSWELL_AGENT_TOPICS`
    (`key=what to look for; key=…`, up to six). Without either key the

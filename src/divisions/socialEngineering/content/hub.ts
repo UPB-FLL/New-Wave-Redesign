@@ -3,7 +3,7 @@ import type { DivisionHubContent } from '../types';
 // The division hub (/social-engineering). Pure data.
 //
 // Positioning (2026-10-21): New Wave: Social Engineering is the growth
-// division of New Wave IT, a national, remote-first team that helps small
+// division of New Wave IT, a national team that helps small
 // businesses grow sales through data, integrations, and smart advertising. No
 // copy here names a home market as the division's territory; local search
 // work is described market by market, wherever the client is.
@@ -13,7 +13,7 @@ export const hubContent: DivisionHubContent = {
   metaDescription:
     'New Wave: Social Engineering uses GroundSwell research and planning to guide connected tools, websites, and advertising for small businesses nationwide.',
   keywords:
-    'small business growth marketing, growth marketing agency for small business, data-driven marketing for small business, marketing integrations crm booking, paid search and social ads for small business, marketing analytics and attribution for small business, marketing agency united states remote',
+    'small business growth marketing, growth marketing agency for small business, data-driven marketing for small business, marketing integrations crm booking, paid search and social ads for small business, marketing analytics and attribution for small business, small business marketing agency united states',
   kicker: 'Growth marketing for small businesses, nationwide',
   headline: 'Growth decisions made on data, not guesswork.',
   summary:
@@ -166,7 +166,7 @@ export const hubContent: DivisionHubContent = {
       'Events, rentals and experiences',
       'Software and apps',
     ],
-    note: 'Remote-first, with calls in your time zone. The team is based in Florida; the work is done wherever you are.',
+    note: 'Calls in your time zone. The team is based in Florida; the work is done wherever you are.',
   },
   metrics: [
     {
@@ -211,7 +211,7 @@ export const hubContent: DivisionHubContent = {
     {
       question: 'Where do you work?',
       answer:
-        'Across the United States. The team is remote-first and based in Florida, and the work, from the audit and tracking to campaigns and reporting, is done online, with calls in your time zone. Local search and Maps work is done market by market for the places you serve.',
+        'Across the United States. The team is based in Florida, and the work, from the audit and tracking to campaigns and reporting, is done online, with calls in your time zone. Local search and Maps work is done market by market for the places you serve.',
     },
     {
       question: 'How do we get started?',
