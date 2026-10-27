@@ -60,7 +60,7 @@ const page: ServiceCategoryPageData = {
     },
   ],
   ctaTitle: 'Need IT support in Fort Lauderdale?',
-  ctaDescription: 'Tell us what is slowing your team down. A technician will reply within one business day, or call us now.',
+  ctaDescription: 'Tell us what is slowing your team down, or call us now.',
 };
 
 export default function ITSupportFortLauderdalePage() {

@@ -68,9 +68,9 @@ export const SITE_PAGES: AdminNavPage[] = [
     id: 'pricing',
     label: 'Pricing',
     url: '/pricing',
-    description: 'Plans, tiers, and the quote builder',
+    description: 'The pricing page headline and the quote builder',
     entries: [
-      { label: 'Plans and tiers', path: '/admin/pricing', section: 'pricing', keywords: ['tiers', 'plans', 'features', 'price', 'saas', 'haas', 'support'] },
+      { label: 'Pricing headline', path: '/admin/pricing', section: 'pricing', keywords: ['headline', 'estimate', 'pricing'] },
       { label: 'Quote builder units', path: '/admin/pricing-units', section: 'pricing_units', keywords: ['quote builder', 'units', 'rates', 'per device', 'per user'] },
     ],
   },

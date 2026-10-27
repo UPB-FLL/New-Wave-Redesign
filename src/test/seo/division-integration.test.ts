@@ -118,7 +118,7 @@ describe('vercel.json rewrites', () => {
   it('keeps the API passthrough first and the SPA catch-all last', () => {
     expect(rewrites[0]).toEqual({ source: '/api/(.*)', destination: '/api/$1' });
     expect(catchAll).toBe(rewrites.length - 1);
-    expect(rewrites[catchAll].destination).toBe('/index.html');
+    expect(rewrites[catchAll].destination).toBe('/_shell.html');
   });
 
   it('serves each prerendered URL its own file, ahead of the catch-all', () => {
@@ -136,6 +136,9 @@ describe('vercel.json rewrites', () => {
     // (api/blog-page.ts, pinned in src/test/api/blog-page.test.ts), the
     // single-post API (api/blog/post.ts, pinned in blog-routes.test.ts), and the
     // audit routes' old addresses (api/groundswell/*, pinned in groundswell-routes.test.ts).
+    // The homepage is dist/index.html itself (prerendered, served from the
+    // filesystem ahead of any rewrite); the fallback routes get the empty
+    // shell vite.config.ts writes beside it (SHELL_FILE).
     const functionRoutes = ['/api/(.*)', '/api/blog/:id', '/api/audits/run', '/api/audits/worker', '/(.*)', '/sitemap-content.xml', '/blog/:slug'];
     const extra = rewrites.filter((rule) => !functionRoutes.includes(rule.source));
     expect(extra.map((rule) => rule.source).sort()).toEqual([...prerenderedPaths].sort());
@@ -145,6 +148,25 @@ describe('vercel.json rewrites', () => {
 
 describe('index.html (the parent shell every New Wave IT URL is served)', () => {
   const shell = read('index.html');
+
+  it("states the owner-confirmed hours: office Mon–Fri 8am–6pm, a 24/7 emergency line (fact sheet Q3, 2026-10-26)", () => {
+    const block = shell.match(/<script type="application\/ld\+json">\s*(\[[\s\S]*?\])\s*<\/script>/)?.[1] ?? '[]';
+    const [business] = JSON.parse(block) as { openingHoursSpecification: { dayOfWeek: string[]; opens: string; closes: string }[]; contactPoint: { contactType: string; hoursAvailable: { dayOfWeek: string[]; opens: string; closes: string } }[] }[];
+    expect(business.openingHoursSpecification).toEqual([
+      { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], opens: '08:00', closes: '18:00' },
+    ]);
+    const emergency = business.contactPoint.find((c) => c.contactType === 'emergency');
+    expect(emergency?.hoursAvailable.dayOfWeek).toHaveLength(7);
+    expect(emergency?.hoursAvailable.opens).toBe('00:00');
+  });
+
+  it('states the owner-confirmed founding year and headcount (fact sheet Q5, 2026-10-26)', () => {
+    const block = shell.match(/<script type="application\/ld\+json">\s*(\[[\s\S]*?\])\s*<\/script>/)?.[1] ?? '[]';
+    const graph = JSON.parse(block) as { '@type': string | string[]; foundingDate?: string; numberOfEmployees?: { minValue: number; maxValue: number } }[];
+    const organization = graph.find((node) => node['@type'] === 'Organization');
+    expect(organization?.foundingDate).toBe('2022');
+    expect(organization?.numberOfEmployees).toEqual({ '@type': 'QuantitativeValue', minValue: 5, maxValue: 10 });
+  });
 
   it('keeps the parent homepage identity untouched', () => {
     expect(shell).toContain(

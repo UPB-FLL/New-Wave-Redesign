@@ -61,6 +61,14 @@ export interface StepDefinition {
   label: string;
   /** An optional step that keeps failing is skipped; the audit goes on without it. */
   optional: boolean;
+  /**
+   * The time (ms) the step wants to do its work well. A call with less than
+   * this left hands the step back uncounted and ends, so the next heartbeat
+   * runs it with a whole call (see runWorker). Keep it under what a fresh
+   * call offers (FUNCTION_SECONDS less the engine's margins), or the step
+   * runs only as a call's first step.
+   */
+  needsMs?: number;
   run(ctx: StepContext): Promise<unknown>;
   /** Fields of the audit row a finished step changes (the engine writes them before the next step reads the row). */
   persist?(output: unknown, audit: AuditRow): Partial<Pick<AuditRow, 'competitors'>> | null;

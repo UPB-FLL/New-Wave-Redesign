@@ -30,7 +30,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   try {
     shell = readSpaShell();
   } catch (error) {
-    console.error('blog-page: dist/index.html is missing from the function bundle', error);
+    console.error('blog-page: dist/_shell.html is missing from the function bundle', error);
     res.setHeader('Cache-Control', 'no-store');
     return res.status(500).send('Blog temporarily unavailable.');
   }
