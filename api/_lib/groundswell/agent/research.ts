@@ -1,10 +1,13 @@
-import { consultClaude, isClaudeConfigured, type Consultation } from './consult.js';
+import { researchWithSearch } from '../openai.js';
+import { consultClaude, isClaudeConfigured, parseJsonObject, type Consultation } from './consult.js';
 import { readLearnings, recordConsultation, recordLearnings } from './store.js';
 import type { Db, LearningRow } from './types.js';
 
 /**
  * The research half of the 4-hour pass: what is new in the fields the
- * division works in. One ask per topic, with Claude's web search turned on;
+ * division works in. One ask per topic, with the advisor's web search turned
+ * on: Claude when ANTHROPIC_API_KEY is set, else OpenAI's Responses API with
+ * its web search tool on the OPENAI_API_KEY the site already has;
  * the question carries what the agent already knows (the newest learnings
  * on that topic), so only what is new comes back. Every learning needs a
  * real source link; duplicates by link or by title are dropped; what is
@@ -13,8 +16,7 @@ import type { Db, LearningRow } from './types.js';
  * consultation, with purpose `research`.
  *
  * GROUNDSWELL_AGENT_TOPICS overrides the topics: `key=what to look for;
- * key=…`. Without ANTHROPIC_API_KEY the research is skipped and the report
- * says so.
+ * key=…`. Without either key the research is skipped and the report says so.
  */
 
 export interface Topic {
@@ -134,9 +136,24 @@ export interface ResearchOptions {
   now: Date;
   deadline: number;
   topics?: Topic[];
+  /** A stand-in for the Claude call (tests). */
   consult?: (system: string, question: string, opts: { webSearch: { maxUses: number } }) => Promise<Consultation>;
+  /** A stand-in for the OpenAI web-search call (tests). */
+  search?: typeof researchWithSearch;
   /** How far back a learning may date; the question says so. */
   sinceDays?: number;
+}
+
+/** The OpenAI research call in the advisor's answer shape, so the rest of the step reads either the same. */
+async function openaiResearch(system: string, question: string, search: typeof researchWithSearch): Promise<Consultation> {
+  const started = Date.now();
+  try {
+    const answer = await search(system, question, { maxUses: SEARCHES_PER_TOPIC });
+    const parsed = parseJsonObject(answer.text);
+    return { model: answer.model, text: answer.text, parsed, usage: { input_tokens: answer.usage.input_tokens, output_tokens: answer.usage.output_tokens, cache_read_input_tokens: null, web_searches: answer.usage.web_searches }, latency_ms: Date.now() - started, stop_reason: null, error: parsed ? null : 'The answer was not the JSON asked for.' };
+  } catch (err) {
+    return { model: process.env.GROUNDSWELL_OPENAI_MODEL || 'gpt-4o', text: '', parsed: null, usage: { input_tokens: 0, output_tokens: 0, cache_read_input_tokens: null }, latency_ms: Date.now() - started, stop_reason: null, error: err instanceof Error ? err.message : String(err) };
+  }
 }
 
 export interface ResearchReport {
@@ -152,10 +169,13 @@ export interface ResearchReport {
 export async function researchTopics(db: Db, opts: ResearchOptions): Promise<ResearchReport> {
   const report: ResearchReport = { learned: [], dropped: {}, skipped: {} };
   const topics = opts.topics ?? topicsFromEnv();
-  if (!isClaudeConfigured() && !opts.consult) {
-    for (const t of topics) report.skipped[t.key] = 'ANTHROPIC_API_KEY is not set, so nothing was researched.';
+  const viaClaude = isClaudeConfigured() || Boolean(opts.consult);
+  const viaOpenAI = !viaClaude && (Boolean(process.env.OPENAI_API_KEY) || Boolean(opts.search));
+  if (!viaClaude && !viaOpenAI) {
+    for (const t of topics) report.skipped[t.key] = 'Neither ANTHROPIC_API_KEY nor OPENAI_API_KEY is set, so nothing was researched.';
     return report;
   }
+  const advisor = viaClaude ? 'claude' : 'openai';
   const sinceDays = opts.sinceDays ?? 7;
   for (const topic of topics) {
     if (Date.now() > opts.deadline - 60_000) {
@@ -171,13 +191,13 @@ export async function researchTopics(db: Db, opts: ResearchOptions): Promise<Res
       at_most: LEARNINGS_PER_TOPIC,
       already_known: known.map((k) => ({ title: k.title, url: k.url, found: k.found_at.slice(0, 10) })),
     });
-    const result = await (opts.consult ?? consultClaude)(RESEARCH_SYSTEM, question, { webSearch: { maxUses: SEARCHES_PER_TOPIC } });
+    const result = viaClaude ? await (opts.consult ?? consultClaude)(RESEARCH_SYSTEM, question, { webSearch: { maxUses: SEARCHES_PER_TOPIC } }) : await openaiResearch(RESEARCH_SYSTEM, question, opts.search ?? researchWithSearch);
     const { kept, dropped } = result.parsed ? checkLearnings(result.parsed, topic.key, known) : { kept: [], dropped: [] as string[] };
     if (result.error) report.skipped[topic.key] = result.error;
     report.dropped[topic.key] = dropped;
     let consultationId: string | null = null;
     try {
-      consultationId = await recordConsultation(db, { advisor: 'claude', purpose: 'research', model: result.model, issue_ids: [], question: { topic: topic.key, since_days: sinceDays, known: known.length }, answer_text: result.text, answer: result.parsed, kept: Object.fromEntries(kept.map((_, i) => [`learning-${i + 1}`, { kept: true, resolver: null, reason: null }])), usage: result.usage, latency_ms: result.latency_ms, error: result.error });
+      consultationId = await recordConsultation(db, { advisor, purpose: 'research', model: result.model, issue_ids: [], question: { topic: topic.key, since_days: sinceDays, known: known.length }, answer_text: result.text, answer: result.parsed, kept: Object.fromEntries(kept.map((_, i) => [`learning-${i + 1}`, { kept: true, resolver: null, reason: null }])), usage: result.usage, latency_ms: result.latency_ms, error: result.error });
     } catch (err) {
       console.error('Agent research log failed:', err instanceof Error ? err.message : err);
     }

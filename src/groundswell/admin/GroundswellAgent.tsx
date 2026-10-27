@@ -180,7 +180,7 @@ export default function GroundswellAgent() {
               {view.config.email_ready ? '' : ' (RESEND_API_KEY is not set, so none can be sent)'}
             </span>
             <span>
-              {view.config.advisor === 'claude' ? `Advisor: Claude (${view.config.model}), checked by the rules` : view.config.advisor === 'openai' ? `Advisor: OpenAI (${view.config.model}) standing in; set ANTHROPIC_API_KEY for Claude` : 'Advisor: the agent’s rules only (no ANTHROPIC_API_KEY or OPENAI_API_KEY)'}
+              {view.config.advisor === 'claude' ? `Advisor: Claude (${view.config.model}), checked by the rules` : view.config.advisor === 'openai' ? `Advisor: OpenAI (${view.config.model}); set ANTHROPIC_API_KEY to use Claude instead` : 'Advisor: the agent’s rules only (no ANTHROPIC_API_KEY or OPENAI_API_KEY)'}
             </span>
             <span>{view.config.live_checks ? 'Live service checks on' : 'Live service checks off'}</span>
           </div>
@@ -226,7 +226,7 @@ export default function GroundswellAgent() {
         <section aria-label="Learnings" className="gs-card p-5 text-sm">
           <h2 className="font-semibold">What the agent learned</h2>
           <p className="text-xs gs-muted">
-            Every pass asks Claude, with web search, what is new in {view.topics.map((t) => t.label).join(' and ') || 'its topics'}; only what the agent did not already know is kept and reported, each with the page it was read on.
+            Every pass asks the advisor, with web search, what is new in {view.topics.map((t) => t.label).join(' and ') || 'its topics'}; only what the agent did not already know is kept and reported, each with the page it was read on.
           </p>
           {view.learnings.length ? (
             <ul className="mt-3 space-y-3">
@@ -258,7 +258,7 @@ export default function GroundswellAgent() {
               ))}
             </ul>
           ) : (
-            <p className="mt-2 gs-muted">Nothing learned yet. The first pass with ANTHROPIC_API_KEY set fills this in.</p>
+            <p className="mt-2 gs-muted">Nothing learned yet. The first pass with an advisor key set fills this in.</p>
           )}
         </section>
       ) : null}

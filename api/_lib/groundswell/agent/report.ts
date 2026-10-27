@@ -163,7 +163,7 @@ ${l.action ? `<p style="margin:0 0 4px;font-size:14px"><strong>What to do:</stro
 <p style="margin:0;font-size:12px"><a href="${escapeHtml(l.url)}" style="color:#0B6E73">${escapeHtml(l.source || l.url)}</a> · confidence ${l.confidence}</p>
 </div>`).join(''));
     }
-    html.push(section(`What the agent learned (${learned.length})`, `<p style="font-size:13px;color:#526271;margin:0 0 12px">New since the last pass, from Claude's web search; each has the page it was read on. The agent keeps every learning and reports each one once.</p>` + blocks.join('')));
+    html.push(section(`What the agent learned (${learned.length})`, `<p style="font-size:13px;color:#526271;margin:0 0 12px">New since the last pass, from the advisor's web search; each has the page it was read on. The agent keeps every learning and reports each one once.</p>` + blocks.join('')));
   }
   const skippedTopics = Object.entries(researchSkipped);
   if (skippedTopics.length) {
