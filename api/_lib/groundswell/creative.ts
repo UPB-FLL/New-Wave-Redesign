@@ -3,7 +3,7 @@ import { PHASE_INFO } from '../../../src/lib/groundswellValidation.js';
 import { getSupabaseAdmin } from '../supabaseAdmin.js';
 import { storeAsset } from './assetStore.js';
 import { executeTool } from './composio.js';
-import { mediaFrom, type FacebookSnapshot, type InstagramMedia, type InstagramSnapshot } from './currents/social.js';
+import { GATED_ACTOR, GATED_CHARGE_CAP_USD, GATED_POSTS, gatedPosts, mediaFrom, type FacebookSnapshot, type InstagramMedia, type InstagramSnapshot } from './currents/social.js';
 import type { SiteScan } from './currents/site.js';
 import { PermanentStepError, type StepContext } from './types.js';
 
@@ -143,6 +143,19 @@ export async function runCreative(ctx: StepContext, fetchImpl: typeof fetch = fe
         await take(mediaFrom(await executeTool('SCRAPECREATORS_LIST_INSTAGRAM_USER_POSTS', { handle, trim: true })), 'ScrapeCreators, one page of posts');
       } catch (err) {
         tried.push(`ScrapeCreators: ${message(err)}`);
+      }
+    }
+    if (images.length < 2) {
+      // The signed-in reader (an age-gated profile hides its posts from the two readers above).
+      try {
+        const out = await executeTool(
+          'APIFY_RUN_ACTOR_SYNC_GET_DATASET_ITEMS',
+          { actorId: GATED_ACTOR, input: { usernames: [handle], maxPosts: GATED_POSTS, includeViews: true }, maxTotalChargeUsd: GATED_CHARGE_CAP_USD, waitForFinish: 175, timeout: 175, limit: GATED_POSTS, format: 'json' },
+          180_000
+        );
+        await take(mediaFrom(gatedPosts(out)), 'Apify signed-in reader');
+      } catch (err) {
+        tried.push(`Apify signed-in reader: ${message(err)}`);
       }
     }
     if (images.length < 2) {

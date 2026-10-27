@@ -29,7 +29,7 @@ export const TOOLKIT_CHECKS = [
   { toolkit: 'ahrefs', label: 'Ahrefs (search rankings, paid pages, authority)', without: 'search rankings, paid pages and domain authority are left out of the reports' },
   { toolkit: 'ahrefs_mcp', label: 'Ahrefs MCP (Brand Radar: AI mentions, share of voice, citations)', without: 'the AI search reading rests on the site’s own files and the Brand Radar figures are left out of the reports and the developer brief' },
   { toolkit: 'scrapecreators', label: 'ScrapeCreators (Instagram, Facebook, ad libraries)', without: 'Instagram, Facebook and the ad libraries are left out of the reports' },
-  { toolkit: 'apify', label: 'Apify (Instagram profiles shown only to signed-in adults, extra images)', without: 'an Instagram profile that hides from logged-out readers stays unread, and the ad images come from fewer posts' },
+  { toolkit: 'apify', label: 'Apify (the signed-in reader for Instagram profiles shown only to adults, extra images)', without: 'an Instagram profile that hides from logged-out readers stays unread, and the ad images come from fewer posts' },
   { toolkit: 'google_maps', label: 'Google Places (Maps listing, competitor picks)', without: 'Maps listings and competitor suggestions use public Google search or browser fallbacks' },
   { toolkit: 'serpapi', label: 'SerpApi (public Google search: rankings, Maps and ad library fallback)', without: 'public search observations fall to SearchAPI or Serper, and the Google Ads Transparency fallback is unavailable' },
   { toolkit: 'search_api', label: 'SearchAPI (public Google search and Maps, the second provider)', without: 'public search observations fall to SerpApi or Serper' },
