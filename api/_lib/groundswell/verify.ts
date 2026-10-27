@@ -513,12 +513,19 @@ export function verifiedOutputs(outputs: Record<string, unknown>): Record<string
   return best ? { ...outputs, ...best.outputs } : outputs;
 }
 
+/**
+ * The time a re-read wants from the worker's call: the social step's own
+ * (its signed-in reader may wait three minutes), as the sources are read in
+ * parallel. With less left, the engine hands the step to the next call.
+ */
+export const READ_NEEDS_MS = 180_000;
+
 /** A read and a check for each round after the first, up to `rounds`. */
 export function verifySteps(rounds: number, config: GroundswellConfig = GROUNDSWELL_CONFIG): StepDefinition[] {
   if (rounds > SUPPORTED_ROUNDS) throw new Error(`verification.max_rounds may be at most ${SUPPORTED_ROUNDS}.`);
   const steps: StepDefinition[] = [];
   for (let r = 2; r <= rounds; r++) {
-    steps.push({ name: readStep(r), current: 'Model', label: `Read the figures again (round ${r})`, optional: true, run: runVerifyRead(r) });
+    steps.push({ name: readStep(r), current: 'Model', label: `Read the figures again (round ${r})`, optional: true, needsMs: READ_NEEDS_MS, run: runVerifyRead(r) });
     steps.push({ name: checkStep(r), current: 'Model', label: `Compare and review (round ${r})`, optional: false, run: runVerifyCheck(r, config) });
   }
   return steps;

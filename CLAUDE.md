@@ -2,6 +2,48 @@
 
 ## Recent Changes
 
+### Groundswell: every PDF in the NWSE house frame (2026-10-27)
+
+Owner's ask: the engine's reports should look like the division's hand-made
+reports (the Wildly Primal paid-media report of 2026-10-27): the same headers,
+footers and layout, whatever the data.
+
+- **Frame** `api/_lib/groundswell/reportFrame.ts` (`houseCss`, `pageHead`,
+  `pageFoot`, `framePage`, `numberPages`, `footLine`, `siteLabel`, `HOUSE`):
+  every page opens on a Current Navy band with the division's inline logo
+  (the light-on-dark SVG, inlined) on the left and "Prepared for" with the
+  client's chip (its logo and name; the chip's rule in the client's colour)
+  on the right; an amber mono-caps kicker over a Plus Jakarta display title;
+  stat tiles under a cyan, tide or amber rule (label above the value);
+  tables with mono-caps column heads and hairline rows, a `Total` or
+  `All sets` row in bold; `.callout` (left rule), `.callout-dark` (navy), and
+  `.pill`; a navy footer bar carrying "NWSE · <report> · <site> · <date>" and
+  "n / N" (`@@PAGE@@` / `@@PAGES@@` filled in by `numberPages` once the
+  document is whole). Inter, Plus Jakarta Sans and IBM Plex Mono are inlined
+  from the division's fonts. A partner's white-label report keeps the frame
+  with the partner's logo (or name) where the division's sits and its name
+  in the footer; "NWSE" never appears. The client's colour marks only its
+  chip: the house palette carries the rest, so every report reads as one set.
+- **Reports**: the full audit (its cover is the headline, the verdict, the
+  tiles, the evidence limit and the modeled return as a dark callout), the
+  slides (1920×1080 in the same band and bar; a "Slide n" kicker), the
+  one-page summary (its links in a row above the footer bar), the benchmark,
+  the ad sets and the integrated plan all use it. `baseCss` stays for the ad
+  images (`creativeRender.ts`). `AdsetsReportData` and
+  `IntegratedReportData` gain `website` for the footer; the deliveries pass
+  it. `Preparer`, `preparerFor`, `preparedBy`, `preparerLogo` and `logoImg`
+  live in the frame module and are re-exported from `reports.ts`.
+- **Verification re-read**: `verify_read_N` gets `needsMs: READ_NEEDS_MS`
+  (180 s, the social step's), so a re-read is handed to the next call when
+  little time is left rather than cut off; the brewery's run of 2026-10-27
+  was held because its round-3 Instagram re-read got 40 s.
+- **Benchmark's signed-in read**: `GATED_DEPTH_POSTS` is `GATED_POSTS` (12):
+  asked for 24 the actor answered an empty dataset (checked live), so the
+  brewery's column stayed "not checked" on the run of 2026-10-27 22:26 UTC.
+- **Tests**: `src/test/api/groundswell-report-frame.test.ts`; the slide pin
+  in `groundswell-plans.test.ts`, the budget pin in `groundswell-verify.test.ts`
+  and the post count in `groundswell-benchmark.test.ts` follow.
+
 ### Social Engineering hub: no "remote-first" in the copy (2026-10-27)
 
 Owner's call: "remote-first" says how the team works, not what a client gets,

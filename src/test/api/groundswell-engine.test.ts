@@ -199,7 +199,8 @@ describe('runWorker', () => {
     expect(STEPS.find((s) => s.name === 'social')?.needsMs).toBe(SOCIAL_NEEDS_MS);
     // A fresh call's step deadline is FUNCTION_SECONDS less the route's and the engine's margins; leave a minute for the steps before it.
     expect(SOCIAL_NEEDS_MS).toBeLessThanOrEqual(FUNCTION_SECONDS * 1000 - 10_000 - SAFETY_MS - 60_000);
-    expect(ALL_STEPS.filter((s) => s.needsMs).map((s) => s.name)).toEqual(['social']);
+    // The verification re-reads read the social step's sources again, so they want its time too.
+    expect(ALL_STEPS.filter((s) => s.needsMs).map((s) => s.name)).toEqual(['social', 'verify_read_2', 'verify_read_3', 'verify_read_4', 'verify_read_5']);
   });
 
   it('runs a long step as a call\'s first step however little the call has left, so it never waits for ever', async () => {
