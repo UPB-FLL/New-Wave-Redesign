@@ -15,6 +15,8 @@ import type { Brand } from './brand.js';
 import { gapsFromMissing } from './gaps.js';
 import { AREAS, evidenceCoverage, scrubUnsupportedClaims, type AreaKey, type Facts, type ReportFinding, type runModel } from './model.js';
 import type { GaData, GoogleAdsData, GscData, InstagramData, LinkedOutput, MetaAdsData } from './currents/linked.js';
+import { ASSISTANT_LABELS } from './currents/aiSearch.js';
+import { AI_CRAWLERS, CITABILITY_RUBRIC } from '../../../packages/groundswell/src/aiSearch.js';
 import type { RoiScenarioResult } from './roi.js';
 
 /**
@@ -559,6 +561,50 @@ function roiTable(m: ModelOutput) {
 // Full audit
 
 // ---------------------------------------------------------------------------
+// AI search (the ai_search step)
+
+const VERDICT_WORDS: Record<string, string> = { allowed: 'Allowed', blocked: 'Blocked', restricted: 'Allowed (some paths kept out)', no_robots: 'Allowed (no robots.txt)' };
+
+/** The "AI answers" section: what the assistants and their crawlers get, the citability of each page, and what to change. */
+export function aiSearchSection(a: NonNullable<Facts['ai_search']>): string {
+  const v = a.visibility;
+  const crawlers = table(['Crawler', 'For', 'robots.txt'], a.crawlers.agents.map((x) => [x.agent, AI_CRAWLERS.find((c) => c.agent === x.agent)?.purpose ?? '', `${VERDICT_WORDS[x.verdict] ?? x.verdict}${x.verdict === 'blocked' && x.disallows.length ? ` (${x.disallows.slice(0, 3).join(', ')})` : ''}`]));
+  const files = a.files
+    ? table(['File', 'Found', 'Detail'], [
+        ['/llms.txt', yesNo(a.files.llms_txt.found), a.files.llms_txt.found ? `${num(a.files.llms_txt.bytes)} bytes` : 'Not found'],
+        ['/llms-full.txt', yesNo(a.files.llms_full_txt.found), a.files.llms_full_txt.found ? `${num(a.files.llms_full_txt.bytes)} bytes` : 'Not found'],
+        ['/sitemap.xml', yesNo(a.files.sitemap.found), a.files.sitemap.found ? `${num(a.files.sitemap.urls)} URLs` : 'Not found'],
+      ])
+    : '<p class="muted">The site’s files were not read.</p>';
+  const entity = a.entity
+    ? table(['Entity schema', 'Observed'], [
+        ['Types on the homepage', a.entity.types.join(', ') || 'None'],
+        ['Business node with a stable @id', yesNo((a.entity.has_local_business || a.entity.has_organization) && a.entity.has_id)],
+        ['Address · telephone · hours', `${yesNo(a.entity.has_address)} · ${a.entity.telephone ?? 'No'} · ${yesNo(a.entity.has_opening_hours)}`],
+        ['Profiles linked (sameAs)', a.entity.same_as.length ? num(a.entity.same_as.length) : 'None'],
+        ['Phone matches the Google listing', a.nap.consistent === null ? 'Not compared' : yesNo(a.nap.consistent)],
+      ])
+    : '';
+  const pages = a.pages.length
+    ? `<h3>Citability by page</h3><p class="muted">A rubric score (${CITABILITY_RUBRIC.map((r) => `${r.label.toLowerCase()} ${r.points}`).join(', ')}) over the checks the reading could answer; it says how quotable a page is, not where it ranks.</p>${table(['Page', 'Score', 'Weakest checks'], a.pages.slice(0, 12).map((p) => [p.path, `${num(p.score)} / 100`, p.checks.filter((c) => c.earned < c.points).sort((x, y) => x.earned / x.points - y.earned / y.points).slice(0, 3).map((c) => c.label).join(', ') || 'None']))}`
+    : '';
+  const visibility = v
+    ? `<h3>What the assistants say today</h3>${
+        v.error && v.business.mentions === null && !v.citations.length
+          ? `<p class="muted">Brand Radar could not be read this time; the figures below are absent, not zero.</p>`
+          : `${table(['Brand', 'Mentions', 'Share of voice'], [[v.business.name, v.business.mentions === null ? NOT_CHECKED : num(v.business.mentions), v.business.share_of_voice === null ? NOT_CHECKED : `${num(v.business.share_of_voice, 1)}%`], ...v.competitors.map((c) => [c.name, c.mentions === null ? NOT_CHECKED : num(c.mentions), c.share_of_voice === null ? NOT_CHECKED : `${num(c.share_of_voice, 1)}%`])])}<p class="muted">Across ${esc(v.assistants.join(', '))}, on Ahrefs’ prompt set for the United States. A mention is the business named in an answer; share of voice is its part of the mentions among the brands compared.</p>${
+              v.citations.length ? table(['Platform', 'Citations of the site', 'Pages cited'], v.citations.map((c) => [ASSISTANT_LABELS[c.platform] ?? c.platform, num(c.citations), num(c.pages)])) : ''
+            }${v.cited_domains.length ? `<h3>Where the answers come from</h3>${table(['Cited domain', 'Answers', 'Pages'], v.cited_domains.slice(0, 8).map((d) => [d.domain, num(d.responses), num(d.pages)]))}` : ''}${
+              v.prompts.length ? `<h3>Questions where a brand was named</h3>${table(['Question', 'Assistant', 'Names you', 'Cited'], v.prompts.slice(0, 8).map((q) => [q.question, q.assistant, q.names_business ? 'Yes' : 'No', q.cited.slice(0, 3).join(', ') || '–']))}` : ''
+            }${v.error ? `<p class="muted">Read in part: some Brand Radar figures did not answer this time.</p>` : ''}`
+      }`
+    : '<h3>What the assistants say today</h3><p class="muted">Brand Radar was not available to this run, so the assistants’ mentions were not read.</p>';
+  const improvements = a.improvements.length
+    ? `<h3>What to change</h3>${table(['Priority', 'Change', 'Why', 'Do'], a.improvements.slice(0, 10).map((i) => [i.priority, i.title, i.evidence, i.action]))}`
+    : '<h3>What to change</h3><p>Nothing the reading calls for beyond keeping the files and the entity schema current.</p>';
+  return `<p>Assistants answer from pages their crawlers can read and trust. This section is what they get from ${esc(a.website ?? 'the site')} on ${esc(a.fetched_at.slice(0, 10))}, and what they say about the business today.</p><h3>Crawler access</h3>${crawlers}${a.crawlers.gptbot_fetch ? `<p class="muted">Homepage fetched as GPTBot: ${esc(a.crawlers.gptbot_fetch.note)}</p>` : ''}<h3>Files for assistants</h3>${files}${entity}${pages}${visibility}${improvements}<p class="muted">The developer brief (a Markdown file with this run) carries the full baseline, the rubric, the owner’s question list and the phases of the work.</p>`;
+}
+
 // The business's own accounts (the linked step)
 
 /** The services read from the business's own accounts, for a cover line; null for a run built from public data only. */
@@ -684,6 +730,8 @@ export function buildAuditHtml(d: ReportData): string {
     f.social ? `${f.social.source} (${f.social.fetched_at.slice(0, 10)})` : null,
     f.ads ? `${f.ads.source} (${f.ads.fetched_at.slice(0, 10)})` : null,
     f.site_pages?.pages.some((x) => !x.error) ? `${f.site_pages.source} (${f.site_pages.fetched_at.slice(0, 10)})` : null,
+    f.ai_search ? `${f.ai_search.source} (${f.ai_search.fetched_at.slice(0, 10)})` : null,
+    f.ai_search?.visibility && (f.ai_search.visibility.business.mentions !== null || f.ai_search.visibility.citations.length) ? `${f.ai_search.visibility.source} (${f.ai_search.fetched_at.slice(0, 10)})` : null,
     ...(linked?.services.filter((s) => s.ok).map((s) => `${s.source} (${linked.fetched_at.slice(0, 10)})`) ?? []),
   ].filter((s): s is string => Boolean(s));
   const missing = [...(d.gaps ?? gapsFromMissing(f.missing)), ...(linked?.services.filter((s) => !s.ok).map((s) => s.problem ?? `${s.label} could not be read this time.`) ?? [])];
@@ -732,6 +780,7 @@ td,th{padding:5px 7px}
 ${priorityPages.join('')}
 ${areas}
 ${searchPages}
+${f.ai_search ? section('AI answers', 'AI search: can the assistants read and cite you?', aiSearchSection(f.ai_search)) : ''}
 ${linked ? section('8 · Your accounts', 'From the business’s own accounts', linkedSection(linked)) : ''}
 ${section(`${8 + o} · Plan`, 'The 90-day plan', `<h3>Weeks 1–2</h3>${listHtml(plan.weeks_1_2, false)}<h3>Weeks 3–6</h3>${listHtml(plan.weeks_3_6, false)}<h3>Weeks 7–12</h3>${listHtml(plan.weeks_7_12, false)}`)}
 ${planSections}

@@ -31,10 +31,17 @@ export interface PublicTextOptions {
   timeoutMs?: number;
   maxBytes?: number;
   contentTypes?: string[];
+  /** The User-Agent to send (the default names GroundSwell); an AI crawler's name, to see what it gets. */
+  userAgent?: string;
+  /** Statuses outside 2xx to answer with their (possibly empty) body instead of throwing: 404 for a file that may not exist. */
+  acceptStatuses?: number[];
 }
 
+/** The response headers worth keeping (lower-case names), for the security-header reading. */
+export const KEPT_HEADERS = ['strict-transport-security', 'content-security-policy', 'content-security-policy-report-only', 'x-content-type-options', 'referrer-policy', 'permissions-policy', 'x-frame-options', 'cache-control', 'server', 'content-type'];
+
 /** DNS is checked and pinned for every hop, including redirects; responses are bounded. */
-export async function readPublicText(value: string, options: PublicTextOptions = {}): Promise<{ url: string; status: number; text: string; contentType: string; xRobotsTag?: string | null }> {
+export async function readPublicText(value: string, options: PublicTextOptions = {}): Promise<{ url: string; status: number; text: string; contentType: string; xRobotsTag?: string | null; headers?: Record<string, string> }> {
   const deadline = Date.now() + (options.timeoutMs ?? 8_000);
   const maxBytes = options.maxBytes ?? 1_500_000;
   let url = publicWebsiteUrl(value);
@@ -51,12 +58,12 @@ export async function readPublicText(value: string, options: PublicTextOptions =
     } finally { if (timer) clearTimeout(timer); }
     if (!addresses.length || addresses.some(entry => !isPublicAddress(entry.address))) throw new Error('The website address does not resolve exclusively to public servers.');
     const chosen = addresses.find(entry => entry.family === 4) ?? addresses[0];
-    const response = await new Promise<{ status: number; location?: string; type: string; text: string; xRobotsTag?: string | null }>((resolve, reject) => {
+    const response = await new Promise<{ status: number; location?: string; type: string; text: string; xRobotsTag?: string | null; headers?: Record<string, string> }>((resolve, reject) => {
       const request = url.protocol === 'https:' ? httpsRequest : httpRequest;
       const req = request(url, {
         family: chosen.family,
         lookup: (_host, _opts, done) => done(null, chosen.address, chosen.family),
-        headers: { 'User-Agent': 'GroundSwell/1.0 (public business research)', Accept: 'text/html,text/css,application/xhtml+xml;q=0.9', 'Accept-Encoding': 'identity' },
+        headers: { 'User-Agent': options.userAgent ?? 'GroundSwell/1.0 (public business research)', Accept: 'text/html,text/css,application/xhtml+xml;q=0.9', 'Accept-Encoding': 'identity' },
       }, res => {
         const status = res.statusCode ?? 0;
         const type = String(res.headers['content-type'] ?? '').toLowerCase();
@@ -65,6 +72,10 @@ export async function readPublicText(value: string, options: PublicTextOptions =
           resolve({ status, location: res.headers.location, type, text: '' });
           return;
         }
+        const kept: Record<string, string> = {};
+        for (const name of KEPT_HEADERS) { const v = res.headers[name]; if (typeof v === 'string') kept[name] = v; else if (Array.isArray(v)) kept[name] = v.join(', '); }
+        const accepted = (options.acceptStatuses ?? []).includes(status);
+        if (accepted) { res.resume(); resolve({ status, type, text: '', headers: kept }); return; }
         if (status < 200 || status >= 300) { res.resume(); reject(new Error(`The website returned HTTP ${status}.`)); return; }
         const allowed = options.contentTypes ?? ['text/html', 'application/xhtml+xml', 'text/css'];
         if (type && !allowed.some(contentType => type.includes(contentType))) { res.resume(); reject(new Error('The website did not return a readable HTML or CSS page.')); return; }
@@ -83,7 +94,7 @@ export async function readPublicText(value: string, options: PublicTextOptions =
             else if (encoding === 'br') body = brotliDecompressSync(body, { maxOutputLength: maxBytes });
             else if (encoding === 'deflate') body = inflateSync(body, { maxOutputLength: maxBytes });
             else if (encoding && encoding !== 'identity') throw new Error('The website returned an unsupported content encoding.');
-            resolve({ status, type, text: body.toString('utf8'), xRobotsTag: typeof res.headers['x-robots-tag'] === 'string' ? res.headers['x-robots-tag'] : null });
+            resolve({ status, type, text: body.toString('utf8'), xRobotsTag: typeof res.headers['x-robots-tag'] === 'string' ? res.headers['x-robots-tag'] : null, headers: kept });
           } catch { reject(new Error('The website response could not be decoded within the lookup size limit.')); }
         });
         res.on('error', reject);
@@ -99,7 +110,7 @@ export async function readPublicText(value: string, options: PublicTextOptions =
       continue;
     }
     if ([301, 302, 303, 307, 308].includes(response.status)) throw new Error('The website returned an incomplete redirect.');
-    return { url: url.toString(), status: response.status, text: response.text, contentType: response.type, xRobotsTag: response.xRobotsTag };
+    return { url: url.toString(), status: response.status, text: response.text, contentType: response.type, xRobotsTag: response.xRobotsTag, headers: response.headers };
   }
   throw new Error('The website could not be read.');
 }

@@ -140,6 +140,30 @@ export function panelsFor(outputs: Record<string, unknown>): DataPanel[] {
       note: arr(pagesOut.competitors).length ? `Competitor homepages read: ${arr(pagesOut.competitors).map((c) => `${text(c.name)}${obj(c.page).error ? ' (not read)' : ''}`).join(', ')}.` : null,
     });
   }
+  const ai = obj(outputs.ai_search);
+  if (Array.isArray(ai.improvements) && ai.crawlers) {
+    const crawlers = obj(ai.crawlers);
+    const blocked = arr(crawlers.agents).filter((a) => a.verdict === 'blocked').map((a) => text(a.agent));
+    const files = obj(ai.files);
+    const v = obj(ai.visibility);
+    const business = obj(v.business);
+    const rows = [
+      { label: 'AI crawlers blocked by robots.txt', value: blocked.length ? blocked.join(', ') : crawlers.robots_found ? 'None' : 'No robots.txt (all allowed)' },
+      { label: 'llms.txt', value: ai.files ? yes(obj(files.llms_txt).found) : '–' },
+      { label: 'Sitemap URLs', value: ai.files ? n(obj(files.sitemap).urls) : '–' },
+      { label: 'Phone matches the Google listing', value: obj(ai.nap).consistent === null || obj(ai.nap).consistent === undefined ? 'Not compared' : yes(obj(ai.nap).consistent) },
+      ...(ai.visibility ? [{ label: 'AI mentions (Brand Radar)', value: `${n(business.mentions)}${typeof business.share_of_voice === 'number' ? ` · ${business.share_of_voice.toFixed(1)}% share of voice` : ''}` }] : []),
+    ];
+    panels.push({
+      key: 'ai_search',
+      title: 'AI search',
+      source: text(ai.source) === '–' ? null : text(ai.source),
+      rows,
+      table: { head: ['Page', 'Citability', 'Weakest checks'], rows: arr(ai.pages).map((p) => [text(p.path), `${n(p.score)} / 100`, arr(p.checks).filter((c) => (c.earned as number) < (c.points as number)).slice(0, 3).map((c) => text(c.label)).join(', ') || '–']) },
+      list: arr(ai.improvements).map((i) => `${text(i.priority)}: ${text(i.title)}`),
+      note: typeof v.error === 'string' && v.error ? 'Brand Radar answered only in part; the developer brief says which figures are missing.' : null,
+    });
+  }
   const model = obj(outputs.model);
   const w = obj(model.writeup);
   if (w.headline) {

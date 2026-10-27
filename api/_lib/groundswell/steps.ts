@@ -3,6 +3,8 @@ import { runAdcopy } from './adcopy.js';
 import { runAdplan } from './adplan.js';
 import { runBenchmark } from './benchmark.js';
 import { runAdsLibrary } from './currents/adsLibrary.js';
+import { runAiSearch } from './currents/aiSearch.js';
+import { runDeliverGeo } from './geoDelivery.js';
 import { runAuthority } from './currents/authority.js';
 import { persistCompetitors, runCompetitors } from './currents/competitors.js';
 import { runPricing } from './currents/pricing.js';
@@ -54,6 +56,7 @@ const GATHER_AND_MODEL: StepDefinition[] = [
   { name: 'social', current: 'Social', label: 'Instagram and Facebook', optional: true, run: runSocial },
   { name: 'ads', current: 'Ads', label: 'Ads', optional: true, run: runAds },
   { name: 'ads_library', current: 'Ads', label: 'Meta Ad Library and Google Ads Transparency', optional: true, run: runAdsLibrary },
+  { name: 'ai_search', current: 'Search', label: 'AI search: crawler access, citability, Brand Radar', optional: true, run: runAiSearch },
   { name: 'model', current: 'Model', label: 'Write-up and ROI', optional: false, run: runModel },
   { name: 'adplan', current: 'Model', label: 'Ad plan and change ranking', optional: true, run: runAdplan },
   { name: 'adcopy', current: 'Model', label: 'Ad copy', optional: true, run: runAdcopy },
@@ -69,6 +72,7 @@ const deliver = {
   benchmark: { name: 'deliver_benchmark', current: 'Delivery', label: 'Benchmark PDF', optional: true, run: runDeliverBenchmark },
   deck: { name: 'deliver_deck', current: 'Delivery', label: 'Slides PDF', optional: false, run: runDeliverDeck },
   summary: { name: 'deliver_summary', current: 'Delivery', label: 'Summary PDF', optional: false, run: runDeliverSummary },
+  geo: { name: 'deliver_geo', current: 'Delivery', label: 'GEO developer brief (Markdown)', optional: false, run: runDeliverGeo },
   creatives: { name: 'deliver_creatives', current: 'Delivery', label: 'Ad images and carousel', optional: true, run: runDeliverCreatives },
   adsets: { name: 'deliver_adsets', current: 'Delivery', label: 'Ad sets PDF and import files', optional: true, run: runDeliverAdsets },
   integrated: { name: 'deliver_integrated', current: 'Delivery', label: 'Integrated plan PDF', optional: false, run: runDeliverIntegrated },
@@ -84,6 +88,7 @@ export const STEPS: StepDefinition[] = [
   deliver.audit,
   deliver.deck,
   deliver.summary,
+  deliver.geo,
   deliver.finish,
 ];
 
@@ -125,6 +130,7 @@ function benchmarkSteps(rounds: number): StepDefinition[] {
     deliver.benchmark,
     deliver.deck,
     deliver.summary,
+    deliver.geo,
     deliver.finish,
   ];
 }

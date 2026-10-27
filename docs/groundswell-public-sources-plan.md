@@ -185,6 +185,13 @@ gives the Google rating and count.
 
 ### 2.4 AI visibility (new step `ai_visibility`, Current "Search")
 
+**Shipped on 2026-10-26 as step `ai_search`** (`api/_lib/groundswell/currents/aiSearch.ts`,
+rules in `packages/groundswell/src/aiSearch.ts`) with the site-side reading
+(robots.txt per crawler, llms.txt, the sitemap, the homepage as GPTBot, the
+entity schema, a citability score per page) and the GEO developer brief
+(`deliver_geo`); see the CLAUDE.md entry of that date. The `listings` changes
+in the change ranking are still to come.
+
 Through the Ahrefs instant account (`ahrefs_mcp`, billed per call; read
 `AHREFS_MCP_DOC` for each tool's real inputs first, and
 `AHREFS_MCP_SUBSCRIPTION_INFO_LIMITS_AND_USAGE` to confirm Brand Radar is
