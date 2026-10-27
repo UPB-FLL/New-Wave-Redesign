@@ -1,7 +1,7 @@
 import { engagementProfile, type EngagementProfile, type RawMediaItem } from '../../../../packages/groundswell/src/benchmark/index.js';
 import { benchAccounts } from '../benchmarkAccounts.js';
 import { executeTool, findKey } from '../composio.js';
-import { gatedRefusal, readGatedItems } from './social.js';
+import { GATED_POSTS, gatedRefusal, readGatedItems } from './social.js';
 import { PermanentStepError, type StepContext } from '../types.js';
 
 /**
@@ -69,7 +69,13 @@ export function gatedList(answer: unknown): Record<string, unknown>[] {
   return list.filter((i): i is Record<string, unknown> => Boolean(i) && typeof i === 'object');
 }
 
-export const GATED_DEPTH_POSTS = 24;
+/**
+ * How many posts the signed-in reader is asked for in a benchmark: the social
+ * step's count. Asked for 24 on 2026-10-27 the actor answered an empty
+ * dataset for a profile it had listed at 12 minutes before (its plan caps a
+ * run), so the depth read keeps to the count that answers.
+ */
+export const GATED_DEPTH_POSTS = GATED_POSTS;
 
 type Depth = { profile: EngagementProfile; read_via: 'scrapecreators' | 'apify' };
 

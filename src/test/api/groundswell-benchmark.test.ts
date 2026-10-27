@@ -182,7 +182,7 @@ describe('social depth', () => {
     // The competitor's profile was public: read as before, no Apify run for it.
     expect(out.competitors[0]).toMatchObject({ read_via: 'scrapecreators' });
     expect(mocks.executeTool.mock.calls.filter(([slug]) => slug === 'APIFY_RUN_ACTOR_SYNC_GET_DATASET_ITEMS')).toHaveLength(1);
-    expect(mocks.executeTool.mock.calls.find(([slug]) => slug === 'APIFY_RUN_ACTOR_SYNC_GET_DATASET_ITEMS')![1]).toMatchObject({ input: { usernames: ['harborautocare'], maxPosts: 24 } });
+    expect(mocks.executeTool.mock.calls.find(([slug]) => slug === 'APIFY_RUN_ACTOR_SYNC_GET_DATASET_ITEMS')![1]).toMatchObject({ input: { usernames: ['harborautocare'], maxPosts: 12 } });
   });
 });
 

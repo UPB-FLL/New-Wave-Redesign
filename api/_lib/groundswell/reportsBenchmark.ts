@@ -4,7 +4,8 @@ import { escapeHtml as esc } from '../http.js';
 import type { BenchmarkOutput } from './benchmark.js';
 import type { Brand } from './brand.js';
 import type { Facts } from './model.js';
-import { baseCss, listHtml, logoImg, NEW_WAVE_PREPARER, num, ownWording, preparedBy, preparerLogo, table, type Preparer } from './reports.js';
+import { listHtml, NEW_WAVE_PREPARER, num, ownWording, preparedBy, table, type Preparer } from './reports.js';
+import { framePage, houseCss, numberPages, pageFoot, pageHead, siteLabel, type Frame } from './reportFrame.js';
 
 /**
  * The competitive benchmark PDF (Letter, the client's brand): the business
@@ -34,9 +35,8 @@ export function buildBenchmarkHtml(d: BenchmarkReportData): string {
   const { facts: f, brand: b, benchmark: x } = d;
   const w = x.writeup;
   const who = d.preparer ?? NEW_WAVE_PREPARER;
-  const footer = `${esc(f.business.name)} · Competitive benchmark · ${preparedBy(who)} · ${esc(d.date)}`;
-  const section = (kicker: string, title: string, body: string) =>
-    `<section class="page"><div class="kicker">${esc(kicker)}</div><h2>${esc(title)}</h2>${body}<div class="foot">${footer}</div></section>`;
+  const frame: Frame = { who, client: { name: f.business.name, brand: b }, report: 'Competitive benchmark', site: siteLabel(f.business.website), date: d.date };
+  const section = (kicker: string, title: string, body: string) => framePage(frame, kicker, title, body);
   const [own] = x.accounts;
 
   const tiles = [
@@ -45,11 +45,12 @@ export function buildBenchmarkHtml(d: BenchmarkReportData): string {
     { v: num(own.authority?.organic_traffic ?? null), l: 'Monthly organic visits (Ahrefs estimate)' },
     { v: num(own.engagement?.cadence_per_week ?? null, 1), l: 'Posts per week' },
   ];
-  const cover = `<section class="page cover">
-  <div class="band">${logoImg(b, '')}<h1>${esc(f.business.name)}</h1><div class="muted">Competitive benchmark against ${esc(x.names.slice(1).join(' and '))} · ${preparedBy(who)}${preparerLogo(who)} · ${esc(d.date)}</div></div>
-  <div class="inner"><p>${esc(w.verdict)}</p>
-  <div class="kpis">${tiles.map((t) => `<div class="kpi"><div class="v">${esc(t.v)}</div><div class="l">${esc(t.l)}</div></div>`).join('')}</div></div>
-  <div class="foot">${footer}</div></section>`;
+  const cover = `<section class="page cover">${pageHead(frame)}<div class="body">
+  <div class="kicker">Competitive benchmark · ${esc(d.date)} · ${preparedBy(who)}</div>
+  <h1>${esc(f.business.name)} against ${esc(x.names.slice(1).join(' and '))}</h1>
+  <p class="lede">${esc(w.verdict)}</p>
+  <div class="kpis">${tiles.map((t) => `<div class="kpi"><div class="l">${esc(t.l)}</div><div class="v">${esc(t.v)}</div></div>`).join('')}</div></div>
+  ${pageFoot(frame)}</section>`;
 
   const leaderName = (l: number | 'even' | null) => (l === null ? 'Not enough data' : l === 'even' ? 'Even' : x.names[l]);
   const scorecard = section(
@@ -181,29 +182,11 @@ ${x.ads
     }`
   );
 
-  return ownWording(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(f.business.name)} - Competitive benchmark</title><style>
-${baseCss(b)}
-@page{size:Letter;margin:0}
-.page{width:8.5in;min-height:11in;padding:0.6in 0.6in 0.8in;position:relative;page-break-after:always;font-size:10pt;line-height:1.45}
-.page:last-child{page-break-after:auto}
-.cover{padding:0;display:flex;flex-direction:column}
-.cover .band{padding:0.7in 0.6in 0.5in}
-.cover .inner{padding:0.4in 0.6in 0.8in}
-.cover h1{font-size:28pt;margin:12px 0 6px}
-.cover .logo{max-height:64px;max-width:240px;background:#fff;border-radius:8px;padding:6px}
-.kicker{font-size:9pt;letter-spacing:.08em;text-transform:uppercase;color:#4b5563;margin-bottom:4px}
-h2{font-size:19pt;margin-bottom:12px}
-h3{font-size:11pt;margin:14px 0 4px}
-table{margin:8px 0;font-size:8.5pt}
+  return numberPages(ownWording(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(f.business.name)} - Competitive benchmark</title><style>
+${houseCss(b)}
+table{font-size:8.5pt}
 td,th{padding:4px 6px;word-break:break-word}
-.kpis{gap:10px;margin:16px 0}
-.kpi{padding:12px}
-.kpi .v{font-size:17pt}
-.kpi .l{font-size:8.5pt}
-.cols3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
-.note{font-size:8pt;color:#4b5563;margin:2px 0}
-.foot{position:absolute;left:0.6in;right:0.6in;bottom:0.35in;font-size:8pt;color:#6b7280;border-top:1px solid #e5e7eb;padding-top:6px}
 </style></head><body>
 ${cover}${scorecard}${earns}${ads}${pricing}${differences}${avoid}${plan}${appendixA}${appendixB}${appendixC}
-</body></html>`, who);
+</body></html>`, who));
 }
