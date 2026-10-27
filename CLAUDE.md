@@ -7,14 +7,11 @@
 Run `4afe409b…` (queued 00:05 UTC) failed on its GEO brief, skipped its
 social step after eight leases, and showed the ad-copy skip in red.
 
-- **GEO brief** (`geoDelivery.ts`): the brief was uploaded as
-  `text/markdown; charset=utf-8` into `groundswell-assets`, whose allow-list
-  (20261029120000) has no Markdown type, so `deliver_geo` (required) failed
-  the run. `GEO_BRIEF_TYPE` is now exactly `text/markdown`; migration
-  `20261104120000` appends it to the bucket (idempotent; rollback in
-  `supabase/rollbacks/`); until that is applied, a bucket's mime refusal
-  stores the same file as `text/plain` under its `.md` name instead of
-  failing (`GEO_BRIEF_FALLBACK_TYPE`). Any other storage error still fails.
+- **GEO brief**: fixed on main by #165 (`geoDelivery.ts` stores the brief
+  as `text/plain` under its `.md` name, and a storage failure on the last
+  attempt goes in the step's `note` instead of failing the audit); this
+  branch's own version (a `text/markdown` type with a bucket migration) was
+  dropped in favour of it at the merge.
 - **Social step**: #164 already caps every read by the deadline. The eight
   leases came from the step being claimed about two minutes into each call
   (after the six gathering steps), with too little left for the Apify
@@ -31,12 +28,9 @@ social step after eight leases, and showed the ad-copy skip in red.
   no ads and a `note` (`noCopy`), the full audit shows the plan without a
   copy section as before, and the card shows the step done.
 - **Tests**: the hand-back and the budget pin in `groundswell-engine.test.ts`,
-  the fallback in `groundswell-ai-search.test.ts`, the note in
-  `groundswell-adcopy.test.ts`.
+  the note in `groundswell-adcopy.test.ts`.
 - The failed run itself is not resumed by a deploy: "Run again" on the
-  workspace card queues a fresh run once this is live. **Not verified live**:
-  that Supabase accepts `text/markdown` once listed (the fallback covers a
-  refusal either way).
+  workspace card queues a fresh run once this is live.
 
 ### Groundswell: a step cut off mid-call is given up after three leases; social reads keep to the deadline (2026-10-27)
 
@@ -57,7 +51,17 @@ only in the catch path.
   dying silently.
 - **Tests**: the reclaimed-lease case in `groundswell-engine.test.ts` and
   the deadline case in `groundswell-social.test.ts`.
-- The stuck run itself (`4afe409b…`) had its social step skipped by hand.
+- The run then finished every step in three minutes, and showed two more
+  faults, fixed the same day: the assets bucket allows `text/plain`, not
+  `text/markdown`, so `deliver_geo` failed three times and, being a delivery
+  step, failed the audit after its three PDFs were printed (`GEO_BRIEF_TYPE`
+  is `text/plain` now, the `.md` name stays, and the last attempt records a
+  storage failure in `note` instead of failing the run); Ahrefs' prompt set
+  has no Claude source ("models do not support Ahrefs dataset"), so every
+  Brand Radar call was refused (`ASSISTANTS` drops `claude`; the Site
+  Explorer citation count had answered: 2 citations of the brewery's site,
+  both on Google AI Mode); and an llms-full.txt larger than the read cap
+  now counts as present with its size unknown (`bytes: null`).
 
 ### Headway: the implementation service, its page, and the agent that carries the plan out (2026-10-26)
 

@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({ executeTool: vi.fn(), readPublicText: vi.fn() }));
@@ -7,9 +6,9 @@ vi.mock('../../../api/_lib/groundswell/publicFetch', async (original) => ({ ...(
 const store = vi.hoisted(() => ({ current: null as ReturnType<typeof import('./fixtures/fakeSupabase').fakeSupabase> | null }));
 vi.mock('../../../api/_lib/supabaseAdmin', () => ({ isSupabaseConfigured: () => true, getSupabaseAdmin: () => store.current!.client }));
 
-import { ASSISTANTS, GPTBOT_UA, headerReading, isAiSearchOutput, pageSignals, readAiVisibility, readEntity, readFile, runAiSearch, sitemapUrls, type AiSearchOutput } from '../../../api/_lib/groundswell/currents/aiSearch';
+import { ASSISTANTS, GPTBOT_UA, headerReading, isAiSearchOutput, pageSignals, readAiVisibility, readEntity, readFile, runAiSearch, sitemapUrls, uniqueProfiles, type AiSearchOutput } from '../../../api/_lib/groundswell/currents/aiSearch';
 import { toolkitOf } from '../../../api/_lib/groundswell/composio';
-import { GEO_BRIEF_FALLBACK_TYPE, GEO_BRIEF_TYPE, geoBriefFor, runDeliverGeo } from '../../../api/_lib/groundswell/geoDelivery';
+import { GEO_BRIEF_TYPE, geoBriefFor, runDeliverGeo } from '../../../api/_lib/groundswell/geoDelivery';
 import { gapsFor } from '../../../api/_lib/groundswell/gaps';
 import { aiSearchForPrompt, buildFacts, factsForPrompt } from '../../../api/_lib/groundswell/model';
 import { TOOLKIT_CHECKS } from '../../../api/_lib/groundswell/readiness';
@@ -110,6 +109,10 @@ describe('helpers', () => {
     expect(readEntity('<html></html>').types).toEqual([]);
   });
 
+  it('lists each profile once, whatever the trailing slash or the case of the host, and never a bare YouTube path segment', () => {
+    expect(uniqueProfiles(['https://www.instagram.com/brew/', 'https://www.Instagram.com/brew', 'https://untappd.com/v/brew/1', ' ', 'https://untappd.com/v/brew/1/'])).toEqual(['https://www.instagram.com/brew', 'https://untappd.com/v/brew/1']);
+  });
+
   it('counts sitemap URLs and names the security headers present and missing', () => {
     expect(sitemapUrls(SITEMAP)).toBe(2);
     expect(headerReading({ 'strict-transport-security': 'max-age=1', 'content-security-policy-report-only': 'x' })).toEqual({ present: ['strict-transport-security', 'content-security-policy-report-only'], missing: ['x-content-type-options', 'referrer-policy', 'permissions-policy'] });
@@ -143,7 +146,9 @@ describe('Brand Radar', () => {
     ]);
     expect(v.cited_domains.map((d) => d.domain)).toEqual(['yelp.com', 'bayside.example', 'harbor-auto.example']);
     expect(v.citations).toEqual([{ platform: 'all_platforms', citations: 2, pages: 1 }, { platform: 'chatgpt', citations: 1, pages: 1 }, { platform: 'perplexity', citations: 1, pages: 1 }]);
-    expect(v.assistants).toEqual(['ChatGPT', 'Perplexity', 'Gemini', 'Google AI Overviews', 'Copilot', 'Claude']);
+    // Ahrefs' prompt set has no Claude source ("models do not support Ahrefs dataset", 2026-10-27).
+    expect(v.assistants).toEqual(['ChatGPT', 'Perplexity', 'Gemini', 'Google AI Overviews', 'Copilot']);
+    expect(ASSISTANTS).not.toContain('claude');
     // The calls name the brand by name and domain, every assistant, the US.
     const mentions = mocks.executeTool.mock.calls.find((c) => c[0] === 'AHREFS_MCP_BRAND_RADAR_MENTIONS_OVERVIEW_ENTITIES')![1] as Record<string, unknown>;
     expect(mentions).toMatchObject({ data_source: [...ASSISTANTS], country: ['us'], prompts: 'ahrefs', brands: [{ names: ['Harbor Auto Care (sample)'], url_groups: [{ target: 'harbor-auto.example', scope: 'subdomains' }] }], select: ['brand', 'entity_type', 'total'] });
@@ -191,12 +196,31 @@ describe('the ai_search step', () => {
     expect(out.improvements.map((i) => i.title)).toEqual(expect.arrayContaining(['robots.txt blocks GPTBot', 'No llms.txt', 'Claims the fact sheet must back or the copy must drop', 'Be present on the sources the assistants cite', 'No openingHoursSpecification']));
     expect(out.improvements.map((i) => i.title)).not.toContain('The site and the Google listing disagree on the phone number');
     expect(out.questions[0]).toMatch(/\/about the copy says “Voted best”/);
-    expect(out.profiles).toEqual(expect.arrayContaining(['https://www.instagram.com/harborautocare/']));
+    // The site's handle and the schema's sameAs name the same profile once.
+    expect(out.profiles.filter((p) => /instagram\.com\/harborautocare/.test(p))).toHaveLength(1);
+    expect(out.questions.filter((q) => /instagram\.com\/harborautocare/.test(q))).toHaveLength(1);
     expect(out.errors).toEqual([]);
     expect(out.source).toMatch(/Brand Radar/);
     // Only the five reads of Brand Radar; the site's files through the public fetch.
     expect(mocks.executeTool).toHaveBeenCalledTimes(5);
     expect(mocks.readPublicText).toHaveBeenCalledTimes(5);
+  });
+
+  it('reads an llms-full.txt larger than the read cap as present, with its size unknown', async () => {
+    mocks.readPublicText.mockImplementation(async (url: string, options: { userAgent?: string; maxBytes?: number } = {}) => {
+      if (/llms-full\.txt$/.test(url)) { expect(options.maxBytes).toBe(1_500_000); throw new Error('The website response was too large to research safely.'); }
+      if (/robots\.txt$/.test(url)) return answer(url, { text: ROBOTS });
+      if (/llms\.txt$/.test(url)) return answer(url, { text: '# Harbor Auto Care\n' });
+      if (/sitemap\.xml$/.test(url)) return answer(url, { text: SITEMAP, contentType: 'application/xml' });
+      if (options.userAgent === GPTBOT_UA) return answer(url, { text: HOME, contentType: 'text/html' });
+      throw new Error(`Unexpected fetch of ${url}`);
+    });
+    const out = await runAiSearch(ctxFor(sampleOutputs()));
+    expect(out.files?.llms_txt).toMatchObject({ found: true, bytes: 19 });
+    expect(out.files?.llms_full_txt).toEqual({ url: 'https://harbor-auto.example/llms-full.txt', found: true, bytes: null });
+    expect(out.errors).toEqual([]);
+    expect(out.improvements.map((i) => i.title)).not.toContain('No llms-full.txt');
+    expect(geoBriefFor(ctxFor(sampleOutputs()), out)).toMatch(/\| \/llms-full\.txt \| yes \| present, larger than the 1\.5 MB read \|/);
   });
 
   it('notices a host that answers an AI crawler differently, and a site without robots.txt', async () => {
@@ -301,6 +325,8 @@ describe('deliver_geo', () => {
     const file = result.file!;
     // No write-up in these outputs, so the file carries today's date (phase 1 names the write-up's day when there is one).
     expect(file).toMatchObject({ name: expect.stringMatching(/^Harbor Auto Care \(sample\) - GEO Developer Brief \(\d{4}-\d{2}-\d{2}\)\.md$/), content_type: GEO_BRIEF_TYPE });
+    // The assets bucket allows text/plain, not text/markdown (the first live run failed on it).
+    expect(GEO_BRIEF_TYPE).toBe('text/plain');
     expect(file.path).toMatch(new RegExp(`^${sampleAudit.id}/export/Harbor_Auto_Care_\\(sample\\)_-_GEO_Developer_Brief_\\(\\d{4}-\\d{2}-\\d{2}\\)\\.md$`));
     const rows = store.current!.tables.groundswell_assets;
     expect(rows).toHaveLength(1);
@@ -314,28 +340,13 @@ describe('deliver_geo', () => {
     expect(text).toMatch(/Prepared by New Wave: Social Engineering/);
   });
 
-  it('stores the brief as text/markdown, the type the bucket allows, and falls back to plain text while a bucket is behind its migration', async () => {
-    // Uncommon Path's run of 2026-10-27 failed its delivery: "mime type text/markdown; charset=utf-8 is not supported".
-    expect(GEO_BRIEF_TYPE).toBe('text/markdown');
-    expect(readFileSync('supabase/migrations/20261104120000_groundswell_assets_markdown.sql', 'utf8')).toMatch(/array_append\(allowed_mime_types, 'text\/markdown'\)/);
-    const outputs = await (async () => { const o = withPages(sampleOutputs()); o.ai_search = await runAiSearch(ctxFor(o)); return o; })();
-    const real = store.current!.client.storage.from;
-    const types: string[] = [];
-    store.current!.client.storage.from = (bucket: string) => {
-      const b = real(bucket);
-      return { ...b, upload: async (path: string, bytes: Uint8Array, opts?: { contentType?: string }) => {
-        types.push(opts?.contentType ?? '');
-        if (opts?.contentType === 'text/markdown') return { data: null, error: { message: 'mime type text/markdown is not supported' } };
-        return b.upload(path, bytes);
-      } };
-    };
-    const result = await runDeliverGeo(ctxFor(outputs));
-    expect(types).toEqual(['text/markdown', GEO_BRIEF_FALLBACK_TYPE]);
-    expect(result.file).toMatchObject({ content_type: GEO_BRIEF_FALLBACK_TYPE, name: expect.stringMatching(/\.md$/) });
-    expect(store.current!.tables.groundswell_assets[0]).toMatchObject({ content_type: GEO_BRIEF_FALLBACK_TYPE });
-    // Any other refusal is still the step's failure.
-    store.current!.client.storage.from = (bucket: string) => ({ ...real(bucket), upload: async () => ({ data: null, error: { message: 'Bucket not found' } }) });
-    await expect(runDeliverGeo(ctxFor(outputs))).rejects.toThrow(/Could not store .*Bucket not found/);
+  it('retries a storage failure, and on the last attempt records it instead of failing the audit', async () => {
+    const outputs = withPages(sampleOutputs());
+    outputs.ai_search = await runAiSearch(ctxFor(outputs));
+    store.current = fakeSupabase({}, { storage: ['groundswell-assets'] });
+    await expect(runDeliverGeo(ctxFor(outputs, { attempt: 1 }))).rejects.toThrow(/Bucket not found/);
+    await expect(runDeliverGeo(ctxFor(outputs, { attempt: 2 }))).rejects.toThrow(/Bucket not found/);
+    expect(await runDeliverGeo(ctxFor(outputs, { attempt: 3 }))).toEqual({ file: null, note: expect.stringMatching(/^The developer brief could not be stored: .*Bucket not found/) });
   });
 
   it('writes nothing, and says so, when the run has no reading', async () => {
