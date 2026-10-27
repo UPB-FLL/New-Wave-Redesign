@@ -32,7 +32,7 @@ import { useDivisionMeta } from '../useDivisionMeta';
 const seo = hubPageSeo();
 
 /** Under the hero summary: how the division works, in three short facts (no numbers; one line from lg). */
-const HERO_FACTS = ['Nationwide', 'Remote-first', 'Reported against revenue'] as const;
+const HERO_FACTS = ['Nationwide', 'Calls in your time zone', 'Reported against revenue'] as const;
 
 /** The loop's four steps, in the drawing's order, named beside it. */
 const LOOP_STEPS: Record<GrowthLoopNodeKey, { title: string; detail: string }> = {
