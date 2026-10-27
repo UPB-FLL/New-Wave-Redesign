@@ -504,11 +504,25 @@ describe('research', () => {
 
   it('without Claude the research is skipped and says so; a failed ask is logged and skipped too', async () => {
     const skipped = await researchTopics(fake(), { now: NOW, deadline: Infinity });
-    expect(skipped.skipped).toEqual({ 'ai-agent-marketing': 'ANTHROPIC_API_KEY is not set, so nothing was researched.', 'social-media-marketing': 'ANTHROPIC_API_KEY is not set, so nothing was researched.' });
+    expect(skipped.skipped).toEqual({ 'ai-agent-marketing': 'Neither ANTHROPIC_API_KEY nor OPENAI_API_KEY is set, so nothing was researched.', 'social-media-marketing': 'Neither ANTHROPIC_API_KEY nor OPENAI_API_KEY is set, so nothing was researched.' });
     const consult = vi.fn().mockResolvedValue(answered([], { parsed: null, text: '', error: 'Claude declined the question (cyber).' }));
     const failed = await researchTopics(fake(), { now: NOW, deadline: Infinity, consult, topics: [DEFAULT_TOPICS[0]] });
     expect(failed.skipped).toEqual({ 'ai-agent-marketing': 'Claude declined the question (cyber).' });
     expect((await readConsultations(fake()))[0]).toMatchObject({ purpose: 'research', error: 'Claude declined the question (cyber).' });
+  });
+
+  it('without Claude, OpenAI’s web search does the research on the key the site already has, under the same rules and log', async () => {
+    const search = vi.fn().mockResolvedValue({ model: 'gpt-4o', text: 'I looked around.\n```json\n' + JSON.stringify({ learnings: [learning({ title: 'LinkedIn opens video ads to small advertisers', url: 'https://example.test/linkedin-video' }), learning({ title: 'No link here', url: '' })] }) + '\n```', usage: { input_tokens: 4000, output_tokens: 700, web_searches: 5 } });
+    const report = await researchTopics(fake(), { now: NOW, deadline: Infinity, search, topics: [DEFAULT_TOPICS[1]] });
+    expect(search).toHaveBeenCalledTimes(1);
+    expect(search.mock.calls[0][2]).toEqual({ maxUses: 8 });
+    expect(JSON.parse(search.mock.calls[0][1]).topic).toBe('Social media marketing');
+    expect(report.learned.map((l) => l.title)).toEqual(['LinkedIn opens video ads to small advertisers']);
+    expect(report.dropped['social-media-marketing']).toEqual(['No link here: no usable source link.']);
+    expect((await readConsultations(fake()))[0]).toMatchObject({ advisor: 'openai', purpose: 'research', model: 'gpt-4o', usage: { web_searches: 5 }, error: null });
+    const failing = vi.fn().mockRejectedValue(new Error('OpenAI failed (429): rate limit'));
+    const failed = await researchTopics(fake(), { now: NOW, deadline: Infinity, search: failing, topics: [DEFAULT_TOPICS[0]] });
+    expect(failed.skipped).toEqual({ 'ai-agent-marketing': 'OpenAI failed (429): rate limit' });
   });
 
   it('a pass reports the new learnings, with their links, and sends because of them', async () => {
@@ -532,8 +546,8 @@ describe('research', () => {
   it('a pass without Claude names the research as not done, and the research can be switched off', async () => {
     db.current = fakeSupabase({});
     const report = await runAgentPass(fake(), { now: NOW, deadline: Infinity, collectors: [], send: sender, base: 'https://example.test', to: 'o@example.test', advisor: 'rule', force: true });
-    expect(report.research_skipped['ai-agent-marketing']).toContain('ANTHROPIC_API_KEY');
-    expect(sent[0].text).toContain('RESEARCH NOT DONE: ai-agent-marketing: ANTHROPIC_API_KEY is not set');
+    expect(report.research_skipped['ai-agent-marketing']).toContain('OPENAI_API_KEY');
+    expect(sent[0].text).toContain('RESEARCH NOT DONE: ai-agent-marketing: Neither ANTHROPIC_API_KEY nor OPENAI_API_KEY is set');
     const off = await runAgentPass(fake(), { now: NOW, deadline: Infinity, collectors: [], send: sender, base: 'https://example.test', to: 'o@example.test', advisor: 'rule', force: true, research: false });
     expect(off.research_skipped).toEqual({});
   });
