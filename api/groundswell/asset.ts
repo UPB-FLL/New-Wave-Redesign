@@ -16,6 +16,15 @@ import { getSupabaseAdmin, isSupabaseConfigured } from '../_lib/supabaseAdmin.js
 export const LIST_SECONDS = 600;
 const ID = /^[0-9a-f-]{36}$/i;
 
+/** The few meta fields a viewer's screen needs. */
+function pickMeta(meta: Record<string, unknown> | null | undefined): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  if (typeof meta?.post === 'number') out.post = meta.post;
+  if (typeof meta?.platform === 'string') out.platform = meta.platform;
+  if (meta?.ai_generated === true) out.ai_generated = true;
+  return out;
+}
+
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (!methodGuard(req, res, ['GET'])) return;
   if (!isSupabaseConfigured()) return res.status(503).json({ error: 'Files are not available right now.' });
@@ -42,7 +51,16 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       return res.status(200).json({ url: await signedAssetUrl(db, file.path, 120, file.name), name: file.name });
     }
     const listed = await Promise.all(
-      files.map(async (f) => ({ kind: f.kind, name: f.name, path: f.path, content_type: f.content_type, bytes: f.bytes, url: await signedAssetUrl(db, f.path, LIST_SECONDS, f.kind === 'export' ? f.name : undefined) }))
+      files.map(async (f) => ({
+        kind: f.kind,
+        name: f.name,
+        path: f.path,
+        content_type: f.content_type,
+        bytes: f.bytes,
+        // What the screen groups by: a post image's post and platform, and whether the image is AI-generated (never prompts or source paths).
+        meta: pickMeta(f.meta),
+        url: await signedAssetUrl(db, f.path, LIST_SECONDS, f.kind === 'export' ? f.name : undefined),
+      }))
     );
     return res.status(200).json({ files: listed, expires_in: LIST_SECONDS });
   } catch (err) {

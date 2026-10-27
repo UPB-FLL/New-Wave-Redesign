@@ -109,6 +109,7 @@ export const STEP_LABELS: Record<string, string> = {
   deliver_geo: 'GEO developer brief',
   creative: 'Instagram images for the ads',
   adsets: 'Ad sets',
+  posts: 'Posts for the first week',
   deliver_creatives: 'Ad images and carousel',
   deliver_adsets: 'Ad sets PDF and import files',
   search_terms: 'Google Ads search terms',

@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { PHASE_INFO, PHASES, type Phase } from '../../../src/lib/groundswellValidation.js';
 import { isPlansOutput } from './plans.js';
 import { isPresenceOutput } from './presence.js';
+import { isPostsOutput } from './posts.js';
 import { isReviewsOutput } from './currents/reviews.js';
 import { isCommunityOutput } from './currents/community.js';
 import { isAiAnswersOutput } from './currents/aiAnswers.js';
@@ -292,6 +293,21 @@ export function panelsFor(outputs: Record<string, unknown>): DataPanel[] {
         ],
       },
       note: s.notes.join(' ') || null,
+    });
+  }
+  if (isPostsOutput(outputs.posts)) {
+    const p = outputs.posts;
+    panels.push({
+      key: 'posts',
+      title: 'Posts for the first week',
+      source: p.ai.made ? `${p.ai.made} AI-generated image${p.ai.made === 1 ? '' : 's'}, tagged as such` : 'The business’s own photos',
+      table: {
+        head: ['Day', 'Platform', 'Topic', 'Image'],
+        rows: p.posts.map((x) => [x.day, `${PLATFORM_LABELS[x.platform]} ${x.format}`, x.topic, x.image ? (x.image.origin === 'own' ? 'Own photo' : 'AI-generated') : (x.note ?? 'None')]),
+      },
+      list: p.reddit.map((r) => `Reddit reply drafted for “${r.question}”${r.community ? ` (r/${r.community})` : ''}`),
+      // The note only: what the checks dropped and why generation failed stay with the run, never on a partner's page.
+      note: p.note,
     });
   }
   if (isLinkedOutput(outputs.linked) && outputs.linked.services.length) {

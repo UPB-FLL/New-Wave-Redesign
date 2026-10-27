@@ -37,8 +37,7 @@ export const TOOLKIT_CHECKS = [
   { toolkit: 'googleads', label: 'Google Ads (Keyword Planner)', without: 'keyword demand, the ad plan and the ad copy are left out of the reports' },
   { toolkit: 'firecrawl', label: 'Firecrawl (website pages, competitor sites, web search fallback)', without: 'the website plan rests on the homepage alone and competitors are checked from listings only' },
   { toolkit: 'yelp', label: 'Yelp (listings, ratings and review excerpts; no sign-in of its own)', without: 'reviews rest on the Google listing and the reviews plan names no Yelp figures' },
-  { toolkit: 'claid_ai', label: 'Claid (the business’s own photos framed to each ad and post size)', without: 'the ad and post images are cropped in the engine’s own renderer instead' },
-  { toolkit: 'fal_ai', label: 'fal.ai (new images, labelled AI-generated)', without: 'the ads and posts use the business’s own photos only' },
+  { toolkit: 'fal_ai', label: 'fal.ai (new post images where the business’s own photos run out, labelled AI-generated)', without: 'the posts use the business’s own photos only, unless FAL_KEY is set in Vercel' },
 ] as const;
 
 const TIMEOUT_MS = 15_000;

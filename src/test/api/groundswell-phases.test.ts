@@ -251,7 +251,7 @@ describe('the phases as steps', () => {
     expect(nextPhase('audit')).toBe('competitors');
     expect(nextPhase('integrated')).toBeNull();
     expect(STEPS.map((s) => s.name)).not.toContain('linked');
-    expect(COMPETITOR_STEPS.map((s) => s.name)).toEqual(['social_depth', 'ads_library', 'pricing', 'authority', 'benchmark', 'creative', 'adsets', 'deliver_prepare', 'deliver_benchmark', 'deliver_creatives', 'deliver_adsets', 'deliver_finish']);
+    expect(COMPETITOR_STEPS.map((s) => s.name)).toEqual(['social_depth', 'ads_library', 'pricing', 'authority', 'benchmark', 'creative', 'adsets', 'posts', 'deliver_prepare', 'deliver_benchmark', 'deliver_creatives', 'deliver_adsets', 'deliver_finish']);
     expect(INTEGRATED_STEPS.map((s) => s.name)).toEqual(['linked', 'search_terms', 'integrated', 'adsets', 'deliver_prepare', 'deliver_integrated', 'deliver_creatives', 'deliver_adsets', 'deliver_finish']);
     for (const list of [STEPS, COMPETITOR_STEPS, INTEGRATED_STEPS]) expect(list[list.length - 1].name).toBe('deliver_finish');
     // Something must be delivered: the integrated PDF is required in phase 3; phase 2's are optional, and finish checks one exists.

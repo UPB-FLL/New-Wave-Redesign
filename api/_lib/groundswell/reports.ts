@@ -141,7 +141,7 @@ const AREA_TITLES: Record<AreaKey, string> = {
 let fontCache: string | null | undefined;
 
 /** Inter, inlined, so the PDFs look the same on any machine (the division's self-hosted copy). */
-function fontFace(): string {
+export function fontFace(): string {
   if (fontCache === undefined) {
     try {
       const file = path.join(process.cwd(), 'public/brand/social-engineering/fonts/inter-latin-var.woff2');

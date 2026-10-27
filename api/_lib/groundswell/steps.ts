@@ -20,6 +20,7 @@ import { runKeywords, runSearch } from './currents/search.js';
 import { runSite } from './currents/site.js';
 import { runSitePages } from './currents/sitePages.js';
 import { runPlans } from './plans.js';
+import { POSTS_NEEDS_MS, runPosts } from './posts.js';
 import { runSocial } from './currents/social.js';
 import {
   runDeliverAudit,
@@ -134,7 +135,8 @@ const COMPETITOR_DATA: StepDefinition[] = [
 ];
 
 const creative: StepDefinition = { name: 'creative', current: 'Social', label: 'The business’s own Instagram images', optional: true, run: runCreative };
-const adsets: StepDefinition = { name: 'adsets', current: 'Model', label: 'Ad sets: Meta and Google, three budgets', optional: true, run: runAdsets };
+const adsets: StepDefinition = { name: 'adsets', current: 'Model', label: 'Ad sets: Meta, Google, Reddit and TikTok, three budgets', optional: true, run: runAdsets };
+const posts: StepDefinition = { name: 'posts', current: 'Social', label: 'The first week’s posts, with images', optional: true, needsMs: POSTS_NEEDS_MS, run: (ctx) => runPosts(ctx) };
 
 function benchmarkSteps(rounds: number): StepDefinition[] {
   return [
@@ -164,6 +166,7 @@ export const COMPETITOR_STEPS: StepDefinition[] = [
   ...COMPETITOR_DATA.map(reuse),
   creative,
   adsets,
+  posts,
   deliver.prepare,
   deliver.benchmark,
   deliver.creatives,

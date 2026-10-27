@@ -24,6 +24,7 @@ const GAP_WORDING: Record<string, string> = {
   community: 'Reddit could not be read for this audit, so the community plan and the Reddit ad set are not included.',
   ai_answers: 'Google’s AI Mode answers could not be read for this audit.',
   presence: 'The plan for reviews, Reddit and AI answers could not be built for this audit.',
+  posts: 'The first week’s posts could not be made ready with images this time; the social plan’s captions stand.',
 };
 
 /** The gap lines for the facts' `missing` list (callers without the audit's step list). */

@@ -1,7 +1,7 @@
 import type { Browser } from 'puppeteer-core';
 import { escapeHtml as esc } from '../http.js';
 import type { Brand } from './brand.js';
-import { baseCss } from './reports.js';
+import { baseCss, fontFace } from './reports.js';
 
 /**
  * The ad images and the carousel, as HTML printed to images in headless
@@ -68,6 +68,37 @@ export function adImageHtml(b: Brand, opts: { headline: string; handle: string |
 .handle{margin-top:22px;font-size:28px;letter-spacing:0.12em;opacity:.9}`,
     format
   );
+}
+
+/**
+ * A post's image: the photo alone, no words on it (the caption carries them).
+ * A photo far from the post's shape (a 4:5 photo for a 9:16 reel cover) is
+ * shown whole over a blurred, enlarged copy of itself rather than cropped to
+ * a sliver. An AI-generated image carries a small "AI-generated image" tag.
+ */
+export function postImageHtml(opts: { photo: string; size: ImageSize; whole: boolean; ai: boolean }): string {
+  const tag = opts.ai ? '<div class="ai">AI-generated image</div>' : '';
+  const body = opts.whole
+    ? `<main class="post"><img class="back" src="${opts.photo}" alt=""><img class="front" src="${opts.photo}" alt="">${tag}</main>`
+    : `<main class="post"><img class="fill" src="${opts.photo}" alt="">${tag}</main>`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><style>
+${fontFace()}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:${IMAGE_SIZES[opts.size].width}px;height:${IMAGE_SIZES[opts.size].height}px;overflow:hidden;background:#111}
+.post{position:relative;width:100%;height:100%}
+.fill,.back{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.back{filter:blur(48px) brightness(.7);transform:scale(1.15)}
+.front{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.ai{position:absolute;left:32px;bottom:32px;padding:10px 18px;border-radius:999px;background:rgba(0,0,0,.6);color:#fff;font:600 26px/1 'Report',Inter,Arial,sans-serif;letter-spacing:.02em}
+</style></head><body>${body}</body></html>`;
+}
+
+/** Whether a photo of this shape should be shown whole on the post's canvas: cropping it would cut more than about a quarter (a square into 4:5 crops; a 4:5 photo into 9:16 does not). */
+export function showWhole(photo: { width: number; height: number } | null, size: ImageSize): boolean {
+  if (!photo || !photo.width || !photo.height) return false;
+  const canvas = IMAGE_SIZES[size].width / IMAGE_SIZES[size].height;
+  const ratio = photo.width / photo.height;
+  return Math.max(ratio / canvas, canvas / ratio) > 1.3;
 }
 
 export function slideHtml(

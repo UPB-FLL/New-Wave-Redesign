@@ -101,7 +101,19 @@ function Reports({ viewer, run }: { viewer: WorkspaceViewer; run: WorkspaceRun }
 }
 
 const EXPORT_WORDS = (f: WorkspaceFile) =>
-  /Meta Bulk Import/.test(f.name) ? 'Meta bulk import (Excel)' : /Google Ads Editor/.test(f.name) ? 'Google Ads Editor import (CSV)' : /Ad Images/.test(f.name) ? 'Ad images (zip)' : /Carousel/.test(f.name) ? 'Carousel slides and caption (zip)' : f.name;
+  /Meta Bulk Import/.test(f.name)
+    ? 'Meta bulk import (Excel)'
+    : /Google Ads Editor/.test(f.name)
+      ? 'Google Ads Editor import (CSV)'
+      : /Reddit and TikTok Ad Plan/.test(f.name)
+        ? 'Reddit and TikTok ad plan (Excel)'
+        : /Ad Images/.test(f.name)
+          ? 'Ad images (zip)'
+          : /Carousel/.test(f.name)
+            ? 'Carousel slides and caption (zip)'
+            : / - Posts \(/.test(f.name)
+              ? 'The week’s posts, images and captions (zip)'
+              : f.name;
 
 function Files({ viewer, run }: { viewer: WorkspaceViewer; run: WorkspaceRun }) {
   const [files, setFiles] = useState<WorkspaceFile[] | null>(null);
@@ -121,7 +133,10 @@ function Files({ viewer, run }: { viewer: WorkspaceViewer; run: WorkspaceRun }) 
   if (error) return <p className="mt-4 text-sm text-red-700">{error}</p>;
   if (!files) return <p className="mt-4 text-sm gs-muted" aria-busy="true">Loading the files…</p>;
   const exports = files.filter((f) => f.kind === 'export');
-  const creatives = files.filter((f) => f.kind === 'creative');
+  // Post images are stored as creatives with the post they belong to; AI-generated ones say so on the picture.
+  const isPost = (f: WorkspaceFile) => typeof f.meta?.post === 'number';
+  const creatives = files.filter((f) => f.kind === 'creative' && !isPost(f));
+  const postImages = files.filter((f) => f.kind === 'creative' && isPost(f));
   const slides = files.filter((f) => f.kind === 'carousel' && f.content_type.startsWith('image/'));
   const caption = files.find((f) => f.kind === 'carousel' && f.content_type === 'text/plain');
   const photos = files.filter((f) => f.kind === 'image');
@@ -156,6 +171,13 @@ function Files({ viewer, run }: { viewer: WorkspaceViewer; run: WorkspaceRun }) 
         <div>
           <h4 className="gs-label">Ad images</h4>
           {thumbs(creatives, 'Ad images')}
+        </div>
+      ) : null}
+      {postImages.length ? (
+        <div>
+          <h4 className="gs-label">Post images</h4>
+          {thumbs(postImages, 'Post images')}
+          {postImages.some((f) => f.meta?.ai_generated === true) ? <p className="gs-muted mt-1 text-xs">Images marked “AI-generated image” were made by an image model from the shot the plan describes.</p> : null}
         </div>
       ) : null}
       {slides.length ? (
