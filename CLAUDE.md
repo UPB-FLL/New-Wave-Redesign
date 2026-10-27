@@ -209,6 +209,34 @@ only in the catch path.
   both on Google AI Mode); and an llms-full.txt larger than the read cap
   now counts as present with its size unknown (`bytes: null`).
 
+### Groundswell: a signed-in reader for age-gated Instagram profiles (2026-10-27)
+
+Owner's ask: a scraper that gets past Instagram's age gate, so the
+brewery's own posts and figures are read without linking the account.
+Found and checked live on 2026-10-27: the IntroPix actor on Apify
+(`intropix/instagram-posts-reels-scraper`, `GATED_ACTOR` in
+`currents/social.ts`), which runs sessions of its own (no login or cookie
+from the business) and answered for `uncommonpathbrewing` with followers,
+posts, likes, comments, reel views, captions and full-size image links,
+where ScrapeCreators was refused and Apify's stock scraper listed nothing.
+Run through Composio's generic `APIFY_RUN_ACTOR_SYNC_GET_DATASET_ITEMS`
+(`maxPosts` 12, `maxTotalChargeUsd` 1; about two tenths of a cent a post).
+
+- **Social step**: a profile turned away as age-restricted, restricted or
+  blocked is read by the signed-in reader first (`readGated`; `gatedProfile`
+  and `gatedPosts` map its items, one per post with the profile repeated,
+  onto what `summarizeInstagram` and `mediaFrom` read), then by Apify's
+  stock scraper as before; `read_via` stays `apify`. A private account is
+  still never read.
+- **Creative step**: the signed-in reader sits between ScrapeCreators and
+  the stock scraper for the business's own images.
+- Readiness row label; tests in `groundswell-social.test.ts` (the actor's
+  item shape as answered that day) and the call order in
+  `groundswell-adsets.test.ts`.
+- The actor's terms forbid scraping private individuals and keeping raw
+  data past transient use (30 days); the engine reads businesses only and
+  stores summaries and the images it renders ads from.
+
 ### Headway: the measurement never waits on a link (2026-10-27)
 
 Owner's ask: with no account linked, the 30-day measurement sat blocked on

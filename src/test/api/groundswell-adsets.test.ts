@@ -111,7 +111,7 @@ describe('the business’s own images', () => {
     expect([...store.current!.objects[ASSETS_BUCKET].keys()]).toEqual(['run-2/image/ig-NEW1.jpg', 'run-2/image/ig-NEW2.jpg']);
     expect(store.current!.tables.groundswell_assets.map((r) => r.kind)).toEqual(['image', 'image']);
     // Only the business's handle is ever read.
-    expect(tools.executeTool.mock.calls.every(([, args]) => (args as { handle?: string }).handle === 'harborautocare')).toBe(true);
+    expect(tools.executeTool.mock.calls.every(([, args]) => ((args as { handle?: string }).handle ?? (args as { input?: { usernames?: string[] } }).input?.usernames?.[0]) === 'harborautocare')).toBe(true);
   });
 
   it('with Instagram unreadable, the images on the business’s Facebook posts (phase 1’s read) come before the website’s share image', async () => {
@@ -133,7 +133,7 @@ describe('the business’s own images', () => {
     ]);
     expect(out.source).toBe('The business’s own Facebook posts');
     expect(out.tried).toContain('The business’s Facebook posts: 1 with an image, 1 kept.');
-    expect(tools.executeTool.mock.calls.map(([slug]) => slug)).toEqual(['SCRAPECREATORS_LIST_INSTAGRAM_USER_POSTS', 'APIFY_SCRAPE_INSTAGRAM_POSTS']);
+    expect(tools.executeTool.mock.calls.map(([slug]) => slug)).toEqual(['SCRAPECREATORS_LIST_INSTAGRAM_USER_POSTS', 'APIFY_RUN_ACTOR_SYNC_GET_DATASET_ITEMS', 'APIFY_SCRAPE_INSTAGRAM_POSTS']);
   });
 
   it('tries Apify, then the website’s share image; with nothing usable the step is skipped, saying what was tried', async () => {
@@ -142,7 +142,7 @@ describe('the business’s own images', () => {
     const err = await runCreative(ctxWith(sampleOutputs()), nothing).catch((e: Error) => e);
     expect((err as Error).message).toMatch(/No usable image of the business’s own was found/);
     expect((err as Error).message).toMatch(/Apify: Instagram blocked/);
-    expect(tools.executeTool.mock.calls.map(([slug]) => slug)).toEqual(['SCRAPECREATORS_LIST_INSTAGRAM_USER_POSTS', 'APIFY_SCRAPE_INSTAGRAM_POSTS']);
+    expect(tools.executeTool.mock.calls.map(([slug]) => slug)).toEqual(['SCRAPECREATORS_LIST_INSTAGRAM_USER_POSTS', 'APIFY_RUN_ACTOR_SYNC_GET_DATASET_ITEMS', 'APIFY_SCRAPE_INSTAGRAM_POSTS']);
   });
 });
 
