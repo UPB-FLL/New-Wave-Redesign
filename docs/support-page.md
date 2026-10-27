@@ -241,9 +241,20 @@ Requester Notifications for the notices):
 
 | File | Where it goes in SuperOps | When it sends |
 | --- | --- | --- |
-| `docs/superops/ticket-created-template.html` | Requester notice: ticket created ("New Ticket created - <number>") | When a ticket is opened, by email or the portal |
-| `docs/superops/ticket-closed-template.html` | Requester notice: ticket closed (suits "resolved" too) | When a ticket is closed |
+| `docs/superops/requester/ticket-created.html` | Requester Notifications: New Ticket created | When a ticket is opened, by email or the portal |
+| `docs/superops/requester/requester-replied.html` | Requester Notifications: Requester Replied | A receipt when the requester replies |
+| `docs/superops/requester/note-added.html` | Requester Notifications: Note Added | When a technician adds a note the requester sees |
+| `docs/superops/requester/ticket-resolved.html` | Requester Notifications: Ticket Resolved | When a ticket is resolved |
+| `docs/superops/requester/ticket-closed.html` | Requester Notifications: Ticket Closed | When a ticket is closed |
+| `docs/superops/requester/welcome.html` | Welcome | When a requester is invited to the client portal |
+| `docs/superops/requester/password-reset.html` | Password Reset | When a requester resets their portal password |
+| `docs/superops/requester/profile-update.html` | Profile Update | When a requester's portal profile changes |
 | `docs/superops/reply-base-template.html` | Settings > Advanced Configuration > Reply Templates (not a notice) | Inserted by the technician into a reply, who types above the signature |
+
+These are the requester notices New Wave's SuperOps lists (2026-10-26).
+Welcome and Password Reset carry a link unique to each person, so it is a
+placeholder in the text rather than a button (a `#` placeholder cannot sit
+inside a link's address); the other buttons link to the client portal.
 
 A technician's reply is sent as exactly what is typed in the reply box:
 SuperOps does not wrap it in a notification template (seen on 2026-10-26:
