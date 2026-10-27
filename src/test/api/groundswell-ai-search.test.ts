@@ -142,7 +142,9 @@ describe('Brand Radar', () => {
     ]);
     expect(v.cited_domains.map((d) => d.domain)).toEqual(['yelp.com', 'bayside.example', 'harbor-auto.example']);
     expect(v.citations).toEqual([{ platform: 'all_platforms', citations: 2, pages: 1 }, { platform: 'chatgpt', citations: 1, pages: 1 }, { platform: 'perplexity', citations: 1, pages: 1 }]);
-    expect(v.assistants).toEqual(['ChatGPT', 'Perplexity', 'Gemini', 'Google AI Overviews', 'Copilot', 'Claude']);
+    // Ahrefs' prompt set has no Claude source ("models do not support Ahrefs dataset", 2026-10-27).
+    expect(v.assistants).toEqual(['ChatGPT', 'Perplexity', 'Gemini', 'Google AI Overviews', 'Copilot']);
+    expect(ASSISTANTS).not.toContain('claude');
     // The calls name the brand by name and domain, every assistant, the US.
     const mentions = mocks.executeTool.mock.calls.find((c) => c[0] === 'AHREFS_MCP_BRAND_RADAR_MENTIONS_OVERVIEW_ENTITIES')![1] as Record<string, unknown>;
     expect(mentions).toMatchObject({ data_source: [...ASSISTANTS], country: ['us'], prompts: 'ahrefs', brands: [{ names: ['Harbor Auto Care (sample)'], url_groups: [{ target: 'harbor-auto.example', scope: 'subdomains' }] }], select: ['brand', 'entity_type', 'total'] });
@@ -196,6 +198,23 @@ describe('the ai_search step', () => {
     // Only the five reads of Brand Radar; the site's files through the public fetch.
     expect(mocks.executeTool).toHaveBeenCalledTimes(5);
     expect(mocks.readPublicText).toHaveBeenCalledTimes(5);
+  });
+
+  it('reads an llms-full.txt larger than the read cap as present, with its size unknown', async () => {
+    mocks.readPublicText.mockImplementation(async (url: string, options: { userAgent?: string; maxBytes?: number } = {}) => {
+      if (/llms-full\.txt$/.test(url)) { expect(options.maxBytes).toBe(1_500_000); throw new Error('The website response was too large to research safely.'); }
+      if (/robots\.txt$/.test(url)) return answer(url, { text: ROBOTS });
+      if (/llms\.txt$/.test(url)) return answer(url, { text: '# Harbor Auto Care\n' });
+      if (/sitemap\.xml$/.test(url)) return answer(url, { text: SITEMAP, contentType: 'application/xml' });
+      if (options.userAgent === GPTBOT_UA) return answer(url, { text: HOME, contentType: 'text/html' });
+      throw new Error(`Unexpected fetch of ${url}`);
+    });
+    const out = await runAiSearch(ctxFor(sampleOutputs()));
+    expect(out.files?.llms_txt).toMatchObject({ found: true, bytes: 19 });
+    expect(out.files?.llms_full_txt).toEqual({ url: 'https://harbor-auto.example/llms-full.txt', found: true, bytes: null });
+    expect(out.errors).toEqual([]);
+    expect(out.improvements.map((i) => i.title)).not.toContain('No llms-full.txt');
+    expect(geoBriefFor(ctxFor(sampleOutputs()), out)).toMatch(/\| \/llms-full\.txt \| yes \| present, larger than the 1\.5 MB read \|/);
   });
 
   it('notices a host that answers an AI crawler differently, and a site without robots.txt', async () => {
@@ -300,6 +319,8 @@ describe('deliver_geo', () => {
     const file = result.file!;
     // No write-up in these outputs, so the file carries today's date (phase 1 names the write-up's day when there is one).
     expect(file).toMatchObject({ name: expect.stringMatching(/^Harbor Auto Care \(sample\) - GEO Developer Brief \(\d{4}-\d{2}-\d{2}\)\.md$/), content_type: GEO_BRIEF_TYPE });
+    // The assets bucket allows text/plain, not text/markdown (the first live run failed on it).
+    expect(GEO_BRIEF_TYPE).toBe('text/plain');
     expect(file.path).toMatch(new RegExp(`^${sampleAudit.id}/export/Harbor_Auto_Care_\\(sample\\)_-_GEO_Developer_Brief_\\(\\d{4}-\\d{2}-\\d{2}\\)\\.md$`));
     const rows = store.current!.tables.groundswell_assets;
     expect(rows).toHaveLength(1);
@@ -311,6 +332,15 @@ describe('deliver_geo', () => {
     expect(text).toMatch(/Google listing as read: Harbor Auto Care · 1 Harbor Rd, Fort Lauderdale, FL 33301 · \(954\) 555-0199 · hours Monday 8 AM–6 PM · rating 4\.6 on 212 reviews/);
     expect(text).toMatch(/\| Bayside Garage \| 21 \| 87\.5% \|/);
     expect(text).toMatch(/Prepared by New Wave: Social Engineering/);
+  });
+
+  it('retries a storage failure, and on the last attempt records it instead of failing the audit', async () => {
+    const outputs = withPages(sampleOutputs());
+    outputs.ai_search = await runAiSearch(ctxFor(outputs));
+    store.current = fakeSupabase({}, { storage: ['groundswell-assets'] });
+    await expect(runDeliverGeo(ctxFor(outputs, { attempt: 1 }))).rejects.toThrow(/Bucket not found/);
+    await expect(runDeliverGeo(ctxFor(outputs, { attempt: 2 }))).rejects.toThrow(/Bucket not found/);
+    expect(await runDeliverGeo(ctxFor(outputs, { attempt: 3 }))).toEqual({ file: null, note: expect.stringMatching(/^The developer brief could not be stored: .*Bucket not found/) });
   });
 
   it('writes nothing, and says so, when the run has no reading', async () => {

@@ -60,12 +60,16 @@ export interface AiSearchOutput extends AiSearchEvidence {
 
 export const isAiSearchOutput = (v: unknown): v is AiSearchOutput => Boolean(v && typeof v === 'object' && Array.isArray((v as AiSearchOutput).improvements) && (v as AiSearchOutput).crawlers && typeof (v as AiSearchOutput).crawlers === 'object');
 
-export const ASSISTANTS = ['chatgpt', 'perplexity', 'gemini', 'google_ai_overviews', 'copilot', 'claude'] as const;
+/** The data sources Ahrefs' own prompt set covers (Brand Radar refuses `claude` there: "models do not support Ahrefs dataset", seen 2026-10-27). */
+export const ASSISTANTS = ['chatgpt', 'perplexity', 'gemini', 'google_ai_overviews', 'copilot'] as const;
 export const ASSISTANT_LABELS: Record<string, string> = { chatgpt: 'ChatGPT', perplexity: 'Perplexity', gemini: 'Gemini', google_ai_overviews: 'Google AI Overviews', google_ai_mode: 'Google AI Mode', copilot: 'Copilot', claude: 'Claude', grok: 'Grok', all_platforms: 'All platforms' };
 export const GPTBOT_UA = 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; GPTBot/1.2; +https://openai.com/gptbot';
 const SOURCE = 'The site as an AI crawler reads it (robots.txt, llms.txt, the sitemap, the homepage as GPTBot) and Ahrefs Brand Radar through Composio';
 const FETCH_MS = 12_000;
 const FILE_BYTES = 400_000;
+/** llms-full.txt carries whole pages; a file past this is still a file that exists. */
+const FULL_FILE_BYTES = 1_500_000;
+const tooLarge = (f: Fetched | null) => Boolean(f?.error && /too large/i.test(f.error));
 const n = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : typeof v === 'string' && v.trim() !== '' && !Number.isNaN(Number(v)) ? Number(v) : null);
 const str = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : null);
 const why = (err: unknown) => (err instanceof Error ? err.message : String(err));
@@ -73,9 +77,9 @@ const why = (err: unknown) => (err instanceof Error ? err.message : String(err))
 type Fetched = { status: number | null; text: string; headers: Record<string, string>; error: string | null };
 
 /** One public file, read as text; 404 is an answer (absent), anything else that fails is recorded. */
-export async function readFile(url: string, extra: { userAgent?: string; contentTypes?: string[] } = {}): Promise<Fetched> {
+export async function readFile(url: string, extra: { userAgent?: string; contentTypes?: string[]; maxBytes?: number } = {}): Promise<Fetched> {
   try {
-    const r = await readPublicText(url, { timeoutMs: FETCH_MS, maxBytes: FILE_BYTES, acceptStatuses: [404, 403, 401, 410], contentTypes: extra.contentTypes ?? ['text/plain', 'text/html', 'application/xml', 'text/xml', 'text/markdown', 'application/xhtml+xml'], userAgent: extra.userAgent });
+    const r = await readPublicText(url, { timeoutMs: FETCH_MS, maxBytes: extra.maxBytes ?? FILE_BYTES, acceptStatuses: [404, 403, 401, 410], contentTypes: extra.contentTypes ?? ['text/plain', 'text/html', 'application/xml', 'text/xml', 'text/markdown', 'application/xhtml+xml'], userAgent: extra.userAgent });
     return { status: r.status, text: r.text, headers: r.headers ?? {}, error: null };
   } catch (err) {
     return { status: null, text: '', headers: {}, error: why(err) };
@@ -248,11 +252,11 @@ export async function runAiSearch(ctx: StepContext): Promise<AiSearchOutput> {
     [robots, llms, llmsFull, sitemap, home] = await Promise.all([
       readFile(`${root}/robots.txt`),
       readFile(`${root}/llms.txt`),
-      readFile(`${root}/llms-full.txt`),
+      readFile(`${root}/llms-full.txt`, { maxBytes: FULL_FILE_BYTES }),
       readFile(`${root}/sitemap.xml`),
       readFile(website!, { userAgent: GPTBOT_UA, contentTypes: ['text/html', 'application/xhtml+xml'] }),
     ]);
-    for (const [label, f] of [['robots.txt', robots], ['llms.txt', llms], ['llms-full.txt', llmsFull], ['sitemap.xml', sitemap], ['homepage as GPTBot', home]] as const) if (f.error) errors.push(`${label}: ${f.error}`);
+    for (const [label, f] of [['robots.txt', robots], ['llms.txt', llms], ['llms-full.txt', llmsFull], ['sitemap.xml', sitemap], ['homepage as GPTBot', home]] as const) if (f.error && !tooLarge(f)) errors.push(`${label}: ${f.error}`);
   }
   const robotsText = robots && robots.status === 200 ? robots.text : null;
   const gptbotBlocked = Boolean(home && site?.status === 200 && home.status !== null && home.status !== 200);
@@ -273,8 +277,8 @@ export async function runAiSearch(ctx: StepContext): Promise<AiSearchOutput> {
       gptbot_fetch: home ? { status: home.status, blocked: gptbotBlocked, note: home.error ? `The fetch as GPTBot failed: ${home.error}` : gptbotBlocked ? `The ordinary scan got HTTP ${site?.status}; GPTBot got HTTP ${home.status}.` : home.status === 200 ? 'The same page as the ordinary scan.' : `HTTP ${home.status} for both fetches.` } : null,
     },
     files: root ? {
-      llms_txt: { url: `${root}/llms.txt`, found: llms?.status === 200 && llms.text.trim().length > 0, bytes: llms?.status === 200 ? Buffer.byteLength(llms.text) : 0 },
-      llms_full_txt: { url: `${root}/llms-full.txt`, found: llmsFull?.status === 200 && llmsFull.text.trim().length > 0, bytes: llmsFull?.status === 200 ? Buffer.byteLength(llmsFull.text) : 0 },
+      llms_txt: { url: `${root}/llms.txt`, found: (llms?.status === 200 && llms.text.trim().length > 0) || tooLarge(llms), bytes: tooLarge(llms) ? null : llms?.status === 200 ? Buffer.byteLength(llms.text) : 0 },
+      llms_full_txt: { url: `${root}/llms-full.txt`, found: (llmsFull?.status === 200 && llmsFull.text.trim().length > 0) || tooLarge(llmsFull), bytes: tooLarge(llmsFull) ? null : llmsFull?.status === 200 ? Buffer.byteLength(llmsFull.text) : 0 },
       sitemap: { url: `${root}/sitemap.xml`, found: sitemap?.status === 200 && sitemapUrls(sitemap.text) > 0, urls: sitemap?.status === 200 ? sitemapUrls(sitemap.text) : 0 },
     } : null,
     entity,

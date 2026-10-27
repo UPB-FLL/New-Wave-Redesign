@@ -571,8 +571,8 @@ export function aiSearchSection(a: NonNullable<Facts['ai_search']>): string {
   const crawlers = table(['Crawler', 'For', 'robots.txt'], a.crawlers.agents.map((x) => [x.agent, AI_CRAWLERS.find((c) => c.agent === x.agent)?.purpose ?? '', `${VERDICT_WORDS[x.verdict] ?? x.verdict}${x.verdict === 'blocked' && x.disallows.length ? ` (${x.disallows.slice(0, 3).join(', ')})` : ''}`]));
   const files = a.files
     ? table(['File', 'Found', 'Detail'], [
-        ['/llms.txt', yesNo(a.files.llms_txt.found), a.files.llms_txt.found ? `${num(a.files.llms_txt.bytes)} bytes` : 'Not found'],
-        ['/llms-full.txt', yesNo(a.files.llms_full_txt.found), a.files.llms_full_txt.found ? `${num(a.files.llms_full_txt.bytes)} bytes` : 'Not found'],
+        ['/llms.txt', yesNo(a.files.llms_txt.found), a.files.llms_txt.found ? (a.files.llms_txt.bytes === null ? 'Present (larger than the read)' : `${num(a.files.llms_txt.bytes)} bytes`) : 'Not found'],
+        ['/llms-full.txt', yesNo(a.files.llms_full_txt.found), a.files.llms_full_txt.found ? (a.files.llms_full_txt.bytes === null ? 'Present (larger than the read)' : `${num(a.files.llms_full_txt.bytes)} bytes`) : 'Not found'],
         ['/sitemap.xml', yesNo(a.files.sitemap.found), a.files.sitemap.found ? `${num(a.files.sitemap.urls)} URLs` : 'Not found'],
       ])
     : '<p class="muted">The site’s files were not read.</p>';

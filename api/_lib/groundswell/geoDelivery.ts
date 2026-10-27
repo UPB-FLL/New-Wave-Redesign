@@ -16,10 +16,16 @@ import type { StepContext } from './types.js';
  * an export (the workspace's Downloads), beside the Meta and Google files of
  * the later phases. Like every delivery step it is required, but a run whose
  * ai_search step was skipped has nothing to write: the step then finishes
- * with no file and says so, and the audit's gaps name the missing brief.
+ * with no file and says so, and the audit's gaps name the missing brief. A
+ * storage failure is retried like any other; on the last attempt it is
+ * recorded in `note` instead, so three printed reports are never thrown
+ * away over the brief.
  */
 
-export const GEO_BRIEF_TYPE = 'text/markdown; charset=utf-8';
+/** The assets bucket allows text/plain, not text/markdown (migration 20261029120000); the .md name tells the reader what it is. */
+export const GEO_BRIEF_TYPE = 'text/plain';
+/** The worker's MAX_ATTEMPTS (engine.ts): on the last one a storage refusal is recorded, never the audit failed over the brief. */
+const LAST_ATTEMPT = 3;
 export const GEO_BRIEF_TITLE = 'GEO Developer Brief';
 
 export interface GeoDelivery {
@@ -49,6 +55,11 @@ export async function runDeliverGeo(ctx: StepContext): Promise<GeoDelivery> {
   const out = ctx.outputs.ai_search;
   if (!isAiSearchOutput(out)) return { file: null, note: 'The AI search step left no reading, so no developer brief was written.' };
   const name = fileName(ctx, GEO_BRIEF_TITLE, 'md');
-  const row = await storeAsset(getSupabaseAdmin(), { audit_id: ctx.audit.id, kind: 'export', name, content_type: GEO_BRIEF_TYPE, meta: { format: 'geo-brief', improvements: out.improvements.length, questions: out.questions.length } }, new TextEncoder().encode(geoBriefFor(ctx, out)));
-  return { file: { path: row.path, name: row.name, content_type: row.content_type, bytes: row.bytes }, note: null };
+  try {
+    const row = await storeAsset(getSupabaseAdmin(), { audit_id: ctx.audit.id, kind: 'export', name, content_type: GEO_BRIEF_TYPE, meta: { format: 'geo-brief', improvements: out.improvements.length, questions: out.questions.length } }, new TextEncoder().encode(geoBriefFor(ctx, out)));
+    return { file: { path: row.path, name: row.name, content_type: row.content_type, bytes: row.bytes }, note: null };
+  } catch (err) {
+    if (ctx.attempt < LAST_ATTEMPT) throw err;
+    return { file: null, note: `The developer brief could not be stored: ${err instanceof Error ? err.message : String(err)}` };
+  }
 }
