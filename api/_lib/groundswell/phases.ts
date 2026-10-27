@@ -102,6 +102,47 @@ export async function queuePhase(db: Pick<SupabaseClient, 'from'>, sourceId: str
   return { queued: (inserted.data as { id: string }).id, phase, reason: `${PHASE_INFO[phase].title} queued.` };
 }
 
+/**
+ * Queues a fresh phase 1 run for a customer from its saved details: the
+ * public data read again (rankings, the listing, estimated traffic), which is
+ * how a plan is measured when no account is linked. A phase 1 run already
+ * queued or running for the customer is returned instead of a second one.
+ */
+export async function queuePublicReread(db: Pick<SupabaseClient, 'from'>, customerId: string): Promise<QueueResult> {
+  const read = await db.from('groundswell_customers').select('id,partner_id,business_name,city,website,instagram,facebook,competitors,notes').eq('id', customerId).maybeSingle();
+  if (read.error) {
+    if (missingColumn(read.error.message) || missingTable(read.error.message)) return { queued: null, phase: 'audit', reason: 'Customers are not set up yet.' };
+    throw new Error(`Could not read the customer: ${read.error.message}`);
+  }
+  const customer = read.data as unknown as (Record<string, unknown> & { id: string; partner_id: string | null }) | null;
+  if (!customer) return { queued: null, phase: 'audit', reason: 'That customer is not there.' };
+  const waiting = await db.from('marketing_audits').select('id,status,phase').eq('customer_id', customerId);
+  if (waiting.error) throw new Error(`Could not check the queue: ${waiting.error.message}`);
+  const open = ((waiting.data ?? []) as { id: string; status: string; phase?: Phase | null }[]).find((r) => (r.phase ?? 'audit') === 'audit' && (r.status === 'queued' || r.status === 'running'));
+  if (open) return { queued: open.id, phase: 'audit', reason: `${PHASE_INFO.audit.title} is already ${open.status}.` };
+  const row = {
+    business_name: customer.business_name,
+    city: customer.city ?? null,
+    website: customer.website ?? null,
+    instagram: customer.instagram ?? null,
+    ...(customer.facebook ? { facebook: customer.facebook } : {}),
+    competitors: customer.competitors ?? [],
+    notes: customer.notes ?? null,
+    partner_id: customer.partner_id ?? null,
+    customer_id: customer.id,
+    kind: 'audit',
+    phase: 'audit',
+    source_audit_id: null,
+    status: 'queued',
+  };
+  const inserted = await db.from('marketing_audits').insert(row).select('id').single();
+  if (inserted.error || !inserted.data) {
+    if (missingColumn(inserted.error?.message)) return { queued: null, phase: 'audit', reason: NOT_READY };
+    throw new Error(`Could not queue the public re-read: ${inserted.error?.message ?? 'no row'}`);
+  }
+  return { queued: (inserted.data as { id: string }).id, phase: 'audit', reason: `${PHASE_INFO.audit.title} queued from today’s public data.` };
+}
+
 /** After a run delivers: queues the phase after it when that phase applies. Never throws; the reason says what happened. */
 export async function queueNextPhase(db: Pick<SupabaseClient, 'from'>, run: Pick<AuditRow, 'id' | 'phase' | 'customer_id'>): Promise<QueueResult> {
   const next = nextPhase(run.phase ?? 'audit');

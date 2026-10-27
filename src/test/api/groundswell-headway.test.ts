@@ -220,6 +220,11 @@ describe('the planner', () => {
     const measure = drafts.find((d) => d.tool === 'groundswell.measure')!;
     expect(measure.scheduled_for).toBe('2026-11-25T20:00:00.000Z');
     expect(measure.payload.source_audit_id).toBe(R2);
+    expect(measure.blocked_by).toEqual([]);
+    // Without a competitor plan the measurement is still planned, from the public data.
+    const noCompetitors = planActions({ ...input(), measureSource: null }).drafts.find((d) => d.tool === 'groundswell.measure')!;
+    expect(noCompetitors.payload.source_audit_id).toBeNull();
+    expect(noCompetitors.detail).toMatch(/reads the public data again/);
     expect(titles).toContain('The monthly report against revenue');
     expect(drafts.every((d) => HEADWAY_SERVICES.includes(d.service))).toBe(true);
     expect(summary).toMatch(/^\d+ actions from the competitor plan delivered Oct 13, 2026: \d+ through the linked accounts, \d+ for the team\./);
@@ -487,7 +492,25 @@ describe('applying approved actions', () => {
     const report = await apply({ now: () => new Date('2026-12-01T12:00:00Z') });
     expect(report.ran).toEqual([{ action: measure.id, outcome: 'applied' }]);
     expect(db.current!.tables.marketing_audits.find((r) => r.phase === 'integrated')).toMatchObject({ source_audit_id: R2, status: 'queued', customer_id: C1 });
-    expect(measure.result).toMatchObject({ queued: expect.any(String) });
+    expect(measure.result).toMatchObject({ queued: expect.any(String), phase: 'integrated', basis: 'linked' });
+  });
+
+  it('reads the public data again when the measurement comes due with no account linked', async () => {
+    const actions = await planWith([]);
+    const measure = actions.find((a) => a.tool === 'groundswell.measure')!;
+    expect(measure.blocked_by).toEqual([]);
+    approve(measure);
+    const report = await apply({ now: () => new Date('2026-12-01T12:00:00Z') });
+    expect(report.ran).toEqual([{ action: measure.id, outcome: 'applied' }]);
+    const queued = db.current!.tables.marketing_audits.filter((r) => r.status === 'queued');
+    expect(queued).toHaveLength(1);
+    expect(queued[0]).toMatchObject({ phase: 'audit', source_audit_id: null, customer_id: C1, business_name: 'Harbor Auto Care', website: 'https://harbor-auto.example' });
+    expect(db.current!.tables.marketing_audits.some((r) => r.phase === 'integrated')).toBe(false);
+    expect(measure.result).toMatchObject({ queued: queued[0].id, phase: 'audit', basis: 'public' });
+    // Due again: the run already waiting is returned, never a second one.
+    Object.assign(measure, { status: 'approved' });
+    await apply({ now: () => new Date('2026-12-01T13:00:00Z') });
+    expect(db.current!.tables.marketing_audits.filter((r) => r.status === 'queued')).toHaveLength(1);
   });
 
   it('retries a provider hiccup twice and then fails; a plain problem fails at once; a lapsed lease is taken over', async () => {
@@ -522,7 +545,7 @@ describe('applying approved actions', () => {
     await apply();
     expect(monday).toMatchObject({ status: 'failed', error: 'Social media is switched off for this customer.' });
     const run: Run = async () => { throw new ApplyProblem('no'); };
-    await expect(EXECUTORS['groundswell.measure']({ action: { payload: {} } as never, db: db.current!.client as never, run, customer: { id: C1, business_name: 'x', website: null, city: null }, signedUrl: async () => '', dependency: null, setup: () => null, now: new Date() })).rejects.toThrow('No delivered competitor plan');
+    await expect(EXECUTORS['groundswell.measure']({ action: { payload: {} } as never, db: db.current!.client as never, run, customer: { id: 'nobody', business_name: 'x', website: null, city: null }, signedUrl: async () => '', dependency: null, setup: () => null, now: new Date() })).rejects.toThrow('That customer is not there.');
   });
 });
 
