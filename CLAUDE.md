@@ -2,6 +2,42 @@
 
 ## Recent Changes
 
+### Groundswell: the three faults on Uncommon Path's run of 2026-10-27 (2026-10-27)
+
+Run `4afe409b…` (queued 00:05 UTC) failed on its GEO brief, skipped its
+social step after eight leases, and showed the ad-copy skip in red.
+
+- **GEO brief** (`geoDelivery.ts`): the brief was uploaded as
+  `text/markdown; charset=utf-8` into `groundswell-assets`, whose allow-list
+  (20261029120000) has no Markdown type, so `deliver_geo` (required) failed
+  the run. `GEO_BRIEF_TYPE` is now exactly `text/markdown`; migration
+  `20261104120000` appends it to the bucket (idempotent; rollback in
+  `supabase/rollbacks/`); until that is applied, a bucket's mime refusal
+  stores the same file as `text/plain` under its `.md` name instead of
+  failing (`GEO_BRIEF_FALLBACK_TYPE`). Any other storage error still fails.
+- **Social step**: #164 already caps every read by the deadline. The eight
+  leases came from the step being claimed about two minutes into each call
+  (after the six gathering steps), with too little left for the Apify
+  fallback. `StepDefinition.needsMs` names the time a step wants
+  (`SOCIAL_NEEDS_MS`, 180 s, on `social`); when an earlier step used the
+  call's time and less than that is left, `runWorker` hands the step back
+  uncounted (`pending`, the claim's attempt undone, outcome `deferred`) and
+  ends the call, so the next heartbeat runs it with a whole call. A call's
+  first step always runs, so no step waits for ever.
+- **Ad copy**: every row of the brewery's plan was a skip (the searches lose
+  money at the published rates; TikTok alcohol ads are not self-serve), so
+  `copyTargets` was empty and the step threw a `PermanentStepError`, which
+  the run card prints in red. Nothing failed: `runAdcopy` now finishes with
+  no ads and a `note` (`noCopy`), the full audit shows the plan without a
+  copy section as before, and the card shows the step done.
+- **Tests**: the hand-back and the budget pin in `groundswell-engine.test.ts`,
+  the fallback in `groundswell-ai-search.test.ts`, the note in
+  `groundswell-adcopy.test.ts`.
+- The failed run itself is not resumed by a deploy: "Run again" on the
+  workspace card queues a fresh run once this is live. **Not verified live**:
+  that Supabase accepts `text/markdown` once listed (the fallback covers a
+  refusal either way).
+
 ### Groundswell: a step cut off mid-call is given up after three leases; social reads keep to the deadline (2026-10-27)
 
 Seen on the first Uncommon Path run after the AI search PR: the `social` step

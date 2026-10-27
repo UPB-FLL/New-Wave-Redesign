@@ -4,7 +4,7 @@ import type { GroundswellConfig } from '../../../packages/groundswell/src/config
 import { isAdplanOutput } from './adplan.js';
 import { buildFacts, numbersIn, unsupportedNumbers, type Facts } from './model.js';
 import { chatJson, GROUNDSWELL_MODEL } from './openai.js';
-import { PermanentStepError, type StepContext } from './types.js';
+import type { StepContext } from './types.js';
 
 /**
  * Ad-copy step: one ad for each row the ad plan funds or tests
@@ -19,14 +19,21 @@ import { PermanentStepError, type StepContext } from './types.js';
  * - lines over the platform's limit are dropped, and an ad left short of the
  *   format's minimum is listed as not written, with the reason.
  *
- * Optional: without an ad plan, or when the plan runs no rows, it is skipped
- * and the full audit shows the plan without copy.
+ * Optional. Without an ad plan, or when the plan runs no rows (every row is
+ * a skip, as when the searches lose money at the published rates), there is
+ * nothing to write: the step finishes with no ads and a `note` saying why, the
+ * full audit shows the plan without copy, and the run card shows no fault.
  */
 
 export interface AdcopyOutput extends CopyResult {
   model: string;
   generated_at: string;
+  /** Why no ad was written, when nothing was asked of the model. */
+  note?: string | null;
 }
+
+/** The step's output when the plan asks for no copy. */
+export const noCopy = (note: string): AdcopyOutput => ({ model: GROUNDSWELL_MODEL(), generated_at: new Date().toISOString(), ads: [], not_written: [], dropped: [], note });
 
 /** True for a usable ad-copy step output (an audit started before the step existed has none). */
 export function isAdcopyOutput(x: unknown): x is AdcopyOutput {
@@ -83,10 +90,10 @@ Answer with JSON: {"ads":[{"angle_id":"...","platform":"...","fields":{"<field>"
 
 export async function runAdcopy(ctx: StepContext): Promise<AdcopyOutput> {
   const plan = isAdplanOutput(ctx.outputs.adplan) ? ctx.outputs.adplan : null;
-  if (!plan) throw new PermanentStepError('There is no ad plan, so no ad copy was written.');
+  if (!plan) return noCopy('There is no ad plan, so no ad copy was written.');
   const config = GROUNDSWELL_CONFIG;
   const targets = copyTargets(plan.plan, plan.angles);
-  if (!targets.length) throw new PermanentStepError('The ad plan runs no rows, so no ad copy was written.');
+  if (!targets.length) return noCopy('The ad plan runs no rows (none is funded or tested), so no ad copy was written.');
   const input = copyInput(buildFacts(ctx.audit, ctx.outputs), targets, config);
   // The numbers the copy may use: the facts' and each ad's own, never the format's limits.
   const allowed = numbersIn(input.facts, input.ads.map(({ angle, why, keywords, platform_rules }) => ({ angle, why, keywords, platform_rules })));

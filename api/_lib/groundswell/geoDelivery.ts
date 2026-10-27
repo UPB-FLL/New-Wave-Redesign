@@ -19,7 +19,16 @@ import type { StepContext } from './types.js';
  * with no file and says so, and the audit's gaps name the missing brief.
  */
 
-export const GEO_BRIEF_TYPE = 'text/markdown; charset=utf-8';
+/**
+ * The file's type, exactly as the bucket's allow-list names it (migration
+ * 20261104120000 adds it; Supabase Storage matches the whole string, so no
+ * charset parameter). Before that migration the bucket refuses it, and the
+ * brief is stored as plain text rather than lost: the workspace downloads it
+ * under its .md name either way.
+ */
+export const GEO_BRIEF_TYPE = 'text/markdown';
+export const GEO_BRIEF_FALLBACK_TYPE = 'text/plain';
+const mimeRefused = (err: unknown) => /mime type .* is not supported/i.test(err instanceof Error ? err.message : String(err));
 export const GEO_BRIEF_TITLE = 'GEO Developer Brief';
 
 export interface GeoDelivery {
@@ -49,6 +58,12 @@ export async function runDeliverGeo(ctx: StepContext): Promise<GeoDelivery> {
   const out = ctx.outputs.ai_search;
   if (!isAiSearchOutput(out)) return { file: null, note: 'The AI search step left no reading, so no developer brief was written.' };
   const name = fileName(ctx, GEO_BRIEF_TITLE, 'md');
-  const row = await storeAsset(getSupabaseAdmin(), { audit_id: ctx.audit.id, kind: 'export', name, content_type: GEO_BRIEF_TYPE, meta: { format: 'geo-brief', improvements: out.improvements.length, questions: out.questions.length } }, new TextEncoder().encode(geoBriefFor(ctx, out)));
+  const bytes = new TextEncoder().encode(geoBriefFor(ctx, out));
+  const asset = (content_type: string) => ({ audit_id: ctx.audit.id, kind: 'export' as const, name, content_type, meta: { format: 'geo-brief', improvements: out.improvements.length, questions: out.questions.length } });
+  const db = getSupabaseAdmin();
+  const row = await storeAsset(db, asset(GEO_BRIEF_TYPE), bytes).catch((err) => {
+    if (!mimeRefused(err)) throw err;
+    return storeAsset(db, asset(GEO_BRIEF_FALLBACK_TYPE), bytes);
+  });
   return { file: { path: row.path, name: row.name, content_type: row.content_type, bytes: row.bytes }, note: null };
 }

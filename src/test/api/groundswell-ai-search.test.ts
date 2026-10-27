@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({ executeTool: vi.fn(), readPublicText: vi.fn() }));
@@ -8,7 +9,7 @@ vi.mock('../../../api/_lib/supabaseAdmin', () => ({ isSupabaseConfigured: () => 
 
 import { ASSISTANTS, GPTBOT_UA, headerReading, isAiSearchOutput, pageSignals, readAiVisibility, readEntity, readFile, runAiSearch, sitemapUrls, type AiSearchOutput } from '../../../api/_lib/groundswell/currents/aiSearch';
 import { toolkitOf } from '../../../api/_lib/groundswell/composio';
-import { GEO_BRIEF_TYPE, geoBriefFor, runDeliverGeo } from '../../../api/_lib/groundswell/geoDelivery';
+import { GEO_BRIEF_FALLBACK_TYPE, GEO_BRIEF_TYPE, geoBriefFor, runDeliverGeo } from '../../../api/_lib/groundswell/geoDelivery';
 import { gapsFor } from '../../../api/_lib/groundswell/gaps';
 import { aiSearchForPrompt, buildFacts, factsForPrompt } from '../../../api/_lib/groundswell/model';
 import { TOOLKIT_CHECKS } from '../../../api/_lib/groundswell/readiness';
@@ -311,6 +312,30 @@ describe('deliver_geo', () => {
     expect(text).toMatch(/Google listing as read: Harbor Auto Care · 1 Harbor Rd, Fort Lauderdale, FL 33301 · \(954\) 555-0199 · hours Monday 8 AM–6 PM · rating 4\.6 on 212 reviews/);
     expect(text).toMatch(/\| Bayside Garage \| 21 \| 87\.5% \|/);
     expect(text).toMatch(/Prepared by New Wave: Social Engineering/);
+  });
+
+  it('stores the brief as text/markdown, the type the bucket allows, and falls back to plain text while a bucket is behind its migration', async () => {
+    // Uncommon Path's run of 2026-10-27 failed its delivery: "mime type text/markdown; charset=utf-8 is not supported".
+    expect(GEO_BRIEF_TYPE).toBe('text/markdown');
+    expect(readFileSync('supabase/migrations/20261104120000_groundswell_assets_markdown.sql', 'utf8')).toMatch(/array_append\(allowed_mime_types, 'text\/markdown'\)/);
+    const outputs = await (async () => { const o = withPages(sampleOutputs()); o.ai_search = await runAiSearch(ctxFor(o)); return o; })();
+    const real = store.current!.client.storage.from;
+    const types: string[] = [];
+    store.current!.client.storage.from = (bucket: string) => {
+      const b = real(bucket);
+      return { ...b, upload: async (path: string, bytes: Uint8Array, opts?: { contentType?: string }) => {
+        types.push(opts?.contentType ?? '');
+        if (opts?.contentType === 'text/markdown') return { data: null, error: { message: 'mime type text/markdown is not supported' } };
+        return b.upload(path, bytes);
+      } };
+    };
+    const result = await runDeliverGeo(ctxFor(outputs));
+    expect(types).toEqual(['text/markdown', GEO_BRIEF_FALLBACK_TYPE]);
+    expect(result.file).toMatchObject({ content_type: GEO_BRIEF_FALLBACK_TYPE, name: expect.stringMatching(/\.md$/) });
+    expect(store.current!.tables.groundswell_assets[0]).toMatchObject({ content_type: GEO_BRIEF_FALLBACK_TYPE });
+    // Any other refusal is still the step's failure.
+    store.current!.client.storage.from = (bucket: string) => ({ ...real(bucket), upload: async () => ({ data: null, error: { message: 'Bucket not found' } }) });
+    await expect(runDeliverGeo(ctxFor(outputs))).rejects.toThrow(/Could not store .*Bucket not found/);
   });
 
   it('writes nothing, and says so, when the run has no reading', async () => {
