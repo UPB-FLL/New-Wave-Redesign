@@ -469,6 +469,23 @@ describe('research', () => {
     expect(dropped).toEqual(['Instagram now ranks original content above reposts: already known.', 'No link: no usable source link.', '(no title): no title or summary.', 'Same link, new title: already known.']);
   });
 
+  it('holds a learning to the date window, and an undated one to a page rather than a homepage', () => {
+    const since = '2026-10-20';
+    const { kept, dropped } = checkLearnings({ learnings: [
+      learning({ title: 'A paper from March', url: 'https://arxiv.org/abs/2603.16138', published: '2026-03-17' }),
+      learning({ title: 'A ban from the 8th', url: 'https://example.test/news/meta-ban', published: '2026-10-08' }),
+      learning({ title: 'A vendor homepage', url: 'https://www.indivisionai.com', published: null }),
+      learning({ title: 'A dated article inside the window', url: 'https://example.test/news/super-burst', published: '2026-10-21' }),
+      learning({ title: 'Two days of slack', url: 'https://example.test/news/slack', published: '2026-10-18' }),
+      learning({ title: 'An undated page', url: 'https://example.test/blog/undated', published: null }),
+    ] }, 'social-media-marketing', [], { since });
+    expect(kept.map((k) => k.title)).toEqual(['A dated article inside the window', 'Two days of slack', 'An undated page']);
+    expect(dropped).toEqual(['A paper from March: published 2026-03-17, before 2026-10-20.', 'A ban from the 8th: published 2026-10-08, before 2026-10-20.', 'A vendor homepage: a homepage, not an article.']);
+    // Without a window, dates are not judged; the homepage rule still holds.
+    expect(checkLearnings({ learnings: [learning({ title: 'A paper from March', url: 'https://arxiv.org/abs/2603.16138', published: '2026-03-17' })] }, 't', []).kept).toHaveLength(1);
+    expect(checkLearnings({ learnings: [learning({ title: 'Trailing slash homepage', url: 'https://example.test/', published: null })] }, 't', []).dropped).toEqual(['Trailing slash homepage: a homepage, not an article.']);
+  });
+
   it('the topics come from the environment, or the two defaults', () => {
     expect(topicsFromEnv('').map((t) => t.key)).toEqual(['ai-agent-marketing', 'social-media-marketing']);
     expect(topicsFromEnv('Local SEO = what changed in Google Business Profile; email=newsletter tools').map((t) => [t.key, t.label])).toEqual([['local-seo', 'Local seo'], ['email', 'Email']]);
