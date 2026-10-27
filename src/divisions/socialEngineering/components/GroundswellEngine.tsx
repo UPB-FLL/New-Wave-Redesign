@@ -96,13 +96,18 @@ export function GroundswellEngine({ service }: { service?: DivisionServiceConten
   );
 }
 
-/** A branded, illustrative signal path for the hero; its meaning is in the page copy and engine section. */
+/**
+ * The GroundSwell panel in a hero: what the engine reads on this page, the
+ * logo, its three stages, and what comes out. Shown only beside the text
+ * (from 64em, see HeroScene): on a phone it would stand alone under the
+ * buttons as a second, smaller hero. Its meaning is in the page copy and the
+ * engine section.
+ */
 export function GroundswellSignal({ page }: { page: string }) {
   const context = SERVICE_CONTEXT[page];
   return (
     <div className="gs-signal" data-role="groundswell-signal" data-scene-state="static">
-      <div className="gs-signal-source"><span className="gs-signal-dot" />{context?.evidence ?? 'Your business. Your market. Your next move.'}</div>
-      <div className="gs-signal-current" aria-hidden="true" />
+      <div className="gs-signal-source">{context?.evidence ?? 'Your business. Your market. Your next move.'}</div>
       <div className="gs-signal-identity">
         <img src={GROUNDSWELL_BRAND.logoReverse} width={260} height={52} alt="" />
         <span>The growth engine by New Wave</span>

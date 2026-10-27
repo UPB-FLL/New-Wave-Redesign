@@ -139,7 +139,9 @@ const HERO_SCENE_KNOCKOUT: CSSProperties = {
 
 /**
  * The hero's scene. Phones: after the actions, 18rem wide and centred under the
- * full-width buttons. sm: the same, left-aligned. From 48em (md at the default
+ * full-width buttons (the branded GroundSwell panel never: the hub and service
+ * pages pass `sceneOnPhones="hide"`, so it shows only beside the text). sm:
+ * the same, left-aligned. From 48em (md at the default
  * text size): 16rem, to the right of the actions, at the end of a 44rem row
  * (the summary's measure, plus a little), so it stays with the text rather
  * than the container's edge. From 64em (lg): the hero grid's second column,
@@ -216,15 +218,16 @@ export function DivisionHero({
 }) {
   // Balanced below lg, so a tablet hero never ends on a one-word line.
   const headingClass = 'nwse-type-display-1 mt-3 max-w-4xl text-[var(--nw-cloud-white)] max-lg:text-balance sm:mt-4';
-  // Each fact carries its own trailing separator, so a wrapped line ends on a
-  // dot rather than starting with one.
+  // Each fact carries its own trailing separator (a hairline in the text's
+  // colour, no accent), so a wrapped line ends on one rather than starting
+  // with one.
   const factsLine = facts?.length ? (
     <p className="nwse-type-label mt-5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[var(--nw-mist-gray)] sm:mt-6" data-role="hero-facts">
       {facts.map((fact, index) => (
         <span key={fact} className="flex items-center gap-x-3">
           {fact}
           {index < facts.length - 1 ? (
-            <span aria-hidden="true" className="h-1 w-1 rounded-full" style={{ background: 'var(--nwse-lure-amber)' }} />
+            <span aria-hidden="true" className="h-3 w-px bg-current opacity-40" />
           ) : null}
         </span>
       ))}

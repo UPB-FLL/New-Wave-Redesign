@@ -68,6 +68,9 @@ export default function SocialEngineeringHubPage() {
       <DivisionHero
         breadcrumbs={seo.breadcrumbs}
         scene="hub"
+        // The GroundSwell panel: beside the text only. Under the buttons on a
+        // phone it read as a second hero, its caption wrapping in the narrow box.
+        sceneOnPhones="hide"
         kickerInHeading
         kicker={content.kicker}
         headline={content.headline}
