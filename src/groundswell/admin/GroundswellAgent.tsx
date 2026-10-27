@@ -222,6 +222,47 @@ export default function GroundswellAgent() {
           })
         : null}
 
+      {view ? (
+        <section aria-label="Learnings" className="gs-card p-5 text-sm">
+          <h2 className="font-semibold">What the agent learned</h2>
+          <p className="text-xs gs-muted">
+            Every pass asks Claude, with web search, what is new in {view.topics.map((t) => t.label).join(' and ') || 'its topics'}; only what the agent did not already know is kept and reported, each with the page it was read on.
+          </p>
+          {view.learnings.length ? (
+            <ul className="mt-3 space-y-3">
+              {view.learnings.map((l) => (
+                <li key={l.id} data-role="agent-learning">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="gs-chip">{l.topic.replace(/-/g, ' ')}</span>
+                    <strong>{l.title}</strong>
+                    {l.published_at ? <span className="gs-muted text-xs">{l.published_at}</span> : null}
+                  </div>
+                  <p className="mt-1">{l.summary}</p>
+                  {l.why_it_matters ? (
+                    <p className="mt-1">
+                      <strong>Why it matters:</strong> {l.why_it_matters}
+                    </p>
+                  ) : null}
+                  {l.action ? (
+                    <p className="mt-1">
+                      <strong>What to do:</strong> {l.action}
+                    </p>
+                  ) : null}
+                  <p className="mt-1 text-xs gs-muted">
+                    <a href={l.url} target="_blank" rel="noreferrer" className="gs-link">
+                      {l.source || l.url}
+                    </a>{' '}
+                    · found {when(l.found_at)} · confidence {l.confidence}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-2 gs-muted">Nothing learned yet. The first pass with ANTHROPIC_API_KEY set fills this in.</p>
+          )}
+        </section>
+      ) : null}
+
       {view?.consultations.length ? (
         <section aria-label="Consultations" className="gs-card p-5 text-sm">
           <h2 className="font-semibold">What Claude was asked, and how its advice turned out</h2>
@@ -233,7 +274,7 @@ export default function GroundswellAgent() {
               const failed = outcomes.filter((o) => o.result !== 'worked').length;
               return (
                 <li key={c.id} data-role="agent-consultation">
-                  <strong>{ADVISOR_LABELS[c.advisor]}</strong> ({c.model}) on {when(c.created_at)}: asked about {c.issues} issue{c.issues === 1 ? '' : 's'}, kept {c.kept}, rejected {c.rejected.length}
+                  <strong>{ADVISOR_LABELS[c.advisor]}</strong> ({c.model}) on {when(c.created_at)}: {c.purpose === 'research' ? `research, ${c.kept} new learning${c.kept === 1 ? '' : 's'} kept` : `asked about ${c.issues} issue${c.issues === 1 ? '' : 's'}, kept ${c.kept}, rejected ${c.rejected.length}`}
                   {outcomes.length ? ` · outcomes: ${held} held, ${failed} did not` : ' · outcomes not known yet'}
                   {c.latency_ms !== null ? ` · ${(c.latency_ms / 1000).toFixed(1)} s` : ''}
                   {c.usage ? ` · ${c.usage.input_tokens + c.usage.output_tokens} tokens` : ''}

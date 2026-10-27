@@ -64,9 +64,25 @@ export interface AgentReport {
 }
 
 /** One ask of the advisor, as the screen shows it: the digest, never the bodies. */
+export interface AgentLearning {
+  id: string;
+  topic: string;
+  title: string;
+  summary: string;
+  why_it_matters: string | null;
+  action: string | null;
+  url: string;
+  source: string;
+  published_at: string | null;
+  confidence: 'low' | 'medium' | 'high';
+  status: 'new' | 'kept' | 'dismissed';
+  found_at: string;
+}
+
 export interface AgentConsultation {
   id: string;
   advisor: 'claude' | 'openai';
+  purpose: 'proposals' | 'research';
   model: string;
   created_at: string;
   issues: number;
@@ -85,6 +101,8 @@ export interface AgentView {
   lessons: AgentLesson[];
   last_report: AgentReport | null;
   consultations: AgentConsultation[];
+  learnings: AgentLearning[];
+  topics: { key: string; label: string }[];
   resolvers: { key: string; label: string }[];
   config: { email: string; email_ready: boolean; advisor: 'claude' | 'openai' | 'rule'; model: string | null; claude_ready: boolean; model_ready: boolean; live_checks: boolean; base: string };
 }

@@ -27,7 +27,13 @@ and learns from logs, data and results. Full notes: `docs/groundswell-agent.md`.
   `groundswell_agent_consultations` with what was kept or rejected and why,
   outcomes written back when checked; OpenAI stands in without the key,
   `ruleProposal` without either; a resolver failed twice with no success is
-  ruled out), `report.ts`
+  ruled out), `research.ts` (each pass asks Claude, with web search, what is
+  new in `DEFAULT_TOPICS` AI agent marketing and social media marketing, or
+  `GROUNDSWELL_AGENT_TOPICS`; the ask carries the learnings already held so
+  only new ones come back; `checkLearnings` needs a title, a summary and a
+  real link, never one known by link or title; stored in
+  `groundswell_agent_learnings`, logged with purpose `research`, reported
+  once under "What the agent learned"), `report.ts`
   (the email and the confirmation page), `agent.ts` (`runAgentPass`:
   verify, collect, fold, propose, report every 4 h while anything is open,
   else daily; `decide`: approve applies now and wakes the worker, dismiss
@@ -38,7 +44,8 @@ and learns from logs, data and results. Full notes: `docs/groundswell-agent.md`.
   observations under `external:<name>`), `approve` | `dismiss` | `reopen`.
 - **Migration** `20261104120000`: `groundswell_agent_issues`, `_lessons`,
   `_reports`, `_consultations` (RLS on, no policies) and the cron `groundswell-agent-report`
-  (`0 */4 * * *`). Additive: the route answers 503 until applied.
+  (`0 */4 * * *`); `20261105120000`: `groundswell_agent_learnings` and the
+  consultations' `purpose`. Additive: the route answers 503 until applied.
 - **Screen** `/groundswell/admin/agent` (`GroundswellAgent.tsx`, nav
   "Agent"; `src/lib/groundswellAgent.ts`).
 - **Tests**: `src/test/api/groundswell-agent.test.ts`,

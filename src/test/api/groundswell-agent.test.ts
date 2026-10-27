@@ -26,8 +26,10 @@ import { COLLECTORS, collectAll, errorKey, headwayCollector, runsCollector } fro
 import { allowedResolvers, checkProposal, priorAdvice, proposeAll, ruleProposal } from '../../../api/_lib/groundswell/agent/propose';
 import type { Consultation } from '../../../api/_lib/groundswell/agent/consult';
 import { approvalUrl, buildReport, decisionPage } from '../../../api/_lib/groundswell/agent/report';
+import { checkLearnings, normalizeUrl, researchTopics, topicsFromEnv, DEFAULT_TOPICS } from '../../../api/_lib/groundswell/agent/research';
+import { parseJsonObject } from '../../../api/_lib/groundswell/agent/consult';
 import { RESOLVERS, applicableResolvers, resolverByKey } from '../../../api/_lib/groundswell/agent/resolvers';
-import { foldObservations, issueForToken, readConsultations, readIssues, readLessons, summarizeLessons } from '../../../api/_lib/groundswell/agent/store';
+import { foldObservations, issueForToken, readConsultations, readIssues, readLearnings, readLessons, summarizeLessons } from '../../../api/_lib/groundswell/agent/store';
 import type { CollectResult, Db, IssueRow, Observation } from '../../../api/_lib/groundswell/agent/types';
 import type { ApiRequest, ApiResponse } from '../../../api/_lib/http';
 
@@ -443,6 +445,97 @@ describe('a pass', () => {
     expect(result.note).toBe('The run is running now, not failed; nothing to re-queue.');
     expect((await readIssues(client)).find((i) => i.id === issue.id)).toMatchObject({ status: 'open', proposal: null });
     expect((await readLessons(client))[0]).toMatchObject({ resolver: 'requeue_step', result: 'failed' });
+  });
+});
+
+describe('research', () => {
+  const learning = (over: Record<string, unknown> = {}) => ({ title: 'Instagram now ranks original content above reposts', summary: 'Reposted reels get less reach than originals.', why_it_matters: 'Clients who repost will lose reach.', action: 'Post originals.', url: 'https://example.test/blog/instagram-originals?utm_source=x', source: 'example.test', published: '2026-10-25', confidence: 'high', ...over });
+  const answered = (learnings: unknown[], over: Partial<Consultation> = {}): Consultation => ({ model: 'claude-opus-5-5', text: `Here is what I found.\n\n\`\`\`json\n${JSON.stringify({ learnings })}\n\`\`\``, parsed: { learnings }, usage: { input_tokens: 5000, output_tokens: 900, cache_read_input_tokens: 2000, web_searches: 6 }, latency_ms: 30_000, stop_reason: 'end_turn', error: null, ...over });
+
+  it('reads the JSON out of an answer that narrates its searching first', () => {
+    expect(parseJsonObject('I searched.\n```json\n{"learnings": []}\n```')).toEqual({ learnings: [] });
+    expect(parseJsonObject('Some words {"learnings": [{"title": "x"}]} more words')).toEqual({ learnings: [{ title: 'x' }] });
+    expect(parseJsonObject('no json here')).toBeNull();
+  });
+
+  it('keeps a learning only with a title, a summary and a real link, and never one already known', () => {
+    expect(normalizeUrl('https://Example.test/a/?utm_source=x&id=2#top')).toBe('https://example.test/a/?id=2');
+    expect(normalizeUrl('ftp://example.test')).toBeNull();
+    expect(normalizeUrl('not a url')).toBeNull();
+    const known = [{ url: 'https://example.test/blog/instagram-originals', title: 'Instagram now ranks original content above reposts' }];
+    const { kept, dropped } = checkLearnings({ learnings: [learning(), learning({ title: 'TikTok adds a search ads beta', url: 'https://example.test/tiktok-search-ads', published: 'last week', confidence: 'certain' }), learning({ title: 'No link', url: '' }), learning({ title: '', url: 'https://example.test/x' }), learning({ title: 'Same link, new title', url: 'https://example.test/tiktok-search-ads' })] }, 'social-media-marketing', known);
+    expect(kept).toHaveLength(1);
+    expect(kept[0]).toMatchObject({ topic: 'social-media-marketing', title: 'TikTok adds a search ads beta', url: 'https://example.test/tiktok-search-ads', published_at: null, confidence: 'low', source: 'example.test' });
+    expect(dropped).toEqual(['Instagram now ranks original content above reposts: already known.', 'No link: no usable source link.', '(no title): no title or summary.', 'Same link, new title: already known.']);
+  });
+
+  it('the topics come from the environment, or the two defaults', () => {
+    expect(topicsFromEnv('').map((t) => t.key)).toEqual(['ai-agent-marketing', 'social-media-marketing']);
+    expect(topicsFromEnv('Local SEO = what changed in Google Business Profile; email=newsletter tools').map((t) => [t.key, t.label])).toEqual([['local-seo', 'Local seo'], ['email', 'Email']]);
+    expect(DEFAULT_TOPICS.every((t) => t.brief.length > 100)).toBe(true);
+  });
+
+  it('asks Claude per topic with what it already knows, stores only what is new, and logs each ask as research', async () => {
+    const consult = vi.fn().mockImplementation(async (_system: string, question: string) => {
+      const q = JSON.parse(question);
+      return q.topic === 'Social media marketing' ? answered([learning(), learning({ title: 'A second finding', url: 'https://example.test/second' })]) : answered([]);
+    });
+    const first = await researchTopics(fake(), { now: NOW, deadline: Infinity, consult });
+    expect(consult).toHaveBeenCalledTimes(2);
+    expect(consult.mock.calls[0][2]).toEqual({ webSearch: { maxUses: 8 } });
+    const asked = JSON.parse(consult.mock.calls[1][1]);
+    expect(asked).toMatchObject({ topic: 'Social media marketing', today: '2026-10-27', since: '2026-10-20', at_most: 5, already_known: [] });
+    expect(asked.look_for).toContain('Instagram');
+    expect(first.learned.map((l) => l.title)).toEqual(['Instagram now ranks original content above reposts', 'A second finding']);
+    expect(first.learned[0].url).toBe('https://example.test/blog/instagram-originals');
+    const logs = await readConsultations(fake());
+    expect(logs).toHaveLength(2);
+    expect(logs.every((c) => c.purpose === 'research' && c.advisor === 'claude')).toBe(true);
+    expect(logs.find((c) => c.question.topic === 'social-media-marketing')).toMatchObject({ usage: { web_searches: 6 }, kept: { 'learning-1': { kept: true }, 'learning-2': { kept: true } } });
+
+    // The next pass is told what is known, and the same finding is not kept twice.
+    const second = await researchTopics(fake(), { now: new Date(NOW.getTime() + 4 * 3_600_000), deadline: Infinity, consult });
+    const askedAgain = JSON.parse(consult.mock.calls[3][1]);
+    expect(askedAgain.already_known.map((k: { title: string }) => k.title)).toEqual(['Instagram now ranks original content above reposts', 'A second finding']);
+    expect(second.learned).toEqual([]);
+    expect(second.dropped['social-media-marketing']).toEqual(['Instagram now ranks original content above reposts: already known.', 'A second finding: already known.']);
+    expect(await readLearnings(fake())).toHaveLength(2);
+  });
+
+  it('without Claude the research is skipped and says so; a failed ask is logged and skipped too', async () => {
+    const skipped = await researchTopics(fake(), { now: NOW, deadline: Infinity });
+    expect(skipped.skipped).toEqual({ 'ai-agent-marketing': 'ANTHROPIC_API_KEY is not set, so nothing was researched.', 'social-media-marketing': 'ANTHROPIC_API_KEY is not set, so nothing was researched.' });
+    const consult = vi.fn().mockResolvedValue(answered([], { parsed: null, text: '', error: 'Claude declined the question (cyber).' }));
+    const failed = await researchTopics(fake(), { now: NOW, deadline: Infinity, consult, topics: [DEFAULT_TOPICS[0]] });
+    expect(failed.skipped).toEqual({ 'ai-agent-marketing': 'Claude declined the question (cyber).' });
+    expect((await readConsultations(fake()))[0]).toMatchObject({ purpose: 'research', error: 'Claude declined the question (cyber).' });
+  });
+
+  it('a pass reports the new learnings, with their links, and sends because of them', async () => {
+    db.current = fakeSupabase({});
+    const consult = vi.fn().mockImplementation(async (_system: string, question: string) => (JSON.parse(question).topic === 'AI agent marketing' ? answered([learning({ title: 'Meta opens agentic campaign setup to small advertisers', url: 'https://example.test/meta-agentic', source: 'example.test' })]) : answered([])));
+    const report = await runAgentPass(fake(), { now: NOW, deadline: Infinity, collectors: [], send: sender, base: 'https://example.test', to: 'o@example.test', advisor: 'rule', research: { consult } });
+    expect(report.sent).toBe(true);
+    expect(report.counts.learned).toBe(1);
+    expect(sent[0].subject).toBe('GroundSwell agent: 1 new learning (2026-10-27 04:00 UTC)');
+    expect(sent[0].html).toContain('What the agent learned (1)');
+    expect(sent[0].html).toContain('Meta opens agentic campaign setup to small advertisers');
+    expect(sent[0].html).toContain('href="https://example.test/meta-agentic"');
+    expect(sent[0].text).toContain('WHAT THE AGENT LEARNED (1)');
+    expect(sent[0].text).toContain('Source: https://example.test/meta-agentic');
+    // Four hours on, nothing new anywhere: quiet.
+    const quiet = await runAgentPass(fake(), { now: new Date(NOW.getTime() + 4 * 3_600_000), deadline: Infinity, collectors: [], send: sender, base: 'https://example.test', to: 'o@example.test', advisor: 'rule', research: { consult } });
+    expect(quiet.sent).toBe(false);
+    expect(sent).toHaveLength(1);
+  });
+
+  it('a pass without Claude names the research as not done, and the research can be switched off', async () => {
+    db.current = fakeSupabase({});
+    const report = await runAgentPass(fake(), { now: NOW, deadline: Infinity, collectors: [], send: sender, base: 'https://example.test', to: 'o@example.test', advisor: 'rule', force: true });
+    expect(report.research_skipped['ai-agent-marketing']).toContain('ANTHROPIC_API_KEY');
+    expect(sent[0].text).toContain('RESEARCH NOT DONE: ai-agent-marketing: ANTHROPIC_API_KEY is not set');
+    const off = await runAgentPass(fake(), { now: NOW, deadline: Infinity, collectors: [], send: sender, base: 'https://example.test', to: 'o@example.test', advisor: 'rule', force: true, research: false });
+    expect(off.research_skipped).toEqual({});
   });
 });
 

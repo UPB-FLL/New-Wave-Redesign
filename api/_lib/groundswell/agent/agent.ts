@@ -2,6 +2,7 @@ import { Resend } from 'resend';
 import { COLLECTORS, collectAll } from './collectors.js';
 import { proposeAll, type ProposeOptions } from './propose.js';
 import { AGENT_FROM, agentBaseUrl, agentEmailAddress, buildReport, type Report } from './report.js';
+import { researchTopics, type ResearchOptions } from './research.js';
 import { resolverByKey } from './resolvers.js';
 import { addLesson, attachConsultationOutcome, foldObservations, issueApprovalToken, lastReport, MUTE_DAYS, readConsultations, readIssues, readLessons, recordReport, saveProposal, summarizeLessons, updateIssue, type FoldReport } from './store.js';
 import type { Collector, Db, IssueRow, Outcome, ResolveResult } from './types.js';
@@ -14,8 +15,11 @@ import type { Collector, Db, IssueRow, Outcome, ResolveResult } from './types.js
  *   2. read every source and fold what was seen into the issue table
  *   3. ask the advisor (Claude) for a resolution for every issue that has
  *      none, with the log of its earlier advice and outcomes; log the ask
- *   4. email the report when there is something to say (every 24 hours when
- *      there is not), with an Approve and a Dismiss link per proposal
+ *   4. research what is new in the fields the division works in (research.ts)
+ *      and keep only what the agent did not know
+ *   5. email the report when there is something to say (every 24 hours when
+ *      there is not), with an Approve and a Dismiss link per proposal and
+ *      the new learnings
  *
  * Nothing is applied here. A resolution runs only from `decide`, after the
  * owner approves it on the page the email link opens, or staff approve it on
@@ -34,6 +38,8 @@ export type Sender = (message: { to: string; subject: string; html: string; text
 export interface PassOptions extends ProposeOptions {
   now?: Date;
   deadline: number;
+  /** The research step's own options (its consult stub, its topics); `research: false` skips it. */
+  research?: false | Pick<ResearchOptions, 'consult' | 'topics' | 'sinceDays'>;
   collectors?: readonly Collector[];
   send?: Sender;
   /** Email even when nothing changed. */
@@ -49,7 +55,9 @@ export interface PassReport {
   sent: boolean;
   reason: string;
   subject: string | null;
-  counts: { approvals: number; developer: number; resolved: number; watching: number };
+  counts: { approvals: number; developer: number; resolved: number; watching: number; learned: number };
+  /** Topics not researched this pass, and why. */
+  research_skipped: Record<string, string>;
 }
 
 export async function resendSender(message: { to: string; subject: string; html: string; text: string }): Promise<SendResult> {
@@ -114,29 +122,40 @@ export async function runAgentPass(db: Db, opts: PassOptions): Promise<PassRepor
     }
   }
 
+  // The research: what is new out there, with the time the pass has left.
+  let learned: Awaited<ReturnType<typeof researchTopics>> = { learned: [], dropped: {}, skipped: {} };
+  if (opts.research !== false) {
+    try {
+      learned = await researchTopics(db, { now, deadline: opts.deadline, ...(opts.research ?? {}) });
+    } catch (err) {
+      console.error('Agent research failed:', err instanceof Error ? err.message : err);
+      learned.skipped.all = err instanceof Error ? err.message : String(err);
+    }
+  }
+
   const previous = await lastReport(db);
   const sinceIso = previous?.sent_at ?? new Date(now.getTime() - 4 * 60 * 60_000).toISOString();
   const approvals = all.filter((i) => i.status === 'proposed' && i.proposal && i.proposal.resolver !== 'none');
   const developer = all.filter((i) => i.status === 'needs_developer');
   const resolved = all.filter((i) => i.status === 'resolved' && (i.resolved_at ?? '') > sinceIso);
   const watching = all.filter((i) => (i.status === 'open' && !i.proposal) || (i.status === 'proposed' && i.proposal?.resolver === 'none'));
-  const counts = { approvals: approvals.length, developer: developer.length, resolved: resolved.length, watching: watching.length };
+  const counts = { approvals: approvals.length, developer: developer.length, resolved: resolved.length, watching: watching.length, learned: learned.learned.length };
 
   // Every 4 hours while anything is open or was resolved since the last report; otherwise once a day.
-  const something = approvals.length > 0 || developer.length > 0 || watching.length > 0 || resolved.length > 0 || fold.unread.length > 0 || verified.failed.length > 0;
+  const something = approvals.length > 0 || developer.length > 0 || watching.length > 0 || resolved.length > 0 || fold.unread.length > 0 || verified.failed.length > 0 || learned.learned.length > 0;
   const quietDue = !previous || now.getTime() - Date.parse(previous.sent_at) >= QUIET_REPORT_MS;
   if (!opts.force && !something && !quietDue) {
-    return { fold, verified, proposed: unproposed.length, sent: false, reason: 'Nothing new since the last report.', subject: null, counts };
+    return { fold, verified, proposed: unproposed.length, sent: false, reason: 'Nothing new since the last report.', subject: null, counts, research_skipped: learned.skipped };
   }
 
   const tokens: { issue: IssueRow; token: string }[] = [];
   for (const issue of approvals) tokens.push({ issue, token: await issueApprovalToken(db, issue, now) });
   for (const issue of [...developer, ...watching]) await updateIssue(db, issue.id, { reported_at: now.toISOString() });
-  const report: Report = buildReport({ now, base, approvals: tokens, developer, resolved, watching, lessons, unread: fold.unread });
+  const report: Report = buildReport({ now, base, approvals: tokens, developer, resolved, watching, lessons, unread: fold.unread, learned: learned.learned, researchSkipped: learned.skipped });
   const sent = await (opts.send ?? resendSender)({ to, subject: report.subject, html: report.html, text: report.text });
   await recordReport(db, { sent_at: now.toISOString(), to_email: to, issue_ids: [...approvals, ...developer, ...resolved, ...watching].map((i) => i.id), subject: report.subject, summary: report.summary, email_id: sent.id, status: sent.error ? 'failed' : 'sent' });
   if (sent.error) console.error('Agent report email failed:', sent.error);
-  return { fold, verified, proposed: unproposed.length, sent: !sent.error, reason: sent.error ?? (something ? 'Sent.' : 'Sent the daily all-clear.'), subject: report.subject, counts };
+  return { fold, verified, proposed: unproposed.length, sent: !sent.error, reason: sent.error ?? (something ? 'Sent.' : 'Sent the daily all-clear.'), subject: report.subject, counts, research_skipped: learned.skipped };
 }
 
 export type Decision = 'approve' | 'dismiss';

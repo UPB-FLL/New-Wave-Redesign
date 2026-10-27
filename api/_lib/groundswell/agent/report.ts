@@ -1,6 +1,6 @@
 import { escapeHtml } from '../../http.js';
 import { resolverByKey } from './resolvers.js';
-import type { IssueRow, LessonSummary } from './types.js';
+import type { IssueRow, LearningRow, LessonSummary } from './types.js';
 
 /**
  * The 4-hour report: what needs the owner's approval (with the change, its
@@ -32,6 +32,10 @@ export interface ReportInput {
   lessons: LessonSummary[];
   /** Sources whose collector failed this pass. */
   unread: string[];
+  /** What the research found this pass that the agent did not know. */
+  learned?: LearningRow[];
+  /** Topics not researched, and why. */
+  researchSkipped?: Record<string, string>;
 }
 
 export interface Report {
@@ -95,12 +99,15 @@ function section(title: string, body: string): string {
 
 export function buildReport(input: ReportInput): Report {
   const { approvals, developer, resolved, watching, unread } = input;
+  const learned = input.learned ?? [];
+  const researchSkipped = input.researchSkipped ?? {};
   const date = input.now.toISOString().slice(0, 16).replace('T', ' ');
   const open = approvals.length + developer.length + watching.length;
   const subjectParts = [
     approvals.length ? `${plural(approvals.length, 'resolution')} waiting on you` : null,
     developer.length ? `${plural(developer.length, 'developer brief')}` : null,
     resolved.length ? `${resolved.length} resolved` : null,
+    learned.length ? `${plural(learned.length, 'new learning')}` : null,
   ].filter(Boolean);
   const subject = `GroundSwell agent: ${subjectParts.length ? subjectParts.join(', ') : open ? `${plural(open, 'issue')} open` : 'all clear'} (${date} UTC)`;
   const summary = subjectParts.length ? subjectParts.join('; ') : open ? `${plural(open, 'issue')} open, nothing to approve.` : 'All clear.';
@@ -136,6 +143,32 @@ export function buildReport(input: ReportInput): Report {
   if (watching.length) {
     text.push(`WATCHING (${watching.length})`, ...watching.map((i) => `- ${i.title} (seen ${plural(i.occurrences, 'time')})`), '');
     html.push(section(`Watching (${watching.length})`, `<ul style="padding-left:18px;font-size:14px">${watching.map((i) => `<li style="margin:0 0 6px">${escapeHtml(i.title)} <span style="color:#526271">(seen ${plural(i.occurrences, 'time')})</span></li>`).join('')}</ul>`));
+  }
+  if (learned.length) {
+    const byTopic = new Map<string, LearningRow[]>();
+    for (const l of learned) byTopic.set(l.topic, [...(byTopic.get(l.topic) ?? []), l]);
+    text.push(`WHAT THE AGENT LEARNED (${learned.length})`, '');
+    const blocks: string[] = [];
+    for (const [topic, rows] of byTopic) {
+      text.push(topic.replace(/-/g, ' ').toUpperCase());
+      for (const l of rows) {
+        text.push(`- ${l.title}${l.published_at ? ` (${l.published_at})` : ''}`, `  ${l.summary}`, l.why_it_matters ? `  Why it matters: ${l.why_it_matters}` : '', l.action ? `  What to do: ${l.action}` : '', `  Source: ${l.url}`);
+      }
+      text.push('');
+      blocks.push(`<h3 style="font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:#526271;margin:16px 0 8px">${escapeHtml(topic.replace(/-/g, ' '))}</h3>` + rows.map((l) => `<div style="border-left:3px solid #31C6CF;padding:4px 0 4px 14px;margin:0 0 12px">
+<p style="margin:0 0 4px;font-size:15px;font-weight:600">${escapeHtml(l.title)}${l.published_at ? ` <span style="font-weight:400;color:#526271;font-size:12px">${escapeHtml(l.published_at)}</span>` : ''}</p>
+<p style="margin:0 0 4px;font-size:14px">${escapeHtml(l.summary)}</p>
+${l.why_it_matters ? `<p style="margin:0 0 4px;font-size:14px"><strong>Why it matters:</strong> ${escapeHtml(l.why_it_matters)}</p>` : ''}
+${l.action ? `<p style="margin:0 0 4px;font-size:14px"><strong>What to do:</strong> ${escapeHtml(l.action)}</p>` : ''}
+<p style="margin:0;font-size:12px"><a href="${escapeHtml(l.url)}" style="color:#0B6E73">${escapeHtml(l.source || l.url)}</a> · confidence ${l.confidence}</p>
+</div>`).join(''));
+    }
+    html.push(section(`What the agent learned (${learned.length})`, `<p style="font-size:13px;color:#526271;margin:0 0 12px">New since the last pass, from Claude's web search; each has the page it was read on. The agent keeps every learning and reports each one once.</p>` + blocks.join('')));
+  }
+  const skippedTopics = Object.entries(researchSkipped);
+  if (skippedTopics.length) {
+    text.push(`RESEARCH NOT DONE: ${skippedTopics.map(([k, v]) => `${k}: ${v}`).join('; ')}`, '');
+    html.push(section('Research not done', `<p style="font-size:14px">${skippedTopics.map(([k, v]) => `${escapeHtml(k)}: ${escapeHtml(v)}`).join('<br>')}</p>`));
   }
   if (unread.length) {
     text.push(`NOT READ THIS PASS: ${unread.join(', ')}`, '');
