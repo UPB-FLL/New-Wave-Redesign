@@ -2,6 +2,44 @@
 
 ## Recent Changes
 
+### Groundswell: the operations agent, a 4-hour report, approval from the email (2026-10-27)
+
+Owner's ask: a local, agnostic agent that feeds back errors, resolves them
+on approval, sends a 4-hour report and waits for approval from the email,
+and learns from logs, data and results. Full notes: `docs/groundswell-agent.md`.
+
+- **Library** `api/_lib/groundswell/agent/`: `types.ts` (Observation,
+  IssueRow, Collector, Resolver), `collectors.ts` (runs: failed, held,
+  stalled, long-queued, data steps skipped on delivered runs grouped by
+  `errorKey`; headway: failed and waiting actions; readiness: the live
+  checks; `collectAll` keeps one failure from stopping the rest),
+  `resolvers.ts` (`requeue_step`, `release_review`, `recheck_review`,
+  `wake_worker`, `retry_action`, `acknowledge`; each with `applies`,
+  `describe` (change and rollback in words), `apply`, `verify`),
+  `store.ts` (`foldObservations`: open, count, clear, reopen with a lesson;
+  `observed_at` makes old history the same sighting; tokens hashed, 7 days;
+  lessons and reports), `propose.ts` (the model picks among the resolvers
+  the code allows, `checkProposal` holds it there, `ruleProposal` without
+  it; a resolver failed twice with no success is ruled out), `report.ts`
+  (the email and the confirmation page), `agent.ts` (`runAgentPass`:
+  verify, collect, fold, propose, report every 4 h while anything is open,
+  else daily; `decide`: approve applies now and wakes the worker, dismiss
+  mutes 7 days).
+- **Route** `api/groundswell/agent.ts`: email links (`?token=&decision=`,
+  GET shows the page, POST from its button applies); staff (admin key or
+  Bearer): GET the view, POST `report` (202, runs on), `observe` (outside
+  observations under `external:<name>`), `approve` | `dismiss` | `reopen`.
+- **Migration** `20261102120000`: `groundswell_agent_issues`, `_lessons`,
+  `_reports` (RLS on, no policies) and the cron `groundswell-agent-report`
+  (`0 */4 * * *`). Additive: the route answers 503 until applied.
+- **Screen** `/groundswell/admin/agent` (`GroundswellAgent.tsx`, nav
+  "Agent"; `src/lib/groundswellAgent.ts`).
+- **Tests**: `src/test/api/groundswell-agent.test.ts`,
+  `GroundswellAgent.test.tsx`.
+- **Not verified live**: no pass has run against production; the migration
+  is not applied yet. Setup in Vercel: optional `GROUNDSWELL_AGENT_EMAIL`,
+  `GROUNDSWELL_BASE_URL`, `GROUNDSWELL_AGENT_LIVE_CHECKS=off`.
+
 ### Groundswell: a step cut off mid-call is given up after three leases; social reads keep to the deadline (2026-10-27)
 
 Seen on the first Uncommon Path run after the AI search PR: the `social` step

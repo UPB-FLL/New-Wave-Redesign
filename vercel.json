@@ -28,6 +28,10 @@
     "api/groundswell/workspace.ts": {
       "maxDuration": 300,
       "includeFiles": "{node_modules/@sparticuz/chromium/bin/**,public/brand/social-engineering/fonts/inter-latin-var.woff2}"
+    },
+    "api/groundswell/agent.ts": {
+      "maxDuration": 300,
+      "includeFiles": "{node_modules/@sparticuz/chromium/bin/**,public/brand/social-engineering/fonts/inter-latin-var.woff2}"
     }
   },
   "headers": [
