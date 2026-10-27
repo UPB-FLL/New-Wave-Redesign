@@ -1,5 +1,7 @@
-import { ArrowRight, Calendar, CheckCircle2, Phone, Shield } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { ArrowRight, CheckCircle2, Phone } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { useContent } from '../../lib/useContent';
+import { CurrentField } from '../brand/CurrentField';
 
 const deliverables = [
   { title: 'Vulnerability Report', description: 'A prioritized view of security gaps' },
@@ -9,25 +11,26 @@ const deliverables = [
 ];
 
 export default function CyberSecurityCTA() {
-  const navigate = useNavigate();
+  const footer = useContent('footer');
+  const phone = footer.phone || '(561) 564-1846';
 
   return (
-    <section id="cta" className="py-16 sm:py-20" style={{ background: 'var(--nw-deep-current)' }}>
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-center lg:gap-16 lg:px-8">
+    <section id="cta" className="relative overflow-hidden py-16 sm:py-20" style={{ background: 'var(--nw-deep-current)' }}>
+      <CurrentField density="subtle" tone="dark" className="pointer-events-none absolute inset-0 h-full w-full opacity-60" />
+      <div className="relative mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-center lg:gap-16 lg:px-8">
         <div>
-          <p className="nw-kicker text-[var(--nw-signal-cyan)]"><Shield className="mr-2 inline-block" size={14} aria-hidden="true" />Security Assessment</p>
-          <h2 className="nw-display mt-3 text-3xl leading-[1.1] text-[var(--nw-cloud-white)] sm:text-4xl lg:text-5xl">See your security gaps before <span className="text-[var(--nw-signal-cyan)]">attackers do.</span></h2>
-          <p className="mt-5 max-w-2xl text-base leading-relaxed text-[var(--nw-mist-gray)] sm:text-lg">Get a comprehensive security posture assessment from certified analysts. We will identify vulnerabilities, prioritize remediation, and outline a useful path forward.</p>
+          <h2 className="nw-display text-3xl leading-[1.15] text-[var(--nw-cloud-white)] sm:text-[2.25rem]">Request a security assessment</h2>
+          <p className="mt-4 max-w-2xl text-base leading-relaxed text-[var(--nw-mist-gray)] sm:text-lg">Get a comprehensive security posture assessment from certified analysts. We will identify vulnerabilities, prioritize remediation, and outline a useful path forward.</p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <button type="button" onClick={() => navigate('/contact')} className="btn-primary"><Calendar size={17} aria-hidden="true" />Schedule Assessment<ArrowRight size={17} aria-hidden="true" /></button>
-            <button type="button" onClick={() => navigate('/contact')} className="btn-secondary"><Phone size={16} aria-hidden="true" />Talk to an Engineer</button>
+            <Link to="/contact" className="btn-primary">Schedule an assessment<ArrowRight size={17} aria-hidden="true" /></Link>
+            <a href={`tel:${phone.replace(/\D/g, '')}`} className="btn-ghost-dark"><Phone size={16} aria-hidden="true" />Talk to an engineer</a>
           </div>
           <ul className="mt-7 flex flex-wrap gap-x-6 gap-y-3 text-sm text-[var(--nw-mist-gray)]">
-            {['No commitment required', 'Results in 5 days', 'Executive-ready report'].map((item) => <li key={item} className="flex items-center gap-2"><CheckCircle2 size={16} className="text-[var(--nw-continuity-green)]" aria-hidden="true" />{item}</li>)}
+            {['No commitment required', 'Executive-ready report'].map((item) => <li key={item} className="flex items-center gap-2"><CheckCircle2 size={16} className="text-[var(--nw-continuity-green)]" aria-hidden="true" />{item}</li>)}
           </ul>
         </div>
         <aside className="rounded-lg border p-6 sm:p-7" style={{ background: 'var(--nw-current-navy)', borderColor: 'var(--nw-tide-blue)' }}>
-          <h3 className="nw-kicker text-[var(--nw-signal-cyan)]">What You Receive</h3>
+          <h3 className="text-lg font-bold text-[var(--nw-cloud-white)]">What you receive</h3>
           <ul className="mt-5 space-y-5">
             {deliverables.map((item) => (
               <li key={item.title} className="flex gap-3">

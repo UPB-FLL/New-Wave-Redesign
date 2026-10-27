@@ -5,15 +5,15 @@ import { usePageMeta } from '../lib/usePageMeta';
 import { ADS_ACTIVE, ANALYTICS_ACTIVE } from '../lib/analytics';
 
 const SECTION_CLASS = 'space-y-3';
-const HEADING_CLASS = 'text-2xl font-semibold tracking-tight text-slate-900';
+const HEADING_CLASS = 'nw-display text-2xl text-[var(--nw-current-navy)]';
 const LIST_CLASS = 'list-disc space-y-2 pl-6';
-const LINK_CLASS = 'font-medium text-teal-700 underline decoration-teal-300 underline-offset-4 hover:text-teal-900';
+const LINK_CLASS = 'font-medium text-[var(--nw-tide-blue)] underline decoration-[var(--nw-signal-cyan)] underline-offset-4 hover:text-[var(--nw-current-navy)]';
 
 export default function PrivacyPolicyPage() {
   usePageMeta(IT_PAGE_META['/privacy-policy']);
 
   return (
-    <LegalPageLayout title="Privacy Policy" effectiveDate="October 15, 2026">
+    <LegalPageLayout title="Privacy Policy" effectiveDate="October 15, 2026" breadcrumbs={IT_PAGE_META['/privacy-policy'].breadcrumbs}>
       <section className={SECTION_CLASS} aria-labelledby="scope">
         <h2 id="scope" className={HEADING_CLASS}>Scope</h2>
         <p>

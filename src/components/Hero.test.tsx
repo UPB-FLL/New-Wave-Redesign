@@ -154,6 +154,26 @@ describe('Hero', () => {
     expect(navigate).toHaveBeenCalledWith('/services');
   });
 
+  it('calls the CMS phone from the secondary button, as its "Call Us Now" label says', () => {
+    vi.mocked(useContent).mockReturnValue({ cta_secondary: 'Call Us Now', phone: '+15615641846' });
+    renderHero();
+
+    expect(screen.getByRole('link', { name: 'Call Us Now' })).toHaveAttribute('href', 'tel:+15615641846');
+    expect(screen.queryByRole('button', { name: 'Call Us Now' })).not.toBeInTheDocument();
+  });
+
+  it('joins a second headline part that opens with punctuation without a space before it', () => {
+    vi.mocked(useContent).mockReturnValue({
+      headline_part1: 'When technology',
+      headline_accent: 'matters most',
+      headline_part2: ", make sure it's in the",
+      headline_accent2: 'right hands.',
+    });
+    renderHero();
+
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe("When technology matters most, make sure it's in the right hands.");
+  });
+
   it('disables the rotating video and restores the static fallback for reduced motion', () => {
     const view = renderHero();
     const fallback = screen.getByTestId('hero-current-fallback');

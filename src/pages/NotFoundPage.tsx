@@ -1,6 +1,8 @@
 import { ArrowRight } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import { PublicPageHero } from '../components/brand/PublicPageHero';
+import { PageHeader } from '../components/brand/PageHeader';
+import { Section } from '../components/brand/Section';
+import { SectionHeading } from '../components/brand/SectionHeading';
 import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
 import { usePageMeta } from '../lib/usePageMeta';
@@ -34,19 +36,21 @@ export default function NotFoundPage() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--nw-cloud-white)' }}>
       <Navbar />
-      <PublicPageHero title="Page not found" description="The page you were looking for does not exist or has moved." />
-      <main className="mx-auto max-w-3xl px-6 py-16">
-        <h2 className="nw-display mb-6 text-2xl text-brand-navy">Try one of these instead</h2>
-        <ul className="grid gap-3 sm:grid-cols-2">
-          {links.map((link) => (
-            <li key={link.to}>
-              <Link to={link.to} className="flex items-center justify-between rounded-lg border px-4 py-3 text-[var(--nw-current-navy)] no-underline transition-colors hover:border-[var(--nw-tide-blue)]" style={{ background: 'var(--nw-pure-white)', borderColor: 'var(--nw-mist-gray)' }}>
-                {link.label}
-                <ArrowRight size={15} aria-hidden="true" />
-              </Link>
-            </li>
-          ))}
-        </ul>
+      <PageHeader title="Page not found" description="The page you were looking for does not exist or has moved." />
+      <main>
+        <Section tone="white">
+          <SectionHeading title="Try one of these pages" />
+          <ul className="mt-8 grid max-w-3xl gap-3 sm:grid-cols-2">
+            {links.map((link) => (
+              <li key={link.to}>
+                <Link to={link.to} className="flex items-center justify-between rounded-lg border px-4 py-3 text-[var(--nw-current-navy)] no-underline transition-colors hover:border-[var(--nw-tide-blue)]" style={{ background: 'var(--nw-cloud-white)', borderColor: 'var(--nw-mist-gray)' }}>
+                  {link.label}
+                  <ArrowRight size={15} aria-hidden="true" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Section>
       </main>
       <Footer />
     </div>

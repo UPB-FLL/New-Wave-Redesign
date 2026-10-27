@@ -73,22 +73,26 @@ describe('TrustBar layout', () => {
     expect(screen.getAllByTestId('trusted-proof-card')).toHaveLength(6);
     expect(screen.getByText('24/7 Support')).toBeInTheDocument();
     expect(screen.getByText('Always available')).toBeInTheDocument();
+  });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Go to slide 3' }));
+  it('has two slides: the services slide repeated the Services section right below it', async () => {
+    render(
+      <MemoryRouter>
+        <TrustBar />
+      </MemoryRouter>,
+    );
 
-    const cards = await waitFor(() => screen.getAllByTestId('trust-service-card'));
-    const servicesGrid = screen.getByTestId('services-slide-grid');
-    expect(servicesGrid).toHaveClass('mx-auto', 'w-full', 'max-w-5xl', 'grid-cols-2', 'md:grid-cols-3');
-    expect(cards).toHaveLength(6);
-    cards.forEach((card) => expect(card).toHaveClass('h-full'));
-    expect(cards.map((card) => card.getAttribute('href'))).toEqual([
-      '/service-category/cybersecurity',
-      '/service-category/live-it-support',
-      '/service-category/it-repair-upgrades',
-      '/service-category/managed-it-services',
-      '/service-category/cloud-solutions',
-      '/service-category/network-infrastructure',
-    ]);
+    expect(screen.getAllByRole('button', { name: /^Go to slide/ })).toHaveLength(2);
+    expect(screen.queryByRole('button', { name: 'Go to slide 3' })).toBeNull();
+    expect(screen.getByRole('heading', { level: 2, name: 'Partners and commitments' })).toBeInTheDocument();
+    // One title per slide, no label above it.
+    expect(screen.queryByText('Trusted partner')).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Go to slide 2' }));
+    expect(await screen.findByRole('heading', { level: 2, name: 'Platforms we manage' })).toBeInTheDocument();
+    expect(screen.queryByText('Your stack, managed')).toBeNull();
+    expect(screen.queryByTestId('services-slide')).toBeNull();
+    expect(screen.queryAllByTestId('trust-service-card')).toHaveLength(0);
   });
 
   it('uses white slide backgrounds and service-style dark cards throughout the carousel', async () => {
@@ -133,21 +137,7 @@ describe('TrustBar layout', () => {
       expect(icon).toHaveStyle({ background: `${expectedAccent}25`, color: expectedAccent });
     });
     toolCards.forEach(expectServiceCardSurface);
-
-    fireEvent.click(screen.getByRole('button', { name: 'Go to slide 3' }));
-    const serviceCards = await waitFor(() => screen.getAllByTestId('trust-service-card'));
-    expect(screen.getByTestId('services-slide')).toHaveClass('bg-[var(--nw-pure-white)]');
-    expect(screen.getByTestId('services-slide-grid')).toHaveClass('md:auto-rows-[112px]', 'lg:auto-rows-[112px]');
-    expect(serviceCards).toHaveLength(6);
-    serviceCards.forEach((card, index) => {
-      expectServiceCardSurface(card, index);
-      expect(card).toHaveClass('justify-center', 'sm:items-center');
-    });
-    screen.getAllByTestId('trust-service-title').forEach((title) => {
-      expect(title).toHaveClass('overflow-hidden', 'text-ellipsis', 'whitespace-nowrap');
-    });
-    screen.getAllByTestId('trust-service-blurb').forEach((blurb) => {
-      expect(blurb).toHaveClass('h-8', 'overflow-hidden');
-    });
+    // On phones the icon tile gave way so the names fit ("Huntress Pa…" was cut off).
+    toolIcons.forEach((icon) => expect(icon).toHaveClass('hidden', 'sm:flex'));
   });
 });

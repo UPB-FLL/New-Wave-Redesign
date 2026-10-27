@@ -10,21 +10,20 @@ const steps: { icon: LucideIcon; title: string; description: string; duration: s
 
 export default function SecurityProcess() {
   return (
-    <section className="relative z-10 bg-[var(--nw-pure-white)] py-16 sm:py-20">
+    <section className="relative z-10 border-t bg-[var(--nw-pure-white)] py-16 sm:py-20" style={{ borderColor: 'var(--nw-mist-gray)' }}>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
-          align="center"
-          eyebrow="How We Engage"
-          title={<>From assessment to <span className="text-[var(--nw-tide-blue)]">active defense.</span></>}
+          title="How an engagement works"
           description="A practical four-phase approach that builds protection in a deliberate, understandable way."
         />
         <ol className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {steps.map((step) => {
+          {steps.map((step, index) => {
             const Icon = step.icon;
             return (
               <li key={step.title} className="relative rounded-lg border p-6" style={{ background: 'var(--nw-cloud-white)', borderColor: 'var(--nw-mist-gray)' }}>
-                <div className="flex items-start justify-between gap-4">
-                  <span className="nw-icon-signal h-10 w-10"><Icon size={19} aria-hidden="true" /></span>
+                <div className="flex items-center justify-between gap-4">
+                  <span className="nw-display flex h-9 w-9 items-center justify-center rounded-full text-sm text-[var(--nw-deep-current)]" style={{ background: 'var(--nw-signal-cyan)' }} aria-hidden="true">{index + 1}</span>
+                  <Icon size={19} className="text-[var(--nw-tide-blue)]" aria-hidden="true" />
                 </div>
                 <p className="nw-meta mt-6 text-xs text-[var(--nw-slate)]">{step.duration}</p>
                 <h3 className="mt-2 font-bold text-[var(--nw-current-navy)]">{step.title}</h3>

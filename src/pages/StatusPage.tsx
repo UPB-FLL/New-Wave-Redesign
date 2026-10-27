@@ -1,6 +1,7 @@
 import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
 import StatusIndicator from '../components/StatusIndicator';
+import { PageHeader } from '../components/brand/PageHeader';
 import { useContent } from '../lib/useContent';
 import { IT_PAGE_META } from '../lib/routeMeta';
 import { usePageMeta } from '../lib/usePageMeta';
@@ -53,19 +54,14 @@ export default function StatusPage() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--nw-cloud-white)' }}>
       <Navbar />
-      <main className="pt-20">
-        <section className="border-b py-12 sm:py-16" style={{ borderColor: 'var(--nw-mist-gray)' }}>
-          <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-            <div className="mb-8 text-center sm:mb-10">
-              <p className="nw-kicker">{content.section_label || 'System status'}</p>
-              <h1 className="nw-display mb-4 mt-2 text-4xl leading-[1.05] text-brand-navy sm:text-5xl lg:text-6xl">
-                {content.headline || <>Real-time <span className="text-brand-tide-blue">service status</span></>}
-              </h1>
-              <p className="mx-auto max-w-2xl text-sm text-[var(--nw-slate)] sm:text-base">
-                {content.subheadline || 'Monitor the status of cloud services and ISPs your business depends on. Updated every 5 minutes.'}
-              </p>
-            </div>
-
+      <PageHeader
+        breadcrumbs={IT_PAGE_META['/status'].breadcrumbs}
+        title={content.headline || 'Real-time service status'}
+        description={content.subheadline || 'Monitor the status of cloud services and ISPs your business depends on. Updated every 5 minutes.'}
+      />
+      <main>
+        <section className="relative z-10 border-b bg-[var(--nw-pure-white)] py-12 sm:py-14" style={{ borderColor: 'var(--nw-mist-gray)' }}>
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid gap-4 sm:grid-cols-3">
               {[
                 { value: `${operationalCount}/${services.length}`, label: 'Services operational', color: 'var(--nw-continuity-green)' },
@@ -82,7 +78,7 @@ export default function StatusPage() {
         </section>
 
         <section className="relative z-10 py-12 sm:py-16">
-          <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <StatusGroup title="SaaS services" description="Cloud applications your business relies on" services={saasServices} />
             <StatusGroup title="Internet service providers" description="Major ISPs serving South Florida" services={ispServices} />
 

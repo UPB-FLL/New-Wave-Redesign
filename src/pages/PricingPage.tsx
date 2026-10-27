@@ -3,7 +3,7 @@ import Navbar from '../components/Navbar';
 import Contact from '../components/Contact';
 import Footer from '../components/Footer';
 import DynamicPricingBuilder from '../components/DynamicPricingBuilder';
-import { SectionHeading } from '../components/brand/SectionHeading';
+import { PageHeader } from '../components/brand/PageHeader';
 import { useContent } from '../lib/useContent';
 import { IT_PAGE_META } from '../lib/routeMeta';
 import { usePageMeta } from '../lib/usePageMeta';
@@ -23,25 +23,27 @@ export default function PricingPage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // The CMS headline is "Simple, Scalable": it was written with "plans" as its accent.
+  const title = `${c.headline || 'Simple, scalable'} ${c.headline_accent || 'plans'}`;
+
   return (
     <div className="min-h-screen bg-[var(--nw-cloud-white)]">
       <Navbar />
-      <div className="pt-20">
-        <section className="py-16 sm:py-20" style={{ background: 'var(--nw-cloud-white)' }}>
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <SectionHeading
-              as="h1"
-              align="center"
-              eyebrow={c.section_label || 'Custom Pricing'}
-              title={<>{c.headline || 'Simple, scalable'} <span className="text-[var(--nw-tide-blue)]">{c.headline_accent || 'plans'}</span></>}
-              description={c.subheadline || 'Select the services you need and get an instant estimate. Our team will follow up with a customized proposal.'}
-            />
-
-            <div className="mt-10"><DynamicPricingBuilder /></div>
+      <PageHeader
+        breadcrumbs={IT_PAGE_META['/pricing'].breadcrumbs}
+        title={title}
+        description={c.subheadline || 'Select the services you need and get an instant estimate. Our team will follow up with a customized proposal.'}
+      />
+      <main>
+        <section className="relative z-10 py-16 sm:py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="max-w-4xl">
+              <DynamicPricingBuilder />
+            </div>
           </div>
         </section>
-      </div>
-      <Contact />
+        <Contact />
+      </main>
       <Footer />
     </div>
   );

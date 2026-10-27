@@ -4,15 +4,15 @@ import { IT_PAGE_META } from '../lib/routeMeta';
 import { usePageMeta } from '../lib/usePageMeta';
 
 const SECTION_CLASS = 'space-y-3';
-const HEADING_CLASS = 'text-2xl font-semibold tracking-tight text-slate-900';
+const HEADING_CLASS = 'nw-display text-2xl text-[var(--nw-current-navy)]';
 const LIST_CLASS = 'list-disc space-y-2 pl-6';
-const LINK_CLASS = 'font-medium text-teal-700 underline decoration-teal-300 underline-offset-4 hover:text-teal-900';
+const LINK_CLASS = 'font-medium text-[var(--nw-tide-blue)] underline decoration-[var(--nw-signal-cyan)] underline-offset-4 hover:text-[var(--nw-current-navy)]';
 
 export default function TermsAndConditionsPage() {
   usePageMeta(IT_PAGE_META['/terms-and-conditions']);
 
   return (
-    <LegalPageLayout title="Terms and Conditions" effectiveDate="August 11, 2026">
+    <LegalPageLayout title="Terms and Conditions" effectiveDate="August 11, 2026" breadcrumbs={IT_PAGE_META['/terms-and-conditions'].breadcrumbs}>
       <section className={SECTION_CLASS} aria-labelledby="agreement-to-these-terms">
         <h2 id="agreement-to-these-terms" className={HEADING_CLASS}>Agreement to These Terms</h2>
         <p>

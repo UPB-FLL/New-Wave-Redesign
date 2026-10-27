@@ -1,5 +1,6 @@
-import { CheckCircle2, FileCheck } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import { CurrentField } from '../brand/CurrentField';
+import { SectionHeading } from '../brand/SectionHeading';
 
 const frameworks = [
   { name: 'HIPAA', fullName: 'Health Insurance Portability and Accountability Act', description: 'Healthcare data protection', industries: ['Healthcare', 'Insurance', 'Pharma'], features: ['PHI encryption at rest & in transit', 'Audit logging & access controls', 'Breach notification protocols'] },
@@ -15,23 +16,18 @@ export default function ComplianceFrameworks() {
     <section className="relative overflow-hidden py-16 sm:py-20" style={{ background: 'var(--nw-current-navy)' }}>
       <CurrentField density="subtle" tone="dark" className="pointer-events-none absolute inset-0 h-full w-full opacity-55" />
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-3xl text-center">
-          <p className="nw-kicker text-[var(--nw-signal-cyan)]"><FileCheck className="mr-2 inline-block" size={14} aria-hidden="true" />Compliance</p>
-          <h2 className="nw-display mt-3 text-3xl leading-[1.1] text-[var(--nw-cloud-white)] sm:text-4xl lg:text-5xl">Audit-ready from <span className="text-[var(--nw-signal-cyan)]">day one.</span></h2>
-          <p className="mt-4 text-base leading-relaxed text-[var(--nw-mist-gray)] sm:text-lg">We map your environment to the frameworks that matter for your industry, then help maintain the controls that support ongoing readiness.</p>
-        </div>
+        <SectionHeading
+          tone="dark"
+          title="Compliance frameworks"
+          description="We map your environment to the frameworks that matter for your industry, then help maintain the controls that support ongoing readiness."
+        />
         <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {frameworks.map((framework) => (
             <article key={framework.name} className="rounded-lg border p-5" style={{ background: 'var(--nw-deep-current)', borderColor: 'var(--nw-tide-blue)' }}>
-              <div className="flex items-baseline justify-between gap-3">
-                <h3 className="nw-display text-2xl text-[var(--nw-signal-cyan)]">{framework.name}</h3>
-                <span className="nw-meta text-[10px] text-[var(--nw-mist-gray)]">FRAMEWORK</span>
-              </div>
+              <h3 className="nw-display text-2xl text-[var(--nw-signal-cyan)]">{framework.name}</h3>
               <p className="mt-3 text-sm font-semibold text-[var(--nw-cloud-white)]">{framework.description}</p>
               <p className="mt-1 text-xs leading-relaxed text-[var(--nw-mist-gray)]">{framework.fullName}</p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {framework.industries.map((industry) => <span key={industry} className="rounded border px-2 py-1 text-xs text-[var(--nw-mist-gray)]" style={{ borderColor: 'var(--nw-tide-blue)' }}>{industry}</span>)}
-              </div>
+              <p className="mt-4 text-xs leading-relaxed text-[var(--nw-mist-gray)]">Common in: {framework.industries.join(', ')}</p>
               <ul className="mt-5 space-y-2 border-t pt-4 text-sm text-[var(--nw-mist-gray)]" style={{ borderColor: 'var(--nw-tide-blue)' }}>
                 {framework.features.map((feature) => <li key={feature} className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 shrink-0 text-[var(--nw-continuity-green)]" size={15} aria-hidden="true" />{feature}</li>)}
               </ul>

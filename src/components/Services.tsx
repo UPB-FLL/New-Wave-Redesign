@@ -1,9 +1,11 @@
-import { Shield, Headphones, Wrench, Monitor, Cloud, Network, Briefcase, Stethoscope, Crown, Signal, Laptop, Lock, Mail, Eye, GraduationCap, ArrowRight } from 'lucide-react';
+import { Shield, Headphones, Wrench, Monitor, Cloud, Network, Briefcase, Stethoscope, Crown, Signal, Laptop, Lock, Mail, Eye, GraduationCap, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useContent } from '../lib/useContent';
 import { FadeIn } from './ui/fade-in';
 import { FADE_UP, DURATION, EASE, STAGGER_CONTAINER } from '../lib/animation';
+import { cmsHeadline } from './brand/cmsHeadline';
+import { SectionHeading } from './brand/SectionHeading';
 
 const iconMap: Record<string, React.ElementType> = {
   Cybersecurity: Shield,
@@ -168,23 +170,20 @@ function ServiceCardInner({
       <h3 className={`font-bold mb-2 ${large ? 'text-xl sm:text-2xl' : 'text-lg'}`} style={{ color: 'var(--nw-mist-gray)' }}>
         {service.title}
       </h3>
-      <p className="text-sm leading-relaxed mb-3" style={{ color: 'rgba(224,242,241,0.75)' }}>
+      <p className="text-sm leading-relaxed mb-4" style={{ color: 'rgba(224,242,241,0.9)' }}>
         {service.description}
       </p>
 
       {large && <BeamConnection />}
 
-      <div className={`flex flex-wrap gap-1.5 ${large ? 'justify-center' : ''}`}>
+      <ul className={`grid gap-2 ${large ? 'sm:grid-cols-3 sm:gap-3' : ''}`}>
         {highlights.map((h: string) => (
-          <span
-            key={h}
-            className="text-xs font-medium px-2.5 py-0.5 rounded-full"
-            style={{ background: `${service.accent}35`, color: service.accent, border: `1px solid ${service.accent}60` }}
-          >
+          <li key={h} className="flex items-start gap-2 text-sm leading-snug" style={{ color: 'var(--nw-mist-gray)' }}>
+            <CheckCircle2 size={15} className="mt-0.5 shrink-0" style={{ color: service.accent }} aria-hidden="true" />
             {h}
-          </span>
+          </li>
         ))}
-      </div>
+      </ul>
 
       {large && (
         <div className="mt-5 pt-5 flex flex-col flex-1" style={{ borderTop: `1px solid ${service.accent}25` }}>
@@ -236,10 +235,23 @@ const OTHER_SPECIALTIES = [
   { title: 'Cellular DAS & Public Safety', description: 'In-building cellular and public safety communications.' },
 ];
 
+/** The band's title and description when the CMS has none (production stores the same title). */
+export const SERVICES_DEFAULT_TITLE = 'IT services built for modern business';
+export const SERVICES_DEFAULT_DESCRIPTION = 'From day-to-day support to long-term IT strategy, we provide everything your business needs to stay secure, efficient, and ahead of the curve.';
+
+const INDUSTRIES = [
+  { title: 'Family Offices', description: 'Secure wealth management technology for multi-generational family enterprises with privacy-first infrastructure.', accent: '#31C6CF' },
+  { title: 'Healthcare', description: 'HIPAA-compliant systems with EHR integration and secure patient data management for medical practices.', accent: '#62BE68' },
+];
+
+/**
+ * The services band. On the home page it carries the CMS headline; on
+ * /services the page header does, and the band titles its two groups.
+ */
 export default function Services({
-  headlineAs: HeadlineTag = 'h2',
+  variant = 'home',
   showOtherSpecialties = false,
-}: { headlineAs?: 'h1' | 'h2'; showOtherSpecialties?: boolean } = {}) {
+}: { variant?: 'home' | 'page'; showOtherSpecialties?: boolean } = {}) {
   const c = useContent('services');
   const reduced = useReducedMotion();
 
@@ -249,34 +261,18 @@ export default function Services({
   const [cyberCard, ...restCards] = cards;
 
   return (
-    <section id="services" className="bg-white py-12 sm:py-16 relative" style={{ borderTop: '1px solid rgba(21,34,50,0.06)', zIndex: 10 }}>
+    <section id="services" className="relative scroll-mt-20 border-t bg-white py-16 sm:py-20" style={{ borderColor: 'var(--nw-mist-gray)', zIndex: 10 }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <FadeIn>
-          <div className="text-center mb-8 sm:mb-10">
-            <span className="text-xs sm:text-sm font-semibold uppercase tracking-widest" style={{ color: 'var(--nw-signal-cyan)' }}>
-              {c.section_label || 'What We Do'}
-            </span>
-            <HeadlineTag
-              className="text-4xl sm:text-5xl lg:text-7xl mt-2 mb-4 leading-[0.95] tracking-tight"
-              style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: 'var(--nw-current-navy)' }}
-            >
-              {c.headline && c.headline_accent ? (
-                <>
-                  {c.headline}{' '}
-                  <span style={{ display: 'inline-block', color: 'var(--nw-signal-cyan)' }}>{c.headline_accent}</span>
-                </>
-              ) : (
-                <>
-                  IT Services Built for{' '}
-                  <span style={{ display: 'inline-block', color: 'var(--nw-signal-cyan)' }}>Modern</span>{' '}
-                  <span style={{ display: 'inline-block', color: 'var(--nw-continuity-green)' }}>Business</span>
-                </>
-              )}
-            </HeadlineTag>
-            <p className="text-sm sm:text-base max-w-2xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
-              {c.subheadline || 'From day-to-day support to long-term IT strategy, we provide everything your business needs to stay secure, efficient, and ahead of the curve.'}
-            </p>
-          </div>
+          {variant === 'home' ? (
+            <SectionHeading
+              className="mb-10"
+              title={cmsHeadline(c, SERVICES_DEFAULT_TITLE)}
+              description={c.subheadline || SERVICES_DEFAULT_DESCRIPTION}
+            />
+          ) : (
+            <SectionHeading className="mb-10" title="Core services" />
+          )}
         </FadeIn>
 
         {/* BentoGrid layout */}
@@ -329,35 +325,25 @@ export default function Services({
           </motion.div>
         )}
 
-        {/* Industry Solutions */}
-        <div className="mt-16 pt-12 border-t" style={{ borderColor: 'rgba(21,34,50,0.1)' }}>
+        {/* Industry solutions */}
+        <div className="mt-16 border-t pt-12" style={{ borderColor: 'var(--nw-mist-gray)' }}>
           <FadeIn>
-            <div className="text-center mb-8 sm:mb-10">
-              <span className="text-xs sm:text-sm font-semibold uppercase tracking-widest" style={{ color: 'var(--nw-signal-cyan)' }}>
-                Specialized Industries
-              </span>
-              <h3 className="text-3xl sm:text-4xl lg:text-5xl mt-2 mb-4 leading-[0.95] tracking-tight" style={{ fontFamily: "'Staatliches', 'Impact', 'Arial Narrow', sans-serif", color: 'var(--nw-current-navy)' }}>
-                Industry-Specific{' '}
-                <span style={{ display: 'inline-block', color: 'var(--nw-continuity-green)' }}>Solutions</span>
-              </h3>
-              <p className="text-sm sm:text-base max-w-2xl mx-auto" style={{ color: 'rgba(21,34,50,0.6)' }}>
-                Tailored technology for specialized industries with unique challenges and compliance requirements.
-              </p>
-            </div>
+            <SectionHeading
+              className="mb-8"
+              title="Industry solutions"
+              description="Tailored technology for specialized industries with unique challenges and compliance requirements."
+            />
           </FadeIn>
 
           <motion.div
             data-testid="industry-service-grid"
-            className="mx-auto grid max-w-4xl grid-cols-1 items-stretch gap-3 sm:gap-4 md:grid-cols-2"
+            className="grid grid-cols-1 items-stretch gap-3 sm:gap-4 md:grid-cols-2"
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: '-60px' }}
             variants={STAGGER_CONTAINER}
           >
-            {[
-              { title: 'Family Offices', description: 'Secure wealth management technology for multi-generational family enterprises with privacy-first infrastructure.', accent: '#31C6CF' },
-              { title: 'Healthcare', description: 'HIPAA-compliant systems with EHR integration and secure patient data management for medical practices.', accent: '#62BE68' },
-            ].map((service) => {
+            {INDUSTRIES.map((service) => {
               const Icon = iconMap[service.title] || Shield;
               const slug = slugMap[service.title] || service.title.toLowerCase();
               return (
@@ -372,7 +358,7 @@ export default function Services({
                 >
                   <Link
                     to={`/service-category/${slug}`}
-                    className="group flex h-full min-h-[16rem] flex-col rounded-2xl p-4 transition-all duration-300 hover:-translate-y-1 no-underline sm:min-h-[17.25rem] sm:p-5"
+                    className="group flex h-full items-start gap-4 rounded-2xl p-5 no-underline transition-all duration-300 hover:-translate-y-1 sm:p-6"
                     style={{ background: 'rgba(26, 47, 63, 0.8)', border: `1px solid ${service.accent}40`, boxShadow: `0 2px 12px ${service.accent}10` }}
                     onMouseEnter={(e) => {
                       (e.currentTarget as HTMLElement).style.boxShadow = `0 12px 40px ${service.accent}30`;
@@ -383,11 +369,14 @@ export default function Services({
                       (e.currentTarget as HTMLElement).style.borderColor = `${service.accent}40`;
                     }}
                   >
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: `${service.accent}25` }}>
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ background: `${service.accent}25` }}>
                       <Icon size={20} style={{ color: service.accent }} />
                     </div>
-                    <h3 className="font-bold text-lg mb-2" style={{ color: 'var(--nw-mist-gray)' }}>{service.title}</h3>
-                    <p className="text-sm leading-relaxed" style={{ color: 'rgba(224,242,241,0.75)' }}>{service.description}</p>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="mb-2 text-lg font-bold" style={{ color: 'var(--nw-mist-gray)' }}>{service.title}</h3>
+                      <p className="text-sm leading-relaxed" style={{ color: 'rgba(224,242,241,0.9)' }}>{service.description}</p>
+                    </div>
+                    <ArrowRight size={18} className="mt-1 shrink-0 transition-transform duration-300 group-hover:translate-x-1" style={{ color: service.accent }} aria-hidden="true" />
                   </Link>
                 </motion.div>
               );
@@ -395,13 +384,13 @@ export default function Services({
           </motion.div>
 
           {showOtherSpecialties && (
-            <div data-testid="other-specialties" className="mx-auto mt-10 max-w-4xl text-center">
-              <h3 className="text-sm font-semibold uppercase tracking-widest" style={{ color: 'var(--nw-current-navy)' }}>
+            <div data-testid="other-specialties" className="mt-10">
+              <h3 className="text-lg font-bold" style={{ color: 'var(--nw-current-navy)' }}>
                 Other specialties
               </h3>
-              <ul className="mt-4 flex flex-col gap-3 sm:flex-row sm:justify-center sm:gap-8">
+              <ul className="mt-3 flex flex-col gap-3 sm:flex-row sm:gap-8">
                 {OTHER_SPECIALTIES.map((specialty) => (
-                  <li key={specialty.title} className="text-sm" style={{ color: 'rgba(21,34,50,0.7)' }}>
+                  <li key={specialty.title} className="text-sm text-[var(--nw-slate)]">
                     <Link to={`/service-category/${slugMap[specialty.title]}`} className="font-semibold underline" style={{ color: 'var(--nw-current-navy)' }}>
                       {specialty.title}
                     </Link>

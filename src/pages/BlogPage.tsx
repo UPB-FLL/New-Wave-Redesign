@@ -1,22 +1,13 @@
-import { ArrowRight, CalendarDays, Cloud, Monitor, ShieldCheck, type LucideIcon } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { SectionHeading } from '../components/brand/SectionHeading';
+import { PageHeader } from '../components/brand/PageHeader';
 import Footer from '../components/Footer';
+import Navbar from '../components/Navbar';
 import { IT_PAGE_META } from '../lib/routeMeta';
 import { usePageMeta } from '../lib/usePageMeta';
 import { fetchBlogPosts } from '../lib/blog';
 import type { BlogPost } from '../../types/blog';
-
-const iconMap: Record<string, LucideIcon> = {
-  'Managed IT Services': Monitor,
-  'Cybersecurity': ShieldCheck,
-  'Cloud Solutions': Cloud,
-  'Network Infrastructure': Monitor,
-  'Microsoft 365': Monitor,
-  'IT Support': Monitor,
-  'Backup & Disaster Recovery': ShieldCheck,
-};
 
 export default function BlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -52,23 +43,24 @@ export default function BlogPage() {
     },
   });
 
+  const header = (
+    <PageHeader
+      breadcrumbs={IT_PAGE_META['/blog'].breadcrumbs}
+      title="Recent IT support guides"
+      description="Practical guidance for Fort Lauderdale organizations planning managed IT, cybersecurity, cloud, Microsoft 365, backup, and network infrastructure work."
+    />
+  );
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[var(--nw-cloud-white)]">
-                <main className="px-4 pb-20 pt-32 sm:px-6 lg:pt-40">
-          <div className="mx-auto max-w-7xl">
-            <SectionHeading
-              as="h1"
-              align="center"
-              eyebrow="New Wave IT Blog"
-              title={<>Recent <span className="text-[var(--nw-tide-blue)]">IT support guides.</span></>}
-              description="Practical guidance for Fort Lauderdale organizations planning managed IT, cybersecurity, cloud, Microsoft 365, backup, and network infrastructure work."
-            />
-            <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="nw-surface overflow-hidden rounded-lg h-96 animate-pulse bg-gray-200" />
-              ))}
-            </div>
+        <Navbar />
+        {header}
+        <main className="py-12 sm:py-16">
+          <div className="mx-auto grid max-w-7xl gap-6 px-4 sm:px-6 md:grid-cols-2 lg:grid-cols-3 lg:px-8" aria-busy="true">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="nw-surface h-96 animate-pulse overflow-hidden rounded-lg" />
+            ))}
           </div>
         </main>
         <Footer />
@@ -79,18 +71,11 @@ export default function BlogPage() {
   if (error) {
     return (
       <div className="min-h-screen bg-[var(--nw-cloud-white)]">
-                <main className="px-4 pb-20 pt-32 sm:px-6 lg:pt-40">
-          <div className="mx-auto max-w-7xl text-center">
-            <SectionHeading
-              as="h1"
-              align="center"
-              eyebrow="New Wave IT Blog"
-              title={<>Recent <span className="text-[var(--nw-tide-blue)]">IT support guides.</span></>}
-              description="Practical guidance for Fort Lauderdale organizations planning managed IT, cybersecurity, cloud, Microsoft 365, backup, and network infrastructure work."
-            />
-            <div className="mt-12 p-6 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-800">{error}</p>
-            </div>
+        <Navbar />
+        {header}
+        <main className="py-12 sm:py-16">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <p className="nw-surface rounded-lg p-6 text-[var(--nw-current-navy)]" role="alert">{error}</p>
           </div>
         </main>
         <Footer />
@@ -100,64 +85,48 @@ export default function BlogPage() {
 
   return (
     <div className="min-h-screen bg-[var(--nw-cloud-white)]">
-            <main className="px-4 pb-20 pt-32 sm:px-6 lg:pt-40">
-        <div className="mx-auto max-w-7xl">
-          <SectionHeading
-            as="h1"
-            align="center"
-            eyebrow="New Wave IT Blog"
-            title={<>Recent <span className="text-[var(--nw-tide-blue)]">IT support guides.</span></>}
-            description="Practical guidance for Fort Lauderdale organizations planning managed IT, cybersecurity, cloud, Microsoft 365, backup, and network infrastructure work."
-          />
-          <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {posts.map(({ title, excerpt, slug, featured_image, category, tags, published_at }) => {
-              const Icon = iconMap[category] || Monitor;
-              const date = new Date(published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-              const primaryTag = tags?.[0] || category;
-
-              return (
-                <article key={slug} className="nw-surface overflow-hidden rounded-lg">
-                  <Link to={`/blog/${slug}`} className="group block" aria-label={title}>
-                    {featured_image ? (
-                      <img
-                        src={featured_image}
-                        alt=""
-                        width={370}
-                        height={239}
-                        loading="lazy"
-                        decoding="async"
-                        className="aspect-[1.55] w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
-                      />
-                    ) : (
-                      <div className="aspect-[1.55] w-full bg-gradient-to-br from-[var(--nw-deep-current)] to-[var(--nw-tide-blue)]" />
-                    )}
-                  </Link>
-                  <div className="p-6">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="inline-flex items-center gap-1.5 rounded-md bg-[var(--nw-signal-cyan)] px-2.5 py-1 text-xs font-semibold text-[var(--nw-deep-current)]">
-                        <CalendarDays size={13} aria-hidden="true" />
-                        {date}
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 rounded-md bg-[var(--nw-cloud-white)] px-2.5 py-1 text-xs font-semibold text-[var(--nw-current-navy)]" style={{ border: '1px solid var(--nw-mist-gray)' }}>
-                        <Icon size={13} className="text-[var(--nw-tide-blue)]" aria-hidden="true" />
-                        {primaryTag}
-                      </span>
-                    </div>
-                    <h2 className="mt-5 text-xl font-bold leading-snug text-[var(--nw-current-navy)]">
-                      <Link to={`/blog/${slug}`} className="transition-colors hover:text-[var(--nw-tide-blue)]">
-                        {title}
-                      </Link>
-                    </h2>
-                    <p className="mt-3 text-sm leading-relaxed text-[var(--nw-slate)]">{excerpt}</p>
-                    <Link to={`/blog/${slug}`} className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[var(--nw-tide-blue)] transition-colors hover:text-[var(--nw-current-navy)]">
-                      Read guide
-                      <ArrowRight size={16} aria-hidden="true" />
+      <Navbar />
+      {header}
+      <main className="py-12 sm:py-16">
+        <div className="mx-auto grid max-w-7xl gap-6 px-4 sm:px-6 md:grid-cols-2 lg:grid-cols-3 lg:px-8">
+          {posts.map(({ title, excerpt, slug, featured_image, category, published_at }) => {
+            const date = new Date(published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            return (
+              <article key={slug} className="nw-surface flex flex-col overflow-hidden rounded-lg">
+                <Link to={`/blog/${slug}`} className="group block" aria-label={title}>
+                  {featured_image ? (
+                    <img
+                      src={featured_image}
+                      alt=""
+                      width={370}
+                      height={239}
+                      loading="lazy"
+                      decoding="async"
+                      className="aspect-[1.55] w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
+                    />
+                  ) : (
+                    <div className="aspect-[1.55] w-full bg-gradient-to-br from-[var(--nw-deep-current)] to-[var(--nw-tide-blue)]" />
+                  )}
+                </Link>
+                <div className="flex flex-1 flex-col p-6">
+                  <p className="nw-meta text-xs text-[var(--nw-slate)]">
+                    <time dateTime={published_at}>{date}</time>
+                    {category ? <> · {category}</> : null}
+                  </p>
+                  <h2 className="mt-3 text-xl font-bold leading-snug text-[var(--nw-current-navy)]">
+                    <Link to={`/blog/${slug}`} className="transition-colors hover:text-[var(--nw-tide-blue)]">
+                      {title}
                     </Link>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
+                  </h2>
+                  <p className="mt-3 flex-1 text-sm leading-relaxed text-[var(--nw-slate)]">{excerpt}</p>
+                  <Link to={`/blog/${slug}`} className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[var(--nw-tide-blue)] transition-colors hover:text-[var(--nw-current-navy)]">
+                    Read guide
+                    <ArrowRight size={16} aria-hidden="true" />
+                  </Link>
+                </div>
+              </article>
+            );
+          })}
         </div>
       </main>
       <Footer />

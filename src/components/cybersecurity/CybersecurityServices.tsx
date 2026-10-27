@@ -17,11 +17,10 @@ export default function CybersecurityServices() {
   const detailSlugs = useDetailSlugs('services-detail', 'services_list');
 
   return (
-    <section id="services" className="relative z-10 bg-[var(--nw-pure-white)] py-16 sm:py-20">
+    <section id="services" className="relative z-10 scroll-mt-20 border-t bg-[var(--nw-pure-white)] py-16 sm:py-20" style={{ borderColor: 'var(--nw-mist-gray)' }}>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
-          eyebrow="Our Solutions"
-          title={<>A complete security program, <span className="text-[var(--nw-tide-blue)]">carefully managed.</span></>}
+          title="Security services"
           description="Six connected pillars of defense deployed and operated by experienced security engineers."
         />
         <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">

@@ -12,8 +12,7 @@ const service: ServiceCategoryPageData = {
   details: 'Secure patient data management, regulatory compliance, and thoughtful EHR integration support the high standards healthcare teams need from their technology.',
   highlights: ['HIPAA-compliant infrastructure', 'EHR/EMR system integration', 'Patient data encryption & backup', 'Telehealth platform support', 'Medical device networking', 'Secure communication tools', 'Audit trail & compliance reporting', 'Healthcare-specific disaster recovery'],
   seoLink: '/l/healthcare-guide',
-  eyebrow: 'Healthcare IT',
-  assessmentLabel: 'Plan Your Healthcare IT',
+  assessmentLabel: 'Plan your healthcare IT',
   featureTitle: 'Healthcare IT solutions',
   featureCards: [
     { icon: Lock, title: 'HIPAA Compliance', description: 'Technology practices that support protected health information, audit readiness, and reliable access controls.' },
@@ -56,5 +55,5 @@ export default function HealthcareServicePage() {
     },
   });
 
-  return <ServiceCategoryPage data={service} />;
+  return <ServiceCategoryPage data={service} breadcrumbs={IT_PAGE_META['/service-category/healthcare'].breadcrumbs} />;
 }

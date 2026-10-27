@@ -65,6 +65,19 @@
     background: var(--nw-deep-current);
   }
 
+  /* The secondary action on a dark band: outlined, so the primary stays the one cyan button. */
+  .btn-ghost-dark {
+    @apply inline-flex items-center justify-center gap-2 font-semibold px-5 py-3 rounded-md transition-colors duration-200;
+    border: 1px solid var(--nw-slate);
+    color: var(--nw-cloud-white);
+    background: transparent;
+  }
+
+  .btn-ghost-dark:hover {
+    border-color: var(--nw-signal-cyan);
+    color: var(--nw-signal-cyan);
+  }
+
   .input-dark {
     @apply w-full rounded-md px-3.5 py-2.5 text-sm outline-none transition-colors;
     background: var(--nw-current-navy);
@@ -121,7 +134,8 @@
   .nw-panel-muted,
   .btn-primary,
   .btn-secondary,
-  .btn-dark {
+  .btn-dark,
+  .btn-ghost-dark {
     position: relative;
     z-index: 1;
   }
@@ -163,6 +177,93 @@
     color: var(--nw-continuity-green);
     display: inline-flex;
     justify-content: center;
+  }
+}
+
+@layer components {
+  /* Long-form article text (blog posts). Tailwind's reset strips heading sizes,
+     paragraph spacing, and list markers, and the typography plugin is not
+     installed, so a post's Markdown needs these to read as an article. */
+  .nw-prose {
+    color: var(--nw-current-navy);
+    font-size: 1.0625rem;
+    line-height: 1.75;
+  }
+
+  .nw-prose > * + * {
+    margin-top: 1.25em;
+  }
+
+  .nw-prose h2 {
+    font-family: var(--nw-font-display);
+    font-size: 1.625rem;
+    font-weight: 700;
+    line-height: 1.25;
+    margin-top: 2.25em;
+  }
+
+  .nw-prose h3 {
+    font-family: var(--nw-font-display);
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.35;
+    margin-top: 1.75em;
+  }
+
+  .nw-prose h2 + *,
+  .nw-prose h3 + * {
+    margin-top: 0.75em;
+  }
+
+  .nw-prose ul {
+    list-style: disc;
+    padding-left: 1.5em;
+  }
+
+  .nw-prose ol {
+    list-style: decimal;
+    padding-left: 1.5em;
+  }
+
+  .nw-prose li + li {
+    margin-top: 0.5em;
+  }
+
+  .nw-prose li::marker {
+    color: var(--nw-tide-blue);
+  }
+
+  .nw-prose a {
+    color: var(--nw-tide-blue);
+    font-weight: 500;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .nw-prose a:hover {
+    color: var(--nw-current-navy);
+  }
+
+  .nw-prose strong {
+    font-weight: 600;
+  }
+
+  .nw-prose blockquote {
+    border-left: 3px solid var(--nw-signal-cyan);
+    color: var(--nw-slate);
+    padding-left: 1em;
+  }
+
+  .nw-prose code {
+    background: var(--nw-mist-gray);
+    border-radius: 4px;
+    font-family: var(--nw-font-technical);
+    font-size: 0.9em;
+    padding: 0.1em 0.35em;
+  }
+
+  .nw-prose hr {
+    border-color: var(--nw-mist-gray);
   }
 }
 

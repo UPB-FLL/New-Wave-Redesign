@@ -5,10 +5,13 @@ import { SectionHeading } from './brand/SectionHeading';
 
 const approachIcons: LucideIcon[] = [Shield, Users, Award, Zap];
 
-export default function About({ headlineAs: Heading = 'h2' }: { headlineAs?: 'h1' | 'h2' } = {}) {
+/** The headline and opening paragraph when the CMS has none; /about's page header shows them. */
+export const ABOUT_DEFAULT_TITLE = "Fort Lauderdale's trusted IT partner";
+export const ABOUT_DEFAULT_INTRO = 'New Wave IT was founded to give South Florida businesses enterprise-grade IT support they can rely on, without enterprise complexity.';
+
+/** The body of /about: the rest of the story, the approach, and why clients choose New Wave IT. */
+export default function About() {
   const content = useContent('about');
-  const headline = content.headline || "Fort Lauderdale's";
-  const accent = content.headline_accent || 'trusted IT partner';
   const approach = [
     {
       title: content.approach_point1_title || 'Proactive',
@@ -43,50 +46,35 @@ export default function About({ headlineAs: Heading = 'h2' }: { headlineAs?: 'h1
   ];
 
   return (
-    <section id="about" className="relative z-10 bg-[var(--nw-pure-white)] py-16 sm:py-20">
+    <section id="about" className="relative z-10 border-t bg-[var(--nw-pure-white)] py-16 sm:py-20" style={{ borderColor: 'var(--nw-mist-gray)' }}>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid items-stretch gap-10 lg:grid-cols-2 lg:gap-16">
-          <aside className="relative min-h-[330px] overflow-hidden rounded-lg p-8 sm:p-10" style={{ background: 'var(--nw-deep-current)' }}>
+        <div className="grid items-start gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
+          <div>
+            <SectionHeading title="Our story" />
+            <div className="mt-6 space-y-4 text-base leading-relaxed text-[var(--nw-slate)] sm:text-lg">
+              <p>{content.paragraph2 || 'Based in Fort Lauderdale, our certified engineers and technology advisors have helped organizations modernize infrastructure, strengthen security, and support sustainable growth.'}</p>
+              <p>{content.paragraph3 || 'We are a hands-on technology partner focused on clear advice, dependable service, and practical results.'}</p>
+            </div>
+          </div>
+
+          <aside className="relative overflow-hidden rounded-lg p-8 sm:p-10" style={{ background: 'var(--nw-deep-current)' }}>
             <CurrentField density="standard" tone="dark" className="pointer-events-none absolute inset-0 h-full w-full opacity-70" />
-            <div className="relative flex h-full flex-col justify-between">
-              <div>
-                <p className="nw-kicker text-[var(--nw-signal-cyan)]">New Wave IT</p>
-                <p className="nw-display mt-5 text-6xl text-[var(--nw-cloud-white)] sm:text-7xl">{content.years_badge || 'Local'}</p>
-                <p className="mt-3 max-w-[14rem] whitespace-pre-line text-lg leading-relaxed text-[var(--nw-mist-gray)]">
-                  {content.years_label || 'IT for Fort Lauderdale\nand South Florida'}
-                </p>
-              </div>
-              <div className="border-t pt-5" style={{ borderColor: 'var(--nw-tide-blue)' }}>
+            <div className="relative">
+              <p className="nw-display text-5xl text-[var(--nw-cloud-white)] sm:text-6xl">{content.years_badge || 'Local'}</p>
+              <p className="mt-3 max-w-[16rem] whitespace-pre-line text-lg leading-relaxed text-[var(--nw-mist-gray)]">
+                {content.years_label || 'IT for Fort Lauderdale\nand South Florida'}
+              </p>
+              <div className="mt-10 border-t pt-5" style={{ borderColor: 'var(--nw-tide-blue)' }}>
                 <p className="font-semibold text-[var(--nw-cloud-white)]">{content.team_tagline || 'Our team is ready'}</p>
                 <p className="mt-1 text-sm text-[var(--nw-mist-gray)]">{content.team_sub || 'Certified engineers on standby 24/7'}</p>
               </div>
             </div>
           </aside>
-
-          <div className="flex flex-col justify-center">
-            <SectionHeading
-              as={Heading}
-              eyebrow={content.section_label || 'About Us'}
-              title={
-                <>
-                  {headline} <span className="text-[var(--nw-tide-blue)]">{accent}</span>
-                </>
-              }
-            />
-            <div className="mt-6 space-y-4 text-base leading-relaxed text-[var(--nw-slate)] sm:text-lg">
-              <p>{content.paragraph1 || 'New Wave IT was founded to give South Florida businesses enterprise-grade IT support they can rely on, without enterprise complexity.'}</p>
-              <p>{content.paragraph2 || 'Based in Fort Lauderdale, our certified engineers and technology advisors have helped organizations modernize infrastructure, strengthen security, and support sustainable growth.'}</p>
-              <p>{content.paragraph3 || 'We are a hands-on technology partner focused on clear advice, dependable service, and practical results.'}</p>
-            </div>
-          </div>
         </div>
 
-        <div className="mt-20 border-t pt-16" style={{ borderColor: 'var(--nw-mist-gray)' }}>
+        <div className="mt-16 border-t pt-12" style={{ borderColor: 'var(--nw-mist-gray)' }}>
           <SectionHeading
-            as="h3"
-            align="center"
-            eyebrow="Our Approach"
-            title={content.approach_title || 'Technical depth with a human point of view.'}
+            title={content.approach_title || 'Our approach'}
             description={content.approach_desc || 'We combine technical expertise with genuine partnership to deliver solutions that work for the people using them.'}
           />
           <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -95,7 +83,7 @@ export default function About({ headlineAs: Heading = 'h2' }: { headlineAs?: 'h1
               return (
                 <article key={item.title} className="rounded-lg border p-5" style={{ background: 'var(--nw-cloud-white)', borderColor: 'var(--nw-mist-gray)' }}>
                   <span className="nw-icon-signal h-10 w-10"><Icon size={19} aria-hidden="true" /></span>
-                  <h4 className="mt-5 font-bold text-[var(--nw-current-navy)]">{item.title}</h4>
+                  <h3 className="mt-5 font-bold text-[var(--nw-current-navy)]">{item.title}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-[var(--nw-slate)]">{item.description}</p>
                 </article>
               );
@@ -103,18 +91,15 @@ export default function About({ headlineAs: Heading = 'h2' }: { headlineAs?: 'h1
           </div>
         </div>
 
-        <div className="mt-20 border-t pt-16" style={{ borderColor: 'var(--nw-mist-gray)' }}>
+        <div className="mt-16 border-t pt-12" style={{ borderColor: 'var(--nw-mist-gray)' }}>
           <SectionHeading
-            as="h3"
-            align="center"
-            eyebrow="Why Choose Us"
-            title={content.why_choose_title || 'What partnership looks like.'}
+            title={content.why_choose_title || 'Why choose us'}
             description={content.why_choose_desc || 'A dependable technology relationship is built on visibility, accountability, and trust.'}
           />
           <div className="mt-10 grid gap-4 md:grid-cols-3">
             {reasons.map((reason) => (
               <article key={reason.title} className="rounded-lg border-l-4 p-6" style={{ background: 'var(--nw-current-navy)', borderColor: 'var(--nw-signal-cyan)' }}>
-                <h4 className="text-lg font-bold text-[var(--nw-cloud-white)]">{reason.title}</h4>
+                <h3 className="text-lg font-bold text-[var(--nw-cloud-white)]">{reason.title}</h3>
                 <p className="mt-3 text-sm leading-relaxed text-[var(--nw-mist-gray)]">{reason.description}</p>
               </article>
             ))}

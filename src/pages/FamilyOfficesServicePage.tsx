@@ -12,8 +12,7 @@ const service: ServiceCategoryPageData = {
   details: 'Protect sensitive financial data, support regulatory compliance, and use technology for efficient family office operations with dedicated assistance.',
   highlights: ['Privacy-first network architecture', 'Secure document & asset management', 'Multi-generational access controls', 'Tax compliance & audit readiness', 'Wealth management system integration', 'Confidentiality & discretion protocols', 'Financial data encryption & backup', '24/7 dedicated support & monitoring'],
   seoLink: '/l/family-offices-guide',
-  eyebrow: 'Family Office IT',
-  assessmentLabel: 'Discuss Your Office Needs',
+  assessmentLabel: 'Discuss your office needs',
   featureTitle: 'Family office services',
   featureCards: [
     { icon: Lock, title: 'Data Security & Privacy', description: 'Privacy-first controls, encryption, and access practices protect confidential financial and personal information.' },
@@ -55,5 +54,5 @@ const SERVICE_JSON_LD = {
 export default function FamilyOfficesServicePage() {
   usePageMeta({ ...IT_PAGE_META['/service-category/family-offices'], jsonLd: SERVICE_JSON_LD });
 
-  return <ServiceCategoryPage data={service} />;
+  return <ServiceCategoryPage data={service} breadcrumbs={IT_PAGE_META['/service-category/family-offices'].breadcrumbs} />;
 }

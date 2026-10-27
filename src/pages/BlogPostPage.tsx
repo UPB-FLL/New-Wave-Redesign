@@ -2,6 +2,8 @@ import { useParams, Link } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, CalendarDays, Clock, Share2, Tag } from 'lucide-react';
 import Footer from '../components/Footer';
+import Navbar from '../components/Navbar';
+import { PageHeader } from '../components/brand/PageHeader';
 import { usePageMeta } from '../lib/usePageMeta';
 import { fetchBlogPostBySlug, fetchBlogPosts, estimateReadTime } from '../lib/blog';
 import { blogPostPageMeta } from '../lib/blogSeo';
@@ -78,18 +80,19 @@ export default function BlogPostPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[var(--nw-cloud-white)]">
-        <main className="px-4 pb-20 pt-32 sm:px-6 lg:pt-40">
-          <div className="mx-auto max-w-4xl">
-            <div className="h-96 bg-gray-200 rounded-lg animate-pulse" />
-            <div className="mt-8 space-y-4">
-              <div className="h-8 bg-gray-200 rounded animate-pulse" />
-              <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
-              <div className="space-y-2">
-                {[...Array(8)].map((_, i) => (
-                  <div key={i} className="h-4 bg-gray-200 rounded animate-pulse" />
-                ))}
-              </div>
-            </div>
+        <Navbar />
+        <div className="pb-14 pt-28 sm:pb-16 sm:pt-32" style={{ background: 'var(--nw-deep-current)' }} aria-busy="true">
+          <div className="mx-auto max-w-7xl space-y-4 px-4 sm:px-6 lg:px-8">
+            <div className="h-4 w-48 animate-pulse rounded" style={{ background: 'var(--nw-current-navy)' }} />
+            <div className="h-10 max-w-2xl animate-pulse rounded" style={{ background: 'var(--nw-current-navy)' }} />
+            <div className="h-4 w-72 animate-pulse rounded" style={{ background: 'var(--nw-current-navy)' }} />
+          </div>
+        </div>
+        <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+          <div className="max-w-3xl space-y-3">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="h-4 animate-pulse rounded" style={{ background: 'var(--nw-mist-gray)' }} />
+            ))}
           </div>
         </main>
         <Footer />
@@ -100,15 +103,17 @@ export default function BlogPostPage() {
   if (error || !post) {
     return (
       <div className="min-h-screen bg-[var(--nw-cloud-white)]">
-        <main className="px-4 pb-20 pt-32 sm:px-6 lg:pt-40">
-          <div className="mx-auto max-w-4xl text-center">
-            <h1 className="text-2xl font-bold text-[var(--nw-current-navy)]">Blog Post Not Found</h1>
-            <Link to="/blog" className="mt-4 inline-flex items-center gap-2 text-[var(--nw-tide-blue)]">
-              <ArrowLeft size={16} />
-              Back to Blog
+        <Navbar />
+        <PageHeader
+          title="Blog Post Not Found"
+          description="This article is not available. It may have moved, or the link may be wrong."
+          actions={
+            <Link to="/blog" className="btn-primary">
+              <ArrowLeft size={16} aria-hidden="true" />
+              Back to the blog
             </Link>
-          </div>
-        </main>
+          }
+        />
         <Footer />
       </div>
     );
@@ -123,108 +128,79 @@ export default function BlogPostPage() {
 
   return (
     <div className="min-h-screen bg-[var(--nw-cloud-white)]">
-      <main className="px-4 pb-20 pt-32 sm:px-6 lg:pt-40">
-        <div className="mx-auto max-w-4xl">
-          {/* Back button */}
-          <Link to="/blog" className="inline-flex items-center gap-2 text-[var(--nw-tide-blue)] hover:text-[var(--nw-current-navy)] transition-colors mb-8">
-            <ArrowLeft size={16} />
-            Back to Blog
-          </Link>
+      <Navbar />
+      <PageHeader breadcrumbs={[{ name: 'Blog', path: '/blog' }, { name: post.title, path: `/blog/${post.slug}` }]} title={post.title}>
+        <ul className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-[var(--nw-mist-gray)]">
+          {post.category ? <li className="font-semibold text-[var(--nw-cloud-white)]">{post.category}</li> : null}
+          <li className="flex items-center gap-1.5">
+            <CalendarDays size={15} aria-hidden="true" />
+            <time dateTime={post.published_at}>{publishedDate}</time>
+          </li>
+          <li className="flex items-center gap-1.5">
+            <Clock size={15} aria-hidden="true" />
+            {readTime} min read
+          </li>
+          <li>By {post.author}</li>
+        </ul>
+      </PageHeader>
 
-          {/* Hero image */}
+      <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+        {/* The article column starts where the page header's text does. */}
+        <article className="max-w-3xl">
           {post.featured_image && (
-            <div className="mb-8 rounded-lg overflow-hidden">
-              <img
-                src={post.featured_image}
-                alt={post.title}
-                className="w-full h-auto"
-                width={1200}
-                height={630}
-              />
-            </div>
+            <img
+              src={post.featured_image}
+              alt={post.title}
+              className="mb-10 h-auto w-full rounded-lg"
+              width={1200}
+              height={630}
+            />
           )}
 
-          {/* Category badge */}
-          <div className="mb-4">
-            <span className="inline-flex items-center gap-1.5 rounded-md bg-[var(--nw-signal-cyan)] px-3 py-1.5 text-sm font-semibold text-[var(--nw-deep-current)]">
-              {post.category}
-            </span>
-          </div>
-
-          {/* Title */}
-          <h1 className="text-4xl font-bold text-[var(--nw-current-navy)] leading-tight mb-4">
-            {post.title}
-          </h1>
-
-          {/* Meta info */}
-          <div className="flex flex-wrap items-center gap-4 text-sm text-[var(--nw-slate)] mb-8">
-            <div className="flex items-center gap-1.5">
-              <CalendarDays size={16} />
-              <span>{publishedDate}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Clock size={16} />
-              <span>{readTime} min read</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span>By {post.author}</span>
-            </div>
-          </div>
-
-          {/* Tags */}
-          {post.tags && post.tags.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 mb-8">
-              <Tag size={16} className="text-[var(--nw-slate)]" />
-              {post.tags.map((tag) => (
-                <span key={tag} className="text-sm text-[var(--nw-slate)]">
-                  #{tag}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* Share button */}
-          <button
-            onClick={handleShare}
-            className="flex items-center gap-2 text-sm text-[var(--nw-tide-blue)] hover:text-[var(--nw-current-navy)] transition-colors mb-8"
-          >
-            <Share2 size={16} />
-            Share this post
-          </button>
-
-          {/* Content */}
-          <div className="prose prose-lg max-w-none">
+          <div className="nw-prose">
             <ReactMarkdown>{post.content}</ReactMarkdown>
           </div>
 
-          {/* Related posts */}
-          {related.length > 0 && (
-            <div className="mt-16 pt-16 border-t border-[var(--nw-mist-gray)]">
-              <h2 className="text-2xl font-bold text-[var(--nw-current-navy)] mb-6">Related Posts</h2>
-              <div className="grid gap-6 md:grid-cols-3">
-                {related.map((relatedPost) => (
-                  <Link
-                    key={relatedPost.id}
-                    to={`/blog/${relatedPost.slug}`}
-                    className="group"
-                  >
-                    {relatedPost.featured_image && (
-                      <img
-                        src={relatedPost.featured_image}
-                        alt={relatedPost.title}
-                        className="w-full aspect-[1.55] object-cover rounded-lg mb-3 transition-transform duration-200 group-hover:scale-[1.02]"
-                      />
-                    )}
-                    <h3 className="font-semibold text-[var(--nw-current-navy)] group-hover:text-[var(--nw-tide-blue)] transition-colors">
-                      {relatedPost.title}
-                    </h3>
-                    <p className="text-sm text-[var(--nw-slate)] mt-2 line-clamp-2">{relatedPost.excerpt}</p>
-                  </Link>
-                ))}
-              </div>
+          <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t pt-6" style={{ borderColor: 'var(--nw-mist-gray)' }}>
+            {post.tags && post.tags.length > 0 ? (
+              <p className="flex flex-wrap items-center gap-2 text-sm text-[var(--nw-slate)]">
+                <Tag size={16} aria-hidden="true" />
+                {post.tags.join(', ')}
+              </p>
+            ) : null}
+            <button
+              type="button"
+              onClick={handleShare}
+              className="flex items-center gap-2 text-sm font-semibold text-[var(--nw-tide-blue)] transition-colors hover:text-[var(--nw-current-navy)]"
+            >
+              <Share2 size={16} aria-hidden="true" />
+              Share this post
+            </button>
+          </div>
+        </article>
+
+        {related.length > 0 && (
+          <section className="mt-16 max-w-5xl border-t pt-12" style={{ borderColor: 'var(--nw-mist-gray)' }}>
+            <h2 className="nw-display text-2xl text-[var(--nw-current-navy)]">Related posts</h2>
+            <div className="mt-6 grid gap-6 md:grid-cols-3">
+              {related.map((relatedPost) => (
+                <Link key={relatedPost.id} to={`/blog/${relatedPost.slug}`} className="group">
+                  {relatedPost.featured_image && (
+                    <img
+                      src={relatedPost.featured_image}
+                      alt={relatedPost.title}
+                      className="mb-3 aspect-[1.55] w-full rounded-lg object-cover transition-transform duration-200 group-hover:scale-[1.02]"
+                    />
+                  )}
+                  <h3 className="font-semibold text-[var(--nw-current-navy)] transition-colors group-hover:text-[var(--nw-tide-blue)]">
+                    {relatedPost.title}
+                  </h3>
+                  <p className="mt-2 line-clamp-2 text-sm text-[var(--nw-slate)]">{relatedPost.excerpt}</p>
+                </Link>
+              ))}
             </div>
-          )}
-        </div>
+          </section>
+        )}
       </main>
       <Footer />
     </div>
