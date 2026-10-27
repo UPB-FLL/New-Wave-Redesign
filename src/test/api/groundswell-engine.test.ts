@@ -1,6 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { describe, expect, it } from 'vitest';
+import { FUNCTION_SECONDS } from '../../../api/_lib/groundswell/background';
 import { MAX_ATTEMPTS, MIN_STEP_MS, runWorker, SAFETY_MS, startQueuedAudits } from '../../../api/_lib/groundswell/engine';
+import { ALL_STEPS, SOCIAL_NEEDS_MS, STEPS } from '../../../api/_lib/groundswell/steps';
 import { PermanentStepError, type StepDefinition } from '../../../api/_lib/groundswell/types';
 import { sampleAudit } from './fixtures/groundswell-report';
 
@@ -171,6 +173,42 @@ describe('runWorker', () => {
     expect(ran).toEqual([]);
     expect(second.steps.map((x) => x.status)).toEqual(['failed', 'pending']);
     expect(second.audits.get(sampleAudit.id)).toMatchObject({ status: 'failed', error: "model failed: The step ran out the worker's time limit 3 times without finishing." });
+  });
+
+  it('hands a long step back uncounted when the call cannot give it the time it wants, and runs it as the next call\'s first step', async () => {
+    const ran: string[] = [];
+    const social = { ...def('social', async () => { ran.push('social'); return 'x'; }, true), needsMs: 180_000 };
+    const steps = [def('site', async () => { ran.push('site'); return 'ok'; }), social, def('after', async () => { ran.push('after'); return 'ok'; })];
+    const { db, steps: rows } = fakeDb(['site', 'social', 'after']);
+    // A call with time for one short step and a little over the minimum: site runs, social is handed back.
+    const start = Date.now();
+    const clock = [start, start, start + 120_000];
+    const now = () => clock.shift() ?? start + 120_000;
+    const first = await runWorker(db, steps, { deadline: start + 120_000 + SAFETY_MS + MIN_STEP_MS + 10_000, now });
+    expect(ran).toEqual(['site']);
+    expect(first.ran.map((r) => [r.step, r.outcome])).toEqual([['site', 'done'], ['social', 'deferred']]);
+    expect(rows[1]).toMatchObject({ status: 'pending', attempts: 0, error: null });
+    // The next call starts with the social step and has the whole call for it.
+    await runWorker(db, steps, { deadline: plenty() });
+    expect(ran).toEqual(['site', 'social', 'after']);
+    expect(rows.map((r) => r.status)).toEqual(['done', 'done', 'done']);
+    expect(rows[1].attempts).toBe(1);
+  });
+
+  it('lets the social step ask for most of a call, and no more than a fresh call can give', () => {
+    expect(STEPS.find((s) => s.name === 'social')?.needsMs).toBe(SOCIAL_NEEDS_MS);
+    // A fresh call's step deadline is FUNCTION_SECONDS less the route's and the engine's margins; leave a minute for the steps before it.
+    expect(SOCIAL_NEEDS_MS).toBeLessThanOrEqual(FUNCTION_SECONDS * 1000 - 10_000 - SAFETY_MS - 60_000);
+    expect(ALL_STEPS.filter((s) => s.needsMs).map((s) => s.name)).toEqual(['social']);
+  });
+
+  it('runs a long step as a call\'s first step however little the call has left, so it never waits for ever', async () => {
+    const ran: string[] = [];
+    const steps = [{ ...def('social', async () => { ran.push('social'); return 'x'; }, true), needsMs: 10 * 60_000 }, def('after', async () => 'ok')];
+    const { db, steps: rows } = fakeDb(['social', 'after']);
+    await runWorker(db, steps, { deadline: Date.now() + SAFETY_MS + MIN_STEP_MS + 5_000 });
+    expect(ran).toEqual(['social']);
+    expect(rows[0].status).toBe('done');
   });
 
   it('fails the audit at once on a permanent error in a required step', async () => {

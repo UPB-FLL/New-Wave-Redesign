@@ -41,7 +41,7 @@ describe('AdminLayout sidebar', () => {
     expect(within(nav).getByRole('button', { name: 'Home' })).toHaveAttribute('aria-expanded', 'true');
     expect(within(nav).getByRole('link', { name: 'Hero' })).toBeInTheDocument();
     expect(within(nav).getByRole('button', { name: 'Pricing' })).toHaveAttribute('aria-expanded', 'false');
-    expect(within(nav).queryByRole('link', { name: 'Plans and tiers' })).not.toBeInTheDocument();
+    expect(within(nav).queryByRole('link', { name: 'Pricing headline' })).not.toBeInTheDocument();
     expect(screen.getByText('Hero editor body')).toBeInTheDocument();
   });
 

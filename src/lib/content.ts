@@ -13,7 +13,19 @@ export interface ContentChange {
 
 const CONTENT_CHANNEL = 'newwave_content_updates';
 
+/**
+ * Content fixed for a build-time render. The prerender (vite.config.ts) seeds
+ * it with the CMS rows it read, so the static HTML carries the saved copy and
+ * the hooks' initial state matches it; a browser never sets it.
+ */
+let seededContent: Record<string, ContentMap> | null = null;
+
+export function seedContentCache(sections: Record<string, ContentMap> | null): void {
+  seededContent = sections;
+}
+
 export function readContentCache(section: string): ContentMap | null {
+  if (seededContent) return seededContent[section] ?? null;
   try {
     const raw = localStorage.getItem(CACHE_PREFIX + section);
     return raw ? (JSON.parse(raw) as ContentMap) : null;

@@ -45,6 +45,14 @@ import { SUPPORTED_ROUNDS, verifySteps } from './verify.js';
  * figures again and checks them (verify.ts): `verification.max_rounds` in the
  * setup file sets how many rounds an audit started now gets.
  */
+/**
+ * What the social step wants of a call: ScrapeCreators reads for the business
+ * and its rivals, the Apify fallback for a profile Instagram hides (minutes on
+ * its own), then the Facebook Pages. Under a fresh call's budget
+ * (FUNCTION_SECONDS less the engine's margins, about 270 s).
+ */
+export const SOCIAL_NEEDS_MS = 180_000;
+
 const GATHER_AND_MODEL: StepDefinition[] = [
   // First, so the Site, Social and Search steps already see the picked competitors.
   { name: 'competitors', current: 'Maps', label: 'Local competitors (public Google listings)', optional: true, run: runCompetitors, persist: persistCompetitors },
@@ -53,7 +61,7 @@ const GATHER_AND_MODEL: StepDefinition[] = [
   { name: 'maps', current: 'Maps', label: 'Google Maps', optional: true, run: runMaps },
   { name: 'search', current: 'Search', label: 'Search rankings (Ahrefs and public Google)', optional: true, run: runSearch },
   { name: 'keywords', current: 'Search', label: 'Keyword demand (Keyword Planner)', optional: true, run: runKeywords },
-  { name: 'social', current: 'Social', label: 'Instagram and Facebook', optional: true, run: runSocial },
+  { name: 'social', current: 'Social', label: 'Instagram and Facebook', optional: true, needsMs: SOCIAL_NEEDS_MS, run: runSocial },
   { name: 'ads', current: 'Ads', label: 'Ads', optional: true, run: runAds },
   { name: 'ads_library', current: 'Ads', label: 'Meta Ad Library and Google Ads Transparency', optional: true, run: runAdsLibrary },
   { name: 'ai_search', current: 'Search', label: 'AI search: crawler access, citability, Brand Radar', optional: true, run: runAiSearch },

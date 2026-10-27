@@ -31,7 +31,7 @@ interface ClaimedStep {
 }
 
 export interface WorkerReport {
-  ran: { audit_id: string; step: string; outcome: 'done' | 'retry' | 'skipped' | 'failed' | 'held'; error?: string }[];
+  ran: { audit_id: string; step: string; outcome: 'done' | 'retry' | 'skipped' | 'failed' | 'held' | 'deferred'; error?: string }[];
   finished: string[];
 }
 
@@ -288,6 +288,21 @@ export async function runWorker(
         report.ran.push({ audit_id: claimed.audit_id, step: claimed.step, outcome: 'failed', error: why });
       }
       continue;
+    }
+
+    // A long step (the social reads, with their paid fallback) claimed late in a call would spend its one
+    // attempt on reads cut to the seconds left. When an earlier step used this call's time, hand it back
+    // uncounted (the claim's attempt undone, so the three-attempt limit still counts real tries) and end the
+    // call; the next heartbeat starts it with a whole call. A call's first step always runs, so a step that
+    // wants more than any call has still runs instead of waiting for ever.
+    if (def.needsMs && report.ran.length && deadline - now() - SAFETY_MS < def.needsMs) {
+      const { error: backError } = await db
+        .from('marketing_audit_steps')
+        .update({ status: 'pending', attempts: Math.max(0, claimed.attempts - 1), started_at: null })
+        .eq('id', claimed.id);
+      if (backError) throw new Error(`Could not hand a step back: ${backError.message}`);
+      report.ran.push({ audit_id: claimed.audit_id, step: claimed.step, outcome: 'deferred' });
+      break;
     }
 
     try {

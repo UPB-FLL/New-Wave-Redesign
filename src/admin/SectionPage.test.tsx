@@ -41,7 +41,6 @@ beforeEach(() => {
     { section: 'hero', key: 'badge', value: 'Fort Lauderdale IT', updated_at: at },
     { section: 'hero', key: 'phone', value: '+15615641846', updated_at: at },
     { section: 'hero', key: 'feature_cards', value: JSON.stringify([{ title: 'Fast help', desc: 'Real people' }, { title: 'Flat rate', desc: 'No surprises' }]), updated_at: at },
-    { section: 'pricing', key: 'tiers', value: '{not a list', updated_at: at },
   );
 });
 
@@ -101,15 +100,16 @@ describe('SectionPage', () => {
   });
 
   it('shows a stored list it cannot read instead of resetting it', async () => {
-    renderAt('/admin/pricing', 'pricing');
-    fireEvent.click(await screen.findByRole('button', { name: /^Tiers/ }));
+    db.rows.push({ section: 'trustbar', key: 'items', value: '{not a list', updated_at: at });
+    renderAt('/admin/trustbar', 'trustbar');
+    fireEvent.click(await screen.findByRole('button', { name: /^Trust items/ }));
     const alert = screen.getByRole('alert');
     expect(alert).toHaveTextContent(/could not be read/);
     expect(alert).toHaveTextContent('{not a list');
     expect(contentManager.getPendingChangesCount()).toBe(0);
     fireEvent.click(within(alert).getByRole('button', { name: /Replace it with an empty list/ }));
-    expect(contentManager.getState().pendingChanges.pricing).toEqual({ tiers: '[]' });
-    expect(screen.getByRole('button', { name: /Start from the site's defaults \(9\)/ })).toBeInTheDocument();
+    expect(contentManager.getState().pendingChanges.trustbar).toEqual({ items: '[]' });
+    expect(screen.getByRole('button', { name: /Start from the site's defaults \(5\)/ })).toBeInTheDocument();
   });
 
   it('offers the site defaults for an empty list', async () => {

@@ -3,6 +3,7 @@ Allow: /
 Disallow: /admin
 Disallow: /admin/
 Disallow: /admin/*
+Disallow: /_shell.html
 
 Sitemap: https://www.newwaveitfl.com/sitemap.xml
 Sitemap: https://www.newwaveitfl.com/sitemap-content.xml

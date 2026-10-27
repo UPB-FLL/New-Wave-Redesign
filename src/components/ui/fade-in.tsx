@@ -7,10 +7,13 @@ interface FadeInProps {
   className?: string;
 }
 
+/** The build-time render (src/lib/prerenderBody.tsx) has no viewport: the copy is written visible, as under reduced motion. */
+const isServer = typeof window === 'undefined';
+
 export function FadeIn({ children, delay = 0, className }: FadeInProps) {
   const reduced = useReducedMotion();
 
-  if (reduced) {
+  if (reduced || isServer) {
     return <div className={className}>{children}</div>;
   }
 

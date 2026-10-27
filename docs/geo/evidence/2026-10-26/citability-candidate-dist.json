@@ -1,0 +1,1737 @@
+{
+ "/": {
+  "score": 0,
+  "avg_all_blocks": 0,
+  "blocks": 0,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": []
+ },
+ "/cybersecurity": {
+  "score": 26.8,
+  "avg_all_blocks": 26.8,
+  "blocks": 4,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "Audit-ready fromday one.",
+    "word_count": 21,
+    "total_score": 17,
+    "breakdown": {
+     "answer_block_quality": 5,
+     "self_containment": 4,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "We map your environment to the frameworks that matter for your industry, then help maintain the controls that support ongoing readiness."
+   },
+   {
+    "heading": "Enterprise securitywithout the enterprise headache.",
+    "word_count": 35,
+    "total_score": 27,
+    "breakdown": {
+     "answer_block_quality": 10,
+     "self_containment": 9,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Stop threats before they reach your business. New Wave IT combines around-the-clock security operations, threat detection, and experienced analysts in a program built for practical"
+   },
+   {
+    "heading": "See your security gaps beforeattackers do.",
+    "word_count": 28,
+    "total_score": 30,
+    "breakdown": {
+     "answer_block_quality": 10,
+     "self_containment": 15,
+     "structural_readability": 5,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Get a comprehensive security posture assessment from certified analysts. We will identify vulnerabilities, prioritize remediation, and outline a useful path forward. No commitment requiredResults in"
+   }
+  ]
+ },
+ "/service-category/managed-it-services": {
+  "score": 25.5,
+  "avg_all_blocks": 25.5,
+  "blocks": 2,
+  "optimal_length_blocks": 0,
+  "question_headings": 1,
+  "weakest": [
+   {
+    "heading": "The transition process",
+    "word_count": 25,
+    "total_score": 24,
+    "breakdown": {
+     "answer_block_quality": 7,
+     "self_containment": 15,
+     "structural_readability": 2,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Assess current systems, support history, risks, and priorities.Create a practical onboarding plan with clear ownership and timelines.Move into steady-state support with ongoing improvement and communication."
+   },
+   {
+    "heading": "Ready for a more dependable IT operation?",
+    "word_count": 20,
+    "total_score": 27,
+    "breakdown": {
+     "answer_block_quality": 15,
+     "self_containment": 4,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Talk to New Wave IT about an operating model that gives your team clearer priorities and a reliable technology partner."
+   }
+  ]
+ },
+ "/service-category/family-offices": {
+  "score": 0,
+  "avg_all_blocks": 0,
+  "blocks": 0,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": []
+ },
+ "/service-category/cybersecurity": {
+  "score": 25.0,
+  "avg_all_blocks": 25.0,
+  "blocks": 1,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "Technology designed around your operation.",
+    "word_count": 20,
+    "total_score": 25,
+    "breakdown": {
+     "answer_block_quality": 5,
+     "self_containment": 12,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Our cybersecurity program provides threat monitoring, advanced detection capabilities, and response protocols designed to protect the way your organization works."
+   }
+  ]
+ },
+ "/service-category/network-infrastructure": {
+  "score": 35.0,
+  "avg_all_blocks": 35.0,
+  "blocks": 1,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "Technology designed around your operation.",
+    "word_count": 21,
+    "total_score": 35,
+    "breakdown": {
+     "answer_block_quality": 20,
+     "self_containment": 7,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "From fiber installation to firewall configuration to wireless deployment, we design networks that are fast, secure, and built with appropriate redundancy."
+   }
+  ]
+ },
+ "/service-category/it-repair-upgrades": {
+  "score": 37.0,
+  "avg_all_blocks": 37.0,
+  "blocks": 2,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "Our repair process",
+    "word_count": 28,
+    "total_score": 24,
+    "breakdown": {
+     "answer_block_quality": 7,
+     "self_containment": 15,
+     "structural_readability": 2,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Diagnose the issue and explain the available options.Protect data and document the planned repair or upgrade.Complete the work, validate performance, and return the equipment with"
+   },
+   {
+    "heading": "Repair When It Makes Sense",
+    "word_count": 20,
+    "total_score": 50,
+    "breakdown": {
+     "answer_block_quality": 30,
+     "self_containment": 12,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Repair is often practical when a single component has failed, the cost is contained, or data recovery is the priority."
+   }
+  ]
+ },
+ "/service-category/luxury": {
+  "score": 0,
+  "avg_all_blocks": 0,
+  "blocks": 0,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": []
+ },
+ "/service-category/live-it-support": {
+  "score": 38.0,
+  "avg_all_blocks": 38.0,
+  "blocks": 1,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "Technology designed around your operation.",
+    "word_count": 25,
+    "total_score": 38,
+    "breakdown": {
+     "answer_block_quality": 21,
+     "self_containment": 12,
+     "structural_readability": 5,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Our live support team is available 24/7 via phone, email, chat, and on-site. We prioritize critical issues and maintain detailed ticket tracking throughout the process."
+   }
+  ]
+ },
+ "/service-category/healthcare": {
+  "score": 20.0,
+  "avg_all_blocks": 20.0,
+  "blocks": 1,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "Technology designed around your operation.",
+    "word_count": 20,
+    "total_score": 20,
+    "breakdown": {
+     "answer_block_quality": 5,
+     "self_containment": 7,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Secure patient data management, regulatory compliance, and thoughtful EHR integration support the high standards healthcare teams need from their technology."
+   }
+  ]
+ },
+ "/service-category/cellular-das-and-public-safety": {
+  "score": 27.3,
+  "avg_all_blocks": 27.3,
+  "blocks": 3,
+  "optimal_length_blocks": 0,
+  "question_headings": 1,
+  "weakest": [
+   {
+    "heading": "Building reliable coverage",
+    "word_count": 33,
+    "total_score": 26,
+    "breakdown": {
+     "answer_block_quality": 7,
+     "self_containment": 14,
+     "structural_readability": 5,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Assess the facility, current coverage, building materials, and operational requirements.Design a coverage and capacity approach that fits the space and its critical users.Install, validate, document,"
+   },
+   {
+    "heading": "Ready to improve critical communications coverage?",
+    "word_count": 24,
+    "total_score": 27,
+    "breakdown": {
+     "answer_block_quality": 15,
+     "self_containment": 4,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Talk to New Wave IT about a DAS or public safety communication program built around your facility and the people who rely on it."
+   },
+   {
+    "heading": "Technology designed around your operation.",
+    "word_count": 23,
+    "total_score": 29,
+    "breakdown": {
+     "answer_block_quality": 5,
+     "self_containment": 12,
+     "structural_readability": 12,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Deploy reliable cellular coverage, FirstNet integration, and communication systems designed around the operational needs of emergency responders, public safety agencies, and large facilities."
+   }
+  ]
+ },
+ "/service-category/cloud-solutions": {
+  "score": 26.0,
+  "avg_all_blocks": 26.0,
+  "blocks": 3,
+  "optimal_length_blocks": 0,
+  "question_headings": 1,
+  "weakest": [
+   {
+    "heading": "Migration planning & execution",
+    "word_count": 28,
+    "total_score": 24,
+    "breakdown": {
+     "answer_block_quality": 7,
+     "self_containment": 15,
+     "structural_readability": 2,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Assess applications, data, dependencies, and operational requirements.Build a phased migration plan with clear ownership, validation, and communication.Move workloads in a controlled sequence and confirm performance"
+   },
+   {
+    "heading": "Technology designed around your operation.",
+    "word_count": 21,
+    "total_score": 25,
+    "breakdown": {
+     "answer_block_quality": 6,
+     "self_containment": 15,
+     "structural_readability": 2,
+     "statistical_density": 2,
+     "uniqueness_signals": 0
+    },
+    "preview": "Leverage Azure, AWS, and Google Cloud for scalability, cost control, and business agility. We handle migration planning, optimization, and ongoing management."
+   },
+   {
+    "heading": "Ready to make your cloud plan clearer?",
+    "word_count": 20,
+    "total_score": 29,
+    "breakdown": {
+     "answer_block_quality": 15,
+     "self_containment": 4,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 2
+    },
+    "preview": "Talk with New Wave IT about a cloud roadmap that balances security, performance, cost, and the way your team works."
+   }
+  ]
+ },
+ "/_home": {
+  "score": 26.2,
+  "avg_all_blocks": 26.2,
+  "blocks": 4,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "IT Services Built forModernBusiness",
+    "word_count": 22,
+    "total_score": 20,
+    "breakdown": {
+     "answer_block_quality": 5,
+     "self_containment": 7,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "From day-to-day support to long-term IT strategy, we provide everything your business needs to stay secure, efficient, and ahead of the curve."
+   },
+   {
+    "heading": "Cybersecurity",
+    "word_count": 43,
+    "total_score": 22,
+    "breakdown": {
+     "answer_block_quality": 5,
+     "self_containment": 12,
+     "structural_readability": 5,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Protect your business from evolving threats with enterprise-grade security solutions. Every endpoint monitored, isolated, and remediated in real time Advanced filtering that stops threats before"
+   },
+   {
+    "heading": "A clear route to better technology.",
+    "word_count": 45,
+    "total_score": 31,
+    "breakdown": {
+     "answer_block_quality": 8,
+     "self_containment": 14,
+     "structural_readability": 9,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "A straightforward engagement from first conversation through continuous support. AssessmentWe learn how your team works, review the environment, and identify practical priorities.PlanningTogether we build a"
+   }
+  ]
+ },
+ "/services": {
+  "score": 20.7,
+  "avg_all_blocks": 20.7,
+  "blocks": 3,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "IT Services Built forModernBusiness",
+    "word_count": 22,
+    "total_score": 20,
+    "breakdown": {
+     "answer_block_quality": 5,
+     "self_containment": 7,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "From day-to-day support to long-term IT strategy, we provide everything your business needs to stay secure, efficient, and ahead of the curve."
+   },
+   {
+    "heading": "Ready to get started?Let's talk.",
+    "word_count": 20,
+    "total_score": 20,
+    "breakdown": {
+     "answer_block_quality": 6,
+     "self_containment": 12,
+     "structural_readability": 2,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Fill out the form and a technician will reach out within one business day. For urgent issues, call us now."
+   },
+   {
+    "heading": "Cybersecurity",
+    "word_count": 43,
+    "total_score": 22,
+    "breakdown": {
+     "answer_block_quality": 5,
+     "self_containment": 12,
+     "structural_readability": 5,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Protect your business from evolving threats with enterprise-grade security solutions. Every endpoint monitored, isolated, and remediated in real time Advanced filtering that stops threats before"
+   }
+  ]
+ },
+ "/why-us": {
+  "score": 27.7,
+  "avg_all_blocks": 27.7,
+  "blocks": 3,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "Ready to get started?Let's talk.",
+    "word_count": 20,
+    "total_score": 20,
+    "breakdown": {
+     "answer_block_quality": 6,
+     "self_containment": 12,
+     "structural_readability": 2,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Fill out the form and a technician will reach out within one business day. For urgent issues, call us now."
+   },
+   {
+    "heading": "A clear route to better technology.",
+    "word_count": 45,
+    "total_score": 31,
+    "breakdown": {
+     "answer_block_quality": 8,
+     "self_containment": 14,
+     "structural_readability": 9,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "A straightforward engagement from first conversation through continuous support. AssessmentWe learn how your team works, review the environment, and identify practical priorities.PlanningTogether we build a"
+   },
+   {
+    "heading": "Built for businesses thatneed continuity.",
+    "word_count": 37,
+    "total_score": 32,
+    "breakdown": {
+     "answer_block_quality": 10,
+     "self_containment": 14,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "We do more than resolve tickets. We create a technology relationship that keeps your business moving with confidence. No long-term contracts requiredFlat-rate transparent pricingLocal Fort"
+   }
+  ]
+ },
+ "/blog": {
+  "score": 0,
+  "avg_all_blocks": 0,
+  "blocks": 0,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": []
+ },
+ "/terms-and-conditions": {
+  "score": 46.0,
+  "avg_all_blocks": 36.5,
+  "blocks": 18,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "Governing Law and Venue",
+    "word_count": 46,
+    "total_score": 23,
+    "breakdown": {
+     "answer_block_quality": 3,
+     "self_containment": 12,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Florida law governs these Terms without regard to its conflict-of-laws rules. Subject to any controlling service agreement and applicable law, the state and federal courts"
+   },
+   {
+    "heading": "Limitation of Liability",
+    "word_count": 82,
+    "total_score": 26,
+    "breakdown": {
+     "answer_block_quality": 5,
+     "self_containment": 16,
+     "structural_readability": 5,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "To the maximum extent permitted by law, New Wave IT will not be liable for indirect, special, incidental, consequential, or exemplary damages, or for lost"
+   },
+   {
+    "heading": "Intellectual Property",
+    "word_count": 70,
+    "total_score": 27,
+    "breakdown": {
+     "answer_block_quality": 6,
+     "self_containment": 9,
+     "structural_readability": 12,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "New Wave IT and its licensors retain ownership of the website, its design and content, and New Wave IT technology and materials, except as a"
+   }
+  ]
+ },
+ "/cookie-policy": {
+  "score": 49.6,
+  "avg_all_blocks": 39.4,
+  "blocks": 10,
+  "optimal_length_blocks": 1,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "Why We Use These Technologies",
+    "word_count": 42,
+    "total_score": 16,
+    "breakdown": {
+     "answer_block_quality": 0,
+     "self_containment": 11,
+     "structural_readability": 5,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "We use these technologies as reasonably necessary to: provide functionality you request;authenticate users and maintain session continuity;protect the website, accounts, and services, including from automated"
+   },
+   {
+    "heading": "Storage set by this website",
+    "word_count": 133,
+    "total_score": 27,
+    "breakdown": {
+     "answer_block_quality": 5,
+     "self_containment": 17,
+     "structural_readability": 5,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Browser storage set by the New Wave IT websiteTechnologyProviderTypeWhat it doesHow long it lastsnw_content_v2:*New Wave ITLocal storageCaches the page text and settings we publish from"
+   },
+   {
+    "heading": "Updates to This Cookie Policy",
+    "word_count": 46,
+    "total_score": 29,
+    "breakdown": {
+     "answer_block_quality": 3,
+     "self_containment": 14,
+     "structural_readability": 12,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "We may revise this Cookie Policy to reflect changes in the technologies we use, our practices, or applicable requirements. We will post the updated version"
+   }
+  ]
+ },
+ "/managed-it-services-fort-lauderdale": {
+  "score": 34.0,
+  "avg_all_blocks": 34.0,
+  "blocks": 2,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "Switching to New Wave IT",
+    "word_count": 21,
+    "total_score": 24,
+    "breakdown": {
+     "answer_block_quality": 7,
+     "self_containment": 15,
+     "structural_readability": 2,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Free assessment of your systems, support history, and risks.An onboarding plan with clear owners and dates.Steady-state managed support with regular reviews."
+   },
+   {
+    "heading": "Technology designed around your operation.",
+    "word_count": 39,
+    "total_score": 44,
+    "breakdown": {
+     "answer_block_quality": 30,
+     "self_containment": 6,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Managed IT means New Wave IT looks after your systems before something breaks: we monitor devices and servers, apply updates, manage backups, and plan upgrades"
+   }
+  ]
+ },
+ "/it-support-fort-lauderdale": {
+  "score": 32.7,
+  "avg_all_blocks": 32.7,
+  "blocks": 3,
+  "optimal_length_blocks": 0,
+  "question_headings": 1,
+  "weakest": [
+   {
+    "heading": "How getting started works",
+    "word_count": 35,
+    "total_score": 26,
+    "breakdown": {
+     "answer_block_quality": 7,
+     "self_containment": 14,
+     "structural_readability": 5,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "A free assessment of your devices, accounts, and the problems your staff report most.A written quote from the published rates, with no long-term contract.Onboarding: we"
+   },
+   {
+    "heading": "Technology designed around your operation.",
+    "word_count": 38,
+    "total_score": 28,
+    "breakdown": {
+     "answer_block_quality": 6,
+     "self_containment": 14,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "New Wave IT supports offices across Fort Lauderdale and Broward County from 710 NW 5th Ave. Your team reaches real technicians by phone, email, or"
+   },
+   {
+    "heading": "Need IT support in Fort Lauderdale?",
+    "word_count": 20,
+    "total_score": 44,
+    "breakdown": {
+     "answer_block_quality": 30,
+     "self_containment": 12,
+     "structural_readability": 2,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Tell us what is slowing your team down. A technician will reply within one business day, or call us now."
+   }
+  ]
+ },
+ "/privacy-policy": {
+  "score": 41.4,
+  "avg_all_blocks": 34.3,
+  "blocks": 14,
+  "optimal_length_blocks": 4,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "Changes to This Policy",
+    "word_count": 32,
+    "total_score": 23,
+    "breakdown": {
+     "answer_block_quality": 6,
+     "self_containment": 9,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "We may update this Policy by posting a revised version with a new effective date. When appropriate, we will provide additional or prominent notice of"
+   },
+   {
+    "heading": "Third-Party Sites and Services",
+    "word_count": 30,
+    "total_score": 24,
+    "breakdown": {
+     "answer_block_quality": 6,
+     "self_containment": 6,
+     "structural_readability": 12,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Our website and services may link to or integrate third-party sites, products, and services. Their separate privacy policies and terms govern their practices, and we"
+   },
+   {
+    "heading": "How We Disclose Information",
+    "word_count": 162,
+    "total_score": 28,
+    "breakdown": {
+     "answer_block_quality": 4,
+     "self_containment": 20,
+     "structural_readability": 2,
+     "statistical_density": 2,
+     "uniqueness_signals": 0
+    },
+    "preview": "We may disclose information as reasonably necessary to: service providers that support our operations, including Supabase, Resend, SuperOps, Twilio, and Vercel, subject to their services,"
+   }
+  ]
+ },
+ "/l/managed-it-guide": {
+  "score": 31.8,
+  "avg_all_blocks": 30.8,
+  "blocks": 6,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "Implementation roadmap",
+    "word_count": 126,
+    "total_score": 26,
+    "breakdown": {
+     "answer_block_quality": 5,
+     "self_containment": 19,
+     "structural_readability": 2,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Use these steps to turn the guidance into a sequence your team can work through. Audit your current IT environment and document all systemsDefine the"
+   },
+   {
+    "heading": "A practical guide for your next decision.",
+    "word_count": 31,
+    "total_score": 28,
+    "breakdown": {
+     "answer_block_quality": 6,
+     "self_containment": 14,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Managed IT Services represents a fundamental shift in how organizations approach technology. Instead of paying for support only when something breaks, managed services provide proactive"
+   },
+   {
+    "heading": "Service Scope & Coverage",
+    "word_count": 76,
+    "total_score": 28,
+    "breakdown": {
+     "answer_block_quality": 8,
+     "self_containment": 14,
+     "structural_readability": 6,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Managed IT typically covers infrastructure monitoring, patch management, security updates, backup management, performance optimization, and help desk support. Define exactly what's included and excluded. Most"
+   }
+  ]
+ },
+ "/l/it-repair-guide": {
+  "score": 45.2,
+  "avg_all_blocks": 41.0,
+  "blocks": 6,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "A practical guide for your next decision.",
+    "word_count": 29,
+    "total_score": 20,
+    "breakdown": {
+     "answer_block_quality": 6,
+     "self_containment": 12,
+     "structural_readability": 2,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Equipment replacement represents a significant expense. Strategic repairs and upgrades can extend useful equipment life by years while improving performance. This guide covers the economics"
+   },
+   {
+    "heading": "Diagnostic Best Practices",
+    "word_count": 71,
+    "total_score": 24,
+    "breakdown": {
+     "answer_block_quality": 7,
+     "self_containment": 12,
+     "structural_readability": 5,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Proper diagnosis prevents unnecessary repairs. Slow performance, crashes, and errors can have multiple causes. Run diagnostics before replacing components. Use disk utilities to check hard"
+   },
+   {
+    "heading": "Implementation roadmap",
+    "word_count": 110,
+    "total_score": 29,
+    "breakdown": {
+     "answer_block_quality": 5,
+     "self_containment": 22,
+     "structural_readability": 2,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Use these steps to turn the guidance into a sequence your team can work through. Inventory your equipment and document age, specs, and conditionEstablish criteria"
+   }
+  ]
+ },
+ "/l/it-support-guide": {
+  "score": 36.8,
+  "avg_all_blocks": 34.0,
+  "blocks": 6,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "A practical guide for your next decision.",
+    "word_count": 31,
+    "total_score": 20,
+    "breakdown": {
+     "answer_block_quality": 6,
+     "self_containment": 6,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Great IT support goes beyond quick fixes. This guide explains how to establish support that minimizes downtime, builds user confidence, and gives your team the"
+   },
+   {
+    "heading": "Knowledge Management & Documentation",
+    "word_count": 74,
+    "total_score": 27,
+    "breakdown": {
+     "answer_block_quality": 8,
+     "self_containment": 14,
+     "structural_readability": 5,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Every issue your support team resolves should be documented. A knowledge base captures solutions, common workarounds, and how-tos. This reduces repeat issues and lets your"
+   },
+   {
+    "heading": "Implementation roadmap",
+    "word_count": 112,
+    "total_score": 29,
+    "breakdown": {
+     "answer_block_quality": 5,
+     "self_containment": 22,
+     "structural_readability": 2,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Use these steps to turn the guidance into a sequence your team can work through. Define support tiers and response time commitmentsSelect support tools (ticketing,"
+   }
+  ]
+ },
+ "/l/network-infrastructure-guide": {
+  "score": 35.6,
+  "avg_all_blocks": 34.0,
+  "blocks": 6,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "Wireless & Remote Access",
+    "word_count": 68,
+    "total_score": 26,
+    "breakdown": {
+     "answer_block_quality": 7,
+     "self_containment": 17,
+     "structural_readability": 2,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Modern organizations need wireless everywhere. WiFi 6 (802.11ax) provides speed and efficiency. Enterprise-grade access points with centralized management ensure security and performance. Remote access requirements"
+   },
+   {
+    "heading": "Network Architecture & Design",
+    "word_count": 83,
+    "total_score": 29,
+    "breakdown": {
+     "answer_block_quality": 8,
+     "self_containment": 16,
+     "structural_readability": 5,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Modern networks use layered architecture: the access layer (user connections), distribution layer (aggregation and switching), and core layer (backbone connectivity). This design enables scalability and"
+   },
+   {
+    "heading": "Implementation roadmap",
+    "word_count": 106,
+    "total_score": 29,
+    "breakdown": {
+     "answer_block_quality": 5,
+     "self_containment": 22,
+     "structural_readability": 2,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Use these steps to turn the guidance into a sequence your team can work through. Document your current network topology and usage patternsIdentify bottlenecks and"
+   }
+  ]
+ },
+ "/l/cybersecurity-guide": {
+  "score": 41.0,
+  "avg_all_blocks": 37.5,
+  "blocks": 6,
+  "optimal_length_blocks": 1,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "A practical guide for your next decision.",
+    "word_count": 36,
+    "total_score": 20,
+    "breakdown": {
+     "answer_block_quality": 6,
+     "self_containment": 6,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Modern cybersecurity requires a multi-layered approach that goes far beyond simple password policies. This comprehensive guide walks you through building a security program that protects"
+   },
+   {
+    "heading": "Threat Detection & Response",
+    "word_count": 78,
+    "total_score": 25,
+    "breakdown": {
+     "answer_block_quality": 8,
+     "self_containment": 12,
+     "structural_readability": 5,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "A Security Operations Center (SOC) provides 24/7 monitoring of your infrastructure. Analysts review millions of events daily, identifying patterns that indicate potential threats. Advanced threat"
+   },
+   {
+    "heading": "Implementation roadmap",
+    "word_count": 154,
+    "total_score": 32,
+    "breakdown": {
+     "answer_block_quality": 5,
+     "self_containment": 25,
+     "structural_readability": 2,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Use these steps to turn the guidance into a sequence your team can work through. Assess your current security posture through penetration testing and vulnerability"
+   }
+  ]
+ },
+ "/l/cloud-solutions-guide": {
+  "score": 40.4,
+  "avg_all_blocks": 36.2,
+  "blocks": 6,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "A practical guide for your next decision.",
+    "word_count": 29,
+    "total_score": 15,
+    "breakdown": {
+     "answer_block_quality": 6,
+     "self_containment": 4,
+     "structural_readability": 5,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Cloud computing isn't a single product\u2014it's a set of platforms and services. This guide covers cloud architecture, migration strategy, and cost optimization to help you"
+   },
+   {
+    "heading": "Implementation roadmap",
+    "word_count": 112,
+    "total_score": 29,
+    "breakdown": {
+     "answer_block_quality": 5,
+     "self_containment": 22,
+     "structural_readability": 2,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Use these steps to turn the guidance into a sequence your team can work through. Assess applications and dependencies for cloud readinessSelect cloud platform(s) based"
+   },
+   {
+    "heading": "Cloud Platforms & Services",
+    "word_count": 69,
+    "total_score": 35,
+    "breakdown": {
+     "answer_block_quality": 6,
+     "self_containment": 17,
+     "structural_readability": 8,
+     "statistical_density": 4,
+     "uniqueness_signals": 0
+    },
+    "preview": "Three major cloud providers dominate: Microsoft Azure (enterprise focus), Amazon Web Services (broadest services), and Google Cloud (data and analytics strength). Each has different strengths."
+   }
+  ]
+ },
+ "/social-engineering": {
+  "score": 28.0,
+  "avg_all_blocks": 28.0,
+  "blocks": 1,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "Growth marketing for small businesses, nationwide: Growth decisions made on data, not guesswork.",
+    "word_count": 30,
+    "total_score": 28,
+    "breakdown": {
+     "answer_block_quality": 6,
+     "self_containment": 14,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "New Wave: Social Engineering uses GroundSwell research and planning to guide connected tools, websites, and advertising for small businesses nationwide. New Wave: Social Engineering \u2014"
+   }
+  ]
+ },
+ "/social-engineering/contact-us": {
+  "score": 23.0,
+  "avg_all_blocks": 23.0,
+  "blocks": 1,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "Contact us",
+    "word_count": 33,
+    "total_score": 23,
+    "breakdown": {
+     "answer_block_quality": 6,
+     "self_containment": 9,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Client requests, general questions, and partnership ideas for New Wave: Social Engineering, the growth division of New Wave IT for small businesses nationwide. New Wave:"
+   }
+  ]
+ },
+ "/social-engineering/customers": {
+  "score": 23.0,
+  "avg_all_blocks": 23.0,
+  "blocks": 1,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "Businesses we work with",
+    "word_count": 38,
+    "total_score": 23,
+    "breakdown": {
+     "answer_block_quality": 3,
+     "self_containment": 12,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Meet the customers of New Wave: Social Engineering, the growth division of New Wave IT, and see what each business does, with a link to"
+   }
+  ]
+ },
+ "/social-engineering/integration": {
+  "score": 32.0,
+  "avg_all_blocks": 32.0,
+  "blocks": 1,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "Your tools connected, every sale traced to its source",
+    "word_count": 33,
+    "total_score": 32,
+    "breakdown": {
+     "answer_block_quality": 6,
+     "self_containment": 14,
+     "structural_readability": 12,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Integrations and data for small businesses: website, CRM, booking, checkout, email, SMS, and ad accounts connected and tracked from first click to sale. New Wave:"
+   }
+  ]
+ },
+ "/social-engineering/digital-oversight": {
+  "score": 23.0,
+  "avg_all_blocks": 23.0,
+  "blocks": 1,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "One team accountable for the numbers and the whole digital presence",
+    "word_count": 28,
+    "total_score": 23,
+    "breakdown": {
+     "answer_block_quality": 6,
+     "self_containment": 12,
+     "structural_readability": 5,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Analytics and oversight for small businesses: one team accountable for dashboards, monthly reporting, listings, reviews, and account ownership. New Wave: Social Engineering \u2014 A New"
+   }
+  ]
+ },
+ "/social-engineering/website-design": {
+  "score": 28.0,
+  "avg_all_blocks": 28.0,
+  "blocks": 1,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "Websites built to convert, connected to the tools that run the business",
+    "word_count": 35,
+    "total_score": 28,
+    "breakdown": {
+     "answer_block_quality": 6,
+     "self_containment": 14,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Small business website design built to convert: a page for every revenue path, booking and checkout connected to your tools, and tracking tested at launch."
+   }
+  ]
+ },
+ "/social-engineering/contact": {
+  "score": 28.0,
+  "avg_all_blocks": 28.0,
+  "blocks": 1,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "Book a discovery call",
+    "word_count": 35,
+    "total_score": 28,
+    "breakdown": {
+     "answer_block_quality": 6,
+     "self_containment": 12,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 2
+    },
+    "preview": "Book a discovery call with New Wave: Social Engineering, the growth division of New Wave IT, about growing your sales with data, integrations, and ads."
+   }
+  ]
+ },
+ "/social-engineering/groundswell": {
+  "score": 58.4,
+  "avg_all_blocks": 37.5,
+  "blocks": 44,
+  "optimal_length_blocks": 0,
+  "question_headings": 7,
+  "weakest": [
+   {
+    "heading": "Can we run it again later?",
+    "word_count": 23,
+    "total_score": 19,
+    "breakdown": {
+     "answer_block_quality": 13,
+     "self_containment": 4,
+     "structural_readability": 2,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Yes. Rerun it for a fresh read on where you stand, or add a competitor and it runs again with that business included."
+   },
+   {
+    "heading": "Social Current",
+    "word_count": 28,
+    "total_score": 20,
+    "breakdown": {
+     "answer_block_quality": 0,
+     "self_containment": 12,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Public Instagram profiles and Facebook Pages Followers, posting cadence, likes and comments per recent post, your best post, your captions and hashtags, and the same"
+   },
+   {
+    "heading": "Search Current",
+    "word_count": 80,
+    "total_score": 23,
+    "breakdown": {
+     "answer_block_quality": 0,
+     "self_containment": 19,
+     "structural_readability": 2,
+     "statistical_density": 2,
+     "uniqueness_signals": 0
+    },
+    "preview": "Google Ads Keyword Planner, Ahrefs, and a public Google search of the terms that describe your business Monthly searches and bid ranges for up to"
+   }
+  ]
+ },
+ "/social-engineering/groundswell/social": {
+  "score": 40.2,
+  "avg_all_blocks": 40.2,
+  "blocks": 4,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "What your Instagram and Facebook actually do",
+    "word_count": 29,
+    "total_score": 20,
+    "breakdown": {
+     "answer_block_quality": 0,
+     "self_containment": 12,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Followers, how often you post, what a typical post earns in likes and comments, your best post, the words and hashtags you use, and the"
+   },
+   {
+    "heading": "What it does not measure",
+    "word_count": 41,
+    "total_score": 41,
+    "breakdown": {
+     "answer_block_quality": 22,
+     "self_containment": 11,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "A private profile is never read.An age-gated profile (an alcohol brand, say) is read through the fallback or the client\u2019s own linked account; the reports"
+   },
+   {
+    "heading": "Why these numbers",
+    "word_count": 86,
+    "total_score": 49,
+    "breakdown": {
+     "answer_block_quality": 21,
+     "self_containment": 16,
+     "structural_readability": 12,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "A follower count says little on its own. What a typical post earns, how often you post, and what your best post did are what"
+   }
+  ]
+ },
+ "/social-engineering/groundswell/competitors": {
+  "score": 32.6,
+  "avg_all_blocks": 32.6,
+  "blocks": 5,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "Benchmarked against businesses that actually compete with you",
+    "word_count": 30,
+    "total_score": 18,
+    "breakdown": {
+     "answer_block_quality": 0,
+     "self_containment": 6,
+     "structural_readability": 12,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Who the audit compares you with, how it decides they compete, who it left out and why, and the scorecard that puts the first two"
+   },
+   {
+    "heading": "Where it appears",
+    "word_count": 21,
+    "total_score": 23,
+    "breakdown": {
+     "answer_block_quality": 5,
+     "self_containment": 10,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "The competitors slide, \u201cWhy it competes\u201d and \u201cLeft out as not competing\u201d in the full audit, and the competitor benchmark PDF."
+   },
+   {
+    "heading": "What it does not measure",
+    "word_count": 22,
+    "total_score": 34,
+    "breakdown": {
+     "answer_block_quality": 21,
+     "self_containment": 7,
+     "structural_readability": 6,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "The first two competitors are benchmarked in depth; the rest are named with their reason.A competitor\u2019s images are never kept; text only."
+   }
+  ]
+ },
+ "/social-engineering/groundswell/search": {
+  "score": 42.0,
+  "avg_all_blocks": 42.0,
+  "blocks": 4,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "What people search for, and whether they find you",
+    "word_count": 31,
+    "total_score": 19,
+    "breakdown": {
+     "answer_block_quality": 0,
+     "self_containment": 11,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "How many people in your area search for what you sell each month, what a click costs, where your site shows up for those searches,"
+   },
+   {
+    "heading": "What it does not measure",
+    "word_count": 25,
+    "total_score": 38,
+    "breakdown": {
+     "answer_block_quality": 21,
+     "self_containment": 12,
+     "structural_readability": 5,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Keyword Planner reports averages and ranges, not exact counts; the reports say so beside each figure.A term the Planner did not return is never priced."
+   },
+   {
+    "heading": "What is measured, and where it comes from",
+    "word_count": 346,
+    "total_score": 49,
+    "breakdown": {
+     "answer_block_quality": 30,
+     "self_containment": 9,
+     "structural_readability": 8,
+     "statistical_density": 2,
+     "uniqueness_signals": 0
+    },
+    "preview": "Monthly searches by keywordWhat is measuredAverage monthly searches for up to 60 terms built from your category, your services and your area.Where it comes fromGoogle"
+   }
+  ]
+ },
+ "/social-engineering/groundswell/google-listing": {
+  "score": 39.2,
+  "avg_all_blocks": 39.2,
+  "blocks": 4,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "How you look on Google Maps, and who sits beside you",
+    "word_count": 22,
+    "total_score": 20,
+    "breakdown": {
+     "answer_block_quality": 5,
+     "self_containment": 7,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Your Business Profile as a customer sees it: rating, review count, category, hours and website, plus the listings in your category nearby."
+   },
+   {
+    "heading": "What it does not measure",
+    "word_count": 44,
+    "total_score": 35,
+    "breakdown": {
+     "answer_block_quality": 21,
+     "self_containment": 6,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Your position in the Maps results is not measured: it changes with where the searcher stands, so it is never printed as a rank.A listing"
+   },
+   {
+    "heading": "What is measured, and where it comes from",
+    "word_count": 191,
+    "total_score": 40,
+    "breakdown": {
+     "answer_block_quality": 19,
+     "self_containment": 14,
+     "structural_readability": 5,
+     "statistical_density": 2,
+     "uniqueness_signals": 0
+    },
+    "preview": "Rating and review countWhat is measuredYour Google rating and how many reviews it rests on.Where it comes fromThe Google Places API, with the logged-out Google"
+   }
+  ]
+ },
+ "/social-engineering/groundswell/website": {
+  "score": 35.0,
+  "avg_all_blocks": 35.0,
+  "blocks": 4,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "Whether your site says what you sell, and whether it can be measured",
+    "word_count": 30,
+    "total_score": 16,
+    "breakdown": {
+     "answer_block_quality": 0,
+     "self_containment": 6,
+     "structural_readability": 8,
+     "statistical_density": 2,
+     "uniqueness_signals": 0
+    },
+    "preview": "What each of your pages says and asks the visitor to do, the tracking and booking paths in place, and the technical checks that decide"
+   },
+   {
+    "heading": "What it does not measure",
+    "word_count": 23,
+    "total_score": 35,
+    "breakdown": {
+     "answer_block_quality": 21,
+     "self_containment": 12,
+     "structural_readability": 2,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Page speed is not measured: the audit reads the page\u2019s words and tags, not its load time.Legal and account pages are never read."
+   },
+   {
+    "heading": "Why these numbers",
+    "word_count": 82,
+    "total_score": 41,
+    "breakdown": {
+     "answer_block_quality": 19,
+     "self_containment": 14,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Every ad and every search ends on your website. If the page does not say what the ad promised, carries no way to book, or"
+   }
+  ]
+ },
+ "/social-engineering/groundswell/your-accounts": {
+  "score": 36.0,
+  "avg_all_blocks": 36.0,
+  "blocks": 4,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "When you connect your accounts, your figures replace the estimates",
+    "word_count": 30,
+    "total_score": 24,
+    "breakdown": {
+     "answer_block_quality": 0,
+     "self_containment": 14,
+     "structural_readability": 8,
+     "statistical_density": 2,
+     "uniqueness_signals": 0
+    },
+    "preview": "What the integrated plan reads once a client links Google Analytics 4, Search Console, Google Ads, Instagram and Meta Ads, and how those figures take"
+   },
+   {
+    "heading": "What it does not measure",
+    "word_count": 33,
+    "total_score": 35,
+    "breakdown": {
+     "answer_block_quality": 21,
+     "self_containment": 6,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "A prospect\u2019s audit reads none of this; it runs on public data only.Nothing linked ever stops a run: a service that fails is named as"
+   },
+   {
+    "heading": "What is measured, and where it comes from",
+    "word_count": 244,
+    "total_score": 42,
+    "breakdown": {
+     "answer_block_quality": 19,
+     "self_containment": 14,
+     "structural_readability": 5,
+     "statistical_density": 4,
+     "uniqueness_signals": 0
+    },
+    "preview": "Google Analytics 4What is measuredSessions, users, new users, conversions and engagement rate over 30 days, by channel and by landing page.Where it comes fromThe client\u2019s"
+   }
+  ]
+ },
+ "/social-engineering/groundswell/ads": {
+  "score": 39.4,
+  "avg_all_blocks": 39.4,
+  "blocks": 5,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "Where it appears",
+    "word_count": 26,
+    "total_score": 25,
+    "breakdown": {
+     "answer_block_quality": 0,
+     "self_containment": 15,
+     "structural_readability": 8,
+     "statistical_density": 2,
+     "uniqueness_signals": 0
+    },
+    "preview": "The ads slide, the ad plan and ad copy sections of the full audit, the ad sets PDF, and the Meta and Google Ads import"
+   },
+   {
+    "heading": "Who is advertising, with what, and what it should cost you",
+    "word_count": 38,
+    "total_score": 27,
+    "breakdown": {
+     "answer_block_quality": 0,
+     "self_containment": 17,
+     "structural_readability": 8,
+     "statistical_density": 2,
+     "uniqueness_signals": 0
+    },
+    "preview": "The ads on record for you and each competitor on Google and Meta, the tags on your site, and from there the cost per click,"
+   },
+   {
+    "heading": "What it does not measure",
+    "word_count": 35,
+    "total_score": 40,
+    "breakdown": {
+     "answer_block_quality": 22,
+     "self_containment": 9,
+     "structural_readability": 9,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Spend is never estimated from an ad library; no library publishes it.A platform with no published benchmark for your industry is listed, never priced.No ad"
+   }
+  ]
+ },
+ "/social-engineering/brand-development": {
+  "score": 24.0,
+  "avg_all_blocks": 24.0,
+  "blocks": 1,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "A brand that converts the same way everywhere it shows up",
+    "word_count": 33,
+    "total_score": 24,
+    "breakdown": {
+     "answer_block_quality": 5,
+     "self_containment": 14,
+     "structural_readability": 5,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Brand development for small businesses: positioning, identity, voice, and guidelines, built to convert in ads, online, and in person. Book a discovery call. New Wave:"
+   }
+  ]
+ },
+ "/social-engineering/marketing": {
+  "score": 28.0,
+  "avg_all_blocks": 28.0,
+  "blocks": 1,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "Advertising that bids on data and answers for cost per sale",
+    "word_count": 34,
+    "total_score": 28,
+    "breakdown": {
+     "answer_block_quality": 6,
+     "self_containment": 14,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Smart advertising for small businesses: paid search, paid social, retargeting, and lifecycle email and SMS, bid on data and judged by cost per sale. New"
+   }
+  ]
+ },
+ "/social-engineering/social-media": {
+  "score": 23.0,
+  "avg_all_blocks": 23.0,
+  "blocks": 1,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "Social media that is measured in sales, not likes",
+    "word_count": 33,
+    "total_score": 23,
+    "breakdown": {
+     "answer_block_quality": 6,
+     "self_containment": 9,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Social media management for small businesses: strategy, content, posting, and replies, planned with your ads and tracked to the sales they bring in. New Wave:"
+   }
+  ]
+ },
+ "/contact": {
+  "score": 20.0,
+  "avg_all_blocks": 20.0,
+  "blocks": 1,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "Ready to get started?Let's talk.",
+    "word_count": 20,
+    "total_score": 20,
+    "breakdown": {
+     "answer_block_quality": 6,
+     "self_containment": 12,
+     "structural_readability": 2,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Fill out the form and a technician will reach out within one business day. For urgent issues, call us now."
+   }
+  ]
+ },
+ "/groundswell": {
+  "score": 0,
+  "avg_all_blocks": 0,
+  "blocks": 0,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": []
+ },
+ "/support": {
+  "score": 38.0,
+  "avg_all_blocks": 38.0,
+  "blocks": 1,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "Get supportyour way.",
+    "word_count": 26,
+    "total_score": 38,
+    "breakdown": {
+     "answer_block_quality": 21,
+     "self_containment": 12,
+     "structural_readability": 5,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Email us, sign in to check your tickets, or chat with a technician in real time. Whatever is fastest for you, we answer on all"
+   }
+  ]
+ },
+ "/status": {
+  "score": 0,
+  "avg_all_blocks": 0,
+  "blocks": 0,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": []
+ },
+ "/about": {
+  "score": 32.5,
+  "avg_all_blocks": 32.5,
+  "blocks": 2,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "Ready to get started?Let's talk.",
+    "word_count": 20,
+    "total_score": 20,
+    "breakdown": {
+     "answer_block_quality": 6,
+     "self_containment": 12,
+     "structural_readability": 2,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Fill out the form and a technician will reach out within one business day. For urgent issues, call us now."
+   },
+   {
+    "heading": "Fort Lauderdale'strusted IT partner",
+    "word_count": 56,
+    "total_score": 45,
+    "breakdown": {
+     "answer_block_quality": 22,
+     "self_containment": 12,
+     "structural_readability": 8,
+     "statistical_density": 0,
+     "uniqueness_signals": 3
+    },
+    "preview": "New Wave IT was founded to give South Florida businesses enterprise-grade IT support they can rely on, without enterprise complexity. Based in Fort Lauderdale, our"
+   }
+  ]
+ },
+ "/pricing": {
+  "score": 29.5,
+  "avg_all_blocks": 29.5,
+  "blocks": 2,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": [
+   {
+    "heading": "Ready to get started?Let's talk.",
+    "word_count": 20,
+    "total_score": 20,
+    "breakdown": {
+     "answer_block_quality": 6,
+     "self_containment": 12,
+     "structural_readability": 2,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Fill out the form and a technician will reach out within one business day. For urgent issues, call us now."
+   },
+   {
+    "heading": "Simple, scalableplans",
+    "word_count": 25,
+    "total_score": 39,
+    "breakdown": {
+     "answer_block_quality": 22,
+     "self_containment": 15,
+     "structural_readability": 2,
+     "statistical_density": 0,
+     "uniqueness_signals": 0
+    },
+    "preview": "Select the services you need and get an instant estimate. Our team will follow up with a customized proposal. Pricing units are not configured yet."
+   }
+  ]
+ },
+ "/codenest": {
+  "score": 0,
+  "avg_all_blocks": 0,
+  "blocks": 0,
+  "optimal_length_blocks": 0,
+  "question_headings": 0,
+  "weakest": []
+ }
+}

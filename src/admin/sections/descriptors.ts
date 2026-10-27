@@ -1,4 +1,4 @@
-import type { ListField, ScalarField, SectionDescriptor, SelectOption } from './types';
+import type { ScalarField, SectionDescriptor, SelectOption } from './types';
 
 /**
  * One descriptor per `site_content` section the public site reads. Keys,
@@ -276,43 +276,17 @@ export const FOOTER: SectionDescriptor = {
   ],
 };
 
-const PRICING_TIERS: ListField['defaults'] = [
-  { name: 'SaaS - Starter', description: 'Cloud software for small teams', price: '$199', period: '/month (up to 5 users)', features: ['5 user accounts', 'Cloud-based access', 'Email support (24h response)', '10GB cloud storage', 'Basic reporting', 'Monthly backups', 'API access'], highlight: false, accent: ACCENTS.teal },
-  { name: 'SaaS - Professional', description: 'Comprehensive cloud solution', price: '$599', period: '/month (up to 25 users)', features: ['25 user accounts', 'Multi-device sync', 'Priority support (4h response)', '250GB cloud storage', 'Advanced analytics', 'Daily automated backups', 'Custom integrations', 'Role-based access control'], highlight: true, accent: ACCENTS.deepTeal },
-  { name: 'SaaS - Enterprise', description: 'Unlimited cloud infrastructure', price: '$1,299', period: '/month (unlimited users)', features: ['Unlimited user accounts', 'Real-time collaboration', '24/7 priority support (1h response)', 'Unlimited storage', 'Custom dashboards', 'Hourly backups', 'Dedicated API', 'SSO & SAML', 'Custom training'], highlight: false, accent: ACCENTS.green },
-  { name: 'HaaS - Basic', description: 'Essential hardware support', price: '$299', period: '/month (up to 10 devices)', features: ['Hardware monitoring', 'Patch management', 'Remote troubleshooting', 'Email support', 'Monthly maintenance', 'Basic security updates', 'Hardware diagnostics'], highlight: false, accent: ACCENTS.teal },
-  { name: 'HaaS - Professional', description: 'Complete hardware management', price: '$699', period: '/month (up to 50 devices)', features: ['Full device management', 'Proactive monitoring 24/7', 'On-site support available', 'Priority phone support (2h response)', 'Weekly maintenance', 'Security compliance', 'Device lifecycle management', 'Hardware refresh planning'], highlight: false, accent: ACCENTS.deepTeal },
-  { name: 'HaaS - Enterprise', description: 'Complete infrastructure management', price: '$1,499', period: '/month (unlimited devices)', features: ['Unlimited device management', 'Real-time monitoring & alerts', '24/7 on-site support', 'Dedicated account manager', 'Daily preventive maintenance', 'Compliance & security audits', 'Hardware replacement service', 'Disaster recovery planning', 'Custom SLA agreements'], highlight: false, accent: ACCENTS.green },
-  { name: 'Support - Standard', description: 'Business hours support', price: '$85-150', period: '/hour (8am-5pm M-F)', features: ['Business hours availability', '24-hour response time', 'Remote support only', 'Email & phone support', 'Incident logging', 'Basic troubleshooting', 'Issue tracking'], highlight: false, accent: ACCENTS.teal },
-  { name: 'Support - Priority', description: 'Extended hours with faster response', price: '$125-200', period: '/hour (7am-9pm M-F)', features: ['Extended hours availability', '4-hour response time', 'Remote & on-site support', 'Priority email & phone', 'Real-time chat support', 'Advanced troubleshooting', 'Change management', 'Monthly reviews'], highlight: true, accent: ACCENTS.deepTeal },
-  { name: 'Support - 24/7 Premium', description: 'Round-the-clock expert support', price: '$175-300', period: '/hour (24/7/365)', features: ['24/7/365 availability', '1-hour emergency response', 'On-site support included', 'Dedicated support team', '24/7 remote access', 'Emergency hotline', 'Proactive monitoring', 'Monthly strategy sessions', 'Quarterly reviews'], highlight: false, accent: ACCENTS.green },
-];
-
+// The SaaS / HaaS / Support tiers that used to sit here were never rendered
+// by /pricing (the page shows the quote builder, fed by pricing_units) and
+// were retired on 2026-10-26 (GEO audit, owner's call); migration
+// 20261103120000 removes the stored row.
 export const PRICING: SectionDescriptor = {
   section: 'pricing',
-  title: 'Plans and tiers',
-  description: 'The plans on /pricing.',
+  title: 'Pricing page',
+  description: 'The headline on /pricing. The rates themselves are the quote builder units.',
   url: '/pricing',
   blocks: [
     { id: 'headline', title: 'Headline', fields: headlineBlock({ label: 'e.g. Transparent Pricing', accent: 'The word that gets the gradient colour (e.g. Plans)' }) },
-    {
-      id: 'tiers',
-      title: 'Tiers',
-      fields: [{
-        key: 'tiers', label: 'Tiers', kind: 'list', itemLabel: 'tier', titleKey: 'name', subtitleKey: 'price',
-        fields: [
-          text('name', 'Plan name'),
-          text('description', 'Description'),
-          text('price', 'Price', 'e.g. $99 or $199-299'),
-          text('period', 'Billing period', 'e.g. /month (up to 5 users)'),
-          strings('features', 'Features'),
-          { key: 'highlight', label: 'Highlight this plan', kind: 'checkbox', hint: 'Shown as the recommended plan' },
-          color('accent', 'Accent colour'),
-        ],
-        newItem: { name: '', description: '', price: '', period: '', features: [], highlight: false, accent: ACCENTS.teal },
-        defaults: PRICING_TIERS,
-      }],
-    },
   ],
 };
 
