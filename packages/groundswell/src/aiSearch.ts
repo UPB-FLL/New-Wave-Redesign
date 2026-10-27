@@ -268,8 +268,9 @@ export interface AiSearchEvidence {
     gptbot_fetch: { status: number | null; blocked: boolean; note: string } | null;
   };
   files: {
-    llms_txt: { url: string; found: boolean; bytes: number };
-    llms_full_txt: { url: string; found: boolean; bytes: number };
+    /** bytes is null when the file exists but is larger than the read cap. */
+    llms_txt: { url: string; found: boolean; bytes: number | null };
+    llms_full_txt: { url: string; found: boolean; bytes: number | null };
     sitemap: { url: string; found: boolean; urls: number };
   } | null;
   entity: EntityEvidence | null;
@@ -440,8 +441,8 @@ export function buildGeoBrief(i: GeoBriefInput): string {
 
   h(3, 'Files for assistants');
   if (e.files) lines.push(tableMd(['File', 'Found', 'Detail'], [
-    ['/llms.txt', yes(e.files.llms_txt.found), e.files.llms_txt.found ? `${e.files.llms_txt.bytes} bytes` : 'absent'],
-    ['/llms-full.txt', yes(e.files.llms_full_txt.found), e.files.llms_full_txt.found ? `${e.files.llms_full_txt.bytes} bytes` : 'absent'],
+    ['/llms.txt', yes(e.files.llms_txt.found), e.files.llms_txt.found ? (e.files.llms_txt.bytes === null ? 'present, larger than the 1.5 MB read' : `${e.files.llms_txt.bytes} bytes`) : 'absent'],
+    ['/llms-full.txt', yes(e.files.llms_full_txt.found), e.files.llms_full_txt.found ? (e.files.llms_full_txt.bytes === null ? 'present, larger than the 1.5 MB read' : `${e.files.llms_full_txt.bytes} bytes`) : 'absent'],
     ['/sitemap.xml', yes(e.files.sitemap.found), e.files.sitemap.found ? `${e.files.sitemap.urls} URLs listed` : 'absent'],
   ]), '');
   else p('The site’s files were not read (no website on the audit, or the site did not answer).');

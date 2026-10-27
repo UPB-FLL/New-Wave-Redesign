@@ -21,7 +21,17 @@ only in the catch path.
   dying silently.
 - **Tests**: the reclaimed-lease case in `groundswell-engine.test.ts` and
   the deadline case in `groundswell-social.test.ts`.
-- The stuck run itself (`4afe409b…`) had its social step skipped by hand.
+- The run then finished every step in three minutes, and showed two more
+  faults, fixed the same day: the assets bucket allows `text/plain`, not
+  `text/markdown`, so `deliver_geo` failed three times and, being a delivery
+  step, failed the audit after its three PDFs were printed (`GEO_BRIEF_TYPE`
+  is `text/plain` now, the `.md` name stays, and the last attempt records a
+  storage failure in `note` instead of failing the run); Ahrefs' prompt set
+  has no Claude source ("models do not support Ahrefs dataset"), so every
+  Brand Radar call was refused (`ASSISTANTS` drops `claude`; the Site
+  Explorer citation count had answered: 2 citations of the brewery's site,
+  both on Google AI Mode); and an llms-full.txt larger than the read cap
+  now counts as present with its size unknown (`bytes: null`).
 
 ### Headway: the implementation service, its page, and the agent that carries the plan out (2026-10-26)
 
