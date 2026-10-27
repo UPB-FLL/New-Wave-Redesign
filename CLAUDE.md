@@ -82,6 +82,73 @@ not trademark-cleared). GroundSwell finds and plans; Headway carries it out.
   Facebook, TikTok, LinkedIn and YouTube posts, GBP changes and website
   edits are briefs for the team.
 
+### Groundswell: AI search reading and the GEO developer brief (2026-10-26)
+
+Owner's ask: in the reporting and analytics, gather the current AI search
+stats, pull what is needed to improve, and make a developer file that can be
+applied to the site. Shipped as step `ai_search` (Current "Search", optional,
+after `ads_library`, before `model`) and the delivery step `deliver_geo`
+(phase 1, after the summary; the plan doc's section 2.4 is this).
+
+- **Rules** (`packages/groundswell/src/aiSearch.ts`, pure): `AI_CRAWLERS`
+  (GPTBot, OAI-SearchBot, ChatGPT-User, ClaudeBot, PerplexityBot,
+  Google-Extended, Googlebot, Bingbot, CCBot), `parseRobots` and
+  `robotsAccess` (RFC 9309 reading: the crawler's own group over `*`, the
+  longest matching rule, `$` anchors; allowed | blocked | restricted |
+  no_robots), the citability rubric `CITABILITY_RUBRIC` and `scorePage`
+  (100 points: answer-first opening, question headings, depth, facts, FAQ,
+  title and description, a next step, JSON-LD, readable without JavaScript,
+  canonical; a check the evidence cannot answer is named as unknown and left
+  out of that page's denominator), `unsupportedClaims` ("award-winning",
+  "voted best", "#1"…), `improvementsFrom` (each with evidence and action,
+  highest priority first; CSP only ever report-only), `ownerQuestions`, and
+  `buildGeoBrief` (the developer file).
+- **Step** (`api/_lib/groundswell/currents/aiSearch.ts`): robots.txt,
+  /llms.txt, /llms-full.txt and /sitemap.xml read through `readPublicText`
+  (which now takes `userAgent` and `acceptStatuses`, and returns the kept
+  security `headers`); the homepage fetched as GPTBot (`GPTBOT_UA`) and
+  compared with the ordinary scan; the JSON-LD entity (`readEntity`:
+  LocalBusiness or any subtype, @id, address, telephone, hours, sameAs,
+  FAQPage); the site's phones against the Google listing's; the security
+  headers; a score for the homepage (raw) and every page the site-pages step
+  read (as text); then Ahrefs Brand Radar through Composio toolkit
+  `ahrefs_mcp` (`readAiVisibility`: `…MENTIONS_OVERVIEW_ENTITIES`,
+  `…SOV_OVERVIEW_ENTITIES`, `…AI_RESPONSES_ENTITIES`,
+  `…CITED_DOMAINS_ENTITIES`, `AHREFS_MCP_SITE_EXPLORER_AI_RESPONSES_COUNT`;
+  brands by name and domain, the business against up to five competitors,
+  across ChatGPT, Perplexity, Gemini, Google AI Overviews, Copilot and Claude,
+  US, Ahrefs' prompt set), each read best-effort with what failed in
+  `visibility.error`. `toolkitOf` maps `AHREFS_MCP_…` to `ahrefs_mcp`;
+  readiness gains its row (instant account).
+- **Reports**: the full audit gains an unnumbered "AI answers" section after
+  the observed search results (`aiSearchSection`: crawler access, the files,
+  the entity, citability by page, mentions and share of voice, citations of
+  the site, the cited domains, the questions where a brand was named, what to
+  change) and two source lines; the write-up prompt sees `ai_search`
+  (`aiSearchForPrompt`: verdicts and figures, never the rubric notes) with
+  a rule that zero mentions is not "nobody asks". The workspace gains an
+  `ai_search` panel; `gaps.ts` and `STEP_LABELS` know both steps.
+- **Developer brief** (`api/_lib/groundswell/geoDelivery.ts`): `deliver_geo`
+  stores `<Business> - GEO Developer Brief (<date>).md` as an `export` asset
+  (`text/markdown`; it shows under the workspace's downloads with the import
+  files). It is the owner's GEO prompt template filled from the run: inputs
+  (with the owner's own entries left as `{{…}}`), ground rules, the measured
+  baseline (robots table, files, entity and NAP, headers, the score per page
+  with the rubric, Brand Radar), the improvements, the owner's question list,
+  and phases 0 to 5 (recon, fact sheet, one draft PR, factual copy, guarded
+  data migrations, the weekly runbook). Every delivery step stays required:
+  without an `ai_search` reading the step writes nothing and says so.
+- **Public page**: metric group `ai-search` (`groundswellMetrics.ts`,
+  `/social-engineering/groundswell/ai-search`, in the sitemap and
+  `vercel.json`), its sources being what the engine reads.
+- **Tests**: `packages/groundswell/test/aiSearch.test.ts` and
+  `src/test/api/groundswell-ai-search.test.ts` (provider-shaped Brand Radar
+  answers as the Ahrefs API v3 documents them on 2026-10-26, the step, the
+  facts, the audit section, the panel, the delivery against `fakeSupabase`).
+- **Not verified live**: no run has read Brand Radar through Composio yet;
+  the readiness row and the first run will confirm the `ahrefs_mcp` account
+  answers (the consumer account lists it as linked).
+
 ### Groundswell: a toolkit with several linked accounts (2026-10-26)
 
 SerpApi was re-linked in Composio with a working key beside the old account

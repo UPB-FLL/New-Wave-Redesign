@@ -69,9 +69,9 @@ export function keyShape(key: string): string {
 }
 
 /** Toolkits whose slug carries an underscore, so the tool slug's prefix is read against them first. */
-const TOOLKITS = ['google_maps', 'google_analytics', 'google_search_console'];
+const TOOLKITS = ['google_maps', 'google_analytics', 'google_search_console', 'ahrefs_mcp'];
 
-/** The toolkit a tool slug belongs to: `GOOGLE_MAPS_TEXT_SEARCH` → `google_maps`, `AHREFS_…` → `ahrefs`. */
+/** The toolkit a tool slug belongs to: `GOOGLE_MAPS_TEXT_SEARCH` → `google_maps`, `AHREFS_…` → `ahrefs`, `AHREFS_MCP_…` → `ahrefs_mcp`. */
 export function toolkitOf(slug: string): string {
   const upper = slug.toUpperCase();
   return TOOLKITS.find((t) => upper.startsWith(`${t.toUpperCase()}_`)) ?? slug.split('_')[0].toLowerCase();
