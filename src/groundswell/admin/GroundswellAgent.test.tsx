@@ -88,12 +88,12 @@ describe('the agent screen', () => {
   });
 
   it('shows the route’s error', async () => {
-    lib.loadAgent.mockRejectedValue(new Error('The agent is not set up in the database yet (migration 20261102120000).'));
+    lib.loadAgent.mockRejectedValue(new Error('The agent is not set up in the database yet (migration 20261104120000).'));
     render(
       <MemoryRouter>
         <GroundswellAgent />
       </MemoryRouter>
     );
-    expect(await screen.findByRole('alert')).toHaveTextContent('migration 20261102120000');
+    expect(await screen.findByRole('alert')).toHaveTextContent('migration 20261104120000');
   });
 });

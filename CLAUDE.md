@@ -36,7 +36,7 @@ and learns from logs, data and results. Full notes: `docs/groundswell-agent.md`.
   GET shows the page, POST from its button applies); staff (admin key or
   Bearer): GET the view, POST `report` (202, runs on), `observe` (outside
   observations under `external:<name>`), `approve` | `dismiss` | `reopen`.
-- **Migration** `20261102120000`: `groundswell_agent_issues`, `_lessons`,
+- **Migration** `20261104120000`: `groundswell_agent_issues`, `_lessons`,
   `_reports`, `_consultations` (RLS on, no policies) and the cron `groundswell-agent-report`
   (`0 */4 * * *`). Additive: the route answers 503 until applied.
 - **Screen** `/groundswell/admin/agent` (`GroundswellAgent.tsx`, nav

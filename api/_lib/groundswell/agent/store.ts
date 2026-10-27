@@ -2,7 +2,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import type { CollectResult, ConsultationRow, Db, IssueRow, IssueStatus, LessonRow, LessonSummary, Observation, Outcome, Proposal } from './types.js';
 
 /**
- * The agent's memory (migration 20261102120000): one issue per fingerprint,
+ * The agent's memory (migration 20261104120000): one issue per fingerprint,
  * and the lessons about what was tried and whether it held. Every pass folds
  * its observations in here: a new fingerprint opens an issue, a known one is
  * counted again, a resolved one that comes back reopens with a lesson, and
@@ -15,7 +15,7 @@ export const LESSON_COLUMNS = 'id,issue_id,source,kind,resolver,result,note,crea
 export const APPROVAL_DAYS = 7;
 /** A dismissed issue stays quiet for this long, then is reported again if still seen. */
 export const MUTE_DAYS = 7;
-export const NOT_READY = 'The agent is not set up in the database yet (migration 20261102120000).';
+export const NOT_READY = 'The agent is not set up in the database yet (migration 20261104120000).';
 
 export const missingTable = (m: string | undefined) => /relation .* does not exist|42P01/i.test(m ?? '');
 const sha = (value: string) => createHash('sha256').update(value).digest('hex');

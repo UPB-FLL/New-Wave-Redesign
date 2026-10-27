@@ -8,7 +8,7 @@ import type { Collector, Db, IssueRow, Outcome, ResolveResult } from './types.js
 
 /**
  * One pass of the agent, every 4 hours from pg_cron (migration
- * 20261102120000) or from the staff screen:
+ * 20261104120000) or from the staff screen:
  *
  *   1. check the resolutions applied earlier: did each hold? (a lesson either way)
  *   2. read every source and fold what was seen into the issue table

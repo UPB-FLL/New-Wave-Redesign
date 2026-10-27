@@ -5,7 +5,7 @@ errors, proposes a resolution for each, sends a report every 4 hours, waits
 for approval from the email, and learns from the logs, data and results it
 sees. "Agnostic": it is not tied to one source or one kind of fix. Code:
 `api/_lib/groundswell/agent/`, route `api/groundswell/agent.ts`, staff
-screen `/groundswell/admin/agent`, migration `20261102120000`.
+screen `/groundswell/admin/agent`, migration `20261104120000`.
 
 ## What it does, every 4 hours
 
@@ -130,7 +130,7 @@ Three records, all the agent's own:
 
 ## Setup
 
-- Apply migration `20261102120000` (tables, indexes, the cron job; the
+- Apply migration `20261104120000` (tables, indexes, the cron job; the
   Vault secret `blog_admin_api_key` is the one the other jobs use).
 - Vercel: `ANTHROPIC_API_KEY` (the advisor; new), `RESEND_API_KEY` (already
   set for the alerts), optional `GROUNDSWELL_AGENT_MODEL` (default
