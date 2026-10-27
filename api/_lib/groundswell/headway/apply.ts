@@ -5,7 +5,7 @@ import type { ClientService } from '../../../../src/lib/groundswellValidation.js
 import { signedAssetUrl } from '../assetStore.js';
 import type { ClientAccountRow } from '../clientAccounts.js';
 import { executeToolAs, findKey, isComposioConfigured } from '../composio.js';
-import { queuePhase } from '../phases.js';
+import { integratedReady, queuePhase, queuePublicReread } from '../phases.js';
 import { buildChecklist, missingAmong } from './checklist.js';
 import { ACTION_COLUMNS, enabledServices, readServices, readSetupRows, type ActionRow, type SetupRow } from './store.js';
 
@@ -270,14 +270,22 @@ const sitemapSubmit: Executor = async ({ action, run }) => {
 };
 
 // ---------------------------------------------------------------------------
-// GroundSwell: the plan read against the business's own accounts.
+// GroundSwell: the plan measured. Against the business's own accounts when
+// one is linked (the integrated plan); otherwise the public data is read
+// again (a fresh phase 1), so the measurement never waits on a link.
 
-const measure: Executor = async ({ db, action }) => {
-  const p = action.payload as { source_audit_id?: string };
-  if (!p.source_audit_id) throw new ApplyProblem('No delivered competitor plan to build the integrated plan on.');
-  const result = await queuePhase(db, p.source_audit_id, 'integrated');
+const measure: Executor = async ({ db, action, customer }) => {
+  const p = action.payload as { source_audit_id?: string | null };
+  if (p.source_audit_id) {
+    const ready = await integratedReady(db, customer.id);
+    if (ready.ok) {
+      const linked = await queuePhase(db, p.source_audit_id, 'integrated');
+      if (linked.queued) return { queued: linked.queued, phase: 'integrated', basis: 'linked', reason: linked.reason };
+    }
+  }
+  const result = await queuePublicReread(db, customer.id);
   if (!result.queued) throw new ApplyProblem(result.reason);
-  return { queued: result.queued, reason: result.reason };
+  return { queued: result.queued, phase: 'audit', basis: 'public', reason: result.reason };
 };
 
 export const EXECUTORS: Record<string, Executor> = {

@@ -27,7 +27,7 @@ export interface PlanInput {
   /** The run the plan comes from, and its outputs laid over its sources'. */
   audit: { id: string; phase: string; completed_at: string | null } | null;
   outputs: Record<string, unknown>;
-  /** A delivered competitor-plan run the measurement can build phase 3 on. */
+  /** A delivered competitor-plan run the measurement builds phase 3 on when an account is linked; null falls back to a public re-read. */
   measureSource: string | null;
   enabled: HeadwayService[];
   checklist: ChecklistItem[];
@@ -261,20 +261,22 @@ export function planActions(input: PlanInput): PlanResult {
     }
   }
 
-  // Analytics and oversight: the plan read against the business's own
-  // accounts a month on, and the monthly report.
+  // Analytics and oversight: the plan measured a month on (the linked
+  // accounts when there are any, the public data again when not), and the
+  // monthly report.
   if (on('digital-oversight')) {
     const when = new Date(now.getTime() + MEASURE_AFTER_DAYS * 24 * 60 * 60_000).toISOString();
-    if (input.measureSource) {
+    if (input.audit) {
       drafts.push({
         service: 'digital-oversight',
         kind: 'automatic',
         tool: 'groundswell.measure',
-        title: `Read the plan against the business’s own accounts in ${MEASURE_AFTER_DAYS} days`,
-        detail: 'Queues the integrated plan on the linked accounts, so the next report compares what the plan expected with what the accounts show.',
+        title: `Measure the plan’s results in ${MEASURE_AFTER_DAYS} days`,
+        detail: input.measureSource
+          ? 'With an account linked (Google Analytics, Search Console, Google Ads or Meta Ads), queues the integrated plan, so the next report compares what the plan expected with what the accounts show. With none linked, Groundswell reads the public data again (rankings, the listing, estimated traffic) and compares that instead.'
+          : 'Groundswell reads the public data again (rankings, the listing, estimated traffic), so the next report compares the plan with what changed. Linking an account before then gives the report the business’s own figures as well.',
         payload: { source_audit_id: input.measureSource },
-        // Any one linked account is enough to read; with none, the measurement waits on the first.
-        blocked_by: blocked(['link:google_analytics', 'link:google_search_console', 'link:googleads', 'link:metaads']).length === 4 ? ['link:google_analytics'] : [],
+        blocked_by: [],
         scheduled_for: when,
       });
     }

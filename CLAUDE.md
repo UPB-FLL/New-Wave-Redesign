@@ -209,6 +209,21 @@ only in the catch path.
   both on Google AI Mode); and an llms-full.txt larger than the read cap
   now counts as present with its size unknown (`bytes: null`).
 
+### Headway: the measurement never waits on a link (2026-10-27)
+
+Owner's ask: with no account linked, the 30-day measurement sat blocked on
+`link:google_analytics`. Now `groundswell.measure` (`apply.ts`) queues the
+integrated plan when the customer is a client with an active linked account
+(`integratedReady`) and otherwise `queuePublicReread` (`phases.ts`): a fresh
+phase 1 run from the customer's saved details, so the next report compares
+the plan with today's public data (rankings, the listing, estimated traffic);
+a phase 1 run already queued or running is returned, never a second one. The
+planner (`plan.ts`) plans the measurement from any delivered run, with
+`blocked_by: []` and a detail that says which path applies; the result
+carries `phase` and `basis` (`linked` | `public`). What public data cannot
+give (impressions, clicks, spend, cost per lead, Instagram insights) still
+needs the link. Tests: the measurement cases in `groundswell-headway.test.ts`.
+
 ### Headway: the implementation service, its page, and the agent that carries the plan out (2026-10-26)
 
 Owner's ask: with GroundSwell largely done, the division sells one
