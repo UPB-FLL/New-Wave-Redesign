@@ -6,7 +6,7 @@ vi.mock('../../../api/_lib/groundswell/publicFetch', async (original) => ({ ...(
 const store = vi.hoisted(() => ({ current: null as ReturnType<typeof import('./fixtures/fakeSupabase').fakeSupabase> | null }));
 vi.mock('../../../api/_lib/supabaseAdmin', () => ({ isSupabaseConfigured: () => true, getSupabaseAdmin: () => store.current!.client }));
 
-import { ASSISTANTS, GPTBOT_UA, headerReading, isAiSearchOutput, pageSignals, readAiVisibility, readEntity, readFile, runAiSearch, sitemapUrls, type AiSearchOutput } from '../../../api/_lib/groundswell/currents/aiSearch';
+import { ASSISTANTS, GPTBOT_UA, headerReading, isAiSearchOutput, pageSignals, readAiVisibility, readEntity, readFile, runAiSearch, sitemapUrls, uniqueProfiles, type AiSearchOutput } from '../../../api/_lib/groundswell/currents/aiSearch';
 import { toolkitOf } from '../../../api/_lib/groundswell/composio';
 import { GEO_BRIEF_TYPE, geoBriefFor, runDeliverGeo } from '../../../api/_lib/groundswell/geoDelivery';
 import { gapsFor } from '../../../api/_lib/groundswell/gaps';
@@ -109,6 +109,10 @@ describe('helpers', () => {
     expect(readEntity('<html></html>').types).toEqual([]);
   });
 
+  it('lists each profile once, whatever the trailing slash or the case of the host, and never a bare YouTube path segment', () => {
+    expect(uniqueProfiles(['https://www.instagram.com/brew/', 'https://www.Instagram.com/brew', 'https://untappd.com/v/brew/1', ' ', 'https://untappd.com/v/brew/1/'])).toEqual(['https://www.instagram.com/brew', 'https://untappd.com/v/brew/1']);
+  });
+
   it('counts sitemap URLs and names the security headers present and missing', () => {
     expect(sitemapUrls(SITEMAP)).toBe(2);
     expect(headerReading({ 'strict-transport-security': 'max-age=1', 'content-security-policy-report-only': 'x' })).toEqual({ present: ['strict-transport-security', 'content-security-policy-report-only'], missing: ['x-content-type-options', 'referrer-policy', 'permissions-policy'] });
@@ -192,7 +196,9 @@ describe('the ai_search step', () => {
     expect(out.improvements.map((i) => i.title)).toEqual(expect.arrayContaining(['robots.txt blocks GPTBot', 'No llms.txt', 'Claims the fact sheet must back or the copy must drop', 'Be present on the sources the assistants cite', 'No openingHoursSpecification']));
     expect(out.improvements.map((i) => i.title)).not.toContain('The site and the Google listing disagree on the phone number');
     expect(out.questions[0]).toMatch(/\/about the copy says “Voted best”/);
-    expect(out.profiles).toEqual(expect.arrayContaining(['https://www.instagram.com/harborautocare/']));
+    // The site's handle and the schema's sameAs name the same profile once.
+    expect(out.profiles.filter((p) => /instagram\.com\/harborautocare/.test(p))).toHaveLength(1);
+    expect(out.questions.filter((q) => /instagram\.com\/harborautocare/.test(q))).toHaveLength(1);
     expect(out.errors).toEqual([]);
     expect(out.source).toMatch(/Brand Radar/);
     // Only the five reads of Brand Radar; the site's files through the public fetch.

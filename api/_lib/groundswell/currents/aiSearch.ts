@@ -131,6 +131,21 @@ const digits = (s: string) => s.replace(/\D/g, '').replace(/^1(?=\d{10}$)/, '');
 /** How many <loc> entries a sitemap (or sitemap index) lists. */
 export const sitemapUrls = (xml: string) => (xml.match(/<loc\b[^>]*>/gi) ?? []).length;
 
+/** Profile URLs with one line each: the trailing slash and the case of the host do not make a second profile. */
+export function uniqueProfiles(urls: string[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const raw of urls) {
+    const url = raw.trim();
+    if (!url) continue;
+    const key = url.replace(/\/+$/, '').replace(/^https?:\/\/(www\.)?/i, (m) => m.toLowerCase()).toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(url.replace(/\/+$/, ''));
+  }
+  return out;
+}
+
 /** Which security headers the homepage answered with. */
 export function headerReading(headers: Record<string, string>): { present: string[]; missing: string[] } {
   const present = SECURITY_HEADERS.filter((h) => h in headers);
@@ -288,14 +303,16 @@ export async function runAiSearch(ctx: StepContext): Promise<AiSearchOutput> {
     claims,
     visibility,
   };
-  const profiles = [...new Set([
-    ...(site?.social.instagram ?? []).map((h) => `https://www.instagram.com/${h}/`),
-    ...(site?.social.facebook ?? []).map((h) => `https://www.facebook.com/${h}/`),
+  // One line per profile: the same profile with and without a trailing slash is one question, and a
+  // YouTube path segment ("channel", "c", "user") is not a handle.
+  const profiles = uniqueProfiles([
+    ...(site?.social.instagram ?? []).map((h) => `https://www.instagram.com/${h}`),
+    ...(site?.social.facebook ?? []).map((h) => `https://www.facebook.com/${h}`),
     ...(site?.social.tiktok ?? []).map((h) => `https://www.tiktok.com/@${h}`),
-    ...(site?.social.youtube ?? []).map((h) => `https://www.youtube.com/${h}`),
+    ...(site?.social.youtube ?? []).filter((h) => !/^(?:channel|c|user|@?)$/i.test(h)).map((h) => `https://www.youtube.com/${h}`),
     ...(entity?.same_as ?? []),
     ...(maps?.url ? [maps.url] : []),
-  ])];
+  ]);
   return {
     source: SOURCE,
     fetched_at: new Date().toISOString(),
