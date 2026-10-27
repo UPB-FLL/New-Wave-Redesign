@@ -1,3 +1,4 @@
+import { STATUS_SERVICES } from '../../lib/statusPages';
 import type { ListField, ScalarField, SectionDescriptor, SelectOption } from './types';
 
 /**
@@ -316,10 +317,14 @@ export const PRICING: SectionDescriptor = {
   ],
 };
 
+// /status links each service to its provider's own status page and states no
+// status of its own (2026-10-27), so an entry stores the link in place of the
+// status, uptime and check time it used to (entries stored before keep them,
+// unread; the page links those by name).
 export const STATUS: SectionDescriptor = {
   section: 'status',
   title: 'Status page',
-  description: 'Service status on /status.',
+  description: 'The official status pages listed on /status.',
   url: '/status',
   blocks: [
     {
@@ -329,22 +334,20 @@ export const STATUS: SectionDescriptor = {
         text('section_label', 'Section label'),
         text('headline', 'Headline'),
         textarea('subheadline', 'Subheadline'),
-        text('last_updated', 'Last updated', 'e.g. Just now or 5 minutes ago'),
       ],
     },
     {
       id: 'services',
       title: 'Services',
       fields: [{
-        key: 'services', label: 'Services', kind: 'list', itemLabel: 'service', titleKey: 'name', subtitleKey: 'status',
+        key: 'services', label: 'Services', kind: 'list', itemLabel: 'service', titleKey: 'name', subtitleKey: 'url',
         fields: [
           text('name', 'Service name'),
           select('category', 'Category', [{ value: 'saas', label: 'SaaS service' }, { value: 'isp', label: 'Internet service provider' }]),
-          select('status', 'Status', [{ value: 'operational', label: 'Operational' }, { value: 'degraded', label: 'Degraded' }, { value: 'down', label: 'Down' }]),
-          { key: 'uptime', label: 'Uptime %', kind: 'number', hint: 'e.g. 99.9' },
-          text('lastChecked', 'Last checked', 'e.g. 2 min ago'),
+          text('url', 'Official status page', "The provider's own https:// page. Without one, only a service the site already links is shown"),
         ],
-        newItem: { name: 'New service', category: 'saas', status: 'operational', uptime: 99.9, lastChecked: '1 min ago' },
+        newItem: { name: 'New service', category: 'saas', url: '' },
+        defaults: STATUS_SERVICES,
       }],
     },
   ],

@@ -39,7 +39,7 @@ search skill to confirm nothing measured moved.
   #services).
 - **Pages**: /services, /why-us, /about, /pricing, /contact (`Contact
   showIntro={false}` and a "How to reach us" title), /support (phone fallback
-  now (561) 564-1846), /status, /cybersecurity, /codenest, the 12 service
+  now (561) 564-1846), /cybersecurity, /codenest, the 12 service
   pages (`ServiceCategoryPage`: "Overview" replaces the identical "Technology
   designed around your operation." on all 12; process sections numbered; the
   guide button only for an `/l/` guide that exists, else "See pricing" (four
@@ -53,18 +53,34 @@ search skill to confirm nothing measured moved.
   cards' stats (99.7%, 15M+, 10 Tbps, <60s, 5M+, 100%), "Results in 5 days",
   "Sub-hour response times", and the uncited "$4.45 million". Severity is a
   plain "Critical risk" label, not a red, amber, or sky pill.
-- **Unchanged**: all 62 prerendered files (heads, division bodies, sitemap,
-  robots) are identical but for asset hashes; routes, JSON-LD, and analytics
-  hooks are as before; every division and GroundSwell page renders the same DOM
-  and pixels. The skill's re-run against the production CMS: 0 changes to raw
-  HTML or to any title, description, canonical, robots, keyword, JSON-LD type,
-  or breadcrumb; heading-level skips 5 → 0; pages with navigation 32 → 34.
+- **Status** (owner's choice: make it honest): /status printed made-up figures
+  as live data (an uptime per service, "Last checked: 2 min ago", Spectrum
+  "Degraded", "Updated every 5 minutes"; production's CMS has no `status` rows,
+  so these were the code's defaults). It now links each service to its
+  provider's own status page (`src/lib/statusPages.ts`: `STATUS_SERVICES`,
+  every link opened on 2026-10-27; Comcast is left out, as Xfinity has no
+  public one) and states no status of its own; `StatusIndicator` is gone. A
+  CMS list still overrides (`statusServices`): an entry keeps its own https
+  link or takes the built-in one for its name, and is not shown with neither.
+  The admin's Status editor stores `url` in place of status, uptime and last
+  checked (`last_updated` is gone too), with the built-in list as its
+  defaults. The description (`IT_PAGE_META['/status']`) no longer says
+  "Real-time … Monitor uptime".
+- **Unchanged**: 61 of the 62 prerendered files (heads, division bodies,
+  sitemap, robots) are identical but for asset hashes; /status differs only in
+  its description, og:description and twitter:description. Routes, JSON-LD,
+  and analytics hooks are as before; every division and GroundSwell page
+  renders the same DOM and pixels. The skill's re-run against the production
+  CMS: no change to raw HTML or to any title, canonical, robots, keyword,
+  JSON-LD type, or breadcrumb, and none to a description but /status's;
+  heading-level skips 5 → 0; pages with navigation 32 → 34.
 - **Tests**: `src/test/it-page-layout.test.tsx` (every IT route: one H1 in the
   header, the breadcrumb's current crumb, no `.nw-kicker`, no level skips, no
   repeated phrase, no word chips, the production CMS rows, the guide and
-  services links), `cmsHeadline.test.tsx`, and updated pins in
-  `HomeOriginalSections`, `TrustBarLayout`, `LegalPageLayout`, `Hero`, and
-  `BlogPostPage`.
+  services links), `cmsHeadline.test.tsx`, `StatusPage.test.tsx` (the links,
+  no status of its own, a CMS list and its links), and updated pins in
+  `HomeOriginalSections`, `TrustBarLayout`, `LegalPageLayout`, `Hero`,
+  `BlogPostPage`, and `sections.test.ts` (the status entry's shape).
 
 ### Groundswell: a step cut off mid-call is given up after three leases; social reads keep to the deadline (2026-10-27)
 

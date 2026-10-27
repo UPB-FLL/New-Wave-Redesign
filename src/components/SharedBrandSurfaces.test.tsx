@@ -4,7 +4,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import FloatingNav from './FloatingNav';
-import StatusIndicator from './StatusIndicator';
 import SupportEmailCard from './support/SupportEmailCard';
 import SupportChatCard from './support/SupportChatCard';
 
@@ -52,24 +51,6 @@ describe('shared New Wave IT surfaces', () => {
     expect(screen.getByLabelText('What is happening?')).toBeRequired();
     expect(screen.getByLabelText(/Your name/)).toBeRequired();
     expect(screen.getByLabelText('Phone (optional)')).toBeInTheDocument();
-  });
-
-  it('keeps human-readable service status text available to assistive technology', () => {
-    render(
-      <StatusIndicator
-        service={{
-          name: 'Microsoft 365',
-          category: 'saas',
-          status: 'operational',
-          uptime: 99.95,
-          lastChecked: '2 min ago',
-        }}
-      />,
-    );
-
-    expect(screen.getByText('Operational')).toBeInTheDocument();
-    expect(screen.getByText('SaaS service')).toBeInTheDocument();
-    expect(screen.getByText('Last checked: 2 min ago')).toBeInTheDocument();
   });
 
   it('keeps the supplemental floating menu out of the mobile content flow', () => {
