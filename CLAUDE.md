@@ -220,6 +220,20 @@ only in the catch path.
   both on Google AI Mode); and an llms-full.txt larger than the read cap
   now counts as present with its size unknown (`bytes: null`).
 
+### Groundswell: the benchmark's social depth reads a gated profile through the signed-in reader (2026-10-27)
+
+The competitor benchmark's "Where each account stands" showed the brewery's
+column as "not checked": `social_depth` read posts and reels through
+ScrapeCreators only, which the age gate refuses. Now `depth()`
+(`currents/socialDepth.ts`) falls back to the signed-in reader
+(`readGatedItems` in `currents/social.ts`, `GATED_DEPTH_POSTS` 24) on a
+refusal the reader gets past (`gatedRefusal`: age, restricted, blocked;
+never private), maps its items with `gatedRawItem` (reels told from posts by
+`post_type`, carousels by their media count, views as plays), and keeps the
+audit's follower count over the actor's. Each account carries `read_via`
+and the output `business_read_via`; the source line names the reader when
+used. Test: the gated case in `groundswell-benchmark.test.ts`.
+
 ### Groundswell: a refused output write is a failed try; outputs are made storable; the pruner keeps the post list (2026-10-27)
 
 Seen on the first run with the signed-in reader (21:46 UTC): the worker
