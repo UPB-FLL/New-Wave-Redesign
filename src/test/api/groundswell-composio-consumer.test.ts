@@ -380,6 +380,51 @@ describe('saved Workbench provider data', () => {
     expect(() => decodeWorkbenchJson(stdout)).toThrow();
   });
 
+  it('keeps a ScrapeCreators post list (twelve posts, each with the poster repeated) ahead of the profile’s long tail', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'groundswell-pruner-'));
+    try {
+      const path = join(dir, 'posts.json');
+      const poster = Object.fromEntries([...Array.from({ length: 40 }, (_, i) => [`field${i}`, `v${i}`]), ['username', 'gulfstreambrewingco'], ['full_name', 'Gulf Stream Brewing Company 🍻']]);
+      const items = Array.from({ length: 12 }, (_, i) => ({
+        caption: { created_at: 1790686238 + i, has_translation: null, pk: `${i}`, text: `Post ${i} 🍻`, user: null },
+        carousel_media: [],
+        code: `C${i}`,
+        comment_count: i,
+        created_at: '2026-09-29T12:50:38.000Z',
+        display_uri: `https://cdn.example/${i}.jpg`,
+        id: `${i}_4208202486`,
+        image_versions2: { additional_candidates: null, candidates: Array.from({ length: 14 }, (_, j) => ({ height: 1080 - j, url: `https://cdn.example/${i}-${j}.jpg`, width: 1080 - j })) },
+        is_paid_partnership: false,
+        like_count: 30 + i,
+        media_type: 1,
+        owner: poster,
+        play_count: null,
+        product_type: 'feed',
+        shortcode: null,
+        tagged_users: [],
+        taken_at: 1790686238 + i,
+        url: `https://www.instagram.com/p/C${i}/`,
+        user: poster,
+        usertags: [],
+        video_url: null,
+      }));
+      const user = Object.fromEntries([...Array.from({ length: 60 }, (_, i) => [`profile_field_${i}`, i % 2 ? `text ${i}` : null]), ['username', 'gulfstreambrewingco'], ['follower_count', 15602], ['following_count', 1930], ['media_count', 480], ['biography', 'FLL & SEA🥇Award winning craft beer']]);
+      const payload = { credits_charged: 1, credits_remaining: 24835, has_more: true, items, next_cursor: 'web:abc', success: true, total: 12, user };
+      writeFileSync(path, JSON.stringify({ results: [{ response: { successful: true, data: payload } }] }));
+      const stdout = execFileSync('python3', ['-c', prunerCode(path)], { encoding: 'utf8', maxBuffer: 50_000 });
+      expect(Buffer.byteLength(stdout)).toBeLessThanOrEqual(20_000);
+      const pruned = decodeWorkbenchJson(stdout) as { items: Record<string, unknown>[]; user: Record<string, unknown> };
+      expect(pruned.user).toMatchObject({ username: 'gulfstreambrewingco', follower_count: 15602, media_count: 480 });
+      expect(pruned.items).toHaveLength(12);
+      expect(pruned.items.every((it) => it && typeof it === 'object')).toBe(true);
+      expect(pruned.items[11]).toMatchObject({ code: 'C11', like_count: 41, comment_count: 11, display_uri: 'https://cdn.example/11.jpg', caption: { text: 'Post 11 🍻' } });
+      // The poster repeated on every post is left out; the original image candidate is kept.
+      expect(pruned.items[0].user).toBeUndefined();
+      expect(pruned.items[0].owner).toBeUndefined();
+      expect((pruned.items[0].image_versions2 as { candidates: unknown[] }).candidates).toHaveLength(1);
+    } finally { rmSync(dir, { recursive: true, force: true }); }
+  });
+
   it.each([false, true])('executes the generated pruner on a %s wrapped envelope, bounds stdout and retains nested user figures', (wrapped) => {
     const dir = mkdtempSync(join(tmpdir(), 'groundswell-pruner-'));
     try {

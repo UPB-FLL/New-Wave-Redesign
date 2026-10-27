@@ -220,6 +220,37 @@ only in the catch path.
   both on Google AI Mode); and an llms-full.txt larger than the read cap
   now counts as present with its size unknown (`bytes: null`).
 
+### Groundswell: a refused output write is a failed try; outputs are made storable; the pruner keeps the post list (2026-10-27)
+
+Seen on the first run with the signed-in reader (21:46 UTC): the worker
+logged the social step "done" twice while PostgREST refused its PATCH with
+400 (80-byte body, PGRST102's size), nothing was written, and the lease ran
+out each time. `runWorker` never read the done-write's error.
+
+- **Engine**: the done-write's error now throws ("Could not record the
+  step's output: …"), so the catch path records it and retries, skips or
+  fails as for any other failure. Every output, persisted patch and error
+  message goes through `storable` (`api/_lib/groundswell/storable.ts`):
+  strings made well-formed (a lone surrogate, half an emoji left by a
+  `slice`, becomes U+FFFD; NUL is dropped), which jsonb otherwise refuses
+  ("Unicode low surrogate must follow a high surrogate"; checked on
+  production). `cut(s, n)` is the surrogate-safe truncation; the social
+  step's caption cuts use it.
+- **Pruner** (`prunerCode`, consumer executor): a ScrapeCreators post page
+  (about 850 KB for twelve posts: the poster's 40-field profile on every
+  post, fourteen image sizes each) was pruned to `items: [null, …]` because
+  the node budget (960) went on the profile's long tail first, so the
+  benchmark's social depth read zero posts for every competitor
+  ("Posts per week 0", "Not enough data"). The post lists and the fields
+  the Currents read are now priority keys, `user` inside an item is
+  dropped (the top-level profile stays), more profile junk is dropped, and
+  the budget is 2,400 nodes under the same 19 KB output cap.
+- **Tests**: `groundswell-storable.test.ts`; the storable and refused-write
+  cases in `groundswell-engine.test.ts`; the twelve-post page in
+  `groundswell-composio-consumer.test.ts` (runs the Python pruner).
+- Not verified live until the next run: whether the social step's write
+  now lands (if it still fails, the recorded error names why).
+
 ### Groundswell: a signed-in reader for age-gated Instagram profiles (2026-10-27)
 
 Owner's ask: a scraper that gets past Instagram's age gate, so the
