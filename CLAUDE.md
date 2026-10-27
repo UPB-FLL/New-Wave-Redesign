@@ -2,6 +2,27 @@
 
 ## Recent Changes
 
+### Groundswell: a step cut off mid-call is given up after three leases; social reads keep to the deadline (2026-10-27)
+
+Seen on the first Uncommon Path run after the AI search PR: the `social` step
+was claimed at 00:08, 00:18, 00:29 and 00:39 UTC, ten minutes apart, with no
+error text: each call was cut off by the function's time limit (the Apify
+fallback for the age-gated profile alone may wait 300 s), nothing was
+written, the 600 s lease ran out, and `claim_next_audit_step` handed the step
+out again with `attempts + 1`, for ever, since `MAX_ATTEMPTS` was checked
+only in the catch path.
+
+- **Engine** (`runWorker`): a claimed step with `attempts > MAX_ATTEMPTS` is
+  not run: an optional one is skipped and a required one fails the audit,
+  with "The step ran out the worker's time limit 3 times without finishing."
+- **Social step**: `timeBudget(ctx, cap)` caps every ScrapeCreators (90 s)
+  and Apify (300 s) read at the time left before the worker's deadline, so
+  a read can time out with an error (and retry or skip) instead of the call
+  dying silently.
+- **Tests**: the reclaimed-lease case in `groundswell-engine.test.ts` and
+  the deadline case in `groundswell-social.test.ts`.
+- The stuck run itself (`4afe409b…`) had its social step skipped by hand.
+
 ### Headway: the implementation service, its page, and the agent that carries the plan out (2026-10-26)
 
 Owner's ask: with GroundSwell largely done, the division sells one

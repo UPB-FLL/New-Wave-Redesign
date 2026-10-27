@@ -274,6 +274,22 @@ export async function runWorker(
       continue;
     }
 
+    // A step whose call died mid-flight (the function's time limit, a lost worker) leaves no error: the lease
+    // runs out and the claim hands it out again. After MAX_ATTEMPTS such leases it is given up like any other
+    // failure, never claimed for ever.
+    if (claimed.attempts > MAX_ATTEMPTS) {
+      const why = `The step ran out the worker's time limit ${MAX_ATTEMPTS} times without finishing.`;
+      if (def.optional) {
+        await db.from('marketing_audit_steps').update({ status: 'skipped', error: why, finished_at: new Date().toISOString() }).eq('id', claimed.id);
+        report.ran.push({ audit_id: claimed.audit_id, step: claimed.step, outcome: 'skipped', error: why });
+      } else {
+        await db.from('marketing_audit_steps').update({ status: 'failed', error: why, finished_at: new Date().toISOString() }).eq('id', claimed.id);
+        await failAudit(db, claimed.audit_id, `${def.label} failed: ${why}`);
+        report.ran.push({ audit_id: claimed.audit_id, step: claimed.step, outcome: 'failed', error: why });
+      }
+      continue;
+    }
+
     try {
       const run = auditRow as unknown as AuditRow;
       const { outputs, inherited, steps: names } = await loadSteps(db, claimed.audit_id, run.source_audit_id);
