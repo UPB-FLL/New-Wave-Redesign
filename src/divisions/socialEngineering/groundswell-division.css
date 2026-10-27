@@ -37,9 +37,7 @@
 
 /* A signal path, rather than an unrelated scene, beside each page's introduction. */
 .gs-signal { position: relative; isolation: isolate; padding: 1.5rem 0; color: var(--gs-white); }
-.gs-signal-source { display: flex; align-items: flex-start; gap: .75rem; max-width: 24rem; color: var(--gs-mist); font-size: .8125rem; line-height: 1.65; }
-.gs-signal-dot { flex: none; width: .5rem; height: .5rem; margin-top: .4rem; border-radius: 50%; background: var(--gs-amber); }
-.gs-signal-current { width: 1px; height: 2.5rem; margin-left: .2rem; background: var(--gs-cyan); }
+.gs-signal-source { max-width: 24rem; padding-bottom: 1rem; color: var(--gs-mist); font-size: .8125rem; line-height: 1.65; }
 .gs-signal-identity { padding: 1.5rem 0 2rem; border-top: 1px solid var(--gs-cyan); border-bottom: 1px solid color-mix(in srgb, var(--gs-cyan) 30%, transparent); }
 .gs-signal-identity img { width: 100%; max-width: 19rem; height: auto; }
 .gs-signal-identity > span { display: block; margin-top: .75rem; color: var(--gs-mist); font-size: .75rem; }

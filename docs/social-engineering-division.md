@@ -547,10 +547,12 @@ layouts; every small-screen rule is either a `max-width` media query in
   and 16px inputs (no iOS zoom on focus), and at every width for the section's
   currents (see "Section grounds"). New Wave IT pages are unchanged.
 - **Hero scenes.** On phones the page's line-art scene follows the actions
-  (so the primary button never moves), 288 × 192px; service pages leave it
-  out below 375px, where their summaries run 11–13 lines, the contact page
-  shows it from 1024px only, and landscape phones (below 1024px wide, at most
-  500px tall) never show it. See "Motion".
+  (so the primary button never moves), 288 × 192px (Contact us, from 375px);
+  the hub and service heroes carry the GroundSwell panel instead (a caption,
+  the logo, three stages) and show it only beside the text, from 1024px,
+  since under the buttons it read as a second hero with its caption wrapped;
+  the contact page shows its scene from 1024px only, and landscape phones
+  (below 1024px wide, at most 500px tall) never show one. See "Motion".
 
 ## Editing
 
@@ -949,8 +951,8 @@ starts proportionally wider (see "Enlarged text" below).
 
 | Page | Scene (`PAGE_SCENES` key) | Desktop (1024px and up) | Tablets (768–1023px) | Phones |
 |---|---|---|---|---|
-| Hub hero | `hub`: HubGrowthScene | beside the text and actions, centred on them: 320 × 213 at 1024–1279px, 480 × 320 from 1280px | 256 × 171, right of the actions, at the end of a 44rem row (x = 472–728px), so it stays with the text | 288 × 192 after the actions, centred (adds 208px) |
-| Service heroes | the slug, e.g. `social-media` | as the hub; digital oversight (Analytics & oversight) uses `heroSceneSize: 'compact'` (256 × 171, then 352 × 235 from 1280px), because its headline runs four lines beside the full-size scene | as the hub | as the hub from 375px; none below 375px, where the summaries run 11–13 lines |
+| Hub hero | `hub`: the GroundSwell panel (`GroundswellSignal`, no line art) | beside the text and actions, centred on them: 320 wide at 1024–1279px, 480 from 1280px | none (`sceneOnPhones="hide"`): under the actions the panel read as a second hero, its caption wrapping in the narrow box | none |
+| Service heroes | the slug, e.g. `social-media`: the GroundSwell panel with the page's own caption | as the hub; digital oversight (Analytics & oversight) uses `heroSceneSize: 'compact'` (256, then 352 wide from 1280px), because its headline runs four lines beside the full-size panel | none, as the hub | none |
 | Book a discovery call (`/contact`) hero | `contact`: ContactDiscoveryScene | `sceneSize="compact"`: 256 × 171 at 1024–1279px, then 352 × 235 from 1280px (the text is short; a full-size scene would only add height) | none: the hero has no actions to sit beside, so the scene would stand alone and push the form down | none, so the form follows the summary |
 | Hub, "What we gather" band | `hubSection`: HubJourneyScene (light tone, Cloud White knock-outs) | fills the empty sixth cell of the five-card grid (the list is a subgrid of one wrapper grid), so it adds no height | none | none |
 | Contact us hero | `contactUs`: ContactUsReplyScene | `sceneSize="compact"`, as the discovery call's (the text is as short) | as the hub: 256 × 171, right of the new-project link | 288 × 192 after the new-project link, from 375px; none below 375px, so the form starts on the first screen |
