@@ -52,9 +52,13 @@ on (`runAgentPass` in `agent.ts`):
    and the same log (`GROUNDSWELL_AGENT_ADVISOR=claude|openai|rule` forces
    one); without either, `ruleProposal`: the first allowed resolver, or a
    developer brief.
-5. **Research** (`research.ts`): one ask per topic to Claude with its web
-   search turned on (`consultClaude(…, { webSearch })`, up to 8 searches,
-   the answer's JSON parsed from the text), carrying the topic's brief, the
+5. **Research** (`research.ts`): one ask per topic to the advisor with its
+   web search turned on: Claude (`consultClaude(…, { webSearch })`) when
+   `ANTHROPIC_API_KEY` is set, else OpenAI's Responses API with its web
+   search tool (`researchWithSearch` in `openai.ts`, on the `OPENAI_API_KEY`
+   the site already has; the tool type `web_search_preview`, then
+   `web_search` if the API says the first is unknown); up to 8 searches, the
+   answer's JSON parsed from the text, carrying the topic's brief, the
    date window (7 days) and the newest 30 learnings the agent already holds
    on that topic, so only what is new comes back. `checkLearnings` keeps a
    learning only with a title, a summary and a real link, and never one
@@ -62,8 +66,8 @@ on (`runAgentPass` in `agent.ts`):
    per topic. Kept learnings go in `groundswell_agent_learnings`; the ask is
    logged with purpose `research`. Topics: `DEFAULT_TOPICS` (AI agent
    marketing, social media marketing) or `GROUNDSWELL_AGENT_TOPICS`
-   (`key=what to look for; key=…`, up to six). Without `ANTHROPIC_API_KEY`
-   the research is skipped and the report says so.
+   (`key=what to look for; key=…`, up to six). Without either key the
+   research is skipped and the report says so.
 6. **Report** by email (Resend, from `GroundSwell agent <support@newwaveitfl.com>`,
    to `GROUNDSWELL_AGENT_EMAIL`, default josh@newwaveitfl.com) whenever
    anything is open or was resolved since the last report, and once a day

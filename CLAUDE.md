@@ -118,8 +118,9 @@ and learns from logs, data and results. Full notes: `docs/groundswell-agent.md`.
   `groundswell_agent_consultations` with what was kept or rejected and why,
   outcomes written back when checked; OpenAI stands in without the key,
   `ruleProposal` without either; a resolver failed twice with no success is
-  ruled out), `research.ts` (each pass asks Claude, with web search, what is
-  new in `DEFAULT_TOPICS` AI agent marketing and social media marketing, or
+  ruled out), `research.ts` (each pass asks the advisor, with web search: Claude, else
+  OpenAI's Responses API web search on the existing key (`researchWithSearch`
+  in `openai.ts`), what is new in `DEFAULT_TOPICS` AI agent marketing and social media marketing, or
   `GROUNDSWELL_AGENT_TOPICS`; the ask carries the learnings already held so
   only new ones come back; `checkLearnings` needs a title, a summary and a
   real link, never one known by link or title; stored in
