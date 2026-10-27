@@ -15,7 +15,8 @@ export interface AgentProposal {
   rationale: string;
   confidence: 'low' | 'medium' | 'high';
   brief?: string;
-  by: 'model' | 'rule';
+  by: 'claude' | 'openai' | 'rule';
+  consultation_id?: string;
 }
 
 export interface AgentIssue {
@@ -62,12 +63,30 @@ export interface AgentReport {
   status: 'sent' | 'skipped' | 'failed';
 }
 
+/** One ask of the advisor, as the screen shows it: the digest, never the bodies. */
+export interface AgentConsultation {
+  id: string;
+  advisor: 'claude' | 'openai';
+  model: string;
+  created_at: string;
+  issues: number;
+  kept: number;
+  rejected: (string | null)[];
+  outcomes: Record<string, { resolver: string; result: 'worked' | 'failed' | 'not_applied'; note: string; at: string }>;
+  usage: { input_tokens: number; output_tokens: number; cache_read_input_tokens: number | null } | null;
+  latency_ms: number | null;
+  error: string | null;
+}
+
+export const ADVISOR_LABELS = { claude: 'Claude', openai: 'OpenAI', rule: 'the agent’s rule' } as const;
+
 export interface AgentView {
   issues: AgentIssue[];
   lessons: AgentLesson[];
   last_report: AgentReport | null;
+  consultations: AgentConsultation[];
   resolvers: { key: string; label: string }[];
-  config: { email: string; email_ready: boolean; model_ready: boolean; live_checks: boolean; base: string };
+  config: { email: string; email_ready: boolean; advisor: 'claude' | 'openai' | 'rule'; model: string | null; claude_ready: boolean; model_ready: boolean; live_checks: boolean; base: string };
 }
 
 export const AGENT_STATUS_LABELS: Record<AgentIssueStatus, string> = {

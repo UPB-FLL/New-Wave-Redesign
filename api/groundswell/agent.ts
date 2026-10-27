@@ -3,7 +3,9 @@ import { adminUser, requireAdmin } from '../_lib/adminKey.js';
 import { decide, runAgentPass, type Decision } from '../_lib/groundswell/agent/agent.js';
 import { agentBaseUrl, agentEmailAddress, decisionPage } from '../_lib/groundswell/agent/report.js';
 import { RESOLVERS } from '../_lib/groundswell/agent/resolvers.js';
-import { foldObservations, issueForToken, lastReport, NOT_READY, readIssue, readIssues, readLessons, summarizeLessons, updateIssue } from '../_lib/groundswell/agent/store.js';
+import { agentModel, isClaudeConfigured } from '../_lib/groundswell/agent/consult.js';
+import { advisorFor } from '../_lib/groundswell/agent/propose.js';
+import { foldObservations, issueForToken, lastReport, NOT_READY, readConsultations, readIssue, readIssues, readLessons, summarizeLessons, updateIssue } from '../_lib/groundswell/agent/store.js';
 import type { Observation, Severity } from '../_lib/groundswell/agent/types.js';
 import { FUNCTION_SECONDS, runWorkerInBackground } from '../_lib/groundswell/background.js';
 import { escapeHtml, methodGuard, queryParam, rateLimit, readJsonBody, clientIp, type ApiRequest, type ApiResponse } from '../_lib/http.js';
@@ -107,13 +109,16 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
 
   try {
     if (req.method === 'GET') {
-      const [issues, lessons, previous] = await Promise.all([readIssues(db), readLessons(db, 100), lastReport(db)]);
+      const [issues, lessons, previous, consultations] = await Promise.all([readIssues(db), readLessons(db, 100), lastReport(db), readConsultations(db, 10)]);
+      const advisor = advisorFor({});
       return res.status(200).json({
         issues: issues.sort((a, b) => (b.last_seen > a.last_seen ? 1 : -1)),
         lessons: summarizeLessons(lessons),
         last_report: previous,
+        // The log, without the question and answer bodies (the screen shows the digest).
+        consultations: consultations.map((c) => ({ id: c.id, advisor: c.advisor, model: c.model, created_at: c.created_at, issues: c.issue_ids.length, kept: Object.values(c.kept).filter((k) => k.kept).length, rejected: Object.values(c.kept).filter((k) => !k.kept).map((k) => k.reason), outcomes: c.outcomes, usage: c.usage, latency_ms: c.latency_ms, error: c.error })),
         resolvers: RESOLVERS.map((r) => ({ key: r.key, label: r.label })),
-        config: { email: agentEmailAddress(), email_ready: Boolean(process.env.RESEND_API_KEY), model_ready: Boolean(process.env.OPENAI_API_KEY), live_checks: (process.env.GROUNDSWELL_AGENT_LIVE_CHECKS ?? '').trim().toLowerCase() !== 'off', base },
+        config: { email: agentEmailAddress(), email_ready: Boolean(process.env.RESEND_API_KEY), advisor, model: advisor === 'claude' ? agentModel() : advisor === 'openai' ? process.env.GROUNDSWELL_OPENAI_MODEL || 'gpt-4o' : null, claude_ready: isClaudeConfigured(), model_ready: Boolean(process.env.OPENAI_API_KEY), live_checks: (process.env.GROUNDSWELL_AGENT_LIVE_CHECKS ?? '').trim().toLowerCase() !== 'off', base },
       });
     }
 

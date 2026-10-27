@@ -11,8 +11,14 @@
 --                              the next proposal
 --   groundswell_agent_reports  each 4-hour report sent (or skipped), so the
 --                              next one knows what is new
+--   groundswell_agent_consultations
+--                              every ask of the advisor (Claude): the question
+--                              as sent, the answer as it came back, what was
+--                              kept or rejected and why, and the outcome of
+--                              each advice once it is known: the log the next
+--                              question is built from
 --
--- RLS on and no policies on all three: only the service role
+-- RLS on and no policies on all four: only the service role
 -- (api/groundswell/agent.ts) reads or writes them. Additive: the route answers
 -- 503 until the tables exist; nothing else reads them. Every statement can run
 -- again.
@@ -78,6 +84,25 @@ CREATE TABLE IF NOT EXISTS groundswell_agent_reports (
 CREATE INDEX IF NOT EXISTS groundswell_agent_reports_sent_idx ON groundswell_agent_reports (sent_at DESC);
 ALTER TABLE groundswell_agent_reports ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON groundswell_agent_reports FROM anon, authenticated;
+
+CREATE TABLE IF NOT EXISTS groundswell_agent_consultations (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  advisor text NOT NULL CHECK (advisor IN ('claude', 'openai')),
+  model text NOT NULL,
+  issue_ids uuid[] NOT NULL DEFAULT '{}',
+  question jsonb NOT NULL DEFAULT '{}'::jsonb,
+  answer_text text NOT NULL DEFAULT '',
+  answer jsonb,
+  kept jsonb NOT NULL DEFAULT '{}'::jsonb,
+  outcomes jsonb NOT NULL DEFAULT '{}'::jsonb,
+  usage jsonb,
+  latency_ms integer,
+  error text,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS groundswell_agent_consultations_created_idx ON groundswell_agent_consultations (created_at DESC);
+ALTER TABLE groundswell_agent_consultations ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON groundswell_agent_consultations FROM anon, authenticated;
 
 -- updated_at, as the Headway tables keep it.
 CREATE OR REPLACE TRIGGER groundswell_agent_issues_updated_at BEFORE UPDATE ON groundswell_agent_issues FOR EACH ROW EXECUTE FUNCTION groundswell_touch_updated_at();

@@ -27,14 +27,31 @@ on (`runAgentPass` in `agent.ts`):
    `observed_at` when its source is history, such as a run's last change; a
    sighting no newer than the decision is the same event, not a recurrence.
    Live states such as a service that does not answer recur whenever seen.)
-4. **Propose** for every issue with no proposal: the code computes which
-   resolvers apply (`applicableResolvers`) and drops any the lessons have
-   ruled out (failed twice on that kind with no success); the model
-   (`OPENAI_API_KEY`, `chatJson`) writes the summary, the likely cause and
-   picks among those keys, or `needs_developer` (with a brief) or `none`
-   (watch). `checkProposal` keeps an answer only within those rules; anything
-   else, and a run without the model, falls to `ruleProposal`: the first
-   allowed resolver, or a developer brief.
+4. **Ask the advisor** for every issue with no proposal. The code computes
+   which resolvers apply (`applicableResolvers`) and drops any the lessons
+   have ruled out (failed twice on that kind with no success). Then one
+   question goes to **Claude** (`consult.ts`: the official SDK, model
+   `claude-opus-5-5` unless `GROUNDSWELL_AGENT_MODEL` says otherwise, effort
+   `GROUNDSWELL_AGENT_EFFORT` default high, the answer held to a JSON schema,
+   a safety decline falling back server-side inside the call) with the
+   issues, the allowed keys per issue, the lessons, and **prior advice**: the
+   log of what Claude advised before on the same kinds, whether the agent
+   kept it, why it was rejected if not, and how it turned out. Claude writes
+   the plain-words summary, the likely cause and the rationale and picks
+   among the allowed keys, or `needs_developer` (with a brief) or `none`
+   (watch). `checkProposal` keeps an answer only within those rules.
+   **Every ask is logged** in `groundswell_agent_consultations`: the question
+   as sent, the answer as it came back, per issue what was kept or rejected
+   and why, tokens and latency, any error. Each proposal carries its
+   `consultation_id`; when the resolution is checked later (or could not be
+   applied), the outcome is written back onto that consultation, and the
+   next question carries the last 12 consultations' advice on the same
+   kinds with those outcomes. So the advice adapts to its own record, and
+   the record is the agent's own, not the model's. Without
+   `ANTHROPIC_API_KEY`, OpenAI (`chatJson`) stands in under the same rules
+   and the same log (`GROUNDSWELL_AGENT_ADVISOR=claude|openai|rule` forces
+   one); without either, `ruleProposal`: the first allowed resolver, or a
+   developer brief.
 5. **Report** by email (Resend, from `GroundSwell agent <support@newwaveitfl.com>`,
    to `GROUNDSWELL_AGENT_EMAIL`, default josh@newwaveitfl.com) whenever
    anything is open or was resolved since the last report, and once a day
@@ -96,21 +113,32 @@ developer brief) or with Headway's own approvals.
 
 ## Memory ("training")
 
-`groundswell_agent_lessons`: one row per checked resolution (source, kind,
-resolver, worked | failed, a note). `summarizeLessons` gives the model, the
-rule and the screen the counts per (source, kind, resolver) and the latest
-note; `RULED_OUT_AFTER` (2) failures with no success removes a resolver from
-the allowed set for that kind. The issues table itself keeps the history
-each proposal is made against: occurrences, recurrences, the last outcome.
+Three records, all the agent's own:
+
+- `groundswell_agent_lessons`: one row per checked resolution (source, kind,
+  resolver, worked | failed, a note). `summarizeLessons` gives the advisor,
+  the rule and the screen the counts per (source, kind, resolver) and the
+  latest note; `RULED_OUT_AFTER` (2) failures with no success removes a
+  resolver from the allowed set for that kind, whatever the advisor says.
+- `groundswell_agent_consultations`: every ask of Claude, whole, with what
+  was kept or rejected and the outcome of each advice once known
+  (`priorAdvice` turns the last 12 into the record the next question
+  carries). The staff screen lists them: issues asked, kept, rejected,
+  outcomes, time and tokens.
+- The issues table itself: occurrences, recurrences, the last outcome, so a
+  proposal is always made against what happened to that issue before.
 
 ## Setup
 
 - Apply migration `20261102120000` (tables, indexes, the cron job; the
   Vault secret `blog_admin_api_key` is the one the other jobs use).
-- Vercel: `RESEND_API_KEY` (already set for the alerts), `OPENAI_API_KEY`
-  (already set; without it the rule proposes), optional
-  `GROUNDSWELL_AGENT_EMAIL`, `GROUNDSWELL_BASE_URL` (default
-  https://www.newwaveitfl.com), `GROUNDSWELL_AGENT_LIVE_CHECKS=off`.
+- Vercel: `ANTHROPIC_API_KEY` (the advisor; new), `RESEND_API_KEY` (already
+  set for the alerts), optional `GROUNDSWELL_AGENT_MODEL` (default
+  `claude-opus-5-5`), `GROUNDSWELL_AGENT_EFFORT` (default `high`),
+  `GROUNDSWELL_AGENT_ADVISOR`, `GROUNDSWELL_AGENT_EMAIL`,
+  `GROUNDSWELL_BASE_URL` (default https://www.newwaveitfl.com),
+  `GROUNDSWELL_AGENT_LIVE_CHECKS=off`. `OPENAI_API_KEY` (already set) is the
+  stand-in advisor.
 - The route runs with `maxDuration: 300` and the Chromium files, since an
   approval wakes the worker inside the same function.
 

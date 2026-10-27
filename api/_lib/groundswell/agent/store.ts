@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto';
-import type { CollectResult, Db, IssueRow, IssueStatus, LessonRow, LessonSummary, Observation, Outcome, Proposal } from './types.js';
+import type { CollectResult, ConsultationRow, Db, IssueRow, IssueStatus, LessonRow, LessonSummary, Observation, Outcome, Proposal } from './types.js';
 
 /**
  * The agent's memory (migration 20261102120000): one issue per fingerprint,
@@ -146,6 +146,35 @@ export async function issueForToken(db: Db, token: string, now: Date): Promise<I
   const row = data as IssueRow | null;
   if (!row || !row.approval_expires_at || row.approval_expires_at < now.toISOString()) return null;
   return row;
+}
+
+export const CONSULTATION_COLUMNS = 'id,advisor,model,issue_ids,question,answer_text,answer,kept,outcomes,usage,latency_ms,error,created_at';
+
+/** Logs one ask of the advisor; answers the row's id (null before the migration). */
+export async function recordConsultation(db: Db, row: Omit<ConsultationRow, 'id' | 'created_at' | 'outcomes'>): Promise<string | null> {
+  const { data, error } = await db.from('groundswell_agent_consultations').insert({ ...row, answer_text: row.answer_text.slice(0, 60_000), outcomes: {} }).select('id').single();
+  if (error) {
+    if (missingTable(error.message)) return null;
+    throw new Error(error.message);
+  }
+  return (data as { id: string } | null)?.id ?? null;
+}
+
+export async function readConsultations(db: Db, limit = 20): Promise<ConsultationRow[]> {
+  const result = await db.from('groundswell_agent_consultations').select(CONSULTATION_COLUMNS).order('created_at', { ascending: false }).limit(limit);
+  if (result.error) {
+    if (missingTable(result.error.message)) return [];
+    throw new Error(result.error.message);
+  }
+  return (result.data ?? []) as ConsultationRow[];
+}
+
+/** How one piece of advice turned out, written back onto its consultation. */
+export async function attachConsultationOutcome(db: Db, consultationId: string, issueId: string, outcome: ConsultationRow['outcomes'][string]): Promise<void> {
+  const { data, error } = await db.from('groundswell_agent_consultations').select('id,outcomes').eq('id', consultationId).maybeSingle();
+  if (error || !data) return;
+  const outcomes = { ...((data as { outcomes?: ConsultationRow['outcomes'] }).outcomes ?? {}), [issueId]: outcome };
+  await db.from('groundswell_agent_consultations').update({ outcomes }).eq('id', consultationId);
 }
 
 export interface ReportRow {

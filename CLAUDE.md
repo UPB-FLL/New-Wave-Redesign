@@ -18,9 +18,16 @@ and learns from logs, data and results. Full notes: `docs/groundswell-agent.md`.
   `describe` (change and rollback in words), `apply`, `verify`),
   `store.ts` (`foldObservations`: open, count, clear, reopen with a lesson;
   `observed_at` makes old history the same sighting; tokens hashed, 7 days;
-  lessons and reports), `propose.ts` (the model picks among the resolvers
-  the code allows, `checkProposal` holds it there, `ruleProposal` without
-  it; a resolver failed twice with no success is ruled out), `report.ts`
+  lessons, reports and the consultation log), `consult.ts` (Claude through
+  `@anthropic-ai/sdk`: `claude-opus-5-5`, effort high, JSON schema output,
+  server-side fallback on a decline; `ANTHROPIC_API_KEY`), `propose.ts`
+  (one question to Claude with the issues, the allowed keys, the lessons and
+  `priorAdvice`, the log of its earlier advice with outcomes; `checkProposal`
+  holds the answer to the registry; every ask logged in
+  `groundswell_agent_consultations` with what was kept or rejected and why,
+  outcomes written back when checked; OpenAI stands in without the key,
+  `ruleProposal` without either; a resolver failed twice with no success is
+  ruled out), `report.ts`
   (the email and the confirmation page), `agent.ts` (`runAgentPass`:
   verify, collect, fold, propose, report every 4 h while anything is open,
   else daily; `decide`: approve applies now and wakes the worker, dismiss
@@ -30,15 +37,18 @@ and learns from logs, data and results. Full notes: `docs/groundswell-agent.md`.
   Bearer): GET the view, POST `report` (202, runs on), `observe` (outside
   observations under `external:<name>`), `approve` | `dismiss` | `reopen`.
 - **Migration** `20261102120000`: `groundswell_agent_issues`, `_lessons`,
-  `_reports` (RLS on, no policies) and the cron `groundswell-agent-report`
+  `_reports`, `_consultations` (RLS on, no policies) and the cron `groundswell-agent-report`
   (`0 */4 * * *`). Additive: the route answers 503 until applied.
 - **Screen** `/groundswell/admin/agent` (`GroundswellAgent.tsx`, nav
   "Agent"; `src/lib/groundswellAgent.ts`).
 - **Tests**: `src/test/api/groundswell-agent.test.ts`,
   `GroundswellAgent.test.tsx`.
 - **Not verified live**: no pass has run against production; the migration
-  is not applied yet. Setup in Vercel: optional `GROUNDSWELL_AGENT_EMAIL`,
-  `GROUNDSWELL_BASE_URL`, `GROUNDSWELL_AGENT_LIVE_CHECKS=off`.
+  is not applied yet; no Claude call has been made. Setup in Vercel:
+  `ANTHROPIC_API_KEY`; optional `GROUNDSWELL_AGENT_MODEL`,
+  `GROUNDSWELL_AGENT_EFFORT`, `GROUNDSWELL_AGENT_ADVISOR`,
+  `GROUNDSWELL_AGENT_EMAIL`, `GROUNDSWELL_BASE_URL`,
+  `GROUNDSWELL_AGENT_LIVE_CHECKS=off`.
 ### Groundswell: the three faults on Uncommon Path's run of 2026-10-27 (2026-10-27)
 
 Run `4afe409b…` (queued 00:05 UTC) failed on its GEO brief, skipped its

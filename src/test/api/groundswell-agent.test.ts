@@ -23,10 +23,11 @@ vi.mock('@vercel/functions', () => ({ waitUntil }));
 import handler, { externalObservations } from '../../../api/groundswell/agent';
 import { decide, runAgentPass, verifyResolutions, type Sender } from '../../../api/_lib/groundswell/agent/agent';
 import { COLLECTORS, collectAll, errorKey, headwayCollector, runsCollector } from '../../../api/_lib/groundswell/agent/collectors';
-import { allowedResolvers, checkProposal, proposeAll, ruleProposal } from '../../../api/_lib/groundswell/agent/propose';
+import { allowedResolvers, checkProposal, priorAdvice, proposeAll, ruleProposal } from '../../../api/_lib/groundswell/agent/propose';
+import type { Consultation } from '../../../api/_lib/groundswell/agent/consult';
 import { approvalUrl, buildReport, decisionPage } from '../../../api/_lib/groundswell/agent/report';
 import { RESOLVERS, applicableResolvers, resolverByKey } from '../../../api/_lib/groundswell/agent/resolvers';
-import { foldObservations, issueForToken, readIssues, readLessons, summarizeLessons } from '../../../api/_lib/groundswell/agent/store';
+import { foldObservations, issueForToken, readConsultations, readIssues, readLessons, summarizeLessons } from '../../../api/_lib/groundswell/agent/store';
 import type { CollectResult, Db, IssueRow, Observation } from '../../../api/_lib/groundswell/agent/types';
 import type { ApiRequest, ApiResponse } from '../../../api/_lib/http';
 
@@ -253,25 +254,59 @@ describe('proposals', () => {
     expect(p.brief).toContain('Source runs, kind run_failed');
   });
 
-  it('a model answer is kept only within the rules: no invented resolver, no empty rationale', () => {
+  it('an advisor’s answer is kept only within the rules, and a rejection says why', () => {
     const allowed = applicableResolvers(issue());
-    expect(checkProposal(issue(), { id: 'i1', resolver: 'delete_everything', rationale: 'because', confidence: 'high' }, allowed)).toBeNull();
-    expect(checkProposal(issue(), { id: 'i1', resolver: 'requeue_step', rationale: '', confidence: 'high' }, allowed)).toBeNull();
-    expect(checkProposal(issue(), { id: 'i1', resolver: 'requeue_step', summary: 'The brief file could not be saved.', cause: 'A file type the storage refuses.', rationale: 'The storage rule was fixed; a retry stores it.', confidence: 'certain' }, allowed)).toMatchObject({ resolver: 'requeue_step', confidence: 'low', by: 'model' });
-    expect(checkProposal(issue(), { id: 'i1', resolver: 'needs_developer', rationale: 'Code change.', confidence: 'high', brief: 'Look at geoDelivery.ts' }, allowed)).toMatchObject({ resolver: 'needs_developer', brief: 'Look at geoDelivery.ts' });
+    const invented = checkProposal(issue(), { id: 'i1', resolver: 'delete_everything', rationale: 'because', confidence: 'high' }, allowed);
+    expect(invented.proposal).toBeNull();
+    expect(invented.reason).toBe('Named "delete_everything", which is not an allowed resolver for this issue (allowed: requeue_step, needs_developer, none).');
+    expect(checkProposal(issue(), { id: 'i1', resolver: 'requeue_step', rationale: '', confidence: 'high' }, allowed)).toEqual({ proposal: null, reason: 'No rationale was given.' });
+    expect(checkProposal(issue(), { id: 'i1', resolver: 'requeue_step', summary: 'The brief file could not be saved.', cause: 'A file type the storage refuses.', rationale: 'The storage rule was fixed; a retry stores it.', confidence: 'certain' }, allowed).proposal).toMatchObject({ resolver: 'requeue_step', confidence: 'low', by: 'claude' });
+    expect(checkProposal(issue(), { id: 'i1', resolver: 'needs_developer', rationale: 'Code change.', confidence: 'high', brief: 'Look at geoDelivery.ts' }, allowed).proposal).toMatchObject({ resolver: 'needs_developer', brief: 'Look at geoDelivery.ts' });
   });
 
-  it('proposeAll asks the model once with the allowed keys and falls back to the rule for anything it got wrong', async () => {
-    const ask = vi.fn().mockResolvedValue({ proposals: [{ id: 'i1', resolver: 'requeue_step', summary: 'S', cause: 'C', rationale: 'R', confidence: 'high' }, { id: 'i2', resolver: 'retry_action', rationale: 'wrong kind', confidence: 'high' }] });
-    const map = await proposeAll([issue(), issue({ id: 'i2', kind: 'run_held' })], [], { ask, useModel: true });
-    expect(ask).toHaveBeenCalledTimes(1);
-    const user = JSON.parse(ask.mock.calls[0][1]);
-    expect(user.issues[0].allowed.map((a: { key: string }) => a.key)).toEqual(['requeue_step']);
-    expect(map.get('i1')).toMatchObject({ resolver: 'requeue_step', summary: 'S', by: 'model' });
+  const answered = (proposals: unknown[], over: Partial<Consultation> = {}): Consultation => ({ model: 'claude-opus-5-5', text: JSON.stringify({ proposals }), parsed: { proposals }, usage: { input_tokens: 1200, output_tokens: 300, cache_read_input_tokens: 900 }, latency_ms: 2100, stop_reason: 'end_turn', error: null, ...over });
+
+  it('asks Claude once with the allowed keys, logs the ask with what was kept or rejected, and falls back to the rule for anything it got wrong', async () => {
+    const consult = vi.fn().mockResolvedValue(answered([{ id: 'i1', resolver: 'requeue_step', summary: 'S', cause: 'C', rationale: 'R', confidence: 'high' }, { id: 'i2', resolver: 'retry_action', rationale: 'wrong kind', confidence: 'high' }]));
+    const map = await proposeAll(fake(), [issue(), issue({ id: 'i2', kind: 'run_held' })], [], { consult });
+    expect(consult).toHaveBeenCalledTimes(1);
+    const question = JSON.parse(consult.mock.calls[0][1]);
+    expect(question.issues[0].allowed.map((a: { key: string }) => a.key)).toEqual(['requeue_step']);
+    expect(question.prior_advice).toEqual([]);
+    expect(map.get('i1')).toMatchObject({ resolver: 'requeue_step', summary: 'S', by: 'claude' });
     expect(map.get('i2')).toMatchObject({ resolver: 'release_review', by: 'rule' });
-    const failing = vi.fn().mockRejectedValue(new Error('OpenAI failed (500)'));
-    const ruled = await proposeAll([issue()], [], { ask: failing, useModel: true });
-    expect(ruled.get('i1')!.by).toBe('rule');
+    const [log] = await readConsultations(fake());
+    expect(log).toMatchObject({ advisor: 'claude', model: 'claude-opus-5-5', issue_ids: ['i1', 'i2'], usage: { input_tokens: 1200 }, latency_ms: 2100, error: null });
+    expect(log.kept).toEqual({ i1: { kept: true, resolver: 'requeue_step', reason: null }, i2: { kept: false, resolver: 'retry_action', reason: expect.stringContaining('not an allowed resolver') } });
+    expect(map.get('i1')!.consultation_id).toBe(log.id);
+    expect(map.get('i2')!.consultation_id).toBeUndefined();
+  });
+
+  it('a Claude call that fails is logged with its error and the rule proposes', async () => {
+    const consult = vi.fn().mockResolvedValue(answered([], { parsed: null, text: '', error: 'Claude is rate-limited right now; the next pass asks again.' }));
+    const map = await proposeAll(fake(), [issue()], [], { consult });
+    expect(map.get('i1')!.by).toBe('rule');
+    expect((await readConsultations(fake()))[0]).toMatchObject({ error: 'Claude is rate-limited right now; the next pass asks again.', kept: { i1: { kept: false } } });
+  });
+
+  it('the next ask carries back what Claude advised on the same kinds, whether it was kept, and how it turned out', async () => {
+    const consult = vi.fn().mockResolvedValue(answered([{ id: 'i1', resolver: 'requeue_step', summary: 'S', cause: 'C', rationale: 'R', confidence: 'high' }]));
+    await proposeAll(fake(), [issue()], [], { consult });
+    const [log] = await readConsultations(fake());
+    await fake().from('groundswell_agent_consultations').update({ outcomes: { i1: { resolver: 'requeue_step', result: 'failed', note: 'did not hold', at: NOW.toISOString() } } }).eq('id', log.id);
+    const advice = priorAdvice(await readConsultations(fake()), [issue({ id: 'i9' })]);
+    expect(advice).toEqual([expect.objectContaining({ kind: 'run_failed', advised: expect.objectContaining({ resolver: 'requeue_step', confidence: 'high' }), kept: true, rejected_because: null, outcome: { result: 'failed', note: 'did not hold' } })]);
+    // A different kind sees nothing of it.
+    expect(priorAdvice(await readConsultations(fake()), [issue({ id: 'i9', kind: 'run_held' })])).toEqual([]);
+    await proposeAll(fake(), [issue({ id: 'i9' })], [], { consult, consultations: await readConsultations(fake()) });
+    expect(JSON.parse(consult.mock.calls[1][1]).prior_advice).toHaveLength(1);
+  });
+
+  it('OpenAI stands in when asked to, under the same rules and the same log', async () => {
+    const ask = vi.fn().mockResolvedValue({ proposals: [{ id: 'i1', resolver: 'requeue_step', summary: 'S', cause: 'C', rationale: 'R', confidence: 'medium' }] });
+    const map = await proposeAll(fake(), [issue()], [], { ask, advisor: 'openai' });
+    expect(map.get('i1')).toMatchObject({ resolver: 'requeue_step', by: 'openai' });
+    expect((await readConsultations(fake()))[0]).toMatchObject({ advisor: 'openai', kept: { i1: { kept: true } } });
   });
 });
 
@@ -316,7 +351,7 @@ describe('resolvers', () => {
 describe('a pass', () => {
   it('collects, proposes, emails the report with approval links, records it, and stays quiet when nothing changed', async () => {
     const client = fake();
-    const report = await runAgentPass(client, { now: NOW, deadline: Infinity, collectors: collectorsOf('runs', 'headway'), send: sender, base: 'https://example.test', to: 'owner@example.test', useModel: false });
+    const report = await runAgentPass(client, { now: NOW, deadline: Infinity, collectors: collectorsOf('runs', 'headway'), send: sender, base: 'https://example.test', to: 'owner@example.test', advisor: 'rule' });
     expect(report.sent).toBe(true);
     // The failed run, the failed action, and the two skipped-step faults (handled outside the app, then checked).
     expect(report.counts).toMatchObject({ approvals: 4, developer: 0 });
@@ -338,20 +373,20 @@ describe('a pass', () => {
     expect(db.current!.tables.groundswell_agent_reports[0]).toMatchObject({ to_email: 'owner@example.test', status: 'sent', email_id: 'email-1' });
 
     // Four hours on, the same four still wait: the report repeats them, with fresh links.
-    const repeat = await runAgentPass(client, { now: new Date(NOW.getTime() + 4 * 3_600_000), deadline: Infinity, collectors: collectorsOf('runs', 'headway'), send: sender, base: 'https://example.test', to: 'owner@example.test', useModel: false });
+    const repeat = await runAgentPass(client, { now: new Date(NOW.getTime() + 4 * 3_600_000), deadline: Infinity, collectors: collectorsOf('runs', 'headway'), send: sender, base: 'https://example.test', to: 'owner@example.test', advisor: 'rule' });
     expect(repeat.sent).toBe(true);
     expect(sent).toHaveLength(2);
     expect([...sent[1].text.matchAll(/Approve: (\S+)/g)].map((m) => m[1])).not.toEqual(links);
 
     // Everything decided and nothing new: no email.
     for (const i of await readIssues(client)) await decide(client, i, 'dismiss', 'staff:josh', new Date(NOW.getTime() + 5 * 3_600_000));
-    const quiet = await runAgentPass(client, { now: new Date(NOW.getTime() + 8 * 3_600_000), deadline: Infinity, collectors: collectorsOf('runs', 'headway'), send: sender, base: 'https://example.test', to: 'owner@example.test', useModel: false });
+    const quiet = await runAgentPass(client, { now: new Date(NOW.getTime() + 8 * 3_600_000), deadline: Infinity, collectors: collectorsOf('runs', 'headway'), send: sender, base: 'https://example.test', to: 'owner@example.test', advisor: 'rule' });
     expect(quiet.sent).toBe(false);
     expect(quiet.reason).toBe('Nothing new since the last report.');
     expect(sent).toHaveLength(2);
 
     // A day on, still nothing new: the daily all-clear line goes out so silence is never ambiguous.
-    const daily = await runAgentPass(client, { now: new Date(NOW.getTime() + 29 * 3_600_000), deadline: Infinity, collectors: collectorsOf('runs', 'headway'), send: sender, base: 'https://example.test', to: 'owner@example.test', useModel: false });
+    const daily = await runAgentPass(client, { now: new Date(NOW.getTime() + 29 * 3_600_000), deadline: Infinity, collectors: collectorsOf('runs', 'headway'), send: sender, base: 'https://example.test', to: 'owner@example.test', advisor: 'rule' });
     expect(daily.sent).toBe(true);
     expect(daily.reason).toBe('Sent the daily all-clear.');
   });
@@ -360,7 +395,7 @@ describe('a pass', () => {
     db.current = fakeSupabase(failedRun(), { groundswell_headway_actions: ['*'] });
     db.current.tables.groundswell_headway_actions = [];
     readiness.readinessChecks.mockRejectedValue(new Error('Composio timed out'));
-    const report = await runAgentPass(fake(), { now: NOW, deadline: Infinity, collectors: collectorsOf('runs', 'readiness'), send: sender, base: 'https://example.test', to: 'o@example.test', useModel: false });
+    const report = await runAgentPass(fake(), { now: NOW, deadline: Infinity, collectors: collectorsOf('runs', 'readiness'), send: sender, base: 'https://example.test', to: 'o@example.test', advisor: 'rule' });
     expect(report.fold.unread).toEqual(['readiness']);
     expect(sent[0].text).toContain('NOT READ THIS PASS: readiness');
     expect((await readIssues(fake())).find((i) => i.fingerprint === 'agent:collector_failed:readiness')).toMatchObject({ title: 'The agent could not read its "readiness" source' });
@@ -368,7 +403,7 @@ describe('a pass', () => {
 
   it('verifies earlier resolutions and records the lesson', async () => {
     const client = fake();
-    await runAgentPass(client, { now: NOW, deadline: Infinity, collectors: collectorsOf('runs'), send: sender, base: 'https://example.test', to: 'o@example.test', useModel: false });
+    await runAgentPass(client, { now: NOW, deadline: Infinity, collectors: collectorsOf('runs'), send: sender, base: 'https://example.test', to: 'o@example.test', advisor: 'rule' });
     const issue = (await readIssues(client)).find((i) => i.kind === 'run_failed')!;
     const applied = await decide(client, issue, 'approve', 'staff:josh', NOW);
     expect(applied).toMatchObject({ ok: true, wakeWorker: true });
@@ -379,9 +414,28 @@ describe('a pass', () => {
     expect(summarizeLessons(await readLessons(client))).toEqual([expect.objectContaining({ resolver: 'requeue_step', worked: 1, failed: 0 })]);
   });
 
+  it('an advised resolution’s outcome is written back onto the consultation it came from', async () => {
+    const client = fake();
+    const consult = vi.fn().mockResolvedValue({ model: 'claude-opus-5-5', text: '', parsed: { proposals: [] }, usage: { input_tokens: 1, output_tokens: 1, cache_read_input_tokens: null }, latency_ms: 10, stop_reason: 'end_turn', error: null });
+    consult.mockImplementation(async (_system: string, question: string) => {
+      const ids = (JSON.parse(question).issues as { id: string; kind: string }[]);
+      const proposals = ids.filter((i) => i.kind === 'run_failed').map((i) => ({ id: i.id, resolver: 'requeue_step', summary: 'S', cause: 'C', rationale: 'R', confidence: 'high' }));
+      return { model: 'claude-opus-5-5', text: JSON.stringify({ proposals }), parsed: { proposals }, usage: { input_tokens: 1, output_tokens: 1, cache_read_input_tokens: null }, latency_ms: 10, stop_reason: 'end_turn', error: null };
+    });
+    await runAgentPass(client, { now: NOW, deadline: Infinity, collectors: collectorsOf('runs'), send: sender, base: 'https://example.test', to: 'o@example.test', consult });
+    const issue = (await readIssues(client)).find((i) => i.kind === 'run_failed')!;
+    expect(issue.proposal).toMatchObject({ by: 'claude', resolver: 'requeue_step' });
+    expect(sent[0].text).toContain('advised by Claude');
+    await decide(client, issue, 'approve', 'staff:josh', NOW);
+    await client.from('marketing_audits').update({ status: 'failed' }).eq('id', AUDIT);
+    await verifyResolutions(client, new Date(NOW.getTime() + 3_600_000));
+    const [log] = await readConsultations(client);
+    expect(log.outcomes[issue.id]).toMatchObject({ resolver: 'requeue_step', result: 'failed' });
+  });
+
   it('a resolution that cannot be applied goes back to open with a failed lesson', async () => {
     const client = fake();
-    await runAgentPass(client, { now: NOW, deadline: Infinity, collectors: collectorsOf('runs'), send: sender, base: 'https://example.test', to: 'o@example.test', useModel: false });
+    await runAgentPass(client, { now: NOW, deadline: Infinity, collectors: collectorsOf('runs'), send: sender, base: 'https://example.test', to: 'o@example.test', advisor: 'rule' });
     const issue = (await readIssues(client)).find((i) => i.kind === 'run_failed')!;
     await client.from('marketing_audits').update({ status: 'running' }).eq('id', AUDIT);
     const result = await decide(client, issue, 'approve', 'staff:josh', NOW);
@@ -436,7 +490,7 @@ describe('the route', () => {
 
   it('from the email: the link shows a confirmation page, the button applies the change, and the link then dies', async () => {
     const client = fake();
-    await runAgentPass(client, { now: NOW, deadline: Infinity, collectors: collectorsOf('runs'), send: sender, base: 'https://example.test', to: 'o@example.test', useModel: false });
+    await runAgentPass(client, { now: NOW, deadline: Infinity, collectors: collectorsOf('runs'), send: sender, base: 'https://example.test', to: 'o@example.test', advisor: 'rule' });
     const token = /token=([A-Za-z0-9_-]+)&decision=approve/.exec(sent[0].text)![1];
     expect(await issueForToken(client, token, NOW)).not.toBeNull();
 
@@ -469,7 +523,7 @@ describe('the route', () => {
 
   it('staff approve and dismiss from the screen by id; an expired token is refused', async () => {
     const client = fake();
-    await runAgentPass(client, { now: NOW, deadline: Infinity, collectors: collectorsOf('runs'), send: sender, base: 'https://example.test', to: 'o@example.test', useModel: false });
+    await runAgentPass(client, { now: NOW, deadline: Infinity, collectors: collectorsOf('runs'), send: sender, base: 'https://example.test', to: 'o@example.test', advisor: 'rule' });
     const issue = (await readIssues(client)).find((i) => i.kind === 'run_failed')!;
     const token = /token=([A-Za-z0-9_-]+)&decision=approve/.exec(sent[0].text)![1];
     expect(await issueForToken(client, token, new Date(NOW.getTime() + 8 * 24 * 3_600_000))).toBeNull();

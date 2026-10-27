@@ -3,7 +3,7 @@ import { COLLECTORS, collectAll } from './collectors.js';
 import { proposeAll, type ProposeOptions } from './propose.js';
 import { AGENT_FROM, agentBaseUrl, agentEmailAddress, buildReport, type Report } from './report.js';
 import { resolverByKey } from './resolvers.js';
-import { addLesson, foldObservations, issueApprovalToken, lastReport, MUTE_DAYS, readIssues, readLessons, recordReport, saveProposal, summarizeLessons, updateIssue, type FoldReport } from './store.js';
+import { addLesson, attachConsultationOutcome, foldObservations, issueApprovalToken, lastReport, MUTE_DAYS, readConsultations, readIssues, readLessons, recordReport, saveProposal, summarizeLessons, updateIssue, type FoldReport } from './store.js';
 import type { Collector, Db, IssueRow, Outcome, ResolveResult } from './types.js';
 
 /**
@@ -12,7 +12,8 @@ import type { Collector, Db, IssueRow, Outcome, ResolveResult } from './types.js
  *
  *   1. check the resolutions applied earlier: did each hold? (a lesson either way)
  *   2. read every source and fold what was seen into the issue table
- *   3. propose a resolution for every issue that has none
+ *   3. ask the advisor (Claude) for a resolution for every issue that has
+ *      none, with the log of its earlier advice and outcomes; log the ask
  *   4. email the report when there is something to say (every 24 hours when
  *      there is not), with an Approve and a Dismiss link per proposal
  *
@@ -78,7 +79,9 @@ export async function verifyResolutions(db: Db, now: Date): Promise<{ worked: st
     }
     if (verdict === 'pending') continue;
     await updateIssue(db, issue.id, { outcome: { ...(issue.outcome as Outcome), verified: verdict, verified_at: now.toISOString() } });
-    await addLesson(db, { issue_id: issue.id, source: issue.source, kind: issue.kind, resolver: resolver.key, result: verdict, note: verdict === 'worked' ? `${resolver.label}: held. ${issue.outcome?.note ?? ''}` : `${resolver.label}: did not hold. ${issue.title}` });
+    const note = verdict === 'worked' ? `${resolver.label}: held. ${issue.outcome?.note ?? ''}` : `${resolver.label}: did not hold. ${issue.title}`;
+    await addLesson(db, { issue_id: issue.id, source: issue.source, kind: issue.kind, resolver: resolver.key, result: verdict, note });
+    if (issue.proposal?.consultation_id) await attachConsultationOutcome(db, issue.proposal.consultation_id, issue.id, { resolver: resolver.key, result: verdict, note, at: now.toISOString() });
     out[verdict].push(issue.fingerprint);
   }
   return out;
@@ -101,7 +104,7 @@ export async function runAgentPass(db: Db, opts: PassOptions): Promise<PassRepor
   const lessons = summarizeLessons(await readLessons(db));
   const all = await readIssues(db);
   const unproposed = all.filter((i) => i.status === 'open' && !i.proposal);
-  const proposals = await proposeAll(unproposed, lessons, opts);
+  const proposals = await proposeAll(db, unproposed, lessons, { ...opts, consultations: opts.consultations ?? (unproposed.length ? await readConsultations(db) : []) });
   for (const issue of unproposed) {
     const p = proposals.get(issue.id);
     if (p) {
@@ -168,6 +171,7 @@ export async function decide(db: Db, issue: IssueRow, decision: Decision, by: st
   } else {
     // Back to open without the proposal: the next pass proposes again with this lesson in hand.
     await addLesson(db, { issue_id: issue.id, source: issue.source, kind: issue.kind, resolver: resolver.key, result: 'failed', note: `Could not be applied: ${result.note}` });
+    if (issue.proposal?.consultation_id) await attachConsultationOutcome(db, issue.proposal.consultation_id, issue.id, { resolver: resolver.key, result: 'not_applied', note: result.note, at: stamp });
     await updateIssue(db, issue.id, { status: 'open', proposal: null, proposed_at: null, outcome: { ok: false, note: result.note, verified: 'failed', verified_at: stamp } });
   }
   return { ...result, decision, issue };

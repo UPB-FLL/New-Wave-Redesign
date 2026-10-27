@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { AlertTriangle, Bot, CheckCircle2, Loader2, Mail, RefreshCw, RotateCcw, XCircle } from 'lucide-react';
-import { AGENT_STATUS_LABELS, decideIssue, loadAgent, runAgentNow, type AgentIssue, type AgentIssueStatus, type AgentView } from '../../lib/groundswellAgent';
+import { ADVISOR_LABELS, AGENT_STATUS_LABELS, decideIssue, loadAgent, runAgentNow, type AgentIssue, type AgentIssueStatus, type AgentView } from '../../lib/groundswellAgent';
 import { AdminEmptyState, AdminPageHeader } from './AdminUi';
 
 /**
@@ -52,7 +52,7 @@ function IssueCard({ issue, resolvers, busy, onDecide }: { issue: AgentIssue; re
             </p>
             <p>
               <strong>Proposed:</strong> {resolvers[p.resolver] ?? (p.resolver === 'none' ? 'Watch it' : 'A developer looks at it')}
-              <span className="gs-muted"> · confidence {p.confidence}, by {p.by === 'model' ? 'the model' : 'the rule'}</span>
+              <span className="gs-muted"> · confidence {p.confidence}, advised by {ADVISOR_LABELS[p.by]}</span>
             </p>
             <p className="text-xs gs-muted">{p.rationale}</p>
             {p.brief ? <pre className="whitespace-pre-wrap rounded-md p-3 text-xs" style={{ background: 'var(--gs-admin-canvas)' }}>{p.brief}</pre> : null}
@@ -179,7 +179,9 @@ export default function GroundswellAgent() {
               Reports go to <strong>{view.config.email}</strong>
               {view.config.email_ready ? '' : ' (RESEND_API_KEY is not set, so none can be sent)'}
             </span>
-            <span>{view.config.model_ready ? 'Proposals: the model, checked by the rules' : 'Proposals: the agent’s rules (OPENAI_API_KEY is not set)'}</span>
+            <span>
+              {view.config.advisor === 'claude' ? `Advisor: Claude (${view.config.model}), checked by the rules` : view.config.advisor === 'openai' ? `Advisor: OpenAI (${view.config.model}) standing in; set ANTHROPIC_API_KEY for Claude` : 'Advisor: the agent’s rules only (no ANTHROPIC_API_KEY or OPENAI_API_KEY)'}
+            </span>
             <span>{view.config.live_checks ? 'Live service checks on' : 'Live service checks off'}</span>
           </div>
           <p className="mt-2 gs-muted">
@@ -219,6 +221,30 @@ export default function GroundswellAgent() {
             );
           })
         : null}
+
+      {view?.consultations.length ? (
+        <section aria-label="Consultations" className="gs-card p-5 text-sm">
+          <h2 className="font-semibold">What Claude was asked, and how its advice turned out</h2>
+          <p className="text-xs gs-muted">Every ask is logged with the question, the answer, what the rules kept or rejected, and the outcome once known. The next ask carries this record back.</p>
+          <ul className="mt-3 space-y-2">
+            {view.consultations.map((c) => {
+              const outcomes = Object.values(c.outcomes);
+              const held = outcomes.filter((o) => o.result === 'worked').length;
+              const failed = outcomes.filter((o) => o.result !== 'worked').length;
+              return (
+                <li key={c.id} data-role="agent-consultation">
+                  <strong>{ADVISOR_LABELS[c.advisor]}</strong> ({c.model}) on {when(c.created_at)}: asked about {c.issues} issue{c.issues === 1 ? '' : 's'}, kept {c.kept}, rejected {c.rejected.length}
+                  {outcomes.length ? ` · outcomes: ${held} held, ${failed} did not` : ' · outcomes not known yet'}
+                  {c.latency_ms !== null ? ` · ${(c.latency_ms / 1000).toFixed(1)} s` : ''}
+                  {c.usage ? ` · ${c.usage.input_tokens + c.usage.output_tokens} tokens` : ''}
+                  {c.error ? <span style={{ color: 'var(--gs-bad)' }}> · {c.error}</span> : null}
+                  {c.rejected.filter(Boolean).length ? <span className="gs-muted"> · {c.rejected.filter(Boolean).join(' ')}</span> : null}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ) : null}
 
       {view?.lessons.length ? (
         <section aria-label="Lessons" className="gs-card p-5 text-sm">

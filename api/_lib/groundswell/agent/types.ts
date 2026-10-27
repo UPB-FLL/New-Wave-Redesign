@@ -56,8 +56,10 @@ export interface Proposal {
   confidence: Confidence;
   /** For `needs_developer`: what a developer should look at, in a few lines. */
   brief?: string;
-  /** How the proposal was made: the model, or the agent's own rule. */
-  by: 'model' | 'rule';
+  /** Who advised: Claude (the advisor), OpenAI (the stand-in), or the agent's own rule. */
+  by: 'claude' | 'openai' | 'rule';
+  /** The logged consultation this proposal came from (groundswell_agent_consultations). */
+  consultation_id?: string;
 }
 
 export interface Outcome {
@@ -119,6 +121,30 @@ export interface LessonSummary {
   failed: number;
   /** The newest note, so the model sees the last thing that happened. */
   last: string;
+}
+
+/**
+ * One ask of the advisor, logged whole: the question as sent, the answer as
+ * it came back, what the agent kept or rejected of it and why, and later the
+ * outcome of each advice that was applied. The next question carries this
+ * log back, so the advice adapts to what held.
+ */
+export interface ConsultationRow {
+  id: string;
+  advisor: 'claude' | 'openai';
+  model: string;
+  issue_ids: string[];
+  question: Record<string, unknown>;
+  answer_text: string;
+  answer: Record<string, unknown> | null;
+  /** Per issue id: kept, or rejected with the reason. */
+  kept: Record<string, { kept: boolean; resolver: string | null; reason: string | null }>;
+  /** Per issue id, filled on a later pass: how the advice turned out. */
+  outcomes: Record<string, { resolver: string; result: 'worked' | 'failed' | 'not_applied'; note: string; at: string }>;
+  usage: { input_tokens: number; output_tokens: number; cache_read_input_tokens: number | null } | null;
+  latency_ms: number | null;
+  error: string | null;
+  created_at: string;
 }
 
 export type Db = Pick<SupabaseClient, 'from'>;
