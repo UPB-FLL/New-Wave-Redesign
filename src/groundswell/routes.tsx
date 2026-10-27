@@ -14,6 +14,7 @@ const AdminPartners = lazy(() => import('./admin/GroundswellPartners'));
 const AdminCustomers = lazy(() => import('./admin/GroundswellCustomers'));
 const AdminCustomer = lazy(() => import('./admin/GroundswellCustomer'));
 const AdminAgent = lazy(() => import('./admin/GroundswellAgent'));
+const AdminAgentDashboard = lazy(() => import('./admin/GroundswellAgentDashboard'));
 
 /** If a chunk still fails to load (main.tsx already reloads once for stale deploys), offer a way forward. */
 class ChunkErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
@@ -92,6 +93,7 @@ export {
   AdminCustomers as GroundswellAdminCustomers,
   AdminCustomer as GroundswellAdminCustomer,
   AdminAgent as GroundswellAdminAgent,
+  AdminAgentDashboard as GroundswellAdminAgentDashboard,
 };
 
 /**

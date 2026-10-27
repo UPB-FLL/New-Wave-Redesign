@@ -6,7 +6,8 @@ import { RESOLVERS } from '../_lib/groundswell/agent/resolvers.js';
 import { agentModel, isClaudeConfigured } from '../_lib/groundswell/agent/consult.js';
 import { advisorFor } from '../_lib/groundswell/agent/propose.js';
 import { topicsFromEnv } from '../_lib/groundswell/agent/research.js';
-import { foldObservations, issueForToken, lastReport, NOT_READY, readConsultations, readIssue, readIssues, readLearnings, readLessons, summarizeLessons, updateIssue } from '../_lib/groundswell/agent/store.js';
+import { foldObservations, issueForToken, lastReport, NOT_READY, readConsultations, readIssue, readIssues, readLearnings, readLessons, readPlaybook, summarizeLessons, updateIssue } from '../_lib/groundswell/agent/store.js';
+import { finishTraining, isTrainingReady, PASS_JOB, readTrainingRuns, startTraining, TRAINING_JOB, TRAINING_NOT_READY } from '../_lib/groundswell/agent/train.js';
 import type { Observation, Severity } from '../_lib/groundswell/agent/types.js';
 import { FUNCTION_SECONDS, runWorkerInBackground } from '../_lib/groundswell/background.js';
 import { escapeHtml, methodGuard, queryParam, rateLimit, readJsonBody, clientIp, type ApiRequest, type ApiResponse } from '../_lib/http.js';
@@ -21,12 +22,41 @@ import { getSupabaseAdmin, isSupabaseConfigured } from '../_lib/supabaseAdmin.js
  *
  * Staff (x-admin-key for pg_cron, or a signed-in admin's Bearer token):
  *   GET                                     every issue, the lessons, the last report, the setup
+ *   GET  ?view=dashboard                    the dashboard: counts, the schedule, the training log, the playbook
  *   POST { action: 'report', force? }       run a pass now (answers at once; the pass runs on)
  *   POST { action: 'observe', observations: [{ source, kind, title, detail, severity?, subject?, fingerprint? }] }
  *                                           an outside system's observations (a log drain, a
  *                                           deploy check, a Claude session); source becomes external:<source>
  *   POST { action: 'approve' | 'dismiss', id }
+ *   POST { action: 'train' }                train on the fixes since the last training (pg_cron, daily;
+ *                                           answers 202 with the run's id, trains after answering)
  */
+
+const DAY_MS = 24 * 60 * 60_000;
+
+/** The dashboard's numbers, from the agent's own tables. */
+export function dashboardCounts(issues: { status: string; proposal: { resolver: string } | null; resolved_at: string | null }[], lessons: { result: string; created_at: string }[], learnings: { found_at: string }[], now: Date) {
+  const since30 = new Date(now.getTime() - 30 * DAY_MS).toISOString();
+  const since7 = new Date(now.getTime() - 7 * DAY_MS).toISOString();
+  const recent = lessons.filter((l) => l.created_at > since30);
+  const days: { date: string; held: number; failed: number }[] = [];
+  for (let d = 13; d >= 0; d -= 1) {
+    const date = new Date(now.getTime() - d * DAY_MS).toISOString().slice(0, 10);
+    const that = lessons.filter((l) => l.created_at.slice(0, 10) === date);
+    days.push({ date, held: that.filter((l) => l.result === 'worked').length, failed: that.filter((l) => l.result !== 'worked').length });
+  }
+  return {
+    approvals: issues.filter((i) => i.status === 'proposed' && i.proposal && i.proposal.resolver !== 'none').length,
+    developer: issues.filter((i) => i.status === 'needs_developer').length,
+    watching: issues.filter((i) => (i.status === 'open' && !i.proposal) || (i.status === 'proposed' && i.proposal?.resolver === 'none')).length,
+    resolved_30d: issues.filter((i) => i.status === 'resolved' && (i.resolved_at ?? '') > since30).length,
+    held_30d: recent.filter((l) => l.result === 'worked').length,
+    failed_30d: recent.filter((l) => l.result !== 'worked').length,
+    lessons_total: lessons.length,
+    learnings_7d: learnings.filter((l) => l.found_at > since7).length,
+    days,
+  };
+}
 
 const ID = /^[\w-]{1,64}$/;
 const SEVERITIES: readonly Severity[] = ['info', 'warning', 'error'];
@@ -109,6 +139,22 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   const by = `staff:${(await adminUser(req))?.email ?? 'cron'}`;
 
   try {
+    if (req.method === 'GET' && queryParam(req, 'view') === 'dashboard') {
+      const [issues, lessons, previous, learnings, runs, playbook] = await Promise.all([readIssues(db), readLessons(db, 2000), lastReport(db), readLearnings(db, { limit: 200 }), readTrainingRuns(db, 30), readPlaybook(db)]);
+      return res.status(200).json({
+        counts: dashboardCounts(issues, lessons, learnings, now),
+        schedule: [
+          { ...PASS_JOB, last_at: previous?.sent_at ?? null, last_status: previous?.status ?? null },
+          { ...TRAINING_JOB, last_at: runs[0]?.started_at ?? null, last_status: runs[0]?.status ?? null },
+        ],
+        last_report: previous,
+        training_runs: runs,
+        playbook: playbook.sort((a, b) => `${a.source}|${a.kind}`.localeCompare(`${b.source}|${b.kind}`)),
+        resolvers: RESOLVERS.map((r) => ({ key: r.key, label: r.label })),
+        training_ready: runs.length > 0 || (await isTrainingReady(db)),
+      });
+    }
+
     if (req.method === 'GET') {
       const [issues, lessons, previous, consultations, learnings] = await Promise.all([readIssues(db), readLessons(db, 100), lastReport(db), readConsultations(db, 10), readLearnings(db, { limit: 40 })]);
       const advisor = advisorFor({});
@@ -136,6 +182,24 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
           .catch((err) => console.error('Agent pass failed:', err))
       );
       return res.status(202).json({ accepted: true });
+    }
+
+    if (action === 'train') {
+      let start;
+      try {
+        start = await startTraining(db, { now, trigger: by === 'staff:cron' ? 'cron' : by });
+      } catch (err) {
+        if (err instanceof Error && err.message === 'NOT_READY') return res.status(503).json({ error: TRAINING_NOT_READY });
+        throw err;
+      }
+      if (!start.started) return res.status(409).json({ error: start.reason, run_id: start.run.id });
+      const run = start.run;
+      waitUntil(
+        finishTraining(db, run, { now })
+          .then((done) => console.log('Agent training:', JSON.stringify({ id: done.id, status: done.status, counts: done.counts, summary: done.summary })))
+          .catch((err) => console.error('Agent training failed:', err))
+      );
+      return res.status(202).json({ accepted: true, run_id: run.id, window: { start: run.window_start, end: run.window_end } });
     }
 
     if (action === 'observe') {
