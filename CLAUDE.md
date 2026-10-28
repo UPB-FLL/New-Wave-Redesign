@@ -2,6 +2,23 @@
 
 ## Recent Changes
 
+### Groundswell agent: research on six topics that help customers (2026-10-28)
+
+Owner's ask: the agent also scans public data for trends in marketing, SEO,
+metadata and social engineering that help GroundSwell's customers. Owner's
+choice: "social engineering" is the division's field, not security.
+
+- `DEFAULT_TOPICS` (`research.ts`) is six: AI agent marketing, social media
+  marketing, `marketing` (marketing and advertising), `seo` (SEO and AI
+  search), `metadata` (metadata and structured data), `social-engineering`
+  (brand, websites, integrations and data; its brief says the name is a
+  brand and not to research phishing or security). The prompt asks for what
+  the agency or its small-business customers could act on.
+- `researchOrder`: least recently researched first; `RESEARCH_CONCURRENCY`
+  (3) at once; one topic's thrown ask is skipped alone. Six asks a pass, 36
+  a day (was 12). The staff screen lists the topics as "A, B and C".
+- Tests: the research cases in `groundswell-agent.test.ts`.
+
 ### Groundswell agent: a dashboard and a daily training log (2026-10-27)
 
 Owner's ask: a dashboard on the admin side for the agent, and a daily job

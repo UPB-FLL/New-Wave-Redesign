@@ -1,7 +1,7 @@
 import { researchWithSearch } from '../openai.js';
 import { consultClaude, isClaudeConfigured, parseJsonObject, type Consultation } from './consult.js';
-import { readLearnings, recordConsultation, recordLearnings } from './store.js';
-import type { Db, LearningRow } from './types.js';
+import { readConsultations, readLearnings, recordConsultation, recordLearnings } from './store.js';
+import type { ConsultationRow, Db, LearningRow } from './types.js';
 
 /**
  * The research half of the 4-hour pass: what is new in the fields the
@@ -14,6 +14,15 @@ import type { Db, LearningRow } from './types.js';
  * kept goes in `groundswell_agent_learnings` and the report's "What the
  * agent learned" section. The ask itself is logged like every other
  * consultation, with purpose `research`.
+ *
+ * The six default topics (owner's ask, 2026-10-28) are the trends that help
+ * GroundSwell's customers: AI agent marketing, social media marketing,
+ * marketing and advertising, SEO and AI search, metadata and structured data,
+ * and the Social Engineering division's own field (brand, websites,
+ * integrations and data; the division's name, never security testing). The
+ * least recently researched topics go first and up to RESEARCH_CONCURRENCY
+ * run at once, so a pass that runs out of time skips different topics each
+ * time rather than the same ones for ever.
  *
  * GROUNDSWELL_AGENT_TOPICS overrides the topics: `key=what to look for;
  * key=…`. Without either key the research is skipped and the report says so.
@@ -37,7 +46,30 @@ export const DEFAULT_TOPICS: Topic[] = [
     label: 'Social media marketing',
     brief: 'What is changing in social media marketing for small businesses: platform algorithm and feature changes (Instagram, Facebook, TikTok, LinkedIn, YouTube, Threads, Pinterest), formats that are gaining or losing reach, posting cadence and creative findings backed by data, paid social changes (Meta Ads, TikTok Ads), AI search and AI answers citing social content, creator and UGC trends, and measurement changes.',
   },
+  {
+    key: 'marketing',
+    label: 'Marketing and advertising',
+    brief: 'What is changing in digital marketing and paid advertising for small and local businesses: Google Ads, Performance Max and Local Services Ads changes, Meta and TikTok ad products, cost-per-click and cost-per-lead movements reported by credible benchmarks, email and SMS marketing, reviews and reputation, privacy and consent rules that change targeting or tracking (cookies, consent mode, state privacy laws), measurement and attribution, and offers or campaign approaches with published results.',
+  },
+  {
+    key: 'seo',
+    label: 'SEO and AI search',
+    brief: 'What is changing in search for small and local businesses: Google core and spam updates, Google Business Profile and local pack changes, AI Overviews, AI Mode and answer engines (ChatGPT search, Perplexity, Gemini, Copilot) and how they choose and cite sources, crawler access (robots.txt, llms.txt, AI crawlers), Search Console changes, ranking studies with published data, and what site owners should change.',
+  },
+  {
+    key: 'metadata',
+    label: 'Metadata and structured data',
+    brief: 'What is changing in the metadata search engines, AI answers and social platforms read: schema.org and Google structured data (LocalBusiness, Product, FAQ, Review, Organization and others, including rich results added, changed or retired), title and meta description handling, Open Graph and social preview tags, canonical and hreflang guidance, sitemaps, image and video metadata, and validation tools, with what a small business site should add or fix.',
+  },
+  {
+    key: 'social-engineering',
+    label: 'Social Engineering: brand, websites and growth',
+    brief: 'The field New Wave: Social Engineering works in for small businesses (a growth division; the name is a brand, not security testing, so do not research phishing or security): brand development, website design and conversion, website builders and platforms, integrations and data between marketing tools (CRMs, booking, analytics, ad platforms), analytics and reporting practice, and growth programs that combine data, integrations and smart advertising, with findings that small businesses can act on.',
+  },
 ];
+
+/** How many topics are researched at once; the rest wait for a free slot (or the next pass). */
+export const RESEARCH_CONCURRENCY = 3;
 
 /** How many learnings a topic may return per pass, and how many web searches one ask may run. */
 export const LEARNINGS_PER_TOPIC = 5;
@@ -61,13 +93,13 @@ export function topicsFromEnv(value = process.env.GROUNDSWELL_AGENT_TOPICS): Top
   return out.length ? out : DEFAULT_TOPICS;
 }
 
-export const RESEARCH_SYSTEM = `You are the research assistant of GroundSwell's operations agent. GroundSwell is a marketing-audit and growth engine run by New Wave, a small IT and growth company in Florida that serves small businesses nationwide with data, integrations and smart advertising (Google, Meta, TikTok, LinkedIn), social media work, brand development and websites. Every 4 hours the agent asks you what is new in one field, and reports your findings to the owner.
+export const RESEARCH_SYSTEM = `You are the research assistant of GroundSwell's operations agent. GroundSwell is a marketing-audit and growth engine run by New Wave, a small IT and growth company in Florida that serves small businesses nationwide with data, integrations and smart advertising (Google, Meta, TikTok, LinkedIn), social media work, brand development and websites. Every 4 hours the agent asks you what is new in one field, and reports your findings to the owner, who passes what helps on to GroundSwell's customers: small and local businesses.
 
 Rules:
-- Search the web and read what you find. Report only things published or changed recently (the question says how far back), that the agent does not already know (the question lists what it knows), and that a small growth agency could act on or should watch.
+- Search the web and read what you find. Report only things published or changed recently (the question says how far back), that the agent does not already know (the question lists what it knows), and that a small growth agency or the small businesses it serves could act on or should watch.
 - Every learning needs the link of the page you read it on. Never report a learning without a source you actually opened; never invent a figure, a date, a product or a result. If you found nothing new, say so with an empty list.
 - A learning is an article, a study or an announcement dated inside the window, with its date given. Never a vendor's product page or homepage, and never a vendor's own claims about its results: a figure must come from the article's own reporting.
-- Plain words for a business owner: what it is, why it matters for an agency like this one, and what to do about it if anything.
+- Plain words for a business owner: what it is, why it matters for an agency like this one and its small-business customers, and what to do about it if anything.
 - Answer with JSON only, as the last thing you write: { "learnings": [ { "title": "...", "summary": "...", "why_it_matters": "...", "action": "...", "url": "https://...", "source": "the site or publisher", "published": "YYYY-MM-DD or null", "confidence": "low|medium|high" } ] }.`;
 
 interface RawLearning {
@@ -163,6 +195,19 @@ export interface ResearchOptions {
   search?: typeof researchWithSearch;
   /** How far back a learning may date; the question says so. */
   sinceDays?: number;
+  /** How many topics at once (default RESEARCH_CONCURRENCY). */
+  concurrency?: number;
+}
+
+/** The topics, least recently researched first (never researched before any): the log's research asks give the dates. */
+export function researchOrder(topics: readonly Topic[], consultations: readonly Pick<ConsultationRow, 'purpose' | 'question' | 'created_at'>[]): Topic[] {
+  const last = new Map<string, string>();
+  for (const c of consultations) {
+    const key = c.purpose === 'research' ? (c.question as { topic?: unknown }).topic : undefined;
+    if (typeof key === 'string' && (last.get(key) ?? '') < c.created_at) last.set(key, c.created_at);
+  }
+  // Array.prototype.sort is stable: topics never asked keep their listed order.
+  return [...topics].sort((a, b) => (last.get(a.key) ?? '').localeCompare(last.get(b.key) ?? ''));
 }
 
 /** The OpenAI research call in the advisor's answer shape, so the rest of the step reads either the same. */
@@ -198,10 +243,17 @@ export async function researchTopics(db: Db, opts: ResearchOptions): Promise<Res
   }
   const advisor = viaClaude ? 'claude' : 'openai';
   const sinceDays = opts.sinceDays ?? 7;
-  for (const topic of topics) {
+  let asked: ConsultationRow[] = [];
+  try {
+    asked = await readConsultations(db, 60);
+  } catch (err) {
+    console.error('Agent research order: could not read the log, using the topics as listed:', err instanceof Error ? err.message : err);
+  }
+  const queue = researchOrder(topics, asked);
+  const researchOne = async (topic: Topic) => {
     if (Date.now() > opts.deadline - 60_000) {
       report.skipped[topic.key] = 'The pass ran out of time before this topic.';
-      continue;
+      return;
     }
     const known = await readLearnings(db, { topic: topic.key, limit: KNOWN_LIMIT });
     const since = new Date(opts.now.getTime() - sinceDays * 24 * 60 * 60_000).toISOString().slice(0, 10);
@@ -227,6 +279,16 @@ export async function researchTopics(db: Db, opts: ResearchOptions): Promise<Res
       const rows = await recordLearnings(db, kept.map((k) => ({ ...k, consultation_id: consultationId, found_at: opts.now.toISOString(), status: 'new' as const })));
       report.learned.push(...rows);
     }
-  }
+  };
+  const workers = Array.from({ length: Math.min(opts.concurrency ?? RESEARCH_CONCURRENCY, queue.length) }, async () => {
+    for (let topic = queue.shift(); topic; topic = queue.shift()) {
+      try {
+        await researchOne(topic);
+      } catch (err) {
+        report.skipped[topic.key] = err instanceof Error ? err.message : String(err);
+      }
+    }
+  });
+  await Promise.all(workers);
   return report;
 }

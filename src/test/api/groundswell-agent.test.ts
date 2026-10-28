@@ -26,7 +26,7 @@ import { COLLECTORS, collectAll, errorKey, headwayCollector, runsCollector } fro
 import { allowedResolvers, checkProposal, priorAdvice, proposeAll, ruleProposal } from '../../../api/_lib/groundswell/agent/propose';
 import type { Consultation } from '../../../api/_lib/groundswell/agent/consult';
 import { approvalUrl, buildReport, decisionPage } from '../../../api/_lib/groundswell/agent/report';
-import { checkLearnings, normalizeUrl, researchTopics, topicsFromEnv, DEFAULT_TOPICS } from '../../../api/_lib/groundswell/agent/research';
+import { checkLearnings, normalizeUrl, researchOrder, researchTopics, topicsFromEnv, DEFAULT_TOPICS } from '../../../api/_lib/groundswell/agent/research';
 import { parseJsonObject } from '../../../api/_lib/groundswell/agent/consult';
 import { RESOLVERS, applicableResolvers, resolverByKey } from '../../../api/_lib/groundswell/agent/resolvers';
 import { foldObservations, issueForToken, readConsultations, readIssues, readLearnings, readLessons, summarizeLessons } from '../../../api/_lib/groundswell/agent/store';
@@ -486,8 +486,12 @@ describe('research', () => {
     expect(checkLearnings({ learnings: [learning({ title: 'Trailing slash homepage', url: 'https://example.test/', published: null })] }, 't', []).dropped).toEqual(['Trailing slash homepage: a homepage, not an article.']);
   });
 
-  it('the topics come from the environment, or the two defaults', () => {
-    expect(topicsFromEnv('').map((t) => t.key)).toEqual(['ai-agent-marketing', 'social-media-marketing']);
+  it('the topics come from the environment, or the six defaults', () => {
+    expect(topicsFromEnv('').map((t) => t.key)).toEqual(['ai-agent-marketing', 'social-media-marketing', 'marketing', 'seo', 'metadata', 'social-engineering']);
+    // The division's field, never security testing (the name is a brand).
+    const division = DEFAULT_TOPICS.find((t) => t.key === 'social-engineering')!;
+    expect(division.brief).toMatch(/brand development, website design/);
+    expect(division.brief).toContain('not security testing, so do not research phishing or security');
     expect(topicsFromEnv('Local SEO = what changed in Google Business Profile; email=newsletter tools').map((t) => [t.key, t.label])).toEqual([['local-seo', 'Local seo'], ['email', 'Email']]);
     expect(DEFAULT_TOPICS.every((t) => t.brief.length > 100)).toBe(true);
   });
@@ -497,7 +501,8 @@ describe('research', () => {
       const q = JSON.parse(question);
       return q.topic === 'Social media marketing' ? answered([learning(), learning({ title: 'A second finding', url: 'https://example.test/second' })]) : answered([]);
     });
-    const first = await researchTopics(fake(), { now: NOW, deadline: Infinity, consult });
+    const two = { topics: DEFAULT_TOPICS.slice(0, 2), concurrency: 1 };
+    const first = await researchTopics(fake(), { now: NOW, deadline: Infinity, consult, ...two });
     expect(consult).toHaveBeenCalledTimes(2);
     expect(consult.mock.calls[0][2]).toEqual({ webSearch: { maxUses: 8 } });
     const asked = JSON.parse(consult.mock.calls[1][1]);
@@ -511,7 +516,7 @@ describe('research', () => {
     expect(logs.find((c) => c.question.topic === 'social-media-marketing')).toMatchObject({ usage: { web_searches: 6 }, kept: { 'learning-1': { kept: true }, 'learning-2': { kept: true } } });
 
     // The next pass is told what is known, and the same finding is not kept twice.
-    const second = await researchTopics(fake(), { now: new Date(NOW.getTime() + 4 * 3_600_000), deadline: Infinity, consult });
+    const second = await researchTopics(fake(), { now: new Date(NOW.getTime() + 4 * 3_600_000), deadline: Infinity, consult, ...two });
     const askedAgain = JSON.parse(consult.mock.calls[3][1]);
     expect(askedAgain.already_known.map((k: { title: string }) => k.title)).toEqual(['Instagram now ranks original content above reposts', 'A second finding']);
     expect(second.learned).toEqual([]);
@@ -519,9 +524,41 @@ describe('research', () => {
     expect(await readLearnings(fake())).toHaveLength(2);
   });
 
+  it('researches every default topic, three at a time, least recently researched first; one topic’s failure skips only that topic', async () => {
+    let inFlight = 0;
+    let most = 0;
+    const order: string[] = [];
+    const consult = vi.fn().mockImplementation(async (_system: string, question: string) => {
+      const topic = JSON.parse(question).topic as string;
+      order.push(topic);
+      inFlight += 1;
+      most = Math.max(most, inFlight);
+      await new Promise((r) => setTimeout(r, 5));
+      inFlight -= 1;
+      return answered([]);
+    });
+    const first = await researchTopics(fake(), { now: NOW, deadline: Infinity, consult });
+    expect(consult).toHaveBeenCalledTimes(6);
+    expect(most).toBe(3);
+    expect(order.slice(0, 3)).toEqual(['AI agent marketing', 'Social media marketing', 'Marketing and advertising']);
+    expect(first.skipped).toEqual({});
+
+    // Researched before: the oldest first, the never-researched ahead of all.
+    const asked = (topic: string, at: string) => ({ purpose: 'research' as const, question: { topic }, created_at: at });
+    expect(researchOrder(DEFAULT_TOPICS, [asked('ai-agent-marketing', '2026-10-27T08:00:00Z'), asked('seo', '2026-10-27T04:00:00Z'), asked('metadata', '2026-10-27T08:00:00Z'), asked('marketing', '2026-10-27T04:00:00Z'), asked('social-media-marketing', '2026-10-26T04:00:00Z'), { purpose: 'proposals' as const, question: { topic: 'social-engineering' }, created_at: '2026-10-27T09:00:00Z' }]).map((t) => t.key)).toEqual(['social-engineering', 'social-media-marketing', 'marketing', 'seo', 'ai-agent-marketing', 'metadata']);
+
+    const flaky = vi.fn().mockImplementation(async (_system: string, question: string) => {
+      if (JSON.parse(question).topic === 'SEO and AI search') throw new Error('socket hang up');
+      return answered([]);
+    });
+    const report = await researchTopics(fake(), { now: NOW, deadline: Infinity, consult: flaky });
+    expect(flaky).toHaveBeenCalledTimes(6);
+    expect(report.skipped).toEqual({ seo: 'socket hang up' });
+  });
+
   it('without Claude the research is skipped and says so; a failed ask is logged and skipped too', async () => {
     const skipped = await researchTopics(fake(), { now: NOW, deadline: Infinity });
-    expect(skipped.skipped).toEqual({ 'ai-agent-marketing': 'Neither ANTHROPIC_API_KEY nor OPENAI_API_KEY is set, so nothing was researched.', 'social-media-marketing': 'Neither ANTHROPIC_API_KEY nor OPENAI_API_KEY is set, so nothing was researched.' });
+    expect(skipped.skipped).toEqual(Object.fromEntries(DEFAULT_TOPICS.map((t) => [t.key, 'Neither ANTHROPIC_API_KEY nor OPENAI_API_KEY is set, so nothing was researched.'])));
     const consult = vi.fn().mockResolvedValue(answered([], { parsed: null, text: '', error: 'Claude declined the question (cyber).' }));
     const failed = await researchTopics(fake(), { now: NOW, deadline: Infinity, consult, topics: [DEFAULT_TOPICS[0]] });
     expect(failed.skipped).toEqual({ 'ai-agent-marketing': 'Claude declined the question (cyber).' });

@@ -66,10 +66,20 @@ on (`runAgentPass` in `agent.ts`):
    one dated before the window (2 days of slack), and an undated one only
    when its link is a page, not a homepage (the first live pass kept a March
    paper and a vendor's homepage); up to 5 per topic. Kept learnings go in `groundswell_agent_learnings`; the ask is
-   logged with purpose `research`. Topics: `DEFAULT_TOPICS` (AI agent
-   marketing, social media marketing) or `GROUNDSWELL_AGENT_TOPICS`
-   (`key=what to look for; key=…`, up to six). Without either key the
-   research is skipped and the report says so.
+   logged with purpose `research`. Topics: `DEFAULT_TOPICS` or
+   `GROUNDSWELL_AGENT_TOPICS` (`key=what to look for; key=…`, up to six).
+   The six defaults (owner's ask, 2026-10-28: trends that help GroundSwell's
+   customers) are AI agent marketing, social media marketing, marketing and
+   advertising, SEO and AI search, metadata and structured data, and the
+   Social Engineering division's own field (brand, websites, integrations
+   and data; the brief says the name is a brand, not security testing).
+   `researchOrder` puts the least recently researched topics first (from the
+   research asks in the consultation log) and up to `RESEARCH_CONCURRENCY`
+   (3) run at once, so when a pass runs out of time it is a different topic
+   that waits each time; a topic whose ask throws is skipped alone, with the
+   reason. The prompt asks for what the agency or the small businesses it
+   serves could act on. Without either key the research is skipped and the
+   report says so.
 6. **Report** by email (Resend, from `GroundSwell agent <support@newwaveitfl.com>`,
    to `GROUNDSWELL_AGENT_EMAIL`, default josh@newwaveitfl.com) whenever
    anything is open or was resolved since the last report, and once a day
@@ -219,7 +229,8 @@ playbook. `GET /api/groundswell/agent?view=dashboard`.
 The staff screen's "What the agent learned" lists the newest 40 learnings
 with their links; the consultations list shows research asks with how many
 learnings each kept and how many web searches it ran. Each pass costs one
-Claude call per topic with up to 8 searches.
+Claude call per topic with up to 8 searches: six calls a pass with the
+default topics, 36 a day (12 before 2026-10-28).
 
 ## Tests
 
