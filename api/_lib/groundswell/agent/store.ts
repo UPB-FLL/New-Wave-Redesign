@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto';
-import type { CollectResult, ConsultationRow, Db, IssueRow, IssueStatus, LearningRow, LessonRow, LessonSummary, Observation, Outcome, Proposal } from './types.js';
+import type { CollectResult, ConsultationRow, Db, IssueRow, IssueStatus, LearningRow, LessonRow, LessonSummary, Observation, Outcome, PlaybookRow, Proposal } from './types.js';
 
 /**
  * The agent's memory (migration 20261104120000): one issue per fingerprint,
@@ -226,4 +226,16 @@ export async function recordReport(db: Db, row: Omit<ReportRow, 'id' | 'created_
 export async function lastReport(db: Db): Promise<ReportRow | null> {
   const rows = await list<ReportRow>(db.from('groundswell_agent_reports').select('id,sent_at,to_email,issue_ids,subject,summary,email_id,status,created_at').order('sent_at', { ascending: false }).limit(1));
   return rows[0] ?? null;
+}
+
+export const PLAYBOOK_COLUMNS = 'source,kind,preferred,ruled_out,stats,trained_at,training_run_id';
+
+/** The daily training's playbook (train.ts); empty before migration 20261106120000. */
+export async function readPlaybook(db: Db): Promise<PlaybookRow[]> {
+  const result = await db.from('groundswell_agent_playbook').select(PLAYBOOK_COLUMNS);
+  if (result.error) {
+    if (missingTable(result.error.message)) return [];
+    throw new Error(result.error.message);
+  }
+  return (result.data ?? []) as PlaybookRow[];
 }

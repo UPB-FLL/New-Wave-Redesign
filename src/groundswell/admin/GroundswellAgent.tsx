@@ -11,6 +11,8 @@ import { AdminEmptyState, AdminPageHeader } from './AdminUi';
  */
 
 const when = (iso: string | null | undefined) => (iso ? new Date(iso).toLocaleString() : '—');
+/** "A, B and C". */
+const listed = (items: string[]) => (items.length > 1 ? `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}` : items[0] ?? '');
 const GROUPS: { title: string; statuses: AgentIssueStatus[]; blurb: string }[] = [
   { title: 'Waiting for approval', statuses: ['proposed'], blurb: 'Each has a proposed resolution. Approve applies it now; Dismiss keeps it quiet for a week.' },
   { title: 'Needs a developer', statuses: ['needs_developer'], blurb: 'No automatic resolution applies; the brief says what to look at.' },
@@ -226,7 +228,7 @@ export default function GroundswellAgent() {
         <section aria-label="Learnings" className="gs-card p-5 text-sm">
           <h2 className="font-semibold">What the agent learned</h2>
           <p className="text-xs gs-muted">
-            Every pass asks the advisor, with web search, what is new in {view.topics.map((t) => t.label).join(' and ') || 'its topics'}; only what the agent did not already know is kept and reported, each with the page it was read on. A page that is neither the company’s own nor a known publication’s is marked unconfirmed, at low confidence.
+            Every pass asks the advisor, with web search, what is new in {listed(view.topics.map((t) => t.label)) || 'its topics'}; only what the agent did not already know is kept and reported, each with the page it was read on. A page that is neither the company’s own nor a known publication’s is marked unconfirmed, at low confidence.
           </p>
           {view.learnings.length ? (
             <ul className="mt-3 space-y-3">

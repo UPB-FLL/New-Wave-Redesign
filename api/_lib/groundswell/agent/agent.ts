@@ -4,7 +4,7 @@ import { proposeAll, type ProposeOptions } from './propose.js';
 import { AGENT_FROM, agentBaseUrl, agentEmailAddress, buildReport, type Report } from './report.js';
 import { researchTopics, type ResearchOptions } from './research.js';
 import { resolverByKey } from './resolvers.js';
-import { addLesson, attachConsultationOutcome, foldObservations, issueApprovalToken, lastReport, MUTE_DAYS, readConsultations, readIssues, readLessons, recordReport, saveProposal, summarizeLessons, updateIssue, type FoldReport } from './store.js';
+import { addLesson, attachConsultationOutcome, foldObservations, issueApprovalToken, lastReport, MUTE_DAYS, readConsultations, readIssues, readLessons, readPlaybook, recordReport, saveProposal, summarizeLessons, updateIssue, type FoldReport } from './store.js';
 import type { Collector, Db, IssueRow, Outcome, ResolveResult } from './types.js';
 
 /**
@@ -114,7 +114,7 @@ export async function runAgentPass(db: Db, opts: PassOptions): Promise<PassRepor
   const lessons = summarizeLessons(await readLessons(db));
   const all = await readIssues(db);
   const unproposed = all.filter((i) => i.status === 'open' && !i.proposal);
-  const proposals = await proposeAll(db, unproposed, lessons, { ...opts, consultations: opts.consultations ?? (unproposed.length ? await readConsultations(db) : []) });
+  const proposals = await proposeAll(db, unproposed, lessons, { ...opts, consultations: opts.consultations ?? (unproposed.length ? await readConsultations(db) : []), playbook: opts.playbook ?? (unproposed.length ? await readPlaybook(db) : []) });
   for (const issue of unproposed) {
     const p = proposals.get(issue.id);
     if (p) {

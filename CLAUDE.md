@@ -2,6 +2,54 @@
 
 ## Recent Changes
 
+### Groundswell agent: research on six topics that help customers (2026-10-28)
+
+Owner's ask: the agent also scans public data for trends in marketing, SEO,
+metadata and social engineering that help GroundSwell's customers. Owner's
+choice: "social engineering" is the division's field, not security.
+
+- `DEFAULT_TOPICS` (`research.ts`) is six: AI agent marketing, social media
+  marketing, `marketing` (marketing and advertising), `seo` (SEO and AI
+  search), `metadata` (metadata and structured data), `social-engineering`
+  (brand, websites, integrations and data; its brief says the name is a
+  brand and not to research phishing or security). The prompt asks for what
+  the agency or its small-business customers could act on.
+- `researchOrder`: least recently researched first; `RESEARCH_CONCURRENCY`
+  (3) at once; one topic's thrown ask is skipped alone. Six asks a pass, 36
+  a day (was 12). The staff screen lists the topics as "A, B and C".
+- Tests: the research cases in `groundswell-agent.test.ts`.
+
+### Groundswell agent: a dashboard and a daily training log (2026-10-27)
+
+Owner's ask: a dashboard on the admin side for the agent, and a daily job
+that trains it on the day's fixes, logging what it trains on and how. Full
+notes: "Daily training" in `docs/groundswell-agent.md`.
+
+- **Training** (`api/_lib/groundswell/agent/train.ts`): pg_cron
+  `groundswell-agent-training` (`17 4 * * *`, after the 04:00 pass) posts
+  `{"action":"train"}`; the route answers 202 and trains on (409 while one
+  runs, 503 before the migration). Four logged steps: check the unchecked
+  resolutions (`verifyResolutions`), gather the fixes and lessons since the
+  last run (first run 24 h, at most 7 days), recount every lesson, write the
+  playbook (`buildPlaybook`, `diffPlaybook`). One row per run in
+  `groundswell_agent_training_runs` (`trained_on`, `steps`, `changes`,
+  `counts`, `summary`, `error`). No model call.
+- **Playbook** (`groundswell_agent_playbook`): per kind, resolutions best
+  first by (held + 1) / (tries + 2) and the ruled out. `allowedResolvers`
+  offers them in that order (`playbookScore`; unchanged without an entry),
+  `ruleProposal` takes the first, and the advisor's question carries
+  `playbook`. Ruling out stays live from the lessons.
+- **Dashboard** `/groundswell/admin/agent/dashboard`
+  (`GroundswellAgentDashboard.tsx`, nav "Agent dashboard"; the "Agent" entry
+  now matches its own path only): counts, both jobs with their last run, the
+  14-day held chart, the training log, the playbook.
+  `GET /api/groundswell/agent?view=dashboard`.
+- **Migration** `20261106120000` (two tables, RLS on, no policies; the job).
+  Additive. Applied to production on 2026-10-27 (`groundswell_agent_training`);
+  the job posts `train`, which production answers 400 until this PR deploys.
+- **Tests**: `src/test/api/groundswell-agent-training.test.ts`,
+  `GroundswellAgentDashboard.test.tsx`.
+
 ### Groundswell: every PDF in the NWSE house frame (2026-10-27)
 
 Owner's ask: the engine's reports should look like the division's hand-made

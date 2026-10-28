@@ -82,10 +82,20 @@ on (`runAgentPass` in `agent.ts`):
    reason ("<title>: already known."). The pass's `research_dropped` (in
    the route's "Agent pass" log line) lists the drops by topic, and an
    answer without a `learnings` list is logged as an error, not as nothing
-   new. Topics: `DEFAULT_TOPICS` (AI agent
-   marketing, social media marketing) or `GROUNDSWELL_AGENT_TOPICS`
-   (`key=what to look for; key=…`, up to six). Without either key the
-   research is skipped and the report says so.
+   new. Topics: `DEFAULT_TOPICS` or
+   `GROUNDSWELL_AGENT_TOPICS` (`key=what to look for; key=…`, up to six).
+   The six defaults (owner's ask, 2026-10-28: trends that help GroundSwell's
+   customers) are AI agent marketing, social media marketing, marketing and
+   advertising, SEO and AI search, metadata and structured data, and the
+   Social Engineering division's own field (brand, websites, integrations
+   and data; the brief says the name is a brand, not security testing).
+   `researchOrder` puts the least recently researched topics first (from the
+   research asks in the consultation log) and up to `RESEARCH_CONCURRENCY`
+   (3) run at once, so when a pass runs out of time it is a different topic
+   that waits each time; a topic whose ask throws is skipped alone, with the
+   reason. The prompt asks for what the agency or the small businesses it
+   serves could act on. Without either key the research is skipped and the
+   report says so.
 6. **Report** by email (Resend, from `GroundSwell agent <support@newwaveitfl.com>`,
    to `GROUNDSWELL_AGENT_EMAIL`, default josh@newwaveitfl.com) whenever
    anything is open or was resolved since the last report, and once a day
@@ -166,11 +176,61 @@ Three records, all the agent's own:
 - The issues table itself: occurrences, recurrences, the last outcome, so a
   proposal is always made against what happened to that issue before.
 
+## Daily training (2026-10-27)
+
+The 4-hour pass already records a lesson whenever it checks a resolution.
+The daily training turns those into the order the agent proposes in, and
+logs what it trained on and how. Code: `api/_lib/groundswell/agent/train.ts`;
+migration `20261106120000`; dashboard `/groundswell/admin/agent/dashboard`.
+
+pg_cron (`groundswell-agent-training`, `17 4 * * *`: 04:17 UTC, after the
+04:00 pass) posts `{"action":"train"}` with the admin key; the route opens the
+run's log row, answers 202 with its id and window, and trains after the
+response ("Train now" on the dashboard does the same; a second start while
+one is running answers 409). Each run, one row in
+`groundswell_agent_training_runs`:
+
+1. **check**: `verifyResolutions` on every applied resolution not yet checked
+   (the pass's own step 1), so the day's fixes have their verdict.
+2. **gather**: the window is from where the last finished run stopped (the
+   first time, the last 24 hours; never more than 7 days). It lists every fix
+   in it (approved and applied, cleared on its own, dismissed, with whether
+   it held) and every lesson recorded in it, in `trained_on`.
+3. **recount**: `summarizeLessons` over every lesson held (up to 2,000).
+4. **playbook**: per (source, kind) in `groundswell_agent_playbook`: each
+   resolver's held / did not hold, `preferred` (best first by
+   (held + 1) / (tries + 2), so one never tried sits at 0.5), `ruled_out`
+   (failed `RULED_OUT_AFTER` times, never held). `diffPlaybook` names every
+   change against the last playbook (`new_kind`, `first_choice`, `ruled_out`,
+   `restored`, `counts`) in `changes`; only rows that changed are written.
+
+Every step is logged with what it did in words and how long it took (`steps`),
+with `counts`, a `summary`, and on failure the `error` and the steps reached.
+A run with nothing new is logged too.
+
+What it changes: `allowedResolvers` offers the allowed resolutions in the
+playbook's order (stable registry order without an entry, so nothing moves
+before the migration), so the rule proposes the training's first choice, and
+the advisor's question carries `playbook` for the kinds asked about. Ruling
+out stays live from the lessons between trainings. No model is called: the
+training is the agent's own count of what held. (Considered: a Claude call
+that writes guidance per kind; left out, as each ask already carries the
+lessons and the record of its own earlier advice.)
+
+The dashboard: open issues, the held rate over 30 days, learnings in 7 days,
+both jobs with their schedule and last run, a 14-day chart of fixes checked
+(held / did not hold, with a table view), the training log (summary, window,
+how it trained step by step, what changed, what it trained on), and the
+playbook. `GET /api/groundswell/agent?view=dashboard`.
+
 ## Setup
 
 - Apply migrations `20261104120000` (the four tables, indexes, the cron
   job; the Vault secret `blog_admin_api_key` is the one the other jobs use)
-  and `20261105120000` (the learnings table, the consultations' `purpose`).
+  and `20261105120000` (the learnings table, the consultations' `purpose`),
+  and `20261106120000` (the training log, the playbook, the daily job).
+  Rollback for the last: `SELECT cron.unschedule('groundswell-agent-training');`
+  then drop the two tables.
 - Vercel: `ANTHROPIC_API_KEY` (the advisor; new), `RESEND_API_KEY` (already
   set for the alerts), optional `GROUNDSWELL_AGENT_MODEL` (default
   `claude-opus-5-5`), `GROUNDSWELL_AGENT_EFFORT` (default `high`),
@@ -189,7 +249,8 @@ check is shown capped as it would be now; the table keeps what was
 stored); the consultations list shows research asks with how many
 learnings each kept, how many it dropped and why, and how many web
 searches it ran. Each pass costs one Claude call per topic with up to 8
-searches. A site missing from `COMPANY_SITES` or `PUBLICATIONS` reads as
+searches: six calls a pass with the default topics, 36 a day (12 before
+2026-10-28). A site missing from `COMPANY_SITES` or `PUBLICATIONS` reads as
 unconfirmed, which costs a label, never a learning: add one there when it
 earns it.
 
