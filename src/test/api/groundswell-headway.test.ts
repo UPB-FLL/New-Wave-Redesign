@@ -230,6 +230,21 @@ describe('the planner', () => {
     expect(summary).toMatch(/^\d+ actions from the competitor plan delivered Oct 13, 2026: \d+ through the linked accounts, \d+ for the team\./);
   });
 
+  it('publishes the posts step’s own 4:5 image for a post when the run made one, and says when it is AI-generated', () => {
+    const outputs = allOutputs();
+    const week = outputs.plans.social_plan.week;
+    const made = (i: number, origin: 'own' | 'ai_generated', size: 'feed' | 'vertical' = 'feed') => ({ ...week[i], n: i + 1, note: null, image: { path: `${R2}/creative/HA_post_0${i + 1}.jpg`, name: `HA_post_0${i + 1}.jpg`, size, origin, from: null, prompt: null, provider: null, model: null } });
+    const posts = { generated_at: T(13), posts: [made(0, 'ai_generated'), made(1, 'own', 'vertical'), made(2, 'own'), { ...week[3], n: 4, note: null, image: null }], reddit: [], ai: { enabled: true, asked: 1, made: 1, errors: [] }, export: null, dropped: [], note: '' };
+    const { drafts } = planActions({ ...input(['social-media']), outputs: { ...outputs, posts } });
+    const publish = drafts.filter((d) => d.tool === 'instagram.publish');
+    // Monday uses its AI-generated post image, flagged; Thursday has none from the step and keeps the rotation of the business's own JPEGs.
+    expect(publish.map((d) => [d.payload.image_path, d.payload.ai_generated ?? false])).toEqual([
+      [`${R2}/creative/HA_post_01.jpg`, true],
+      [`${R2}/image/c.jpg`, false],
+    ]);
+    expect(publish[0].detail).toContain('HA_post_01.jpg, an AI-generated image');
+  });
+
   it('plans only the services switched on, and says so when none is', () => {
     const social = planActions(input(['social-media']));
     expect(new Set(social.drafts.map((d) => d.service))).toEqual(new Set(['social-media']));

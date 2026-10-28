@@ -57,6 +57,8 @@ const FILES = [
   { kind: 'carousel', name: 'slide-1.png', path: 'r2/carousel/slide-1.png', content_type: 'image/png', bytes: 9, url: 'https://s.example/slide-1' },
   { kind: 'carousel', name: 'caption.txt', path: 'r2/carousel/caption.txt', content_type: 'text/plain', bytes: 9, url: 'https://s.example/caption' },
   { kind: 'image', name: 'ig-1.jpg', path: 'r2/image/ig-1.jpg', content_type: 'image/jpeg', bytes: 9, url: 'https://s.example/ig-1' },
+  { kind: 'export', name: 'Harbor Auto - Posts (2026-10-27).zip', path: 'r2/export/posts.zip', content_type: 'application/zip', bytes: 9, url: 'https://s.example/posts' },
+  { kind: 'creative', name: 'HA_post_02_tuesday_instagram_ai.jpg', path: 'r2/creative/post-2.jpg', content_type: 'image/jpeg', bytes: 9, meta: { post: 2, platform: 'instagram', ai_generated: true }, url: 'https://s.example/post-2' },
 ];
 
 beforeEach(() => {
@@ -98,6 +100,10 @@ describe('customer workspace', () => {
     expect(await screen.findByRole('link', { name: /Meta bulk import \(Excel\)/ })).toHaveAttribute('href', 'https://s.example/meta');
     expect(screen.getByRole('link', { name: /Google Ads Editor import \(CSV\)/ })).toHaveAttribute('href', 'https://s.example/google');
     expect(within(screen.getByRole('list', { name: 'Ad images' })).getByRole('img')).toHaveAttribute('src', 'https://s.example/ad-1');
+    // Post images apart from the ads, with a word on the AI-generated ones.
+    expect(screen.getByRole('link', { name: /The week’s posts, images and captions \(zip\)/ })).toHaveAttribute('href', 'https://s.example/posts');
+    expect(within(screen.getByRole('list', { name: 'Post images' })).getByRole('img')).toHaveAttribute('src', 'https://s.example/post-2');
+    expect(screen.getByText(/Images marked “AI-generated image” were made by an image model/)).toBeInTheDocument();
     expect(within(screen.getByRole('list', { name: 'Carousel slides' })).getAllByRole('img')).toHaveLength(1);
     expect(screen.getByRole('link', { name: 'Caption' })).toHaveAttribute('href', 'https://s.example/caption');
     expect(within(screen.getByRole('list', { name: 'Photos from the business’s Instagram' })).getByRole('img')).toHaveAttribute('src', 'https://s.example/ig-1');

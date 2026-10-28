@@ -257,7 +257,7 @@ as a `publish` step that starts from an explicit approval in the workspace,
 never from a phase finishing on its own. Image generation
 (`GEMINI_GENERATE_IMAGE`, the fal.ai tools) is an owner's choice to make
 first: a made-up picture of a business's products is a trust risk the
-reports have avoided so far.
+reports have avoided so far. (Made on 2026-10-27: section 7.)
 
 ## 4. Order of work
 
@@ -347,3 +347,69 @@ SerpApi's shape (`organic_results`, `related_questions`, `related_searches`,
 Next on the live side: Run again on the workspace card; the held run is
 unchanged. Then the remaining steps in section 4 (reviews, community,
 AI visibility, Facebook in depth, publishing).
+
+## 7. Shipped on 2026-10-27: the sources, the plan, ads for every set, posts
+
+Owner's ask: find why Uncommon Path shows no Instagram data; pull Facebook,
+Yelp, Reddit (with its tags) and every AI answer; build them into the plan;
+generate ads for every scraped data set and posts with the scraped images.
+Owner's choices the same day: ads and posts use **the business's own images
+only** (its website and its own Instagram and Facebook; never Yelp's or
+Google's photos, never a competitor's); **new AI images are allowed**,
+labelled as AI-generated wherever they are used; ads on **Meta, Google
+Search, Reddit and TikTok**.
+
+- **Instagram, Uncommon Path**: the profile is shown only to signed-in
+  adults (the brewery's 21+ setting), and so is its Facebook Page; no
+  logged-out reader sees either. The signed-in reader shipped on main the
+  same day (#172: the IntroPix actor on Apify) reads the Instagram profile;
+  the linked account (on the staff customer page, "Became a client", link
+  Instagram and Meta Ads, then Run again) stays the way to the account's own
+  insights and the gated Facebook Page, and the social step reads it first. The Oct 27 run's separate timeout on the social step is fixed on
+  main (the deadline-capped reads and the `needsMs` hand-back).
+- **Yelp** (step `reviews`, Current Maps): Composio's Yelp toolkit answers on
+  the instant account (no key of our own): `YELP_SEARCH_BY_PHONE`, then
+  `YELP_SEARCH_BUSINESSES` by name and city, `YELP_GET_BUSINESS_DETAILS`,
+  `YELP_GET_BUSINESS_REVIEWS` (three excerpts) and, best-effort,
+  `YELP_GET_REVIEW_HIGHLIGHTS` (Yelp's premium plan); up to three
+  competitors by name. Photos are counted, never kept.
+- **Reddit** (step `community`, Current Social): ScrapeCreators' Reddit
+  search (posts and comments naming the business, the category's questions
+  in its city, two competitors). Reddit gives no flair through this reader,
+  so the "tags" are the communities and the recurring words. Threads about
+  politics, boycotts or places to avoid are left out and never built on.
+- **AI answers** (step `ai_answers`, Current Search): Google AI Mode through
+  SerpApi, three prompts (the category in the town, the top search, the
+  brand); who is named, in what order, and the sources it cites. Brand Radar
+  stays in `ai_search`.
+- **The plan** (step `presence`, after `plans`): reviews, Reddit and AI
+  actions in code (`packages/groundswell/src/presence.ts`); the write-up,
+  the plans step and the full audit's "Reputation and community" section
+  read all three.
+- **Ads for every data set** (`adsets`, `packages/groundswell/src/channels.ts`):
+  every ad names the data set it was written from and its evidence; Reddit
+  (communities and questions) and TikTok (the plan's paying rows) sets
+  beside Meta and Google; for alcohol both are the plan for the platform's
+  sales team. A Meta proof set states a rating of at least 4.5 on at least
+  50 reviews with its platform named, never review text. Delivery adds the
+  TikTok images at 1080 × 1920, a "Reddit and TikTok Ad Plan" workbook and
+  a card per set in the PDF.
+- **Posts** (step `posts`, phase 2): the plan's week with images at each
+  platform's shape, own photos first, then up to three AI scenes through
+  fal (Composio's `FAL_AI_RUN_MODEL_SYNC`, else `fal.run` with `FAL_KEY`),
+  tagged "AI-generated image"; up to three Reddit replies as the business;
+  one zip; Headway publishes the post images.
+- **Facebook in depth** (smaller than 2.1 planned): the first three
+  competitors' Pages are read with one page of posts (their words and
+  figures; never their images), and each Page carries its engagement
+  (posts read, average reactions and comments, posts in 30 days), shown in
+  the audit's Facebook table and given to the write-up.
+- **Considered and left out**: Claid. Its smart frame only pads with a
+  colour (the renderer does that itself, blurring the photo behind it);
+  its generative resize and polish tools are restricted in the session that
+  built this, so their payloads could not be read and were not guessed.
+
+Not verified live: no run has used any of this yet. The fal path has never
+generated an image from this code (each call is billed by fal;
+`GROUNDSWELL_AI_IMAGES=off` stops it), and the Reddit and TikTok imports
+follow the platforms' published fields, not a live import.

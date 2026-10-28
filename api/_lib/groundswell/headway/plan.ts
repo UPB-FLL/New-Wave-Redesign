@@ -5,6 +5,7 @@ import { isAdsetsOutput } from '../adsets.js';
 import { isBenchmarkOutput } from '../benchmark.js';
 import { isCreativeOutput, type CreativeImage } from '../creative.js';
 import { isPlansOutput } from '../plans.js';
+import { isPostsOutput } from '../posts.js';
 import type { SiteScan } from '../currents/site.js';
 import { missingAmong } from './checklist.js';
 import type { ActionDraft } from './store.js';
@@ -79,6 +80,7 @@ export function planActions(input: PlanInput): PlanResult {
   // Instagram takes JPEG only; Meta's creatives take JPEG or PNG.
   const jpegs = images.filter((i) => i.content_type === 'image/jpeg');
   const plans = isPlansOutput(outputs.plans) ? outputs.plans : null;
+  const made = isPostsOutput(outputs.posts) ? outputs.posts.posts : [];
   const adsets = isAdsetsOutput(outputs.adsets) ? outputs.adsets : null;
 
   // Social media: the week's posts. Instagram image posts go out through the
@@ -86,7 +88,9 @@ export function planActions(input: PlanInput): PlanResult {
   if (on('social-media') && plans) {
     plans.social_plan.week.forEach((post, i) => {
       const when = nextDay(post.day, now);
-      const image = jpegs.length ? jpegs[i % jpegs.length] : null;
+      // The posts step's image for this post (printed at the feed's 4:5) first, else the business's own photos in turn.
+      const ready = made[i] && made[i].day === post.day && made[i].topic === post.topic && made[i].image?.size === 'feed' ? made[i].image : null;
+      const image = ready ? { path: ready.path, name: ready.origin === 'ai_generated' ? `${ready.name}, an AI-generated image` : ready.name } : jpegs.length ? jpegs[i % jpegs.length] : null;
       const text = captionWithTags(post);
       const detail = [`${post.day} · ${PLATFORM_LABELS[post.platform]} ${post.format}`, `Topic: ${post.topic}`, `Hook: ${post.hook}`, '', text, '', `Call to action: ${post.cta}`, `Visual: ${post.visual}${image ? ` (using ${image.name})` : ''}`].join('\n');
       const instagramImage = post.platform === 'instagram' && (post.format === 'post' || post.format === 'carousel') && image;
@@ -97,7 +101,7 @@ export function planActions(input: PlanInput): PlanResult {
           tool: 'instagram.publish',
           title: `Publish ${post.day}’s Instagram post: ${post.topic}`,
           detail,
-          payload: { day: post.day, caption: text, image_path: image.path, image_name: image.name, alt_text: post.visual.slice(0, 900) },
+          payload: { day: post.day, caption: text, image_path: image.path, image_name: image.name, alt_text: post.visual.slice(0, 900), ...(ready?.origin === 'ai_generated' ? { ai_generated: true } : {}) },
           blocked_by: blocked(['link:instagram']),
           scheduled_for: when,
         });

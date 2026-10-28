@@ -10,7 +10,7 @@ vi.mock('../../../api/_lib/groundswell/composio', async (original) => ({
 vi.mock('../../../api/_lib/supabaseAdmin', () => ({ getSupabaseAdmin: () => ({}), isSupabaseConfigured: () => true }));
 vi.mock('../../../api/_lib/groundswell/currents/linked', async (original) => ({ ...(await original<object>()), loadLinkedAccounts: mocks.loadLinkedAccounts }));
 
-import { facebookPageUrl, GATED_ACTOR, gatedPosts, gatedProfile, LINKED_MEDIA_FIELDS, mediaFromGraph, PRIVATE_NOTE, refusal, RESTRICTED_NOTE, runSocial, summarizeFacebook, summarizeInstagram, timeBudget } from '../../../api/_lib/groundswell/currents/social';
+import { facebookEngagement, facebookPageUrl, GATED_ACTOR, gatedPosts, gatedProfile, LINKED_MEDIA_FIELDS, mediaFromGraph, PRIVATE_NOTE, refusal, RESTRICTED_NOTE, runSocial, summarizeFacebook, summarizeInstagram, timeBudget } from '../../../api/_lib/groundswell/currents/social';
 
 /** The Social Current when Instagram turns the scraper away: one more try, then the gap is recorded, never a failed audit. */
 
@@ -197,7 +197,7 @@ describe('Social Current: Facebook Pages', () => {
   const fbProfile = { success: true, id: '100088017857524', name: 'Harbor Auto Care', isPrivate: false, url: 'https://www.facebook.com/harborauto', followerCount: 1900, likeCount: 1750, category: 'Auto Repair Shop', pageIntro: 'Family-run since the start.', rating: 4.8, ratingCount: 120, adLibrary: { pageId: '100063669491743', adStatus: 'This Page is currently running ads' } };
   const fbPosts = { success: true, posts: [{ id: '1', text: 'New lift installed.', url: 'https://www.facebook.com/harborauto/posts/1', permalink: 'https://www.facebook.com/harborauto/posts/1', reactionCount: 44, commentCount: 5, videoViewCount: null, publishTime: 1792512391, videoDetails: { sdUrl: null, hdUrl: null, thumbnailUrl: 'https://scontent.example/p1.jpg' } }] };
 
-  it('reads the business\'s Page (gated Pages included) with one page of posts, and each competitor\'s Page without posts', async () => {
+  it('reads the business\'s Page (gated Pages included) and the first competitors\' with one page of posts, keeping a competitor\'s words and figures but never its images', async () => {
     mocks.executeTool.mockImplementation(async (slug: string, args: Record<string, unknown>) => {
       if (slug === 'SCRAPECREATORS_GET_FACEBOOK_PROFILE') return args.url === 'https://www.facebook.com/harborauto' ? fbProfile : { name: 'Bayside Auto', followerCount: 300 };
       if (slug === 'SCRAPECREATORS_LIST_FACEBOOK_PROFILE_POSTS') return fbPosts;
@@ -206,13 +206,25 @@ describe('Social Current: Facebook Pages', () => {
     const out = await runSocial({ ...ctx, outputs: { site } }, 0);
     expect(out.facebook).toMatchObject({ url: 'https://www.facebook.com/harborauto', page_id: '100063669491743', page_name: 'Harbor Auto Care', exists: true, followers: 1900, likes: 1750, category: 'Auto Repair Shop', intro: 'Family-run since the start.', rating: 4.8, rating_count: 120, ad_library_status: 'This Page is currently running ads', restricted: false, error: null });
     expect(out.facebook?.posts).toEqual([{ url: 'https://www.facebook.com/harborauto/posts/1', text: 'New lift installed.', posted_at: '2026-10-20T16:06:31.000Z', reactions: 44, comments: 5, shares: null, video_views: null, image_url: 'https://scontent.example/p1.jpg' }]);
-    expect(out.facebook_competitors).toEqual([expect.objectContaining({ name: 'Bayside', url: 'https://www.facebook.com/baysideauto', page_name: 'Bayside Auto', followers: 300, posts: [] })]);
+    expect(out.facebook?.engagement).toMatchObject({ posts_read: 1, avg_reactions: 44, avg_comments: 5 });
+    expect(out.facebook_competitors).toEqual([
+      expect.objectContaining({ name: 'Bayside', url: 'https://www.facebook.com/baysideauto', page_name: 'Bayside Auto', followers: 300, posts: [expect.objectContaining({ text: 'New lift installed.', reactions: 44, image_url: null })], engagement: expect.objectContaining({ posts_read: 1, avg_reactions: 44, avg_comments: 5 }) }),
+    ]);
     const fb = mocks.executeTool.mock.calls.filter(([slug]) => slug.startsWith('SCRAPECREATORS_') && slug.includes('FACEBOOK'));
     expect(fb.map(([slug, a]) => [slug, (a as { url: string }).url, (a as { include_gated_profile?: boolean }).include_gated_profile])).toEqual([
       ['SCRAPECREATORS_GET_FACEBOOK_PROFILE', 'https://www.facebook.com/harborauto', true],
       ['SCRAPECREATORS_GET_FACEBOOK_PROFILE', 'https://www.facebook.com/baysideauto', true],
       ['SCRAPECREATORS_LIST_FACEBOOK_PROFILE_POSTS', 'https://www.facebook.com/harborauto', undefined],
+      ['SCRAPECREATORS_LIST_FACEBOOK_PROFILE_POSTS', 'https://www.facebook.com/baysideauto', undefined],
     ]);
+  });
+
+  it('sums a Page\'s engagement over the posts read, with nulls where the posts carry no figure', () => {
+    const now = Date.parse('2026-10-27T12:00:00Z');
+    const post = (at: string | null, reactions: number | null, comments: number | null) => ({ url: null, text: null, posted_at: at, reactions, comments, shares: null, video_views: null, image_url: null });
+    expect(facebookEngagement([post('2026-10-20T10:00:00Z', 40, 4), post('2026-09-01T10:00:00Z', 21, null), post(null, null, 2)], now)).toEqual({ posts_read: 3, avg_reactions: 30.5, avg_comments: 3, posts_last_30_days: 1 });
+    expect(facebookEngagement([post(null, null, null)], now)).toEqual({ posts_read: 1, avg_reactions: null, avg_comments: null, posts_last_30_days: null });
+    expect(facebookEngagement([], now)).toBeNull();
   });
 
   it('a Page that cannot be read is recorded, never a failed step; no Page linked means null', async () => {

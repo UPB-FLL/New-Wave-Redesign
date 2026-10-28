@@ -5,27 +5,30 @@ import { readAsset, storeAsset, type AssetRow } from './assetStore.js';
 import { brandFrom } from './brand.js';
 import { withBrowser } from './browser.js';
 import { isCreativeOutput } from './creative.js';
-import { adImageHtml, dataUri, renderImage, slideHtml } from './creativeRender.js';
+import { adImageHtml, dataUri, renderImage, slideHtml, type ImageSize } from './creativeRender.js';
 import type { SiteScan } from './currents/site.js';
 import { fileName, own, printAndStore, type Stored } from './delivery.js';
 import { buildXlsx, CSV_TYPE, toCsv, XLSX_TYPE, ZIP_TYPE, zipFiles } from './files.js';
-import { buildAdsetsHtml, forecastRows, googleEditorRows, metaBulkRows, metaSetupRows, type CreativeFiles } from './reportsAdsets.js';
+import { buildAdsetsHtml, channelAdRows, channelForecastRows, channelSetupRows, forecastRows, googleEditorRows, metaBulkRows, metaSetupRows, type CreativeFiles } from './reportsAdsets.js';
 import { formatDate, preparerFor } from './reports.js';
 import { PermanentStepError, type StepContext } from './types.js';
 
 /**
  * Delivery of the ad sets (phases 2 and 3):
- * - deliver_creatives prints each Meta ad's image (the business's own photo
- *   with the ad's words, 1080 × 1350 JPEG) and the engagement carousel (PNG
- *   slides and caption.txt), and stores them with the run;
+ * - deliver_creatives prints each ad's image (the business's own photo with
+ *   the ad's words: 1080 × 1350 JPEG for Meta and Reddit, 1080 × 1920 for
+ *   TikTok) and the engagement carousel (PNG slides and caption.txt), and
+ *   stores them with the run;
  * - deliver_adsets builds the import files (Meta's bulk sheet with the ad-set
- *   settings and the forecast, Google Ads Editor's CSV, the images and the
- *   carousel as zips) and prints the ad-sets PDF.
+ *   settings and the forecast, Google Ads Editor's CSV, the Reddit and TikTok
+ *   plan, the images and the carousel as zips) and prints the ad-sets PDF.
  */
 
+type ImagePlatform = 'meta' | 'reddit' | 'tiktok';
+
 export interface CreativesOutput {
-  /** The ad image each Meta ad carries, by ad name. */
-  ads: Record<string, { path: string; name: string }>;
+  /** The ad image each ad carries, by ad name; platform and size absent on runs before 2026-10-27 (Meta, feed). */
+  ads: Record<string, { path: string; name: string; platform?: ImagePlatform; size?: ImageSize }>;
   carousel: { slides: { path: string; name: string }[]; caption: { path: string; name: string } | null };
 }
 
@@ -66,7 +69,15 @@ export async function runDeliverCreatives(ctx: StepContext): Promise<CreativesOu
         const html = adImageHtml(brand, { headline: ad.image_headline || ad.headline, handle, photo: await photo(ad.image?.path) });
         const name = `${out.code}_${ad.name}.jpg`;
         const row = await storeAsset(db, { audit_id: ctx.audit.id, kind: 'creative', name, content_type: 'image/jpeg', meta: { ad: ad.name, set: set.name, from: ad.image?.path ?? null } }, await renderImage(browser, html, 'jpeg'));
-        ads[ad.name] = { path: row.path, name };
+        ads[ad.name] = { path: row.path, name, platform: 'meta', size: 'feed' };
+      }
+    }
+    for (const set of [...(out.sets.reddit ?? []), ...(out.sets.tiktok ?? [])]) {
+      for (const ad of set.ads) {
+        const html = adImageHtml(brand, { headline: ad.image_headline, handle, photo: await photo(ad.image?.path), size: ad.format });
+        const name = `${out.code}_${ad.name}.jpg`;
+        const row = await storeAsset(db, { audit_id: ctx.audit.id, kind: 'creative', name, content_type: 'image/jpeg', meta: { ad: ad.name, set: set.name, platform: set.platform, size: ad.format, from: ad.image?.path ?? null } }, await renderImage(browser, html, 'jpeg', ad.format));
+        ads[ad.name] = { path: row.path, name, platform: set.platform, size: ad.format };
       }
     }
     const c = out.sets.carousel;
@@ -102,7 +113,9 @@ export async function runDeliverAdsets(ctx: StepContext): Promise<AdsetsDelivery
     if (!bytes) continue;
     files[ad] = { file: ref.name };
     images[ad] = dataUri(bytes, 'image/jpeg');
-    imageEntries.push({ name: ref.name, data: bytes });
+    // Meta's images sit at the top of the zip, where its bulk sheet names them; Reddit's and TikTok's in their own folders.
+    const platform = ref.platform ?? 'meta';
+    imageEntries.push({ name: platform === 'meta' ? ref.name : `${platform}/${ref.name}`, data: bytes });
   }
   const slides: string[] = [];
   const carouselEntries: { name: string; data: Uint8Array | string }[] = [];
@@ -135,7 +148,20 @@ export async function runDeliverAdsets(ctx: StepContext): Promise<AdsetsDelivery
   if (out.sets.google) {
     await put(fileName(ctx, 'Google Ads Editor', 'csv'), CSV_TYPE, new TextEncoder().encode(toCsv(googleEditorRows(out))), { platform: 'google', format: 'editor-csv', budget: 'medium' });
   }
-  if (imageEntries.length) await put(fileName(ctx, 'Ad Images', 'zip'), ZIP_TYPE, zipFiles(imageEntries), { platform: 'meta', format: 'images', count: imageEntries.length });
+  const channelSets = [...(out.sets.reddit ?? []), ...(out.sets.tiktok ?? [])];
+  if (channelSets.length) {
+    await put(
+      fileName(ctx, 'Reddit and TikTok Ad Plan', 'xlsx'),
+      XLSX_TYPE,
+      buildXlsx([
+        { name: 'Ads', rows: channelAdRows(out, files) },
+        { name: 'Ad sets', rows: channelSetupRows(out) },
+        { name: 'Forecast', rows: channelForecastRows(out) },
+      ]),
+      { platform: [...new Set(channelSets.map((c) => c.platform))].join('+'), format: 'plan', sales_team: channelSets.some((c) => c.availability === 'sales_team') }
+    );
+  }
+  if (imageEntries.length) await put(fileName(ctx, 'Ad Images', 'zip'), ZIP_TYPE, zipFiles(imageEntries), { platform: [...new Set(Object.values(creatives.ads).map((a) => a.platform ?? 'meta'))].join('+'), format: 'images', count: imageEntries.length });
   if (carouselEntries.length) await put(fileName(ctx, 'Carousel', 'zip'), ZIP_TYPE, zipFiles(carouselEntries), { platform: 'instagram', format: 'carousel', slides: slides.length });
 
   const plan = isAdplanOutput(ctx.outputs.adplan) ? ctx.outputs.adplan : null;

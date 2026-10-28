@@ -359,6 +359,13 @@ export const GROUNDSWELL_CONFIG: GroundswellConfig = validateConfig({
     budget_multipliers: [0.5, 1, 2],
     budget_basis:
       'New Wave’s rule: the low budget is half the plan’s base-case spend and the high budget double it, each priced at the base case’s cost per click and conversion; search spend stops at the clicks the area’s searches can supply.',
+    channel_multipliers: [1, 2, 4],
+    channel_basis: 'New Wave’s rule: a Reddit or TikTok set without a priced plan row starts at the platform’s smallest useful test, then twice and four times it.',
+    proof: {
+      min_rating: 4.5,
+      min_reviews: 50,
+      basis: 'New Wave’s rule: an ad states the business’s rating only at 4.5 or more on 50 or more reviews, with the platform named; review text is never quoted in an ad (the reviewers’ words are theirs).',
+    },
     actuals: {
       min_clicks: 50,
       min_leads: 5,

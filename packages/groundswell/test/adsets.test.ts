@@ -192,3 +192,39 @@ describe('ad sets from the plan', () => {
     expect(withUtm('https://a.com/x?y=1', { utm_source: 'meta' })).toBe('https://a.com/x?y=1&utm_source=meta');
   });
 });
+
+describe('the proof set (a rating the business earned, its platform named)', () => {
+  const proofAds = [{ primary_text: '4.7 stars from 89 reviews on Yelp.', headline: 'Rated 4.7 on Yelp', image_headline: '4.7 stars on Yelp' }];
+  const withProof = (proof: AdSetsInput['proof'], ads = proofAds) => buildAdSets(input({ proof, writing: { ...input().writing!, proof_ads: ads } }), config);
+
+  it('adds a Meta set that states the rating, priced from Meta’s test minimum, its return not modeled', () => {
+    const set = withProof({ platform: 'Yelp', rating: 4.7, reviews: 89 }).meta.find((m) => m.id === 'meta-proof')!;
+    expect(set).toBeDefined();
+    expect(set.modeled).toBe(false);
+    expect(set.basis).toEqual({ data: 'yelp', evidence: '4.7★ from 89 reviews on Yelp.' });
+    // Alcohol: never shown under 21.
+    expect(set.audience.age_min).toBe(21);
+    const min = config.platforms.meta.test_budget!.min_monthly;
+    expect(set.tiers.medium.monthly).toBeCloseTo(Math.max(min, min * config.adsets.budget_multipliers[1]), 2);
+    expect(set.tiers.low.monthly).toBeLessThanOrEqual(set.tiers.medium.monthly);
+    expect(set.tiers.high.monthly).toBeGreaterThan(set.tiers.medium.monthly);
+    expect(set.ads.map((a) => a.primary_text)).toEqual(['4.7 stars from 89 reviews on Yelp.']);
+    expect(new URL(set.ads[0].link).searchParams.get('utm_campaign')).toBe('upb_proof_2026-10');
+  });
+
+  it('leaves the set out under the setup file’s floor, or with no ad written', () => {
+    expect(withProof({ platform: 'Google', rating: 4.3, reviews: 400 }).meta.some((m) => m.id === 'meta-proof')).toBe(false);
+    expect(withProof({ platform: 'Yelp', rating: 4.8, reviews: 20 }).meta.some((m) => m.id === 'meta-proof')).toBe(false);
+    expect(withProof({ platform: 'Yelp', rating: 4.7, reviews: 89 }, []).meta.some((m) => m.id === 'meta-proof')).toBe(false);
+    expect(withProof(null).meta.some((m) => m.id === 'meta-proof')).toBe(false);
+  });
+
+  it('names the data each Meta and Google set rests on', () => {
+    const sets = buildAdSets(input(), config);
+    expect(sets.meta.filter((m) => m.goal === 'leads').every((m) => m.basis?.data === 'keywords')).toBe(true);
+    expect(sets.meta.find((m) => m.goal === 'engagement')?.basis?.data).toBe('own_posts');
+    expect((sets.google?.ad_groups ?? []).filter((g) => g.goal === 'leads').every((g) => g.basis?.data === 'keywords')).toBe(true);
+    const rankings = sets.google?.ad_groups.find((g) => g.goal === 'rankings');
+    if (rankings) expect(rankings.basis?.data).toBe('ahrefs');
+  });
+});

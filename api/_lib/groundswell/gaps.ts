@@ -20,6 +20,11 @@ const GAP_WORDING: Record<string, string> = {
   benchmark: 'The competitive benchmark could not be built from the data available, so this audit has no benchmark report.',
   plans: 'The website optimization plan and the first week of posts could not be written for this audit.',
   ai_search: 'AI search (crawler access, citability and Brand Radar) could not be read for this audit, so the developer brief is not included.',
+  reviews: 'Yelp could not be read for this audit, so reviews rest on the Google listing.',
+  community: 'Reddit could not be read for this audit, so the community plan and the Reddit ad set are not included.',
+  ai_answers: 'Google’s AI Mode answers could not be read for this audit.',
+  presence: 'The plan for reviews, Reddit and AI answers could not be built for this audit.',
+  posts: 'The first week’s posts could not be made ready with images this time; the social plan’s captions stand.',
 };
 
 /** The gap lines for the facts' `missing` list (callers without the audit's step list). */

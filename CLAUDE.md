@@ -2,6 +2,64 @@
 
 ## Recent Changes
 
+### Groundswell: Yelp, Reddit, AI answers; ads for every data set; posts with images (2026-10-27)
+
+Owner's ask: why Uncommon Path's run shows no Instagram data; pull Facebook,
+Yelp, Reddit (with its tags) and every AI answer into the plan; generate ads
+for every scraped data set and posts with the scraped images. Owner's
+choices: the business's own images only (never Yelp's, Google's or a
+competitor's), new AI images allowed when labelled, ads on Meta, Google
+Search, Reddit and TikTok. Full notes: section 7 of
+`docs/groundswell-public-sources-plan.md`.
+
+- **Instagram**: Uncommon Path's profile and Facebook Page are shown only to
+  signed-in adults (its 21+ setting), so no logged-out reader sees them. The
+  signed-in reader on main (#172, below) now reads the Instagram profile;
+  linking the account (staff customer page: "Became a client", link
+  Instagram and Meta Ads, Run again) stays the way to the account's own
+  insights and the gated Facebook Page. Not a code fault.
+- **Steps** (all optional): `reviews` (Yelp toolkit on the instant account:
+  phone, then name and city; details, three review excerpts, highlights when
+  the plan allows; up to three competitors; `currents/reviews.ts`),
+  `community` (ScrapeCreators' Reddit search; mentions, the category's
+  questions in the city, communities and recurring words as the tags;
+  political, boycott and "avoid" threads left out; `currents/community.ts`),
+  `ai_answers` (Google AI Mode through SerpApi, three prompts, who is named
+  and first, the cited sources; `currents/aiAnswers.ts`), `presence` (the
+  reviews, Reddit and AI plan in code, `packages/groundswell/src/presence.ts`).
+  The write-up, the plans step and the full audit ("Reputation and
+  community") read them; `presenceForPrompt` in `model.ts`.
+- **Facebook in depth**: the first three competitors' Pages are read with a
+  page of posts (words and figures, never images); each Page carries
+  `engagement` (`facebookEngagement`), shown in the audit's Facebook table.
+- **Ads for every data set**: every Meta, Google, Reddit and TikTok ad names
+  its `basis` (keywords, Ahrefs, own posts, website, offers, Yelp, Google
+  rating, Reddit, AI answers) with its evidence. `channels.ts`: a Reddit set
+  on the communities (test budget × `adsets.channel_multipliers`, return not
+  modeled) and TikTok sets from the plan's paying rows; alcohol makes both
+  the plan for the platform's sales team (age 21, TikTok 25). A Meta proof
+  set (`adsets.proof`: 4.5 on 50 reviews, platform named, never review text).
+  Delivery: TikTok images at 1080 × 1920 (`IMAGE_SIZES`), the "Reddit and
+  TikTok Ad Plan" workbook, images by platform folder, a PDF card per set.
+- **Posts** (phase 2 step `posts`, `posts.ts`): the plan's week with images
+  at each platform's shape, own photos first, then up to `AI_LIMIT` (3) AI
+  scenes through fal (`imageGen.ts`: Composio's `FAL_AI_RUN_MODEL_SYNC`, else
+  `fal.run` with `FAL_KEY`; `GROUNDSWELL_AI_IMAGES=off`; model
+  `GROUNDSWELL_IMAGE_MODEL`, default `fal-ai/flux/dev`), tagged
+  "AI-generated image" on the picture, in `posts.csv` and in the asset meta;
+  up to three Reddit replies as the business; one zip. The workspace shows
+  post images apart from ad images (the asset route now returns `post`,
+  `platform`, `ai_generated`); Headway publishes a post's own 4:5 image.
+- **Left out**: Claid (its smart frame only pads; its generative tools could
+  not be read here). The readiness row for it is gone.
+- **Tests**: `groundswell-presence-sources`, `groundswell-channel-ads`,
+  `groundswell-posts` in `src/test/api/`, `packages/groundswell/test/channels`
+  and the proof cases in `adsets.test.ts`; the Facebook, workspace, Headway,
+  step-list and needsMs pins follow.
+- **Not verified live**: no run has used any of it; fal has never generated
+  an image from this code (billed per call); the Reddit and TikTok files
+  follow the platforms' published fields, not a live import.
+
 ### Groundswell: every PDF in the NWSE house frame (2026-10-27)
 
 Owner's ask: the engine's reports should look like the division's hand-made

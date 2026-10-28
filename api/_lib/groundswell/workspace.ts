@@ -1,6 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { PHASE_INFO, PHASES, type Phase } from '../../../src/lib/groundswellValidation.js';
 import { isPlansOutput } from './plans.js';
+import { isPresenceOutput } from './presence.js';
+import { isPostsOutput } from './posts.js';
+import { isReviewsOutput } from './currents/reviews.js';
+import { isCommunityOutput } from './currents/community.js';
+import { isAiAnswersOutput } from './currents/aiAnswers.js';
 import { PLATFORM_LABELS } from '../../../packages/groundswell/src/plans.js';
 import { isAdplanOutput } from './adplan.js';
 import { isAdsetsOutput } from './adsets.js';
@@ -164,6 +169,57 @@ export function panelsFor(outputs: Record<string, unknown>): DataPanel[] {
       note: typeof v.error === 'string' && v.error ? 'Brand Radar answered only in part; the developer brief says which figures are missing.' : null,
     });
   }
+  if (isReviewsOutput(outputs.reviews)) {
+    const r = outputs.reviews;
+    const b = r.business;
+    const rating = (x: { rating: number | null; reviews: number | null } | null) => (x ? `${x.rating ?? '–'}★ · ${n(x.reviews)} reviews` : 'Not found');
+    panels.push({
+      key: 'reviews',
+      title: 'Yelp',
+      source: r.source,
+      rows: b
+        ? [
+            { label: 'Listing', value: b.url ?? b.name },
+            { label: 'Rating', value: rating(b) },
+            { label: 'Price', value: text(b.price) },
+            { label: 'Claimed by the owner', value: b.claimed === null ? '–' : yes(b.claimed) },
+            { label: 'Hours on Yelp', value: b.hours.join('; ') || '–' },
+          ]
+        : [{ label: 'Listing', value: r.business_error ?? 'Not found' }],
+      table: { head: ['Competitor', 'Yelp'], rows: r.competitors.map((c) => [c.name, c.listing ? rating(c.listing) : c.error ?? 'Not found']) },
+      list: r.reviews.map((x) => `${x.rating ?? '–'}★ ${x.posted_at?.slice(0, 10) ?? ''}: ${x.text}`),
+      note: r.note,
+    });
+  }
+  if (isCommunityOutput(outputs.community)) {
+    const c = outputs.community;
+    panels.push({
+      key: 'community',
+      title: 'Reddit',
+      source: c.source,
+      rows: [
+        { label: 'Posts and comments naming the business', value: String(c.business.mentions.length) },
+        { label: 'Where', value: c.business.communities.map((x) => `r/${x.name} (${x.count})`).join(', ') || '–' },
+        { label: 'Tags', value: c.tags.join(', ') || '–' },
+        ...c.competitors.map((x) => ({ label: `Naming ${x.name}`, value: x.mentions === null ? 'Not read' : String(x.mentions) })),
+      ],
+      table: { head: ['Community', 'Post', 'Score'], rows: c.business.mentions.slice(0, 8).map((m) => [m.subreddit ? `r/${m.subreddit}` : '–', m.title ?? m.excerpt.slice(0, 80), n(m.score)]) },
+      list: c.category.questions.map((q) => `${q.subreddit ? `r/${q.subreddit}: ` : ''}${q.title ?? ''}`),
+      note: c.left_out ? `${c.left_out} thread${c.left_out === 1 ? '' : 's'} about politics or boycotts left out.` : null,
+    });
+  }
+  if (isAiAnswersOutput(outputs.ai_answers)) {
+    const a = outputs.ai_answers;
+    panels.push({
+      key: 'ai_answers',
+      title: 'Google AI Mode answers',
+      source: a.source,
+      rows: [{ label: 'Questions answered', value: `${a.summary.answered} of ${a.summary.asked}` }, { label: 'Named the business', value: String(a.summary.named) }, { label: 'Led with the business', value: String(a.summary.led) }],
+      table: { head: ['Question', 'Named', 'Place', 'Led with'], rows: a.answers.map((x) => [x.prompt, x.error ? 'Not read' : yes(x.named), x.position === null ? '–' : String(x.position), text(x.top)]) },
+      list: a.answers.filter((x) => x.description).map((x) => `“${x.prompt}”: ${x.description}`),
+      note: a.note,
+    });
+  }
   const model = obj(outputs.model);
   const w = obj(model.writeup);
   if (w.headline) {
@@ -192,6 +248,17 @@ export function panelsFor(outputs: Record<string, unknown>): DataPanel[] {
       note: p.dropped.length ? `${p.dropped.length} item${p.dropped.length === 1 ? '' : 's'} left out by the rules.` : null,
     });
   }
+  if (isPresenceOutput(outputs.presence)) {
+    const p = outputs.presence;
+    const AREA = { reviews: 'Reviews', reddit: 'Reddit', ai_answers: 'AI answers' } as const;
+    panels.push({
+      key: 'presence',
+      title: 'Reviews, Reddit and AI answers plan',
+      source: p.summary,
+      list: p.actions.map((x) => `${x.priority === 'high' ? 'High' : x.priority === 'medium' ? 'Medium' : 'Low'} · ${AREA[x.area]}: ${x.action}`),
+      note: p.measures.join(' '),
+    });
+  }
   if (isBenchmarkOutput(outputs.benchmark)) {
     const x = outputs.benchmark;
     panels.push({
@@ -217,9 +284,30 @@ export function panelsFor(outputs: Record<string, unknown>): DataPanel[] {
         rows: [
           ...s.meta.map((m) => [`Meta · ${m.name}`, m.goal, `${usd(m.tiers.low.monthly)} · ${m.modeled ? pct(m.tiers.low.roi) : '–'}`, `${usd(m.tiers.medium.monthly)} · ${m.modeled ? pct(m.tiers.medium.roi) : '–'}`, `${usd(m.tiers.high.monthly)} · ${m.modeled ? pct(m.tiers.high.roi) : '–'}`]),
           ...(s.google?.ad_groups ?? []).map((g) => [`Google · ${g.name}`, g.goal, `${usd(g.tiers.low.monthly)} · ${g.modeled ? pct(g.tiers.low.roi) : '–'}`, `${usd(g.tiers.medium.monthly)} · ${g.modeled ? pct(g.tiers.medium.roi) : '–'}`, `${usd(g.tiers.high.monthly)} · ${g.modeled ? pct(g.tiers.high.roi) : '–'}`]),
+          // Reddit and TikTok, outside the totals above; a set for the platform's sales team says so.
+          ...[...(s.reddit ?? []), ...(s.tiktok ?? [])].map((c) => [
+            `${c.platform_label} · ${c.name}${c.availability === 'sales_team' ? ' (sales team)' : ''}`,
+            c.goal,
+            ...(['low', 'medium', 'high'] as const).map((b) => `${usd(c.spend[b].monthly)} · ${c.tiers && c.modeled ? pct(c.tiers[b].roi) : '–'}`),
+          ]),
         ],
       },
       note: s.notes.join(' ') || null,
+    });
+  }
+  if (isPostsOutput(outputs.posts)) {
+    const p = outputs.posts;
+    panels.push({
+      key: 'posts',
+      title: 'Posts for the first week',
+      source: p.ai.made ? `${p.ai.made} AI-generated image${p.ai.made === 1 ? '' : 's'}, tagged as such` : 'The business’s own photos',
+      table: {
+        head: ['Day', 'Platform', 'Topic', 'Image'],
+        rows: p.posts.map((x) => [x.day, `${PLATFORM_LABELS[x.platform]} ${x.format}`, x.topic, x.image ? (x.image.origin === 'own' ? 'Own photo' : 'AI-generated') : (x.note ?? 'None')]),
+      },
+      list: p.reddit.map((r) => `Reddit reply drafted for “${r.question}”${r.community ? ` (r/${r.community})` : ''}`),
+      // The note only: what the checks dropped and why generation failed stay with the run, never on a partner's page.
+      note: p.note,
     });
   }
   if (isLinkedOutput(outputs.linked) && outputs.linked.services.length) {

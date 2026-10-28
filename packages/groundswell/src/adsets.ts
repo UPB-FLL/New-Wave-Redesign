@@ -1,4 +1,5 @@
 import { buildAdPlan, type AdPlan, type AngleInput, type AngleKeyword, type PlanRow, type ScenarioResult } from './adplan.js';
+import type { AdBasis, ChannelAdSet } from './channels.js';
 import type { CheckedAd } from './adcopy.js';
 import { incrementalityFor } from './audit.js';
 import { benchmarksFor, SCENARIOS, type GroundswellConfig, type IndustryProfile, type Scenario } from './config.js';
@@ -106,6 +107,8 @@ export interface MetaAdSet {
   stop_loss: string | null;
   ads: MetaAd[];
   sources: string[];
+  /** The data set the set is built on (keywords, own posts, a review rating…) and its evidence; absent on runs before 2026-10-27. */
+  basis?: AdBasis;
 }
 
 export interface GoogleKeyword {
@@ -138,6 +141,7 @@ export interface GoogleAdGroup {
   modeled: boolean;
   stop_loss: string | null;
   sources: string[];
+  basis?: AdBasis;
 }
 
 export interface Negative {
@@ -170,6 +174,8 @@ export interface AdSetsWriting {
   /** A Meta ad for each angle, used where the copy step wrote none (it is optional), by angle id. */
   meta_ads?: Record<string, { primary_text: string; headline: string; description: string; call_to_action: string }>;
   carousel: Carousel | null;
+  /** Meta ads that state the business's rating with its platform named (the proof set), when the setup file's proof rule allows. */
+  proof_ads?: { primary_text: string; headline: string; image_headline: string }[];
   /** Searches the business does not serve (other services, other places, job seekers). */
   negatives: { text: string; reason: string }[];
   /** Meta interests that fit the business's customers. */
@@ -203,6 +209,8 @@ export interface AdSetsInput {
   writing: AdSetsWriting | null;
   /** YYYY-MM, for names. */
   month: string;
+  /** The business's best review rating (Yelp's, else Google's), for the proof set; absent or null leaves the set out. */
+  proof?: { platform: 'Yelp' | 'Google'; rating: number; reviews: number } | null;
 }
 
 export interface AdSetsPlan {
@@ -213,6 +221,9 @@ export interface AdSetsPlan {
   totals: Record<Scenario, { monthly: number; daily: number; net: number; year_net: number; roi: number | null; modeled_spend: number }>;
   goals: Record<AdSetGoal, number>;
   notes: string[];
+  /** Reddit and TikTok sets (channels.ts), outside the Meta and Google totals; absent on runs before 2026-10-27. */
+  reddit?: ChannelAdSet[];
+  tiktok?: ChannelAdSet[];
 }
 
 const DAYS_PER_MONTH = 30.4;
@@ -461,6 +472,7 @@ export function buildAdSets(input: AdSetsInput, config: GroundswellConfig): AdSe
           ]
         : [],
       sources: row.sources,
+      basis: { data: 'keywords', evidence: `${row.angle}: ${row.demand.toLocaleString('en-US')} searches a month behind the angle (Keyword Planner).` },
     });
     if (!ad) notes.push(`The ${row.angle} set on Meta has no ad yet: the copy step did not write one.`);
   }
@@ -520,8 +532,62 @@ export function buildAdSets(input: AdSetsInput, config: GroundswellConfig): AdSe
         };
       }),
       sources: [`Budget: ${config.adsets.engagement_basis} The low and high budgets follow the same multipliers as every set.`, `Visits estimated at Meta’s traffic cost per click: ${metaBench.source} (${metaBench.as_of}). Return not modeled: engagement is not a sale.`],
+      basis: { data: 'own_posts', evidence: images.length ? `The business’s own posts and photos (${images.length} kept).` : 'The business’s own posts, once its photos are added.' },
     });
     if (!engagementAds.length) notes.push('The engagement set has no ads written yet; use the carousel as its first post.');
+  }
+
+  // Meta: the proof set, when the rating clears the setup file's rule (the platform named; no review text).
+  const proof = input.proof;
+  const rule = config.adsets.proof;
+  const proofAds = input.writing?.proof_ads ?? [];
+  if (allowsMeta && metaBench && config.platforms.meta.test_budget && proof && rule && proof.rating >= rule.min_rating && proof.reviews >= rule.min_reviews && proofAds.length) {
+    const min = config.platforms.meta.test_budget.min_monthly;
+    const tiers = Object.fromEntries(
+      SCENARIOS.map((s, i) => {
+        const monthly = Math.max(i === 0 ? min / 2 : min, min * config.adsets.budget_multipliers[i]);
+        const clicks = monthly / metaBench.cpc[1];
+        return [s, { monthly: round2(monthly), daily: round2(monthly / DAYS_PER_MONTH), clicks: Math.round(clicks), leads: 0, customers: 0, revenue: 0, net: round2(-monthly), year_net: round2(-monthly * 12), roi: null }];
+      })
+    ) as Record<Scenario, TierForecast>;
+    const campaign = `${code}_PROOF_${input.month}`;
+    const restricted = (input.industry.restricted ?? []).some((c) => c === 'alcohol');
+    const evidence = `${proof.rating}★ from ${proof.reviews.toLocaleString('en-US')} reviews on ${proof.platform}.`;
+    meta.push({
+      id: 'meta-proof',
+      campaign,
+      name: `${code}_PROOF_${slug(area.split(',')[0])}_${input.month}`,
+      goal: 'leads',
+      angle: null,
+      objective: 'OUTCOME_TRAFFIC',
+      optimization_goal: 'LANDING_PAGE_VIEWS',
+      recommendation: 'test',
+      why: `People choosing nearby weigh ratings first; ${evidence}`,
+      mechanism: 'Feed ads that state the rating with its platform named, shown to people nearby, sending them to the website.',
+      kpi: 'Cost per landing-page view against the leads sets; visits that book or call.',
+      audience: { location: area, radius_miles: 15, age_min: restricted ? 21 : 18, age_max: 65, interests: input.writing?.interests ?? [] },
+      placements: ['Facebook feed', 'Instagram feed', 'Instagram stories'],
+      tiers,
+      range: null,
+      modeled: false,
+      stop_loss: 'Pause an ad whose cost per landing-page view stays above the leads sets’ after two weeks.',
+      ads: proofAds.map((e, i) => {
+        const adName = `IMG_PROOF_V${i + 1}`;
+        return {
+          name: adName,
+          primary_text: e.primary_text,
+          headline: e.headline,
+          description: '',
+          call_to_action: 'LEARN_MORE',
+          image_headline: e.image_headline,
+          image: nextImage(),
+          link: withUtm(landing, { utm_source: 'meta', utm_medium: 'paid_social', utm_campaign: campaign.toLowerCase(), utm_content: adName.toLowerCase() }),
+          display_link: hostOf(landing),
+        };
+      }),
+      sources: [`${rule.basis}`, `Rating: ${proof.platform}, as read in this run.`, `Visits estimated at Meta’s traffic cost per click: ${metaBench.source} (${metaBench.as_of}). Return not modeled.`],
+      basis: { data: proof.platform === 'Yelp' ? 'yelp' : 'google_reviews', evidence },
+    });
   }
 
   // Google: a leads ad group per row, then the rankings ad group priced as one more angle.
@@ -554,6 +620,7 @@ export function buildAdSets(input: AdSetsInput, config: GroundswellConfig): AdSe
       modeled: row.roi_tier !== 'not modeled',
       stop_loss: stopLossLine(row),
       sources: row.sources,
+      basis: { data: 'keywords', evidence: `${keywords.length} Keyword Planner keyword${keywords.length === 1 ? '' : 's'}, ${row.demand.toLocaleString('en-US')} searches a month.` },
     });
     if (!ad) notes.push(`The ${row.angle} ad group has keywords but no ad yet: the copy step did not write one.`);
   }
@@ -584,6 +651,7 @@ export function buildAdSets(input: AdSetsInput, config: GroundswellConfig): AdSe
         modeled: priced.roi_tier !== 'not modeled',
         stop_loss: stopLossLine(priced),
         sources: priced.sources,
+        basis: { data: 'ahrefs', evidence: `Searches the site already ranks for at positions ${config.adsets.rankings_positions[0]} to ${config.adsets.rankings_positions[1]} (Ahrefs).` },
       });
       if (!borrowed) notes.push('The rankings ad group has no ad yet: write one from the ranking page before it runs.');
     } else if (priced) {

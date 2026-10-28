@@ -1,7 +1,7 @@
 import { GROUNDSWELL_CONFIG } from '../../../packages/groundswell/groundswell.config.js';
 import { checkPlans, hasPlans, type PlansResult } from '../../../packages/groundswell/src/plans.js';
 import { isAdplanOutput } from './adplan.js';
-import { allowedNumbers, buildFacts, unsupportedNumbers, type Facts } from './model.js';
+import { allowedNumbers, buildFacts, presenceForPrompt, unsupportedNumbers, type Facts } from './model.js';
 import { chatJson, GROUNDSWELL_MODEL } from './openai.js';
 import { PermanentStepError, type StepContext } from './types.js';
 import { isSitePagesOutput, type SitePagesOutput } from './currents/sitePages.js';
@@ -81,6 +81,8 @@ export function plansInput(f: Facts, pages: SitePagesOutput | null, profile: Bus
       competitors: (f.social?.competitors ?? []).map((c) => ({ name: c.name, handle: c.handle, followers: c.followers, posts_last_30_days: c.posts_last_30_days, avg_likes_recent: c.avg_likes_recent, hashtags: c.hashtags ?? [], recent_captions: c.recent_captions ?? [] })),
       hashtags_seen: f.social?.hashtags_seen ?? null,
     },
+    // Yelp, Reddit and Google's AI answers: what people praise, what they ask, and how the AI describes the business.
+    ...presenceForPrompt(f),
     findings: (writeup?.findings ?? []).map((x) => ({ area: x.area, title: x.title, action: x.action })),
     website_fixes: writeup?.areas?.website?.fixes ?? [],
     ad_angles: angles,
@@ -93,12 +95,13 @@ Rules for both:
 - Never use these words or claims: ${GROUNDSWELL_CONFIG.unsupported_claims.join(', ')}. Never name a competitor in a post. Never promise outcomes.
 - Plain words for a busy owner; they/them for people; no decorative numbering.
 Website plan (website_plan):
-- changes: page by page, from the pages read (website.pages, website.homepage) and the technical SEO findings. Each change names the page's url or path exactly as given (or "site-wide"), what to change (specific: the title, the heading, the opening sentence, the call to action, the words a search uses, the booking link), why, and the evidence seen. Priority high/medium/low. At most 12.
+- changes: page by page, from the pages read (website.pages, website.homepage) and the technical SEO findings; when ai_answers shows a question the business was not named for, one change makes a page answer it plainly. Each change names the page's url or path exactly as given (or "site-wide"), what to change (specific: the title, the heading, the opening sentence, the call to action, the words a search uses, the booking link), why, and the evidence seen. Priority high/medium/low. At most 12.
 - new_pages: pages to add for searches with measured demand that no page answers (path, purpose, the searches). Only when the keyword data supports it. At most 4.
 - measurement: how to tell it worked (Search Console, the booking form, calls), without forecasts. At most 5.
 Social plan (social_plan):
 - platforms: where to post and why, from where the business and its market are active (the Instagram and Facebook reads; when neither could be read, plan for Instagram and Facebook). role and cadence in words.
-- pillars: 3 to 5 content pillars drawn from the business's services, content_topics, the questions people ask (search.observed.questions, related_searches) and its own recent posts.
+- pillars: 3 to 5 content pillars drawn from the business's services, content_topics, the questions people ask (search.observed.questions, related_searches, reddit.category_questions), what reviewers praise (yelp.newest_reviews, yelp.highlights) and its own recent posts.
+- When reddit.communities or reddit.category_questions are present, one post of the week answers a question people ask locally (never quote a Reddit user, never name the thread's author). When ai_answers shows the business not named for a question, one post says plainly what the business is and where, in the words that question uses.
 - week: seven posts, "Monday" to "Sunday", one each. Each: platform, format (post, reel, carousel, story, text, video; include at least one reel and one carousel), pillar, topic, hook (the first line), caption (ready to paste, in the business's own voice from its site's words and its own captions; 60 to 150 words; no competitor; no number not in the data), cta (one line), visual (name one of the business's own posts by its permalink when one fits, else describe the photo or clip to take), hashtags (3 to 10, from the business's and its market's observed hashtags plus plain category words, without the # sign).
 Answer with JSON: {"website_plan":{"summary":"...","changes":[{"page":"...","priority":"high|medium|low","change":"...","reason":"...","evidence":"..."}],"new_pages":[{"path":"/...","purpose":"...","searches":["..."]}],"measurement":["..."]},"social_plan":{"summary":"...","platforms":[{"platform":"instagram|facebook|tiktok|linkedin|google_business|youtube","role":"...","cadence":"..."}],"pillars":[{"name":"...","why":"..."}],"week":[{"day":"Monday","platform":"instagram","format":"reel","pillar":"...","topic":"...","hook":"...","caption":"...","cta":"...","visual":"...","hashtags":["..."]}]}}`;
 

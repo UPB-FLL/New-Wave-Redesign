@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { FUNCTION_SECONDS } from '../../../api/_lib/groundswell/background';
 import { MAX_ATTEMPTS, MIN_STEP_MS, runWorker, SAFETY_MS, startQueuedAudits } from '../../../api/_lib/groundswell/engine';
 import { ALL_STEPS, SOCIAL_NEEDS_MS, STEPS } from '../../../api/_lib/groundswell/steps';
+import { POSTS_NEEDS_MS } from '../../../api/_lib/groundswell/posts';
 import { PermanentStepError, type StepDefinition } from '../../../api/_lib/groundswell/types';
 import { sampleAudit } from './fixtures/groundswell-report';
 
@@ -199,8 +200,10 @@ describe('runWorker', () => {
     expect(STEPS.find((s) => s.name === 'social')?.needsMs).toBe(SOCIAL_NEEDS_MS);
     // A fresh call's step deadline is FUNCTION_SECONDS less the route's and the engine's margins; leave a minute for the steps before it.
     expect(SOCIAL_NEEDS_MS).toBeLessThanOrEqual(FUNCTION_SECONDS * 1000 - 10_000 - SAFETY_MS - 60_000);
-    // The verification re-reads read the social step's sources again, so they want its time too.
-    expect(ALL_STEPS.filter((s) => s.needsMs).map((s) => s.name)).toEqual(['social', 'verify_read_2', 'verify_read_3', 'verify_read_4', 'verify_read_5']);
+    // The posts step (phase 2) prints images and may wait on an image model, and the verification re-reads read the social step's sources again: each wants a call of its own.
+    expect(POSTS_NEEDS_MS).toBeLessThanOrEqual(FUNCTION_SECONDS * 1000 - 10_000 - SAFETY_MS - 60_000);
+    expect(ALL_STEPS.find((s) => s.name === 'posts')?.needsMs).toBe(POSTS_NEEDS_MS);
+    expect(ALL_STEPS.filter((s) => s.needsMs).map((s) => s.name)).toEqual(['posts', 'social', 'verify_read_2', 'verify_read_3', 'verify_read_4', 'verify_read_5']);
   });
 
   it('runs a long step as a call\'s first step however little the call has left, so it never waits for ever', async () => {

@@ -36,6 +36,8 @@ export const TOOLKIT_CHECKS = [
   { toolkit: 'serper', label: 'Serper (public Google search and Maps, Composio’s instant account)', without: 'public search observations rest on SerpApi or SearchAPI alone' },
   { toolkit: 'googleads', label: 'Google Ads (Keyword Planner)', without: 'keyword demand, the ad plan and the ad copy are left out of the reports' },
   { toolkit: 'firecrawl', label: 'Firecrawl (website pages, competitor sites, web search fallback)', without: 'the website plan rests on the homepage alone and competitors are checked from listings only' },
+  { toolkit: 'yelp', label: 'Yelp (listings, ratings and review excerpts; no sign-in of its own)', without: 'reviews rest on the Google listing and the reviews plan names no Yelp figures' },
+  { toolkit: 'fal_ai', label: 'fal.ai (new post images where the business’s own photos run out, labelled AI-generated)', without: 'the posts use the business’s own photos only, unless FAL_KEY is set in Vercel' },
 ] as const;
 
 const TIMEOUT_MS = 15_000;
@@ -74,7 +76,7 @@ async function checkOpenAI(fetchImpl: typeof fetch): Promise<ReadinessCheck> {
 const SIGNIN_CHECKS = CLIENT_SERVICES.map((s) => ({ key: `authconfig:${s.toolkit}`, label: `Client sign-in: ${s.label}`, toolkit: s.toolkit, service: s.label }));
 
 /** Toolkits Composio serves from its instant account (billed per call) rather than one New Wave linked. */
-const INSTANT_TOOLKITS = ['ahrefs', 'ahrefs_mcp', 'google_maps', 'serpapi', 'serper'];
+const INSTANT_TOOLKITS = ['ahrefs', 'ahrefs_mcp', 'google_maps', 'serpapi', 'serper', 'yelp'];
 
 /**
  * The consumer account (phases 1 and 2): its key, then one check per toolkit
