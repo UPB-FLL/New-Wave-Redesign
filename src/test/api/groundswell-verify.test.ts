@@ -26,6 +26,7 @@ import {
   verifySteps,
   type VerifyCheckOutput,
   type VerifyReadOutput,
+  READ_NEEDS_MS,
 } from '../../../api/_lib/groundswell/verify';
 import { answerReview, ReviewError } from '../../../api/_lib/groundswell/review';
 import { fakeSupabase } from './fixtures/fakeSupabase';
@@ -332,6 +333,11 @@ describe('the steps', () => {
       [checkStep(3), false],
     ]);
     expect(() => verifySteps(6)).toThrow(/at most 5/);
+  });
+
+  it('a re-read wants the social step’s time from the call, so it is handed on rather than cut off', () => {
+    expect(verifySteps(2).map((s) => s.needsMs)).toEqual([READ_NEEDS_MS, undefined]);
+    expect(READ_NEEDS_MS).toBe(180_000);
   });
 });
 

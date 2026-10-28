@@ -200,12 +200,10 @@ describe('runWorker', () => {
     expect(STEPS.find((s) => s.name === 'social')?.needsMs).toBe(SOCIAL_NEEDS_MS);
     // A fresh call's step deadline is FUNCTION_SECONDS less the route's and the engine's margins; leave a minute for the steps before it.
     expect(SOCIAL_NEEDS_MS).toBeLessThanOrEqual(FUNCTION_SECONDS * 1000 - 10_000 - SAFETY_MS - 60_000);
-    // The posts step (phase 2) prints images and may wait on an image model: it asks for a call of its own too.
+    // The posts step (phase 2) prints images and may wait on an image model, and the verification re-reads read the social step's sources again: each wants a call of its own.
     expect(POSTS_NEEDS_MS).toBeLessThanOrEqual(FUNCTION_SECONDS * 1000 - 10_000 - SAFETY_MS - 60_000);
-    expect(ALL_STEPS.filter((s) => s.needsMs).map((s) => [s.name, s.needsMs])).toEqual([
-      ['posts', POSTS_NEEDS_MS],
-      ['social', SOCIAL_NEEDS_MS],
-    ]);
+    expect(ALL_STEPS.find((s) => s.name === 'posts')?.needsMs).toBe(POSTS_NEEDS_MS);
+    expect(ALL_STEPS.filter((s) => s.needsMs).map((s) => s.name)).toEqual(['posts', 'social', 'verify_read_2', 'verify_read_3', 'verify_read_4', 'verify_read_5']);
   });
 
   it('runs a long step as a call\'s first step however little the call has left, so it never waits for ever', async () => {
@@ -259,6 +257,24 @@ describe('runWorker', () => {
     expect(report.ran[0]).toMatchObject({ step: 'check', outcome: 'retry', error: 'Could not hold the audit for review: connection reset' });
     expect(rows[0].status).toBe('pending');
     expect(audits.get(sampleAudit.id)).toMatchObject({ status: 'running' });
+  });
+
+  it('stores a step’s output well-formed: half an emoji becomes U+FFFD, so jsonb takes it', async () => {
+    const half = '🍻'.slice(0, 1);
+    const { db, steps: rows } = fakeDb(['social']);
+    const report = await runWorker(db, [def('social', async () => ({ caption: `Cheers ${half}`, note: 'a\u0000b', media: [{ caption: `x${half}` }] }))], { deadline: plenty() });
+    expect(report.ran).toEqual([{ audit_id: sampleAudit.id, step: 'social', outcome: 'done' }]);
+    expect(rows[0].output).toEqual({ caption: 'Cheers \uFFFD', note: 'ab', media: [{ caption: 'x\uFFFD' }] });
+    expect(JSON.stringify(rows[0].output)).not.toMatch(/\\ud83c/i);
+  });
+
+  it('counts a refused output write as a failed try, never as done', async () => {
+    // Seen live on 2026-10-27: PostgREST refused the social step's PATCH (400), the engine logged "done", and the lease ran out.
+    const { db, steps: rows } = fakeDb(['social', 'ads'], { refuse: (table, patch) => table === 'marketing_audit_steps' && patch.status === 'done' });
+    const report = await runWorker(db, [def('social', async () => ({ ok: true })), def('ads', async () => 'never')], { deadline: plenty() });
+    expect(report.ran).toEqual([{ audit_id: sampleAudit.id, step: 'social', outcome: 'retry', error: 'Could not record the step\'s output: new row violates check constraint' }]);
+    expect(rows[0]).toMatchObject({ status: 'pending', error: 'Could not record the step\'s output: new row violates check constraint' });
+    expect(rows[1].status).toBe('pending');
   });
 
   it('does not start a step without enough time left', async () => {

@@ -1,18 +1,17 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { escapeHtml as esc } from '../http.js';
-import { logoBackground } from '../../../src/lib/groundswellBrandAssets.js';
 import { GROUNDSWELL_CONFIG } from '../../../packages/groundswell/groundswell.config.js';
 import type { PlanRow } from '../../../packages/groundswell/src/adplan.js';
 import type { ChangeArea, RankedChange } from '../../../packages/groundswell/src/changes.js';
 import type { AdcopyOutput } from './adcopy.js';
 import type { AdplanOutput } from './adplan.js';
-import type { AuditBranding } from './branding.js';
 import type { BenchmarkOutput } from './benchmark.js';
 import type { PlansOutput } from './plans.js';
 import type { PresenceOutput } from './presence.js';
 import { hasPlans, PLATFORM_LABELS, type SocialPost } from '../../../packages/groundswell/src/plans.js';
 import type { Brand } from './brand.js';
+import { framePage, HOUSE, houseCss, logoImg, NEW_WAVE_PREPARER, numberPages, pageFoot, pageHead, preparedBy, siteLabel, type Frame, type Preparer } from './reportFrame.js';
 import { gapsFromMissing } from './gaps.js';
 import { AREAS, evidenceCoverage, scrubUnsupportedClaims, type AreaKey, type Facts, type ReportFinding, type runModel } from './model.js';
 import type { GaData, GoogleAdsData, GscData, InstagramData, LinkedOutput, MetaAdsData } from './currents/linked.js';
@@ -61,25 +60,7 @@ export interface ReportData {
   gaps?: string[];
 }
 
-export const PREPARED_BY = 'New Wave: Social Engineering';
-
-/** Who the reports are from. A partner's are white-labelled: its name and logo, and no New Wave name anywhere. */
-export interface Preparer {
-  name: string;
-  logo: string | null;
-  whiteLabel: boolean;
-}
-
-export const NEW_WAVE_PREPARER: Preparer = { name: PREPARED_BY, logo: null, whiteLabel: false };
-
-export function preparerFor(branding: AuditBranding | null | undefined): Preparer {
-  const p = branding?.partner;
-  return p ? { name: p.name, logo: p.logo, whiteLabel: true } : NEW_WAVE_PREPARER;
-}
-
-export const preparedBy = (p: Preparer) => `Prepared by ${esc(p.name)}`;
-/** The partner's logo beside "Prepared by" on a cover; New Wave's reports have none. */
-export const preparerLogo = (p: Preparer) => (p.logo ? `<img class="preparer" src="${esc(p.logo)}" alt="${esc(p.name)}" style="background:${logoBackground(p.logo)}" onerror="this.remove()">` : '');
+export { HOUSE, NEW_WAVE_PREPARER, PREPARED_BY, logoImg, preparedBy, preparerFor, preparerLogo, type Preparer } from './reportFrame.js';
 
 /** Lead-aware: "Our" at the start of a sentence or element, "our" inside one. */
 const OURS = /(>\s*|[.!?]\s+)?(?:New Wave(?:: Social Engineering| IT)?|NW Social Engineering|Groundswell)(?:’s|'s|’|')?\s?(?=estimate|rule|working|internal|smallest|cost|hourly|own)/gi;
@@ -175,9 +156,6 @@ ul{padding-left:1.1em}
 .base{background:${b.tint}}`;
 }
 
-export const logoImg = (b: Brand, cls: string) =>
-  b.logo ? `<img class="logo ${cls}" src="${esc(b.logo)}" alt="" style="background:${logoBackground(b.logo)}" onerror="this.remove()">` : '';
-
 export const listHtml = (items: string[], trim = true) =>
   items.length ? `<ul>${items.map((i) => `<li${trim ? ' data-trim' : ''}>${esc(i)}</li>`).join('')}</ul>` : '';
 
@@ -208,7 +186,7 @@ export function kpis(f: Facts, m: ModelOutput, p: AdplanOutput | null = null): K
 }
 
 const kpiHtml = (items: Kpi[]) =>
-  items.length ? `<div class="kpis" style="grid-template-columns:repeat(${items.length},1fr)">${items.map((k) => `<div class="kpi"><div class="v">${esc(k.value)}</div><div class="l">${esc(k.label)}</div></div>`).join('')}</div>` : '';
+  items.length ? `<div class="kpis" style="grid-template-columns:repeat(${items.length},1fr)">${items.map((k) => `<div class="kpi"><div class="l">${esc(k.label)}</div><div class="v">${esc(k.value)}</div></div>`).join('')}</div>` : '';
 
 /** Legacy and manually released reports use the same evidence rules as newly modeled reports. */
 function safeReportData(d: ReportData): ReportData {
@@ -380,7 +358,7 @@ ${unmodeled.length || small.length ? `<h3>Not modeled</h3>${listHtml([...unmodel
 export function table(head: string[], rows: string[][]) {
   if (!rows.length) return '';
   return `<table><thead><tr>${head.map((h) => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows
-    .map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join('')}</tr>`)
+    .map((r) => `<tr${/^(total|all sets|all)\b/i.test(r[0] ?? '') ? ' class="total"' : ''}>${r.map((c) => `<td>${esc(c)}</td>`).join('')}</tr>`)
     .join('')}</tbody></table>`;
 }
 
@@ -725,9 +703,8 @@ export function buildAuditHtml(d: ReportData): string {
   // Copy only alongside its plan, and only when there is something to show.
   const copy = p && d.adcopy && (d.adcopy.ads.length || d.adcopy.not_written.length) ? d.adcopy : null;
   const who = d.preparer ?? NEW_WAVE_PREPARER;
-  const footer = `${esc(f.business.name)} · Marketing audit · ${preparedBy(who)} · ${esc(d.date)}`;
-  const section = (kicker: string, title: string, body: string) =>
-    `<section class="page"><div class="kicker">${esc(kicker)}</div><h2>${esc(title)}</h2>${body}<div class="foot">${footer}</div></section>`;
+  const frame: Frame = { who, client: { name: f.business.name, brand: b }, report: 'Marketing audit', site: siteLabel(f.business.website), date: d.date };
+  const section = (kicker: string, title: string, body: string) => framePage(frame, kicker, title, body);
   const findings = m.writeup.findings ?? [];
   const priorityPages = [];
   for (let i = 0; i < findings.length; i += 2) priorityPages.push(section('Recommended decisions', i ? 'Further priorities' : 'Priorities and next actions', findings.slice(i, i + 2).map(findingHtml).join('')));
@@ -787,46 +764,20 @@ export function buildAuditHtml(d: ReportData): string {
   const missing = [...(d.gaps ?? gapsFromMissing(f.missing)), ...(linked?.services.filter((s) => !s.ok).map((s) => s.problem ?? `${s.label} could not be read this time.`) ?? [])];
   const dataLine = linkedLine(f);
 
-  return ownWording(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(f.business.name)} - Full Marketing Audit</title><style>
-${baseCss(b)}
-@page{size:Letter;margin:0}
-.page{width:8.5in;min-height:11in;padding:0.6in 0.6in 0.8in;position:relative;page-break-after:always;font-size:10.5pt;line-height:1.4}
-.page:last-child{page-break-after:auto}
-.cover{padding:0;display:flex;flex-direction:column}
-.cover .band{padding:0.7in 0.6in 0.5in}
-.cover .inner{padding:0.4in 0.6in 0.8in}
-.cover h1{font-size:30pt;margin:12px 0 6px}
-.cover .logo{max-height:64px;max-width:240px;background:#fff;border-radius:8px;padding:6px}
-.headline{font-size:17pt;font-weight:700;margin:0 0 10px;color:${b.heading}}
-.kicker{font-size:9pt;letter-spacing:.08em;text-transform:uppercase;color:#4b5563;margin-bottom:4px}
-h2{font-size:20pt;margin-bottom:12px}
-h3{font-size:11.5pt;margin:14px 0 4px}
-table{margin:10px 0;font-size:9.5pt}
-td,th{padding:5px 7px}
+  return numberPages(ownWording(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(f.business.name)} - Full Marketing Audit</title><style>
+${houseCss(b)}
 .summary{margin:12px 0 4px}
-.cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-.kpis{gap:10px;margin:16px 0}
-.kpi{padding:12px}
-.kpi .v{font-size:17pt}
-.kpi .l{font-size:8.5pt}
-.foot{position:absolute;left:0.6in;right:0.6in;bottom:0.35in;font-size:8pt;color:#6b7280;border-top:1px solid #e5e7eb;padding-top:6px}
 .ranked td,.ranked th{font-size:8.5pt;padding:4px 6px}
-.note{font-size:7.5pt;color:#4b5563;margin-top:2px}
-.finding{margin-bottom:18px;break-inside:avoid}.finding p{margin:4px 0}.finding h3{margin-top:0}
-.post{margin-bottom:16px;break-inside:avoid;padding:10px 12px;border-left:3px solid ${b.primary};background:${b.tint}}.post p{margin:4px 0}.post h3{margin-top:0}.post .caption{white-space:pre-wrap}.evidence-limit{font-size:9pt;color:#374151;margin:10px 0;padding:9px 11px;border-left:3px solid ${b.primary};background:${b.tint}}
 </style></head><body>
-<section class="page cover">
-  <div class="band">${logoImg(b, '')}<h1>${esc(f.business.name)}</h1><div class="muted">Marketing audit${f.business.city ? ` · ${esc(f.business.city)}` : ''} · ${preparedBy(who)}${preparerLogo(who)} · ${esc(d.date)}</div>${dataLine ? `<div class="muted">${esc(dataLine)}</div>` : ''}</div>
-  <div class="inner">
-    <p class="headline">${esc(m.writeup.headline)}</p>
-    <p>${esc(m.writeup.verdict)}</p>
-    ${kpiHtml(kpis(f, m, p))}
-    ${evidenceLimits(f, true)}
-    <h3>The return we modeled</h3>
-    <p>${esc(returnLine)}</p>
-  </div>
-  <div class="foot">${footer}</div>
-</section>
+<section class="page cover">${pageHead(frame)}<div class="body">
+<div class="kicker">Marketing audit${f.business.city ? ` · ${esc(f.business.city)}` : ''} · ${esc(d.date)} · ${preparedBy(who)}</div>
+<h1>${esc(m.writeup.headline)}</h1>
+<p class="lede">${esc(m.writeup.verdict)}</p>
+${dataLine ? `<p class="muted">${esc(dataLine)}</p>` : ''}
+${kpiHtml(kpis(f, m, p))}
+${evidenceLimits(f, true)}
+<div class="callout-dark"><div class="kicker">The return we modeled</div><p>${esc(returnLine)}</p></div>
+</div>${pageFoot(frame)}</section>
 ${priorityPages.join('')}
 ${areas}
 ${searchPages}
@@ -843,7 +794,7 @@ ${section(
   'Sources and limits',
   `<h3>Data used</h3>${listHtml(sources, false)}${missing.length ? `<h3>Not available this time</h3>${listHtml(missing, false)}` : ''}${m.writeup.cant_see.length ? `<h3>Needs owner access</h3>${listHtml(m.writeup.cant_see, false)}` : ''}<p class="muted">Ratings, followers and rankings change daily; figures are as of the dates above.</p>`
 )}
-</body></html>`, who);
+</body></html>`, who));
 }
 
 // ---------------------------------------------------------------------------
@@ -903,8 +854,9 @@ export function buildDeckHtml(d: ReportData, links: { audit: string }): string {
   const week = d.plans && d.plans.social_plan.week.length ? d.plans : null;
   const auditLink = portalLink(links.audit);
   const who = d.preparer ?? NEW_WAVE_PREPARER;
+  const frame: Frame = { who, client: { name: f.business.name, brand: b }, report: 'Marketing audit slides', site: siteLabel(f.business.website), date: d.date };
   const slide = (id: string, n: number, title: string, body: string) =>
-    `<section class="slide" id="${id}"><header class="band"><span>${esc(title)}</span>${logoImg(b, 'mini')}</header><div class="body" data-fit>${body}</div><footer>${esc(f.business.name)} · ${preparedBy(who)} · ${esc(d.date)}<span>${n}</span></footer></section>`;
+    `<section class="slide" id="${id}">${pageHead(frame)}<div class="body" data-fit><div class="kicker">Slide ${n}</div><h2>${esc(title)}</h2>${body}</div>${pageFoot(frame)}</section>`;
 
   const areaSlides = AREAS.map((k, i) => {
     const a = m.writeup.areas[k];
@@ -921,31 +873,44 @@ export function buildDeckHtml(d: ReportData, links: { audit: string }): string {
     .map(({ key, label, r }) => `<tr${key === 'base' ? ' class="base"' : ''}><td>${label}</td><td>${money(r.steady_month.spend)}</td><td>${num(r.steady_month.leads)}</td><td>${money(r.year.net)}</td></tr>`)
     .join('');
 
-  return ownWording(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(f.business.name)} - Marketing Audit Slides</title><style>
-${baseCss(b)}
+  return numberPages(ownWording(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(f.business.name)} - Marketing Audit Slides</title><style>
+${houseCss(b)}
 @page{size:1920px 1080px;margin:0}
-.slide{width:1920px;height:1080px;position:relative;overflow:hidden;page-break-after:always;font-size:30px;line-height:1.35}
+.slide{width:1920px;height:1080px;min-height:0;position:relative;overflow:hidden;page-break-after:always;font-size:30px;line-height:1.35;display:block}
 .slide:last-child{page-break-after:auto}
-.slide>header{height:150px;display:flex;align-items:center;justify-content:space-between;padding:0 90px;font-size:56px;font-weight:700}
-.slide .mini{max-height:84px;max-width:260px;background:#fff;border-radius:10px;padding:8px}
-.body{position:absolute;top:200px;left:90px;right:90px;bottom:130px;overflow:hidden}
-.slide>footer{position:absolute;left:90px;right:90px;bottom:40px;height:50px;border-top:2px solid #e5e7eb;padding-top:12px;font-size:24px;color:#4b5563;display:flex;justify-content:space-between}
+.slide .page-head{height:170px;padding:0 90px}
+.slide .house-logo{height:66px;max-width:720px}
+.slide .house-name{font-size:40px}
+.slide .preparer{height:84px;max-width:420px;padding:6px 12px}
+.slide .client .label{font-size:20px}
+.slide .chip{padding:12px 24px;max-width:700px;border-bottom-width:4px}
+.slide .chip .name{font-size:28px}
+.slide .chip .logo.mini{height:56px;max-width:260px}
+.slide .body{position:absolute;top:220px;left:90px;right:90px;bottom:140px;overflow:hidden;padding:0}
+.slide .kicker{font-size:20px;margin-bottom:10px}
+.slide h2{font-size:60px;margin-bottom:28px}
+.slide .page-foot{position:absolute;left:0;right:0;bottom:0;height:90px;padding:0 90px;font-size:19px}
 .lead{font-size:36px;margin-bottom:24px}
-h3{font-size:34px;margin:18px 0 8px}
+.slide h3{font-size:34px;margin:18px 0 8px}
+.slide p{margin:8px 0}
 li{margin:6px 0}
-.cols{display:grid;grid-template-columns:1fr 1fr;gap:60px}
+.cols{gap:60px}
 .kpis{gap:28px;margin-top:40px}
-.kpi{padding:30px}
+.kpi{padding:28px 30px;border-top-width:6px;border-radius:8px}
+.kpi .l{font-size:20px;margin-bottom:10px}
 .kpi .v{font-size:64px}
-.kpi .l{font-size:26px}
-td,th{padding:14px 18px;font-size:30px}
-.cover{display:flex;flex-direction:column;justify-content:center;padding:0 140px}
-.cover h1{font-size:96px;margin:30px 0 20px}
-.cover .logo{max-height:140px;max-width:420px;background:#fff;border-radius:14px;padding:12px}
-.cover .sub{font-size:36px}
+.slide table{font-size:28px;margin:12px 0}
+.slide td{padding:14px 18px}
+.slide th{font-size:20px;padding:12px 18px;border-bottom-width:3px}
+.slide .evidence-limit{font-size:22px;padding:16px 22px;border-left-width:6px;margin:24px 0}
+.slide .note{font-size:20px}
+.cover .body{display:flex;flex-direction:column;justify-content:center;top:170px;bottom:90px}
+.cover h1{font-size:92px;margin:24px 0 20px}
+.cover .logo.big{max-height:160px;max-width:520px;border-radius:14px;padding:12px;margin-bottom:10px}
+.cover .sub{font-size:34px;color:${HOUSE.slate}}
 .cta{font-size:40px;font-weight:700}
 </style></head><body>
-<section class="slide band cover" id="cover">${logoImg(b, '')}<h1>${esc(f.business.name)}</h1><div class="sub">Marketing audit · ${preparedBy(who)}${preparerLogo(who)} · ${esc(d.date)}${linkedLine(f) ? ` · ${esc(linkedLine(f)!)}` : ''}</div></section>
+<section class="slide cover" id="cover">${pageHead(frame)}<div class="body">${logoImg(b, 'big')}<div class="kicker">Marketing audit${f.business.city ? ` · ${esc(f.business.city)}` : ''} · ${esc(d.date)}</div><h1>${esc(f.business.name)}</h1><div class="sub">${preparedBy(who)}${linkedLine(f) ? ` · ${esc(linkedLine(f)!)}` : ''}</div></div>${pageFoot(frame)}</section>
 ${slide('glance', 2, 'At a glance', `<p class="lead"><strong>${esc(m.writeup.headline)}</strong></p><p>${esc(m.writeup.verdict)}</p>${kpiHtml(kpis(f, m, p))}${evidenceLimits(f, true)}`)}
 ${areaSlides}
 ${slide('plan', 9, 'The 90-day plan', `<div class="cols" style="grid-template-columns:1fr 1fr 1fr"><div><h3>Weeks 1–2</h3>${listHtml(plan.weeks_1_2.slice(0, 3))}</div><div><h3>Weeks 3–6</h3>${listHtml(plan.weeks_3_6.slice(0, 3))}</div><div><h3>Weeks 7–12</h3>${listHtml(plan.weeks_7_12.slice(0, 3))}</div></div>`)}
@@ -978,7 +943,7 @@ ${slide(
   'Next steps',
   `${listHtml(m.writeup.next_steps)}<p class="cta" style="margin-top:50px">${d.preparer ? 'Full audit (PDF) in your portal' : `<a href="${esc(auditLink)}">Full audit (PDF)</a>`}</p>`
 )}
-</body></html>`, who);
+</body></html>`, who));
 }
 
 // ---------------------------------------------------------------------------
@@ -1005,6 +970,7 @@ export function buildSummaryHtml(d: ReportData, links: { deck: string; audit: st
   const audit = portalLink(links.audit);
   const folder = portalLink(links.folder);
   const who = d.preparer ?? NEW_WAVE_PREPARER;
+  const frame: Frame = { who, client: { name: f.business.name, brand: b }, report: 'Marketing audit summary', site: siteLabel(f.business.website), date: d.date };
   const findings = m.writeup.findings?.length ? m.writeup.findings.slice(0, 4).map(finding => ({ k: finding.area, text: `${finding.title}. ${finding.evidence} ${finding.action}` })) : (['google', 'social', 'website', 'ads', 'keywords'] as AreaKey[])
     .map((k) => {
       const seo = k === 'website' ? f.site?.business?.technical_seo?.findings[0] : null;
@@ -1015,31 +981,33 @@ export function buildSummaryHtml(d: ReportData, links: { deck: string; audit: st
     .map(({ key, label, r }) => `<tr${key === 'base' ? ' class="base"' : ''}><td>${label}</td><td>${money(r.steady_month.spend)}/mo</td><td>${money(r.year.net)}</td></tr>`)
     .join('');
 
-  return ownWording(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(f.business.name)} - Marketing Audit Summary</title><style>
-${baseCss(b)}
-@page{size:Letter;margin:0}
-.sheet{width:8.5in;height:11in;position:relative;overflow:hidden;font-size:9.5pt;line-height:1.4}
-.sheet>header{padding:0.4in 0.5in 0.3in;display:flex;justify-content:space-between;align-items:center;gap:20px}
-.sheet h1{font-size:22pt}
-.sheet .logo{max-height:52px;max-width:180px;background:#fff;border-radius:6px;padding:5px}
-.body{position:absolute;top:1.45in;left:0.5in;right:0.5in;bottom:0.85in;overflow:hidden}
-.headline{font-size:13pt;font-weight:700;color:${b.heading};margin-bottom:4px}
-.kpis{gap:8px;margin:10px 0}
-.kpi{padding:8px 10px}
+  return numberPages(ownWording(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(f.business.name)} - Marketing Audit Summary</title><style>
+${houseCss(b)}
+.sheet{width:8.5in;height:11in;position:relative;overflow:hidden;font-size:9.3pt;line-height:1.4;display:flex;flex-direction:column}
+.sheet .page-head{height:0.85in}
+.sheet .body{padding:0.22in 0.5in 0.15in;overflow:hidden;flex:1 1 auto}
+.sheet .kicker{margin-bottom:4px}
+.sheet h1{font-size:17pt;margin:0 0 4px}
+.sheet .lede{font-size:9.6pt;margin-bottom:4px}
+.kpis{gap:8px;margin:8px 0}
+.kpi{padding:7px 10px}
 .kpi .v{font-size:14pt}
-.kpi .l{font-size:7.5pt}
-h3{font-size:10.5pt;margin:10px 0 4px}
+.kpi .l{font-size:7pt}
+h3{font-size:10.5pt;margin:9px 0 3px}
 .findings li{margin:3px 0}
 .findings a{font-size:8pt;margin-left:4px}
-.evidence-limit{font-size:8pt;margin:8px 0;color:#374151;padding:7px 9px;border-left:3px solid ${b.primary};background:${b.tint}}
-table{font-size:9pt}
-td,th{padding:4px 6px}
-.sheet>footer{position:absolute;left:0.5in;right:0.5in;bottom:0.35in;border-top:1px solid #e5e7eb;padding-top:6px;font-size:8.5pt;display:flex;gap:18px}
+.evidence-limit{font-size:8pt;margin:6px 0;padding:6px 9px}
+table{font-size:8.8pt;margin:6px 0}
+td{padding:3px 6px}th{padding:3px 6px}
+.sheet .links{padding:0 0.5in 8px;font-size:7.3pt;font-weight:500;color:${HOUSE.slate};flex:0 0 auto}
+.sheet .links a{margin-right:16px;text-decoration:none;color:${HOUSE.tide}}
+.sheet .page-foot{height:0.5in;padding:0 0.5in}
 </style></head><body><div class="sheet">
-<header class="band"><div><h1>${esc(f.business.name)}</h1><div class="muted">Marketing audit summary · ${preparedBy(who)}${preparerLogo(who)} · ${esc(d.date)}${linkedLine(f) ? ` · ${esc(linkedLine(f)!)}` : ''}</div></div>${logoImg(b, '')}</header>
+${pageHead(frame)}
 <div class="body" data-fit>
-<p class="headline">${esc(m.writeup.headline)}</p>
-<p>${esc(m.writeup.verdict)}</p>
+<div class="kicker">Marketing audit summary${f.business.city ? ` · ${esc(f.business.city)}` : ''} · ${esc(d.date)} · ${preparedBy(who)}${linkedLine(f) ? ` · ${esc(linkedLine(f)!)}` : ''}</div>
+<h1>${esc(m.writeup.headline)}</h1>
+<p class="lede">${esc(m.writeup.verdict)}</p>
 ${kpiHtml(kpis(f, m, p))}
 ${evidenceLimits(f, true)}
 <h3>Findings and priorities</h3>
@@ -1051,6 +1019,7 @@ ${d.plans?.social_plan.week.length ? `<h3>The first week of posts</h3>${listHtml
 <h3>Next 90 days</h3>
 ${listHtml(m.writeup.next_steps)}
 </div>
-<footer>${d.preparer ? '<span>Slides (PDF) · Full audit (PDF) · all reports in your portal</span>' : `<a href="${esc(deck)}">Slides (PDF)</a><a href="${esc(audit)}">Full audit (PDF)</a><a href="${esc(folder)}">All reports</a>`}</footer>
-</div></body></html>`, who);
+<div class="links mono">${d.preparer ? 'Slides (PDF) · Full audit (PDF) · all reports in your portal' : `<a href="${esc(deck)}">Slides (PDF)</a><a href="${esc(audit)}">Full audit (PDF)</a><a href="${esc(folder)}">All reports</a>`}</div>
+${pageFoot(frame)}
+</div></body></html>`, who));
 }

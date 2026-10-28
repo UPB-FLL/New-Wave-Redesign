@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { loadBranding } from './branding.js';
+import { storable } from './storable.js';
 import { PermanentStepError, type AuditRow, type StepDefinition } from './types.js';
 
 /**
@@ -319,13 +320,15 @@ export async function runWorker(
       });
       const patch = def.persist?.(output, run);
       if (patch && Object.keys(patch).length) {
-        const { error: persistError } = await db.from('marketing_audits').update(patch).eq('id', claimed.audit_id);
+        const { error: persistError } = await db.from('marketing_audits').update(storable(patch)).eq('id', claimed.audit_id);
         if (persistError) throw new Error(`Could not save the step's changes to the audit: ${persistError.message}`);
       }
-      await db
+      // A refused write (jsonb will not take a lone surrogate or a NUL; a column gone) must count as a failed step, never as done.
+      const { error: doneError } = await db
         .from('marketing_audit_steps')
-        .update({ status: 'done', output: output ?? null, error: null, finished_at: new Date().toISOString() })
+        .update({ status: 'done', output: storable(output ?? null), error: null, finished_at: new Date().toISOString() })
         .eq('id', claimed.id);
+      if (doneError) throw new Error(`Could not record the step's output: ${doneError.message}`);
       const hold = holdReason(output);
       if (hold) {
         await holdAudit(db, claimed.audit_id, hold);
@@ -335,7 +338,7 @@ export async function runWorker(
       report.ran.push({ audit_id: claimed.audit_id, step: claimed.step, outcome: 'done' });
       if (finishing.has(def) || def === steps[steps.length - 1]) report.finished.push(claimed.audit_id);
     } catch (err) {
-      const why = message(err);
+      const why = storable(message(err));
       const permanent = err instanceof PermanentStepError;
       if (!permanent && claimed.attempts < MAX_ATTEMPTS) {
         await db.from('marketing_audit_steps').update({ status: 'pending', error: why }).eq('id', claimed.id);

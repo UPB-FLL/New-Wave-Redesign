@@ -133,6 +133,7 @@ export async function runDeliverIntegrated(ctx: StepContext): Promise<Stored> {
     'Integrated Plan',
     buildIntegratedHtml({
       business: ctx.audit.business_name,
+      website: ctx.audit.website,
       brand: brandFrom(site, ctx.audit.branding),
       date: formatDate(new Date(x.generated_at)),
       integrated: x,

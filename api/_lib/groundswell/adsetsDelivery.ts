@@ -172,6 +172,7 @@ export async function runDeliverAdsets(ctx: StepContext): Promise<AdsetsDelivery
     'Ad Sets',
     buildAdsetsHtml({
       business: ctx.audit.business_name,
+      website: ctx.audit.website,
       brand: brandOf(ctx),
       date: formatDate(new Date(out.generated_at)),
       phase: ctx.audit.phase === 'integrated' ? 'integrated' : 'competitors',

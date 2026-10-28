@@ -8,7 +8,8 @@ import { escapeHtml as esc } from '../http.js';
 import type { AdsetsOutput } from './adsets.js';
 import type { Brand } from './brand.js';
 import type { Cell } from './files.js';
-import { baseCss, logoImg, money, NEW_WAVE_PREPARER, num, ownWording, preparedBy, preparerLogo, table, type Preparer } from './reports.js';
+import { money, NEW_WAVE_PREPARER, num, ownWording, preparedBy, table, type Preparer } from './reports.js';
+import { framePage, houseCss, numberPages, pageFoot, pageHead, siteLabel, type Frame } from './reportFrame.js';
 
 /**
  * The ad sets as handed over: the PDF a person reads (what each set is for,
@@ -278,6 +279,8 @@ export function googleEditorRows(out: AdsetsOutput, scenario: Scenario = 'medium
 
 export interface AdsetsReportData {
   business: string;
+  /** The business's website, for the footer bar; absent means the name. */
+  website?: string | null;
   brand: Brand;
   date: string;
   phase: 'competitors' | 'integrated';
@@ -412,9 +415,8 @@ export function buildAdsetsHtml(d: AdsetsReportData): string {
   const s = o.sets;
   const who = d.preparer ?? NEW_WAVE_PREPARER;
   const phaseWords = d.phase === 'integrated' ? `${PHASE_INFO.integrated.title} · from the business’s own accounts` : `${PHASE_INFO.competitors.title} · from public data, against competitors`;
-  const footer = `${esc(d.business)} · Ad sets · ${preparedBy(who)} · ${esc(d.date)}`;
-  const section = (kicker: string, title: string, body: string) =>
-    `<section class="page"><div class="kicker">${esc(kicker)}</div><h2>${esc(title)}</h2>${body}<div class="foot">${footer}</div></section>`;
+  const frame: Frame = { who, client: { name: d.business, brand: b }, report: 'Ad sets', site: siteLabel(d.website), date: d.date };
+  const section = (kicker: string, title: string, body: string) => framePage(frame, kicker, title, body);
   const t = s.totals;
   const channels = [...(s.reddit ?? []), ...(s.tiktok ?? [])];
   const tiles = [
@@ -423,10 +425,11 @@ export function buildAdsetsHtml(d: AdsetsReportData): string {
     { v: t.medium.roi === null ? 'not modeled' : `${Math.round(t.medium.roi * 100)}%`, l: 'Return on the modeled spend, medium budget' },
     { v: money(t.medium.year_net), l: '12-month net of the modeled sets, medium budget' },
   ];
-  const cover = `<section class="page cover"><div class="band">${logoImg(b, '')}<h1>${esc(d.business)}</h1>
-<div class="muted">Ad sets · ${esc(phaseWords)} · ${preparedBy(who)}${preparerLogo(who)} · ${esc(d.date)}</div></div>
-<div class="inner"><p>${s.goals.leads} set${s.goals.leads === 1 ? '' : 's'} for leads, ${s.goals.engagement} for engagement and ${s.goals.rankings} for rankings, every one paused until someone turns it on. Each is priced at three budgets with the return on that spend: the medium budget is the plan’s base case, the low half of it and the high double. Engagement is not a sale, so its return is not modeled.</p>
-<div class="kpis">${tiles.map((x) => `<div class="kpi"><div class="v">${esc(x.v)}</div><div class="l">${esc(x.l)}</div></div>`).join('')}</div>
+  const cover = `<section class="page cover">${pageHead(frame)}<div class="body">
+<div class="kicker">Ad sets · ${esc(phaseWords)} · ${esc(d.date)} · ${preparedBy(who)}</div>
+<h1>${esc(d.business)}: the ad sets, priced three ways</h1>
+<p class="lede">${s.goals.leads} set${s.goals.leads === 1 ? '' : 's'} for leads, ${s.goals.engagement} for engagement and ${s.goals.rankings} for rankings, every one paused until someone turns it on. Each is priced at three budgets with the return on that spend: the medium budget is the plan’s base case, the low half of it and the high double. Engagement is not a sale, so its return is not modeled.</p>
+<div class="kpis">${tiles.map((x) => `<div class="kpi"><div class="l">${esc(x.l)}</div><div class="v">${esc(x.v)}</div></div>`).join('')}</div>
 ${table(
   ['Set', 'Goal', 'Low budget', 'Medium budget', 'High budget'],
   [
@@ -439,7 +442,7 @@ ${table(
       ...SCENARIOS.map((x) => (c.tiers ? tierCell(c.tiers[x], c.modeled) : `${dollars(c.spend[x].daily)}/day · ${money(c.spend[x].monthly)}/mo · return not modeled`)),
     ]),
   ]
-)}${channels.length ? '<p class="note">The Reddit and TikTok sets are priced on their own and are not in the totals above.</p>' : ''}</div><div class="foot">${footer}</div></section>`;
+)}${channels.length ? '<p class="note">The Reddit and TikTok sets are priced on their own and are not in the totals above.</p>' : ''}</div>${pageFoot(frame)}</section>`;
 
   const metaPages = s.meta.length ? section('Meta · Facebook and Instagram', 'The Meta ad sets', s.meta.map((m) => metaCard(m, d.images)).join('')) : '';
   const google = s.google
@@ -491,28 +494,14 @@ ${s.notes.length ? `<h3>Notes</h3><ul>${s.notes.map((n) => `<li>${esc(n)}</li>`)
 <h3>Where the numbers come from</h3><ul><li class="note">${esc(GROUNDSWELL_CONFIG.adsets.budget_basis)}</li>${[...new Set([...s.meta.flatMap((m) => m.sources), ...(s.google?.ad_groups ?? []).flatMap((g) => g.sources), ...channels.flatMap((c) => c.sources)])].map((x) => `<li class="note">${esc(x)}</li>`).join('')}</ul>`
   );
 
-  return ownWording(
+  return numberPages(ownWording(
     `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(d.business)} - Ad sets</title><style>
-${baseCss(b)}
-@page{size:Letter;margin:0}
-.page{width:8.5in;min-height:11in;padding:0.6in 0.6in 0.8in;position:relative;page-break-after:always;font-size:9.5pt;line-height:1.45}
-.page:last-child{page-break-after:auto}
-.cover{padding:0;display:flex;flex-direction:column}
-.cover .band{padding:0.7in 0.6in 0.5in}
-.cover .inner{padding:0.4in 0.6in 0.8in}
-.cover h1{font-size:28pt;margin:12px 0 6px}
-.cover .logo{max-height:64px;max-width:240px;background:#fff;border-radius:8px;padding:6px}
-.kicker{font-size:8.5pt;letter-spacing:.08em;text-transform:uppercase;color:#4b5563;margin-bottom:4px}
-h2{font-size:19pt;margin-bottom:12px}
-h3{font-size:11.5pt;margin:12px 0 4px}
-p{margin:4px 0}
-table{margin:8px 0;font-size:8.3pt}
+${houseCss(b)}
+.page{font-size:9.5pt}
+table{font-size:8.3pt}
 td,th{padding:4px 6px;word-break:break-word}
-.kpis{gap:10px;margin:16px 0}
-.kpi{padding:12px}
 .kpi .v{font-size:15pt}
-.kpi .l{font-size:8.3pt}
-.card{border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;margin:0 0 14px;page-break-inside:avoid}
+.card{border:1px solid #E8EFF1;border-top:3px solid #31C6CF;border-radius:4px;padding:12px 14px;margin:0 0 14px;page-break-inside:avoid}
 .ad{display:grid;grid-template-columns:1.6in 1fr;gap:12px;margin-top:10px;page-break-inside:avoid}
 .ad img,.noimg{width:1.6in;height:2in;object-fit:cover;border-radius:6px;background:#f3f4f6}
 .ad.vertical img,.ad.vertical .noimg{height:2.84in}
@@ -523,8 +512,7 @@ td,th{padding:4px 6px;word-break:break-word}
 .caption{white-space:pre-wrap;font-size:8.5pt}
 .note{font-size:8pt;color:#4b5563}
 ol{padding-left:1.2em}li{margin:2px 0}
-.foot{position:absolute;left:0.6in;right:0.6in;bottom:0.35in;font-size:8pt;color:#6b7280;border-top:1px solid #e5e7eb;padding-top:6px}
 </style></head><body>${cover}${metaPages}${google}${channelPage}${carousel}${changes}${howTo}</body></html>`,
     who
-  );
+  ));
 }

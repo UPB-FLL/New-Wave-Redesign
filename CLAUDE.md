@@ -60,6 +60,48 @@ Search, Reddit and TikTok. Full notes: section 7 of
   an image from this code (billed per call); the Reddit and TikTok files
   follow the platforms' published fields, not a live import.
 
+### Groundswell: every PDF in the NWSE house frame (2026-10-27)
+
+Owner's ask: the engine's reports should look like the division's hand-made
+reports (the Wildly Primal paid-media report of 2026-10-27): the same headers,
+footers and layout, whatever the data.
+
+- **Frame** `api/_lib/groundswell/reportFrame.ts` (`houseCss`, `pageHead`,
+  `pageFoot`, `framePage`, `numberPages`, `footLine`, `siteLabel`, `HOUSE`):
+  every page opens on a Current Navy band with the division's inline logo
+  (the light-on-dark SVG, inlined) on the left and "Prepared for" with the
+  client's chip (its logo and name; the chip's rule in the client's colour)
+  on the right; an amber mono-caps kicker over a Plus Jakarta display title;
+  stat tiles under a cyan, tide or amber rule (label above the value);
+  tables with mono-caps column heads and hairline rows, a `Total` or
+  `All sets` row in bold; `.callout` (left rule), `.callout-dark` (navy), and
+  `.pill`; a navy footer bar carrying "NWSE · <report> · <site> · <date>" and
+  "n / N" (`@@PAGE@@` / `@@PAGES@@` filled in by `numberPages` once the
+  document is whole). Inter, Plus Jakarta Sans and IBM Plex Mono are inlined
+  from the division's fonts. A partner's white-label report keeps the frame
+  with the partner's logo (or name) where the division's sits and its name
+  in the footer; "NWSE" never appears. The client's colour marks only its
+  chip: the house palette carries the rest, so every report reads as one set.
+- **Reports**: the full audit (its cover is the headline, the verdict, the
+  tiles, the evidence limit and the modeled return as a dark callout), the
+  slides (1920×1080 in the same band and bar; a "Slide n" kicker), the
+  one-page summary (its links in a row above the footer bar), the benchmark,
+  the ad sets and the integrated plan all use it. `baseCss` stays for the ad
+  images (`creativeRender.ts`). `AdsetsReportData` and
+  `IntegratedReportData` gain `website` for the footer; the deliveries pass
+  it. `Preparer`, `preparerFor`, `preparedBy`, `preparerLogo` and `logoImg`
+  live in the frame module and are re-exported from `reports.ts`.
+- **Verification re-read**: `verify_read_N` gets `needsMs: READ_NEEDS_MS`
+  (180 s, the social step's), so a re-read is handed to the next call when
+  little time is left rather than cut off; the brewery's run of 2026-10-27
+  was held because its round-3 Instagram re-read got 40 s.
+- **Benchmark's signed-in read**: `GATED_DEPTH_POSTS` is `GATED_POSTS` (12):
+  asked for 24 the actor answered an empty dataset (checked live), so the
+  brewery's column stayed "not checked" on the run of 2026-10-27 22:26 UTC.
+- **Tests**: `src/test/api/groundswell-report-frame.test.ts`; the slide pin
+  in `groundswell-plans.test.ts`, the budget pin in `groundswell-verify.test.ts`
+  and the post count in `groundswell-benchmark.test.ts` follow.
+
 ### Social Engineering hub: no "remote-first" in the copy (2026-10-27)
 
 Owner's call: "remote-first" says how the team works, not what a client gets,
@@ -277,6 +319,51 @@ only in the catch path.
   Explorer citation count had answered: 2 citations of the brewery's site,
   both on Google AI Mode); and an llms-full.txt larger than the read cap
   now counts as present with its size unknown (`bytes: null`).
+
+### Groundswell: the benchmark's social depth reads a gated profile through the signed-in reader (2026-10-27)
+
+The competitor benchmark's "Where each account stands" showed the brewery's
+column as "not checked": `social_depth` read posts and reels through
+ScrapeCreators only, which the age gate refuses. Now `depth()`
+(`currents/socialDepth.ts`) falls back to the signed-in reader
+(`readGatedItems` in `currents/social.ts`, `GATED_DEPTH_POSTS` 24) on a
+refusal the reader gets past (`gatedRefusal`: age, restricted, blocked;
+never private), maps its items with `gatedRawItem` (reels told from posts by
+`post_type`, carousels by their media count, views as plays), and keeps the
+audit's follower count over the actor's. Each account carries `read_via`
+and the output `business_read_via`; the source line names the reader when
+used. Test: the gated case in `groundswell-benchmark.test.ts`.
+
+### Groundswell: a refused output write is a failed try; outputs are made storable; the pruner keeps the post list (2026-10-27)
+
+Seen on the first run with the signed-in reader (21:46 UTC): the worker
+logged the social step "done" twice while PostgREST refused its PATCH with
+400 (80-byte body, PGRST102's size), nothing was written, and the lease ran
+out each time. `runWorker` never read the done-write's error.
+
+- **Engine**: the done-write's error now throws ("Could not record the
+  step's output: …"), so the catch path records it and retries, skips or
+  fails as for any other failure. Every output, persisted patch and error
+  message goes through `storable` (`api/_lib/groundswell/storable.ts`):
+  strings made well-formed (a lone surrogate, half an emoji left by a
+  `slice`, becomes U+FFFD; NUL is dropped), which jsonb otherwise refuses
+  ("Unicode low surrogate must follow a high surrogate"; checked on
+  production). `cut(s, n)` is the surrogate-safe truncation; the social
+  step's caption cuts use it.
+- **Pruner** (`prunerCode`, consumer executor): a ScrapeCreators post page
+  (about 850 KB for twelve posts: the poster's 40-field profile on every
+  post, fourteen image sizes each) was pruned to `items: [null, …]` because
+  the node budget (960) went on the profile's long tail first, so the
+  benchmark's social depth read zero posts for every competitor
+  ("Posts per week 0", "Not enough data"). The post lists and the fields
+  the Currents read are now priority keys, `user` inside an item is
+  dropped (the top-level profile stays), more profile junk is dropped, and
+  the budget is 2,400 nodes under the same 19 KB output cap.
+- **Tests**: `groundswell-storable.test.ts`; the storable and refused-write
+  cases in `groundswell-engine.test.ts`; the twelve-post page in
+  `groundswell-composio-consumer.test.ts` (runs the Python pruner).
+- Not verified live until the next run: whether the social step's write
+  now lands (if it still fails, the recorded error names why).
 
 ### Groundswell: a signed-in reader for age-gated Instagram profiles (2026-10-27)
 

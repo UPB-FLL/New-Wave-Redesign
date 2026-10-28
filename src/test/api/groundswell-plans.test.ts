@@ -161,7 +161,7 @@ describe('the reports', () => {
     const deck = buildDeckHtml(data, { audit: AUDIT });
     expect(deck).toContain(`id="${CONTENT_SLIDE_ID}"`);
     expect(deck.indexOf(`id="${CONTENT_SLIDE_ID}"`)).toBeLessThan(deck.indexOf('id="next"'));
-    expect(deck).toMatch(/Next steps<\/span>[\s\S]*?<span>13<\/span>/);
+    expect(deck).toMatch(/<h2>Next steps<\/h2>[\s\S]*?13 \/ 13<\/span>/);
     expect(buildDeckHtml(sampleReportDataWithPlan(), { audit: AUDIT })).not.toContain(CONTENT_SLIDE_ID);
     const summary = buildSummaryHtml(data, { deck: DECK, audit: AUDIT, folder: FOLDER });
     expect(summary).toContain('The first week of posts');

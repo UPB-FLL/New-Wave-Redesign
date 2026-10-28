@@ -5,7 +5,8 @@ import type { AdsetsOutput } from './adsets.js';
 import type { Brand } from './brand.js';
 import type { GaData, GoogleAdsData, GscData, LinkedOutput, MetaAdsData } from './currents/linked.js';
 import type { IntegratedOutput, Opportunity } from './integrated.js';
-import { baseCss, linkedTables, logoImg, money, NEW_WAVE_PREPARER, num, ownWording, preparedBy, preparerLogo, table, type Preparer } from './reports.js';
+import { linkedTables, money, NEW_WAVE_PREPARER, num, ownWording, preparedBy, table, type Preparer } from './reports.js';
+import { framePage, houseCss, numberPages, pageFoot, pageHead, siteLabel, type Frame } from './reportFrame.js';
 
 /**
  * The integrated plan PDF (phase 3, Letter, the client's brand), in the shape
@@ -18,6 +19,8 @@ import { baseCss, linkedTables, logoImg, money, NEW_WAVE_PREPARER, num, ownWordi
 
 export interface IntegratedReportData {
   business: string;
+  /** The business's website, for the footer bar; absent means the name. */
+  website?: string | null;
   brand: Brand;
   date: string;
   integrated: IntegratedOutput;
@@ -46,17 +49,16 @@ export function buildIntegratedHtml(d: IntegratedReportData): string {
   const { brand: b, integrated: x, linked: l } = d;
   const who = d.preparer ?? NEW_WAVE_PREPARER;
   const period = x.window ? `${x.window.start} to ${x.window.end}` : 'the last 30 days';
-  const footer = `${esc(d.business)} · ${esc(PHASE_INFO.integrated.title)} · ${preparedBy(who)} · ${esc(d.date)}`;
-  const section = (kicker: string, title: string, body: string) =>
-    `<section class="page"><div class="kicker">${esc(kicker)}</div><h2>${esc(title)}</h2>${body}<div class="foot">${footer}</div></section>`;
+  const frame: Frame = { who, client: { name: d.business, brand: b }, report: PHASE_INFO.integrated.title, site: siteLabel(d.website), date: d.date };
+  const section = (kicker: string, title: string, body: string) => framePage(frame, kicker, title, body);
 
-  const cover = `<section class="page cover"><div class="band">${logoImg(b, '')}<h1>${esc(d.business)}</h1>
-<div class="muted">${esc(PHASE_INFO.integrated.title)} · the business’s own accounts, ${esc(period)} · ${preparedBy(who)}${preparerLogo(who)} · ${esc(d.date)}</div></div>
-<div class="inner">${x.writeup.headline ? `<p class="lead">${esc(x.writeup.headline)}</p>` : ''}
-<div class="kpis">${tiles(l).map((t) => `<div class="kpi"><div class="v">${esc(t.v)}</div><div class="l">${esc(t.l)}</div></div>`).join('')}</div>
+  const cover = `<section class="page cover">${pageHead(frame)}<div class="body">
+<div class="kicker">${esc(PHASE_INFO.integrated.title)} · the business’s own accounts, ${esc(period)} · ${esc(d.date)} · ${preparedBy(who)}</div>
+<h1>${esc(x.writeup.headline || d.business)}</h1>
+<div class="kpis">${tiles(l).map((t) => `<div class="kpi"><div class="l">${esc(t.l)}</div><div class="v">${esc(t.v)}</div></div>`).join('')}</div>
 ${x.writeup.findings.length ? `<h3>Findings</h3><ol class="findings">${x.writeup.findings.map((f) => `<li><b>${esc(f.title)}.</b> ${esc(f.text)}</li>`).join('')}</ol>` : ''}
-${x.writeup.next_steps.length ? `<div class="next"><div class="kicker">Next steps</div><ol>${x.writeup.next_steps.map((s) => `<li><b>${esc(s.title)}.</b> ${esc(s.text)}</li>`).join('')}</ol></div>` : ''}
-</div><div class="foot">${footer}</div></section>`;
+${x.writeup.next_steps.length ? `<div class="callout-dark next"><div class="kicker">Next steps</div><ol>${x.writeup.next_steps.map((s) => `<li><b>${esc(s.title)}.</b> ${esc(s.text)}</li>`).join('')}</ol></div>` : ''}
+</div>${pageFoot(frame)}</section>`;
 
   const accounts = section('The business’s own accounts', `What the accounts show, ${period}`, linkedTables(l) || '<p class="muted">No account could be read.</p>');
 
@@ -122,37 +124,19 @@ ${unavailable.length ? `<p><span class="tag na">Unavailable</span> ${unavailable
 ${x.dropped.length ? `<p class="note">${x.dropped.length} sentence${x.dropped.length === 1 ? ' was' : 's were'} left out because a figure in ${x.dropped.length === 1 ? 'it' : 'them'} was not in the data.</p>` : ''}`
   );
 
-  return ownWording(
+  return numberPages(ownWording(
     `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(d.business)} - Integrated plan</title><style>
-${baseCss(b)}
-@page{size:Letter;margin:0}
-.page{width:8.5in;min-height:11in;padding:0.6in 0.6in 0.8in;position:relative;page-break-after:always;font-size:9.5pt;line-height:1.45}
-.page:last-child{page-break-after:auto}
-.cover{padding:0;display:flex;flex-direction:column}
-.cover .band{padding:0.7in 0.6in 0.5in}
-.cover .inner{padding:0.35in 0.6in 0.8in}
-.cover h1{font-size:28pt;margin:12px 0 6px}
-.cover .logo{max-height:64px;max-width:240px;background:#fff;border-radius:8px;padding:6px}
-.lead{font-size:12pt;margin-bottom:6px}
-.kicker{font-size:8.5pt;letter-spacing:.08em;text-transform:uppercase;color:#4b5563;margin-bottom:4px}
-h2{font-size:19pt;margin-bottom:12px}
-h3{font-size:11pt;margin:12px 0 4px}
-p{margin:4px 0}
-table{margin:6px 0;font-size:8.3pt}
+${houseCss(b)}
+.page{font-size:9.5pt}
+table{font-size:8.3pt;margin:6px 0}
 td,th{padding:4px 6px;word-break:break-word}
-.kpis{gap:10px;margin:14px 0}
-.kpi{padding:12px}
 .kpi .v{font-size:16pt}
-.kpi .l{font-size:8.3pt}
 .findings li,.next li{margin:4px 0}
-.next{margin-top:12px;background:${b.primary};color:${b.onPrimary};border-radius:10px;padding:12px 16px}
-.next .kicker{color:${b.onPrimary};opacity:.85}
 ol{padding-left:1.3em}
 .tag{display:inline-block;font-size:7.5pt;letter-spacing:.06em;text-transform:uppercase;border-radius:4px;padding:1px 6px;margin-right:4px}
 .tag.ok{background:#e0f2f1;color:#0f5132}.tag.derived{background:#fff3cd;color:#664d03}.tag.na{background:#e5e7eb;color:#374151}
 .note{font-size:8pt;color:#4b5563}
-.foot{position:absolute;left:0.6in;right:0.6in;bottom:0.35in;font-size:8pt;color:#6b7280;border-top:1px solid #e5e7eb;padding-top:6px}
 </style></head><body>${cover}${accounts}${terms}${map}${plan}${sources}</body></html>`,
     who
-  );
+  ));
 }
