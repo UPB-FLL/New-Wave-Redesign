@@ -1,4 +1,5 @@
 import { getSupabaseAdmin } from '../../supabaseAdmin.js';
+import { cut } from '../storable.js';
 import { executeTool, executeToolAs, findKey, isComposioConfigured } from '../composio.js';
 import { PermanentStepError, type StepContext } from '../types.js';
 import { loadLinkedAccounts } from './linked.js';
@@ -138,7 +139,7 @@ export function mediaFrom(posts: unknown): InstagramMedia[] {
       comments: n(p.comment_count) ?? n(p.commentsCount) ?? n(findKey(p.edge_media_to_comment, 'count')),
       plays: n(p.play_count) ?? n(p.ig_play_count) ?? n(p.videoPlayCount) ?? n(p.videoViewCount),
       taken_at: time ? new Date(time).toISOString() : null,
-      caption: caption ? caption.slice(0, 400) : null,
+      caption: caption ? cut(caption, 400) : null,
     });
   }
   return out.slice(0, 12);
@@ -147,7 +148,7 @@ export function mediaFrom(posts: unknown): InstagramMedia[] {
 const n = numeric;
 
 /** The captions of a post list, newest first, trimmed. */
-export const captionsOf = (media: InstagramMedia[] | undefined): string[] => (media ?? []).map((m) => (m.caption ?? '').replace(/\s+/g, ' ').trim().slice(0, 220)).filter(Boolean).slice(0, 8);
+export const captionsOf = (media: InstagramMedia[] | undefined): string[] => (media ?? []).map((m) => cut((m.caption ?? '').replace(/\s+/g, ' ').trim(), 220)).filter(Boolean).slice(0, 8);
 
 /** The hashtags in a set of captions, most used first, lower-case, without the sign. */
 export function hashtagsOf(captions: string[], limit = 15): string[] {
@@ -315,13 +316,21 @@ export function gatedProfile(answer: unknown): Record<string, unknown> | null {
   return { username: it.username, follower_count: it.follower_count, following_count: it.following_count, biography: it.biography, full_name: it.full_name, is_private: it.is_private };
 }
 
-async function readGated(handle: string, timeoutMs = GATED_TIMEOUT_MS): Promise<ProfilePair> {
+/** The actor's answer for a handle (one item per post, the profile on each), for any Current that reads a gated profile. */
+export async function readGatedItems(handle: string, timeoutMs = GATED_TIMEOUT_MS, maxPosts = GATED_POSTS): Promise<unknown> {
   const seconds = Math.max(30, Math.min(300, Math.floor(timeoutMs / 1000) - 5));
-  const answer = await executeTool(
+  return executeTool(
     'APIFY_RUN_ACTOR_SYNC_GET_DATASET_ITEMS',
-    { actorId: GATED_ACTOR, input: { usernames: [handle], maxPosts: GATED_POSTS, includeViews: true }, maxTotalChargeUsd: GATED_CHARGE_CAP_USD, waitForFinish: seconds, timeout: seconds, limit: GATED_POSTS, format: 'json' },
+    { actorId: GATED_ACTOR, input: { usernames: [handle], maxPosts, includeViews: true }, maxTotalChargeUsd: GATED_CHARGE_CAP_USD, waitForFinish: seconds, timeout: seconds, limit: maxPosts, format: 'json' },
     timeoutMs
   );
+}
+
+/** A refusal the signed-in reader gets past: the profile is shown only to signed-in adults, or the public reader was turned away. */
+export const gatedRefusal = (err: unknown) => refusal(err) !== null && refusal(err) !== 'private';
+
+async function readGated(handle: string, timeoutMs = GATED_TIMEOUT_MS): Promise<ProfilePair> {
+  const answer = await readGatedItems(handle, timeoutMs);
   const profile = gatedProfile(answer);
   if (!profile) throw new Error('The signed-in reader answered with no posts for this profile.');
   return [profile, gatedPosts(answer), null];
@@ -407,7 +416,7 @@ export function mediaFromGraph(items: unknown): InstagramMedia[] {
       comments: n(m.comments_count),
       plays: type === 'VIDEO' ? n(m.view_count) : null,
       taken_at: time && Number.isFinite(time) ? new Date(time).toISOString() : null,
-      caption: typeof m.caption === 'string' ? m.caption.slice(0, 400) : null,
+      caption: typeof m.caption === 'string' ? cut(m.caption, 400) : null,
     });
   }
   return out.slice(0, 12);
