@@ -23,6 +23,7 @@ export const GROUNDSWELL_ADMIN_PATH = `${GROUNDSWELL_PATH}/admin`;
 export const GROUNDSWELL_ADMIN_AUDITS_PATH = `${GROUNDSWELL_ADMIN_PATH}/audits`;
 export const GROUNDSWELL_ADMIN_PARTNERS_PATH = `${GROUNDSWELL_ADMIN_PATH}/partners`;
 export const GROUNDSWELL_ADMIN_AGENT_PATH = `${GROUNDSWELL_ADMIN_PATH}/agent`;
+export const GROUNDSWELL_ADMIN_AGENT_DASHBOARD_PATH = `${GROUNDSWELL_ADMIN_AGENT_PATH}/dashboard`;
 /** Every customer of every partner (and New Wave's own), each with its three phases. */
 export const GROUNDSWELL_ADMIN_CUSTOMERS_PATH = `${GROUNDSWELL_ADMIN_PATH}/customers`;
 export const groundswellAdminCustomerPath = (id: string) => `${GROUNDSWELL_ADMIN_CUSTOMERS_PATH}/${encodeURIComponent(id)}`;

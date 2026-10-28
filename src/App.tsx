@@ -104,6 +104,7 @@ import {
 } from './groundswell/site';
 import {
   GroundswellAdminAgent,
+  GroundswellAdminAgentDashboard,
   GroundswellAdminAudits,
   GroundswellAdminCustomer,
   GroundswellAdminCustomers,
@@ -232,6 +233,7 @@ export default function App() {
           <Route path="audits" element={<GroundswellAdminAudits />} />
           <Route path="partners" element={<GroundswellAdminPartners />} />
           <Route path="agent" element={<GroundswellAdminAgent />} />
+          <Route path="agent/dashboard" element={<GroundswellAdminAgentDashboard />} />
         </Route>
         {/* The partner portal's old addresses under Croissance. */}
         <Route path={LEGACY_PARTNER_PATH} element={<LegacyPartnerRedirect to="sign-in" />} />

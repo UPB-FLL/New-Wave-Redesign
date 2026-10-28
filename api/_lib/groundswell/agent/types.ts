@@ -167,6 +167,70 @@ export interface LearningRow {
   found_at: string;
 }
 
+/**
+ * What the daily training made of the lessons for one kind of issue
+ * (groundswell_agent_playbook): how each resolution held, the order the
+ * agent proposes them in, and the ones ruled out.
+ */
+export interface PlaybookRow {
+  source: string;
+  kind: string;
+  /** The resolutions tried on this kind, best first. */
+  preferred: string[];
+  ruled_out: string[];
+  stats: Record<string, { worked: number; failed: number; last: string }>;
+  trained_at: string;
+  training_run_id: string | null;
+}
+
+/** One step of a training run, as logged: what it did, in words. */
+export interface TrainingStep {
+  step: 'check' | 'gather' | 'recount' | 'playbook';
+  label: string;
+  detail: string;
+  ms: number;
+}
+
+/** A fix the day's training read: a resolution applied, cleared, dismissed, or one that could not be applied. */
+export interface TrainedFix {
+  issue_id: string | null;
+  title: string;
+  source: string;
+  kind: string;
+  resolver: string | null;
+  how: 'approved' | 'cleared' | 'dismissed';
+  verified: 'worked' | 'failed' | null;
+  at: string;
+}
+
+/** One change a training run made to the playbook. */
+export interface TrainingChange {
+  source: string;
+  kind: string;
+  resolver: string | null;
+  change: 'new_kind' | 'first_choice' | 'ruled_out' | 'restored' | 'counts';
+  before: { worked: number; failed: number } | null;
+  after: { worked: number; failed: number } | null;
+  note: string;
+}
+
+export interface TrainingRunRow {
+  id: string;
+  /** 'cron', or 'staff:<email>'. */
+  trigger: string;
+  status: 'running' | 'done' | 'failed';
+  window_start: string;
+  window_end: string;
+  started_at: string;
+  finished_at: string | null;
+  trained_on: { fixes?: TrainedFix[]; lessons?: Pick<LessonRow, 'id' | 'issue_id' | 'source' | 'kind' | 'resolver' | 'result' | 'note' | 'created_at'>[] };
+  steps: TrainingStep[];
+  changes: TrainingChange[];
+  counts: { fixes?: number; lessons?: number; held?: number; failed?: number; kinds?: number; changes?: number; checked?: number };
+  summary: string;
+  error: string | null;
+}
+
 export type Db = Pick<SupabaseClient, 'from'>;
 
 export interface CollectContext {

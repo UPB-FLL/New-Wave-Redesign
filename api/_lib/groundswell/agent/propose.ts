@@ -2,7 +2,7 @@ import { chatJson } from '../openai.js';
 import { agentModel, consultClaude, isClaudeConfigured, type Consultation } from './consult.js';
 import { applicableResolvers } from './resolvers.js';
 import { recordConsultation } from './store.js';
-import type { Confidence, ConsultationRow, Db, IssueRow, LessonSummary, Proposal, Resolver } from './types.js';
+import type { Confidence, ConsultationRow, Db, IssueRow, LessonSummary, PlaybookRow, Proposal, Resolver } from './types.js';
 
 /**
  * One proposal per issue: what it means, the likely cause, and which of the
@@ -17,6 +17,12 @@ import type { Confidence, ConsultationRow, Db, IssueRow, LessonSummary, Proposal
  * adapts to its own record. Without Claude, OpenAI stands in; without
  * either (or when the answer breaks the rules) the agent's own rule
  * proposes: the first applicable resolver, or a developer brief.
+ *
+ * The daily training (train.ts) writes the playbook: per kind of issue, how
+ * each resolution held. The allowed resolvers are offered in its order (the
+ * one that held most often, relative to its tries, first; one never tried
+ * sits at even odds), and the question carries the playbook for the kinds
+ * asked about. Ruling out stays live, from the lessons, between trainings.
  */
 
 /** A resolver that failed this many times on a kind with no success is not proposed for it again. */
@@ -26,16 +32,27 @@ const MAX_ISSUES_PER_CALL = 25;
 /** How many earlier consultations the question carries back. */
 const PRIOR_ADVICE = 12;
 
-export function allowedResolvers(issue: Pick<IssueRow, 'source' | 'kind' | 'subject'>, lessons: LessonSummary[]): Resolver[] {
-  return applicableResolvers(issue).filter((r) => {
+/** How likely a resolver is to hold on this kind, from the playbook: (held + 1) / (tries + 2), so one never tried is at even odds. */
+export function playbookScore(entry: PlaybookRow | undefined, resolver: string): number {
+  const s = entry?.stats[resolver];
+  return s ? (s.worked + 1) / (s.worked + s.failed + 2) : 0.5;
+}
+
+export const playbookFor = (issue: Pick<IssueRow, 'source' | 'kind'>, playbook: readonly PlaybookRow[]) => playbook.find((p) => p.source === issue.source && p.kind === issue.kind);
+
+export function allowedResolvers(issue: Pick<IssueRow, 'source' | 'kind' | 'subject'>, lessons: LessonSummary[], playbook: readonly PlaybookRow[] = []): Resolver[] {
+  const allowed = applicableResolvers(issue).filter((r) => {
     const l = lessons.find((s) => s.source === issue.source && s.kind === issue.kind && s.resolver === r.key);
     return !(l && l.worked === 0 && l.failed >= RULED_OUT_AFTER);
   });
+  const entry = playbookFor(issue, playbook);
+  // Array.prototype.sort is stable: with no playbook entry the registry order stands.
+  return entry ? [...allowed].sort((a, b) => playbookScore(entry, b.key) - playbookScore(entry, a.key)) : allowed;
 }
 
 /** The agent's own proposal, without an advisor. */
-export function ruleProposal(issue: IssueRow, lessons: LessonSummary[]): Proposal {
-  const allowed = allowedResolvers(issue, lessons);
+export function ruleProposal(issue: IssueRow, lessons: LessonSummary[], playbook: readonly PlaybookRow[] = []): Proposal {
+  const allowed = allowedResolvers(issue, lessons, playbook);
   const recurred = issue.recurrences > 0 ? ` It has come back ${issue.recurrences} time${issue.recurrences === 1 ? '' : 's'} after being resolved.` : '';
   if (!allowed.length) {
     return {
@@ -54,7 +71,7 @@ export function ruleProposal(issue: IssueRow, lessons: LessonSummary[]): Proposa
     resolver: first.key,
     summary: issue.title,
     cause: issue.detail,
-    rationale: `${first.label}: the usual first move for this kind of issue.${history ? ` It has worked ${history.worked} time${history.worked === 1 ? '' : 's'} and failed ${history.failed} before.` : ''}${recurred}`,
+    rationale: `${first.label}: ${playbookFor(issue, playbook)?.stats[first.key] ? 'the first choice of the last training for this kind of issue' : 'the usual first move for this kind of issue'}.${history ? ` It has worked ${history.worked} time${history.worked === 1 ? '' : 's'} and failed ${history.failed} before.` : ''}${recurred}`,
     confidence: history && history.failed > history.worked ? 'low' : issue.recurrences ? 'low' : 'medium',
     by: 'rule',
   };
@@ -66,6 +83,7 @@ Rules:
 - Plain words for a business owner. No jargon the evidence does not use. Never invent a figure, a cause or a name.
 - "resolver" must be one of the allowed keys given for that issue, or "needs_developer" when a code or setup change is needed, or "none" when the right move is to wait and watch (say until when). An answer naming any other key is discarded and the agent's own rule proposes instead, so stay within the keys.
 - Learn from the record you are given: "lessons" count how each resolution held per kind of issue, and "prior_advice" is what you advised before on the same kinds, whether the agent kept it, and how it turned out. A resolution that did not hold needs a reason to be tried again; one that held is the first choice; advice the agent rejected tells you what not to repeat.
+- "playbook" is what the agent's daily training made of those lessons: per kind, the resolutions tried, best first, and the ones ruled out. The allowed keys are listed in that order.
 - For needs_developer, write a "brief": what to look at, the evidence, and what would show it is fixed, in at most six lines.
 - confidence is "low", "medium" or "high".
 Answer with JSON only: { "proposals": [ { "id": "<issue id>", "summary": "...", "cause": "...", "resolver": "<key>", "rationale": "...", "confidence": "...", "brief": "..." } ] }.`;
@@ -134,6 +152,8 @@ export interface ProposeOptions {
   advisor?: 'claude' | 'openai' | 'rule';
   /** The earlier consultations the question carries back (the caller reads them). */
   consultations?: ConsultationRow[];
+  /** The daily training's playbook (the caller reads it; empty before migration 20261106120000). */
+  playbook?: PlaybookRow[];
 }
 
 export function advisorFor(opts: ProposeOptions): 'claude' | 'openai' | 'rule' {
@@ -154,7 +174,8 @@ export async function proposeAll(db: Db, issues: IssueRow[], lessons: LessonSumm
   const out = new Map<string, Proposal>();
   if (!issues.length) return out;
   const advisor = advisorFor(opts);
-  const allowedBy = new Map(issues.map((i) => [i.id, allowedResolvers(i, lessons)]));
+  const playbook = opts.playbook ?? [];
+  const allowedBy = new Map(issues.map((i) => [i.id, allowedResolvers(i, lessons, playbook)]));
   let answers = new Map<string, ModelProposal>();
   let consultationId: string | null = null;
   if (advisor !== 'rule') {
@@ -176,6 +197,7 @@ export async function proposeAll(db: Db, issues: IssueRow[], lessons: LessonSumm
       })),
       lessons: lessons.filter((l) => batch.some((i) => i.source === l.source && i.kind === l.kind)),
       prior_advice: priorAdvice(opts.consultations ?? [], batch),
+      playbook: playbook.filter((p) => batch.some((i) => i.source === p.source && i.kind === p.kind)).map((p) => ({ source: p.source, kind: p.kind, preferred: p.preferred, ruled_out: p.ruled_out, stats: p.stats, trained_at: p.trained_at })),
     };
     const questionText = JSON.stringify(question);
     let result: Consultation;
@@ -207,7 +229,7 @@ export async function proposeAll(db: Db, issues: IssueRow[], lessons: LessonSumm
   }
   for (const issue of issues) {
     const { proposal } = checkProposal(issue, answers.get(issue.id), allowedBy.get(issue.id) ?? [], advisor === 'rule' ? 'rule' : advisor);
-    out.set(issue.id, proposal ? { ...proposal, ...(consultationId ? { consultation_id: consultationId } : {}) } : ruleProposal(issue, lessons));
+    out.set(issue.id, proposal ? { ...proposal, ...(consultationId ? { consultation_id: consultationId } : {}) } : ruleProposal(issue, lessons, playbook));
   }
   return out;
 }

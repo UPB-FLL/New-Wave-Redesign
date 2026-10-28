@@ -1,8 +1,9 @@
 import { useState, type ReactNode } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { ArrowUpRight, Bot, ChevronRight, ClipboardList, Gauge, Handshake, LogOut, Menu, Users, X } from 'lucide-react';
+import { Activity, ArrowUpRight, Bot, ChevronRight, ClipboardList, Gauge, Handshake, LogOut, Menu, Users, X } from 'lucide-react';
 import { GROUNDSWELL_BRAND } from '../brand';
 import {
+  GROUNDSWELL_ADMIN_AGENT_DASHBOARD_PATH,
   GROUNDSWELL_ADMIN_AGENT_PATH,
   GROUNDSWELL_ADMIN_AUDITS_PATH,
   GROUNDSWELL_ADMIN_CUSTOMERS_PATH,
@@ -18,7 +19,8 @@ const NAV = [
   { label: 'Customers', path: GROUNDSWELL_ADMIN_CUSTOMERS_PATH, icon: Users, end: false },
   { label: 'Run queue', path: GROUNDSWELL_ADMIN_AUDITS_PATH, icon: ClipboardList, end: false },
   { label: 'Partners', path: GROUNDSWELL_ADMIN_PARTNERS_PATH, icon: Handshake, end: false },
-  { label: 'Agent', path: GROUNDSWELL_ADMIN_AGENT_PATH, icon: Bot, end: false },
+  { label: 'Agent dashboard', path: GROUNDSWELL_ADMIN_AGENT_DASHBOARD_PATH, icon: Activity, end: true },
+  { label: 'Agent', path: GROUNDSWELL_ADMIN_AGENT_PATH, icon: Bot, end: true },
 ];
 
 /** Staff-only chrome. Partner pages continue to use GroundswellShell. */
