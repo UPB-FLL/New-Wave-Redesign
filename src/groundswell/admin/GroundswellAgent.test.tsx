@@ -38,8 +38,14 @@ const view = (issues: AgentIssue[]): AgentView => ({
   issues,
   lessons: [{ source: 'runs', kind: 'run_failed', resolver: 'requeue_step', worked: 2, failed: 0, last: 'Run the failed step again: held.' }],
   last_report: { id: 'r1', sent_at: '2026-10-27T04:00:00Z', to_email: 'josh@newwaveitfl.com', issue_ids: ['i1'], subject: 'GroundSwell agent: 1 resolution waiting on you', summary: '', status: 'sent' },
-  consultations: [{ id: 'c1', advisor: 'claude', purpose: 'proposals', model: 'claude-opus-5-5', created_at: '2026-10-27T04:00:00Z', issues: 3, kept: 2, rejected: ['Named "x", which is not an allowed resolver for this issue (allowed: requeue_step, needs_developer, none).'], outcomes: { i3: { resolver: 'requeue_step', result: 'worked', note: 'held', at: '2026-10-27T08:00:00Z' } }, usage: { input_tokens: 1200, output_tokens: 300, cache_read_input_tokens: 900 }, latency_ms: 2100, error: null }],
-  learnings: [{ id: 'l1', topic: 'social-media-marketing', title: 'Instagram now ranks original content above reposts', summary: 'Reposted reels get less reach.', why_it_matters: 'Clients’ reposts will fall off.', action: 'Post originals; stop reposting.', url: 'https://example.test/instagram-originals', source: 'example.test', published_at: '2026-10-25', confidence: 'high', status: 'new', found_at: '2026-10-27T04:00:00Z' }],
+  consultations: [
+    { id: 'c1', advisor: 'claude', purpose: 'proposals', model: 'claude-opus-5-5', created_at: '2026-10-27T04:00:00Z', issues: 3, kept: 2, rejected: ['Named "x", which is not an allowed resolver for this issue (allowed: requeue_step, needs_developer, none).'], outcomes: { i3: { resolver: 'requeue_step', result: 'worked', note: 'held', at: '2026-10-27T08:00:00Z' } }, usage: { input_tokens: 1200, output_tokens: 300, cache_read_input_tokens: 900 }, latency_ms: 2100, error: null },
+    { id: 'c2', advisor: 'openai', purpose: 'research', model: 'gpt-4o', created_at: '2026-10-28T00:00:25Z', issues: 0, kept: 1, rejected: ['No link here: no usable source link.', 'An old story: published 2026-09-01, before 2026-10-20.'], outcomes: {}, usage: { input_tokens: 4000, output_tokens: 700, cache_read_input_tokens: null }, latency_ms: 9994, error: null },
+  ],
+  learnings: [
+    { id: 'l1', topic: 'social-media-marketing', title: 'Instagram now ranks original content above reposts', summary: 'Reposted reels get less reach.', why_it_matters: 'Clients’ reposts will fall off.', action: 'Post originals; stop reposting.', url: 'https://example.test/instagram-originals', source: 'example.test', published_at: '2026-10-25', confidence: 'low', status: 'new', found_at: '2026-10-27T04:00:00Z', source_kind: 'unconfirmed', source_note: 'unconfirmed source (example.test)' },
+    { id: 'l2', topic: 'social-media-marketing', title: 'Facebook gives users control of their feed', summary: 'A feed control.', why_it_matters: null, action: null, url: 'https://techcrunch.com/2026/10/25/facebook-feed-controls', source: 'TechCrunch', published_at: '2026-10-25', confidence: 'high', status: 'new', found_at: '2026-10-27T04:00:00Z', source_kind: 'publication', source_note: 'a known publication' },
+  ],
   topics: [{ key: 'ai-agent-marketing', label: 'AI agent marketing' }, { key: 'social-media-marketing', label: 'Social media marketing' }],
   resolvers: [{ key: 'requeue_step', label: 'Run the failed step again' }],
   config: { email: 'josh@newwaveitfl.com', email_ready: true, advisor: 'claude', model: 'claude-opus-5-5', claude_ready: true, model_ready: false, live_checks: true, base: 'https://www.newwaveitfl.com' },
@@ -68,6 +74,11 @@ describe('the agent screen', () => {
     expect(screen.getByText(/outcomes: 1 held, 0 did not/)).toBeInTheDocument();
     expect(screen.getByText('Instagram now ranks original content above reposts')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'example.test' })).toHaveAttribute('href', 'https://example.test/instagram-originals');
+    // Who published each page, and what each research ask dropped and why.
+    expect(screen.getByText(/unconfirmed source \(example\.test\) · found .* · confidence low/)).toBeInTheDocument();
+    expect(screen.getByText(/a known publication · found .* · confidence high/)).toBeInTheDocument();
+    expect(screen.getByText(/research, 1 new learning kept, 2 dropped/)).toBeInTheDocument();
+    expect(screen.getByText(/No link here: no usable source link\. An old story: published 2026-09-01, before 2026-10-20\./)).toBeInTheDocument();
     expect(screen.getByText(/AI agent marketing and Social media marketing/)).toBeInTheDocument();
     expect(screen.getByText(/held 2, did not hold 0/)).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: 'Approve' })).toHaveLength(1);

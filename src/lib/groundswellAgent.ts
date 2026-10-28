@@ -77,6 +77,10 @@ export interface AgentLearning {
   confidence: 'low' | 'medium' | 'high';
   status: 'new' | 'kept' | 'dismissed';
   found_at: string;
+  /** Who published the page, read from its link; an unconfirmed one is capped at low confidence. */
+  source_kind: 'company' | 'publication' | 'unconfirmed';
+  /** The label beside the link: "the company’s own site", "a known publication" or "unconfirmed source (<host>)". */
+  source_note: string;
 }
 
 export interface AgentConsultation {

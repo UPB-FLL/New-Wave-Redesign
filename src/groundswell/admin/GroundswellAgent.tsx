@@ -226,7 +226,7 @@ export default function GroundswellAgent() {
         <section aria-label="Learnings" className="gs-card p-5 text-sm">
           <h2 className="font-semibold">What the agent learned</h2>
           <p className="text-xs gs-muted">
-            Every pass asks the advisor, with web search, what is new in {view.topics.map((t) => t.label).join(' and ') || 'its topics'}; only what the agent did not already know is kept and reported, each with the page it was read on.
+            Every pass asks the advisor, with web search, what is new in {view.topics.map((t) => t.label).join(' and ') || 'its topics'}; only what the agent did not already know is kept and reported, each with the page it was read on. A page that is neither the company’s own nor a known publication’s is marked unconfirmed, at low confidence.
           </p>
           {view.learnings.length ? (
             <ul className="mt-3 space-y-3">
@@ -252,7 +252,7 @@ export default function GroundswellAgent() {
                     <a href={l.url} target="_blank" rel="noreferrer" className="gs-link">
                       {l.source || l.url}
                     </a>{' '}
-                    · found {when(l.found_at)} · confidence {l.confidence}
+                    · {l.source_note} · found {when(l.found_at)} · confidence {l.confidence}
                   </p>
                 </li>
               ))}
@@ -274,7 +274,7 @@ export default function GroundswellAgent() {
               const failed = outcomes.filter((o) => o.result !== 'worked').length;
               return (
                 <li key={c.id} data-role="agent-consultation">
-                  <strong>{ADVISOR_LABELS[c.advisor]}</strong> ({c.model}) on {when(c.created_at)}: {c.purpose === 'research' ? `research, ${c.kept} new learning${c.kept === 1 ? '' : 's'} kept` : `asked about ${c.issues} issue${c.issues === 1 ? '' : 's'}, kept ${c.kept}, rejected ${c.rejected.length}`}
+                  <strong>{ADVISOR_LABELS[c.advisor]}</strong> ({c.model}) on {when(c.created_at)}: {c.purpose === 'research' ? `research, ${c.kept} new learning${c.kept === 1 ? '' : 's'} kept${c.rejected.length ? `, ${c.rejected.length} dropped` : ''}` :`asked about ${c.issues} issue${c.issues === 1 ? '' : 's'}, kept ${c.kept}, rejected ${c.rejected.length}`}
                   {outcomes.length ? ` · outcomes: ${held} held, ${failed} did not` : ' · outcomes not known yet'}
                   {c.latency_ms !== null ? ` · ${(c.latency_ms / 1000).toFixed(1)} s` : ''}
                   {c.usage ? ` · ${c.usage.input_tokens + c.usage.output_tokens} tokens` : ''}

@@ -27,10 +27,11 @@ import { allowedResolvers, checkProposal, priorAdvice, proposeAll, ruleProposal 
 import type { Consultation } from '../../../api/_lib/groundswell/agent/consult';
 import { approvalUrl, buildReport, decisionPage } from '../../../api/_lib/groundswell/agent/report';
 import { checkLearnings, normalizeUrl, researchTopics, topicsFromEnv, DEFAULT_TOPICS } from '../../../api/_lib/groundswell/agent/research';
+import { sourceKind, withSource } from '../../../api/_lib/groundswell/agent/learningSources';
 import { parseJsonObject } from '../../../api/_lib/groundswell/agent/consult';
 import { RESOLVERS, applicableResolvers, resolverByKey } from '../../../api/_lib/groundswell/agent/resolvers';
 import { foldObservations, issueForToken, readConsultations, readIssues, readLearnings, readLessons, summarizeLessons } from '../../../api/_lib/groundswell/agent/store';
-import type { CollectResult, Db, IssueRow, Observation } from '../../../api/_lib/groundswell/agent/types';
+import type { CollectResult, Db, IssueRow, LearningRow, Observation } from '../../../api/_lib/groundswell/agent/types';
 import type { ApiRequest, ApiResponse } from '../../../api/_lib/http';
 
 const fake = () => db.current!.client as unknown as Db;
@@ -543,6 +544,83 @@ describe('research', () => {
     expect(failed.skipped).toEqual({ 'ai-agent-marketing': 'OpenAI failed (429): rate limit' });
   });
 
+  it('saves a verdict for every learning the answer held, in its order, and the pass log carries what was dropped', async () => {
+    db.current = fakeSupabase({});
+    const consult = vi.fn().mockImplementation(async (_system: string, question: string) =>
+      JSON.parse(question).topic === 'Social media marketing'
+        ? answered([
+            learning({ title: 'Facebook gives users control of their feed', url: 'https://techcrunch.com/2026/10/25/facebook-feed-controls' }),
+            learning({ title: 'No link here', url: '' }),
+            learning({ title: 'Google launches a small-business hub in Gemini', url: 'https://join.dualincomenetwork.com/new-ai-tools-october-2026' }),
+            learning({ title: 'An old story', url: 'https://www.axios.com/2026/09/01/old-story', published: '2026-09-01' }),
+          ])
+        : answered([])
+    );
+    const report = await runAgentPass(fake(), { now: NOW, deadline: Infinity, collectors: [], send: sender, base: 'https://example.test', to: 'o@example.test', advisor: 'rule', research: { consult } });
+    const dropped = ['No link here: no usable source link.', 'An old story: published 2026-09-01, before 2026-10-20.'];
+    expect(report.research_dropped).toEqual({ 'ai-agent-marketing': [], 'social-media-marketing': dropped });
+    const log = (await readConsultations(fake())).find((c) => c.question.topic === 'social-media-marketing')!;
+    expect(log.kept).toEqual({
+      'learning-1': { kept: true, resolver: null, reason: null },
+      'learning-2': { kept: false, resolver: null, reason: dropped[0] },
+      'learning-3': { kept: true, resolver: null, reason: 'Google launches a small-business hub in Gemini: kept as an unconfirmed source (join.dualincomenetwork.com), at low confidence.' },
+      'learning-4': { kept: false, resolver: null, reason: dropped[1] },
+    });
+    // The keys line up with the answer the row keeps.
+    expect((log.answer!.learnings as { title: string }[]).map((l) => l.title)).toEqual(['Facebook gives users control of their feed', 'No link here', 'Google launches a small-business hub in Gemini', 'An old story']);
+    expect((await readLearnings(fake())).map((l) => [l.title, l.confidence])).toEqual([['Facebook gives users control of their feed', 'high'], ['Google launches a small-business hub in Gemini', 'low']]);
+  });
+
+  it('keeps an unconfirmed source at low confidence, the advisor’s word for the rest, and drops what is over five', () => {
+    const six = ['a', 'b', 'c', 'd', 'e', 'f'].map((x) => learning({ title: `Finding ${x}`, url: `https://www.theverge.com/2026/10/25/finding-${x}` }));
+    const { kept, verdicts } = checkLearnings({ learnings: [learning({ title: 'From a repost', url: 'https://www.investing.com/news/meta-bans-tiktok' }), ...six] }, 't', []);
+    expect(kept.map((k) => [k.title, k.confidence])).toEqual([['From a repost', 'low'], ['Finding a', 'high'], ['Finding b', 'high'], ['Finding c', 'high'], ['Finding d', 'high']]);
+    expect(verdicts.map((v) => v.reason)).toEqual(['From a repost: kept as an unconfirmed source (investing.com), at low confidence.', null, null, null, null, 'Finding e: more than 5 in one answer.', 'Finding f: more than 5 in one answer.']);
+  });
+
+  it('an answer without a learnings list is logged as an error, not as nothing new', async () => {
+    const consult = vi.fn().mockResolvedValue(answered([], { parsed: { results: [{ title: 'x' }] } }));
+    const report = await researchTopics(fake(), { now: NOW, deadline: Infinity, consult, topics: [DEFAULT_TOPICS[0]] });
+    expect(report.skipped).toEqual({ 'ai-agent-marketing': 'The answer had no "learnings" list.' });
+    expect((await readConsultations(fake()))[0]).toMatchObject({ purpose: 'research', error: 'The answer had no "learnings" list.', kept: {} });
+  });
+
+  it('reads who published a page from its link: the company’s own site, a known publication, or anyone else', () => {
+    const kind = (url: string, title = 'Google brings Gemini to small businesses') => sourceKind({ url, title });
+    // The company's own pages, when the learning is about that company.
+    expect(kind('https://blog.google/products/ads-commerce/gemini-business/')).toBe('company');
+    expect(kind('https://www.facebook.com/business/news/advantage-plus-updates', 'Meta updates Advantage+ campaigns')).toBe('company');
+    expect(kind('https://www.hubspot.com/new', 'HubSpot Introduces Agent Hub and Agent Builder')).toBe('company');
+    // Not another subject on its blog, and never what anyone posts on the platform.
+    expect(kind('https://blog.hubspot.com/marketing/instagram-algorithm', 'How the Instagram algorithm works')).toBe('unconfirmed');
+    expect(kind('https://www.youtube.com/watch?v=abc', 'YouTube Shorts gets a new ad format')).toBe('unconfirmed');
+    expect(kind('https://www.linkedin.com/posts/someone_video-ads', 'LinkedIn opens video ads to everyone')).toBe('unconfirmed');
+    expect(kind('https://www.facebook.com/businessinsider/posts/1', 'Meta news from a Page')).toBe('unconfirmed');
+    expect(kind('https://community.openai.com/t/gpt-6', 'OpenAI ships GPT-6')).toBe('unconfirmed');
+    // Known publications, outside their paid pages; a lookalike host is not one.
+    expect(kind('https://techcrunch.com/2026/10/13/facebook-is-giving-users-more-control-over-their-algorithm')).toBe('publication');
+    expect(kind('https://www.axios.com/2026/10/23/meta-ai-data-platform-sundial')).toBe('publication');
+    expect(kind('https://arxiv.org/abs/2603.16138')).toBe('publication');
+    expect(kind('https://www.adweek.com/sponsored/brand-story/')).toBe('unconfirmed');
+    expect(kind('https://techcrunch.com.example.io/story')).toBe('unconfirmed');
+    // Pages the live passes kept from anyone else.
+    expect(kind('https://join.dualincomenetwork.com/new-ai-tools-october-2026', 'Google Launches Small-Business Hub in Gemini')).toBe('unconfirmed');
+    expect(kind('https://www.investing.com/news/stock-market-news/meta-bans-tiktok', 'Meta Bans TikTok Ads on Facebook and Instagram')).toBe('unconfirmed');
+    expect(kind('not a link')).toBe('unconfirmed');
+    // A stored row as the report and the screen show it: an unconfirmed one at low, naming its host.
+    expect(withSource({ url: 'https://join.dualincomenetwork.com/x', title: 'Google Launches Small-Business Hub in Gemini', summary: '', confidence: 'high' as const })).toMatchObject({ source_kind: 'unconfirmed', source_note: 'unconfirmed source (join.dualincomenetwork.com)', confidence: 'low' });
+    expect(withSource({ url: 'https://www.axios.com/x', title: 't', summary: '', confidence: 'high' as const })).toMatchObject({ source_kind: 'publication', source_note: 'a known publication', confidence: 'high' });
+  });
+
+  it('the email names who published each learning’s page', () => {
+    const row = (over: Partial<LearningRow>): LearningRow => ({ id: 'l1', topic: 'social-media-marketing', title: 'Facebook gives users control of their feed', summary: 'A feed control.', why_it_matters: null, action: null, url: 'https://techcrunch.com/2026/10/25/facebook-feed-controls', source: 'TechCrunch', published_at: '2026-10-25', confidence: 'high', status: 'new', consultation_id: null, found_at: NOW.toISOString(), ...over });
+    const report = buildReport({ now: NOW, base: 'https://example.test', approvals: [], developer: [], resolved: [], watching: [], lessons: [], unread: [], learned: [row({}), row({ id: 'l2', title: 'Meta bans TikTok ads', url: 'https://www.investing.com/news/meta-bans-tiktok', source: 'Reuters' })] });
+    expect(report.html).toContain('TechCrunch</a> · a known publication · confidence high');
+    expect(report.html).toContain('Reuters</a> · unconfirmed source (investing.com) · confidence low');
+    expect(report.html).toContain('marked unconfirmed, at low confidence');
+    expect(report.text).toContain('Source: https://www.investing.com/news/meta-bans-tiktok · unconfirmed source (investing.com) · confidence low');
+  });
+
   it('a pass reports the new learnings, with their links, and sends because of them', async () => {
     db.current = fakeSupabase({});
     const consult = vi.fn().mockImplementation(async (_system: string, question: string) => (JSON.parse(question).topic === 'AI agent marketing' ? answered([learning({ title: 'Meta opens agentic campaign setup to small advertisers', url: 'https://example.test/meta-agentic', source: 'example.test' })]) : answered([])));
@@ -584,6 +662,16 @@ describe('the report', () => {
 });
 
 describe('the route', () => {
+  it('lists each learning with who published its page, capping one stored before that check', async () => {
+    db.current!.tables.groundswell_agent_learnings = [{ id: 'l1', topic: 'ai-agent-marketing', title: 'Google Launches Small-Business Hub in Gemini', summary: 'Google has introduced a business area in Gemini.', why_it_matters: null, action: null, url: 'https://join.dualincomenetwork.com/new-ai-tools-october-2026', source: 'Dual Income Network', published_at: '2026-10-23', confidence: 'high', status: 'new', consultation_id: null, found_at: '2026-10-28T00:00:02Z' }];
+    const list = makeRes();
+    await handler(staff(), asRes(list));
+    expect(list.statusCode).toBe(200);
+    expect((list.body as { learnings: unknown[] }).learnings).toEqual([expect.objectContaining({ title: 'Google Launches Small-Business Hub in Gemini', confidence: 'low', source_kind: 'unconfirmed', source_note: 'unconfirmed source (join.dualincomenetwork.com)' })]);
+    // The table keeps what was stored.
+    expect(db.current!.tables.groundswell_agent_learnings[0].confidence).toBe('high');
+  });
+
   it('refuses without the admin key, lists for staff, and starts a pass after answering', async () => {
     const anon = makeRes();
     await handler({ method: 'GET', headers: {}, query: {} }, asRes(anon));

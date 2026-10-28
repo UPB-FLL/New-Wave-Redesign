@@ -1,4 +1,5 @@
 import { escapeHtml } from '../../http.js';
+import { withSource, type WithSource } from './learningSources.js';
 import { resolverByKey } from './resolvers.js';
 import type { IssueRow, LearningRow, LessonSummary } from './types.js';
 
@@ -99,7 +100,7 @@ function section(title: string, body: string): string {
 
 export function buildReport(input: ReportInput): Report {
   const { approvals, developer, resolved, watching, unread } = input;
-  const learned = input.learned ?? [];
+  const learned = (input.learned ?? []).map(withSource);
   const researchSkipped = input.researchSkipped ?? {};
   const date = input.now.toISOString().slice(0, 16).replace('T', ' ');
   const open = approvals.length + developer.length + watching.length;
@@ -145,14 +146,14 @@ export function buildReport(input: ReportInput): Report {
     html.push(section(`Watching (${watching.length})`, `<ul style="padding-left:18px;font-size:14px">${watching.map((i) => `<li style="margin:0 0 6px">${escapeHtml(i.title)} <span style="color:#526271">(seen ${plural(i.occurrences, 'time')})</span></li>`).join('')}</ul>`));
   }
   if (learned.length) {
-    const byTopic = new Map<string, LearningRow[]>();
+    const byTopic = new Map<string, WithSource<LearningRow>[]>();
     for (const l of learned) byTopic.set(l.topic, [...(byTopic.get(l.topic) ?? []), l]);
     text.push(`WHAT THE AGENT LEARNED (${learned.length})`, '');
     const blocks: string[] = [];
     for (const [topic, rows] of byTopic) {
       text.push(topic.replace(/-/g, ' ').toUpperCase());
       for (const l of rows) {
-        text.push(`- ${l.title}${l.published_at ? ` (${l.published_at})` : ''}`, `  ${l.summary}`, l.why_it_matters ? `  Why it matters: ${l.why_it_matters}` : '', l.action ? `  What to do: ${l.action}` : '', `  Source: ${l.url}`);
+        text.push(`- ${l.title}${l.published_at ? ` (${l.published_at})` : ''}`, `  ${l.summary}`, l.why_it_matters ? `  Why it matters: ${l.why_it_matters}` : '', l.action ? `  What to do: ${l.action}` : '', `  Source: ${l.url} · ${l.source_note} · confidence ${l.confidence}`);
       }
       text.push('');
       blocks.push(`<h3 style="font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:#526271;margin:16px 0 8px">${escapeHtml(topic.replace(/-/g, ' '))}</h3>` + rows.map((l) => `<div style="border-left:3px solid #31C6CF;padding:4px 0 4px 14px;margin:0 0 12px">
@@ -160,10 +161,10 @@ export function buildReport(input: ReportInput): Report {
 <p style="margin:0 0 4px;font-size:14px">${escapeHtml(l.summary)}</p>
 ${l.why_it_matters ? `<p style="margin:0 0 4px;font-size:14px"><strong>Why it matters:</strong> ${escapeHtml(l.why_it_matters)}</p>` : ''}
 ${l.action ? `<p style="margin:0 0 4px;font-size:14px"><strong>What to do:</strong> ${escapeHtml(l.action)}</p>` : ''}
-<p style="margin:0;font-size:12px"><a href="${escapeHtml(l.url)}" style="color:#0B6E73">${escapeHtml(l.source || l.url)}</a> · confidence ${l.confidence}</p>
+<p style="margin:0;font-size:12px"><a href="${escapeHtml(l.url)}" style="color:#0B6E73">${escapeHtml(l.source || l.url)}</a> · ${escapeHtml(l.source_note)} · confidence ${l.confidence}</p>
 </div>`).join(''));
     }
-    html.push(section(`What the agent learned (${learned.length})`, `<p style="font-size:13px;color:#526271;margin:0 0 12px">New since the last pass, from the advisor's web search; each has the page it was read on. The agent keeps every learning and reports each one once.</p>` + blocks.join('')));
+    html.push(section(`What the agent learned (${learned.length})`, `<p style="font-size:13px;color:#526271;margin:0 0 12px">New since the last pass, from the advisor's web search; each has the page it was read on. A page that is neither the company's own nor a known publication's is marked unconfirmed, at low confidence. The agent keeps every learning and reports each one once.</p>` + blocks.join('')));
   }
   const skippedTopics = Object.entries(researchSkipped);
   if (skippedTopics.length) {

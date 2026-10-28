@@ -1,6 +1,7 @@
 import { waitUntil } from '@vercel/functions';
 import { adminUser, requireAdmin } from '../_lib/adminKey.js';
 import { decide, runAgentPass, type Decision } from '../_lib/groundswell/agent/agent.js';
+import { withSource } from '../_lib/groundswell/agent/learningSources.js';
 import { agentBaseUrl, agentEmailAddress, decisionPage } from '../_lib/groundswell/agent/report.js';
 import { RESOLVERS } from '../_lib/groundswell/agent/resolvers.js';
 import { agentModel, isClaudeConfigured } from '../_lib/groundswell/agent/consult.js';
@@ -117,7 +118,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         lessons: summarizeLessons(lessons),
         last_report: previous,
         // The log, without the question and answer bodies (the screen shows the digest).
-        learnings,
+        // Each learning with who published its page; one stored before that check is capped here as it would be now.
+        learnings: learnings.map(withSource),
         topics: topicsFromEnv().map((t) => ({ key: t.key, label: t.label })),
         consultations: consultations.map((c) => ({ id: c.id, advisor: c.advisor, purpose: c.purpose ?? 'proposals', model: c.model, created_at: c.created_at, issues: c.issue_ids.length, kept: Object.values(c.kept).filter((k) => k.kept).length, rejected: Object.values(c.kept).filter((k) => !k.kept).map((k) => k.reason), outcomes: c.outcomes, usage: c.usage, latency_ms: c.latency_ms, error: c.error })),
         resolvers: RESOLVERS.map((r) => ({ key: r.key, label: r.label })),
