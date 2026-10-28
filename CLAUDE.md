@@ -223,8 +223,8 @@ and learns from logs, data and results. Full notes: `docs/groundswell-agent.md`.
   in `openai.ts`), what is new in `DEFAULT_TOPICS` AI agent marketing and social media marketing, or
   `GROUNDSWELL_AGENT_TOPICS`; the ask carries the learnings already held so
   only new ones come back; `checkLearnings` needs a title, a summary and a
-  real link, never one known by link or title, never one dated before the
-  window, and no undated homepage; stored in
+  real link, never one known by link or title, never one without a
+  publication date, never one dated before the window; stored in
   `groundswell_agent_learnings`, logged with purpose `research`, reported
   once under "What the agent learned"), `report.ts`
   (the email and the confirmation page), `agent.ts` (`runAgentPass`:

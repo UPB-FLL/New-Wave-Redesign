@@ -63,9 +63,10 @@ on (`runAgentPass` in `agent.ts`):
    on that topic, so only what is new comes back. `checkLearnings` keeps a
    learning only with a title, a summary and a real link, never one
    already known by link (tracking parameters stripped) or by title, never
-   one dated before the window (2 days of slack), and an undated one only
-   when its link is a page, not a homepage (the first live pass kept a March
-   paper and a vendor's homepage); up to 5 per topic. Kept learnings go in `groundswell_agent_learnings`; the ask is
+   one without a publication date (an undated page is a landing, event or
+   product page: the first live passes kept a vendor's homepage and two
+   conference pages), and never one dated before the window (2 days of
+   slack; the same passes kept a March paper); up to 5 per topic. Kept learnings go in `groundswell_agent_learnings`; the ask is
    logged with purpose `research`. Topics: `DEFAULT_TOPICS` or
    `GROUNDSWELL_AGENT_TOPICS` (`key=what to look for; key=…`, up to six).
    The six defaults (owner's ask, 2026-10-28: trends that help GroundSwell's

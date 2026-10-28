@@ -463,13 +463,13 @@ describe('research', () => {
     expect(normalizeUrl('ftp://example.test')).toBeNull();
     expect(normalizeUrl('not a url')).toBeNull();
     const known = [{ url: 'https://example.test/blog/instagram-originals', title: 'Instagram now ranks original content above reposts' }];
-    const { kept, dropped } = checkLearnings({ learnings: [learning(), learning({ title: 'TikTok adds a search ads beta', url: 'https://example.test/tiktok-search-ads', published: 'last week', confidence: 'certain' }), learning({ title: 'No link', url: '' }), learning({ title: '', url: 'https://example.test/x' }), learning({ title: 'Same link, new title', url: 'https://example.test/tiktok-search-ads' })] }, 'social-media-marketing', known);
+    const { kept, dropped } = checkLearnings({ learnings: [learning(), learning({ title: 'TikTok adds a search ads beta', url: 'https://example.test/tiktok-search-ads', published: '2026-10-26', confidence: 'certain' }), learning({ title: 'No link', url: '' }), learning({ title: '', url: 'https://example.test/x' }), learning({ title: 'Same link, new title', url: 'https://example.test/tiktok-search-ads' })] }, 'social-media-marketing', known);
     expect(kept).toHaveLength(1);
-    expect(kept[0]).toMatchObject({ topic: 'social-media-marketing', title: 'TikTok adds a search ads beta', url: 'https://example.test/tiktok-search-ads', published_at: null, confidence: 'low', source: 'example.test' });
+    expect(kept[0]).toMatchObject({ topic: 'social-media-marketing', title: 'TikTok adds a search ads beta', url: 'https://example.test/tiktok-search-ads', published_at: '2026-10-26', confidence: 'low', source: 'example.test' });
     expect(dropped).toEqual(['Instagram now ranks original content above reposts: already known.', 'No link: no usable source link.', '(no title): no title or summary.', 'Same link, new title: already known.']);
   });
 
-  it('holds a learning to the date window, and an undated one to a page rather than a homepage', () => {
+  it('holds a learning to the date window and drops one without a date', () => {
     const since = '2026-10-20';
     const { kept, dropped } = checkLearnings({ learnings: [
       learning({ title: 'A paper from March', url: 'https://arxiv.org/abs/2603.16138', published: '2026-03-17' }),
@@ -477,13 +477,14 @@ describe('research', () => {
       learning({ title: 'A vendor homepage', url: 'https://www.indivisionai.com', published: null }),
       learning({ title: 'A dated article inside the window', url: 'https://example.test/news/super-burst', published: '2026-10-21' }),
       learning({ title: 'Two days of slack', url: 'https://example.test/news/slack', published: '2026-10-18' }),
-      learning({ title: 'An undated page', url: 'https://example.test/blog/undated', published: null }),
+      learning({ title: 'An undated event page', url: 'https://example.test/events/c3', published: null }),
+      learning({ title: 'A date in words', url: 'https://example.test/news/words', published: 'last week' }),
     ] }, 'social-media-marketing', [], { since });
-    expect(kept.map((k) => k.title)).toEqual(['A dated article inside the window', 'Two days of slack', 'An undated page']);
-    expect(dropped).toEqual(['A paper from March: published 2026-03-17, before 2026-10-20.', 'A ban from the 8th: published 2026-10-08, before 2026-10-20.', 'A vendor homepage: a homepage, not an article.']);
-    // Without a window, dates are not judged; the homepage rule still holds.
+    expect(kept.map((k) => k.title)).toEqual(['A dated article inside the window', 'Two days of slack']);
+    expect(dropped).toEqual(['A paper from March: published 2026-03-17, before 2026-10-20.', 'A ban from the 8th: published 2026-10-08, before 2026-10-20.', 'A vendor homepage: no publication date.', 'An undated event page: no publication date.', 'A date in words: no publication date.']);
+    // Without a window, dates are not judged against anything, but one is still required.
     expect(checkLearnings({ learnings: [learning({ title: 'A paper from March', url: 'https://arxiv.org/abs/2603.16138', published: '2026-03-17' })] }, 't', []).kept).toHaveLength(1);
-    expect(checkLearnings({ learnings: [learning({ title: 'Trailing slash homepage', url: 'https://example.test/', published: null })] }, 't', []).dropped).toEqual(['Trailing slash homepage: a homepage, not an article.']);
+    expect(checkLearnings({ learnings: [learning({ title: 'Undated', url: 'https://example.test/blog/undated', published: null })] }, 't', []).dropped).toEqual(['Undated: no publication date.']);
   });
 
   it('the topics come from the environment, or the six defaults', () => {
