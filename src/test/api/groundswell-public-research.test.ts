@@ -7,7 +7,8 @@ vi.mock('../../../api/_lib/groundswell/discoveryWebsite', () => ({ inspectBusine
 vi.mock('../../../api/_lib/groundswell/keywordsGeography', () => ({ resolveKeywordGeography: mocks.geography }));
 
 import { categoryFromSite, parseGoogleSerp, readGoogleSerp, specificCategory } from '../../../api/_lib/groundswell/currents/serp';
-import { runKeywords, runSearch } from '../../../api/_lib/groundswell/currents/search';
+import { keywordSeeds, runKeywords, runSearch, SEED_LIMIT } from '../../../api/_lib/groundswell/currents/search';
+import { LINK_PAGE_ADS_NOTE } from '../../../api/_lib/groundswell/currents/ads';
 import { findCompetitors, runCompetitors } from '../../../api/_lib/groundswell/currents/competitors';
 import { matchBusiness, runMaps } from '../../../api/_lib/groundswell/currents/maps';
 import { googleAdsFromList, runAdsLibrary } from '../../../api/_lib/groundswell/currents/adsLibrary';
@@ -324,5 +325,59 @@ describe('public Google research: one provider after another', () => {
     expect((await serpMapsSearch('Health coach near Jacksonville FL', 30_000)).map((r) => toMapsPlace(r).name)).toEqual(['JM Health & Performance']);
     mocks.executeTool.mockRejectedValue(new Error('down'));
     await expect(serpMapsSearch('q')).rejects.toThrow('SerpApi: down SearchAPI: down Serper: down');
+  });
+});
+
+describe('what Keyword Planner is asked about', () => {
+  const profile = { category: 'Dog trainer', services: ['Puppy training', 'Board and train', 'Obedience classes', 'Aggression rehabilitation'], competitor_queries: ['dog trainer pembroke pines', 'puppy classes near me'] };
+  // "dog trainer pembroke pines" repeats the category-and-city seed, so it is kept once; with services named, the headings are not sent.
+  const scan = (over: Record<string, unknown> = {}) => ({ url: 'https://apk9.example', final_url: 'https://apk9.example/', status: 200, error: null, title: 'APK9 Academy | Dog Training', meta_description: null, h1: ['Dog training in Pembroke Pines', 'Our story'], schema_types: [], tracking: { google_analytics: [], google_tag_manager: [], google_ads: [], meta_pixel: false, tiktok_pixel: false }, phones: [], social: { instagram: [], facebook: [], tiktok: [], youtube: [] }, ...over });
+
+  it('seeds the category, the services and the customer searches the profile names, once each; the homepage headings stand in without a profile', () => {
+    const ctx = context({ maps: { business: { category: 'Dog trainer' } }, competitors: { profile }, site: { business: scan() } });
+    ctx.audit.city = 'Pembroke Pines, FL';
+    expect(keywordSeeds(ctx)).toEqual(['Dog trainer', 'Dog trainer Pembroke Pines', 'Puppy training', 'Board and train', 'Obedience classes', 'Aggression rehabilitation', 'puppy classes near me']);
+    const bare = context({ maps: { business: { category: 'Dog trainer' } }, site: { business: scan() } });
+    bare.audit.city = 'Pembroke Pines, FL';
+    expect(keywordSeeds(bare)).toEqual(['Dog trainer', 'Dog trainer Pembroke Pines', 'Dog training in Pembroke Pines', 'Our story']);
+  });
+
+  it('takes no heading from a link-in-bio page, and no URL seed either', async () => {
+    const link = scan({ url: 'https://linktr.ee/apk9', final_url: 'https://linktr.ee/apk9', link_page: true, error: 'The address is a link-in-bio page, not a website of its own.', h1: ['APK9 Academy LLC'] });
+    const ctx = context({ maps: { business: { category: 'Dog trainer', county: 'Broward County' } }, competitors: { profile }, site: { business: link } });
+    ctx.audit.city = 'Pembroke Pines, FL';
+    ctx.audit.website = 'https://linktr.ee/apk9';
+    expect(keywordSeeds(ctx)).not.toContain('APK9 Academy LLC');
+    mocks.executeTool.mockResolvedValue({ results: [{ text: 'dog trainer', keyword_idea_metrics: { avg_monthly_searches: 480 } }] });
+    const out = await runKeywords(ctx);
+    const args = mocks.executeTool.mock.calls.find((c) => c[0] === 'GOOGLEADS_GENERATE_KEYWORD_IDEAS')![1] as Record<string, unknown>;
+    expect(args.keyword_seed).toEqual({ keywords: keywordSeeds(ctx) });
+    expect(args.keyword_and_url_seed).toBeUndefined();
+    expect(args.url_seed).toBeUndefined();
+    // The listing's county goes to the geography lookup, so demand is read for the county, not one city.
+    expect(mocks.geography).toHaveBeenCalledWith('Pembroke Pines, FL', expect.any(Number), 'Broward County');
+    expect(out.demand_status).toBe('measured');
+  });
+
+  it('caps the seeds and drops links and one-word noise', () => {
+    const many = { ...profile, services: Array.from({ length: 20 }, (_, i) => `Service ${i}`), competitor_queries: ['https://example.com', 'ok', 'a long enough query'] };
+    const seeds = keywordSeeds(context({ maps: { business: { category: 'Dog trainer' } }, competitors: { profile: many } }));
+    expect(seeds.length).toBeLessThanOrEqual(SEED_LIMIT);
+    expect(seeds).not.toContain('https://example.com');
+    expect(seeds).not.toContain('ok');
+  });
+
+  it('reads nothing from Ahrefs or the ads sources about a link-in-bio page, which is the link service’s site, not the business’s', async () => {
+    const link = scan({ url: 'https://linktr.ee/apk9', final_url: 'https://linktr.ee/apk9', link_page: true, error: 'The address is a link-in-bio page, not a website of its own.' });
+    const ctx = context({ site: { business: link, competitors: [] }, maps: { business: { name: 'APK9 Academy', category: 'Dog trainer' } } });
+    ctx.audit.website = 'https://linktr.ee/apk9';
+    mocks.executeTool.mockResolvedValue({ organic_results: [] });
+    const search = await runSearch(ctx);
+    expect(search.business).toBeNull();
+    expect(mocks.executeTool.mock.calls.map((c) => c[0])).not.toContain('AHREFS_DOMAIN_RATING_FOR_SITE_EXPLORER');
+    mocks.executeTool.mockReset().mockResolvedValue({ pages: [{ url: 'https://linktr.ee/', keywords: 9, sum_traffic: 100 }] });
+    const ads = await runAds(ctx);
+    expect(ads.business).toMatchObject({ domain: null, website_checked: false, google_ads_tag: false, paid_pages: [], error: LINK_PAGE_ADS_NOTE });
+    expect(mocks.executeTool).not.toHaveBeenCalled();
   });
 });

@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { PHASE_INFO, PHASES, type Phase } from '../../../src/lib/groundswellValidation.js';
 import { isPlansOutput } from './plans.js';
 import { PLATFORM_LABELS } from '../../../packages/groundswell/src/plans.js';
-import { isAdplanOutput } from './adplan.js';
+import { isAdplanOutput, type AdplanOutput } from './adplan.js';
 import { isAdsetsOutput } from './adsets.js';
 import { assetsFor } from './assetStore.js';
 import { isBenchmarkOutput } from './benchmark.js';
@@ -169,6 +169,16 @@ export function panelsFor(outputs: Record<string, unknown>): DataPanel[] {
   if (w.headline) {
     panels.push({ key: 'model', title: 'The write-up', source: null, list: [text(w.headline), text(w.verdict), ...(Array.isArray(w.next_steps) ? (w.next_steps as string[]) : [])] });
   }
+  const adPlanNote = (p: AdplanOutput): string | null => {
+    const rivals = Object.entries(p.plan.rival_ads ?? {}).filter(([, names]) => names?.length).map(([platform, names]) => `${platform === 'google_search' ? 'Google Search' : platform === 'meta' ? 'Meta' : platform}: ${names!.join(', ')}`);
+    const small = p.plan.too_small.map((t) => `${t.angle} (${Math.round(t.demand).toLocaleString('en-US')} searches a month)`);
+    const parts = [
+      rivals.length ? `Competitors on record advertising: ${rivals.join('; ')}.` : 'No competitor is on record advertising in the public ad libraries.',
+      small.length ? `Too few searches for a search campaign: ${small.join(', ')}.` : null,
+      p.plan.rows.some((r) => r.recommendation === 'test') ? 'A test is a small, stop-lossed spend to measure the real cost per lead.' : null,
+    ];
+    return parts.filter((x): x is string => Boolean(x)).join(' ');
+  };
   if (isAdplanOutput(outputs.adplan)) {
     const p = outputs.adplan;
     panels.push({
@@ -177,6 +187,7 @@ export function panelsFor(outputs: Record<string, unknown>): DataPanel[] {
       source: p.industry.label,
       rows: (['low', 'medium', 'high'] as const).map((s) => ({ label: `${s[0].toUpperCase()}${s.slice(1)} case`, value: `${usd(p.plan.budget[s])} a month, ${usd(p.plan.year_net[s])} net over 12 months` })),
       table: { head: ['Angle', 'Platform', 'Call', 'Spend (base)', 'ROI (base)'], rows: p.plan.rows.map((r) => [r.angle, r.platform_label, r.recommendation, usd(r.scenarios.medium.spend), pct(r.scenarios.medium.roi)]) },
+      note: adPlanNote(p),
     });
   }
   if (isPlansOutput(outputs.plans)) {

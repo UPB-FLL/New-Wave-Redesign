@@ -95,6 +95,7 @@ export const GROUNDSWELL_CONFIG: GroundswellConfig = validateConfig({
         'Restaurants & Food': { ...LOCALIQ_SEARCH, cpc: cost(2.05), ctr: flat(0.0683), cvr: flat(0.0805) },
         'Home & Home Improvement': { ...LOCALIQ_SEARCH, cpc: cost(8.33), ctr: flat(0.0647), cvr: flat(0.0805) },
         'Business Services': { ...LOCALIQ_SEARCH, cpc: cost(5.87), ctr: flat(0.061), cvr: flat(0.0485) },
+        'Animals & Pets': { ...LOCALIQ_SEARCH, cpc: cost(4.06), ctr: flat(0.0749), cvr: flat(0.1622) },
       },
       template: {
         source: 'Google Ads Help, About responsive search ads; Display URL paths',
@@ -154,6 +155,14 @@ export const GROUNDSWELL_CONFIG: GroundswellConfig = validateConfig({
           cvr: rate(0.0854),
           cpl: cost(27.39),
           note: 'traffic cost per click and click-through; no Business Services lead figures, so leads use the all-industry cost per lead',
+        },
+        'Animals & Pets': {
+          ...LOCALIQ_FACEBOOK,
+          cpc: cost(0.51),
+          ctr: rate(0.0185),
+          cvr: rate(0.0854),
+          cpl: cost(27.39),
+          note: 'traffic cost per click and click-through; the 2026 edition publishes no Animals & Pets lead figures, so leads use the all-industry cost per lead',
         },
       },
       template: {
@@ -302,6 +311,15 @@ export const GROUNDSWELL_CONFIG: GroundswellConfig = validateConfig({
   },
 
   min_angle_searches: 100,
+
+  // New Wave's rule: a row the published benchmarks say loses money is still worth a small, stop-lossed test when a
+  // competitor is on record advertising on that platform (the Meta Ad Library, the Ads Transparency Center, Ahrefs
+  // paid pages). Rivals paying for the channel is evidence the benchmarks do not carry; the test measures the real
+  // cost per lead before anything larger is decided.
+  rival_ads_test: {
+    enabled: true,
+    basis: 'A competitor advertising on the platform (public ad libraries and Ahrefs paid pages) is evidence the published benchmarks do not carry, so the row is tested with a stop-loss rather than skipped (New Wave’s rule, October 30, 2026).',
+  },
 
   // New Wave's rule, stricter than Google's current policy: TikTok bans absolute claims about a region or brand
   // ("Misleading and false content"), and the FTC expects any objective claim to be substantiated.

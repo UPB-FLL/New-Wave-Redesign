@@ -1,5 +1,6 @@
 import { PermanentStepError, type StepContext } from '../types.js';
 import { inspectTechnicalSeo, type TechnicalSeo } from './technicalSeo.js';
+import { isLinkPageUrl } from './serp.js';
 export type { TechnicalSeo, TechnicalSeoFinding } from './technicalSeo.js';
 
 /**
@@ -34,6 +35,12 @@ export interface SiteScan {
   schema_types: string[];
   /** Optional because scans stored before technical SEO diagnostics remain valid. */
   technical_seo?: TechnicalSeo;
+  /**
+   * True when the address is a link-in-bio page (Linktree and the like): nobody's website. The scan keeps the page's
+   * title, headings, links and phones, and nothing that would be read as the business's own site (tags, structured
+   * data, a logo, colours, technical findings). Absent on scans stored before 2026-10-30.
+   */
+  link_page?: boolean;
   tracking: {
     google_analytics: string[];
     google_tag_manager: string[];
@@ -183,7 +190,8 @@ export async function scanSite(url: string, timeoutMs = 20_000): Promise<SiteSca
     // Discovery uses this module's pure parser. Import it only when a scan runs
     // so the worker and intake share safe reads and branding without a startup cycle.
     const { inspectBusinessWebsite } = await import('../discoveryWebsite.js');
-    return (await inspectBusinessWebsite(url, { timeoutMs })).scan;
+    const scan = (await inspectBusinessWebsite(url, { timeoutMs })).scan;
+    return isLinkPageUrl(scan.final_url ?? scan.url) ? linkPageScan(scan) : scan;
   } catch (err) {
     return {
       ...parseSite('', url, url, 0),
@@ -192,6 +200,31 @@ export async function scanSite(url: string, timeoutMs = 20_000): Promise<SiteSca
       error: err instanceof Error ? err.message : String(err),
     };
   }
+}
+
+export const LINK_PAGE_ERROR = 'The address is a link-in-bio page, not a website of its own.';
+
+/**
+ * A link-in-bio page is not the business's website: its tags, structured data, logo, colours and technical findings
+ * are the link service's, so none of them is kept. The title, headings, social links and phones stay (they are the
+ * business's own words and links). The status stays, so the step does not retry a page that answered.
+ */
+export function linkPageScan(scan: SiteScan): SiteScan {
+  return {
+    ...scan,
+    link_page: true,
+    error: LINK_PAGE_ERROR,
+    word_count: 0,
+    theme_color: null,
+    brand_primary: null,
+    brand_colors: [],
+    logo: null,
+    og_image: null,
+    schema_types: [],
+    technical_seo: undefined,
+    tracking: { google_analytics: [], google_tag_manager: [], google_ads: [], meta_pixel: false, tiktok_pixel: false },
+    booking: [],
+  };
 }
 
 /** A website that cannot be reached is tried again on this many calls before the audit goes on without it. */

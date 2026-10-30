@@ -3,12 +3,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const openai = vi.hoisted(() => ({ chatJson: vi.fn() }));
 vi.mock('../../../api/_lib/groundswell/openai', () => ({ chatJson: openai.chatJson, GROUNDSWELL_MODEL: () => 'test-model' }));
 
-import { baselineFrom, checkPlan, isAdplanOutput, PLANNER_SYSTEM, runAdplan } from '../../../api/_lib/groundswell/adplan';
+import { baselineFrom, checkPlan, isAdplanOutput, PLANNER_SYSTEM, rivalAdsFrom, runAdplan } from '../../../api/_lib/groundswell/adplan';
 import { buildFacts } from '../../../api/_lib/groundswell/model';
 import { STEPS } from '../../../api/_lib/groundswell/steps';
 import { PermanentStepError } from '../../../api/_lib/groundswell/types';
 import { STEP_LABELS } from '../../../src/lib/groundswell';
 import { GROUNDSWELL_CONFIG } from '../../../packages/groundswell/groundswell.config';
+import { planAudit } from '../../../packages/groundswell/src/audit';
 import { sampleAdplanOutput, sampleAudit, sampleModelOutput, sampleOutputs, samplePlannerJson } from './fixtures/groundswell-report';
 
 const facts = () => buildFacts(sampleAudit, sampleOutputs());
@@ -73,6 +74,27 @@ describe('today, from the Ads Current', () => {
     });
     expect(baselineFrom(buildFacts(sampleAudit, { ...sampleOutputs(), ads: undefined })).ad_spend_basis).toMatch(/could not be checked/);
   });
+
+  it('says a link-in-bio page carries no tags of the business’s own', () => {
+    const outputs = sampleOutputs();
+    const site = outputs.site as { business: Record<string, unknown> };
+    site.business = { ...site.business, url: 'https://linktr.ee/harbor', final_url: 'https://linktr.ee/harbor', link_page: true, error: 'The address is a link-in-bio page, not a website of its own.' };
+    expect(baselineFrom(buildFacts(sampleAudit, outputs)).ad_spend_basis).toBe('The address given is a link-in-bio page, not a website of its own, so there are no ad tags or paid search pages to read. Ad spend is not public.');
+  });
+
+  it('lists the competitors on record advertising, by platform, from the ad libraries and Ahrefs paid pages', () => {
+    // The sample's Bayside Garage has Ahrefs paid search pages and no ad-library read.
+    expect(rivalAdsFrom(facts())).toEqual({ google_search: ['Bayside Garage'] });
+    const lib = (name: string, over: Record<string, unknown>) => ({ name, domain: null, facebook_page_id: null, meta_ad_status: 'unknown', meta_ads: [], meta_ads_inactive_n: 0, google_ads_status: 'unknown', google_ads_count: null, paid_search_history: [], pixels: { meta: false, google_ads: false, tiktok: false }, error: null, ...over });
+    const outputs = { ...sampleOutputs(), ads_library: { source: 's', fetched_at: 'now', business: lib('Harbor Auto Care (sample)', {}), competitors: [
+      lib('Angel Paws', { meta_ad_status: 'running', meta_ads: [{ id: '1' }] }),
+      lib('K9 Advisors', { meta_ad_status: 'unknown', meta_ads: [{ id: '2' }], google_ads_status: 'ads_found', google_ads_count: 12 }),
+      lib('Quiet Co', { meta_ad_status: 'not_running', google_ads_status: 'none', google_ads_count: 0 }),
+      lib('Zero Co', { google_ads_status: 'ads_found', google_ads_count: 0 }),
+    ] } };
+    expect(rivalAdsFrom(buildFacts(sampleAudit, outputs))).toEqual({ meta: ['Angel Paws', 'K9 Advisors'], google_search: ['K9 Advisors', 'Bayside Garage'] });
+    expect(rivalAdsFrom(buildFacts(sampleAudit, { ...sampleOutputs(), ads: undefined, ads_library: undefined }))).toEqual({});
+  });
 });
 
 describe('the ad-plan step', () => {
@@ -113,6 +135,9 @@ describe('the sample plan', () => {
       'ads-car-ac-repair-meta',
       'seo-brake-repair',
       'seo-car-ac-repair',
+      // The Google tests run on Bayside Garage's advertising, not on a modeled return: last of the modeled rows.
+      'ads-brake-repair-google_search',
+      'ads-car-ac-repair-google_search',
       'fix-ads-1',
       'fix-google-1',
       'fix-social-1',
@@ -121,8 +146,18 @@ describe('the sample plan', () => {
     expect(p.ranked.some((c) => c.id === 'fix-website-1')).toBe(false);
   });
 
-  it('skips Google Search when it loses money at the estimated ticket', () => {
-    expect(p.plan.rows.filter((r) => r.platform === 'google_search').every((r) => r.recommendation === 'skip')).toBe(true);
+  it('tests Google Search, where the benchmarks say it loses money at the estimated ticket, because Bayside Garage is advertising there', () => {
+    const google = p.plan.rows.filter((r) => r.platform === 'google_search');
+    expect(google.length).toBeGreaterThan(0);
+    for (const r of google) {
+      expect(r.roi_tier).toBe('loses money');
+      expect(r.recommendation).toBe('test');
+      expect(r.reason).toContain('Bayside Garage is on record advertising on Google Search');
+    }
+    expect(p.plan.rival_ads).toEqual({ google_search: ['Bayside Garage'] });
+    // Without a rival on record, the same rows are skipped.
+    const alone = planAudit({ angles: p.angles, industry: GROUNDSWELL_CONFIG.industries.find((i) => i.id === p.industry.id)!, positions: {}, fixes: [], baseline: p.baseline }, GROUNDSWELL_CONFIG);
+    expect(alone.plan.rows.filter((r) => r.platform === 'google_search').every((r) => r.recommendation === 'skip')).toBe(true);
   });
 
   it('is recognised as a plan; partial or missing outputs are not', () => {

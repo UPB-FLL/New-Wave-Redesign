@@ -5,7 +5,7 @@ import type { Baseline } from '../../../packages/groundswell/src/changes.js';
 import type { GroundswellConfig } from '../../../packages/groundswell/src/config.js';
 import { findAgreement, mergeFigures, planFigures, refreshAngles, type Disagreement, type Figure, type FigureSet } from '../../../packages/groundswell/src/verify.js';
 import { isAdcopyOutput, type AdcopyOutput } from './adcopy.js';
-import { baselineFrom, isAdplanOutput, positionsFrom, type AdplanOutput } from './adplan.js';
+import { baselineFrom, isAdplanOutput, positionsFrom, type AdplanOutput, rivalAdsFrom } from './adplan.js';
 import { benchmarkAccountsFrom, benchmarkFacts, isBenchmarkOutput, scoreTables, type BenchmarkOutput } from './benchmark.js';
 import { runMaps } from './currents/maps.js';
 import { runKeywords, runSearch } from './currents/search.js';
@@ -218,7 +218,7 @@ export function rerunPlan(facts: Facts, adplan: AdplanOutput, config: Groundswel
   const positions = positionsFrom(facts);
   const { angles, missing } = refreshAngles(adplan.angles, facts.keywords?.ideas ?? [], positions, config);
   const baseline = baselineFrom(facts);
-  const result = planAudit({ angles, industry, positions, fixes: adplan.fixes ?? [], baseline }, config);
+  const result = planAudit({ angles, industry, positions, fixes: adplan.fixes ?? [], baseline, rival_ads: rivalAdsFrom(facts) }, config);
   return { angles, missing, baseline, result, figures: planFigures(result, angles) };
 }
 

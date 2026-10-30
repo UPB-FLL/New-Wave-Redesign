@@ -70,10 +70,23 @@ describe('Maps Current: Places rows', () => {
       website: 'https://harbor-auto.example/',
       hours: ['Monday: 8:00 AM – 6:00 PM', 'Tuesday: 8:00 AM – 6:00 PM'],
       url: 'https://maps.google.com/?cid=1',
+      county: null,
     });
     // No display category: the first type, in words. Missing fields stay null, never 0.
-    expect(toMapsPlace({ displayName: 'Bare', types: ['car_repair'] })).toMatchObject({ category: 'car repair', rating: null, reviews: null, hours: [], address: null });
+    expect(toMapsPlace({ displayName: 'Bare', types: ['car_repair'] })).toMatchObject({ category: 'car repair', rating: null, reviews: null, hours: [], address: null, county: null });
     expect(toMapsListing(rival('x', 'Bayside Garage', 4.2, 51))).toEqual({ name: 'Bayside Garage', rating: 4.2, reviews: 51, info: 'Auto repair shop · Bayside Garage Rd, Fort Lauderdale, FL', url: 'https://maps.google.com/?cid=x' });
+  });
+
+  it('reads the county from the address components, for county-wide keyword demand', () => {
+    const components = [
+      { longText: '12', shortText: '12', types: ['street_number'] },
+      { longText: 'Pembroke Pines', shortText: 'Pembroke Pines', types: ['locality', 'political'] },
+      { longText: 'Broward County', shortText: 'Broward County', types: ['administrative_area_level_2', 'political'] },
+      { longText: 'Florida', shortText: 'FL', types: ['administrative_area_level_1', 'political'] },
+    ];
+    expect(toMapsPlace({ ...harbor, addressComponents: components }).county).toBe('Broward County');
+    expect(toMapsPlace({ ...harbor, addressComponents: components.filter((c) => !c.types.includes('administrative_area_level_2')) }).county).toBeNull();
+    expect(toMapsPlace({ ...harbor, addressComponents: 'not a list' }).county).toBeNull();
   });
 
   it('picks the result that carries the business’s first word, or none', () => {

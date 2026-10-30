@@ -19,6 +19,7 @@ import type { BusinessProfile } from '../businessProfile.js';
 import type { CompetitorPick } from './competitors.js';
 import type { MapsOutput } from './maps.js';
 import { domainOf } from './search.js';
+import { ownWebsite } from './serp.js';
 import type { SiteScan } from './site.js';
 import type { SitePagesOutput } from './sitePages.js';
 
@@ -247,7 +248,8 @@ export async function runAiSearch(ctx: StepContext): Promise<AiSearchOutput> {
   const maps = (ctx.outputs.maps as MapsOutput | undefined)?.business ?? null;
   const comp = ctx.outputs.competitors as { profile?: BusinessProfile; picks?: CompetitorPick[] } | undefined;
   const pages = (ctx.outputs.site_pages as SitePagesOutput | undefined) ?? null;
-  const website = site?.final_url ?? site?.url ?? ctx.audit.website ?? null;
+  // A link-in-bio page is not the business's website: its robots, files and entity would be the link service's.
+  const website = ownWebsite(site?.final_url ?? site?.url ?? ctx.audit.website ?? null);
   const root = website ? origin(website) : null;
   const errors: string[] = [];
   const budget = () => Math.max(1_000, Math.min(60_000, ctx.deadline - Date.now() - 2_000));

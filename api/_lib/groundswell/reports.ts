@@ -340,11 +340,13 @@ function adPlanSection(p: AdplanOutput) {
     .map((r) => `${r.angle} on ${r.platform_label}: pull back if a lead costs more than ${money(r.stop_loss_cost_per_lead)} after 60 days.`);
   const rules = unique(p.plan.rows.flatMap((r) => r.conditions.map((c) => `${r.platform_label}: ${c}`)));
   const unmodeled = unique(p.plan.unmodeled.map((u) => `${GROUNDSWELL_CONFIG.platforms[u.platform]?.label ?? u.platform}: ${u.reason}`));
-  const small = p.plan.too_small.map((t) => `${t.angle}: about ${num(t.demand)} searches a month, too few for a search campaign of its own.`);
+  const small = p.plan.too_small.map((t) => `${t.angle}: about ${num(t.demand)} searches a month, too few for a search campaign of its own (the setup file asks for ${num(GROUNDSWELL_CONFIG.min_angle_searches)}).`);
   const angles = p.angles.map((a) => `${a.name}: ${a.why}`);
+  const rivalAds = Object.entries(p.plan.rival_ads ?? {}).filter(([, names]) => names?.length).map(([platform, names]) => `${GROUNDSWELL_CONFIG.platforms[platform as keyof typeof GROUNDSWELL_CONFIG.platforms]?.label ?? platform}: ${names!.join(', ')} (on record in the public ad libraries or Ahrefs paid pages; spend is not public).`);
   return `<p>An angle is a reason to choose the business that people actually search for. Each one is modeled on every ad platform its industry allows (profile: ${esc(p.industry.label)}), in a low, medium and high case; cost per click, clicks and spend are the medium case. A row's net is ad profit less ad spend, before team time; the ranking counts the team's time as well.</p>
 <h3>Angles</h3>${listHtml(angles, false)}
 ${planRowsTable(p)}
+${rivalAds.length ? `<h3>Competitors advertising</h3>${listHtml(rivalAds, false)}` : ''}
 ${stops.length ? `<h3>Stop-loss</h3>${listHtml(stops, false)}` : ''}
 ${rules.length ? `<h3>Platform rules</h3>${listHtml(rules, false)}` : ''}
 ${unmodeled.length || small.length ? `<h3>Not modeled</h3>${listHtml([...unmodeled, ...small], false)}` : ''}

@@ -121,6 +121,16 @@ describe('report HTML with the ad plan', () => {
   const data = sampleReportDataWithPlan();
   const text = (html: string) => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
 
+  it('names the competitors on record advertising, and why a losing row is tested rather than skipped', () => {
+    const html = text(buildAuditHtml(data));
+    expect(html).toContain('Competitors advertising');
+    expect(html).toContain('Google Search: Bayside Garage (on record in the public ad libraries or Ahrefs paid pages; spend is not public).');
+    expect(html).toContain('Bayside Garage is on record advertising on Google Search: a small test with a stop-loss');
+    // Without a rival on record there is no such section.
+    const alone = { ...data, adplan: { ...data.adplan!, plan: { ...data.adplan!.plan, rival_ads: {} } } };
+    expect(text(buildAuditHtml(alone))).not.toContain('Competitors advertising');
+  });
+
   it('the full audit replaces the single search-ad return with the ranking and the ad plan', () => {
     const html = text(buildAuditHtml(data));
     expect(html).toContain('What pays back first');

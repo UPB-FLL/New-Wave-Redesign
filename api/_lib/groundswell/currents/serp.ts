@@ -124,6 +124,9 @@ export function isLinkPageUrl(url: string | null | undefined): boolean {
   try { return LINK_PAGE_HOSTS.test(new URL(/^https?:\/\//i.test(url) ? url : `https://${url}`).hostname.toLowerCase()); } catch { return false; }
 }
 
+/** The business's own website: the address given unless it is a link-in-bio page, which is nobody's website and says nothing about what the business does. */
+export const ownWebsite = (url: string | null | undefined): string | null => (url && !isLinkPageUrl(url) ? url : null);
+
 /** First-party service wording takes precedence over a broader Google listing category. */
 export function categoryFromSite(site: Pick<SiteScan, 'title' | 'meta_description' | 'h1' | 'schema_types' | 'status' | 'error'> & { url?: string; final_url?: string | null } | null | undefined): string | null {
   if (!site || site.error || (site.status !== null && (site.status < 200 || site.status >= 400))) return null;
