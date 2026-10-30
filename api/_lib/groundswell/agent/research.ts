@@ -1,6 +1,6 @@
 import { researchWithSearch } from '../openai.js';
 import { consultClaude, isClaudeConfigured, parseJsonObject, type Consultation } from './consult.js';
-import { sourceKind, sourcedConfidence, sourceNote } from './learningSources.js';
+import { sourceKind, sourcedConfidence, sourceNote, type SourceKind } from './learningSources.js';
 import { readConsultations, readLearnings, recordConsultation, recordLearnings } from './store.js';
 import type { ConsultationRow, Db, LearningRow } from './types.js';
 
@@ -80,6 +80,9 @@ export const LEARNINGS_PER_TOPIC = 5;
 export const SEARCHES_PER_TOPIC = 8;
 /** How many known learnings the question carries, so what comes back is new. */
 const KNOWN_LIMIT = 30;
+/** What a pass compares every topic's answer with: the learnings found in this many days, under any topic, at most HELD_LIMIT (the date window keeps anything older from coming back). */
+export const HELD_DAYS = 30;
+const HELD_LIMIT = 1000;
 const MAX_TOPICS = 6;
 
 export function topicsFromEnv(value = process.env.GROUNDSWELL_AGENT_TOPICS): Topic[] {
@@ -146,20 +149,78 @@ export interface LearningVerdict {
   reason: string | null;
 }
 
+/** Words a headline says nothing with: filler, and the verbs any announcement uses ("Meta Introduces X" and "Meta Announces X" are one story). */
+const FILLER_WORDS = new Set('a an the and or for to of in on at by with as its it is are be was were from into over after before about this that these those now new more how what why when who you your our their can will not no all any up out vs via'.split(' '));
+const ANNOUNCING_WORDS = new Set('announce announces announced introduce introduces introduced launch launches launched unveil unveils unveiled debut debuts debuted release releases released reveal reveals revealed roll rolls rolled bring brings add adds added begin begins'.split(' '));
+
+/** The words a title is compared on: lower case, without filler or announcing verbs, possessives dropped and plurals folded ("Ads" and "Ad" are one word). */
+export function titleWords(title: string): Set<string> {
+  const out = new Set<string>();
+  for (const raw of title.toLowerCase().replace(/[’']s\b/g, '').split(/[^a-z0-9]+/)) {
+    if (raw.length < 2 || FILLER_WORDS.has(raw) || ANNOUNCING_WORDS.has(raw)) continue;
+    const word = raw.length >= 3 && raw.endsWith('s') && !/(ss|us|is)$/.test(raw) ? raw.slice(0, -1) : raw;
+    if (!FILLER_WORDS.has(word) && !ANNOUNCING_WORDS.has(word)) out.add(word);
+  }
+  return out;
+}
+
+/** How much of the shorter title's words the other must share, and how many words the shorter needs, to be the same story. */
+export const SAME_STORY_SHARE = 0.8;
+export const SAME_STORY_MIN_WORDS = 4;
+
+/**
+ * Whether two titles tell one story. On the 74 learnings stored by
+ * 2026-10-30 it paired 9 titles, every pair a repeat (one launch from two
+ * sites, a headline and its shortened form), and joined no two different
+ * stories; a rule needing near-identical titles found 4 of those 9. Two
+ * repeats whose headlines share fewer words still got through.
+ */
+export function sameStory(a: Set<string>, b: Set<string>): boolean {
+  const shorter = a.size <= b.size ? a : b;
+  const longer = shorter === a ? b : a;
+  if (shorter.size < SAME_STORY_MIN_WORDS) return false;
+  let shared = 0;
+  for (const word of shorter) if (longer.has(word)) shared += 1;
+  return shared / shorter.size >= SAME_STORY_SHARE;
+}
+
+/** What the agent already holds, as the checks compare it. A pass shares one across its topics, so two topics cannot both keep one story. */
+export interface KnownLearnings {
+  urls: Set<string>;
+  titles: Set<string>;
+  stories: { title: string; words: Set<string>; kind: SourceKind }[];
+}
+
+/** Adds a learning to what is known: its link, its title and its story, with who published it. */
+export function rememberLearning(known: KnownLearnings, learning: Pick<LearningRow, 'url' | 'title'> & { summary?: string | null }): void {
+  known.urls.add(normalizeUrl(learning.url) ?? learning.url);
+  known.titles.add(titleKey(learning.title));
+  known.stories.push({ title: learning.title, words: titleWords(learning.title), kind: sourceKind(learning) });
+}
+
+export function knownFrom(rows: readonly (Pick<LearningRow, 'url' | 'title'> & { summary?: string | null })[]): KnownLearnings {
+  const known: KnownLearnings = { urls: new Set(), titles: new Set(), stories: [] };
+  for (const row of rows) rememberLearning(known, row);
+  return known;
+}
+
 /**
  * The learnings an answer holds that pass the rules and are not already
  * known, and a verdict for every learning it held, in the answer's order. A
  * learning needs a publication date (an undated one is a landing, event or
  * product page, not an article); with `since` (YYYY-MM-DD), one dated before
  * the window (less the slack) is dropped. One whose page is neither the
- * company's own nor a known publication's is kept at low confidence.
+ * company's own nor a known publication's is kept at low confidence. One
+ * telling a story already held (`sameStory`) is dropped, unless it is the
+ * first page vouching for a story held only from unconfirmed sources: that
+ * one is kept, and its summary says what it confirms (owner's call,
+ * 2026-10-30). Given a `KnownLearnings`, what is kept is added to it.
  */
-export function checkLearnings(raw: unknown, topic: string, known: Pick<LearningRow, 'url' | 'title'>[], opts: { since?: string } = {}): { kept: Omit<LearningRow, 'id' | 'found_at' | 'status' | 'consultation_id'>[]; dropped: string[]; verdicts: LearningVerdict[] } {
+export function checkLearnings(raw: unknown, topic: string, known: readonly (Pick<LearningRow, 'url' | 'title'> & { summary?: string | null })[] | KnownLearnings, opts: { since?: string } = {}): { kept: Omit<LearningRow, 'id' | 'found_at' | 'status' | 'consultation_id'>[]; dropped: string[]; verdicts: LearningVerdict[] } {
   const floor = opts.since && /^\d{4}-\d{2}-\d{2}$/.test(opts.since) ? new Date(Date.parse(opts.since) - WINDOW_SLACK_DAYS * 24 * 60 * 60_000).toISOString().slice(0, 10) : null;
   const kept: Omit<LearningRow, 'id' | 'found_at' | 'status' | 'consultation_id'>[] = [];
   const verdicts: LearningVerdict[] = [];
-  const seenUrls = new Set(known.map((k) => normalizeUrl(k.url) ?? k.url));
-  const seenTitles = new Set(known.map((k) => titleKey(k.title)));
+  const held: KnownLearnings = 'urls' in known ? known : knownFrom(known);
   const list = Array.isArray((raw as { learnings?: unknown })?.learnings) ? ((raw as { learnings: unknown[] }).learnings as RawLearning[]) : [];
   for (const item of list) {
     const title = clip(item?.title, 200);
@@ -178,7 +239,7 @@ export function checkLearnings(raw: unknown, topic: string, known: Pick<Learning
       drop('no usable source link.');
       continue;
     }
-    if (seenUrls.has(url) || seenTitles.has(titleKey(title))) {
+    if (held.urls.has(url) || held.titles.has(titleKey(title))) {
       drop('already known.');
       continue;
     }
@@ -191,12 +252,21 @@ export function checkLearnings(raw: unknown, topic: string, known: Pick<Learning
       drop(`published ${published}, before ${opts.since}.`);
       continue;
     }
-    seenUrls.add(url);
-    seenTitles.add(titleKey(title));
-    const claimed = ['low', 'medium', 'high'].includes(clip(item?.confidence, 10)) ? (clip(item?.confidence, 10) as LearningRow['confidence']) : 'low';
     const kind = sourceKind({ url, title, summary });
-    kept.push({ topic, title, summary, why_it_matters: clip(item?.why_it_matters, 600) || null, action: clip(item?.action, 400) || null, url, source: clip(item?.source, 120) || new URL(url).hostname, published_at: published, confidence: sourcedConfidence(kind, claimed) });
-    verdicts.push({ kept: true, reason: kind === 'unconfirmed' ? `${title}: kept as an ${sourceNote(kind, url)}, at low confidence.` : null });
+    const words = titleWords(title);
+    const sameAs = held.stories.filter((s) => sameStory(words, s.words));
+    const confirms = sameAs.length && kind !== 'unconfirmed' && sameAs.every((s) => s.kind === 'unconfirmed') ? sameAs[0] : null;
+    if (sameAs.length && !confirms) {
+      // Its page tells a story held, so that page is known now too, whatever title it comes back under.
+      held.urls.add(url);
+      held.titles.add(titleKey(title));
+      drop(`same story as "${sameAs[0].title}".`);
+      continue;
+    }
+    rememberLearning(held, { url, title, summary });
+    const claimed = ['low', 'medium', 'high'].includes(clip(item?.confidence, 10)) ? (clip(item?.confidence, 10) as LearningRow['confidence']) : 'low';
+    kept.push({ topic, title, summary: confirms ? `Confirms "${confirms.title}", reported earlier by an unconfirmed source. ${summary}` : summary, why_it_matters: clip(item?.why_it_matters, 600) || null, action: clip(item?.action, 400) || null, url, source: clip(item?.source, 120) || new URL(url).hostname, published_at: published, confidence: sourcedConfidence(kind, claimed) });
+    verdicts.push({ kept: true, reason: confirms ? `${title}: kept as confirming "${confirms.title}", which came from an unconfirmed source.` : kind === 'unconfirmed' ? `${title}: kept as an ${sourceNote(kind, url)}, at low confidence.` : null });
   }
   return { kept, dropped: verdicts.filter((v) => !v.kept).map((v) => v.reason ?? ''), verdicts };
 }
@@ -266,12 +336,22 @@ export async function researchTopics(db: Db, opts: ResearchOptions): Promise<Res
     console.error('Agent research order: could not read the log, using the topics as listed:', err instanceof Error ? err.message : err);
   }
   const queue = researchOrder(topics, asked);
+  // One record of what is held for the whole pass: every topic's answer is checked against every
+  // topic's learnings, and against what the other topics keep this pass (checkLearnings adds those).
+  let recent: LearningRow[] = [];
+  try {
+    recent = await readLearnings(db, { since: new Date(opts.now.getTime() - HELD_DAYS * 24 * 60 * 60_000).toISOString(), limit: HELD_LIMIT });
+  } catch (err) {
+    console.error('Agent research: could not read the learnings held, so each topic is checked against its own only:', err instanceof Error ? err.message : err);
+  }
+  const held = knownFrom(recent);
   const researchOne = async (topic: Topic) => {
     if (Date.now() > opts.deadline - 60_000) {
       report.skipped[topic.key] = 'The pass ran out of time before this topic.';
       return;
     }
     const known = await readLearnings(db, { topic: topic.key, limit: KNOWN_LIMIT });
+    for (const k of known) rememberLearning(held, k);
     const since = new Date(opts.now.getTime() - sinceDays * 24 * 60 * 60_000).toISOString().slice(0, 10);
     const question = JSON.stringify({
       topic: topic.label,
@@ -282,7 +362,7 @@ export async function researchTopics(db: Db, opts: ResearchOptions): Promise<Res
       already_known: known.map((k) => ({ title: k.title, url: k.url, found: k.found_at.slice(0, 10) })),
     });
     const result = viaClaude ? await (opts.consult ?? consultClaude)(RESEARCH_SYSTEM, question, { webSearch: { maxUses: SEARCHES_PER_TOPIC } }) : await openaiResearch(RESEARCH_SYSTEM, question, opts.search ?? researchWithSearch);
-    const { kept, dropped, verdicts } = result.parsed ? checkLearnings(result.parsed, topic.key, known, { since }) : { kept: [], dropped: [] as string[], verdicts: [] as LearningVerdict[] };
+    const { kept, dropped, verdicts } = result.parsed ? checkLearnings(result.parsed, topic.key, held, { since }) : { kept: [], dropped: [] as string[], verdicts: [] as LearningVerdict[] };
     // JSON without the list drops every learning it may hold: say so, rather than log an empty answer as nothing new.
     const error = result.error ?? (result.parsed && !Array.isArray((result.parsed as { learnings?: unknown }).learnings) ? 'The answer had no "learnings" list.' : null);
     if (error) report.skipped[topic.key] = error;

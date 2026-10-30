@@ -26,7 +26,7 @@ import { COLLECTORS, collectAll, errorKey, headwayCollector, runsCollector } fro
 import { allowedResolvers, checkProposal, priorAdvice, proposeAll, ruleProposal } from '../../../api/_lib/groundswell/agent/propose';
 import type { Consultation } from '../../../api/_lib/groundswell/agent/consult';
 import { approvalUrl, buildReport, decisionPage } from '../../../api/_lib/groundswell/agent/report';
-import { checkLearnings, normalizeUrl, researchOrder, researchTopics, topicsFromEnv, DEFAULT_TOPICS } from '../../../api/_lib/groundswell/agent/research';
+import { checkLearnings, normalizeUrl, researchOrder, researchTopics, sameStory, titleWords, topicsFromEnv, DEFAULT_TOPICS } from '../../../api/_lib/groundswell/agent/research';
 import { sourceKind, withSource } from '../../../api/_lib/groundswell/agent/learningSources';
 import { parseJsonObject } from '../../../api/_lib/groundswell/agent/consult';
 import { RESOLVERS, applicableResolvers, resolverByKey } from '../../../api/_lib/groundswell/agent/resolvers';
@@ -658,6 +658,61 @@ describe('research', () => {
     expect(report.html).toContain('Reuters</a> · unconfirmed source (investing.com) · confidence low');
     expect(report.html).toContain('marked unconfirmed, at low confidence');
     expect(report.text).toContain('Source: https://www.investing.com/news/meta-bans-tiktok · unconfirmed source (investing.com) · confidence low');
+  });
+
+  // Titles the live passes stored by 2026-10-30: the repeats they kept, and different stories that share words.
+  it('tells one story told twice from two different stories', () => {
+    const same = (a: string, b: string) => sameStory(titleWords(a), titleWords(b));
+    expect([...titleWords("Meta's Election Ad Freeze Restricts New Political Ads")]).toEqual(['meta', 'election', 'ad', 'freeze', 'restrict', 'political']);
+    expect(same("Meta Introduces 'Ads Super Burst' for High-Impact Advertising", "Meta Announces 'Ads Super Burst' for High-Impact Advertising")).toBe(true);
+    expect(same('Sprinklr Launches Marketing AI Agents Beta to Help Enterprise Marketers Move from Insight to Action', 'Sprinklr Launches Marketing AI Agents Beta')).toBe(true);
+    expect(same('Google Enhances AI Overviews with Prominent Source Links', 'Google Adds More Links to AI Mode and AI Overviews')).toBe(true);
+    expect(same('Google Launches Small-Business Hub in Gemini', 'Google Introduces New Gemini Tools for Small Business Owners')).toBe(true);
+    expect(same('B12 AI Website Builder Enhances Small Business Online Presence', 'B12 AI Website Builder Enhances Small Business Web Presence')).toBe(true);
+    expect(same('Removal of Q&A Section in Google Business Profiles', 'Google Business Profile Enhances Review Policies')).toBe(false);
+    expect(same('Sprinklr Launches Marketing AI Agents Beta', 'AI Agents in Marketing 2026: What an AI Agent Is and How It Works')).toBe(false);
+    expect(same('Indivision AI Offers Autonomous AI Agents for Performance Marketing', 'Sprinklr Launches Marketing AI Agents Beta')).toBe(false);
+    // Too few words to judge: never the same story.
+    expect(same('Finding a', 'Finding b')).toBe(false);
+  });
+
+  it('drops a story already held, keeps the first page that confirms an unconfirmed one, and remembers a dropped page', () => {
+    const gemini = { title: 'Google Launches Small-Business Hub in Gemini', url: 'https://join.dualincomenetwork.com/new-ai-tools-october-2026' };
+    const burst = { title: "Meta Introduces 'Ads Super Burst' for High-Impact Advertising", url: 'https://www.honestfred.com/social-marketing/meta-ads-super-burst' };
+    const { kept, verdicts } = checkLearnings({ learnings: [
+      learning({ title: 'Google Introduces New Gemini Tools for Small Business Owners', url: 'https://blog.google/products/gemini-app/new-tools-small-business-owners', summary: 'Google added business tools to the Gemini app.' }),
+      learning({ title: 'Google Rolls Out New Gemini Tools for Small Business Owners', url: 'https://www.techradar.com/pro/gemini-small-business-tools' }),
+      learning({ title: "Meta Announces 'Ads Super Burst' for High-Impact Advertising", url: 'https://www.1clickreport.com/blog/meta-ads-three-new-updates-october-2026' }),
+      learning({ title: 'Meta Introduces Ads Super Burst and First Impression Ads', url: 'https://www.1clickreport.com/blog/meta-ads-three-new-updates-october-2026' }),
+    ] }, 'social-engineering', [gemini, burst]);
+    expect(kept.map((k) => [k.title, k.confidence])).toEqual([['Google Introduces New Gemini Tools for Small Business Owners', 'high']]);
+    expect(kept[0].summary).toBe('Confirms "Google Launches Small-Business Hub in Gemini", reported earlier by an unconfirmed source. Google added business tools to the Gemini app.');
+    expect(verdicts.map((v) => v.reason)).toEqual([
+      'Google Introduces New Gemini Tools for Small Business Owners: kept as confirming "Google Launches Small-Business Hub in Gemini", which came from an unconfirmed source.',
+      // Once confirmed, the story is held from a source the agent can vouch for: another page is a repeat.
+      'Google Rolls Out New Gemini Tools for Small Business Owners: same story as "Google Launches Small-Business Hub in Gemini".',
+      `Meta Announces 'Ads Super Burst' for High-Impact Advertising: same story as "Meta Introduces 'Ads Super Burst' for High-Impact Advertising".`,
+      // The same page under another title is known by its link now.
+      'Meta Introduces Ads Super Burst and First Impression Ads: already known.',
+    ]);
+  });
+
+  it('checks every topic against what any topic holds and what the others keep in the same pass', async () => {
+    db.current = fakeSupabase({ groundswell_agent_learnings: [{ id: 'held-1', topic: 'ai-agent-marketing', title: 'Meta Acquires AI Data Platform Sundial', summary: 'Meta bought Sundial.', why_it_matters: null, action: null, url: 'https://www.axios.com/2026/10/23/meta-ai-data-platform-sundial', source: 'Axios', published_at: '2026-10-23', confidence: 'high', status: 'new', consultation_id: null, found_at: '2026-10-26T08:00:00Z' }] });
+    const linksStudy = learning({ title: 'Google Adds More Links to AI Overviews', url: 'https://searchengineland.com/google-ai-overviews-more-links-1' });
+    const consult = vi.fn().mockImplementation(async (_system: string, question: string) => {
+      const topic = JSON.parse(question).topic as string;
+      if (topic === 'Social media marketing') return answered([learning({ title: 'Meta buys Sundial, an AI data platform', url: 'https://www.axios.com/2026/10/23/meta-ai-data-platform-sundial' })]);
+      if (topic === 'Marketing and advertising' || topic === 'SEO and AI search') return answered([linksStudy]);
+      return answered([]);
+    });
+    const report = await researchTopics(fake(), { now: NOW, deadline: Infinity, consult });
+    expect(consult).toHaveBeenCalledTimes(6);
+    const stored = await readLearnings(fake());
+    expect(stored.filter((l) => l.url === linksStudy.url)).toHaveLength(1);
+    expect(stored.filter((l) => l.url.includes('sundial'))).toHaveLength(1);
+    expect(report.learned.map((l) => l.title)).toEqual(['Google Adds More Links to AI Overviews']);
+    expect(Object.values(report.dropped).flat().sort()).toEqual(['Google Adds More Links to AI Overviews: already known.', 'Meta buys Sundial, an AI data platform: already known.']);
   });
 
   it('a pass reports the new learnings, with their links, and sends because of them', async () => {
