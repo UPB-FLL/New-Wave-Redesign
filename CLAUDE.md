@@ -340,7 +340,12 @@ and learns from logs, data and results. Full notes: `docs/groundswell-agent.md`.
   in `openai.ts`), what is new in `DEFAULT_TOPICS` AI agent marketing and social media marketing, or
   `GROUNDSWELL_AGENT_TOPICS`; the ask carries the learnings already held so
   only new ones come back; `checkLearnings` needs a title, a summary and a
-  real link, never one known by link or title, never one without a
+  real link, never one known by link or title under any topic (2026-10-30:
+  `HELD_DAYS` of learnings, shared by a pass's topics), never one telling a
+  story held (`sameStory` on `titleWords`; a page dropped so is known by its
+  link after), except the first page from a vouched-for source confirming
+  an unconfirmed story, kept with "Confirms …" before its summary (owner's
+  call), never one without a
   publication date, never one dated before the window; who published the
   page is read from its link (`learningSources.ts`, 2026-10-28: the
   company's own site, a known publication, or anyone else, kept as an

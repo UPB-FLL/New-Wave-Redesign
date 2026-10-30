@@ -62,7 +62,20 @@ on (`runAgentPass` in `agent.ts`):
    date window (7 days) and the newest 30 learnings the agent already holds
    on that topic, so only what is new comes back. `checkLearnings` keeps a
    learning only with a title, a summary and a real link, never one
-   already known by link (tracking parameters stripped) or by title, never
+   already known by link (tracking parameters stripped) or by title, under
+   any topic (2026-10-30: one pass reads every learning found in the last
+   `HELD_DAYS`, 30, and the topics share it, so what one topic keeps is
+   known to the others in the same pass), never one telling a story
+   already held (`sameStory`: at least 80% of the shorter title's words, four
+   or more, in the other, after `titleWords` drops filler and announcing
+   verbs; replayed over the 74 learnings stored by then, the checks drop 8,
+   every one a repeat, such as one launch from two sites or a headline and
+   its shortened form, join no two different stories, and still let 2
+   repeats through whose headlines share fewer words; a page dropped so is
+   then known by its link too), except the first page from the company's own site or a
+   known publication confirming a story held only from unconfirmed
+   sources, which is kept with "Confirms "<earlier title>"…" at the start
+   of its summary (owner's call, 2026-10-30), never
    one without a publication date (an undated page is a landing, event or
    product page: the first live passes kept a vendor's homepage and two
    conference pages), and never one dated before the window (2 days of
