@@ -5,6 +5,7 @@ import { CHANGE_AREAS, type Baseline, type ChangeArea, type Comparison, type Ran
 import type { GroundswellConfig, IndustryProfile } from '../../../packages/groundswell/src/config.js';
 import { claimsIn } from '../../../packages/groundswell/src/templates.js';
 import { AREAS, allowedNumbers, buildFacts, scrubText, type AreaKey, type Facts, type runModel } from './model.js';
+import { contentWords } from './businessProfile.js';
 import { chatJson, GROUNDSWELL_MODEL } from './openai.js';
 import { PermanentStepError, type StepContext } from './types.js';
 
@@ -193,9 +194,11 @@ export function checkPlan(raw: unknown, f: Facts, m: ModelOut, config: Groundswe
     if (angles.length >= ANGLE_LIMIT) break;
     const keywords: AngleKeyword[] = [];
     for (const k of Array.isArray(a?.keywords) ? a.keywords : []) {
-      const idea = typeof k === 'string' ? ideas.get(k.trim().toLowerCase()) : undefined;
+      // The planner is asked for strings; one that copies the idea object back ({ keyword, monthly_searches }) is read too.
+      const text = typeof k === 'string' ? k : k && typeof k === 'object' ? String((k as { keyword?: unknown; text?: unknown }).keyword ?? (k as { text?: unknown }).text ?? '') : '';
+      const idea = text ? ideas.get(text.trim().toLowerCase()) : undefined;
       if (!idea) {
-        if (typeof k === 'string') dropped.keywords.push(k);
+        dropped.keywords.push(text || JSON.stringify(k).slice(0, 80));
         continue;
       }
       if (used.has(idea.keyword.toLowerCase())) continue;
@@ -214,7 +217,12 @@ export function checkPlan(raw: unknown, f: Facts, m: ModelOut, config: Groundswe
   let fallback_angle = false;
   if (!angles.length) {
     fallback_angle = true;
-    const core = [...ideas.values()].sort((x, y) => y.monthly_searches - x.monthly_searches).slice(0, 10);
+    // The largest searches that share a word with what the business does (the category, the seeds Keyword Planner
+    // was given); a seed word alone can bring another trade's searches ("aba" for a dog trainer's "behavior").
+    const related = contentWords([m.estimates.category, f.profile?.category ?? '', ...(f.keywords?.seeds ?? [])].join(' '));
+    const all = [...ideas.values()].sort((x, y) => y.monthly_searches - x.monthly_searches);
+    const own = all.filter((k) => [...contentWords(k.keyword)].some((w) => related.has(w)));
+    const core = (own.length ? own : all).slice(0, 10);
     angles.push(angleOf(capital(m.estimates.category), `The largest searches for ${m.estimates.category} in the area.`, core));
   }
 

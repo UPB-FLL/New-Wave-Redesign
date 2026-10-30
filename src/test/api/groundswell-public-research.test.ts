@@ -359,6 +359,13 @@ describe('what Keyword Planner is asked about', () => {
     expect(out.demand_status).toBe('measured');
   });
 
+  it('gives a one-word service the category’s first word, so "Behavior" is asked as "Dog Behavior", not any trade’s', () => {
+    const bare = { ...profile, services: ['Obedience', 'Behavior', 'Protection', 'Boarding', 'Board & Train', 'Dog Walking'], competitor_queries: [] };
+    const ctx = context({ maps: { business: { category: 'Dog trainer' } }, competitors: { profile: bare } });
+    ctx.audit.city = 'Pembroke Pines, FL';
+    expect(keywordSeeds(ctx)).toEqual(['Dog trainer', 'Dog trainer Pembroke Pines', 'Dog Obedience', 'Dog Behavior', 'Dog Protection', 'Dog Boarding', 'Board & Train', 'Dog Walking']);
+  });
+
   it('caps the seeds and drops links and one-word noise', () => {
     const many = { ...profile, services: Array.from({ length: 20 }, (_, i) => `Service ${i}`), competitor_queries: ['https://example.com', 'ok', 'a long enough query'] };
     const seeds = keywordSeeds(context({ maps: { business: { category: 'Dog trainer' } }, competitors: { profile: many } }));

@@ -198,6 +198,20 @@ describe('evidence completeness', () => {
     expect(coverage.find(s => s.key === 'instagram')?.status).toBe('not_checked');
   });
 
+  it('treats a link-in-bio page as no website to check, not as a failed read, so it never holds the audit', () => {
+    const outputs = sampleOutputs();
+    const site = outputs.site as { business: Record<string, unknown> };
+    site.business = { ...site.business, url: 'https://linktr.ee/harbor', final_url: 'https://linktr.ee/harbor', link_page: true, error: 'The address is a link-in-bio page, not a website of its own.' };
+    outputs.search = { business: null, competitors: [], source: 'Ahrefs', fetched_at: '2026-10-30', serp: { queries: [], note: '' } };
+    const facts = buildFacts({ ...sampleAudit, website: 'https://linktr.ee/harbor' }, outputs);
+    const coverage = evidenceCoverage(facts);
+    expect(coverage.find(s => s.key === 'website')).toMatchObject({ status: 'not_found', scope: expect.stringContaining('link-in-bio page') });
+    expect(coverage.find(s => s.key === 'ad_tags')?.status).toBe('not_found');
+    const problems = criticalEvidenceProblems(facts, ['maps', 'search', 'keywords', 'social', 'ads_library']);
+    expect(problems.join(' ')).not.toMatch(/could not be read successfully/);
+    expect(problems.join(' ')).not.toMatch(/search visibility/);
+  });
+
   it('preserves successfully read Ahrefs metrics when a different search endpoint fails', () => {
     const outputs = sampleOutputs();
     const search = outputs.search as { business: { domain_rating: number | null; organic_keywords: number; error: string | null } };

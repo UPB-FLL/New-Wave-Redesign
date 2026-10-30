@@ -177,6 +177,8 @@ const finite = (v: unknown): v is number => typeof v === 'number' && Number.isFi
 /** Output existence is not evidence of a successful read. Keep absence, failure and a scoped no-match distinct. */
 export function evidenceCoverage(f: Facts): EvidenceRecord[] {
   const site = f.site?.business;
+  // A link-in-bio page is nobody's website: not a failed read, and nothing of the business's own to check.
+  const linkPage = Boolean(site?.link_page);
   const siteOk = Boolean(site && !site.error && site.status && site.status >= 200 && site.status < 400);
   const ig = f.social?.business;
   const fb = f.social?.facebook;
@@ -192,13 +194,13 @@ export function evidenceCoverage(f: Facts): EvidenceRecord[] {
     source: source || label, captured_at: at ?? null, scope, limitation,
   });
   return [
-    entry('website', 'Website', Boolean(site), siteOk, site?.final_url ?? site?.url, site?.fetched_at, 'Initial HTTP response from the supplied website.', 'JavaScript, indexing, complete conversion paths and live account measurement are outside this check.'),
+    entry('website', 'Website', Boolean(site), siteOk, site?.final_url ?? site?.url, site?.fetched_at, linkPage ? 'The address given is a link-in-bio page, not a website of the business\'s own; only its headings, links and phones were read.' : 'Initial HTTP response from the supplied website.', linkPage ? 'A link-in-bio page cannot rank, carry tags or measure anything; the business has no website to check.' : 'JavaScript, indexing, complete conversion paths and live account measurement are outside this check.', linkPage),
     entry('maps', 'Google listing', Boolean(f.maps), Boolean(f.maps?.business), f.maps?.source, f.maps?.fetched_at, 'Business-name and location lookup; available rating and review fields only.', f.maps?.business ? 'A listing does not establish search-pack rank or account performance.' : 'A missing listing is not evidence of no customer demand.', Boolean(f.maps && !f.maps.business && /not found/i.test(f.maps.note ?? ''))),
     entry('search', 'Search visibility', Boolean(f.search), searchOk || serpOk, f.search?.source, f.search?.fetched_at, serpOk ? 'Query-specific search results and any available US Ahrefs estimates.' : 'US Ahrefs domain and organic-keyword estimates.', 'A sampled result is specific to its query, location and capture time; estimated traffic is not account analytics.'),
     entry('keywords', 'Keyword demand', Boolean(f.keywords), Boolean(demandOk), f.keywords?.source, f.keywords?.fetched_at, 'Measured searches and bid estimates only for the geography and terms returned.', demandOk ? 'Close variants can overlap; keyword totals are not unique buyers or guaranteed clicks.' : 'Demand could not be verified. Suggestions or an empty response do not establish zero demand; no spend or return should be inferred.'),
     entry('instagram', 'Instagram', Boolean(ig), Boolean(ig?.exists && [ig.followers, ig.posts, ig.posts_last_30_days].some(finite)), f.social?.source, f.social?.fetched_at, ig?.handle ? `Profile @${ig.handle}; available public counts and sampled posts.` : 'No verified business profile was read.', finite(ig?.posts_last_30_days) ? 'Sampled recent activity does not measure reach, leads or conversions.' : 'Recent posting activity was not verified. Missing or restricted profile data does not establish inactivity or the absence of an account.'),
     entry('facebook', 'Facebook', Boolean(fb), Boolean(fb?.exists && (fb.page_id || [fb.followers, fb.likes, fb.rating].some(finite))), f.social?.source, f.social?.fetched_at, fb?.url ? `Public Page ${fb.url}; available fields and sampled posts.` : 'No verified business Page was read.', 'Sampled posts do not measure reach, leads or the complete publishing history.'),
-    entry('ad_tags', 'Website ad signals', Boolean(f.ads || site), siteOk && f.ads?.business.website_checked !== false, f.ads?.source ?? 'Website initial HTML', f.ads?.fetched_at ?? site?.fetched_at, 'Tracking tags in fetched HTML and any available Ahrefs paid pages.', 'A tag does not prove active advertising; a missing tag or paid page does not prove no campaigns are running.'),
+    entry('ad_tags', 'Website ad signals', Boolean(f.ads || site), siteOk && f.ads?.business.website_checked !== false, f.ads?.source ?? 'Website initial HTML', f.ads?.fetched_at ?? site?.fetched_at, linkPage ? 'No website of the business\'s own to carry tags or paid pages.' : 'Tracking tags in fetched HTML and any available Ahrefs paid pages.', 'A tag does not prove active advertising; a missing tag or paid page does not prove no campaigns are running.', linkPage),
     entry('ads_library', 'Public ad libraries', Boolean(lib), libOk, f.ad_library?.source, f.ad_library?.fetched_at, 'Matched advertiser or Page records in the returned libraries.', 'Library records do not reveal spend, conversions or all placements; unknown status is not evidence of no advertising.'),
   ];
 }
@@ -207,11 +209,13 @@ export function evidenceCoverage(f: Facts): EvidenceRecord[] {
 export function criticalEvidenceProblems(f: Facts, planned: readonly string[] = []): string[] {
   const coverage = new Map(evidenceCoverage(f).map(s => [s.key, s]));
   const problems: string[] = [];
-  if (f.business.website && coverage.get('website')?.status !== 'checked') problems.push('The supplied website could not be read successfully; confirm its identity and content before delivery.');
+  // A link-in-bio page is not a website that failed to read: there is none to read, and the reports say so.
+  const ownSite = Boolean(f.business.website) && !f.site?.business?.link_page;
+  if (ownSite && coverage.get('website')?.status !== 'checked') problems.push('The supplied website could not be read successfully; confirm its identity and content before delivery.');
   const failed = (key: EvidenceKey, step: string) => coverage.get(key)?.status === 'unavailable' || (planned.includes(step) && coverage.get(key)?.status === 'not_checked');
   const families: string[] = [];
   if (failed('maps', 'maps')) families.push('Google listing');
-  if (f.business.website && failed('search', 'search')) families.push('search visibility');
+  if (ownSite && failed('search', 'search')) families.push('search visibility');
   const hasProfile = Boolean(f.business.instagram || f.business.facebook || f.site?.business?.social.instagram.length || f.site?.business?.social.facebook.length || f.social?.business || f.social?.facebook);
   if (hasProfile && failed('instagram', 'social') && coverage.get('facebook')?.status !== 'checked') families.push('social profiles');
   if (failed('ads_library', 'ads_library')) families.push('public ad libraries');

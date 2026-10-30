@@ -60,6 +60,31 @@ describe('checking the planner answer against the data', () => {
     expect(checkPlan({ industry: 'it_services' }, facts(), sampleModelOutput(), GROUNDSWELL_CONFIG).industry.id).toBe('it_services');
   });
 
+  it('reads a keyword the planner copied back as an object, and names what it could not read', () => {
+    // APK9's planner answered its angles with the idea objects it was shown; every angle was dropped unseen.
+    const out = checkPlan({ industry: 'general', angles: [{ name: 'Brakes', keywords: [{ keyword: 'brake repair near me', monthly_searches: 900 }, { text: 'car ac repair' }, { nope: 1 }, 7] }] }, facts(), sampleModelOutput(), GROUNDSWELL_CONFIG);
+    expect(out.fallback_angle).toBe(false);
+    expect(out.angles[0].keywords.map((k) => k.keyword)).toEqual(['brake repair near me', 'car ac repair']);
+    expect(out.dropped.keywords).toEqual(['{"nope":1}', '7']);
+  });
+
+  it('keeps the fallback angle to searches that share a word with what the business does', () => {
+    // "Behavior" as a seed brought ABA therapy searches to a dog trainer; they share no word with the category or the seeds.
+    const outputs = sampleOutputs();
+    outputs.keywords = { source: 'Keyword Planner', fetched_at: 'now', seeds: ['Auto repair shop', 'Auto Brakes'], demand_status: 'measured', ideas: [
+      { keyword: 'aba therapy near me', monthly_searches: 5000, competition: null, low_bid_usd: null, high_bid_usd: null },
+      { keyword: 'mental health therapist', monthly_searches: 3000, competition: null, low_bid_usd: null, high_bid_usd: null },
+      { keyword: 'brake repair near me', monthly_searches: 900, competition: null, low_bid_usd: 5, high_bid_usd: 14 },
+      { keyword: 'car ac repair', monthly_searches: 480, competition: null, low_bid_usd: 3, high_bid_usd: 9 },
+    ] };
+    const out = checkPlan({ industry: 'general', angles: [] }, buildFacts(sampleAudit, outputs), sampleModelOutput(), GROUNDSWELL_CONFIG);
+    expect(out.fallback_angle).toBe(true);
+    expect(out.angles[0].keywords.map((k) => k.keyword)).toEqual(['brake repair near me', 'car ac repair']);
+    // With nothing related at all, the largest searches stand in as before.
+    outputs.keywords = { ...(outputs.keywords as object), ideas: (outputs.keywords as { ideas: unknown[] }).ideas.slice(0, 2) } as typeof outputs.keywords;
+    expect(checkPlan({ industry: 'general', angles: [] }, buildFacts(sampleAudit, outputs), sampleModelOutput(), GROUNDSWELL_CONFIG).angles[0].keywords).toHaveLength(2);
+  });
+
   it('refuses to plan without keyword demand', () => {
     const outputs = { ...sampleOutputs(), keywords: { ideas: [] } };
     expect(() => checkPlan(samplePlannerJson, buildFacts(sampleAudit, outputs), sampleModelOutput(), GROUNDSWELL_CONFIG)).toThrow(PermanentStepError);
