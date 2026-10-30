@@ -1,7 +1,7 @@
 import { normalizeFacebook, normalizeInstagram, normalizeLogoUrl } from '../../../src/lib/groundswellValidation.js';
 import type { DiscoveryResult, DiscoverySource } from '../../../src/lib/groundswellDiscoveryTypes.js';
 import { parseSite, type SiteScan } from './currents/site.js';
-import { categoryFromText } from './currents/serp.js';
+import { categoryFromText, isLinkPageUrl } from './currents/serp.js';
 import { readPublicText } from './publicFetch.js';
 
 type Business = DiscoveryResult['business'];
@@ -210,12 +210,14 @@ export async function inspectBusinessWebsite(url: string, options: { timeoutMs?:
   const { nodes, resolve } = structuredData(page.text);
   const entities = businessNodes(nodes, page.url);
   const business = blankBusiness(page.url);
+  // A link-in-bio page's title, icon and colours are the platform's; only its display name and the accounts it links are the business's.
+  const linkPage = isLinkPageUrl(page.url);
   const metadata = [...page.text.matchAll(/<meta\b[^>]*>/gi)].map((match) => attributes(match[0]));
   const siteName = metadata.find((attrs) => /^og:site_name$/i.test(attrs.property || ''))?.content;
   const title = text(scan.title || metadata.find((attrs) => /^og:title$/i.test(attrs.property || ''))?.content);
   const titleName = title?.split(/\s+[|–—]\s+|\s+-\s+/).find((part) => !/^(home|welcome|homepage|just a moment|access denied|page not found|404|attention required)[.!…]*$/i.test(part.trim()));
-  business.business_name = entities.map((entity) => text(entity.name || entity.legalName)).find(Boolean) || text(siteName) || text(titleName);
-  for (const entity of entities) {
+  business.business_name = linkPage ? text(scan.h1[0]) || null : entities.map((entity) => text(entity.name || entity.legalName)).find(Boolean) || text(siteName) || text(titleName);
+  for (const entity of linkPage ? [] : entities) {
     for (const item of list(entity.address)) {
       const address = resolve(item);
       const locality = text(address?.addressLocality);
@@ -227,7 +229,7 @@ export async function inspectBusinessWebsite(url: string, options: { timeoutMs?:
     if (business.city) break;
   }
   const categoryEntity = entities.find((entity) => entity.category || typesOf(entity).some((type) => localType.test(type) && type !== 'Organization'));
-  business.category = text(list(categoryEntity?.category)[0]) || typesOf(categoryEntity || {}).find((type) => !['Organization', 'WebSite', 'Thing'].includes(type))?.replace(/([a-z])([A-Z])/g, '$1 $2') || categoryFromText([title, scan.meta_description, ...entities.map(entity => text(entity.description))].filter(Boolean).join(' '));
+  business.category = linkPage ? null : text(list(categoryEntity?.category)[0]) || typesOf(categoryEntity || {}).find((type) => !['Organization', 'WebSite', 'Thing'].includes(type))?.replace(/([a-z])([A-Z])/g, '$1 $2') || categoryFromText([title, scan.meta_description, ...entities.map(entity => text(entity.description))].filter(Boolean).join(' '));
   const canonical = absolute(scan.canonical, page.url);
   if (canonical && new URL(canonical).origin === new URL(page.url).origin) business.website = canonical;
   const socialLinks = [...entities.flatMap((entity) => list(entity.sameAs)), ...[...page.text.matchAll(/<a\b[^>]*>/gi)].map((match) => attributes(match[0]).href)];
@@ -242,10 +244,10 @@ export async function inspectBusinessWebsite(url: string, options: { timeoutMs?:
       try { business.facebook = normalizeFacebook(link); } catch { /* Not a business Page. */ }
     }
   }
-  const logo = logoFrom(page.text, page.url, entities, resolve);
+  const logo = linkPage ? { url: null, icon: false } : logoFrom(page.text, page.url, entities, resolve);
   business.brand_logo_url = logo.url;
   if (logo.icon) warnings.push('Only a site icon was found. Confirm that it is suitable as the business logo.');
-  const sheets = await Promise.all(stylesheetUrls(page.text, page.url).map(async (href) => {
+  const sheets = await Promise.all((linkPage ? [] : stylesheetUrls(page.text, page.url)).map(async (href) => {
     try {
       const sheet = await readPublicText(href, { timeoutMs: 3_000, maxBytes: 150_000, contentTypes: ['text/css', 'text/plain'] });
       return sheet.status >= 200 && sheet.status < 300 && new URL(sheet.url).origin === new URL(page.url).origin ? sheet.text : null;
@@ -254,10 +256,11 @@ export async function inspectBusinessWebsite(url: string, options: { timeoutMs?:
   if (sheets.some((sheet) => sheet === null)) warnings.push('A linked stylesheet could not be read. Review the detected colours.');
   business.brand_colors = paletteFrom(page.text, sheets.filter((sheet): sheet is string => sheet !== null));
   business.brand_color = business.brand_colors[0] || null;
+  if (linkPage) warnings.push('This address is a link-in-bio page, not the business’s own website: what the business does, its logo and its colours are read from its Instagram profile and Google listing instead.');
   if (!business.business_name) warnings.push('The website did not identify a business name. Add it below.');
-  if (!business.city) warnings.push('A city could not be verified from the website. Add the business location below.');
-  if (!business.brand_logo_url) warnings.push('No business logo was found on the website. You can add a logo link.');
-  if (!business.brand_color) warnings.push('No brand colour could be verified from the website. You can add a main colour.');
+  if (!business.city && !linkPage) warnings.push('A city could not be verified from the website. Add the business location below.');
+  if (!business.brand_logo_url && !linkPage) warnings.push('No business logo was found on the website. You can add a logo link.');
+  if (!business.brand_color && !linkPage) warnings.push('No brand colour could be verified from the website. You can add a main colour.');
   const facebook = business.facebook ? new URL(business.facebook) : null;
   const facebookRef = facebook ? `${facebook.pathname.replace(/^\/+/, '')}${facebook.search}` : null;
   return {

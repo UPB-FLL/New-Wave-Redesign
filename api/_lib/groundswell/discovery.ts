@@ -1,7 +1,9 @@
 import { normalizeFacebook, normalizeInstagram, normalizeWebsite } from '../../../src/lib/groundswellValidation.js';
 import type { DiscoveryResult, DiscoverySeed, DiscoverySource } from '../../../src/lib/groundswellDiscoveryTypes.js';
+import { buildBusinessProfile, instagramBio, type BusinessProfile } from './businessProfile.js';
 import { executeTool, findKey } from './composio.js';
 import { findCompetitors } from './currents/competitors.js';
+import type { SiteScan } from './currents/site.js';
 import { inspectBusinessWebsite } from './discoveryWebsite.js';
 import { publicWebsiteUrl } from './publicFetch.js';
 
@@ -52,15 +54,20 @@ export async function discoverPublicBusiness(seed: DiscoverySeed): Promise<Disco
   let business = emptyBusiness(seed);
   const sources: DiscoverySource[] = [];
   const warnings: string[] = [];
+  let scan: SiteScan | null = null;
+  let biography: string | null = null;
   const inspect = async (website: string) => {
     const found = await inspectBusinessWebsite(website);
+    scan = found.scan;
     // Explicitly supplied social accounts and location remain the user's choices.
     business = { ...business, ...found.business, instagram: seed.instagram || found.business.instagram || business.instagram, facebook: seed.facebook || found.business.facebook || business.facebook, city: seed.city || found.business.city || business.city, business_name: seed.business_name || found.business.business_name || business.business_name };
     sources.push(...found.sources);
     warnings.push(...found.warnings);
   };
   if (business.website) await inspect(business.website);
-  if (!business.website || !business.business_name) {
+  // The Instagram bio is read whenever a handle is given: it is the business's own words on what it does, which a
+  // link-in-bio page or a bare homepage cannot give; the name and website are taken from it only when missing.
+  if (seed.instagram || seed.facebook) {
     const profiles = [
       ...(seed.instagram ? [{ name: 'Instagram', slug: 'SCRAPECREATORS_GET_INSTAGRAM_PROFILE', args: { handle: seed.instagram, trim: true, cache_max_age: '1d' }, url: `https://www.instagram.com/${seed.instagram}/` }] : []),
       ...(seed.facebook ? [{ name: 'Facebook', slug: 'SCRAPECREATORS_GET_FACEBOOK_PROFILE', args: { url: seed.facebook, include_gated_profile: true, cache_max_age: '1d' }, url: seed.facebook }] : []),
@@ -72,6 +79,7 @@ export async function discoverPublicBusiness(seed: DiscoverySeed): Promise<Disco
         const data = await executeTool(profile.slug, profile.args, remaining);
         const name = string(findKey(data, 'full_name')) ?? string(findKey(data, 'name'));
         const profileWebsite = externalWebsite(data);
+        if (profile.name === 'Instagram') biography = instagramBio(data);
         if (!business.business_name && name) business.business_name = name;
         if (!business.website) business.website = profileWebsite;
         sources.push({ name: profile.name, status: name || profileWebsite ? 'ok' : 'not_found', url: profile.url, detail: 'Read publicly available profile identity and links.' });
@@ -86,7 +94,10 @@ export async function discoverPublicBusiness(seed: DiscoverySeed): Promise<Disco
   const competitors: DiscoveryResult['competitors'] = [];
   if (business.business_name && Date.now() < deadline) {
     try {
-      const found = await findCompetitors({ business_name: business.business_name, city: business.city, website: business.website, instagram: business.instagram, facebook: business.facebook, category: business.category, deadline }, 6);
+      // What the business does, from its own words (the site and the Instagram bio), before any rival is looked for.
+      const profile: BusinessProfile = await buildBusinessProfile({ name: business.business_name, city: business.city, scan, social: { biography }, listingCategory: business.category, timeoutMs: Math.max(5_000, Math.min(20_000, deadline - Date.now() - 8_000)) });
+      if (profile.category) business.category = profile.category;
+      const found = await findCompetitors({ business_name: business.business_name, city: business.city, website: business.website, instagram: business.instagram, facebook: business.facebook, category: business.category, profile, deadline }, 6);
       if (!business.category && found.business?.category) business.category = found.business.category;
       for (const candidate of found.competitors) {
         const pick = found.picks.find(item => item.website === candidate.website);

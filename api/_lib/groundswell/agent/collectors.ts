@@ -61,6 +61,26 @@ interface StepLite {
   error: string | null;
   finished_at: string | null;
 }
+interface CompetitorStepLite {
+  audit_id: string;
+  finished_at: string | null;
+  output: { competitors?: { name: string; website: string | null }[]; profile?: { category?: string | null; source?: string } | null; business?: { category?: string | null } | null; note?: string | null; dropped?: { name: string; reason: string }[] } | null;
+}
+
+/**
+ * A delivered growth audit whose competitors were entered (or accepted from
+ * intake's suggestions) while no category could be verified from the
+ * business's own words: nothing checked that they compete. Six restaurant
+ * pages were compared with a dog trainer on 2026-10-30 this way.
+ */
+export function unverifiedCompetitors(step: CompetitorStepLite): { names: string[]; why: string } | null {
+  const out = step.output;
+  const competitors = out?.competitors ?? [];
+  if (!competitors.length) return null;
+  const category = out?.profile?.category ?? out?.business?.category ?? null;
+  if (category) return null;
+  return { names: competitors.map((c) => c.name), why: out?.note ?? 'No category could be verified for the business, so the competitors were not checked.' };
+}
 
 async function rows<T>(query: PromiseLike<{ data: unknown; error: { message: string } | null }>, what: string): Promise<T[]> {
   const result = await query;
@@ -131,6 +151,31 @@ export const runsCollector: Collector = {
           title: `${a.business_name}: the ${phaseOf(a)} run has waited in the queue since ${a.created_at.slice(0, 16).replace('T', ' ')} UTC`,
           detail: 'The heartbeat starts queued runs on its own (up to three at once); a run still queued after an hour means the worker is not firing or the queue is full.',
           subject: { ...subjectBase, updated_at: a.updated_at },
+        });
+      }
+    }
+
+    // Delivered growth audits compared with competitors nobody verified.
+    const delivered = audits.filter((a) => a.status === 'done' && phaseOf(a) === 'audit');
+    if (delivered.length) {
+      const competitorSteps = await rows<CompetitorStepLite>(
+        db.from('marketing_audit_steps').select('audit_id,finished_at,output').in('audit_id', delivered.map((a) => a.id)).eq('step', 'competitors').eq('status', 'done'),
+        'Could not read the competitor steps'
+      );
+      for (const s of competitorSteps) {
+        const a = delivered.find((x) => x.id === s.audit_id);
+        const found = unverifiedCompetitors(s);
+        if (!a || !found) continue;
+        out.push({
+          source: 'runs',
+          kind: 'competitors_unverified',
+          fingerprint: `runs:competitors_unverified:${a.id}`,
+          severity: 'warning',
+          title: `${a.business_name}: its competitors were never verified as the same kind of business`,
+          detail: `The delivered audit compares ${a.business_name} with ${found.names.slice(0, 6).join(', ')}${found.names.length > 6 ? ` and ${found.names.length - 6} more` : ''}. ${head(found.why, 300)}`,
+          subject: { audit_id: a.id, business: a.business_name, phase: 'audit', customer_id: a.customer_id ?? null },
+          evidence: { competitors: found.names.slice(0, 8) },
+          observed_at: s.finished_at ?? a.updated_at,
         });
       }
     }

@@ -16,7 +16,9 @@ describe('public business discovery service', () => {
   it('returns real website identity, branding and sourced competitor suggestions while retaining supplied account/location choices', async () => {
     const found = await discoverPublicBusiness({ website: 'https://harbor.example', instagram: 'confirmed_handle', city: 'Orlando, FL' });
     expect(found.business).toMatchObject({ business_name: 'Harbor Repair', city: 'Orlando, FL', instagram: 'confirmed_handle', brand_logo_url: business.brand_logo_url, brand_color: '#123456' });
-    expect(mocks.tool).not.toHaveBeenCalled();
+    // The Instagram bio is read for what the business does, in its own words; the name and site stay the website's.
+    expect(mocks.tool).toHaveBeenCalledWith('SCRAPECREATORS_GET_INSTAGRAM_PROFILE', expect.objectContaining({ handle: 'confirmed_handle' }), expect.any(Number));
+    expect(mocks.tool).toHaveBeenCalledTimes(1);
     expect(mocks.competitors).toHaveBeenCalledWith(expect.objectContaining({ business_name: 'Harbor Repair', city: 'Orlando, FL', deadline: expect.any(Number) }), 6);
     expect(found.competitors[0]).toMatchObject({ name: 'Dock Repair', source_url: expect.stringContaining('google.com') });
   });

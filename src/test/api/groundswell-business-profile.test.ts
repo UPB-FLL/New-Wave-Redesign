@@ -3,7 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const openai = vi.hoisted(() => ({ chatJson: vi.fn() }));
 vi.mock('../../../api/_lib/groundswell/openai', () => ({ chatJson: openai.chatJson, GROUNDSWELL_MODEL: () => 'test-model' }));
 
-import { buildBusinessProfile, checkProfile, contentWords, fallbackProfile, filterCompetitors, isDirectoryHost, profileWords, sharesCategory, stem } from '../../../api/_lib/groundswell/businessProfile';
+import { buildBusinessProfile, checkProfile, contentWords, fallbackProfile, filterCompetitors, instagramBio, isDirectoryHost, isListPage, profileText, profileWords, sharesCategory, stem } from '../../../api/_lib/groundswell/businessProfile';
+import { categoryFromSite, isLinkPageUrl } from '../../../api/_lib/groundswell/currents/serp';
 import { parseScrapedPage } from '../../../api/_lib/groundswell/currents/sitePages';
 
 /**
@@ -102,5 +103,38 @@ describe('which candidates compete', () => {
     const out = await filterCompetitors({ ...profile, category: null, services: [] }, business, candidates.slice(0, 2));
     expect(out.every((d) => d.competes)).toBe(true);
     expect(out[0].reason).toMatch(/kept for review/);
+  });
+});
+
+describe('the business’s own words beyond its site', () => {
+  const linktree = { title: 'APK9 Official: TikTok, Instagram | Linktree', meta_description: 'Linktree. Make your link do more.', h1: ['APK9'], url: 'https://linktr.ee/alphaprimek9', final_url: 'https://linktr.ee/alphaprimek9', schema_types: ['ProfilePage', 'Person'], status: 200, error: null };
+  const bio = 'Elite Dog Training | Real Results\nObedience • Behavior • Protection\nBoarding | Board & Train | Private Sessions';
+
+  it('reads the category from the Instagram bio when the website is a link-in-bio page', () => {
+    expect(isLinkPageUrl('https://linktr.ee/alphaprimek9')).toBe(true);
+    expect(isLinkPageUrl('https://www.uncommonpathbrewing.com')).toBe(false);
+    expect(categoryFromSite(linktree)).toBeNull();
+    expect(profileText(linktree, [], { biography: bio })).toBe(bio);
+    expect(fallbackProfile(linktree, [], null, [], { biography: bio })).toMatchObject({ category: 'Dog trainer', source: 'social' });
+    expect(fallbackProfile(linktree, [], 'Restaurant', [])).toMatchObject({ category: 'Restaurant', source: 'listing' });
+    expect(instagramBio({ data: { user: { biography: `  ${bio}  ` } } })).toBe(bio.replace(/\s+/g, ' '));
+    expect(instagramBio({ data: { user: {} } })).toBeNull();
+  });
+
+  it('knows a list page and a booking platform from a business', () => {
+    for (const name of ['279 Best Lunch Restaurants in Pembroke Pines', 'LOS 10 MEJORES restaurantes en Pembroke Pines (2026)', 'Pembroke Pines Restaurants Archives', 'Discover Pembroke Pines, FL Restaurants to Love on Resy', 'THE 10 BEST Dog Trainers in Miami']) expect(isListPage(name), name).toBe(true);
+    for (const name of ['Mezes Greek Taverna', 'Sit Means Sit', 'Alpha Dog Training', 'Brimstone Woodfire Grill']) expect(isListPage(name), name).toBe(false);
+    for (const host of ['www.opentable.com', 'resy.com', 'www.tripadvisor.es', 'rover.com', 'linktr.ee']) expect(isDirectoryHost(host), host).toBe(true);
+    expect(isDirectoryHost('www.mezestaverna.com')).toBe(false);
+  });
+
+  it('never lets a list page through the relevance check, whatever its words', async () => {
+    const profile = fallbackProfile(null, [], null, [], { biography: bio });
+    const out = await filterCompetitors(profile, { name: 'APK9 Academy LLC', city: 'Pembroke Pines, FL' }, [
+      { name: 'THE 10 BEST Dog Trainers in Pembroke Pines', website: 'https://lists.example/best', category: null, title: 'THE 10 BEST Dog Trainers in Pembroke Pines', snippet: 'dog training', address: null },
+      { name: 'Alpha Dog Training', website: 'https://alpha.example', category: 'Dog trainer', title: null, snippet: null, address: null },
+    ]);
+    expect(out.map((d) => d.competes)).toEqual([false, true]);
+    expect(out[0].reason).toMatch(/list or directory page/);
   });
 });

@@ -113,9 +113,21 @@ export function specificCategory(value: string | null | undefined): string | nul
   return /^(?:services?|establishments?|point of interest|local business|business(?:es)?|compan(?:y|ies)|organi[sz]ation|professional services?|business services?|service establishment|store|place|website)$/.test(normalized) ? null : category;
 }
 
+/**
+ * Link-in-bio pages (Linktree, Beacons, …): a business often enters one as
+ * its website. Its words are the platform's, not the business's, so nothing
+ * about what the business does is read from it.
+ */
+const LINK_PAGE_HOSTS = /(^|\.)(?:linktr\.ee|linktree\.com|beacons\.ai|beacons\.page|linkin\.bio|bio\.site|bio\.link|lnk\.bio|taplink\.cc|solo\.to|campsite\.bio|stan\.store|hoo\.be|withkoji\.com|milkshake\.app|carrd\.co|allmylinks\.com|tap\.bio|linkr\.bio|snipfeed\.co)$/i;
+export function isLinkPageUrl(url: string | null | undefined): boolean {
+  if (!url) return false;
+  try { return LINK_PAGE_HOSTS.test(new URL(/^https?:\/\//i.test(url) ? url : `https://${url}`).hostname.toLowerCase()); } catch { return false; }
+}
+
 /** First-party service wording takes precedence over a broader Google listing category. */
-export function categoryFromSite(site: Pick<SiteScan, 'title' | 'meta_description' | 'h1' | 'schema_types' | 'status' | 'error'> | null | undefined): string | null {
+export function categoryFromSite(site: Pick<SiteScan, 'title' | 'meta_description' | 'h1' | 'schema_types' | 'status' | 'error'> & { url?: string; final_url?: string | null } | null | undefined): string | null {
   if (!site || site.error || (site.status !== null && (site.status < 200 || site.status >= 400))) return null;
+  if (isLinkPageUrl(site.final_url ?? site.url)) return null;
   return categoryFromText([site.title, site.meta_description, ...(site.h1 ?? []), ...(site.schema_types ?? []).map(type => type.replace(/([a-z])([A-Z])/g, '$1 $2'))].filter(Boolean).join(' '));
 }
 
@@ -137,6 +149,34 @@ export function categoryFromText(text: string): string | null {
     [/plumbing|plumber/i, 'Plumber'],
     [/roofing|roofer/i, 'Roofing contractor'],
     [/real estate agent|real estate broker/i, 'Real estate agency'],
+    [/dog train(?:er|ing)|k-?9 train|canine train|puppy train|board (?:and|&) train|obedience train/i, 'Dog trainer'],
+    [/dog groom|pet groom/i, 'Pet groomer'],
+    [/veterinar|animal hospital/i, 'Veterinarian'],
+    [/dog walk|pet sitt|dog daycare|dog boarding|pet boarding/i, 'Pet care'],
+    [/yoga studio|yoga class/i, 'Yoga studio'],
+    [/pilates/i, 'Pilates studio'],
+    [/martial arts|jiu.?jitsu|karate|taekwondo|boxing gym|muay thai/i, 'Martial arts school'],
+    [/\bgym\b|fitness center|fitness studio|crossfit/i, 'Gym'],
+    [/dance studio|dance class/i, 'Dance studio'],
+    [/tutor(?:ing|s)?\b|test prep|learning center/i, 'Tutoring service'],
+    [/day ?care|preschool|child care/i, 'Day care'],
+    [/photograph(?:er|y studio)/i, 'Photographer'],
+    [/cleaning service|house cleaning|maid service|janitorial/i, 'Cleaning service'],
+    [/\bhvac\b|air conditioning repair|ac repair/i, 'HVAC contractor'],
+    [/electrician|electrical contractor/i, 'Electrician'],
+    [/pest control|exterminator/i, 'Pest control service'],
+    [/law firm|attorney|lawyer/i, 'Law firm'],
+    [/accountant|accounting firm|bookkeep|tax preparation/i, 'Accountant'],
+    [/insurance agency|insurance agent/i, 'Insurance agency'],
+    [/florist|flower shop/i, 'Florist'],
+    [/bakery|pastry shop/i, 'Bakery'],
+    [/coffee shop|coffee house|cafe\b|café/i, 'Coffee shop'],
+    [/barber/i, 'Barber shop'],
+    [/nail salon/i, 'Nail salon'],
+    [/tattoo/i, 'Tattoo studio'],
+    [/massage|day spa/i, 'Spa'],
+    [/pizzeria|pizza/i, 'Pizzeria'],
+    [/\bk-?9\b/i, 'Dog trainer'],
   ];
   return categories.find(([pattern]) => pattern.test(text.replace(/[-_]/g, ' ').replace(/\s+/g, ' ')))?.[1] ?? null;
 }

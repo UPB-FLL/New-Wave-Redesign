@@ -12,6 +12,7 @@ import { hasPlans, PLATFORM_LABELS, type SocialPost } from '../../../packages/gr
 import type { Brand } from './brand.js';
 import { framePage, HOUSE, houseCss, logoImg, NEW_WAVE_PREPARER, numberPages, pageFoot, pageHead, preparedBy, siteLabel, type Frame, type Preparer } from './reportFrame.js';
 import { gapsFromMissing } from './gaps.js';
+import { fillAreas } from './observations.js';
 import { AREAS, evidenceCoverage, scrubUnsupportedClaims, type AreaKey, type Facts, type ReportFinding, type runModel } from './model.js';
 import type { GaData, GoogleAdsData, GscData, InstagramData, LinkedOutput, MetaAdsData } from './currents/linked.js';
 import { ASSISTANT_LABELS } from './currents/aiSearch.js';
@@ -188,7 +189,8 @@ const kpiHtml = (items: Kpi[]) =>
 /** Legacy and manually released reports use the same evidence rules as newly modeled reports. */
 function safeReportData(d: ReportData): ReportData {
   const hasDemand = evidenceCoverage(d.facts).some(s => s.key === 'keywords' && s.status === 'checked');
-  return { ...d, model: { ...d.model, writeup: scrubUnsupportedClaims(d.model.writeup, d.facts).writeup,
+  const scrubbed = scrubUnsupportedClaims(d.model.writeup, d.facts).writeup;
+  return { ...d, model: { ...d.model, writeup: { ...scrubbed, areas: fillAreas(scrubbed.areas, d.facts) },
     ...(!hasDemand ? { roi: null, roi_sources: [], core_keywords: [], roi_note: 'Keyword demand and bids could not be verified for this run, so ad spend and return were not modeled. This does not establish low or zero demand.' } : {}),
   }, ...(!hasDemand ? { adplan: null, adcopy: null } : {}) };
 }
@@ -514,12 +516,18 @@ function socialPlanSection(p: PlansOutput): string {
   return `${s.summary ? `<p class="summary">${esc(s.summary)}</p>` : ''}${platforms}${pillars}${week}`;
 }
 
+/** The two columns every area carries, in the client's words. */
+export const WORKING_TITLE = 'Working in your favor';
+export const COSTING_TITLE = 'Holding you back';
+export const NO_WORKING = 'Nothing in the data read for this area stands out yet; the evidence limits say what was not read.';
+export const NO_COSTING = 'Nothing measurable is holding this area back in the data read; the evidence limits say what was not read.';
+
 function areaWriteup(m: ModelOutput, key: AreaKey, trim: boolean) {
   const a = m.writeup.areas[key];
   return `${a.summary ? `<p class="summary">${esc(a.summary)}</p>` : ''}
 <div class="cols">
-  <div><h3>Observed strengths</h3>${listHtml(a.working, trim) || '<p class="muted">No additional supported strength was established by the available evidence.</p>'}</div>
-  <div><h3>Constraints and opportunities</h3>${listHtml(a.costing, trim) || '<p class="muted">No quantified loss was established; see the evidence limits.</p>'}</div>
+  <div><h3>${WORKING_TITLE}</h3>${listHtml(a.working, trim) || `<p class="muted">${NO_WORKING}</p>`}</div>
+  <div><h3>${COSTING_TITLE}</h3>${listHtml(a.costing, trim) || `<p class="muted">${NO_COSTING}</p>`}</div>
 </div>
 ${a.fixes.length ? `<h3>Fixes, in order</h3>${listHtml(a.fixes, trim)}` : ''}`;
 }
@@ -813,7 +821,7 @@ export function buildDeckHtml(d: ReportData, links: { audit: string }): string {
       k,
       i + 3,
       AREA_TITLES[k],
-      `${a.summary ? `<p class="lead">${esc(a.summary)}</p>` : ''}<div class="cols"><div><h3>Observed strengths</h3>${listHtml(a.working.slice(0, 3)) || '<p class="muted">No additional supported strength established.</p>'}</div><div><h3>Constraints and opportunities</h3>${listHtml(a.costing.slice(0, 3)) || '<p class="muted">No quantified loss established.</p>'}</div></div>${a.fixes.length ? `<h3>Recommended action</h3>${listHtml(a.fixes.slice(0, 2))}` : ''}`
+      `${a.summary ? `<p class="lead">${esc(a.summary)}</p>` : ''}<div class="cols"><div><h3>${WORKING_TITLE}</h3>${listHtml(a.working.slice(0, 3)) || `<p class="muted">${NO_WORKING}</p>`}</div><div><h3>${COSTING_TITLE}</h3>${listHtml(a.costing.slice(0, 3)) || `<p class="muted">${NO_COSTING}</p>`}</div></div>${a.fixes.length ? `<h3>Recommended action</h3>${listHtml(a.fixes.slice(0, 2))}` : ''}`
     );
   }).join('');
 

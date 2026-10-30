@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { nextPhase, PHASE_INFO, PHASES, type Phase } from '../../../src/lib/groundswellValidation.js';
-import type { AuditRow } from './types.js';
+import type { AuditCompetitor, AuditRow } from './types.js';
 
 /**
  * Groundswell's phases as runs (migration 20261029120000). Each phase is a
@@ -108,7 +108,7 @@ export async function queuePhase(db: Pick<SupabaseClient, 'from'>, sourceId: str
  * how a plan is measured when no account is linked. A phase 1 run already
  * queued or running for the customer is returned instead of a second one.
  */
-export async function queuePublicReread(db: Pick<SupabaseClient, 'from'>, customerId: string): Promise<QueueResult> {
+export async function queuePublicReread(db: Pick<SupabaseClient, 'from'>, customerId: string, options: { competitors?: AuditCompetitor[] } = {}): Promise<QueueResult> {
   const read = await db.from('groundswell_customers').select('id,partner_id,business_name,city,website,instagram,facebook,competitors,notes').eq('id', customerId).maybeSingle();
   if (read.error) {
     if (missingColumn(read.error.message) || missingTable(read.error.message)) return { queued: null, phase: 'audit', reason: 'Customers are not set up yet.' };
@@ -126,7 +126,7 @@ export async function queuePublicReread(db: Pick<SupabaseClient, 'from'>, custom
     website: customer.website ?? null,
     instagram: customer.instagram ?? null,
     ...(customer.facebook ? { facebook: customer.facebook } : {}),
-    competitors: customer.competitors ?? [],
+    competitors: options.competitors ?? customer.competitors ?? [],
     notes: customer.notes ?? null,
     partner_id: customer.partner_id ?? null,
     customer_id: customer.id,

@@ -1,5 +1,6 @@
 import { chatJson } from './openai.js';
-import { categoryFromText, specificCategory } from './currents/serp.js';
+import { executeTool, findKey } from './composio.js';
+import { categoryFromText, isLinkPageUrl, specificCategory } from './currents/serp.js';
 import type { SitePage } from './currents/sitePages.js';
 import type { SiteScan } from './currents/site.js';
 
@@ -34,8 +35,8 @@ export interface BusinessProfile {
   competitor_queries: string[];
   /** Subjects the site writes about, for the content plan. */
   content_topics: string[];
-  /** How the profile was made: the model from the site, the site's wording rules, a listing label, or nothing. */
-  source: 'model' | 'website' | 'listing' | 'none';
+  /** How the profile was made: the model from the site (and the social bio), the site's wording rules, the Instagram bio's, a listing label, or nothing. */
+  source: 'model' | 'website' | 'social' | 'listing' | 'none';
   /** The pages (or scan) the profile rests on. */
   evidence: string[];
 }
@@ -71,10 +72,38 @@ const list = (v: unknown, n: number, max = 120): string[] => (Array.isArray(v) ?
 const AREAS: ServiceArea[] = ['local', 'regional', 'national', 'online'];
 
 /** The words the profile rests on: the scan's title, description and headings, and each page's title, headings and excerpt. */
-export function profileText(scan: Pick<SiteScan, 'title' | 'meta_description' | 'h1'> | null | undefined, pages: SitePage[] = []): string {
-  const parts = [scan?.title, scan?.meta_description, ...(scan?.h1 ?? [])];
+/** The business's own words elsewhere: its Instagram bio and its Facebook Page's intro. */
+export interface ProfileSocial {
+  biography?: string | null;
+  intro?: string | null;
+}
+
+/** A scan the profile may read; a link-in-bio page's words are the platform's and are left out. */
+export type ProfileScan = Pick<SiteScan, 'title' | 'meta_description' | 'h1'> & { url?: string; final_url?: string | null };
+const ownScan = (scan: ProfileScan | null | undefined): ProfileScan | null => (scan && !isLinkPageUrl(scan.final_url ?? scan.url) ? scan : null);
+
+export function profileText(scan: ProfileScan | null | undefined, pages: SitePage[] = [], social: ProfileSocial | null = null): string {
+  const own = ownScan(scan);
+  const parts = [own?.title, own?.meta_description, ...(own?.h1 ?? [])];
   for (const p of pages) parts.push(p.title, p.description, p.h1, ...p.headings, p.excerpt);
+  parts.push(social?.biography, social?.intro);
   return parts.filter(Boolean).join('\n');
+}
+
+/** The bio of an Instagram profile as a reader answered it, trimmed; null when there is none. */
+export function instagramBio(profile: unknown): string | null {
+  const bio = findKey<unknown>(profile, 'biography');
+  return typeof bio === 'string' && bio.trim() ? bio.replace(/\s+/g, ' ').trim().slice(0, 400) : null;
+}
+
+/** Reads a public Instagram profile for its bio (ScrapeCreators, cached a day); never throws. */
+export async function readInstagramBio(handle: string | null | undefined, timeoutMs = 12_000): Promise<string | null> {
+  if (!handle || timeoutMs < 1_000) return null;
+  try {
+    return instagramBio(await executeTool('SCRAPECREATORS_GET_INSTAGRAM_PROFILE', { handle, trim: true, cache_max_age: '1d' }, timeoutMs));
+  } catch {
+    return null;
+  }
 }
 
 /** Every content word of `phrase` appears in `corpus`. */
@@ -108,15 +137,16 @@ export function checkProfile(raw: unknown, siteText: string, fallback: string | 
 }
 
 /** A profile without the model: the first-party wording rules, or a listing label. */
-export function fallbackProfile(scan: Pick<SiteScan, 'title' | 'meta_description' | 'h1'> | null | undefined, pages: SitePage[], listingCategory: string | null, evidence: string[]): BusinessProfile {
+export function fallbackProfile(scan: ProfileScan | null | undefined, pages: SitePage[], listingCategory: string | null, evidence: string[], social: ProfileSocial | null = null): BusinessProfile {
   const fromSite = categoryFromText(profileText(scan, pages));
-  const category = fromSite ?? specificCategory(listingCategory);
-  return { category, offer: null, services: [], audience: null, service_area: null, competitor_queries: [], content_topics: [], source: fromSite ? 'website' : category ? 'listing' : 'none', evidence };
+  const fromSocial = fromSite ? null : categoryFromText(profileText(null, [], social));
+  const category = fromSite ?? fromSocial ?? specificCategory(listingCategory);
+  return { category, offer: null, services: [], audience: null, service_area: null, competitor_queries: [], content_topics: [], source: fromSite ? 'website' : fromSocial ? 'social' : category ? 'listing' : 'none', evidence };
 }
 
-const PROFILE_SYSTEM = `You describe what a small business does, from its own website's words, for a marketing audit.
+const PROFILE_SYSTEM = `You describe what a small business does, from its own words (its website, and its Instagram bio or Facebook intro when given), for a marketing audit.
 Rules:
-- Use only the text given. Name the category and services in words that appear on the site. Do not guess what the site does not say.
+- Use only the text given. Name the category and services in words that appear in it. Do not guess what the text does not say.
 - category: the kind of business a customer would call it, in 1 to 4 words (for example "functional health coach", "craft brewery", "auto repair shop"). Never a generic word such as "services" or "business".
 - offer: one plain sentence on what it sells and how (no numbers).
 - services: up to 8 short service or product names from the site.
@@ -129,8 +159,10 @@ Answer with JSON: {"category":"...","offer":"...","services":[...],"audience":".
 export interface ProfileInput {
   name: string;
   city: string | null;
-  scan: Pick<SiteScan, 'title' | 'meta_description' | 'h1'> | null | undefined;
+  scan: ProfileScan | null | undefined;
   pages?: SitePage[];
+  /** The business's own words elsewhere (its Instagram bio), read when the site says little, as a link-in-bio page does. */
+  social?: ProfileSocial | null;
   listingCategory?: string | null;
   timeoutMs?: number;
 }
@@ -138,14 +170,16 @@ export interface ProfileInput {
 /** The business's profile: the model from its site, else the wording rules. Never throws. */
 export async function buildBusinessProfile(input: ProfileInput): Promise<BusinessProfile> {
   const pages = (input.pages ?? []).filter((p) => !p.error && p.word_count > 0);
-  const evidence = pages.length ? pages.map((p) => p.url) : input.scan?.title ? ['homepage scan'] : [];
-  const fallback = fallbackProfile(input.scan, pages, input.listingCategory ?? null, evidence);
-  const siteText = profileText(input.scan, pages);
+  const scan = ownScan(input.scan);
+  const social = input.social ?? null;
+  const evidence = [...(pages.length ? pages.map((p) => p.url) : scan?.title ? ['homepage scan'] : []), ...(social?.biography ? ['instagram bio'] : []), ...(social?.intro ? ['facebook intro'] : [])];
+  const fallback = fallbackProfile(scan, pages, input.listingCategory ?? null, evidence, social);
+  const siteText = profileText(scan, pages, social);
   if (!isOpenAiConfigured() || siteText.trim().length < 40) return fallback;
   try {
     const raw = await chatJson<Record<string, unknown>>(
       PROFILE_SYSTEM,
-      `Business: ${input.name}${input.city ? `, ${input.city}` : ''}\nWebsite text (JSON):\n${JSON.stringify({ homepage: { title: input.scan?.title ?? null, description: input.scan?.meta_description ?? null, headings: input.scan?.h1 ?? [] }, pages: pages.slice(0, 10).map((p) => ({ url: p.url, title: p.title, description: p.description, headings: p.headings.slice(0, 12), excerpt: p.excerpt.slice(0, 800), prices: p.prices })) })}`,
+      `Business: ${input.name}${input.city ? `, ${input.city}` : ''}\nThe business's own text (JSON):\n${JSON.stringify({ homepage: { title: scan?.title ?? null, description: scan?.meta_description ?? null, headings: scan?.h1 ?? [] }, instagram_bio: social?.biography ?? null, facebook_intro: social?.intro ?? null, pages: pages.slice(0, 10).map((p) => ({ url: p.url, title: p.title, description: p.description, headings: p.headings.slice(0, 12), excerpt: p.excerpt.slice(0, 800), prices: p.prices })) })}`,
       input.timeoutMs ?? 45_000
     );
     const profile = checkProfile(raw, siteText, fallback.category, evidence);
@@ -170,8 +204,12 @@ export interface Candidate {
 }
 
 /** Sites that list businesses rather than being one; never competitors. */
-export const DIRECTORY_HOSTS = /(^|\.)(?:yelp|facebook|instagram|tiktok|youtube|linkedin|indeed|ziprecruiter|glassdoor|wikipedia|reddit|nextdoor|thumbtack|angi|angieslist|bbb|mapquest|yellowpages|healthgrades|zocdoc|psychologytoday|tripadvisor|google|apple|amazon|etsy|craigslist|care|houzz|bark|expertise|threebestrated|chamberofcommerce|manta|superpages|foursquare|citysearch|x|twitter|pinterest|medium|substack|eventbrite|meetup|groupon)\.(?:com|org|net|co|io)$/i;
+export const DIRECTORY_HOSTS = /(^|\.)(?:yelp|facebook|instagram|tiktok|youtube|linkedin|indeed|ziprecruiter|glassdoor|wikipedia|reddit|nextdoor|thumbtack|angi|angieslist|bbb|mapquest|yellowpages|healthgrades|zocdoc|psychologytoday|tripadvisor|google|apple|amazon|etsy|craigslist|care|houzz|bark|expertise|threebestrated|chamberofcommerce|manta|superpages|foursquare|citysearch|x|twitter|pinterest|medium|substack|eventbrite|meetup|groupon|opentable|resy|doordash|ubereats|grubhub|seamless|postmates|toasttab|booksy|vagaro|mindbodyonline|classpass|rover|wag|petfinder|avvo|findlaw|justia|zillow|realtor|trulia|redfin|homeadvisor|porch|yellowpagescity|dexknows|local|citysquares|hotfrog|brownbook|cylex|alignable|nicelocal|birdeye|trustpilot|sitejabber|patch|eater|timeout|infatuation|wanderlog|restaurantji|menupix|zomato|allmenus|linktr|beacons)\.(?:com|org|net|co|io|ee|ai|es|fr|de|it|ca|mx|uk|co\.uk|com\.mx|com\.br|com\.au)$/i;
 export const isDirectoryHost = (h: string | null | undefined) => Boolean(h && DIRECTORY_HOSTS.test(h.toLowerCase().replace(/^www\./, '')));
+
+/** A page that lists businesses ("279 Best Lunch Restaurants in …", "THE 10 BEST …", "… Archives"), not a business. */
+const LIST_PAGE = /^\s*(?:the\s+)?\d+\s+(?:best|top)\b|^\s*(?:los|las|les|die|i)\s+\d+\s+(?:mejores|meilleurs|besten|migliori)\b|\b(?:best|top)\s+\d+\b|\barchives?\s*$|\bthings to do\b|\b(?:restaurants|places|spots|businesses|shops|companies|contractors|trainers|dentists|salons)\s+(?:to\s+\w+\s+)?(?:in|near)\b|\bnear me\b.*\b(?:list|guide|results)\b|\bdiscover\b.*\b(?:restaurants|places|businesses)\b/i;
+export const isListPage = (text: string | null | undefined) => Boolean(text && LIST_PAGE.test(text));
 
 /** The words a candidate must share with the profile: its category's, else its services'. */
 export function profileWords(profile: Pick<BusinessProfile, 'category' | 'services' | 'offer'>, exclude: string[] = []): { category: Set<string>; all: Set<string> } {
@@ -214,6 +252,7 @@ export async function filterCompetitors<T extends Candidate>(profile: BusinessPr
   const decisions: RelevanceDecision<T>[] = candidates.map((candidate) => {
     const h = (() => { try { return candidate.website ? new URL(candidate.website).hostname : null; } catch { return null; } })();
     if (isDirectoryHost(h)) return { candidate, competes: false, reason: 'A directory or platform, not a business.', by: 'words' as const };
+    if (isListPage(candidate.name) || isListPage(candidate.title)) return { candidate, competes: false, reason: 'A list or directory page, not a business.', by: 'words' as const };
     if (!words.all.size) return { candidate, competes: true, reason: 'No verified category to check against; kept for review.', by: 'words' as const };
     const { ok, shared } = sharesCategory(words, [candidate.name, candidate.category, candidate.title, candidate.snippet].filter(Boolean).join(' '), exclude);
     return ok
@@ -222,25 +261,39 @@ export async function filterCompetitors<T extends Candidate>(profile: BusinessPr
   });
   const passed = decisions.filter((d) => d.competes);
   if (!passed.length || !isOpenAiConfigured() || timeoutMs <= 2_000) return decisions;
+  const judged = await judgeCompetitors(profile, business, passed.map((d) => d.candidate), timeoutMs);
+  judged.forEach((j, i) => {
+    if (!j) return;
+    passed[i].competes = j.competes;
+    passed[i].by = 'model';
+    if (j.reason) passed[i].reason = j.reason;
+  });
+  return decisions;
+}
+
+/**
+ * The model's judgement on which candidates compete, one entry per candidate
+ * (null where it gave none); nothing without OpenAI or when the call fails.
+ */
+export async function judgeCompetitors(profile: BusinessProfile, business: { name: string; city: string | null }, candidates: Candidate[], timeoutMs = 45_000): Promise<({ competes: boolean; reason: string | null } | null)[]> {
+  const out: ({ competes: boolean; reason: string | null } | null)[] = candidates.map(() => null);
+  if (!candidates.length || !isOpenAiConfigured() || timeoutMs <= 2_000) return out;
   try {
     const raw = await chatJson<{ decisions?: { index?: unknown; competes?: unknown; reason?: unknown }[] }>(
       RELEVANCE_SYSTEM,
       JSON.stringify({
         business: { name: business.name, city: business.city, category: profile.category, offer: profile.offer, services: profile.services, audience: profile.audience, service_area: profile.service_area },
-        candidates: passed.slice(0, 30).map((d, index) => ({ index, name: d.candidate.name, category: d.candidate.category, title: d.candidate.title, snippet: d.candidate.snippet, address: d.candidate.address, website: d.candidate.website })),
+        candidates: candidates.slice(0, 30).map((c, index) => ({ index, name: c.name, category: c.category, title: c.title, snippet: c.snippet, address: c.address, website: c.website })),
       }),
       timeoutMs
     );
     for (const d of raw?.decisions ?? []) {
       const i = typeof d.index === 'number' ? d.index : Number(d.index);
-      if (!Number.isInteger(i) || i < 0 || i >= Math.min(passed.length, 30) || typeof d.competes !== 'boolean') continue;
-      const reason = text(d.reason, 200);
-      passed[i].competes = d.competes;
-      passed[i].by = 'model';
-      if (reason) passed[i].reason = reason;
+      if (!Number.isInteger(i) || i < 0 || i >= Math.min(candidates.length, 30) || typeof d.competes !== 'boolean') continue;
+      out[i] = { competes: d.competes, reason: text(d.reason, 200) };
     }
   } catch {
-    // The word check's decisions stand.
+    // Nothing judged: the callers' own rules stand.
   }
-  return decisions;
+  return out;
 }
