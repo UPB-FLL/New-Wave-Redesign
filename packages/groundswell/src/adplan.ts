@@ -109,8 +109,18 @@ export interface PlanRow {
   sources: string[];
 }
 
+/** Competitors on record advertising, by platform: names from the public ad libraries and Ahrefs paid pages. */
+export type RivalAds = Partial<Record<AdPlatformId, string[]>>;
+
+export interface PlanContext {
+  /** Who advertises where, from the Ads Current and the ad libraries; a platform with none listed has no evidence either way. */
+  rival_ads?: RivalAds;
+}
+
 export interface AdPlan {
   rows: PlanRow[];
+  /** Competitors on record advertising on each platform, as the plan was told them (empty when none, or not read). */
+  rival_ads: RivalAds;
   /** Monthly spend in each scenario across the funded and tested rows. */
   budget: Record<Scenario, number>;
   /** Net over 12 months in each scenario across the funded and tested rows (modeled rows only). */
@@ -178,8 +188,9 @@ function stopLoss(value: AngleValue | null, incrementality: number): number | nu
   return value.per_customer[1] * value.close[1] * value.gross_margin[1] * incrementality;
 }
 
-export function buildAdPlan(angles: AngleInput[], industry: IndustryProfile, config: GroundswellConfig): AdPlan {
+export function buildAdPlan(angles: AngleInput[], industry: IndustryProfile, config: GroundswellConfig, context: PlanContext = {}): AdPlan {
   const rows: PlanRow[] = [];
+  const rivalAds: RivalAds = Object.fromEntries(Object.entries(context.rival_ads ?? {}).filter(([, names]) => Array.isArray(names) && names.length).map(([p, names]) => [p, [...new Set(names as string[])]]));
   const too_small: AdPlan['too_small'] = [];
   const unmodeled: AdPlan['unmodeled'] = [];
   const { search, tiers } = config;
@@ -269,6 +280,7 @@ export function buildAdPlan(angles: AngleInput[], industry: IndustryProfile, con
   const modeled = live.filter((r) => r.roi_tier !== 'not modeled');
   return {
     rows,
+    rival_ads: rivalAds,
     budget: Object.fromEntries(SCENARIOS.map((s) => [s, total(s, (r) => r.spend, live)])) as Record<Scenario, number>,
     year_net: Object.fromEntries(SCENARIOS.map((s) => [s, total(s, (r) => r.year_net, modeled)])) as Record<Scenario, number>,
     too_small,
@@ -309,8 +321,17 @@ export function buildAdPlan(angles: AngleInput[], industry: IndustryProfile, con
           ? 'Cheap clicks on real demand, but no published price to model a return: a small test, measured in calls and visits.'
           : 'No published price to model a return, and the clicks are not cheap enough to test blind.';
     } else {
-      recommendation = 'skip';
-      reason = 'Loses money in the medium case.';
+      const rivals = rivalAds[platform] ?? [];
+      if (cfg.rival_ads_test.enabled && rivals.length) {
+        // The benchmarks say no; the rivals paying for the channel say the benchmarks may not fit this market.
+        recommendation = 'test';
+        const named = rivals.length <= 3 ? rivals.join(', ').replace(/, ([^,]*)$/, ' and $1') : `${rivals.slice(0, 2).join(', ')} and ${rivals.length - 2} more`;
+        reason = `Loses money at the estimated ticket and close rate, but ${named} ${rivals.length === 1 ? 'is' : 'are'} on record advertising on ${label}: a small test with a stop-loss, to measure the real cost per lead before deciding.`;
+        sources = [...sources, `Test despite the benchmarks: ${cfg.rival_ads_test.basis}`];
+      } else {
+        recommendation = 'skip';
+        reason = 'Loses money in the medium case.';
+      }
     }
     // A platform rule for one of the business's categories either adds a condition or rules self-serve out.
     const conditions: string[] = [];

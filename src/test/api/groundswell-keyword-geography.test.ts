@@ -4,7 +4,7 @@ const mocks = vi.hoisted(() => ({ executeTool: vi.fn(), isConsumerConfigured: vi
 vi.mock('../../../api/_lib/groundswell/composio', () => ({ executeTool: mocks.executeTool }));
 vi.mock('../../../api/_lib/groundswell/composioConsumer', () => ({ isConsumerConfigured: mocks.isConsumerConfigured }));
 
-import { resolveKeywordGeography } from '../../../api/_lib/groundswell/keywordsGeography';
+import { parseCounty, resolveKeywordGeography } from '../../../api/_lib/groundswell/keywordsGeography';
 
 const city = (name: string, state: string, id: string, overrides: Record<string, unknown> = {}) => ({
   geoTargetConstant: { resourceName: `geoTargetConstants/${id}`, name, canonicalName: `${name},${state},United States`, countryCode: 'US', targetType: 'City', status: 'ENABLED', ...overrides },
@@ -161,5 +161,55 @@ describe('Keyword Planner city geography', () => {
     const out = await pending;
     expect(out.constants).toEqual([]);
     expect(out.error).toMatch(/time/i);
+  });
+});
+
+describe('Keyword Planner county geography', () => {
+  const county = (name: string, state: string, id: string) => ({
+    geoTargetConstant: { resourceName: `geoTargetConstants/${id}`, name, canonicalName: `${name},${state},United States`, countryCode: 'US', targetType: 'County', status: 'ENABLED' },
+  });
+  const pines = () => city('Pembroke Pines', 'Florida', '1015166');
+  const queryOf = (call: number) => String((mocks.executeTool.mock.calls[call][1] as { query: string }).query);
+
+  it('reads a county name as Google lists it, and nothing else', () => {
+    expect(parseCounty('Broward County')).toBe('Broward County');
+    expect(parseCounty(' Miami-Dade County ')).toBe('Miami-Dade County');
+    expect(parseCounty('Orleans Parish')).toBe('Orleans Parish');
+    expect(parseCounty('Broward')).toBeNull();
+    expect(parseCounty('Broward County, Florida')).toBeNull();
+    expect(parseCounty("County LIKE '%'")).toBeNull();
+    expect(parseCounty(null)).toBeNull();
+  });
+
+  it('takes the county the listing names as the market, labelled as the county around the city', async () => {
+    mocks.executeTool.mockResolvedValueOnce(answer(county('Broward County', 'Florida', '21142')));
+    const out = await resolveKeywordGeography('Pembroke Pines, FL', 5000, 'Broward County');
+    expect(out).toEqual({ constants: ['geoTargetConstants/21142'], label: 'Broward County,Florida,United States (the county around Pembroke Pines)', error: null });
+    expect(mocks.executeTool).toHaveBeenCalledTimes(1);
+    expect(queryOf(0)).toContain("geo_target_constant.name LIKE 'Broward County'");
+    expect(queryOf(0)).toContain("geo_target_constant.target_type = 'County'");
+  });
+
+  it('never takes a county in another state, and falls back to the city when no county matches', async () => {
+    mocks.executeTool.mockResolvedValueOnce(answer(county('Broward County', 'Georgia', '999'))).mockResolvedValueOnce(answer(pines()));
+    const out = await resolveKeywordGeography('Pembroke Pines, FL', 5000, 'Broward County');
+    expect(out).toEqual({ constants: ['geoTargetConstants/1015166'], label: 'Pembroke Pines,Florida,United States', error: null });
+    expect(mocks.executeTool).toHaveBeenCalledTimes(2);
+    expect(queryOf(1)).toContain("geo_target_constant.target_type = 'City'");
+  });
+
+  it('falls back to the city when the county lookup fails, and ignores a county that is not one', async () => {
+    mocks.executeTool.mockRejectedValueOnce(new Error('quota')).mockResolvedValueOnce(answer(pines()));
+    expect((await resolveKeywordGeography('Pembroke Pines, FL', 5000, 'Broward County')).constants).toEqual(['geoTargetConstants/1015166']);
+    mocks.executeTool.mockReset().mockResolvedValue(answer(pines()));
+    expect((await resolveKeywordGeography('Pembroke Pines, FL', 5000, 'Broward')).constants).toEqual(['geoTargetConstants/1015166']);
+    expect(mocks.executeTool).toHaveBeenCalledTimes(1);
+    expect(queryOf(0)).toContain("target_type = 'City'");
+  });
+
+  it('asks about the city alone when no county is given, as before', async () => {
+    mocks.executeTool.mockResolvedValue(answer(pines()));
+    expect((await resolveKeywordGeography('Pembroke Pines, FL', 5000)).constants).toEqual(['geoTargetConstants/1015166']);
+    expect(mocks.executeTool).toHaveBeenCalledTimes(1);
   });
 });

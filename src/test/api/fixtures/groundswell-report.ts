@@ -4,7 +4,7 @@ import { runRoiModel } from '../../../../api/_lib/groundswell/roi';
 import { buildFacts, roiInputsFrom, normalizeEstimates, normalizeWriteup } from '../../../../api/_lib/groundswell/model';
 import type { ModelOutput, ReportData } from '../../../../api/_lib/groundswell/reports';
 import { brandFrom } from '../../../../api/_lib/groundswell/brand';
-import { baselineFrom, checkPlan, positionsFrom, type AdplanOutput } from '../../../../api/_lib/groundswell/adplan';
+import { baselineFrom, checkPlan, positionsFrom, rivalAdsFrom, type AdplanOutput } from '../../../../api/_lib/groundswell/adplan';
 import { GROUNDSWELL_CONFIG } from '../../../../packages/groundswell/groundswell.config';
 import { planAudit } from '../../../../packages/groundswell/src/audit';
 
@@ -172,7 +172,7 @@ export function sampleAdplanOutput(): AdplanOutput {
     baseline,
     fixes: planned.fixes,
     dropped: planned.dropped,
-    ...planAudit({ angles: planned.angles, industry: planned.industry, positions: positionsFrom(facts), fixes: planned.fixes, baseline }, GROUNDSWELL_CONFIG),
+    ...planAudit({ angles: planned.angles, industry: planned.industry, positions: positionsFrom(facts), fixes: planned.fixes, baseline, rival_ads: rivalAdsFrom(facts) }, GROUNDSWELL_CONFIG),
   };
 }
 

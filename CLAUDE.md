@@ -2,6 +2,58 @@
 
 ## Recent Changes
 
+### Groundswell: an ad plan with upside; a link-in-bio page is nobody's website (2026-10-30)
+
+APK9 Academy's plan (run `bbd8a225…`) showed one Meta row, "skip", $0 in every
+case: Keyword Planner was asked three seeds for the city of Pembroke Pines
+alone (90 searches a month, below the 100 an angle needs), the industry fell
+to `general`, and the one row lost money on the write-up's estimates while
+the plan knew nothing of the six rival trainers' advertising. Ahrefs, the
+Transparency Center, the ads step and the AI-search step had all read
+linktr.ee (DR 94, "40,000 Google ads") as the business's site. Owner's ask:
+"how could there be no upside to it, are the competitors running ads?"
+
+- **A link-in-bio page is nobody's website** (`ownWebsite` in `serp.ts`):
+  `scanSite` marks one `link_page: true` (`linkPageScan`, `LINK_PAGE_ERROR`),
+  keeping its title, headings, social links and phones and none of the link
+  service's tags, structured data, logo, colours or technical findings; the
+  status stays, so the step does not retry it. Ahrefs (`runSearch`), the
+  Keyword Planner URL seed, the ads step (`LINK_PAGE_ADS_NOTE`, no Ahrefs
+  paid-pages read), the benchmark accounts (so the ad libraries), the
+  AI-search step and the site-pages step (a named skip) all take only the
+  business's own site. `baselineFrom` and the website observations say so.
+- **Seeds** (`keywordSeeds`, `SEED_LIMIT` 12): the category, the category with
+  the city, the profile's services (6) and customer searches (4), the
+  homepage headings only without a profile; once each.
+- **The county as the market** (`keywordsGeography.ts`): the Places read
+  asks for `addressComponents` and `MapsPlace.county` carries
+  `administrative_area_level_2`; `resolveKeywordGeography(city, ms, county)`
+  resolves the county constant first (`parseCounty`, GAQL `County`, same
+  state), labelled "… (the county around <city>)", else the city as before.
+- **Pet services** (`industries.ts` `pet_services`, benchmark industry
+  "Animals & Pets": LocaliQ 2026 search CPC $4.06, CTR 7.49%, CVR 16.22%;
+  Facebook traffic CPC $0.51, CTR 1.85%, leads at the all-industry cost per
+  lead, the edition publishing no pet lead figures), Google Search and Meta.
+- **Rivals' advertising is evidence** (`rival_ads_test` in the setup file,
+  New Wave's rule): `rivalAdsFrom(facts)` lists, per platform, the
+  competitors on record (Meta Ad Library running or any ads; Transparency
+  Center ads found; Ahrefs paid pages); `buildAdPlan(angles, industry,
+  config, { rival_ads })` turns a row the benchmarks say loses money into a
+  stop-lossed `test` on a platform where a rival advertises, naming the
+  rivals in the reason and the rule in the sources, and never where a rule
+  blocks self-serve. `AdPlan.rival_ads`; the verification re-run passes it
+  too. The audit's ad plan gains "Competitors advertising" and the "Not
+  modeled" line names the minimum; the workspace panel's note names the
+  rivals, the too-small angles and what a test is.
+- **Tests**: the rival rule and the check in `packages/groundswell/test/adplan`,
+  `rivalAdsFrom` and the link-page baseline in `groundswell-adplan`, the
+  county in `groundswell-keyword-geography` and `groundswell-maps`, the seeds
+  and the link-page reads in `groundswell-public-research`, the scan in
+  `groundswell-currents`, the section in `groundswell-reports`, the
+  observation in `groundswell-observations`. The sample plan's Google rows
+  are now tests (Bayside Garage has paid pages).
+- Delivered runs keep their plans; "Run again" on APK9 queues the new one.
+
 ### Groundswell: competitors that compete, from the business's own words; the area columns filled from the data (2026-10-30)
 
 APK9 Academy LLC (a dog trainer in Pembroke Pines; its website is a Linktree,

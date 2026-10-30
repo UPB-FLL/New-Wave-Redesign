@@ -67,6 +67,7 @@ export const config: GroundswellConfig = validateConfig({
   search: { impression_share: [1, 1, 1], ctr_factor: [1, 1, 1], cvr_factor: [1, 1, 1], ramp: [] },
   tiers: { cpc: [1, 3], clicks: [20, 100], roi_strong: 1 },
   min_angle_searches: 100,
+  rival_ads_test: { enabled: true, basis: 'Test rule.' },
   unsupported_claims: ['best', '#1', 'number one'],
   verification: { tolerance: 0.1, max_rounds: 2, max_review_drops: 0.25 },
   adsets: {

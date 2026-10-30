@@ -1,4 +1,5 @@
 import type { AreaKey, Facts } from './model.js';
+import { isLinkPageUrl } from './currents/serp.js';
 
 /**
  * What the data itself shows for each area, in plain sentences: what is
@@ -83,12 +84,12 @@ function website(f: Facts): AreaObservations {
   const s: string[] = [];
   const c: string[] = [];
   const site = f.site?.business;
-  if (!site || site.error || (site.status !== null && (site.status < 200 || site.status >= 400))) return { strengths: s, constraints: c };
-  const linkPage = /(^|\.)(?:linktr\.ee|beacons\.ai|linkin\.bio|bio\.site|lnk\.bio|taplink\.cc|solo\.to|stan\.store)$/i.test((() => { try { return new URL(site.final_url ?? site.url).hostname; } catch { return ''; } })());
-  if (linkPage) {
-    c.push('The address given is a link-in-bio page, not a website of its own: nothing on it can rank in Google for what the business does.');
+  if (!site) return { strengths: s, constraints: c };
+  if (site.link_page || isLinkPageUrl(site.final_url ?? site.url)) {
+    c.push('The address given is a link-in-bio page, not a website of its own: nothing on it can rank in Google for what the business does, and no ad can send people to a page that counts what they do.');
     return { strengths: s, constraints: c };
   }
+  if (site.error || (site.status !== null && (site.status < 200 || site.status >= 400))) return { strengths: s, constraints: c };
   if (site.https) s.push('The site is served over HTTPS.');
   else c.push('The site is not served over HTTPS; browsers mark it "not secure" and Google ranks the secure version of a rival above it.');
   if (site.has_viewport) s.push('The pages are set up for phones (a viewport is declared).');

@@ -1,5 +1,5 @@
 import { benchmarksFor, type GroundswellConfig, type IndustryProfile, type Triple } from './config.js';
-import { buildAdPlan, type AdPlan, type AngleInput } from './adplan.js';
+import { buildAdPlan, type AdPlan, type AngleInput, type RivalAds } from './adplan.js';
 import {
   compareWithToday,
   rankChanges,
@@ -48,6 +48,8 @@ export interface AuditPlanInput {
   positions: Record<string, number>;
   fixes: SortedFix[];
   baseline: Baseline;
+  /** Competitors on record advertising, by platform (the Ads Current and the ad libraries). */
+  rival_ads?: RivalAds;
 }
 
 export interface AuditPlan {
@@ -123,7 +125,7 @@ export function rankingPageChange(
 }
 
 export function planAudit(input: AuditPlanInput, config: GroundswellConfig): AuditPlan {
-  const plan = buildAdPlan(input.angles, input.industry, config);
+  const plan = buildAdPlan(input.angles, input.industry, config, { rival_ads: input.rival_ads });
   const angles = new Map(input.angles.map((a) => [a.id, a]));
   const ads: ChangeInput[] = plan.rows
     .filter((r) => r.recommendation !== 'skip')
