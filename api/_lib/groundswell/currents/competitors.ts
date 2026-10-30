@@ -1,8 +1,8 @@
 import { normalizeWebsite } from '../../../../src/lib/groundswellValidation.js';
-import { readGoogleSerp, categoryFromSite, categoryFromText, specificCategory, type GoogleSerp } from './serp.js';
+import { readGoogleSerp, categoryFromSite, categoryFromText, isLinkPageUrl, specificCategory, type GoogleSerp } from './serp.js';
 import { googlePlacesSearch, matchBusiness, serpMapsSearch, toMapsPlace } from './maps.js';
 import { executeTool, findKey } from '../composio.js';
-import { buildBusinessProfile, filterCompetitors, isDirectoryHost, type BusinessProfile, type Candidate } from '../businessProfile.js';
+import { buildBusinessProfile, filterCompetitors, isDirectoryHost, isListPage, judgeCompetitors, profileWords, readInstagramBio, sharesCategory, type BusinessProfile, type Candidate } from '../businessProfile.js';
 import { readSitePages, type SitePage } from './sitePages.js';
 import { type AuditCompetitor, type AuditRow, type StepContext } from '../types.js';
 import type { SiteScan } from './site.js';
@@ -306,26 +306,90 @@ export async function findCompetitors(seed: CompetitorSeed, limit = PICKS_WANTED
   return { ...empty, business: { name: self?.name ?? seed.business_name, category, area, place_id: typeof found?.id === 'string' ? found.id : null }, considered: { local: placesCount + searchCount, national: 0 }, competitors: picks.map(toCompetitor), picks, dropped };
 }
 
-/** The business's profile for the step: its site's pages through Firecrawl (within a budget), then the model. */
+/**
+ * The business's profile for the step: its site's pages through Firecrawl
+ * (within a budget) and its Instagram bio (its own words on what it does,
+ * which a link-in-bio page cannot give), then the model.
+ */
 async function profileFor(ctx: StepContext, scan: SiteScan | null | undefined, listingCategory: string | null): Promise<{ profile: BusinessProfile; pages: SitePage[]; gaps: string[] }> {
   const gaps: string[] = [];
   let pages: SitePage[] = [];
   const website = scan?.final_url ?? ctx.audit.website;
   const remaining = ctx.deadline - Date.now();
-  if (website && remaining > 60_000) {
-    try {
-      const read = await readSitePages(website, { limit: 6, deadline: Date.now() + Math.min(70_000, remaining - 45_000) });
-      pages = read.pages;
-      if (read.error) gaps.push(`Website pages: ${read.error}`);
-    } catch (err) { gaps.push(`Website pages: ${err instanceof Error ? err.message : String(err)}`); }
+  const [biography, read] = await Promise.all([
+    readInstagramBio(ctx.audit.instagram, Math.min(12_000, Math.max(0, remaining - 30_000))),
+    website && remaining > 60_000 && !isLinkPageUrl(website)
+      ? readSitePages(website, { limit: 6, deadline: Date.now() + Math.min(70_000, remaining - 45_000) }).catch((err: unknown) => ({ pages: [] as SitePage[], error: err instanceof Error ? err.message : String(err) }))
+      : Promise.resolve(null),
+  ]);
+  if (read) {
+    pages = read.pages;
+    if (read.error) gaps.push(`Website pages: ${read.error}`);
   }
-  const profile = await buildBusinessProfile({ name: ctx.audit.business_name, city: ctx.audit.city, scan, pages, listingCategory, timeoutMs: Math.max(5_000, Math.min(45_000, ctx.deadline - Date.now() - 40_000)) });
+  const profile = await buildBusinessProfile({ name: ctx.audit.business_name, city: ctx.audit.city, scan, pages, social: { biography }, listingCategory, timeoutMs: Math.max(5_000, Math.min(45_000, ctx.deadline - Date.now() - 40_000)) });
   return { profile, pages, gaps };
+}
+
+export interface EnteredCheck {
+  kept: AuditCompetitor[];
+  setAside: { name: string; website: string | null; reason: string }[];
+}
+
+/**
+ * Entered competitors are checked against the verified profile too: a
+ * suggestion accepted in intake can be off-category (six restaurant pages
+ * were queued for a dog trainer on 2026-10-30). Each one's homepage title is
+ * read for its words; one that fails the word check is set aside only when
+ * the model agrees, or, without the model, when its words name a different
+ * category outright. A name alone never rules a competitor out.
+ */
+export async function checkEntered(profile: BusinessProfile, business: { name: string; city: string | null }, entered: AuditCompetitor[], deadline: number): Promise<EnteredCheck> {
+  if (!entered.length || !profile.category) return { kept: entered, setAside: [] };
+  const budget = () => deadline - Date.now();
+  const { inspectBusinessWebsite } = await import('../discoveryWebsite.js');
+  const candidates: (Candidate & { competitor: AuditCompetitor })[] = await Promise.all(
+    entered.map(async (c) => {
+      let title: string | null = null;
+      let snippet: string | null = null;
+      if (c.website && budget() > 20_000 && !isLinkPageUrl(c.website)) {
+        try {
+          const found = await inspectBusinessWebsite(c.website, { timeoutMs: Math.min(6_000, budget() - 15_000) });
+          title = found.scan.title;
+          snippet = [found.scan.meta_description, ...found.scan.h1].filter(Boolean).join(' ') || null;
+        } catch { /* The name alone is checked. */ }
+      }
+      return { competitor: c, name: c.name, website: c.website, category: null, title, snippet, address: null };
+    })
+  );
+  const exclude = [business.name, business.city ?? ''];
+  const words = profileWords(profile, exclude);
+  const kept: AuditCompetitor[] = [];
+  const setAside: EnteredCheck['setAside'] = [];
+  const doubtful: (Candidate & { competitor: AuditCompetitor })[] = [];
+  for (const c of candidates) {
+    const host = hostOf(c.website);
+    const ownText = [c.name, c.title, c.snippet].filter(Boolean).join(' ');
+    if (isDirectoryHost(host) || isListPage(c.name) || isListPage(c.title)) { setAside.push({ name: c.name, website: c.website, reason: 'Entered, but a directory or list page, not a business.' }); continue; }
+    if (sharesCategory(words, ownText, exclude).ok) { kept.push(c.competitor); continue; }
+    doubtful.push(c);
+  }
+  if (doubtful.length) {
+    const judged = await judgeCompetitors(profile, business, doubtful, Math.max(0, Math.min(30_000, budget() - 10_000)));
+    doubtful.forEach((c, i) => {
+      const j = judged[i];
+      const other = categoryFromText([c.name, c.title, c.snippet].filter(Boolean).join(' '));
+      const differs = Boolean(other && profile.category && other.toLowerCase() !== profile.category.toLowerCase());
+      if (j ? j.competes : !differs) { kept.push(c.competitor); return; }
+      setAside.push({ name: c.name, website: c.website, reason: `Entered, but ${j?.reason ? j.reason.replace(/\.$/, '') : `its own words say ${other!.toLowerCase()}, not ${profile.category!.toLowerCase()}`}.` });
+    });
+  }
+  // The entered order is kept.
+  const keptSet = new Set(kept);
+  return { kept: entered.filter((c) => keptSet.has(c)), setAside };
 }
 
 export async function runCompetitors(ctx: StepContext): Promise<CompetitorsOutput> {
   const entered = ctx.audit.competitors ?? [];
-  if (entered.length >= PICKS_WANTED) return { source: SOURCE, fetched_at: new Date().toISOString(), business: null, local: null, national: null, considered: { local: 0, national: 0 }, competitors: entered, picks: [], sources: [], gaps: [], note: `${entered.length} competitors were entered, so none were added.` };
   const site = ctx.outputs.site as { business?: SiteScan | null } | undefined;
   let scan = site?.business;
   let category = categoryFromSite(scan);
@@ -333,7 +397,7 @@ export async function runCompetitors(ctx: StepContext): Promise<CompetitorsOutpu
   const remaining = ctx.deadline - Date.now();
   // This step runs before Site Current on a fresh audit. Reserve the inspector's
   // bounded CSS reads and leave time for listing research under the same deadline.
-  if (!scan && ctx.audit.website && remaining > 4_000) {
+  if (!scan && ctx.audit.website && !isLinkPageUrl(ctx.audit.website) && remaining > 4_000) {
     try {
       const { inspectBusinessWebsite } = await import('../discoveryWebsite.js');
       const inspected = await inspectBusinessWebsite(ctx.audit.website, { timeoutMs: Math.min(8_000, remaining - 3_500) });
@@ -343,13 +407,22 @@ export async function runCompetitors(ctx: StepContext): Promise<CompetitorsOutpu
     } catch (err) { websiteGaps.push(`First-party website category: ${err instanceof Error ? err.message : String(err)}`); }
   }
   const { profile, pages, gaps: profileGaps } = await profileFor(ctx, scan, category);
+  const profileSource = profile.category
+    ? [{ label: profile.source === 'model' ? 'Business category and offer from its own words (website pages, Instagram bio)' : profile.source === 'social' ? 'Business category from its own Instagram bio' : 'Business category from its first-party website', query: profile.category, url: scan?.final_url || ctx.audit.website || undefined, captured_at: scan?.fetched_at || new Date().toISOString(), notes: profile.source === 'model' ? `Read from ${profile.evidence.length} source${profile.evidence.length === 1 ? '' : 's'}; held to the business’s own words.` : 'Specific service wording in the business’s own words takes precedence over a generic listing label.' }]
+    : [];
+  const checked = await checkEntered(profile, { name: ctx.audit.business_name, city: ctx.audit.city }, entered, ctx.deadline);
+  const setAsideNote = checked.setAside.length ? `${checked.setAside.length} entered competitor${checked.setAside.length === 1 ? ' was' : 's were'} set aside as not competing: ${checked.setAside.map((d) => d.name).join(', ')}.` : null;
+  const kept = checked.kept;
+  if (kept.length >= PICKS_WANTED) {
+    return { source: SOURCE, fetched_at: new Date().toISOString(), business: null, local: null, national: null, considered: { local: 0, national: 0 }, competitors: kept, picks: [], sources: profileSource, gaps: [...websiteGaps, ...profileGaps], note: [`${kept.length} competitors were entered, so none were added.`, setAsideNote].filter(Boolean).join(' '), profile, pages, dropped: checked.setAside };
+  }
   const found = await findCompetitors({ ...ctx.audit, category: profile.category ?? category, profile, deadline: ctx.deadline });
-  if (profile.category) found.sources.unshift({ label: profile.source === 'model' ? 'Business category and offer from its own website pages' : 'Business category from its first-party website', query: profile.category, url: scan?.final_url || ctx.audit.website || undefined, captured_at: scan?.fetched_at || new Date().toISOString(), notes: profile.source === 'model' ? `Read from ${profile.evidence.length} page${profile.evidence.length === 1 ? '' : 's'}; held to the site’s own words.` : 'Specific service wording on the business website takes precedence over a generic listing label.' });
+  found.sources.unshift(...profileSource);
   found.gaps.unshift(...websiteGaps, ...profileGaps);
-  const hosts = new Set(entered.map((c) => hostOf(c.website)).filter(Boolean));
-  const names = new Set(entered.map((c) => key(c.name)));
-  const picks = found.picks.filter((p) => !hosts.has(hostOf(p.website)) && !names.has(key(p.name))).slice(0, PICKS_WANTED - entered.length);
-  const competitors = [...entered, ...picks.map(toCompetitor)];
+  const hosts = new Set(kept.map((c) => hostOf(c.website)).filter(Boolean));
+  const names = new Set(kept.map((c) => key(c.name)));
+  const picks = found.picks.filter((p) => !hosts.has(hostOf(p.website)) && !names.has(key(p.name))).slice(0, PICKS_WANTED - kept.length);
+  const competitors = [...kept, ...picks.map(toCompetitor)];
   return {
     source: SOURCE,
     fetched_at: new Date().toISOString(),
@@ -361,16 +434,18 @@ export async function runCompetitors(ctx: StepContext): Promise<CompetitorsOutpu
     picks,
     sources: found.sources,
     gaps: found.gaps,
-    note: found.gaps.length ? found.gaps.join(' ') : null,
+    note: [...found.gaps, setAsideNote].filter(Boolean).join(' ') || null,
     profile,
     pages,
-    dropped: found.dropped,
+    dropped: [...checked.setAside, ...found.dropped],
   };
 }
 
-/** What the engine writes back to the audit row: the competitors, only when the step added any. */
+/** What the engine writes back to the audit row: the competitors, only when the step changed the list (added, or set an entered one aside). */
 export function persistCompetitors(output: unknown, audit: AuditRow): Partial<Pick<AuditRow, 'competitors'>> | null {
   const out = output as CompetitorsOutput | null;
-  if (!out || !Array.isArray(out.competitors) || out.competitors.length <= (audit.competitors ?? []).length) return null;
-  return { competitors: out.competitors };
+  if (!out || !Array.isArray(out.competitors)) return null;
+  const was = (audit.competitors ?? []).map((c) => `${key(c.name)}|${hostOf(c.website) ?? ''}`).join(';');
+  const now = out.competitors.map((c) => `${key(c.name)}|${hostOf(c.website) ?? ''}`).join(';');
+  return was === now ? null : { competitors: out.competitors };
 }

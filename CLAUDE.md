@@ -2,6 +2,71 @@
 
 ## Recent Changes
 
+### Groundswell: competitors that compete, from the business's own words; the area columns filled from the data (2026-10-30)
+
+APK9 Academy LLC (a dog trainer in Pembroke Pines; its website is a Linktree,
+its Google listing has no category) was compared with six restaurant pages:
+intake could verify no category, guessed one from unrelated search results,
+suggested restaurant list pages, and the queued run treated them as entered
+competitors, which the engine never re-checked. Owner's ask: fix the
+comparison, make the agent catch it, and fill "Observed strengths" and
+"Constraints and opportunities" with real data instead of fallback lines.
+
+- **The business's own words** (`businessProfile.ts`): `profileText` and
+  `buildBusinessProfile` take `social` (the Instagram bio, `readInstagramBio`
+  / `instagramBio`; the Facebook intro); `fallbackProfile` reads the bio
+  (`source: 'social'`) when the site says nothing. A link-in-bio page
+  (`isLinkPageUrl` in `serp.ts`: Linktree, Beacons, …) is never read for what
+  the business does (`categoryFromSite` returns null; `ownScan` leaves it
+  out); `inspectBusinessWebsite` takes only the display name and the linked
+  accounts from one, with a warning. `categoryFromText` knows dog trainer,
+  pet groomer, veterinarian, gym, yoga, martial arts, tutoring, photographer,
+  cleaning, HVAC, electrician, pest control, law firm, accountant, insurance,
+  florist, bakery, coffee shop, barber, nail salon, tattoo, spa and pizzeria.
+- **Candidates that are not businesses**: `DIRECTORY_HOSTS` gains OpenTable,
+  Resy, DoorDash, Rover, Zillow, Avvo, Trustpilot and others, with country
+  TLDs (`tripadvisor.es`); `isListPage` drops "279 Best Lunch Restaurants in
+  …", "LOS 10 MEJORES …", "… Archives", "Discover … Restaurants" pages.
+- **Entered competitors are checked** (`checkEntered` in
+  `currents/competitors.ts`): with a verified category, each entered
+  competitor's homepage title is read; one that fails the word check is set
+  aside only when the model agrees (`judgeCompetitors`, the relevance
+  judgement as its own export) or, without the model, when its own words
+  name a different category outright; a name alone never rules one out.
+  Set-asides go in `dropped` ("Entered, but …") and the note; freed slots are
+  filled; `persistCompetitors` writes the list whenever it changed. The
+  profile (site pages and bio) is built before the entered list is trusted,
+  so "6 entered, none added" no longer skips the check.
+- **Intake** (`discovery.ts`): the Instagram profile is read whenever a
+  handle is given (for the bio; name and site only when missing), the profile
+  is built before `findCompetitors` runs and passed as `seed.profile`, and the
+  suggested category is the profile's.
+- **Agent**: the runs collector reports `competitors_unverified` for a
+  delivered growth audit whose competitor step verified no category while
+  competitors were entered (`unverifiedCompetitors`); the resolver
+  `rerun_competitors` queues a fresh phase 1 from the customer's saved
+  details with the competitor list cleared (`queuePublicReread(db, id,
+  { competitors: [] })`), the later phases following on their own.
+- **Area columns** (`observations.ts`): `areaObservations(facts)` writes
+  what the data shows per area (the Google rating and reviews against nearby
+  rivals, the listing's gaps; followers, cadence and likes against
+  competitors, the bio link; HTTPS, viewport, tags, a booking path,
+  structured data, the technical findings, alt text, pages read, prices and
+  calls to action; tags, the ad libraries; Ahrefs traffic and domain rating
+  against competitors, the verified picks; measured searches, top-10 terms,
+  the terms the site misses, the observed results), every figure from the
+  data and no sum of them. `fillAreas` puts the model's items first and fills
+  to four from these (`fillList`, near-repeats dropped); `safeReportData`
+  applies it, so the audit, slides and summary all carry it, delivered runs
+  included when reprinted. The columns are "Working in your favor" and
+  "Holding you back" (`WORKING_TITLE`, `COSTING_TITLE`), with new fallback
+  lines (`NO_WORKING`, `NO_COSTING`).
+- **Tests**: `groundswell-observations.test.ts`; the entered-competitor,
+  list-page and link-page cases in `groundswell-competitors.test.ts` and
+  `groundswell-business-profile.test.ts`; the bio read in
+  `groundswell-discovery-service.test.ts`; the collector and resolver in
+  `groundswell-agent.test.ts`.
+
 ### Groundswell agent: research on six topics that help customers (2026-10-28)
 
 Owner's ask: the agent also scans public data for trends in marketing, SEO,

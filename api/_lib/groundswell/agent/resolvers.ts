@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { queuePublicReread } from '../phases.js';
 import { answerReview, ReviewError } from '../review.js';
 import type { Db, IssueRow, Resolver } from './types.js';
 
@@ -175,7 +176,41 @@ const acknowledge: Resolver = {
   },
 };
 
-export const RESOLVERS: readonly Resolver[] = [requeueStep, releaseReview, recheckReview, wakeWorker, retryAction, acknowledge];
+/**
+ * A delivered audit compared with unverified competitors: a fresh growth
+ * audit is queued from the customer's saved details with the competitor list
+ * cleared, so the engine verifies the category from the business's own words
+ * (its site and Instagram bio) and picks rivals that compete. The delivered
+ * reports stay until the new run delivers.
+ */
+const rerunCompetitors: Resolver = {
+  key: 'rerun_competitors',
+  label: 'Run the audit again with competitors the engine verifies',
+  applies: (issue) => issue.source === 'runs' && issue.kind === 'competitors_unverified' && Boolean(str(issue.subject.customer_id) && UUID.test(str(issue.subject.customer_id)!)),
+  describe: (issue) => ({
+    change: `A fresh growth audit is queued for ${str(issue.subject.business) ?? 'the business'} from its saved details with the competitor list cleared, so the engine verifies what the business does from its own words and picks competitors that compete; the later phases follow on their own.`,
+    rollback: 'The queued run can be removed from the run queue before it starts; the reports already delivered stay as they are.',
+  }),
+  async apply(db, issue) {
+    try {
+      const result = await queuePublicReread(db as SupabaseClient, str(issue.subject.customer_id)!, { competitors: [] });
+      if (!result.queued) return { ok: false, note: result.reason };
+      return { ok: true, note: `${result.reason} Run ${result.queued}.`, wakeWorker: true };
+    } catch (err) {
+      return { ok: false, note: `Could not queue the run: ${err instanceof Error ? err.message : String(err)}` };
+    }
+  },
+  async verify(db, issue) {
+    const { data } = await db.from('marketing_audits').select('id,status,created_at').eq('customer_id', str(issue.subject.customer_id)!).order('created_at', { ascending: false }).limit(1);
+    const row = ((data ?? []) as { id: string; status: string; created_at: string }[])[0];
+    if (!row || row.id === str(issue.subject.audit_id) || row.created_at < issue.updated_at) return 'pending';
+    if (row.status === 'done') return 'worked';
+    if (row.status === 'failed') return 'failed';
+    return 'pending';
+  },
+};
+
+export const RESOLVERS: readonly Resolver[] = [requeueStep, releaseReview, recheckReview, wakeWorker, retryAction, rerunCompetitors, acknowledge];
 
 export const resolverByKey = (key: string | null | undefined): Resolver | undefined => RESOLVERS.find((r) => r.key === key);
 
