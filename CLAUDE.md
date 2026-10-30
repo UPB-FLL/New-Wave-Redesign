@@ -224,9 +224,15 @@ and learns from logs, data and results. Full notes: `docs/groundswell-agent.md`.
   `GROUNDSWELL_AGENT_TOPICS`; the ask carries the learnings already held so
   only new ones come back; `checkLearnings` needs a title, a summary and a
   real link, never one known by link or title, never one without a
-  publication date, never one dated before the window; stored in
-  `groundswell_agent_learnings`, logged with purpose `research`, reported
-  once under "What the agent learned"), `report.ts`
+  publication date, never one dated before the window; who published the
+  page is read from its link (`learningSources.ts`, 2026-10-28: the
+  company's own site, a known publication, or anyone else, kept as an
+  unconfirmed source at low confidence, owner's call); stored in
+  `groundswell_agent_learnings`, logged with purpose `research` and a
+  verdict for every learning in the answer's order (kept, or dropped and
+  why; `research_dropped` carries the drops into the "Agent pass" log),
+  reported once under "What the agent learned" with who published each
+  page), `report.ts`
   (the email and the confirmation page), `agent.ts` (`runAgentPass`:
   verify, collect, fold, propose, report every 4 h while anything is open,
   else daily; `decide`: approve applies now and wakes the worker, dismiss

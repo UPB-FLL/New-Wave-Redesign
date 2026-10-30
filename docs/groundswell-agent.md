@@ -66,8 +66,23 @@ on (`runAgentPass` in `agent.ts`):
    one without a publication date (an undated page is a landing, event or
    product page: the first live passes kept a vendor's homepage and two
    conference pages), and never one dated before the window (2 days of
-   slack; the same passes kept a March paper); up to 5 per topic. Kept learnings go in `groundswell_agent_learnings`; the ask is
-   logged with purpose `research`. Topics: `DEFAULT_TOPICS` or
+   slack; the same passes kept a March paper); up to 5 per topic. Who
+   published each page is read from its link (`learningSources.ts`,
+   owner's ask, 2026-10-28): the company's own site (`COMPANY_SITES`: the
+   platforms' newsrooms, blogs and business pages, never the open part of a
+   platform anyone posts on, and only when the learning names that
+   company), a known publication (`PUBLICATIONS`: news, tech, marketing
+   trade and research, outside their sponsored pages), or anyone else,
+   which is kept (owner's call) as an unconfirmed source at low confidence
+   whatever the advisor said; the advisor is told to link the primary
+   source. Kept learnings go in `groundswell_agent_learnings`; the ask is
+   logged with purpose `research` and a verdict for every learning the
+   answer held, keyed `learning-1`, `learning-2`, … in the answer's order:
+   kept (with a note when it is an unconfirmed source), or dropped with the
+   reason ("<title>: already known."). The pass's `research_dropped` (in
+   the route's "Agent pass" log line) lists the drops by topic, and an
+   answer without a `learnings` list is logged as an error, not as nothing
+   new. Topics: `DEFAULT_TOPICS` or
    `GROUNDSWELL_AGENT_TOPICS` (`key=what to look for; key=…`, up to six).
    The six defaults (owner's ask, 2026-10-28: trends that help GroundSwell's
    customers) are AI agent marketing, social media marketing, marketing and
@@ -90,8 +105,9 @@ on (`runAgentPass` in `agent.ts`):
    **Approve** and a **Dismiss for a week** link each), needs a developer
    (the brief), resolved since the last report (held / did not hold / not
    checked yet), watching, **what the agent learned** (by topic: title,
-   summary, why it matters, what to do, the source link, confidence; each
-   learning reported once), research not done, sources not read. New
+   summary, why it matters, what to do, the source link with who published
+   it, confidence; each learning reported once), research not done,
+   sources not read. New
    learnings count as something to say. Each report is recorded in
    `groundswell_agent_reports`.
 
@@ -228,10 +244,15 @@ playbook. `GET /api/groundswell/agent?view=dashboard`.
 ## Research
 
 The staff screen's "What the agent learned" lists the newest 40 learnings
-with their links; the consultations list shows research asks with how many
-learnings each kept and how many web searches it ran. Each pass costs one
-Claude call per topic with up to 8 searches: six calls a pass with the
-default topics, 36 a day (12 before 2026-10-28).
+with their links and who published each page (a row stored before that
+check is shown capped as it would be now; the table keeps what was
+stored); the consultations list shows research asks with how many
+learnings each kept, how many it dropped and why, and how many web
+searches it ran. Each pass costs one Claude call per topic with up to 8
+searches: six calls a pass with the default topics, 36 a day (12 before
+2026-10-28). A site missing from `COMPANY_SITES` or `PUBLICATIONS` reads as
+unconfirmed, which costs a label, never a learning: add one there when it
+earns it.
 
 ## Tests
 

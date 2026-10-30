@@ -58,6 +58,8 @@ export interface PassReport {
   counts: { approvals: number; developer: number; resolved: number; watching: number; learned: number };
   /** Topics not researched this pass, and why. */
   research_skipped: Record<string, string>;
+  /** What the research dropped this pass, by topic, each "<title>: <reason>" (the route's "Agent pass" log line carries it). */
+  research_dropped: Record<string, string[]>;
 }
 
 export async function resendSender(message: { to: string; subject: string; html: string; text: string }): Promise<SendResult> {
@@ -145,7 +147,7 @@ export async function runAgentPass(db: Db, opts: PassOptions): Promise<PassRepor
   const something = approvals.length > 0 || developer.length > 0 || watching.length > 0 || resolved.length > 0 || fold.unread.length > 0 || verified.failed.length > 0 || learned.learned.length > 0;
   const quietDue = !previous || now.getTime() - Date.parse(previous.sent_at) >= QUIET_REPORT_MS;
   if (!opts.force && !something && !quietDue) {
-    return { fold, verified, proposed: unproposed.length, sent: false, reason: 'Nothing new since the last report.', subject: null, counts, research_skipped: learned.skipped };
+    return { fold, verified, proposed: unproposed.length, sent: false, reason: 'Nothing new since the last report.', subject: null, counts, research_skipped: learned.skipped, research_dropped: learned.dropped };
   }
 
   const tokens: { issue: IssueRow; token: string }[] = [];
@@ -155,7 +157,7 @@ export async function runAgentPass(db: Db, opts: PassOptions): Promise<PassRepor
   const sent = await (opts.send ?? resendSender)({ to, subject: report.subject, html: report.html, text: report.text });
   await recordReport(db, { sent_at: now.toISOString(), to_email: to, issue_ids: [...approvals, ...developer, ...resolved, ...watching].map((i) => i.id), subject: report.subject, summary: report.summary, email_id: sent.id, status: sent.error ? 'failed' : 'sent' });
   if (sent.error) console.error('Agent report email failed:', sent.error);
-  return { fold, verified, proposed: unproposed.length, sent: !sent.error, reason: sent.error ?? (something ? 'Sent.' : 'Sent the daily all-clear.'), subject: report.subject, counts, research_skipped: learned.skipped };
+  return { fold, verified, proposed: unproposed.length, sent: !sent.error, reason: sent.error ?? (something ? 'Sent.' : 'Sent the daily all-clear.'), subject: report.subject, counts, research_skipped: learned.skipped, research_dropped: learned.dropped };
 }
 
 export type Decision = 'approve' | 'dismiss';
