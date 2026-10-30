@@ -34,6 +34,8 @@ export interface MapsPlace {
   website: string | null;
   hours: string[];
   url: string | null;
+  /** The county the listing sits in (Places' administrative_area_level_2), for county-wide keyword demand; absent on older reads. */
+  county?: string | null;
 }
 
 export interface MapsListing {
@@ -136,7 +138,7 @@ export interface MapsOutput {
 
 /** The fields one text search asks Places for (each field has a price; nothing more is read). */
 export const PLACE_FIELDS =
-  'places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.primaryTypeDisplayName,places.types,places.websiteUri,places.nationalPhoneNumber,places.regularOpeningHours,places.googleMapsUri,places.businessStatus';
+  'places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.primaryTypeDisplayName,places.types,places.websiteUri,places.nationalPhoneNumber,places.regularOpeningHours,places.googleMapsUri,places.businessStatus,places.addressComponents';
 
 const PLACES_SOURCE = 'Google Places API text search (relevance order, not the Maps pack), via Composio';
 const NOT_FOUND = 'The business was not found on Google Maps under its name and city.';
@@ -162,6 +164,8 @@ export function placeRows(payload: unknown): PlaceRow[] {
 export function toMapsPlace(p: PlaceRow): MapsPlace {
   const hours = findKey<unknown[]>(p.regularOpeningHours, 'weekdayDescriptions') ?? [];
   const types = Array.isArray(p.types) ? p.types.filter((t): t is string => typeof t === 'string') : [];
+  const components = Array.isArray(p.addressComponents) ? p.addressComponents.filter((c): c is Record<string, unknown> => Boolean(c) && typeof c === 'object') : [];
+  const county = components.find((c) => Array.isArray(c.types) && c.types.includes('administrative_area_level_2'));
   return {
     name: localized(p.displayName) ?? str(p.title) ?? str(p.name),
     rating: finite(p.rating),
@@ -172,6 +176,7 @@ export function toMapsPlace(p: PlaceRow): MapsPlace {
     website: str(p.websiteUri) ?? str(p.website),
     hours: (Array.isArray(hours) ? hours : []).filter((h): h is string => typeof h === 'string'),
     url: str(p.googleMapsUri) ?? str(p.link) ?? (str(p.place_id) ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(str(p.title) ?? '')}&query_place_id=${encodeURIComponent(str(p.place_id)!)}` : null),
+    county: county ? str(county.longText) ?? str(county.long_name) ?? str(county.shortText) : null,
   };
 }
 

@@ -2,7 +2,7 @@ import { executeTool, findKey } from '../composio.js';
 import type { StepContext } from '../types.js';
 import { domainOf } from './search.js';
 import type { SiteScan } from './site.js';
-import { numeric } from './serp.js';
+import { numeric, ownWebsite } from './serp.js';
 
 /**
  * Ads Current: evidence of paid advertising. Tracking tags come from the Site
@@ -39,9 +39,16 @@ async function paidPages(domain: string) {
   return rows.map((r) => ({ url: String(r.url ?? ''), keywords: n(r.keywords), traffic: n(r.sum_traffic) })).filter((r) => r.url);
 }
 
+export const LINK_PAGE_ADS_NOTE = 'The business has no website of its own (the address given is a link-in-bio page), so there are no tags or paid search pages to read.';
+
 async function evidence(name: string, site: SiteScan | null, website?: string | null): Promise<AdsEvidence> {
-  const domain = domainOf(site?.final_url ?? site?.url ?? website);
+  // A link-in-bio page carries the link service's tags and paid pages, not the business's.
+  const linkPage = Boolean(site?.link_page) || !ownWebsite(site?.final_url ?? site?.url ?? website);
+  const domain = linkPage ? null : domainOf(site?.final_url ?? site?.url ?? website);
   const websiteChecked = Boolean(site && !site.error && site.status !== null && site.status >= 200 && site.status < 400);
+  if (linkPage && (site || website)) {
+    return { name, domain: null, website_checked: false, google_ads_tag: false, meta_pixel: false, tiktok_pixel: false, paid_pages: [], error: LINK_PAGE_ADS_NOTE };
+  }
   const out: AdsEvidence = {
     name,
     domain,

@@ -1,5 +1,6 @@
 import { GROUNDSWELL_CONFIG } from '../../../packages/groundswell/groundswell.config.js';
 import { domainOf } from './currents/search.js';
+import { ownWebsite } from './currents/serp.js';
 import { UA, type SiteScan } from './currents/site.js';
 import { facebookPageUrl, type InstagramSnapshot } from './currents/social.js';
 import type { StepContext } from './types.js';
@@ -36,8 +37,9 @@ export function benchAccounts(ctx: StepContext): BenchAccount[] {
   const own = site?.business ?? null;
   const business: BenchAccount = {
     name: ctx.audit.business_name,
-    website: own?.final_url ?? ctx.audit.website,
-    domain: domainOf(own?.final_url ?? ctx.audit.website),
+    // A link-in-bio page is nobody's website: the ad libraries and Ahrefs would describe the link service.
+    website: ownWebsite(own?.final_url ?? ctx.audit.website),
+    domain: domainOf(ownWebsite(own?.final_url ?? ctx.audit.website)),
     instagram: social?.business?.handle ?? ctx.audit.instagram ?? own?.social.instagram[0] ?? null,
     facebook: facebookPageUrl(ctx.audit.facebook) ?? facebookUrl(own),
     site: own,

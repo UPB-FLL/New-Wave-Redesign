@@ -34,7 +34,8 @@ describe('the setup file check', () => {
     bad.platforms.meta.benchmarks!.cpc = [0.5, 1, 2]; // cheapest clicks in the low scenario
     bad.platforms.meta.benchmarks!.source = '';
     bad.industries = [];
-    expect(() => validateConfig(bad)).toThrow(/needs a source[\s\S]*cpc must fall[\s\S]*"general" profile/);
+    (bad as { rival_ads_test: unknown }).rival_ads_test = { enabled: true, basis: '' };
+    expect(() => validateConfig(bad)).toThrow(/needs a source[\s\S]*cpc must fall[\s\S]*"general" profile[\s\S]*rival_ads_test needs/);
   });
 });
 
@@ -120,6 +121,54 @@ describe('the ad plan', () => {
 
   it('totals the budget and return over funded and tested rows', () => {
     expect(plan.budget.medium).toBeCloseTo(google.scenarios.medium.spend + meta.scenarios.medium.spend);
+  });
+
+  describe('a row the benchmarks say loses money', () => {
+    // A $20 ticket closes a tenth of its leads: every click costs more than it brings back.
+    const thin: AngleInput = { ...events, id: 'thin', name: 'Puppy classes', value: { per_customer: [20, 20, 20], close: [0.1, 0.1, 0.1], gross_margin: [0.5, 0.5, 0.5], basis: 'The write-up’s estimate.' } };
+
+    it('is skipped when no competitor is on record advertising there', () => {
+      const p = buildAdPlan([thin], industry(['google_search', 'meta']), config);
+      expect(p.rows.map((r) => [r.platform, r.recommendation, r.reason]).sort()).toEqual([
+        ['google_search', 'skip', 'Loses money in the medium case.'],
+        ['meta', 'skip', 'Loses money in the medium case.'],
+      ]);
+      expect(p.rival_ads).toEqual({});
+      expect(p.budget.medium).toBe(0);
+    });
+
+    it('becomes a stop-lossed test on the platform where rivals are advertising, naming them', () => {
+      const p = buildAdPlan([thin], industry(['google_search', 'meta']), config, { rival_ads: { meta: ['Angel Paws', 'K9 Advisors', 'Angel Paws'], google_search: [] } });
+      const meta = p.rows.find((r) => r.platform === 'meta')!;
+      const google = p.rows.find((r) => r.platform === 'google_search')!;
+      expect(meta.recommendation).toBe('test');
+      expect(meta.reason).toBe('Loses money at the estimated ticket and close rate, but Angel Paws and K9 Advisors are on record advertising on Meta: a small test with a stop-loss, to measure the real cost per lead before deciding.');
+      expect(meta.roi_tier).toBe('loses money');
+      expect(meta.stop_loss_cost_per_lead).toBe(1); // $20 × 0.1 × 0.5
+      expect(meta.sources[meta.sources.length - 1]).toBe('Test despite the benchmarks: Test rule.');
+      expect(google.recommendation).toBe('skip');
+      expect(p.rival_ads).toEqual({ meta: ['Angel Paws', 'K9 Advisors'] });
+      // The test's spend counts in the budget; its (negative) return counts in the year's net.
+      expect(p.budget.medium).toBe(meta.scenarios.medium.spend);
+      expect(p.year_net.medium).toBe(meta.scenarios.medium.year_net);
+      expect(p.rows[0]).toBe(meta); // tests sort before skips
+    });
+
+    it('names two rivals and counts the rest when many advertise, and stays a skip when the rule is off', () => {
+      const p = buildAdPlan([thin], industry(['meta']), config, { rival_ads: { meta: ['A', 'B', 'C', 'D', 'E'] } });
+      expect(p.rows[0].reason).toContain('A, B and 3 more are on record advertising on Meta');
+      const off = structuredClone(config);
+      off.rival_ads_test.enabled = false;
+      const q = buildAdPlan([thin], industry(['meta']), off, { rival_ads: { meta: ['A'] } });
+      expect(q.rows[0]).toMatchObject({ recommendation: 'skip', reason: 'Loses money in the medium case.' });
+    });
+
+    it('never turns a self-serve block or a row that pays back into something else', () => {
+      const blocked = buildAdPlan([{ ...thin, category: 'alcohol' }], industry(['reddit']), config, { rival_ads: { reddit: ['A'] } });
+      expect(blocked.rows[0]).toMatchObject({ recommendation: 'skip', reason: 'Alcohol needs a sales rep.' });
+      const fine = buildAdPlan([events], industry(['google_search']), config, { rival_ads: { google_search: ['A'] } });
+      expect(fine.rows[0].recommendation).toBe('fund');
+    });
   });
 });
 

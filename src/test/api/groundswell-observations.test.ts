@@ -24,6 +24,14 @@ describe('what the data shows', () => {
     for (const line of [...o.strengths, ...o.constraints]) expect(line).not.toMatch(/undefined|NaN|null/);
   });
 
+  it('says a link-in-bio page is not a website, and reads nothing else from it', () => {
+    const site = { ...(facts.site!.business as object), url: 'https://linktr.ee/apk9', final_url: 'https://linktr.ee/apk9', link_page: true, error: 'The address is a link-in-bio page, not a website of its own.' };
+    const o = areaObservations({ ...facts, site: { ...facts.site!, business: site } } as typeof facts).website;
+    expect(o.strengths).toEqual([]);
+    expect(o.constraints).toHaveLength(1);
+    expect(o.constraints[0]).toMatch(/link-in-bio page, not a website of its own/);
+  });
+
   it('never writes a figure that is not in the data', () => {
     const all = Object.values(areaObservations(facts)).flatMap((o) => [...o.strengths, ...o.constraints]);
     expect(all.length).toBeGreaterThan(4);

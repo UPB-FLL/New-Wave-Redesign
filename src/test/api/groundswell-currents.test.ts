@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('../../../api/_lib/groundswell/publicFetch', () => ({ readPublicText: vi.fn() }));
 
 import { readPublicText } from '../../../api/_lib/groundswell/publicFetch';
-import { parseSite, runSite, scanSite, SITE_ATTEMPTS } from '../../../api/_lib/groundswell/currents/site';
+import { LINK_PAGE_ERROR, linkPageScan, parseSite, runSite, scanSite, SITE_ATTEMPTS } from '../../../api/_lib/groundswell/currents/site';
 import { assertNotBlocked, mapsSearchUrl } from '../../../api/_lib/groundswell/currents/maps';
 import { domainOf, parseKeywordIdeas } from '../../../api/_lib/groundswell/currents/search';
 import { summarizeInstagram } from '../../../api/_lib/groundswell/currents/social';
@@ -170,6 +170,19 @@ describe('Site Current: shared website branding', () => {
     const scan = await scanSite('https://business.example', 4_321);
     expect(read).toHaveBeenCalledWith('https://business.example', expect.objectContaining({ timeoutMs: 4_321 }));
     expect(scan.social.facebook[0]).toBe('profile.php?id=123456789');
+  });
+
+  it('keeps a link-in-bio page’s words and links but none of the link service’s tags, data or colours, and does not retry it', async () => {
+    read.mockResolvedValue({ url: 'https://linktr.ee/apk9', status: 200, contentType: 'text/html', text: '<html><head><title>APK9 Academy LLC | Linktree</title><meta name="theme-color" content="#43e660"><script type="application/ld+json">{"@type":"Organization","name":"Linktree"}</script></head><body><h1>APK9 Academy LLC</h1><a href="https://www.instagram.com/apk9academy">Instagram</a><a href="tel:+19545550123">Call</a><script>G-LINKTREE12</script><script src="https://connect.facebook.net/en_US/fbevents.js"></script></body></html>' });
+    const audit = { id: 'a1', business_name: 'APK9 Academy LLC', city: 'Pembroke Pines, FL', website: 'https://linktr.ee/apk9', instagram: null, competitors: [], notes: null };
+    const output = await runSite({ audit, outputs: {}, deadline: Date.now() + 60_000, attempt: 1 });
+    expect(output.business).toMatchObject({ link_page: true, error: LINK_PAGE_ERROR, status: 200, h1: ['APK9 Academy LLC'], phones: ['+19545550123'], schema_types: [], logo: null, theme_color: null, brand_colors: [], tracking: { google_analytics: [], meta_pixel: false }, booking: [], word_count: 0 });
+    expect(output.business!.social.instagram).toContain('apk9academy');
+    expect(output.business!.technical_seo).toBeUndefined();
+    // The page answered, so the step does not throw to retry it.
+    expect(read).toHaveBeenCalledTimes(1);
+    // The pure form, for a scan stored before the flag existed.
+    expect(linkPageScan({ ...parseSite('<title>x</title>', 'https://linktr.ee/x', 'https://linktr.ee/x', 200), og_image: 'https://linktr.ee/og.png' })).toMatchObject({ link_page: true, og_image: null, error: LINK_PAGE_ERROR });
   });
 
   it('lets a Facebook-only seed continue to profile research without fabricating a website scan', async () => {

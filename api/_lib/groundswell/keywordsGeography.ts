@@ -74,20 +74,36 @@ function geographyRows(payload: unknown): GeoRow[] {
 
 const errorText = (error: unknown) => (error instanceof Error ? error.message : typeof error === 'string' ? error : JSON.stringify(error) || 'Unknown provider error').slice(0, 300);
 
-/** Resolve an exact US city from Google's read-only constants; an unresolved city never becomes an all-location query. */
-export async function resolveKeywordGeography(city: string | null, timeoutMs = 10_000): Promise<KeywordGeography> {
+/** A county name as Google lists it ("Broward County"); null for anything that is not one. */
+export function parseCounty(value: string | null | undefined): string | null {
+  if (typeof value !== 'string' || !value.trim() || value.length > 80 || /[\r\n\\;%=_,]/.test(value)) return null;
+  const name = value.trim().replace(/\s+/g, ' ');
+  if (!/^[\p{L}\p{M}\p{N} .’'-]+$/u.test(name) || !/\b(?:county|parish|borough)$/i.test(name)) return null;
+  return name.replace(/’/g, "'");
+}
+
+const gaql = (name: string, type: 'City' | 'County') => {
+  const escaped = name.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  // LIKE is case-insensitive in GAQL. Wildcards are rejected before this exact
+  // literal is built, so this handles intake casing without widening the place.
+  return `SELECT geo_target_constant.resource_name, geo_target_constant.name, geo_target_constant.canonical_name, geo_target_constant.country_code, geo_target_constant.target_type, geo_target_constant.status FROM geo_target_constant WHERE geo_target_constant.name LIKE '${escaped}' AND geo_target_constant.country_code = 'US' AND geo_target_constant.target_type = '${type}' AND geo_target_constant.status = 'ENABLED' LIMIT 100`;
+};
+
+/**
+ * Resolve the Keyword Planner market from Google's read-only constants: the county the business sits in when the
+ * Google listing names one (a local service's customers come from the county, not one city; Pembroke Pines alone
+ * gave a dog trainer 90 searches a month), else the exact US city. An unresolved place never becomes an
+ * all-location query, and a county that cannot be matched falls back to the city.
+ */
+export async function resolveKeywordGeography(city: string | null, timeoutMs = 10_000, county: string | null = null): Promise<KeywordGeography> {
   const parsed = parseCity(city);
   const unresolved = (error: string): KeywordGeography => ({ constants: [], label: city?.trim() || 'Unresolved location', error });
   if (!parsed) return unresolved('A valid US city and, when ambiguous, its state are required to resolve Keyword Planner geography.');
   const budget = Math.min(15_000, Number.isFinite(timeoutMs) ? Math.floor(timeoutMs) : 10_000);
   if (budget <= 0) return unresolved('The Keyword Planner geography lookup has no time remaining.');
   const deadline = Date.now() + budget;
-  const escaped = parsed.city.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-  // LIKE is case-insensitive in GAQL. Wildcards are rejected before this exact
-  // literal is built, so this handles intake casing without widening the city.
-  const query = `SELECT geo_target_constant.resource_name, geo_target_constant.name, geo_target_constant.canonical_name, geo_target_constant.country_code, geo_target_constant.target_type, geo_target_constant.status FROM geo_target_constant WHERE geo_target_constant.name LIKE '${escaped}' AND geo_target_constant.country_code = 'US' AND geo_target_constant.target_type = 'City' AND geo_target_constant.status = 'ENABLED' LIMIT 100`;
-  const args: Record<string, unknown> = { query };
-  if (process.env.GOOGLE_ADS_CUSTOMER_ID?.trim()) args.customer_id = process.env.GOOGLE_ADS_CUSTOMER_ID.trim();
+  const countyName = parseCounty(county);
+  const customer = process.env.GOOGLE_ADS_CUSTOMER_ID?.trim() || null;
   const read = async (input: Record<string, unknown>) => {
     const remaining = deadline - Date.now();
     if (remaining <= 0) throw new Error('The Keyword Planner geography lookup timed out.');
@@ -104,22 +120,36 @@ export async function resolveKeywordGeography(city: string | null, timeoutMs = 1
       return payload;
     } finally { clearTimeout(timer); }
   };
-  try {
-    let payload: unknown;
-    try { payload = await read(args); }
+  /** Runs one lookup, retrying once without the customer for a consumer login; the retry shares the deadline. */
+  const lookup = async (query: string) => {
+    const args: Record<string, unknown> = customer ? { query, customer_id: customer } : { query };
+    try { return await read(args); }
     catch (error) {
       // Consumer credentials may not reach the project's configured customer.
-      // The retry shares the original deadline and still queries the exact city.
+      // The retry shares the original deadline and still queries the exact place.
       if (!(args.customer_id && isConsumerConfigured() && Date.now() < deadline)) throw error;
-      payload = await read({ query });
+      return read({ query });
     }
-    const candidates = geographyRows(payload).filter(row => {
-      if (!/^geoTargetConstants\/[1-9]\d*$/.test(row.resource) || fold(row.name) !== fold(parsed.city) || row.country.toUpperCase() !== 'US' || fold(row.type) !== 'city' || row.status.toUpperCase() !== 'ENABLED') return false;
-      const canonical = row.canonical.split(',').map(part => part.trim());
-      const state = stateOf(canonical[canonical.length - 2] ?? '');
-      return fold(canonical[0] ?? '') === fold(parsed.city) && Boolean(state) && /^(?:United States|US|USA)$/i.test(canonical[canonical.length - 1] ?? '') && (!parsed.state || state === parsed.state);
-    });
-    const unique = new Map(candidates.map(row => [row.resource, row]));
+  };
+  /** The enabled US constants of the wanted type whose name and canonical name match, keyed by resource. */
+  const matches = (payload: unknown, name: string, type: 'city' | 'county') => new Map(geographyRows(payload).filter(row => {
+    if (!/^geoTargetConstants\/[1-9]\d*$/.test(row.resource) || fold(row.name) !== fold(name) || row.country.toUpperCase() !== 'US' || fold(row.type) !== type || row.status.toUpperCase() !== 'ENABLED') return false;
+    const canonical = row.canonical.split(',').map(part => part.trim());
+    const state = stateOf(canonical[canonical.length - 2] ?? '');
+    return fold(canonical[0] ?? '') === fold(name) && Boolean(state) && /^(?:United States|US|USA)$/i.test(canonical[canonical.length - 1] ?? '') && (!parsed.state || state === parsed.state);
+  }).map(row => [row.resource, row]));
+  try {
+    if (countyName) {
+      // The county first; anything but exactly one match (including a lookup that fails) falls back to the city.
+      try {
+        const found = matches(await lookup(gaql(countyName, 'County')), countyName, 'county');
+        if (found.size === 1) {
+          const match = [...found.values()][0];
+          return { constants: [match.resource], label: `${match.canonical} (the county around ${parsed.city})`, error: null };
+        }
+      } catch { /* the city below */ }
+    }
+    const unique = matches(await lookup(gaql(parsed.city, 'City')), parsed.city, 'city');
     if (!unique.size) return unresolved(`No enabled US city matched ${parsed.city}${parsed.state ? `, ${parsed.state}` : ''}; Keyword Planner geography remains unresolved.`);
     if (unique.size !== 1) return unresolved(`Ambiguous US city ${parsed.city}${parsed.state ? `, ${parsed.state}` : ''}; confirm a unique city and state before measuring demand.`);
     const match = [...unique.values()][0];

@@ -199,6 +199,11 @@ export interface GroundswellConfig {
   tiers: TierRules;
   /** An angle with fewer monthly searches than this is not worth a search campaign of its own. */
   min_angle_searches: number;
+  /**
+   * A row the benchmarks say loses money is tested (not skipped) when a competitor is on record advertising on
+   * that platform; `basis` says why in one sentence. Off, the benchmarks alone decide.
+   */
+  rival_ads_test: { enabled: boolean; basis: string };
   /** Words an ad may not claim without third-party proof shown with it. */
   unsupported_claims: string[];
   verification: VerificationRules;
@@ -251,6 +256,8 @@ export function validateConfig(c: GroundswellConfig): GroundswellConfig {
     for (const p of ind.ad_platforms) if (!c.platforms[p]) problems.push(`industries.${ind.id} names unknown ad platform "${p}"`);
   }
   if (!ids.has('general')) problems.push('industries needs a "general" profile to fall back on');
+  if (!(c.min_angle_searches >= 0)) problems.push('min_angle_searches must be 0 or more');
+  if (!c.rival_ads_test || typeof c.rival_ads_test.enabled !== 'boolean' || !c.rival_ads_test.basis) problems.push('rival_ads_test needs enabled (true or false) and a basis');
   triple('search.impression_share', c.search.impression_share, { unit: true, ascending: true });
   triple('search.ctr_factor', c.search.ctr_factor, { ascending: true });
   triple('search.cvr_factor', c.search.cvr_factor, { ascending: true });

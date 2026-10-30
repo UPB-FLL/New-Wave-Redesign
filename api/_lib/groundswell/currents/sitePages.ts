@@ -1,6 +1,7 @@
 import { executeTool, findKey } from '../composio.js';
 import { PermanentStepError, type StepContext } from '../types.js';
 import { publicWebsiteUrl } from '../publicFetch.js';
+import { ownWebsite } from './serp.js';
 import type { SiteScan } from './site.js';
 
 /**
@@ -238,8 +239,10 @@ export function isSitePagesOutput(x: unknown): x is SitePagesOutput {
 
 export async function runSitePages(ctx: StepContext): Promise<SitePagesOutput> {
   const site = ctx.outputs.site as { business?: SiteScan | null } | undefined;
-  const website = site?.business?.final_url ?? site?.business?.url ?? ctx.audit.website;
-  if (!website) throw new PermanentStepError('The audit has no website, so there are no pages to read.');
+  const given = site?.business?.final_url ?? site?.business?.url ?? ctx.audit.website;
+  // A link-in-bio page has no pages of the business's own to read.
+  const website = ownWebsite(given);
+  if (!website) throw new PermanentStepError(given ? 'The address given is a link-in-bio page, not a website of its own, so there are no pages to read.' : 'The audit has no website, so there are no pages to read.');
   const start = publicWebsiteUrl(website).href;
   const competitors = ctx.outputs.competitors as { pages?: SitePage[] } | undefined;
   return readSitePages(canonicalPage(start, start) ?? start, { deadline: ctx.deadline - 2_000, competitors: ctx.audit.competitors, known: Array.isArray(competitors?.pages) ? competitors!.pages : [] });

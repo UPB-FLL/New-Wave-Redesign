@@ -70,6 +70,16 @@ export const INDUSTRIES: IndustryProfile[] = [
     benchmark_industry: 'Arts & Entertainment',
   },
   {
+    id: 'pet_services',
+    label: 'Pet services (dog training, grooming, boarding, veterinary)',
+    match: ['dog', 'pet', 'puppy', 'canine', 'k9', 'k-9', 'groom', 'veterinar', 'kennel', 'boarding', 'animal'],
+    audit_platforms: ['instagram', 'facebook', 'tiktok', 'yelp', 'nextdoor', 'rover', 'reddit'],
+    ad_platforms: ['google_search', 'meta'],
+    benchmark_industry: 'Animals & Pets',
+    licences: ['CPDT-KA', 'CPDT-KSA', 'IAABC', 'KPA', 'CCPDT', 'DVM', 'VMD', 'AKC', 'NADOI', 'certified'],
+    do_not_copy: ['Guarantees of a training result for every dog, or claims about aggression cases the trainer has not handled.', 'Veterinary or health claims by a trainer or groomer.'],
+  },
+  {
     id: 'general',
     label: 'General local business',
     match: [],

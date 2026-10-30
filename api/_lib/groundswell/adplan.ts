@@ -1,5 +1,5 @@
 import { GROUNDSWELL_CONFIG } from '../../../packages/groundswell/groundswell.config.js';
-import type { AdPlan, AngleInput, AngleKeyword, AngleValue } from '../../../packages/groundswell/src/adplan.js';
+import type { AdPlan, AngleInput, AngleKeyword, AngleValue, RivalAds } from '../../../packages/groundswell/src/adplan.js';
 import { bestPosition, incrementalityFor, planAudit, type SortedFix } from '../../../packages/groundswell/src/audit.js';
 import { CHANGE_AREAS, type Baseline, type ChangeArea, type Comparison, type RankedChange } from '../../../packages/groundswell/src/changes.js';
 import type { GroundswellConfig, IndustryProfile } from '../../../packages/groundswell/src/config.js';
@@ -236,10 +236,32 @@ export function checkPlan(raw: unknown, f: Facts, m: ModelOut, config: Groundswe
   return { industry, angles, fixes, fallback_angle, dropped };
 }
 
+/**
+ * Competitors on record advertising, by platform: a Meta Ad Library Page with ads running (or any on record), an Ads
+ * Transparency Center record with at least one Google ad, or Ahrefs paid search pages. Names only; spend is never public.
+ */
+export function rivalAdsFrom(f: Facts): RivalAds {
+  const meta = new Set<string>();
+  const google = new Set<string>();
+  for (const r of f.ad_library?.competitors ?? []) {
+    if (!r.name) continue;
+    if (r.meta_ad_status === 'running' || r.meta_ads.length > 0) meta.add(r.name);
+    if (r.google_ads_status === 'ads_found' && (r.google_ads_count ?? 0) > 0) google.add(r.name);
+  }
+  for (const r of f.ads?.competitors ?? []) if (r.name && r.paid_pages.length > 0) google.add(r.name);
+  const out: RivalAds = {};
+  if (meta.size) out.meta = [...meta];
+  if (google.size) out.google_search = [...google];
+  return out;
+}
+
 /** Today's advertising, from the Ads Current: what is visible, and that spend is not. */
 export function baselineFrom(f: Facts): Baseline {
   const b = f.ads?.business;
   if (!b) return { monthly_ad_spend: null, ad_spend_basis: 'Ads could not be checked for this audit, and ad spend is not public.' };
+  if (f.site?.business?.link_page || (!b.website_checked && !b.domain && /link-in-bio/.test(b.error ?? ''))) {
+    return { monthly_ad_spend: null, ad_spend_basis: 'The address given is a link-in-bio page, not a website of its own, so there are no ad tags or paid search pages to read. Ad spend is not public.' };
+  }
   const tags = [b.google_ads_tag && 'a Google Ads tag', b.meta_pixel && 'a Meta pixel', b.tiktok_pixel && 'a TikTok pixel'].filter(
     (t): t is string => Boolean(t)
   );
@@ -261,7 +283,7 @@ export async function runAdplan(ctx: StepContext): Promise<AdplanOutput> {
   const planned = checkPlan(raw, f, m, config);
   const baseline = baselineFrom(f);
   const result = planAudit(
-    { angles: planned.angles, industry: planned.industry, positions: positionsFrom(f), fixes: planned.fixes, baseline },
+    { angles: planned.angles, industry: planned.industry, positions: positionsFrom(f), fixes: planned.fixes, baseline, rival_ads: rivalAdsFrom(f) },
     config
   );
   return {

@@ -3,7 +3,8 @@ import { isConsumerConfigured } from '../composioConsumer.js';
 import { resolveKeywordGeography } from '../keywordsGeography.js';
 import type { StepContext } from '../types.js';
 import type { SiteScan } from './site.js';
-import { categoryFromSite, readGoogleSerp, specificCategory, type GoogleSerp } from './serp.js';
+import { categoryFromSite, ownWebsite, readGoogleSerp, specificCategory, type GoogleSerp } from './serp.js';
+import type { BusinessProfile } from '../businessProfile.js';
 
 /**
  * Search Current: Ahrefs (through Composio) for the business and its rivals'
@@ -78,7 +79,8 @@ async function ahrefsFor(domain: string, deep: boolean): Promise<AhrefsSnapshot>
 
 export async function runSearch(ctx: StepContext) {
   const site = ctx.outputs.site as { business: SiteScan | null; competitors: { name: string; site: SiteScan | null }[] } | undefined;
-  const domain = domainOf(site?.business?.final_url ?? ctx.audit.website);
+  // A link-in-bio page is not the business's website: Ahrefs would describe the link service, not the business.
+  const domain = domainOf(ownWebsite(site?.business?.final_url ?? ctx.audit.website));
   const business = domain ? await ahrefsFor(domain, true) : null;
   const rivals = ctx.audit.competitors
     .map((c) => ({ name: c.name, domain: domainOf(c.website) }))
@@ -132,6 +134,43 @@ function searchCategory(ctx: StepContext): string | null {
   return categoryFromSite(site?.business) || specificCategory(competitor?.business?.category) || specificCategory(maps?.business?.category);
 }
 
+/** Most seed phrases one Keyword Planner call takes (its own limit is 20). */
+export const SEED_LIMIT = 12;
+
+/**
+ * What Keyword Planner is asked about: the verified category (alone and with the city), the services the business's
+ * own words name, the searches a customer would make for it (the profile's `competitor_queries`), and, when the
+ * profile names no services, the homepage's headings (the homepage being the business's own). A category alone gave
+ * a dog trainer three seeds and 90 searches a month; the services it names are what people type.
+ */
+export function keywordSeeds(ctx: StepContext): string[] {
+  const site = ctx.outputs.site as { business: SiteScan | null } | undefined;
+  const scan = site?.business ?? null;
+  const own = scan && !scan.link_page && !scan.error ? scan : null;
+  const profile = (ctx.outputs.competitors as { profile?: BusinessProfile | null } | undefined)?.profile ?? null;
+  const category = searchCategory(ctx) ?? specificCategory(profile?.category ?? null);
+  const city = ctx.audit.city?.split(',')[0].trim() || null;
+  const okay = (s: string | null | undefined): s is string => Boolean(s && s.trim().length > 2 && s.length < 80 && !/^https?:/i.test(s));
+  const candidates = [
+    category,
+    category && city ? `${category} ${city}` : null,
+    ...(profile?.services ?? []).slice(0, 6),
+    ...(profile?.competitor_queries ?? []).slice(0, 4),
+    ...(profile?.services?.length ? [] : (own?.h1 ?? []).slice(0, 2).filter((h) => specificCategory(h))),
+  ];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const c of candidates) {
+    if (!okay(c)) continue;
+    const key = c.trim().toLowerCase().replace(/\s+/g, ' ');
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(c.trim().replace(/\s+/g, ' '));
+    if (out.length >= SEED_LIMIT) break;
+  }
+  return out;
+}
+
 export async function runKeywords(ctx: StepContext) {
   const remaining = (cap = 90_000) => Math.max(0, Math.min(cap, ctx.deadline - Date.now() - 1_500));
   const budget = () => {
@@ -141,9 +180,10 @@ export async function runKeywords(ctx: StepContext) {
   };
   const site = ctx.outputs.site as { business: SiteScan | null } | undefined;
   const category = searchCategory(ctx);
-  const seeds = [...new Set([category, category && ctx.audit.city ? `${category} ${ctx.audit.city.split(',')[0]}` : null, ...(site?.business?.h1 ?? []).slice(0, 2)]
-    .filter((s): s is string => Boolean(s && s.length < 80 && specificCategory(s))))].slice(0, 5);
-  const url = site?.business?.final_url ?? ctx.audit.website;
+  const seeds = keywordSeeds(ctx);
+  // A link-in-bio page seeds nothing: Keyword Planner would read the link service's page, not the business's.
+  const url = ownWebsite(site?.business?.final_url ?? ctx.audit.website);
+  const county = (ctx.outputs.maps as { business?: { county?: string | null } | null } | undefined)?.business?.county ?? null;
   if (!url && seeds.length === 0) return { skipped: 'No website or verified category to seed Keyword Planner with.', source: 'Keyword Planner', fetched_at: new Date().toISOString(), seeds, ideas: [] as KeywordIdea[], demand_status: 'unavailable' as const, error: 'No website or category was available.' };
 
   const configured = (process.env.GROUNDSWELL_GEO_TARGETS || '').split(',').map(g => g.trim()).filter(g => /^geoTargetConstants\/\d+$/.test(g)).slice(0, 10);
@@ -152,7 +192,7 @@ export async function runKeywords(ctx: StepContext) {
   const geography = !ctx.audit.city?.trim() && configured.length
     ? { constants: configured, label: `Configured targets: ${configured.join(', ')}`, error: null }
     : remaining(10_000) > 0
-      ? await resolveKeywordGeography(ctx.audit.city, remaining(10_000))
+      ? county ? await resolveKeywordGeography(ctx.audit.city, remaining(10_000), county) : await resolveKeywordGeography(ctx.audit.city, remaining(10_000))
       : { constants: [] as string[], label: ctx.audit.city || 'Unresolved location', error: 'Keyword research reached the worker time limit.' };
   const geo = geography.constants;
   const args: Record<string, unknown> = {
