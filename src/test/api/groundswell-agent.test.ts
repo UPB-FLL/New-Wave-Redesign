@@ -30,6 +30,7 @@ import { checkLearnings, normalizeUrl, researchOrder, researchTopics, topicsFrom
 import { sourceKind, withSource } from '../../../api/_lib/groundswell/agent/learningSources';
 import { parseJsonObject } from '../../../api/_lib/groundswell/agent/consult';
 import { RESOLVERS, applicableResolvers, resolverByKey } from '../../../api/_lib/groundswell/agent/resolvers';
+import { unverifiedCompetitors } from '../../../api/_lib/groundswell/agent/collectors';
 import { foldObservations, issueForToken, readConsultations, readIssues, readLearnings, readLessons, summarizeLessons } from '../../../api/_lib/groundswell/agent/store';
 import type { CollectResult, Db, IssueRow, LearningRow, Observation } from '../../../api/_lib/groundswell/agent/types';
 import type { ApiRequest, ApiResponse } from '../../../api/_lib/http';
@@ -801,5 +802,39 @@ describe('the route', () => {
     const res = makeRes();
     await handler(staff(), asRes(res));
     expect(res.statusCode).toBe(503);
+  });
+});
+
+describe('competitors nobody verified', () => {
+  const CUSTOMER = '1a765bc6-883a-4209-a5d5-d0bcc4261f37';
+  const unverified = () => {
+    const rows = failedRun();
+    rows.marketing_audits[1] = { ...rows.marketing_audits[1], business_name: 'APK9 Academy LLC', customer_id: CUSTOMER };
+    rows.marketing_audit_steps.push({ audit_id: AUDIT_2, step: 'competitors', position: 1, status: 'done', attempts: 1, error: null, finished_at: hoursAgo(26), output: { competitors: [{ name: 'Mezes Greek Taverna: Greek Restaurant Pembroke Pines', website: 'https://www.mezestaverna.com' }, { name: 'Pembroke Pines', website: 'https://www.brioitalian.com' }], profile: null, business: null, picks: [], note: '6 competitors were entered, so none were added.' } } as (typeof rows.marketing_audit_steps)[number]);
+    return { ...rows, groundswell_customers: [{ id: CUSTOMER, partner_id: null, business_name: 'APK9 Academy LLC', city: 'Pembroke Pines', website: 'https://linktr.ee/alphaprimek9', instagram: 'apk9academy', facebook: null, competitors: [], notes: null }] };
+  };
+
+  it('is reported for a delivered audit whose competitors were entered while no category was verified', async () => {
+    db.current = fakeSupabase(unverified());
+    const runs = await runsCollector.collect({ db: fake(), now: NOW, deadline: Infinity });
+    const seen = runs.find((o) => o.kind === 'competitors_unverified')!;
+    expect(seen).toMatchObject({ fingerprint: `runs:competitors_unverified:${AUDIT_2}`, severity: 'warning', subject: { audit_id: AUDIT_2, business: 'APK9 Academy LLC', customer_id: CUSTOMER } });
+    expect(seen.title).toBe('APK9 Academy LLC: its competitors were never verified as the same kind of business');
+    expect(seen.detail).toContain('Mezes Greek Taverna');
+    expect(unverifiedCompetitors({ audit_id: AUDIT_2, finished_at: null, output: { competitors: [{ name: 'A', website: null }], profile: { category: 'Dog trainer', source: 'social' } } })).toBeNull();
+    expect(unverifiedCompetitors({ audit_id: AUDIT_2, finished_at: null, output: { competitors: [], profile: null } })).toBeNull();
+  });
+
+  it('is resolved by a fresh audit queued with the competitor list cleared, which the engine then verifies', async () => {
+    db.current = fakeSupabase(unverified());
+    const issue = { id: 'i9', fingerprint: `runs:competitors_unverified:${AUDIT_2}`, source: 'runs', kind: 'competitors_unverified', severity: 'warning', title: 't', detail: 'd', subject: { audit_id: AUDIT_2, business: 'APK9 Academy LLC', phase: 'audit', customer_id: CUSTOMER }, evidence: {}, status: 'approved', first_seen: hoursAgo(1), last_seen: hoursAgo(1), occurrences: 1, recurrences: 0, proposal: null, proposed_at: null, approval_token_hash: null, approval_expires_at: null, decided_by: null, decided_at: null, resolved_at: null, outcome: null, reported_at: null, muted_until: null, created_at: hoursAgo(1), updated_at: hoursAgo(1) } as IssueRow;
+    expect(applicableResolvers(issue).map((r) => r.key)).toEqual(['rerun_competitors']);
+    const resolver = resolverByKey('rerun_competitors')!;
+    expect(resolver.describe(issue).change).toContain('competitor list cleared');
+    const result = await resolver.apply(fake(), issue);
+    expect(result).toMatchObject({ ok: true, wakeWorker: true });
+    const queued = db.current!.tables.marketing_audits.find((r) => r.status === 'queued');
+    expect(queued).toMatchObject({ customer_id: CUSTOMER, competitors: [], phase: 'audit', website: 'https://linktr.ee/alphaprimek9' });
+    expect(await resolver.verify(fake(), issue)).toBe('pending');
   });
 });

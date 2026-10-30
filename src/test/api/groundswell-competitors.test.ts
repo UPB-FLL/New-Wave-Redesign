@@ -171,10 +171,10 @@ describe('Competitors Current: runCompetitors', () => {
     ];
     while (entered.length < 6) entered.push({ name: `Manual ${entered.length}`, website: `https://manual${entered.length}.example`, instagram: null });
     const out = await runCompetitors(ctx(entered));
-    expect(out.competitors).toBe(entered);
+    expect(out.competitors).toEqual(entered);
     expect(out.note).toMatch(/6 competitors were entered/);
-    expect(mocks.executeTool).not.toHaveBeenCalled();
-    expect(mocks.inspectWebsite).not.toHaveBeenCalled();
+    // The business's own words are still read (its Instagram bio, its site), but no rival is looked for.
+    expect(mocks.executeTool.mock.calls.map(([slug]) => slug)).not.toContain('GOOGLE_MAPS_TEXT_SEARCH');
     expect(persistCompetitors(out, audit(entered))).toBeNull();
   });
 
@@ -193,5 +193,58 @@ describe('Competitors Current: runCompetitors', () => {
     const missing = await runCompetitors(ctx());
     expect(missing.competitors).toEqual([]);
     expect(missing.note).toMatch(/category could not be verified/);
+  });
+});
+
+describe('Competitors Current: entered competitors are checked too', () => {
+  const trainer = place('apk9', 'APK9 Academy LLC', '1 Pines Blvd, Pembroke Pines, FL 33024, USA', 75, 5, null, { primaryTypeDisplayName: undefined });
+  const dogRows = [
+    place('alpha', 'Alpha Dog Training', '2 Pines Blvd, Pembroke Pines, FL 33024, USA', 310, 4.9, 'https://alpha.example/', { primaryTypeDisplayName: { text: 'Dog trainer' } }),
+    place('k9pro', 'K9 Pros Academy', '3 Pines Blvd, Pembroke Pines, FL 33024, USA', 120, 4.8, 'https://k9pros.example/', { primaryTypeDisplayName: { text: 'Dog trainer' } }),
+  ];
+  const entered = [
+    { name: 'Mezes Greek Taverna: Greek Restaurant Pembroke Pines', website: 'https://www.mezestaverna.com', instagram: null },
+    { name: 'Pembroke Pines Restaurants Archives', website: 'https://brimstonewoodfiregrill.com', instagram: null },
+    { name: '279 Best Lunch Restaurants in Pembroke Pines', website: 'https://www.opentable.com', instagram: null },
+    { name: 'Sit Means Sit', website: 'https://sitmeanssit.example', instagram: null },
+  ];
+  const apk9 = () => ({
+    audit: { id: 'a2', business_name: 'APK9 Academy LLC', city: 'Pembroke Pines, FL', website: 'https://linktr.ee/alphaprimek9', instagram: 'apk9academy', competitors: entered, notes: null },
+    outputs: {},
+    deadline: Date.now() + 250_000,
+    attempt: 1,
+  });
+
+  beforeEach(() => {
+    delete process.env.OPENAI_API_KEY;
+    mocks.inspectWebsite.mockReset().mockImplementation(async (url: string) => {
+      const scan = (title: string) => ({ scan: { title, meta_description: null, h1: [], final_url: url, url, status: 200, error: null, fetched_at: '2026-10-30T19:56:00Z', schema_types: [] }, business: { category: null }, sources: [], warnings: [] });
+      if (url.includes('mezestaverna')) return scan('Mezes Greek Taverna | Greek Restaurant in Pembroke Pines');
+      if (url.includes('brimstone')) return scan('Brimstone Woodfire Grill');
+      if (url.includes('sitmeanssit')) return scan('Sit Means Sit');
+      throw new Error('unreachable in this test');
+    });
+    mocks.executeTool.mockReset().mockImplementation(async (slug: string, args: Record<string, unknown>) => {
+      if (slug === 'SCRAPECREATORS_GET_INSTAGRAM_PROFILE') return { data: { user: { full_name: 'APK9', biography: 'Elite Dog Training | Real Results\nObedience • Behavior • Protection\nBoarding | Board & Train | Private Sessions' } } };
+      if (slug !== 'GOOGLE_MAPS_TEXT_SEARCH') throw new Error(`${slug} unavailable in this test`);
+      const q = String(args.textQuery);
+      if (q === 'APK9 Academy LLC Pembroke Pines, FL') return { data: { places: [trainer] } };
+      if (q === 'Dog trainer near Pembroke Pines, FL') return { data: { places: dogRows } };
+      throw new Error(`unexpected query ${q}`);
+    });
+  });
+
+  it('reads the category from the Instagram bio when the site is a link page, sets aside entered competitors in another trade, and fills the slots with rivals that compete', async () => {
+    const out = await runCompetitors(apk9());
+    expect(out.profile).toMatchObject({ category: 'Dog trainer', source: 'social' });
+    expect(out.competitors.map((c) => c.name)).toEqual(['Sit Means Sit', 'Alpha Dog Training', 'K9 Pros Academy']);
+    expect(out.dropped?.map((d) => d.name)).toEqual(expect.arrayContaining(['Mezes Greek Taverna: Greek Restaurant Pembroke Pines', 'Pembroke Pines Restaurants Archives', '279 Best Lunch Restaurants in Pembroke Pines']));
+    expect(out.dropped?.find((d) => d.name.startsWith('Mezes'))?.reason).toMatch(/^Entered, but .*restaurant/i);
+    expect(out.dropped?.find((d) => d.name.startsWith('279'))?.reason).toMatch(/list page|directory/i);
+    expect(out.note).toMatch(/3 entered competitors were set aside/);
+    // The audit row is rewritten: the list changed.
+    expect(persistCompetitors(out, apk9().audit as never)).toEqual({ competitors: out.competitors });
+    // The link page itself was never read for the category, and its pages were not fetched.
+    expect(mocks.inspectWebsite.mock.calls.map(([u]) => u)).not.toContain('https://linktr.ee/alphaprimek9');
   });
 });
