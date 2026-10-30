@@ -151,10 +151,14 @@ export function keywordSeeds(ctx: StepContext): string[] {
   const category = searchCategory(ctx) ?? specificCategory(profile?.category ?? null);
   const city = ctx.audit.city?.split(',')[0].trim() || null;
   const okay = (s: string | null | undefined): s is string => Boolean(s && s.trim().length > 2 && s.length < 80 && !/^https?:/i.test(s));
+  // A one-word service ("Behavior", "Boarding") is read by Keyword Planner as any trade's: "Behavior" alone brought
+  // ABA therapy searches for a dog trainer. It takes the category's first word ("Dog Behavior").
+  const head = category?.split(' ')[0] ?? null;
+  const service = (s: string) => (head && !/\s/.test(s.trim()) && !s.toLowerCase().includes(head.toLowerCase()) ? `${head} ${s.trim()}` : s);
   const candidates = [
     category,
     category && city ? `${category} ${city}` : null,
-    ...(profile?.services ?? []).slice(0, 6),
+    ...(profile?.services ?? []).slice(0, 6).map(service),
     ...(profile?.competitor_queries ?? []).slice(0, 4),
     ...(profile?.services?.length ? [] : (own?.h1 ?? []).slice(0, 2).filter((h) => specificCategory(h))),
   ];

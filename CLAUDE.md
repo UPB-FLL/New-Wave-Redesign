@@ -52,6 +52,20 @@ linktr.ee (DR 94, "40,000 Google ads") as the business's site. Owner's ask:
   `groundswell-currents`, the section in `groundswell-reports`, the
   observation in `groundswell-observations`. The sample plan's Google rows
   are now tests (Bayside Garage has paid pages).
+- **Seen on the first live run** (`4eb215ec…`, 23:35 UTC) and fixed the same
+  hour: the link page tripped the "website could not be read" hold
+  (`criticalEvidenceProblems` and `evidenceCoverage` now read a link page as
+  no website to check, `not_found`, never a failed read); the planner copied
+  the idea objects back as its keywords, so every angle was dropped unseen
+  and the fallback angle took every idea (`checkPlan` reads an object's
+  `keyword` or `text`, names what it cannot read in `dropped.keywords`, and
+  the fallback keeps the searches that share a word with the category or
+  the seeds, `contentWords`); a one-word service seed ("Behavior") brought
+  another trade's searches ("aba", 140 a month), so a one-word service takes
+  the category's first word ("Dog Behavior"). The pet profile and the rival
+  test took effect (the Meta row is a test naming Angel Paws). The county
+  was not read: Places' daily text-search quota (12,000) was spent that day
+  (follow-up: find what spends it), so the market stayed the city.
 - Delivered runs keep their plans; "Run again" on APK9 queues the new one.
 
 ### Groundswell: competitors that compete, from the business's own words; the area columns filled from the data (2026-10-30)
