@@ -101,7 +101,9 @@ low / medium / high, clicks low / medium / high, and return "loses money",
   clicks.
 
 Each row also carries a **stop-loss**: the cost per lead at which the medium
-scenario stops paying back. Ranges, not promises: the business's own tracked
+scenario stops paying back, and its **break-even sale**: the value per
+customer at which the medium scenario nets nothing, all else as modeled, so a
+row skipped on an estimated ticket says what ticket would make it pay. Ranges, not promises: the business's own tracked
 calls, bookings and visits replace the estimates after 90 days.
 
 The management fee is never in these numbers. It replaces what the business

@@ -185,6 +185,13 @@ describe('the data panels', () => {
     expect(site.rows?.find((r) => r.label === 'Secure (https)')?.value).toBe('Yes');
     const keywords = panels.find((p) => p.key === 'keywords')!;
     expect(keywords.table?.rows[0]).toEqual(['auto repair fort lauderdale', '1,300', 'high', '$4.10 – 12.50']);
+    // Each ad plan row says what average sale its base case needs; a row whose return is not modeled says nothing.
+    const plan = sampleAdplanOutput().plan;
+    const adplan = panels.find((p) => p.key === 'adplan')!;
+    const last = (cells: string[] | undefined) => cells?.[cells.length - 1];
+    expect(last(adplan.table?.head)).toBe('Breaks even at an average sale of');
+    plan.rows.forEach((r, i) => expect(last(adplan.table?.rows[i])).toBe(r.roi_tier === 'not modeled' ? '–' : `$${Math.round(r.break_even_sale!).toLocaleString('en-US')}`));
+    expect(plan.rows.some((r) => r.roi_tier !== 'not modeled')).toBe(true);
     expect(panelsFor({})).toEqual([]);
   });
 });

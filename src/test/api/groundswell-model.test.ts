@@ -117,6 +117,17 @@ describe('runModel', () => {
     expect(out.removed_sentences).toEqual(['Shops like this get 63% more calls.']);
   });
 
+  it('asks for the business’s own average sale and close rate from the notes before a category’s', async () => {
+    openai.chatJson.mockResolvedValueOnce(sampleModelJson);
+    const notes = 'Average sale about $1,800 (board and train is most of it); closes about half of the inquiries.';
+    await runModel({ ...ctx(), audit: { ...sampleAudit, notes } });
+    const [system, user] = openai.chatJson.mock.calls[0] as [string, string];
+    expect(system).toContain('Prices, an average sale or a close rate they give are the business\'s own figures: the estimates use them, never a category average in their place.');
+    expect(system).toMatch(/"ticket": \[low, typical, high\] the business's average job or order value in USD: from its own figures when business\.notes/);
+    expect(system).toMatch(/"close": \[low, typical, high\] share of leads that become paying jobs \(0-1\): from business\.notes when they give a close rate/);
+    expect(JSON.parse(user.slice(user.indexOf('{'))).business.notes).toBe(notes);
+  });
+
   it('refuses to write about a business with no data', async () => {
     await expect(runModel({ ...ctx(), outputs: {} })).rejects.toBeInstanceOf(PermanentStepError);
     expect(openai.chatJson).not.toHaveBeenCalled();

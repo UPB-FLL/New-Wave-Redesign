@@ -62,7 +62,8 @@ describe('public Google research fallback', () => {
     ctx.audit.city = 'Jacksonville FL';
     mocks.executeTool.mockResolvedValue({ results: [{ text: 'health coach', keyword_idea_metrics: { avg_monthly_searches: 100 } }] });
     const out = await runKeywords(ctx);
-    expect(mocks.geography).toHaveBeenCalledWith('Jacksonville FL', expect.any(Number));
+    // Without a county from the listing, the lookup is asked to find one through the geocoder.
+    expect(mocks.geography).toHaveBeenCalledWith('Jacksonville FL', expect.any(Number), null, { geocodeCounty: true });
     expect(mocks.executeTool).toHaveBeenCalledWith('GOOGLEADS_GENERATE_KEYWORD_IDEAS', expect.objectContaining({ geo_target_constants: ['geoTargetConstants/12345'] }), expect.any(Number));
     expect(out).toMatchObject({ demand_status: 'measured', source: expect.stringContaining('Jacksonville, Florida'), geography: { constants: ['geoTargetConstants/12345'] } });
   });
@@ -355,7 +356,7 @@ describe('what Keyword Planner is asked about', () => {
     expect(args.keyword_and_url_seed).toBeUndefined();
     expect(args.url_seed).toBeUndefined();
     // The listing's county goes to the geography lookup, so demand is read for the county, not one city.
-    expect(mocks.geography).toHaveBeenCalledWith('Pembroke Pines, FL', expect.any(Number), 'Broward County');
+    expect(mocks.geography).toHaveBeenCalledWith('Pembroke Pines, FL', expect.any(Number), 'Broward County', { geocodeCounty: true });
     expect(out.demand_status).toBe('measured');
   });
 

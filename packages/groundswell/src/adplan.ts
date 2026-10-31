@@ -105,6 +105,11 @@ export interface PlanRow {
   conditions: string[];
   /** Cost per lead above which the medium scenario stops paying back: the stop-loss line. */
   stop_loss_cost_per_lead: number | null;
+  /**
+   * The value per customer (the average sale) at which the medium scenario breaks even, all else as modeled; null
+   * when the return is not modeled. Absent on plans stored before it existed.
+   */
+  break_even_sale?: number | null;
   /** Where the row's numbers come from. */
   sources: string[];
 }
@@ -360,6 +365,8 @@ export function buildAdPlan(angles: AngleInput[], industry: IndustryProfile, con
       reason,
       conditions,
       stop_loss_cost_per_lead: stopLoss(angle.value, buying === 'search' ? angle.incrementality : 1),
+      // Revenue is customers × the average sale, so the medium case breaks even where that, at its margin, meets the spend.
+      break_even_sale: angle.value && m.roi !== null && m.customers > 0 && angle.value.gross_margin[1] > 0 ? m.spend / (m.customers * angle.value.gross_margin[1]) : null,
       sources,
     };
   }

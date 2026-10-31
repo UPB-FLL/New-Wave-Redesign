@@ -146,6 +146,19 @@ describe('report HTML with the ad plan', () => {
     expect(html).toContain('12-month net after team time, low to high');
   });
 
+  it('says beside each modeled row the average sale at which it breaks even, and the one the plan used', () => {
+    const html = text(buildAuditHtml(data));
+    const modeled = data.adplan!.plan.rows.filter((r) => r.roi_tier !== 'not modeled');
+    expect(modeled.length).toBeGreaterThan(0);
+    for (const r of modeled) {
+      const used = data.adplan!.angles.find((a) => a.id === r.angle_id)!.value!.per_customer[1];
+      expect(html).toContain(`Breaks even at an average sale of ${money(r.break_even_sale)}; this plan uses ${money(used)}.`);
+    }
+    // A plan stored before the figure existed prints its rows as before.
+    const older = { ...data, adplan: { ...data.adplan!, plan: { ...data.adplan!.plan, rows: data.adplan!.plan.rows.map((r) => { const stored = { ...r }; delete stored.break_even_sale; return stored; }) } } };
+    expect(text(buildAuditHtml(older))).not.toContain('Breaks even at an average sale');
+  });
+
   it('without the plan (an older audit, or a skipped step) the reports keep the search-ad model', () => {
     const html = text(buildAuditHtml(sampleReportData()));
     expect(html).toContain('What search ads could return');

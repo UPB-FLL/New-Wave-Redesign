@@ -290,11 +290,19 @@ function rankedTable(p: AdplanOutput, limit: number) {
   return `<table class="ranked"><thead><tr><th>#</th><th>Change</th><th>Area</th><th>Team hours, first year</th><th>12-month net after team time, low to high</th><th>Back per $1, medium case</th></tr></thead><tbody>${rows.join('')}</tbody></table>`;
 }
 
+/** The average sale a row's medium case needs, beside the one the plan used; empty when its return is not modeled or the plan predates the figure. */
+export function breakEvenNote(r: PlanRow, p: AdplanOutput): string {
+  const sale = r.break_even_sale;
+  if (typeof sale !== 'number' || !Number.isFinite(sale) || r.roi_tier === 'not modeled') return '';
+  const used = p.angles.find((a) => a.id === r.angle_id)?.value?.per_customer[1];
+  return `Breaks even at an average sale of ${money(sale)}${typeof used === 'number' ? `; this plan uses ${money(used)}` : ''}.`;
+}
+
 function planRowsTable(p: AdplanOutput) {
   const rows = p.plan.rows.map((r) => {
     const m = r.scenarios.medium;
     const net = r.roi_tier === 'not modeled' ? NOT_MODELED : `${money(r.scenarios.low.year_net)} to ${money(r.scenarios.high.year_net)}`;
-    return `<tr><td>${esc(r.angle)}<div class="note">${esc(r.reason)}</div></td><td>${esc(r.platform_label)}</td><td>$${m.cpc.toFixed(2)}</td><td>${num(m.clicks)}</td><td>${money(m.spend)}</td><td>${esc(net)}</td><td>${CALLS[r.recommendation]}</td></tr>`;
+    return `<tr><td>${esc(r.angle)}<div class="note">${esc([r.reason, breakEvenNote(r, p)].filter(Boolean).join(' '))}</div></td><td>${esc(r.platform_label)}</td><td>$${m.cpc.toFixed(2)}</td><td>${num(m.clicks)}</td><td>${money(m.spend)}</td><td>${esc(net)}</td><td>${CALLS[r.recommendation]}</td></tr>`;
   });
   return `<table class="ranked"><thead><tr><th>Angle</th><th>Platform</th><th>Cost per click</th><th>Clicks a month</th><th>Ad spend a month</th><th>12-month net before team time, low to high</th><th>Call</th></tr></thead><tbody>${rows.join('')}</tbody></table>`;
 }

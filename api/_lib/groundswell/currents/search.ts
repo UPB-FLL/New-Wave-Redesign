@@ -196,7 +196,8 @@ export async function runKeywords(ctx: StepContext) {
   const geography = !ctx.audit.city?.trim() && configured.length
     ? { constants: configured, label: `Configured targets: ${configured.join(', ')}`, error: null }
     : remaining(10_000) > 0
-      ? county ? await resolveKeywordGeography(ctx.audit.city, remaining(10_000), county) : await resolveKeywordGeography(ctx.audit.city, remaining(10_000))
+      // With no county from the listing (Places over its daily quota, or no address), the geocoder names it.
+      ? await resolveKeywordGeography(ctx.audit.city, remaining(10_000), county, { geocodeCounty: true })
       : { constants: [] as string[], label: ctx.audit.city || 'Unresolved location', error: 'Keyword research reached the worker time limit.' };
   const geo = geography.constants;
   const args: Record<string, unknown> = {
