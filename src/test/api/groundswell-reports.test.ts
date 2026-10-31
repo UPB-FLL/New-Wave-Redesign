@@ -84,6 +84,22 @@ describe('report HTML', () => {
     for (const id of SLIDE_IDS) expect(html).toContain(`id="${id}"`);
   });
 
+  it('on each area slide, the first item of each column and the first fix outlast the others when the slide overflows', () => {
+    // render.ts removes bare data-trim items first; "1" and "2" survive longer, so a trimmed slide
+    // never shows "Holding you back" or "Recommended action" with nothing under it (APK9's deck, 2026-10-31).
+    const html = buildDeckHtml(data, { audit: AUDIT });
+    const slide = html.slice(html.indexOf('id="google"'), html.indexOf('id="social"'));
+    const lists = [...slide.matchAll(/<h3>([^<]+)<\/h3><ul>(.*?)<\/ul>/g)].map((m) => ({
+      title: m[1],
+      keeps: [...m[2].matchAll(/<li( data-trim(?:="(\d)")?)>/g)].map((li) => li[2] ?? '0'),
+    }));
+    expect(lists.map((l) => l.title)).toEqual(['Working in your favor', 'Holding you back', 'Recommended action']);
+    for (const { title, keeps } of lists) {
+      expect(keeps[0], title).toBe(title === 'Recommended action' ? '2' : '1');
+      expect(keeps.slice(1).every((k) => k === '0'), title).toBe(true);
+    }
+  });
+
   it('the summary links only the slides, the audit and the folder', () => {
     const html = buildSummaryHtml(data, { deck: DECK, audit: AUDIT, folder: FOLDER });
     expect(new Set(hrefs(html))).toEqual(new Set([DECK, AUDIT, FOLDER]));

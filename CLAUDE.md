@@ -2,6 +2,32 @@
 
 ## Recent Changes
 
+### Groundswell: a slide trimmed to fit keeps its first items, never a bare heading (2026-10-31)
+
+APK9 Academy's delivered deck (run `b9afeed3…`) showed slide 8, Keywords,
+with "Holding you back" and "Recommended action" over nothing. Reproduced
+from the run's stored outputs: the slide's body (720 px) overflowed by
+86 px once `fillAreas` had filled the columns, and `renderPdf`'s fit loop
+removed `data-trim` items last-first, so the one fix, the only "Holding you
+back" item and then a third "Working" item went, while the headings (not
+trimmable) and no fallback text stayed. Four of the six area slides
+overflowed (8 items trimmed in all).
+
+- **`fitBoxes`** (`render.ts`, its own export, run in the page): a bare
+  `data-trim` goes first (last in the document first); `data-trim="1"`,
+  `"2"`, … survive longer; a list emptied by trimming is removed with the
+  heading directly over it. `renderPdf` calls it; `trimmed` still counts.
+- **Deck** (`reports.ts`): `listHtml(items, trim, keep?)` writes the
+  number; on every area slide the first item of each column is `1` and the
+  first fix `2`. The same run re-rendered: all six slides carry the three
+  parts, 7 items trimmed (the tallest third items).
+- **Tests**: `src/test/api/groundswell-render.test.ts` (Chromium-gated:
+  the order, the emptied list's heading, a box that fits) and the
+  attribute pin in `groundswell-reports.test.ts`.
+- Delivered decks are not reprinted; "Run again" prints the new layout.
+- Parked: the Ads slide's "Working in your favor" opens with "There is no
+  website of its own to check…", a non-strength the model sorted there.
+
 ### Groundswell: Google Search's spend and return, measured on the county and the business's own sale (2026-10-31)
 
 APK9 Academy's plan (run `21d13794…`) priced Google Search at $10.01 a click,

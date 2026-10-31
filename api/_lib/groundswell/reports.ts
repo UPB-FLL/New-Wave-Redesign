@@ -32,8 +32,10 @@ import type { RoiScenarioResult } from './roi.js';
  * Every link must point at the GroundSwell portal (`portalLink` throws otherwise);
  * a partner's white-label reports carry no links at all, so they never name New Wave's site.
  *
- * Elements marked data-trim may be removed, last first, until their
- * data-fit box stops overflowing (render.ts), so long text never spills.
+ * Elements marked data-trim may be removed until their data-fit box stops
+ * overflowing (render.ts), so long text never spills: a bare data-trim
+ * goes first, last in the document first; data-trim="1", "2", … survive
+ * longer; a list emptied this way takes its heading with it.
  */
 
 export type ModelOutput = Awaited<ReturnType<typeof runModel>>;
@@ -154,8 +156,16 @@ ul{padding-left:1.1em}
 .base{background:${b.tint}}`;
 }
 
-export const listHtml = (items: string[], trim = true) =>
-  items.length ? `<ul>${items.map((i) => `<li${trim ? ' data-trim' : ''}>${esc(i)}</li>`).join('')}</ul>` : '';
+/**
+ * A list; with `trim`, each item may be removed to fit its box (render.ts),
+ * the lowest `keep` number first (`keep(index)`; 0 when not given).
+ */
+export const listHtml = (items: string[], trim = true, keep?: (index: number) => number) =>
+  items.length ? `<ul>${items.map((i, n) => `<li${trim ? trimAttr(keep?.(n) ?? 0) : ''}>${esc(i)}</li>`).join('')}</ul>` : '';
+const trimAttr = (keep: number) => (keep > 0 ? ` data-trim="${keep}"` : ' data-trim');
+/** On a slide, the first item of each column survives the others; the first fix survives them all. */
+const KEEP_FIRST = (n: number) => (n === 0 ? 1 : 0);
+const KEEP_FIX = (n: number) => (n === 0 ? 2 : 0);
 
 interface Kpi {
   value: string;
@@ -831,7 +841,7 @@ export function buildDeckHtml(d: ReportData, links: { audit: string }): string {
       k,
       i + 3,
       AREA_TITLES[k],
-      `${a.summary ? `<p class="lead">${esc(a.summary)}</p>` : ''}<div class="cols"><div><h3>${WORKING_TITLE}</h3>${listHtml(a.working.slice(0, 3)) || `<p class="muted">${NO_WORKING}</p>`}</div><div><h3>${COSTING_TITLE}</h3>${listHtml(a.costing.slice(0, 3)) || `<p class="muted">${NO_COSTING}</p>`}</div></div>${a.fixes.length ? `<h3>Recommended action</h3>${listHtml(a.fixes.slice(0, 2))}` : ''}`
+      `${a.summary ? `<p class="lead">${esc(a.summary)}</p>` : ''}<div class="cols"><div><h3>${WORKING_TITLE}</h3>${listHtml(a.working.slice(0, 3), true, KEEP_FIRST) || `<p class="muted">${NO_WORKING}</p>`}</div><div><h3>${COSTING_TITLE}</h3>${listHtml(a.costing.slice(0, 3), true, KEEP_FIRST) || `<p class="muted">${NO_COSTING}</p>`}</div></div>${a.fixes.length ? `<h3>Recommended action</h3>${listHtml(a.fixes.slice(0, 2), true, KEEP_FIX)}` : ''}`
     );
   }).join('');
 

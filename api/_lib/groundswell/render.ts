@@ -31,6 +31,38 @@ export function pdfLinks(bytes: Uint8Array): string[] {
   return [...new Set(out)];
 }
 
+/**
+ * Keeps every `[data-fit]` box's text inside it (runs in the page; no
+ * closure, so puppeteer can send it). While a box overflows, its
+ * `[data-trim]` elements are removed one at a time: the lowest `data-trim`
+ * number first (a bare `data-trim` is 0; a higher number survives longer),
+ * and among equals the last in the document first. A list emptied this way
+ * goes with the heading over it, so no heading is left standing over
+ * nothing. Returns how many elements were removed.
+ */
+export function fitBoxes(): number {
+  let removed = 0;
+  for (const box of Array.from(document.querySelectorAll<HTMLElement>('[data-fit]'))) {
+    // Popped from the end: the lowest priority, and within it the last in the document.
+    const items = Array.from(box.querySelectorAll<HTMLElement>('[data-trim]'))
+      .map((el, index) => ({ el, index, priority: Number(el.getAttribute('data-trim')) || 0 }))
+      .sort((a, b) => b.priority - a.priority || a.index - b.index)
+      .map((x) => x.el);
+    while (box.scrollHeight > box.clientHeight + 1 && items.length) {
+      const el = items.pop()!;
+      const list = el.parentElement;
+      el.remove();
+      removed++;
+      if (list && (list.tagName === 'UL' || list.tagName === 'OL') && list.children.length === 0) {
+        const heading = list.previousElementSibling;
+        list.remove();
+        if (heading && /^H[2-6]$/.test(heading.tagName)) heading.remove();
+      }
+    }
+  }
+  return removed;
+}
+
 export async function renderPdf(browser: Browser, html: string): Promise<RenderedPdf> {
   const page = await browser.newPage();
   try {
@@ -47,7 +79,7 @@ export async function renderPdf(browser: Browser, html: string): Promise<Rendere
         )
       );
     });
-    const { trimmed, brokenImages } = await page.evaluate(() => {
+    const brokenImages = await page.evaluate(() => {
       let broken = 0;
       for (const img of [...document.images]) {
         if (!img.complete || img.naturalWidth === 0) {
@@ -55,16 +87,9 @@ export async function renderPdf(browser: Browser, html: string): Promise<Rendere
           broken++;
         }
       }
-      let removed = 0;
-      for (const box of [...document.querySelectorAll<HTMLElement>('[data-fit]')]) {
-        const items = [...box.querySelectorAll('[data-trim]')];
-        while (box.scrollHeight > box.clientHeight + 1 && items.length) {
-          items.pop()!.remove();
-          removed++;
-        }
-      }
-      return { trimmed: removed, brokenImages: broken };
+      return broken;
     });
+    const trimmed = await page.evaluate(fitBoxes);
     const bytes = await page.pdf({ preferCSSPageSize: true, printBackground: true });
     return { bytes, pages: countPdfPages(bytes), links: pdfLinks(bytes), trimmed, brokenImages };
   } finally {
