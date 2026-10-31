@@ -186,7 +186,7 @@ export function panelsFor(outputs: Record<string, unknown>): DataPanel[] {
       title: 'The ad plan',
       source: p.industry.label,
       rows: (['low', 'medium', 'high'] as const).map((s) => ({ label: `${s[0].toUpperCase()}${s.slice(1)} case`, value: `${usd(p.plan.budget[s])} a month, ${usd(p.plan.year_net[s])} net over 12 months` })),
-      table: { head: ['Angle', 'Platform', 'Call', 'Spend (base)', 'ROI (base)'], rows: p.plan.rows.map((r) => [r.angle, r.platform_label, r.recommendation, usd(r.scenarios.medium.spend), pct(r.scenarios.medium.roi)]) },
+      table: { head: ['Angle', 'Platform', 'Call', 'Spend (base)', 'ROI (base)', 'Breaks even at an average sale of'], rows: p.plan.rows.map((r) => [r.angle, r.platform_label, r.recommendation, usd(r.scenarios.medium.spend), pct(r.scenarios.medium.roi), usd(r.roi_tier === 'not modeled' ? null : r.break_even_sale)]) },
       note: adPlanNote(p),
     });
   }

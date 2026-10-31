@@ -82,6 +82,42 @@ export function parseCounty(value: string | null | undefined): string | null {
   return name.replace(/’/g, "'");
 }
 
+/**
+ * The county Google's geocoder places a city in ("Broward County"), read only from an answer about that city in that
+ * state in the US; null for anything else. Takes the Geocoding API's v4 fields (`addressComponents`, `longText`,
+ * `shortText`) and the older ones (`address_components`, `long_name`, `short_name`), wherever they are nested.
+ */
+export function countyFromGeocode(payload: unknown, city: string, state: string): string | null {
+  const results: Record<string, unknown>[] = [];
+  const visit = (value: unknown, depth = 0) => {
+    if (!value || typeof value !== 'object' || depth > 8) return;
+    if (Array.isArray(value)) { value.forEach(item => visit(item, depth + 1)); return; }
+    const record = value as Record<string, unknown>;
+    if (Array.isArray(record.addressComponents) || Array.isArray(record.address_components)) { results.push(record); return; }
+    Object.values(record).forEach(child => visit(child, depth + 1));
+  };
+  visit(payload);
+  for (const result of results) {
+    const components = ((result.addressComponents ?? result.address_components) as unknown[]).filter((c): c is Record<string, unknown> => Boolean(c) && typeof c === 'object');
+    const part = (type: string) => components.find(c => Array.isArray(c.types) && c.types.includes(type));
+    const long = (c: Record<string, unknown> | undefined) => text(c?.longText ?? c?.long_name);
+    const short = (c: Record<string, unknown> | undefined) => text(c?.shortText ?? c?.short_name);
+    const region = part('administrative_area_level_1');
+    const country = part('country');
+    if (fold(long(part('locality'))) !== fold(city)) continue;
+    if ((stateOf(long(region)) ?? stateOf(short(region))) !== state) continue;
+    if (!/^(?:US|USA|United States)$/i.test(short(country) || long(country))) continue;
+    const county = parseCounty(long(part('administrative_area_level_2')));
+    if (county) return county;
+  }
+  return null;
+}
+
+export interface GeographyOptions {
+  /** When no county is given, ask Google's geocoder which county the resolved city sits in: one more read. */
+  geocodeCounty?: boolean;
+}
+
 const gaql = (name: string, type: 'City' | 'County') => {
   const escaped = name.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
   // LIKE is case-insensitive in GAQL. Wildcards are rejected before this exact
@@ -92,10 +128,12 @@ const gaql = (name: string, type: 'City' | 'County') => {
 /**
  * Resolve the Keyword Planner market from Google's read-only constants: the county the business sits in when the
  * Google listing names one (a local service's customers come from the county, not one city; Pembroke Pines alone
- * gave a dog trainer 90 searches a month), else the exact US city. An unresolved place never becomes an
+ * gave a dog trainer 90 searches a month), else the exact US city. With `geocodeCounty` and no county given (Places
+ * over its daily quota, or a listing without an address), Google's geocoder names the resolved city's county, which
+ * is the market when its constant is the one in the city's own state. An unresolved place never becomes an
  * all-location query, and a county that cannot be matched falls back to the city.
  */
-export async function resolveKeywordGeography(city: string | null, timeoutMs = 10_000, county: string | null = null): Promise<KeywordGeography> {
+export async function resolveKeywordGeography(city: string | null, timeoutMs = 10_000, county: string | null = null, options: GeographyOptions = {}): Promise<KeywordGeography> {
   const parsed = parseCity(city);
   const unresolved = (error: string): KeywordGeography => ({ constants: [], label: city?.trim() || 'Unresolved location', error });
   if (!parsed) return unresolved('A valid US city and, when ambiguous, its state are required to resolve Keyword Planner geography.');
@@ -104,13 +142,13 @@ export async function resolveKeywordGeography(city: string | null, timeoutMs = 1
   const deadline = Date.now() + budget;
   const countyName = parseCounty(county);
   const customer = process.env.GOOGLE_ADS_CUSTOMER_ID?.trim() || null;
-  const read = async (input: Record<string, unknown>) => {
+  const run = async (slug: string, input: Record<string, unknown>) => {
     const remaining = deadline - Date.now();
     if (remaining <= 0) throw new Error('The Keyword Planner geography lookup timed out.');
     let timer: ReturnType<typeof setTimeout> | undefined;
     try {
       const payload = await Promise.race([
-        executeTool('GOOGLEADS_SEARCH_STREAM_GAQL', input, remaining),
+        executeTool(slug, input, remaining),
         new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error('The Keyword Planner geography lookup timed out.')), remaining); }),
       ]);
       if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
@@ -120,6 +158,7 @@ export async function resolveKeywordGeography(city: string | null, timeoutMs = 1
       return payload;
     } finally { clearTimeout(timer); }
   };
+  const read = (input: Record<string, unknown>) => run('GOOGLEADS_SEARCH_STREAM_GAQL', input);
   /** Runs one lookup, retrying once without the customer for a consumer login; the retry shares the deadline. */
   const lookup = async (query: string) => {
     const args: Record<string, unknown> = customer ? { query, customer_id: customer } : { query };
@@ -131,12 +170,12 @@ export async function resolveKeywordGeography(city: string | null, timeoutMs = 1
       return read({ query });
     }
   };
-  /** The enabled US constants of the wanted type whose name and canonical name match, keyed by resource. */
-  const matches = (payload: unknown, name: string, type: 'city' | 'county') => new Map(geographyRows(payload).filter(row => {
+  /** The enabled US constants of the wanted type whose name and canonical name match (in the wanted state, when one is known), keyed by resource. */
+  const matches = (payload: unknown, name: string, type: 'city' | 'county', wantState = parsed.state) => new Map(geographyRows(payload).filter(row => {
     if (!/^geoTargetConstants\/[1-9]\d*$/.test(row.resource) || fold(row.name) !== fold(name) || row.country.toUpperCase() !== 'US' || fold(row.type) !== type || row.status.toUpperCase() !== 'ENABLED') return false;
     const canonical = row.canonical.split(',').map(part => part.trim());
     const state = stateOf(canonical[canonical.length - 2] ?? '');
-    return fold(canonical[0] ?? '') === fold(name) && Boolean(state) && /^(?:United States|US|USA)$/i.test(canonical[canonical.length - 1] ?? '') && (!parsed.state || state === parsed.state);
+    return fold(canonical[0] ?? '') === fold(name) && Boolean(state) && /^(?:United States|US|USA)$/i.test(canonical[canonical.length - 1] ?? '') && (!wantState || state === wantState);
   }).map(row => [row.resource, row]));
   try {
     if (countyName) {
@@ -153,7 +192,23 @@ export async function resolveKeywordGeography(city: string | null, timeoutMs = 1
     if (!unique.size) return unresolved(`No enabled US city matched ${parsed.city}${parsed.state ? `, ${parsed.state}` : ''}; Keyword Planner geography remains unresolved.`);
     if (unique.size !== 1) return unresolved(`Ambiguous US city ${parsed.city}${parsed.state ? `, ${parsed.state}` : ''}; confirm a unique city and state before measuring demand.`);
     const match = [...unique.values()][0];
-    return { constants: [match.resource], label: match.canonical, error: null };
+    const cityGeography: KeywordGeography = { constants: [match.resource], label: match.canonical, error: null };
+    if (countyName || !options.geocodeCounty) return cityGeography;
+    // The geocoder's county counts only for this city in its own state, and only when that county's constant is one;
+    // anything else (no answer, another place, a failed or ambiguous lookup) keeps the city.
+    const parts = match.canonical.split(',').map(part => part.trim());
+    const state = stateOf(parts[parts.length - 2] ?? '');
+    if (!state) return cityGeography;
+    try {
+      const found = countyFromGeocode(await run('GOOGLE_MAPS_GEOCODE_ADDRESS_WITH_QUERY', { address_query: `${match.name}, ${state}, USA`, region_code: 'US', language_code: 'en' }), match.name, state);
+      if (!found) return cityGeography;
+      const counties = matches(await lookup(gaql(found, 'County')), found, 'county', state);
+      if (counties.size !== 1) return cityGeography;
+      const countyMatch = [...counties.values()][0];
+      return { constants: [countyMatch.resource], label: `${countyMatch.canonical} (the county around ${match.name})`, error: null };
+    } catch {
+      return cityGeography;
+    }
   } catch (error) {
     return unresolved(`Keyword Planner geography could not be resolved: ${errorText(error)}`);
   }

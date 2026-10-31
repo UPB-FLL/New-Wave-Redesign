@@ -2,6 +2,51 @@
 
 ## Recent Changes
 
+### Groundswell: Google Search's spend and return, measured on the county and the business's own sale (2026-10-31)
+
+APK9 Academy's plan (run `21d13794…`) priced Google Search at $10.01 a click,
+13 clicks and $127 a month, and skipped it: at the write-up's $250 average
+sale (a category guess) it loses $86 a month, so phase 2 built Meta sets
+only. Every APK9 run read Keyword Planner for the city alone: Places'
+text-search quota was spent each time (429), and the listing has no address,
+so no county. Owner's ask: "take into account the google ad spend and
+projected ROI on that … I have to believe they undoubtedly will [pay] on
+google ads". Measured on 2026-10-31 with New Wave's Keyword Planner and #185's
+seeds: about 1,150 dog-training searches a month in Broward County against
+about 140 in Pembroke Pines; the package's model then gives Google $351 a month
+at $6.28 a click, breaking even at a $492 average sale (the city: $909).
+
+- **The county without Places** (`keywordsGeography.ts`): with the option
+  `geocodeCounty` (the keywords step sets it) and no county from the listing,
+  `resolveKeywordGeography` resolves the city, asks Google's Geocoding API
+  through Composio (`GOOGLE_MAPS_GEOCODE_ADDRESS_WITH_QUERY`, its own quota;
+  checked live: "Pembroke Pines, FL, USA" → Broward County while Places
+  answered 429) and takes the county (`countyFromGeocode`: that locality, that
+  state, the US) when its constant is the one in the city's state; anything
+  else keeps the city. The verification re-read runs the same step, so it
+  reads the same market.
+- **Break-even sale** (`PlanRow.break_even_sale`, package): the average sale at
+  which the medium case nets nothing, all else as modeled (spend ÷ (customers ×
+  margin)); null when the return is not modeled, absent on stored plans. The
+  full audit's plan rows say "Breaks even at an average sale of $X; this plan
+  uses $Y." (`breakEvenNote`), the workspace panel adds the column.
+- **The business's own figures** (`model.ts` prompt): prices, an average sale
+  or a close rate in `business.notes` (or prices on its own pages) are the
+  business's own; the estimates use them and the basis names them. Typing
+  APK9's real average sale into its notes and "Run again" reprices every row.
+- **Not changed** (owner's calls, put in the PR): what sets the average sale
+  without notes (a field on the customer, a published price guide, or the
+  model's guess as now), a stop-lossed Google test where the high case pays
+  back (like `rival_ads_test`), the CPC basis (Keyword Planner's top-of-page
+  midpoint vs LocaliQ's $4.06), incrementality for a business with no site
+  (0.82 "not confirmed" vs 0.96).
+- **Tests**: the geocoder cases in `groundswell-keyword-geography`, the
+  option in `groundswell-public-research`, the break-even in
+  `packages/groundswell/test/adplan`, `groundswell-reports` and
+  `groundswell-workspace`, the prompt in `groundswell-model`.
+- **Not verified live**: no run has used the geocoder yet; whether the model
+  takes the notes' figures waits on a run with them.
+
 ### Groundswell: an ad plan with upside; a link-in-bio page is nobody's website (2026-10-30)
 
 APK9 Academy's plan (run `bbd8a225…`) showed one Meta row, "skip", $0 in every

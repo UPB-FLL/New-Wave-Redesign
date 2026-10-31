@@ -4,7 +4,7 @@ const mocks = vi.hoisted(() => ({ executeTool: vi.fn(), isConsumerConfigured: vi
 vi.mock('../../../api/_lib/groundswell/composio', () => ({ executeTool: mocks.executeTool }));
 vi.mock('../../../api/_lib/groundswell/composioConsumer', () => ({ isConsumerConfigured: mocks.isConsumerConfigured }));
 
-import { parseCounty, resolveKeywordGeography } from '../../../api/_lib/groundswell/keywordsGeography';
+import { countyFromGeocode, parseCounty, resolveKeywordGeography } from '../../../api/_lib/groundswell/keywordsGeography';
 
 const city = (name: string, state: string, id: string, overrides: Record<string, unknown> = {}) => ({
   geoTargetConstant: { resourceName: `geoTargetConstants/${id}`, name, canonicalName: `${name},${state},United States`, countryCode: 'US', targetType: 'City', status: 'ENABLED', ...overrides },
@@ -211,5 +211,77 @@ describe('Keyword Planner county geography', () => {
     mocks.executeTool.mockResolvedValue(answer(pines()));
     expect((await resolveKeywordGeography('Pembroke Pines, FL', 5000)).constants).toEqual(['geoTargetConstants/1015166']);
     expect(mocks.executeTool).toHaveBeenCalledTimes(1);
+  });
+
+  // The Geocoding API's answer for "Pembroke Pines, FL, USA" as Composio returned it on 2026-10-31 (trimmed), while
+  // Places text search was over its daily quota.
+  const geocoded = ({ county: countyName = 'Broward County', state = ['Florida', 'FL'], locality = 'Pembroke Pines', country = ['United States', 'US'] } = {}) => ({
+    successful: true,
+    data: { results: [{ addressComponents: [
+      { languageCode: 'en', longText: locality, shortText: locality, types: ['locality', 'political'] },
+      { languageCode: 'en', longText: countyName, shortText: countyName, types: ['administrative_area_level_2', 'political'] },
+      { languageCode: 'en', longText: state[0], shortText: state[1], types: ['administrative_area_level_1', 'political'] },
+      { languageCode: 'en', longText: country[0], shortText: country[1], types: ['country', 'political'] },
+    ], formattedAddress: `${locality}, ${state[1]}, USA`, granularity: 'APPROXIMATE', types: ['locality', 'political'] }] },
+  });
+  /** Answers by tool: the geocoder, the county lookup, and the city lookup. */
+  const byTool = (geo: unknown, counties: unknown = answer(county('Broward County', 'Florida', '1014969'))) => async (slug: string, args: { query?: string }) => {
+    if (slug === 'GOOGLE_MAPS_GEOCODE_ADDRESS_WITH_QUERY') { if (geo instanceof Error) throw geo; return geo; }
+    return String(args.query).includes("target_type = 'County'") ? counties : answer(pines());
+  };
+
+  it('reads the county from a geocoder answer only for that city, in its own state, in the US', () => {
+    expect(countyFromGeocode(geocoded(), 'Pembroke Pines', 'Florida')).toBe('Broward County');
+    expect(countyFromGeocode({ results: [{ address_components: [
+      { long_name: 'Pembroke Pines', short_name: 'Pembroke Pines', types: ['locality', 'political'] },
+      { long_name: 'Broward County', short_name: 'Broward County', types: ['administrative_area_level_2', 'political'] },
+      { long_name: 'Florida', short_name: 'FL', types: ['administrative_area_level_1', 'political'] },
+      { long_name: 'United States', short_name: 'US', types: ['country', 'political'] },
+    ] }] }, 'pembroke pines', 'Florida')).toBe('Broward County');
+    expect(countyFromGeocode(geocoded({ state: ['Georgia', 'GA'] }), 'Pembroke Pines', 'Florida')).toBeNull();
+    expect(countyFromGeocode(geocoded({ locality: 'Miramar' }), 'Pembroke Pines', 'Florida')).toBeNull();
+    expect(countyFromGeocode(geocoded({ country: ['Canada', 'CA'] }), 'Pembroke Pines', 'Florida')).toBeNull();
+    expect(countyFromGeocode(geocoded({ county: 'Broward' }), 'Pembroke Pines', 'Florida')).toBeNull();
+    expect(countyFromGeocode({ results: [] }, 'Pembroke Pines', 'Florida')).toBeNull();
+    expect(countyFromGeocode(null, 'Pembroke Pines', 'Florida')).toBeNull();
+  });
+
+  it('with no county from the listing, takes the county the geocoder names for the resolved city', async () => {
+    mocks.executeTool.mockImplementation(byTool(geocoded()));
+    const out = await resolveKeywordGeography('Pembroke Pines', 5000, null, { geocodeCounty: true });
+    expect(out).toEqual({ constants: ['geoTargetConstants/1014969'], label: 'Broward County,Florida,United States (the county around Pembroke Pines)', error: null });
+    expect(mocks.executeTool.mock.calls.map((c) => c[0])).toEqual(['GOOGLEADS_SEARCH_STREAM_GAQL', 'GOOGLE_MAPS_GEOCODE_ADDRESS_WITH_QUERY', 'GOOGLEADS_SEARCH_STREAM_GAQL']);
+    // The geocoder is asked about the city Google Ads resolved, in that city's state.
+    expect(mocks.executeTool.mock.calls[1][1]).toEqual({ address_query: 'Pembroke Pines, Florida, USA', region_code: 'US', language_code: 'en' });
+    expect(queryOf(2)).toContain("geo_target_constant.name LIKE 'Broward County'");
+    expect(queryOf(2)).toContain("geo_target_constant.target_type = 'County'");
+  });
+
+  it.each([
+    ['the geocoder fails', new Error('Quota exceeded')],
+    ['the geocoder answers unsuccessfully', { successful: false, error: 'API not enabled', data: null }],
+    ['the geocoder places the city in another state', geocoded({ state: ['Georgia', 'GA'] })],
+    ['the geocoder names no county', geocoded({ county: '' })],
+  ])('keeps the city when %s', async (_label, geo) => {
+    mocks.executeTool.mockImplementation(byTool(geo));
+    expect(await resolveKeywordGeography('Pembroke Pines, FL', 5000, null, { geocodeCounty: true })).toEqual({ constants: ['geoTargetConstants/1015166'], label: 'Pembroke Pines,Florida,United States', error: null });
+  });
+
+  it('keeps the city when the county constant is in another state, ambiguous, or its lookup fails', async () => {
+    for (const counties of [answer(county('Broward County', 'Georgia', '999')), answer(county('Broward County', 'Florida', '1014969'), county('Broward County', 'Florida', '1014970')), new Error('GAQL refused')]) {
+      mocks.executeTool.mockReset().mockImplementation(async (slug: string, args: { query?: string }) => {
+        if (slug === 'GOOGLE_MAPS_GEOCODE_ADDRESS_WITH_QUERY') return geocoded();
+        if (String(args.query).includes("target_type = 'County'")) { if (counties instanceof Error) throw counties; return counties; }
+        return answer(pines());
+      });
+      expect((await resolveKeywordGeography('Pembroke Pines', 5000, null, { geocodeCounty: true })).constants).toEqual(['geoTargetConstants/1015166']);
+    }
+  });
+
+  it('never asks the geocoder when the listing named the county, or without the option', async () => {
+    mocks.executeTool.mockImplementation(byTool(geocoded()));
+    expect((await resolveKeywordGeography('Pembroke Pines, FL', 5000, 'Broward County', { geocodeCounty: true })).constants).toEqual(['geoTargetConstants/1014969']);
+    expect((await resolveKeywordGeography('Pembroke Pines, FL', 5000)).constants).toEqual(['geoTargetConstants/1015166']);
+    expect(mocks.executeTool.mock.calls.map((c) => c[0])).not.toContain('GOOGLE_MAPS_GEOCODE_ADDRESS_WITH_QUERY');
   });
 });

@@ -54,6 +54,21 @@ describe('the ad plan', () => {
   const google = plan.rows.find((r) => r.platform === 'google_search')!;
   const meta = plan.rows.find((r) => r.platform === 'meta')!;
 
+  it('names the average sale at which each modeled row breaks even, and none where the return is not modeled', () => {
+    // $300 of medium spend buys 5 bookings at a 50% margin, so a $120 booking covers it.
+    expect(google.break_even_sale).toBeCloseTo(120);
+    const modeled = plan.rows.filter((r) => r.roi_tier !== 'not modeled');
+    expect(modeled.length).toBeGreaterThan(0);
+    for (const row of modeled) {
+      // Priced at its break-even sale, the row's medium case nets nothing.
+      const repriced = buildAdPlan([{ ...events, value: { ...events.value!, per_customer: [1000, row.break_even_sale!, 1000] } }], industry(['google_search', 'meta']), config);
+      expect(repriced.rows.find((r) => r.platform === row.platform)!.scenarios.medium.net).toBeCloseTo(0, 6);
+    }
+    const unpriced = buildAdPlan([{ ...events, value: null }], industry(['google_search']), config).rows[0];
+    expect(unpriced.roi_tier).toBe('not modeled');
+    expect(unpriced.break_even_sale).toBeNull();
+  });
+
   it('sizes search by demand: 1,000 searches → 100 clicks → $300 at $3, 10 leads, 5 bookings, $2,500 margin', () => {
     expect(google.demand).toBe(1000);
     expect(google.scenarios.medium).toMatchObject({ cpc: 3, clicks: 100, spend: 300, leads: 10, customers: 5, revenue: 5000, net: 2200 });
