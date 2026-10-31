@@ -4,7 +4,7 @@ const mocks = vi.hoisted(() => ({ executeTool: vi.fn(), withBrowser: vi.fn() }))
 vi.mock('../../../api/_lib/groundswell/composio', async (original) => ({ ...(await original<object>()), executeTool: mocks.executeTool }));
 vi.mock('../../../api/_lib/groundswell/browser', () => ({ withBrowser: mocks.withBrowser }));
 
-import { runAdsLibrary } from '../../../api/_lib/groundswell/currents/adsLibrary';
+import { AD_LIBRARY_RIVALS, runAdsLibrary } from '../../../api/_lib/groundswell/currents/adsLibrary';
 
 const context = (outputs: Record<string, unknown> = {}) => ({
   audit: { id: 'a1', business_name: 'Wildly Primal', city: 'Jacksonville, FL', website: 'https://wildlyprimal.example', instagram: null, facebook: 'https://www.facebook.com/wildlyprimal', competitors: [], notes: null },
@@ -15,6 +15,15 @@ beforeEach(() => { vi.useFakeTimers({ toFake: ['setTimeout'] }); vi.resetAllMock
 afterEach(() => vi.useRealTimers());
 
 describe('ad library source evidence', () => {
+  it('reads every verified competitor, not only the benchmark’s two, so a rival’s ads count for the plan', async () => {
+    mocks.executeTool.mockRejectedValue(new Error('Provider request failed (402).'));
+    const ctx = context();
+    (ctx.audit as { competitors: unknown }).competitors = ['A', 'B', 'C', 'D', 'E', 'F', 'G'].map((n) => ({ name: `${n} Trainer`, website: `https://${n.toLowerCase()}.example`, instagram: null }));
+    const out = await runAdsLibrary(ctx);
+    expect(AD_LIBRARY_RIVALS).toBe(6);
+    expect(out.competitors.map((c) => c.name)).toEqual(['A Trainer', 'B Trainer', 'C Trainer', 'D Trainer', 'E Trainer', 'F Trainer']);
+  });
+
   it('starts no history or Google reads after a bare Meta HTTP 402 denial', async () => {
     mocks.executeTool.mockRejectedValue(new Error('Provider request failed (402).'));
     const out = await runAdsLibrary(context());

@@ -80,6 +80,33 @@ describe('checking the planner answer against the data', () => {
     expect(out.dropped.keywords).toEqual(['not an idea']);
   });
 
+  it('combines angles too small for a search campaign on their own under the category, when together they reach the minimum', () => {
+    // APK9's planner split 260 searches a month into angles of 40, 10 and 10; none reached the 100 a campaign needs.
+    const outputs = sampleOutputs();
+    outputs.keywords = { source: 'Keyword Planner', fetched_at: 'now', seeds: ['Auto repair shop'], demand_status: 'measured', ideas: [
+      { keyword: 'brake repair near me', monthly_searches: 60, competition: null, low_bid_usd: 5, high_bid_usd: 14 },
+      { keyword: 'car ac repair', monthly_searches: 30, competition: null, low_bid_usd: 3, high_bid_usd: 9 },
+      { keyword: 'oil change', monthly_searches: 20, competition: null, low_bid_usd: 2, high_bid_usd: 4 },
+      { keyword: 'auto repair fort lauderdale', monthly_searches: 1300, competition: null, low_bid_usd: 4, high_bid_usd: 12 },
+    ] };
+    const planned = checkPlan({ industry: 'general', angles: [
+      { name: 'Brakes', keywords: ['brake repair near me'] },
+      { name: 'Car AC', keywords: ['car ac repair'] },
+      { name: 'Oil changes', keywords: ['oil change'] },
+      { name: 'Auto repair', keywords: ['auto repair fort lauderdale'] },
+    ] }, buildFacts(sampleAudit, outputs), sampleModelOutput(), GROUNDSWELL_CONFIG);
+    expect(planned.angles.map((a) => [a.name, a.keywords.map((k) => k.keyword)])).toEqual([
+      ['Auto repair', ['auto repair fort lauderdale']],
+      ['Auto repair', ['brake repair near me', 'car ac repair', 'oil change']],
+    ]);
+    expect(planned.angles.map((a) => a.id)).toEqual(['auto-repair', 'auto-repair-2']);
+    expect(planned.angles[1].why).toMatch(/^Together, the searches for brakes, car ac, oil changes/);
+    expect(planned.dropped.angles).toEqual(['Brakes (combined under Auto repair)', 'Car AC (combined under Auto repair)', 'Oil changes (combined under Auto repair)']);
+    // One small angle alone, or two that stay below the minimum together, are left as they are.
+    const lone = checkPlan({ industry: 'general', angles: [{ name: 'Oil changes', keywords: ['oil change'] }, { name: 'Auto repair', keywords: ['auto repair fort lauderdale'] }] }, buildFacts(sampleAudit, outputs), sampleModelOutput(), GROUNDSWELL_CONFIG);
+    expect(lone.angles.map((a) => a.name)).toEqual(['Oil changes', 'Auto repair']);
+  });
+
   it('keeps the fallback angle to searches that share a word with what the business does', () => {
     // "Behavior" as a seed brought ABA therapy searches to a dog trainer; they share no word with the category or the seeds.
     const outputs = sampleOutputs();
