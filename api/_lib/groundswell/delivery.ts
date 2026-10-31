@@ -172,7 +172,8 @@ export async function runDeliverFinish(ctx: StepContext) {
   const reports = stored.map((f) => ({ kind: f.kind, name: f.name, pages: f.pages, bytes: f.bytes }));
   const exports = optional.flatMap((x) => ('exports' in x ? x.exports.map((e) => ({ name: e.name, bytes: e.bytes })) : []));
   const db = getSupabaseAdmin();
-  const { error } = await db.from('marketing_audits').update({ status: 'done', error: null, completed_at: new Date().toISOString() }).eq('id', ctx.audit.id);
+  // Only a running run is delivered: one a check held for review in the meantime stays held.
+  const { error } = await db.from('marketing_audits').update({ status: 'done', error: null, completed_at: new Date().toISOString() }).eq('id', ctx.audit.id).eq('status', 'running');
   if (error) throw new Error(`Could not mark the audit done: ${error.message}`);
   // Full auto: the next phase is queued as this one finishes; a reason it is not never fails the delivery.
   const next = await queueNextPhase(db, ctx.audit);

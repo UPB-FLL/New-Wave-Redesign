@@ -193,7 +193,12 @@ export function checkPlan(raw: unknown, f: Facts, m: ModelOut, config: Groundswe
   for (const a of (Array.isArray(r.angles) ? r.angles : []) as Record<string, unknown>[]) {
     if (angles.length >= ANGLE_LIMIT) break;
     const keywords: AngleKeyword[] = [];
-    for (const k of Array.isArray(a?.keywords) ? a.keywords : []) {
+    // The planner is asked for an array; a comma-separated string is read too, and an angle given no keywords at
+    // all takes the ideas that share a word with its name (APK9's planner answered four named angles with none).
+    const given = Array.isArray(a?.keywords) ? a.keywords : typeof a?.keywords === 'string' ? a.keywords.split(/[,\n;]+/).map((x) => x.trim()).filter(Boolean) : [];
+    const nameWords = contentWords(str(a?.name, 40));
+    const byName = given.length ? [] : [...ideas.values()].filter((idea) => [...contentWords(idea.keyword)].some((w) => nameWords.has(w))).map((idea) => idea.keyword);
+    for (const k of given.length ? given : byName) {
       // The planner is asked for strings; one that copies the idea object back ({ keyword, monthly_searches }) is read too.
       const text = typeof k === 'string' ? k : k && typeof k === 'object' ? String((k as { keyword?: unknown; text?: unknown }).keyword ?? (k as { text?: unknown }).text ?? '') : '';
       const idea = text ? ideas.get(text.trim().toLowerCase()) : undefined;

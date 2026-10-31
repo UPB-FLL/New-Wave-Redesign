@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { StepContext } from '../../../api/_lib/groundswell/types';
 
-const mocks = vi.hoisted(() => ({ update: vi.fn(), next: vi.fn(), db: { from: vi.fn() } }));
+const mocks = vi.hoisted(() => ({ update: vi.fn(), eq: vi.fn(), next: vi.fn(), db: { from: vi.fn() } }));
 vi.mock('../../../api/_lib/supabaseAdmin', () => ({ getSupabaseAdmin: () => mocks.db }));
 vi.mock('../../../api/_lib/groundswell/phases', () => ({ queueNextPhase: mocks.next }));
 import { runDeliverFinish } from '../../../api/_lib/groundswell/delivery';
@@ -14,7 +14,9 @@ const context = (outputs: Record<string, unknown> = {}, source: string | null = 
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.db.from.mockReturnValue({ update: mocks.update });
-  mocks.update.mockReturnValue({ eq: async () => ({ error: null }) });
+  // A chainable filter, as supabase-js builds one: `.eq('id', …).eq('status', 'running')` then awaited.
+  const chain: { eq: (col: string, v: unknown) => typeof chain; then: (resolve: (v: unknown) => void) => void } = { eq: (col, v) => { mocks.eq(col, v); return chain; }, then: (resolve) => resolve({ error: null }) };
+  mocks.update.mockReturnValue(chain);
   mocks.next.mockResolvedValue({ queued: null, phase: 'integrated', reason: 'No client account linked.' });
 });
 
@@ -42,6 +44,8 @@ describe('competitor phase without deliverable reports', () => {
     expect(result.reports).toEqual([{ kind: 'benchmark', name: 'Benchmark.pdf', pages: 8, bytes: 1234 }]);
     expect(result).not.toHaveProperty('hold');
     expect(mocks.update).toHaveBeenCalledWith(expect.objectContaining({ status: 'done', error: null }));
+    // Only a running run is marked done: one held for review by a check stays held.
+    expect(mocks.eq).toHaveBeenCalledWith('status', 'running');
     expect(mocks.next).toHaveBeenCalledOnce();
   });
 

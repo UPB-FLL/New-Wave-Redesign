@@ -68,6 +68,18 @@ describe('checking the planner answer against the data', () => {
     expect(out.dropped.keywords).toEqual(['{"nope":1}', '7']);
   });
 
+  it('gives an angle the planner named but left without keywords the ideas that share a word with its name, and reads a comma-separated string', () => {
+    // APK9's planner answered "Dog obedience training", "Dog behavior training" and the like with no keywords at all.
+    const out = checkPlan({ industry: 'general', angles: [{ name: 'Brake service', why: 'Brakes are named on the homepage.' }, { name: 'Car AC', keywords: 'car ac repair, not an idea' }, { name: 'Nothing here' }] }, facts(), sampleModelOutput(), GROUNDSWELL_CONFIG);
+    expect(out.fallback_angle).toBe(false);
+    expect(out.angles.map((a) => [a.name, a.keywords.map((k) => k.keyword)])).toEqual([
+      ['Brake service', ['brake repair near me']],
+      ['Car AC', ['car ac repair']],
+    ]);
+    expect(out.dropped.angles).toEqual(['Nothing here']);
+    expect(out.dropped.keywords).toEqual(['not an idea']);
+  });
+
   it('keeps the fallback angle to searches that share a word with what the business does', () => {
     // "Behavior" as a seed brought ABA therapy searches to a dog trainer; they share no word with the category or the seeds.
     const outputs = sampleOutputs();

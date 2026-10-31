@@ -66,6 +66,17 @@ linktr.ee (DR 94, "40,000 Google ads") as the business's site. Owner's ask:
   test took effect (the Meta row is a test naming Angel Paws). The county
   was not read: Places' daily text-search quota (12,000) was spent that day
   (follow-up: find what spends it), so the market stayed the city.
+- **Seen on the third run** (`21d13794…`, 23:57 UTC, its steps split across
+  a worker on the old code and one on the new): the last check held it (1
+  substantive finding; the figures disagreed because the two workers seeded
+  Keyword Planner differently), yet it was delivered: the hold was written
+  after the step's done-write, and a second worker claimed the delivery
+  steps in between. `runWorker` now holds the audit before marking the step
+  done, and `runDeliverFinish` marks only a running run done. The planner
+  answered four named angles with no keywords at all, so `checkPlan` gives
+  such an angle the ideas that share a word with its name and reads a
+  comma-separated string. The Meta row read "Pays back in the medium case
+  but not the low one: a small test" (ROI +10%, high case +$3,419 a year).
 - Delivered runs keep their plans; "Run again" on APK9 queues the new one.
 
 ### Groundswell: competitors that compete, from the business's own words; the area columns filled from the data (2026-10-30)
