@@ -31,7 +31,11 @@ const facebookUrl = (site: SiteScan | null) => {
   return page ? `https://www.facebook.com/${page.replace(/^\/+/, '')}` : null;
 };
 
-export function benchAccounts(ctx: StepContext): BenchAccount[] {
+/**
+ * The business and its competitors as accounts: the benchmark's two by default (`benchmark.accounts` less one);
+ * `rivals` widens it, as the ad-library step does to read every verified competitor's advertising.
+ */
+export function benchAccounts(ctx: StepContext, rivalCount = GROUNDSWELL_CONFIG.benchmark.accounts - 1): BenchAccount[] {
   const site = ctx.outputs.site as SiteOut | undefined;
   const social = ctx.outputs.social as SocialOut | undefined;
   const own = site?.business ?? null;
@@ -45,7 +49,7 @@ export function benchAccounts(ctx: StepContext): BenchAccount[] {
     site: own,
     ig: social?.business ?? null,
   };
-  const rivals = ctx.audit.competitors.slice(0, GROUNDSWELL_CONFIG.benchmark.accounts - 1).map((c, i): BenchAccount => {
+  const rivals = ctx.audit.competitors.slice(0, rivalCount).map((c, i): BenchAccount => {
     const scan = site?.competitors.find((s) => s.name === c.name)?.site ?? site?.competitors[i]?.site ?? null;
     const ig = social?.competitors.find((s) => s.name === c.name) ?? null;
     return {

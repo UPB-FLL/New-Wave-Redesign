@@ -77,6 +77,18 @@ linktr.ee (DR 94, "40,000 Google ads") as the business's site. Owner's ask:
   such an angle the ideas that share a word with its name and reads a
   comma-separated string. The Meta row read "Pays back in the medium case
   but not the low one: a small test" (ROI +10%, high case +$3,419 a year).
+- **Seen on the fourth run** (`4c3e5498…`, 00:22 UTC, every fix live): the
+  qualified seeds held ("Dog Obedience"; no other trade's searches), the
+  planner's three named angles carried keywords, and the hold kept the run
+  in review. But the planner split 260 searches a month into angles of 40,
+  10 and 10, each under the 100 a search campaign needs, so no Google row
+  survived; and the ad libraries read only the benchmark's two rivals,
+  missing Angel Paws (six Meta ads) third in the list, so the Meta rows were
+  skips. `checkPlan` combines angles too small on their own under the
+  category when together they reach the minimum (named in `dropped.angles`
+  as "combined under …"), and `runAdsLibrary` reads every verified
+  competitor (`AD_LIBRARY_RIVALS`, 6; `benchAccounts(ctx, rivalCount)`), the
+  benchmark still pairing its two by name.
 - Delivered runs keep their plans; "Run again" on APK9 queues the new one.
 
 ### Groundswell: competitors that compete, from the business's own words; the area columns filled from the data (2026-10-30)

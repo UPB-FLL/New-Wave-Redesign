@@ -219,6 +219,23 @@ export function checkPlan(raw: unknown, f: Facts, m: ModelOut, config: Groundswe
     angles.push(angleOf(name, str(a?.why, 300), keywords));
   }
 
+  // Angles too small for a search campaign on their own (under min_angle_searches) are combined under the category
+  // when together they reach it: APK9's planner split 260 searches a month into 40, 10 and 10, and no row survived.
+  const demandOf = (a: AngleInput) => a.keywords.reduce((n, k) => n + k.monthly_searches, 0);
+  const small = angles.filter((a) => demandOf(a) < config.min_angle_searches);
+  if (small.length >= 2 && small.reduce((n, a) => n + demandOf(a), 0) >= config.min_angle_searches) {
+    const kept = angles.filter((a) => !small.includes(a));
+    for (const a of small) ids.delete(a.id);
+    const combined = angleOf(
+      capital(m.estimates.category),
+      `Together, the searches for ${small.map((a) => a.name.toLowerCase()).join(', ')}: each alone is below what a search campaign of its own needs.`,
+      small.flatMap((a) => a.keywords)
+    );
+    angles.length = 0;
+    angles.push(...kept, combined);
+    dropped.angles.push(...small.map((a) => `${a.name} (combined under ${combined.name})`));
+  }
+
   let fallback_angle = false;
   if (!angles.length) {
     fallback_angle = true;

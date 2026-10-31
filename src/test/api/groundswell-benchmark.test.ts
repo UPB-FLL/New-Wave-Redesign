@@ -134,6 +134,14 @@ describe('the accounts', () => {
       ['Coastline Motors', null, null],
     ]);
   });
+
+  it('widen to every verified competitor when asked, as the ad-library step does', () => {
+    const c = ctx(benchmarkOutputs());
+    c.audit = { ...c.audit, competitors: [...c.audit.competitors, { name: 'Third Garage', website: 'https://third.example', instagram: null }, { name: 'Fourth Garage', website: 'https://fourth.example', instagram: null }] };
+    expect(benchAccounts(c).map((a) => a.name)).toEqual(['Harbor Auto Care (sample)', 'Bayside Garage', 'Coastline Motors']);
+    expect(benchAccounts(c, 6).map((a) => a.name)).toEqual(['Harbor Auto Care (sample)', 'Bayside Garage', 'Coastline Motors', 'Third Garage', 'Fourth Garage']);
+    expect(benchAccounts(c, 6)[4]).toMatchObject({ domain: 'fourth.example', website: 'https://fourth.example' });
+  });
 });
 
 describe('social depth', () => {

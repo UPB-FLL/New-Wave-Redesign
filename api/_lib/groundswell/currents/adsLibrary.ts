@@ -153,8 +153,11 @@ async function paidHistory(domain: string) {
   }));
 }
 
+/** Every verified competitor's advertising is evidence for the ad plan, not only the benchmark's two: APK9's rival with six Meta ads on record was third in the list. */
+export const AD_LIBRARY_RIVALS = 6;
+
 export async function runAdsLibrary(ctx: StepContext) {
-  const accounts = benchAccounts(ctx);
+  const accounts = benchAccounts(ctx, AD_LIBRARY_RIVALS);
   const social = ctx.outputs.social as { facebook?: FacebookSnapshot | null; facebook_competitors?: (FacebookSnapshot & { name: string })[] } | undefined;
   const billingDeniedAccounts = new Set<number>();
   const evidence: AdLibraryEvidence[] = await Promise.all(
