@@ -239,6 +239,18 @@ describe('runWorker', () => {
     expect(after).toBe(false);
   });
 
+  it('holds the audit before the step is marked done, so no other worker can claim the next step in between', async () => {
+    // APK9's run of 2026-10-31 00:00 UTC: the check's done-write landed first, a second worker claimed the delivery
+    // steps while the audit still read running, and deliver_finish marked a held run done.
+    const steps = [def('check', async () => ({ hold: 'The figures moved.' })), def('deliver', async () => 'never')];
+    const { db } = fakeDb(['check', 'deliver']);
+    const order: string[] = [];
+    const spy = { ...db, from: (t: string) => { const chain = db.from(t) as unknown as Record<string, unknown>; return new Proxy(chain, { get(target, key) { if (key !== 'update') return target[key as string]; return (patch: Record<string, unknown>) => { order.push(`${t}:${String(patch.status)}`); return (target.update as (p: unknown) => unknown)(patch); }; } }); } } as unknown as typeof db;
+    await runWorker(spy, steps, { deadline: plenty() });
+    expect(order.indexOf('marketing_audits:review')).toBeGreaterThan(-1);
+    expect(order.indexOf('marketing_audits:review')).toBeLessThan(order.indexOf('marketing_audit_steps:done'));
+  });
+
   it('fails a held audit with the reason before the review status exists, so nothing is delivered', async () => {
     const steps = [def('check', async () => ({ hold: 'The figures moved.' })), def('deliver', async () => 'never')];
     const { db, audits } = fakeDb(['check', 'deliver'], { refuse: (table, patch) => table === 'marketing_audits' && patch.status === 'review' });

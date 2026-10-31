@@ -323,15 +323,18 @@ export async function runWorker(
         const { error: persistError } = await db.from('marketing_audits').update(storable(patch)).eq('id', claimed.audit_id);
         if (persistError) throw new Error(`Could not save the step's changes to the audit: ${persistError.message}`);
       }
+      // A hold goes on the audit before the step is marked done: another worker claims the next step the moment
+      // this one is done and the audit still reads running, and APK9's run of 2026-10-31 00:00 UTC was delivered
+      // through that gap with a hold on its last check.
+      const hold = holdReason(output);
+      if (hold) await holdAudit(db, claimed.audit_id, hold);
       // A refused write (jsonb will not take a lone surrogate or a NUL; a column gone) must count as a failed step, never as done.
       const { error: doneError } = await db
         .from('marketing_audit_steps')
         .update({ status: 'done', output: storable(output ?? null), error: null, finished_at: new Date().toISOString() })
         .eq('id', claimed.id);
       if (doneError) throw new Error(`Could not record the step's output: ${doneError.message}`);
-      const hold = holdReason(output);
       if (hold) {
-        await holdAudit(db, claimed.audit_id, hold);
         report.ran.push({ audit_id: claimed.audit_id, step: claimed.step, outcome: 'held', error: hold });
         continue;
       }
