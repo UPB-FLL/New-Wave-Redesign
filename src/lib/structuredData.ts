@@ -28,3 +28,23 @@ export function breadcrumbListNode(crumbs: readonly Crumb[]): Record<string, unk
     })),
   };
 }
+
+/** One question and its answer, as the page shows them. */
+export type FaqItem = { question: string; answer: string };
+
+/**
+ * A FAQPage for the questions a page shows. The names and texts are the
+ * visible strings: pass the list the page renders, never a reworded copy.
+ * A page without questions passes no node at all.
+ */
+export function faqPageNode(items: readonly FaqItem[]): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: items.map((item) => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: { '@type': 'Answer', text: item.answer },
+    })),
+  };
+}

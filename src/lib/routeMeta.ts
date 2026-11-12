@@ -1,7 +1,9 @@
 // Page metadata for every static New Wave IT route: the one copy both the page
 // (via usePageMeta) and the build-time prerender (vite.config.ts) read, so the
 // raw HTML a crawler sees and the head the app sets after hydration always
-// match. Pages keep their JSON-LD inline; it stays runtime-only.
+// match. Pages keep their JSON-LD inline: the build render captures what each
+// one passes to usePageMeta (src/lib/jsonLdCapture.ts) and writes it into the
+// raw HTML too.
 //
 // '/' is not prerendered: the homepage is served by the index.html shell
 // itself, whose head HOME_PAGE_META must match (a test compares them). Routes
@@ -24,6 +26,24 @@ export const HOME_PAGE_META: StaticPageMeta = {
   keywords: DEFAULT_KEYWORDS,
   includeSiteName: false,
   canonical: `${SITE_URL}/`,
+};
+
+/**
+ * The homepage's own JSON-LD node. The WebSite, Organization, and
+ * LocalBusiness nodes live in index.html; this adds only the page. One copy
+ * for App.tsx's HomePage and the build render's homepage
+ * (src/lib/prerenderBody.tsx), so the raw and the hydrated homepage carry the
+ * same node.
+ */
+export const HOME_PAGE_JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  '@id': `${SITE_URL}/#webpage`,
+  'url': `${SITE_URL}/`,
+  'name': HOME_PAGE_META.title,
+  'isPartOf': { '@id': `${SITE_URL}/#website` },
+  'about': { '@id': `${SITE_URL}/#business` },
+  'description': HOME_PAGE_META.description,
 };
 
 export const SERVICES_CRUMB: Crumb = { name: 'Services', path: '/services' };

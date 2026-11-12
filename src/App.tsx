@@ -66,7 +66,7 @@ import BlogPostPage from './pages/BlogPostPage';
 import NotFoundPage from './pages/NotFoundPage';
 import GroundswellSignInPage from './pages/GroundswellSignInPage';
 import { usePageMeta } from './lib/usePageMeta';
-import { HOME_PAGE_META } from './lib/routeMeta';
+import { HOME_PAGE_JSON_LD, HOME_PAGE_META } from './lib/routeMeta';
 import {
   DIVISION_BASE_PATH,
   DIVISION_CONTACT_PATH,
@@ -136,20 +136,9 @@ function AdminFallback() {
   return <div className="min-h-screen" aria-busy="true" />;
 }
 
-// The WebSite, Organization, and LocalBusiness nodes live in index.html; this adds only the page node.
-const HOME_JSON_LD = {
-  '@context': 'https://schema.org',
-  '@type': 'WebPage',
-  '@id': 'https://www.newwaveitfl.com/#webpage',
-  'url': 'https://www.newwaveitfl.com/',
-  'name': HOME_PAGE_META.title,
-  'isPartOf': { '@id': 'https://www.newwaveitfl.com/#website' },
-  'about': { '@id': 'https://www.newwaveitfl.com/#business' },
-  'description': HOME_PAGE_META.description,
-};
-
 function HomePage() {
-  usePageMeta({ ...HOME_PAGE_META, jsonLd: HOME_JSON_LD });
+  // The same head and page node the build writes into the raw homepage (HomeBody in src/lib/prerenderBody.tsx).
+  usePageMeta({ ...HOME_PAGE_META, jsonLd: HOME_PAGE_JSON_LD });
   return (
     <div className="min-h-screen relative bg-[var(--nw-cloud-white)]">
       <Navbar />

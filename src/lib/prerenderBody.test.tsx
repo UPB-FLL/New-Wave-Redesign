@@ -7,8 +7,9 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { isPrerenderedItPath, renderItBody } from './prerenderBody';
-import { prerenderedItRoutes } from './routeMeta';
+import { endJsonLdCapture } from './jsonLdCapture';
+import { isPrerenderedItPath, renderItBody, renderItPage } from './prerenderBody';
+import { HOME_PAGE_JSON_LD, prerenderedItRoutes } from './routeMeta';
 
 const appSource = readFileSync(path.resolve(__dirname, '../App.tsx'), 'utf8');
 const bodyRoutes = ['/', ...prerenderedItRoutes().map((route) => route.path)].filter(isPrerenderedItPath);
@@ -52,5 +53,72 @@ describe('renderItBody', () => {
   it('renders each service guide at its own URL', () => {
     expect(text(renderItBody('/l/it-repair-guide'))).toMatch(/repair/i);
     expect(text(renderItBody('/l/cloud-solutions-guide'))).toMatch(/cloud/i);
+  });
+});
+
+// usePageMeta writes JSON-LD in an effect, which never runs here, so the
+// build takes what each page passes to it from the render itself.
+describe('renderItPage', () => {
+  type Node = Record<string, unknown>;
+  const nodes = (routePath: string) => (renderItPage(routePath).jsonLd ?? []) as Node[];
+  const types = (routePath: string) => nodes(routePath).map((node) => node['@type']);
+  // The legal pages pass no JSON-LD.
+  const WITHOUT_JSON_LD = '/privacy-policy';
+
+  it('returns the body renderItBody returns', () => {
+    for (const routePath of ['/', '/contact', '/it-support-fort-lauderdale', '/l/managed-it-guide', WITHOUT_JSON_LD]) {
+      expect(renderItPage(routePath).bodyHtml, routePath).toBe(renderItBody(routePath));
+    }
+    expect(renderItPage('/about', { footer: { phone: '(561) 000-0000' } }).bodyHtml).toContain('(561) 000-0000');
+    expect(() => renderItPage('/groundswell')).toThrow(/No New Wave IT body/);
+  });
+
+  it('returns the Service node a local landing page and a service category pass to usePageMeta', () => {
+    const [landing] = nodes('/it-support-fort-lauderdale').filter((node) => node['@type'] === 'Service');
+    expect(landing).toMatchObject({ '@context': 'https://schema.org', url: 'https://www.newwaveitfl.com/it-support-fort-lauderdale' });
+    expect(types('/service-category/healthcare')).toContain('Service');
+  });
+
+  it('returns a guide’s Article and FAQPage nodes, for that guide', () => {
+    expect(types('/l/managed-it-guide')).toEqual(expect.arrayContaining(['Article', 'FAQPage']));
+    const article = (routePath: string) => nodes(routePath).find((node) => node['@type'] === 'Article');
+    expect(article('/l/managed-it-guide')?.mainEntityOfPage).toBe('https://www.newwaveitfl.com/l/managed-it-guide');
+    expect(article('/l/it-repair-guide')?.mainEntityOfPage).toBe('https://www.newwaveitfl.com/l/it-repair-guide');
+    const faq = nodes('/l/managed-it-guide').find((node) => node['@type'] === 'FAQPage');
+    expect((faq?.mainEntity as unknown[]).length).toBeGreaterThan(0);
+  });
+
+  it('returns the ContactPage node for /contact and the shared WebPage node for the homepage', () => {
+    expect(types('/contact')).toContain('ContactPage');
+    expect(renderItPage('/').jsonLd).toEqual([HOME_PAGE_JSON_LD]);
+    // App.tsx's HomePage passes the same constant, so the hydrated homepage carries the same node.
+    expect(appSource).toContain('usePageMeta({ ...HOME_PAGE_META, jsonLd: HOME_PAGE_JSON_LD });');
+  });
+
+  it('returns null for a page that passes no JSON-LD', () => {
+    expect(renderItPage(WITHOUT_JSON_LD).jsonLd).toBeNull();
+  });
+
+  it('gives every route either null or a list of typed nodes', () => {
+    for (const routePath of bodyRoutes) {
+      const { jsonLd } = renderItPage(routePath);
+      if (jsonLd === null) continue;
+      expect(jsonLd.length, routePath).toBeGreaterThan(0);
+      for (const node of jsonLd as Node[]) expect(node['@type'], routePath).toBeTruthy();
+    }
+  });
+
+  it('captures nothing when no capture is open', () => {
+    renderItBody('/contact');
+    expect(endJsonLdCapture()).toBeNull();
+    expect(renderItPage(WITHOUT_JSON_LD).jsonLd).toBeNull();
+  });
+
+  it('never carries one page’s JSON-LD into the next render', () => {
+    expect(types('/contact')).toContain('ContactPage');
+    expect(renderItPage(WITHOUT_JSON_LD).jsonLd).toBeNull();
+    expect(types('/it-support-fort-lauderdale')).not.toContain('ContactPage');
+    expect(types('/contact')).not.toContain('Service');
+    expect(types('/l/it-repair-guide')).not.toContain('ContactPage');
   });
 });

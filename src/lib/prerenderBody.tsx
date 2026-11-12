@@ -35,10 +35,14 @@ import SupportPage from '../pages/SupportPage';
 import TermsAndConditionsPage from '../pages/TermsAndConditionsPage';
 import WhyUsPage from '../pages/WhyUsPage';
 import { seedContentCache, type ContentMap } from './content';
+import { beginJsonLdCapture, endJsonLdCapture } from './jsonLdCapture';
+import { HOME_PAGE_JSON_LD, HOME_PAGE_META } from './routeMeta';
 import { serviceGuidePath } from './serviceGuides';
+import { usePageMeta } from './usePageMeta';
 
-/** The homepage as App.tsx composes it (HomePage is not exported from App). */
+/** The homepage as App.tsx composes it (HomePage is not exported from App), with the same usePageMeta call. */
 function HomeBody() {
+  usePageMeta({ ...HOME_PAGE_META, jsonLd: HOME_PAGE_JSON_LD });
   return (
     <div className="min-h-screen relative bg-[var(--nw-cloud-white)]">
       <Navbar />
@@ -124,5 +128,30 @@ export function renderItBody(pagePath: string, content: Record<string, ContentMa
     );
   } finally {
     seedContentCache(null);
+  }
+}
+
+/** One page as the build writes it. The shape fits renderRouteHtml's options (src/lib/prerenderHead.ts). */
+export interface RenderedItPage {
+  /** The page's markup, as renderItBody returns it. */
+  bodyHtml: string;
+  /** What the page passed to usePageMeta as `jsonLd`, as an array; null when it passed none. */
+  jsonLd: object[] | null;
+}
+
+/**
+ * renderItBody plus the page's own JSON-LD. usePageMeta writes JSON-LD in an
+ * effect, which a build render never runs, so the page's Service, FAQPage or
+ * Article node is captured while it renders (src/lib/jsonLdCapture.ts) and
+ * goes into the raw HTML beside the body.
+ */
+export function renderItPage(pagePath: string, content: Record<string, ContentMap> | null = null): RenderedItPage {
+  beginJsonLdCapture();
+  try {
+    const bodyHtml = renderItBody(pagePath, content);
+    return { bodyHtml, jsonLd: endJsonLdCapture() };
+  } finally {
+    // A page that throws must not leave its capture open for the next render.
+    endJsonLdCapture();
   }
 }
