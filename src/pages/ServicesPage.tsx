@@ -2,6 +2,7 @@ import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Services, { SERVICES_DEFAULT_DESCRIPTION, SERVICES_DEFAULT_TITLE } from '../components/Services';
+import AreasWeServe from '../components/AreasWeServe';
 import Contact from '../components/Contact';
 import Footer from '../components/Footer';
 import { cmsHeadline } from '../components/brand/cmsHeadline';
@@ -32,6 +33,7 @@ export default function ServicesPage() {
       />
       <main>
         <Services variant="page" showOtherSpecialties />
+        <AreasWeServe currentPath="/services" />
         <Contact />
       </main>
       <Footer />

@@ -7,6 +7,7 @@ import Hero from '../components/Hero';
 import TrustBar from '../components/TrustBar';
 import Services from '../components/Services';
 import WhyUs from '../components/WhyUs';
+import AreasWeServe from '../components/AreasWeServe';
 import Footer from '../components/Footer';
 import AboutPage from '../pages/AboutPage';
 import BlogPage from '../pages/BlogPage';
@@ -55,6 +56,7 @@ function HomeBody() {
       <TrustBar />
       <Services />
       <WhyUs />
+      <AreasWeServe />
       <Footer />
     </div>
   );

@@ -12,10 +12,18 @@ const serviceLinks = [
   { label: 'Managed IT Services', href: '/service-category/managed-it-services' },
   { label: 'Cloud Solutions', href: '/service-category/cloud-solutions' },
   { label: 'Network Infrastructure', href: '/service-category/network-infrastructure' },
-  { label: 'IT Support Fort Lauderdale', href: '/it-support-fort-lauderdale' },
-  { label: 'Managed IT Fort Lauderdale', href: '/managed-it-services-fort-lauderdale' },
   // Division: New Wave: Social Engineering (listed only while it's published).
   ...(DIVISION_PUBLISHED ? [{ label: 'Growth Marketing & Advertising', href: '/social-engineering' }] : []),
+];
+
+// The local landing pages and the service-area hub. Short labels: the heading says what they are.
+const areaLinks = [
+  { label: 'Fort Lauderdale IT Support', href: '/it-support-fort-lauderdale' },
+  { label: 'Fort Lauderdale Managed IT', href: '/managed-it-services-fort-lauderdale' },
+  { label: 'Miami', href: '/managed-it-services-miami' },
+  { label: 'Boca Raton', href: '/it-support-boca-raton' },
+  { label: 'West Palm Beach', href: '/managed-it-services-west-palm-beach' },
+  { label: 'South Florida', href: '/managed-it-services-south-florida' },
 ];
 
 const companyLinks = [
@@ -47,7 +55,7 @@ export default function Footer() {
         className="pointer-events-none absolute inset-x-0 bottom-0 h-full w-full opacity-60"
       />
       <div className="relative mx-auto max-w-7xl px-4 pb-8 pt-12 sm:px-6 sm:pt-16 lg:px-8">
-        <div className="mb-10 grid grid-cols-1 gap-8 sm:gap-10 md:grid-cols-2 lg:mb-14 lg:grid-cols-4">
+        <div className="mb-8 grid grid-cols-1 gap-8 sm:mb-10 sm:gap-10 md:grid-cols-2 lg:grid-cols-4">
           <div>
             <Link to="/" className="mb-5 inline-block" onClick={() => window.scrollTo({ top: 0 })} aria-label="New Wave IT home">
               <Logo tone="onDark" />
@@ -124,6 +132,20 @@ export default function Footer() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* A row under the columns: a list on phones, one line from the lg breakpoint. */}
+        <div className="mb-10 lg:mb-12 lg:flex lg:items-baseline lg:gap-10">
+          <h2 className={`${sectionHeadingClass} shrink-0 lg:mb-0`}>Service areas</h2>
+          <ul className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-x-6">
+            {areaLinks.map(({ label, href }) => (
+              <li key={href}>
+                <Link to={href} className={linkClass} onClick={() => window.scrollTo({ top: 0 })}>
+                  {label}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
 
         <div className="flex flex-col items-center justify-between gap-4 border-t pt-7 sm:flex-row" style={{ borderColor: 'var(--nw-slate)' }}>
