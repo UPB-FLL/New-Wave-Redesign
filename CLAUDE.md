@@ -2,6 +2,71 @@
 
 ## Recent Changes
 
+### South Florida SEO and AI search: local pages, raw-HTML schema, a static price list (2026-11-12)
+
+Owner's ask: "use composio to update seo to have us ranking higher in south
+florida. also update for ai search and geo". Measured first through Composio
+(Keyword Planner, Ahrefs, SearchApi, Firecrawl; `docs/geo/baseline-2026-11-12.md`):
+New Wave IT appeared in 0 of 16 localized results and 0 of 9 AI Mode answers,
+one page was indexed, and the city searches with demand are Miami, Boca
+Raton, Fort Lauderdale and West Palm Beach. Owner, 2026-11-12: "yes we serve
+miami-dade and palm beach".
+
+- **Pages** (each on `ServiceCategoryPage`, each saying where the office is):
+  `/managed-it-services-miami`, `/it-support-boca-raton`,
+  `/managed-it-services-west-palm-beach` and the hub
+  `/managed-it-services-south-florida` (one section per county, a link to
+  every local and service page). No page outside Fort Lauderdale implies an
+  office there. The two Fort Lauderdale pages, the six core service pages and
+  `/pricing` gained a question-led overview, FAQs and related links. Copy
+  states only what `docs/geo/fact-sheet.md` has a row for.
+- **`ServiceCategoryPageData`** gained optional `overviewTitle`,
+  `overviewBody`, a section `body`, `faqs`, `faqTitle`, `relatedLinks`,
+  `relatedTitle` (`FaqSection`, `RelatedLinks`); a page passing none renders
+  as before. `servicePageJsonLd` (`src/lib/serviceSchema.ts`) builds the
+  Service node and, from the same list the page shows, the FAQPage node
+  (`faqPageNode`).
+- **JSON-LD in the raw HTML**: whatever a page hands `usePageMeta` as
+  `jsonLd` is captured during the build render (`src/lib/jsonLdCapture.ts`,
+  `renderItPage` in `prerenderBody.tsx`) and written as `#page-jsonld`
+  (`pageJsonLdScript`), which `usePageMeta` replaces at runtime. The homepage
+  passes `HOME_PAGE_JSON_LD`. `it-jsonld-parity.test.tsx` holds the two in step.
+- **Prices**: `src/lib/publishedRates.ts` is the one place copy takes prices
+  from (`PUBLISHED_RATES`, `usd`, `ratesSentence`). The build reads
+  `pricing_units` (`readPricingUnitsForBuild`) and warns when the two differ
+  (`priceListWarning`; it does not fail the build). `/pricing` prints the
+  list as a static table (`PublishedRates`, `usePricingUnits`) with an
+  OfferCatalog (`priceListJsonLd`); its three FAQ answers that state a rate
+  show only while the table agrees with `publishedRates.ts`.
+- **Entity graph and head** (`index.html`): the homepage title is "Managed IT
+  Services & IT Support in Fort Lauderdale | New Wave IT"; the three
+  descriptions drop "trusted" and "24/7 IT support"; `areaServed` adds West
+  Palm Beach and the three counties; `geo` is the office's rooftop geocode
+  (26.1324, -80.1484); `hasMap` and `sameAs` carry the Google listing's CID
+  URL; the LinkedIn URL (404) is gone.
+- **Links**: `AreasWeServe` (a band on the homepage, in both `HomePage` and
+  `HomeBody`, and on `/services`), a "Service areas" row in the footer, and
+  the blog generator (`LINKABLE_PAGES` gains the six local pages; every
+  post's closing line now ends with a fourth link, to the hub).
+  `/review` redirects (temporary) to the Google listing's review form.
+- **`llms.txt` and `llms-full.txt`** (`src/lib/llmsTxt.ts`), generated at
+  build time from the route registry and the rendered pages.
+- **Adding a local page**: the static-page checklist above, plus a link from
+  the hub, `AreasWeServe`, the footer row and `LINKABLE_PAGES`.
+- **Gate at merge**: typecheck 0, lint 60 problems (as on main), 2,511 tests
+  pass and the same 6 Groundswell tests fail as on main, build 0.
+- **Not done**: the West Palm Beach page and the hub are short (written
+  without the author-and-editor pass the other pages had; the Miami and Boca
+  Raton pages had an author and no independent editor); the blog index is
+  still client-rendered and `/pricing` re-reads its list on first paint; the
+  independent code review and the cross-page doorway review did not run.
+- **Owner's side** (nothing in code can do these): the Google Business
+  Profile has no street address and its pin is about 100 miles off; reviews
+  (hand clients `/review`); Search Console and GA4; listings and citations;
+  the real LinkedIn and Facebook URLs. Open questions are in the fact sheet,
+  section 13 (what "24/7" covers, what the rates include, the contract term,
+  on-site visits in all three counties, the $38 Office 365 unit).
+
 ### Groundswell: a slide trimmed to fit keeps its first items, never a bare heading (2026-10-31)
 
 APK9 Academy's delivered deck (run `b9afeed3…`) showed slide 8, Keywords,

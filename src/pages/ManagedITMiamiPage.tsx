@@ -48,7 +48,7 @@ const faqs: FaqItem[] = [
   {
     question: 'What is a managed service provider?',
     answer:
-      "A managed service provider (MSP) is an outside company that looks after a business's IT for a set monthly fee, rather than being called only when something breaks. It monitors the computers, servers and network, keeps them patched and backed up, and supports the staff. Paying per repair instead is known as break-fix. New Wave IT is a managed service provider that serves Miami from its office in Fort Lauderdale.",
+      "A managed service provider (MSP) is an outside company that looks after a business's IT for a recurring fee, usually a set monthly amount, rather than being called only when something breaks. It monitors the computers, servers and network, keeps them patched and backed up, and supports the staff. Paying per repair instead is known as break-fix. New Wave IT is a managed service provider that serves Miami from its office in Fort Lauderdale.",
   },
   {
     question: 'Is there a long-term contract?',
@@ -131,7 +131,7 @@ const page: ServiceCategoryPageData = {
     {
       title: 'What does IT support cover for a Miami business?',
       body: [
-        "IT support for a Miami business is run from New Wave IT's Fort Lauderdale office and covers the day-to-day problems of the people at work: a forgotten password, an email or Microsoft 365 fault, a printer, a laptop that will not start. " +
+        "IT support for a Miami business is run from New Wave IT's Fort Lauderdale office and covers the day-to-day problems its employees run into: a forgotten password, an email or Microsoft 365 fault, a printer, a laptop that will not start. " +
           'An employee asks for help by phone, by email or through a ticket, and every request stays on record as a ticket until it is solved. ' +
           'The help desk is included in a managed IT plan. ' +
           "New Wave IT's other IT services, each linked below, are IT repair and upgrades, cybersecurity, cloud solutions including Microsoft 365, and network infrastructure.",
