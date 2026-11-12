@@ -1,6 +1,8 @@
 import { render } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { beginJsonLdCapture, endJsonLdCapture } from './jsonLdCapture';
 import { BREADCRUMBS_ELEMENT_ID, PAGE_JSONLD_ELEMENT_ID, type PageMetaOptions } from './pageMeta';
+import { pageJsonLdScript } from './prerenderHead';
 import { IT_PAGE_META } from './routeMeta';
 import { usePageMeta } from './usePageMeta';
 
@@ -57,5 +59,31 @@ describe('usePageMeta JSON-LD', () => {
     expect(document.getElementById(PAGE_JSONLD_ELEMENT_ID)).not.toBeNull();
     unmount();
     expect(document.getElementById(PAGE_JSONLD_ELEMENT_ID)).toBeNull();
+  });
+
+  it('takes over the block the build wrote for a static page (renderRouteHtml) the same way', () => {
+    // A "<" is escaped in the raw block and not in the page's own copy; both parse to the same graph.
+    const service = { '@context': 'https://schema.org', '@type': 'Service', name: 'IT Support </script> in Fort Lauderdale' };
+    document.head.innerHTML = pageJsonLdScript(service);
+    expect(document.getElementById(PAGE_JSONLD_ELEMENT_ID)).not.toBeNull();
+    expect(graphs()).toEqual([[service]]);
+
+    const { unmount } = render(<Page title="IT Support Fort Lauderdale" jsonLd={service} />);
+    expect(document.getElementById(PAGE_JSONLD_ELEMENT_ID)).toBeNull();
+    expect(graphs()).toEqual([[service]]);
+    unmount();
+    expect(graphs()).toEqual([]);
+  });
+
+  it('reports the JSON-LD to the build capture while it renders, and to nothing when none is open', () => {
+    const node = { '@type': 'ContactPage', name: 'Contact' };
+    // In a browser no capture is ever open: the hook only writes the head.
+    render(<Page title="Contact" jsonLd={node} />).unmount();
+    expect(endJsonLdCapture()).toBeNull();
+
+    // The build opens one around its render; the page's value is there before any effect could run.
+    beginJsonLdCapture();
+    render(<Page title="Contact" jsonLd={node} />).unmount();
+    expect(endJsonLdCapture()).toEqual([node]);
   });
 });
