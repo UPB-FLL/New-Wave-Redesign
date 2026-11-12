@@ -102,7 +102,7 @@ describe('priceListWarning', () => {
     const changed = [...priceList.map((unit) => (unit.name === 'Computers' ? priced('Computers', 11000) : unit)), priced('Backup storage', 2000)];
     expect(priceListWarning(changed)).toBe(
       [
-        'prerender: src/lib/publishedRates.ts differs from the price list (pricing_units), so /pricing shows its table without the prose sentence:',
+        'prerender: src/lib/publishedRates.ts differs from the price list (pricing_units), so /pricing shows its table without the sentences that state a rate, and every other page that quotes a rate still shows the old figure until publishedRates.ts is updated:',
         '  - "Computers" is $105 in publishedRates.ts and $110 on the price list.',
         '  - "Backup storage" ($20) is on the price list and not in publishedRates.ts.',
       ].join('\n'),

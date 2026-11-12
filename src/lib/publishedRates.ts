@@ -4,7 +4,7 @@
 // admin. A sentence cannot read a table, so pages that state a price in prose
 // take it from PUBLISHED_RATES, and ratesDiffer() names every place the
 // constant and the table no longer agree: the build warns with that list, and
-// /pricing drops its prose sentence until they agree again (its table is
+// /pricing drops the sentences that state a rate until they agree again (its table is
 // always the table's own rows). Pure data, no React or DOM: vite.config.ts
 // imports it at build time.
 

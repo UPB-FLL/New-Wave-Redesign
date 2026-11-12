@@ -16,7 +16,7 @@ export type PriceListUnit = PricedUnit & { description?: string };
  * One Offer per row, sold by the business the shell declares (#business).
  * Each price is for one unit for one month: the UnitPriceSpecification gives
  * the month (unitCode MON) and referenceQuantity says what one unit is. No
- * totals, ratings or reviews. A page without rows passes no node at all.
+ * totals, ratings or reviews. A page without rows passes no catalog (/pricing still passes its FAQPage).
  */
 export function priceListJsonLd(units: readonly PriceListUnit[]): Record<string, unknown> {
   return {

@@ -47,6 +47,14 @@ const cells = (html: string) =>
 const headingLevels = (html: string) => [...html.matchAll(/<h([1-6])\b/g)].map(([, level]) => Number(level));
 
 type Node = Record<string, unknown>;
+const types = (nodes: object[] | null) => ((nodes ?? []) as Node[]).map((node) => node['@type']);
+/** The questions and answers of the FAQ band in the static HTML, in order. */
+const shownFaq = (html: string) => {
+  const band = decoded(main(html)).split(/<h2\b/).find((part) => part.includes('>Pricing questions</h2>')) ?? '';
+  return [...band.matchAll(/<h3[^>]*>([\s\S]*?)<\/h3><p[^>]*>([\s\S]*?)<\/p>/g)].map(([, question, answer]) => [question, answer]);
+};
+const markedFaq = (nodes: object[] | null) =>
+  ((((nodes ?? []) as Node[]).find((node) => node['@type'] === 'FAQPage')?.mainEntity as Node[] | undefined) ?? []).map((entry) => [entry.name, (entry.acceptedAnswer as Node).text]);
 
 describe('/pricing in the build-time render, with the price list', () => {
   const page = renderItPage('/pricing', null, PRICE_LIST);
@@ -98,7 +106,7 @@ describe('/pricing in the build-time render, with the price list', () => {
   });
 
   it('hands the build one Offer per unit, with the table’s prices', () => {
-    expect(page.jsonLd).toHaveLength(1);
+    expect(types(page.jsonLd)).toEqual(['OfferCatalog', 'FAQPage']);
     const [catalog] = page.jsonLd as Node[];
     expect(catalog['@type']).toBe('OfferCatalog');
     const offers = catalog.itemListElement as Node[];
@@ -115,6 +123,24 @@ describe('/pricing in the build-time render, with the price list', () => {
       expect(offer.seller).toEqual({ '@id': 'https://www.newwaveitfl.com/#business' });
     }
     expect(JSON.stringify(page.jsonLd)).not.toMatch(/AggregateRating|Review|"Product"/);
+  });
+
+  it('shows seven questions after the builder and before the contact form, and marks up exactly those', () => {
+    const body = main(html);
+    expect(body.indexOf('Tell us about your organization')).toBeLessThan(body.indexOf('>Pricing questions</h2>'));
+    expect(body.indexOf('>Pricing questions</h2>')).toBeLessThan(body.indexOf('data-contact-section'));
+    const shown = shownFaq(html);
+    expect(shown).toHaveLength(7);
+    expect(markedFaq(page.jsonLd)).toEqual(shown);
+    for (const [question, answer] of shown) {
+      expect(question.endsWith('?'), question).toBe(true);
+      const words = answer.split(/\s+/).length;
+      expect(words, question).toBeGreaterThanOrEqual(40);
+      expect(words, question).toBeLessThanOrEqual(90);
+    }
+    // The rates sentence stays the answer paragraph's: the questions restate rates in their own words.
+    expect(decoded(body).split(ratesSentence())).toHaveLength(2);
+    expect(JSON.stringify(shown)).toContain('$32 per account for licensing only');
   });
 
   it('puts those offers in the raw HTML’s #page-jsonld block', () => {
@@ -134,6 +160,10 @@ describe('/pricing in the build-time render, with the price list', () => {
     expect(body).toContain(QUESTION);
     expect(body).not.toContain('published monthly rates are');
     expect(body).not.toContain('$105 per computer');
+    // The questions that state a rate go with the prose sentence; the rest stay, and the markup follows.
+    expect(shownFaq(next.bodyHtml)).toHaveLength(4);
+    expect(JSON.stringify(shownFaq(next.bodyHtml))).not.toMatch(/\$\d/);
+    expect(markedFaq(next.jsonLd)).toEqual(shownFaq(next.bodyHtml));
     expect(cells(body)[2]).toEqual(['Computers', 'Cost per computer/device', '$110']);
     const offers = (next.jsonLd as Node[])[0].itemListElement as Node[];
     expect(offers[2].price).toBe(110);
@@ -150,7 +180,11 @@ describe('/pricing in the build-time render, without the price list', () => {
     expect(page.bodyHtml).not.toContain(QUESTION);
     expect(page.bodyHtml).not.toContain(NOT_CONFIGURED);
     expect(page.bodyHtml).not.toMatch(/\$\d/);
-    expect(page.jsonLd).toBeNull();
+    // No offers without a price list; the questions that state no rate are shown and marked up alone.
+    expect(types(page.jsonLd)).toEqual(['FAQPage']);
+    expect(shownFaq(page.bodyHtml)).toHaveLength(4);
+    expect(markedFaq(page.jsonLd)).toEqual(shownFaq(page.bodyHtml));
+    expect(JSON.stringify(page.jsonLd)).not.toMatch(/\$\d/);
     expect(page.bodyHtml.match(/<h1\b/g)).toHaveLength(1);
     expect(text(page.bodyHtml).split(' ').filter(Boolean).length).toBeGreaterThan(100);
   });
@@ -160,7 +194,7 @@ describe('the price-list seed', () => {
   it('lasts for one render only', () => {
     expect(renderItBody('/pricing', null, PRICE_LIST)).toContain('<table');
     expect(renderItBody('/pricing')).not.toContain('<table');
-    expect(renderItPage('/pricing').jsonLd).toBeNull();
+    expect(types(renderItPage('/pricing').jsonLd)).toEqual(['FAQPage']);
   });
 
   it('changes no other page', () => {

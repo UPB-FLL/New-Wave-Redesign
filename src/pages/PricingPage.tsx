@@ -52,7 +52,7 @@ const QUOTE_FAQS: FaqItem[] = [
   {
     question: "Are New Wave IT's rates the same for every business?",
     answer:
-      "New Wave IT's published rates are per unit, per month, and each written quote is built from them. " +
+      "New Wave IT's published rates are per unit, per month, and a written quote is built from them. " +
       'The monthly amount on a quote depends on how many computers or devices, employees or user accounts, managed servers and locations a business has.',
   },
   {
@@ -67,7 +67,7 @@ const QUOTE_FAQS: FaqItem[] = [
     answer:
       'No. New Wave IT does not require a long-term contract. ' +
       'Its pricing is flat and monthly, built from published rates per computer or device, employee or user account, managed server and location. ' +
-      'The free IT assessment is the time to ask about terms, before a quote is accepted.',
+      'A free IT assessment comes first, then a written quote built from those rates.',
   },
   {
     question: 'How do I get a quote from New Wave IT?',

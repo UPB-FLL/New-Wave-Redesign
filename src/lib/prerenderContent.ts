@@ -51,8 +51,11 @@ export async function readPricingUnitsForBuild(options: CmsReadOptions): Promise
  * What the build says about the price list it read, or null when there is
  * nothing to say. None of these fails a deploy: without rows /pricing renders
  * with no price table (never a line saying the list is empty), and when a
- * price changed in the admin, /pricing shows its table without the prose
- * sentence until src/lib/publishedRates.ts follows. The differences are named
+ * price changed in the admin, /pricing shows its table without the sentences
+ * that state a rate (the answer paragraph and the three questions that quote
+ * one) until src/lib/publishedRates.ts follows. The local and service pages
+ * cannot see the table and quote the constant, so they keep the old figure
+ * until then: the warning says so. The differences are named
  * so the change is noticed at the next deploy.
  */
 export function priceListWarning(units: readonly PricingUnit[] | null): string | null {
@@ -61,7 +64,7 @@ export function priceListWarning(units: readonly PricingUnit[] | null): string |
   const differences = ratesDiffer(units);
   if (!differences.length) return null;
   return [
-    'prerender: src/lib/publishedRates.ts differs from the price list (pricing_units), so /pricing shows its table without the prose sentence:',
+    'prerender: src/lib/publishedRates.ts differs from the price list (pricing_units), so /pricing shows its table without the sentences that state a rate, and every other page that quotes a rate still shows the old figure until publishedRates.ts is updated:',
     ...differences.map((difference) => `  - ${difference}`),
   ].join('\n');
 }

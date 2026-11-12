@@ -65,6 +65,15 @@ function renderLoading() {
 }
 
 const runtimeNodes = () => JSON.parse(document.head.querySelector(RUNTIME_BLOCK)?.textContent ?? 'null') as JsonNode[] | null;
+const types = (nodes: JsonNode[] | null) => (nodes ?? []).map((node) => node['@type']);
+/** The questions and answers the FAQ band shows, in order. */
+const shownFaq = (root: ParentNode) => {
+  const band = [...root.querySelectorAll('main section')].find((section) => section.querySelector('h2')?.textContent === 'Pricing questions');
+  return [...(band?.querySelectorAll('h3') ?? [])].map((question) => [question.textContent, question.nextElementSibling?.textContent]);
+};
+/** The questions and answers a FAQPage node marks up. */
+const markedFaq = (nodes: JsonNode[] | null) =>
+  (((nodes ?? []).find((node) => node['@type'] === 'FAQPage')?.mainEntity as JsonNode[] | undefined) ?? []).map((entry) => [entry.name, (entry.acceptedAnswer as JsonNode).text]);
 
 beforeAll(() => {
   vi.stubGlobal('IntersectionObserver', class { observe() {} unobserve() {} disconnect() {} });
@@ -87,7 +96,11 @@ describe('PricingPage', () => {
     expect(container.querySelector('table')).toBeNull();
     expect(screen.queryByText(NOT_CONFIGURED)).toBeNull();
     expect(screen.queryByText('Select your options')).toBeNull();
-    expect(document.head.querySelector(RUNTIME_BLOCK)).toBeNull();
+    // The questions that state no rate are there from the first render, marked up alone.
+    expect(shownFaq(container)).toHaveLength(4);
+    expect(container.querySelector('main')?.textContent).not.toMatch(/\$\d/);
+    expect(types(runtimeNodes())).toEqual(['FAQPage']);
+    expect(markedFaq(runtimeNodes())).toEqual(shownFaq(container));
     await finish({ data: [], error: null });
   });
 
@@ -114,6 +127,14 @@ describe('PricingPage', () => {
     expect(main.querySelector('table')!.compareDocumentPosition(builder) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Increase Employees quantity' })).toBeInTheDocument();
     expect(screen.queryByText(NOT_CONFIGURED)).toBeNull();
+    // The questions follow the builder and come before the contact form; seven with the rates on the page.
+    const faqTitle = screen.getByRole('heading', { name: 'Pricing questions' });
+    expect(builder.compareDocumentPosition(faqTitle) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(faqTitle.compareDocumentPosition(main.querySelector('[data-contact-section]')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(shownFaq(container)).toHaveLength(7);
+    expect(types(runtimeNodes())).toEqual(['OfferCatalog', 'FAQPage']);
+    expect(markedFaq(runtimeNodes())).toEqual(shownFaq(container));
+    expect(shownFaq(container)[0][1]).toMatch(/\$105 per computer or device, \$5 per employee or user account and \$175 per managed server/);
   });
 
   it('keeps the page layout rules with the price list on it', async () => {
@@ -163,9 +184,10 @@ describe('PricingPage', () => {
     expect(document.getElementById(PAGE_JSONLD_ELEMENT_ID)).not.toBeNull();
 
     const { finish, unmount } = renderLoading();
-    // Until the list is read the build's block stands: the page has nothing newer to say.
-    expect(document.getElementById(PAGE_JSONLD_ELEMENT_ID)).not.toBeNull();
-    expect(document.head.querySelector(RUNTIME_BLOCK)).toBeNull();
+    // Until the list is read the page marks up what it shows: the questions that state no rate.
+    expect(document.getElementById(PAGE_JSONLD_ELEMENT_ID)).toBeNull();
+    expect(types(runtimeNodes())).toEqual(['FAQPage']);
+    expect(document.head.querySelectorAll('script[type="application/ld+json"]')).toHaveLength(3);
 
     await finish({ data: PRICE_LIST, error: null });
     expect(document.getElementById(PAGE_JSONLD_ELEMENT_ID)).toBeNull();
@@ -182,7 +204,9 @@ describe('PricingPage', () => {
     expect(screen.getByText(NOT_CONFIGURED)).toBeInTheDocument();
     expect(container.querySelector('table')).toBeNull();
     expect(container.textContent).not.toContain('How much do managed IT services cost?');
-    expect(document.head.querySelector(RUNTIME_BLOCK)).toBeNull();
+    expect(types(runtimeNodes())).toEqual(['FAQPage']);
+    expect(markedFaq(runtimeNodes())).toEqual(shownFaq(container));
+    expect(container.querySelector('main')?.textContent).not.toMatch(/\$\d/);
   });
 
   it('shows the table without the prose sentence when a price differs from the published rates', async () => {
@@ -193,5 +217,9 @@ describe('PricingPage', () => {
     expect(question?.nextElementSibling).toBeNull();
     expect(container.querySelector('main table')?.textContent).toContain('$115');
     expect(container.querySelector('main')?.textContent).not.toContain('$105 per computer');
+    expect(shownFaq(container)).toHaveLength(4);
+    expect(JSON.stringify(shownFaq(container))).not.toMatch(/\$\d/);
+    expect(types(runtimeNodes())).toEqual(['OfferCatalog', 'FAQPage']);
+    expect(markedFaq(runtimeNodes())).toEqual(shownFaq(container));
   });
 });
