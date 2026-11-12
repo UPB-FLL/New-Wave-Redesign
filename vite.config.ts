@@ -8,7 +8,7 @@ import { divisionPageModule, preloadTagsFor, type BundleChunk } from './src/divi
 import { renderDivisionPageHtml } from './src/divisions/socialEngineering/prerender';
 import { allDivisionPages } from './src/divisions/socialEngineering/seo';
 import { DIVISION_PUBLISHED } from './src/divisions/socialEngineering/site';
-import { readCmsContentForBuild } from './src/lib/prerenderContent';
+import { priceListWarning, readCmsContentForBuild, readPricingUnitsForBuild } from './src/lib/prerenderContent';
 import { renderRouteHtml, type RouteRenderOptions } from './src/lib/prerenderHead';
 import { HOME_PAGE_META, prerenderedItRoutes } from './src/lib/routeMeta';
 
@@ -28,12 +28,13 @@ export const SHELL_FILE = '_shell.html';
  * src/lib/routeMeta.ts; division pages also get their own JSON-LD, icons, and
  * preload links. Every New Wave IT route, the homepage (dist/index.html
  * itself, the empty shell moving to SHELL_FILE) and GroundSwell's public pages
- * also render their actual React content into #root, with the CMS copy read
- * at build time, so reading a page does not require JavaScript. The same
- * render hands back the JSON-LD each New Wave IT page passes to usePageMeta
- * (Service, FAQPage, Article, the homepage's WebPage), which goes into the
- * head as the #page-jsonld block the app takes over. vercel.json rewrites
- * each route to its file; the data-driven routes get the shell.
+ * also render their actual React content into #root, with the CMS copy and
+ * the price list read at build time, so reading a page does not require
+ * JavaScript. The same render hands back the JSON-LD each New Wave IT page
+ * passes to usePageMeta (Service, FAQPage, Article, the homepage's WebPage,
+ * the price list's OfferCatalog), which goes into the head as the
+ * #page-jsonld block the app takes over. vercel.json rewrites each route to
+ * its file; the data-driven routes get the shell.
  */
 function prerenderPages(): Plugin {
   return {
@@ -50,11 +51,18 @@ function prerenderPages(): Plugin {
       // The page components read the CMS through useContent; the build seeds
       // them with the saved rows so the static copy is what visitors see.
       const env = loadEnv('production', process.cwd(), 'VITE_');
-      const cmsContent = await readCmsContentForBuild({
+      const supabase = {
         url: process.env.VITE_SUPABASE_URL ?? env.VITE_SUPABASE_URL,
         key: process.env.VITE_SUPABASE_ANON_KEY ?? env.VITE_SUPABASE_ANON_KEY,
-      });
+      };
+      const cmsContent = await readCmsContentForBuild(supabase);
       if (!cmsContent) console.warn('prerender: no Supabase credentials; page bodies carry the code fallbacks, not the CMS copy.');
+      // The price list (pricing_units) is read the same way, so /pricing's
+      // static HTML carries the price table and its Offer nodes. A missing
+      // list, or one whose prices no longer match the copy's, is a warning.
+      const pricingUnits = await readPricingUnitsForBuild(supabase);
+      const priceWarning = priceListWarning(pricingUnits);
+      if (priceWarning) console.warn(priceWarning);
       // Pages are rendered with React through an isolated loader, which avoids
       // importing browser entrypoints, credentials, or app APIs.
       const renderer = await createServer({
@@ -75,7 +83,7 @@ function prerenderPages(): Plugin {
         const { isPrerenderedItPath, renderItPage } = await renderer.ssrLoadModule('/src/lib/prerenderBody.tsx');
         // The page's body and the JSON-LD it passes to usePageMeta; nothing for a route that keeps the shell.
         const itPage = (routePath: string): RouteRenderOptions =>
-          isPrerenderedItPath(routePath) ? (renderItPage(routePath, cmsContent) as RouteRenderOptions) : {};
+          isPrerenderedItPath(routePath) ? (renderItPage(routePath, cmsContent, pricingUnits) as RouteRenderOptions) : {};
         for (const route of prerenderedItRoutes()) {
           write(route.path, renderRouteHtml(shell, route.path, route.meta, itPage(route.path)));
         }

@@ -36,6 +36,7 @@ import TermsAndConditionsPage from '../pages/TermsAndConditionsPage';
 import WhyUsPage from '../pages/WhyUsPage';
 import { seedContentCache, type ContentMap } from './content';
 import { beginJsonLdCapture, endJsonLdCapture } from './jsonLdCapture';
+import { seedPricingUnits, type PricingUnit } from './pricingUnits';
 import { HOME_PAGE_JSON_LD, HOME_PAGE_META } from './routeMeta';
 import { serviceGuidePath } from './serviceGuides';
 import { usePageMeta } from './usePageMeta';
@@ -111,13 +112,20 @@ export function isPrerenderedItPath(pagePath: string): boolean {
  * that URL, so the static HTML carries the page's own copy, links and FAQs.
  * `content` is the CMS read at build time (section → key → value); the hooks
  * start from it, as they would from a warm cache in the browser. Without it
- * every component renders its code fallback.
+ * every component renders its code fallback. `pricingUnits` is the price list
+ * read the same way (the pricing_units rows); /pricing renders its table from
+ * it, and without it renders no prices at all.
  */
-export function renderItBody(pagePath: string, content: Record<string, ContentMap> | null = null): string {
+export function renderItBody(
+  pagePath: string,
+  content: Record<string, ContentMap> | null = null,
+  pricingUnits: readonly PricingUnit[] | null = null,
+): string {
   const pattern = routePattern(pagePath);
   if (!pattern) throw new Error(`No New Wave IT body is rendered for ${pagePath}.`);
   const element = pattern === GUIDE_PATTERN ? <ServiceGuidePage /> : IT_ROUTE_ELEMENTS[pattern];
   seedContentCache(content);
+  seedPricingUnits(pricingUnits);
   try {
     return renderToString(
       <StaticRouter location={pagePath}>
@@ -128,6 +136,7 @@ export function renderItBody(pagePath: string, content: Record<string, ContentMa
     );
   } finally {
     seedContentCache(null);
+    seedPricingUnits(null);
   }
 }
 
@@ -145,10 +154,14 @@ export interface RenderedItPage {
  * Article node is captured while it renders (src/lib/jsonLdCapture.ts) and
  * goes into the raw HTML beside the body.
  */
-export function renderItPage(pagePath: string, content: Record<string, ContentMap> | null = null): RenderedItPage {
+export function renderItPage(
+  pagePath: string,
+  content: Record<string, ContentMap> | null = null,
+  pricingUnits: readonly PricingUnit[] | null = null,
+): RenderedItPage {
   beginJsonLdCapture();
   try {
-    const bodyHtml = renderItBody(pagePath, content);
+    const bodyHtml = renderItBody(pagePath, content, pricingUnits);
     return { bodyHtml, jsonLd: endJsonLdCapture() };
   } finally {
     // A page that throws must not leave its capture open for the next render.
