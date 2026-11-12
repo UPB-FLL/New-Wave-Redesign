@@ -1,6 +1,5 @@
 import { AlertTriangle, BarChart3, Eye, Lock, Shield, Users } from 'lucide-react';
 import { ServiceCategoryPage, type FaqItem, type ServiceCategoryPageData } from '../components/brand/ServiceCategoryPage';
-import { PUBLISHED_RATES } from '../lib/publishedRates';
 import { IT_PAGE_META } from '../lib/routeMeta';
 import { servicePageJsonLd } from '../lib/serviceSchema';
 import { usePageMeta } from '../lib/usePageMeta';
@@ -11,8 +10,8 @@ const OFFICE_ADDRESS = '710 NW 5th Ave, Suite 1072, Fort Lauderdale, FL 33311';
 const PHONE = '(561) 564-1846';
 
 // One list for the page and for its FAQPage node, so the markup states exactly what is shown.
-// Cybersecurity has no line of its own on the price list, so the cost answer names the
-// units a quote is built from (read from the published rates) and no figure.
+// Cybersecurity has no line of its own on the price list, and nothing says which published
+// rate covers it, so the cost answer gives no figure and no unit: the price is a written quote.
 const faqs: FaqItem[] = [
   {
     question: 'What does a managed service provider (MSP) do for cybersecurity?',
@@ -27,8 +26,7 @@ const faqs: FaqItem[] = [
   {
     question: 'How much do cybersecurity services cost?',
     answer:
-      "New Wave IT does not publish one price for cybersecurity by itself. A written quote is built from New Wave IT's published monthly rates and from what a security assessment of the business finds. " +
-      `The published rates are per unit, such as per ${PUBLISHED_RATES.computer.per} and per ${PUBLISHED_RATES.server.per}, and the full price list is on the pricing page.`,
+      "New Wave IT does not publish one price for cybersecurity by itself. Cybersecurity is priced in a written quote after a security assessment of the business. New Wave IT's published monthly rates are listed on the pricing page.",
   },
   {
     question: 'Which areas does New Wave IT serve, and is cybersecurity work done remotely or on site?',
@@ -43,7 +41,7 @@ const faqs: FaqItem[] = [
   },
   {
     question: "How does a business get started with New Wave IT's cybersecurity service?",
-    answer: `The first step is a security assessment, which identifies vulnerabilities and leads to a practical security roadmap. New Wave IT then provides a written quote built from its published rates, followed by onboarding. To schedule an assessment, use the contact page or call ${PHONE}.`,
+    answer: `The first step is a security assessment, which identifies vulnerabilities and leads to a practical security roadmap. New Wave IT then provides a written quote, followed by onboarding. To schedule an assessment, use the contact page or call ${PHONE}.`,
   },
 ];
 
@@ -56,12 +54,12 @@ const service: ServiceCategoryPageData = {
   overviewTitle: 'What cybersecurity services does a small business need from an IT provider?',
   details:
     'A small business generally needs its IT provider to cover a short list of security work: protection on its computers and servers, threat monitoring with a plan for responding to incidents, regular testing for weaknesses, a network split into separate zones, security awareness training for employees, and help with the regulations and standards that apply to its data. ' +
-    "New Wave IT's cybersecurity program covers each item on that list. It provides threat monitoring, advanced detection capabilities and response protocols designed to protect the way an organization works, delivered by New Wave IT's certified engineers from Fort Lauderdale, Florida.",
+    'New Wave IT, an IT company in Fort Lauderdale, Florida, covers each item on that list in its cybersecurity program. The program provides threat monitoring, advanced detection capabilities and response protocols designed to protect the way an organization works.',
   overviewBody: [
     `New Wave IT is a managed IT services provider (MSP) founded in 2022, with a staffed office at ${OFFICE_ADDRESS}. ` +
       'From that office it provides cybersecurity services to businesses in Broward, Miami-Dade and Palm Beach counties by remote support and on-site visits. ' +
       'The tools its team runs include SentinelOne and Huntress, and New Wave IT is a Huntress partner. ' +
-      "Cybersecurity has no single published price: it is quoted in writing from New Wave IT's published monthly rates and a security assessment of the business. " +
+      'Cybersecurity has no single published price: it is priced in a written quote after a security assessment of the business. ' +
       'Office hours are Monday to Friday, 8am to 6pm, and New Wave IT keeps a 24/7 emergency line.',
   ],
   highlights: ['24/7 SOC monitoring', 'Zero-trust architecture', 'Advanced threat detection & behavioral analysis', 'Comprehensive vulnerability assessment & penetration testing', 'Regulatory compliance management', 'Incident response & forensic investigation', 'Employee security awareness training', 'Multi-layer endpoint & network protection'],
@@ -107,7 +105,7 @@ const service: ServiceCategoryPageData = {
   relatedLinks: [
     { label: 'South Florida service areas', href: '/managed-it-services-south-florida', description: 'The three counties New Wave IT serves and the page for each area.' },
     { label: 'Managed IT services in Fort Lauderdale', href: '/managed-it-services-fort-lauderdale', description: 'Monitoring, patching, backup and endpoint protection for Fort Lauderdale and Broward County businesses.' },
-    { label: 'Pricing', href: '/pricing', description: 'The published monthly rates that a written quote is built from.' },
+    { label: 'Pricing', href: '/pricing', description: "New Wave IT's published monthly rates and a quote builder." },
     { label: 'Complete cybersecurity guide', href: '/l/cybersecurity-guide', description: 'A longer read on building a layered security program.' },
   ],
   relatedTitle: 'Areas served, pricing and the cybersecurity guide',

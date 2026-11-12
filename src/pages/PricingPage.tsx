@@ -36,7 +36,7 @@ const RATE_FAQS: FaqItem[] = [
     answer:
       `Both. New Wave IT prices by device and by user: ${rate('computer')} and ${rate('user')}, each per month. ` +
       'Per-device pricing counts the computers and devices under management, and per-user pricing counts the people or accounts that use them. ' +
-      'A written quote from New Wave IT is built from both counts, along with the number of managed servers and locations.',
+      'A written quote from New Wave IT counts both.',
   },
   {
     question: "Is Microsoft 365 licensing on New Wave IT's price list?",
@@ -47,7 +47,7 @@ const RATE_FAQS: FaqItem[] = [
   },
 ];
 
-// The questions that state no figure, so they hold whatever the price list says.
+// The questions that state no rate, so they hold whatever the price list says.
 const QUOTE_FAQS: FaqItem[] = [
   {
     question: "Are New Wave IT's rates the same for every business?",
@@ -59,7 +59,7 @@ const QUOTE_FAQS: FaqItem[] = [
     question: 'What does a quote from New Wave IT look like?',
     answer:
       'A quote from New Wave IT is a written document that states a flat monthly price. ' +
-      'It is built from the published per-unit rates and the number of each unit a business has, and it is prepared after a free IT assessment. ' +
+      'It is built from the published per-unit rates and how many of each unit a business has, and it is prepared after a free IT assessment. ' +
       'The monthly figure is known before onboarding starts.',
   },
   {
