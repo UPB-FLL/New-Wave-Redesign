@@ -7,8 +7,10 @@
 // renders, and the prerender writes that into the raw HTML. No capture is
 // ever open in a browser, so captureJsonLd does nothing there. Same pattern
 // as seedContentCache in content.ts. No React or DOM access in this module.
-
-export type JsonLd = object | object[];
+//
+// begin and end must be called from the module graph the pages render in
+// (renderItPage does): the build loads that graph through Vite's SSR loader,
+// and vite.config.ts importing this file would get a different copy of it.
 
 /** Null outside a build render. `nodes` stays null until a component passes JSON-LD. */
 let capture: { nodes: object[] | null } | null = null;
@@ -24,9 +26,11 @@ export function beginJsonLdCapture(): void {
  * children, so the first component to pass JSON-LD is the outermost one, the
  * page itself, and a nested component cannot replace the page's graph. A call
  * without JSON-LD (a layout that only sets a title, or an empty array) claims
- * nothing.
+ * nothing. No page nests calls today; if one does, the hydrated head carries
+ * both blocks (each usePageMeta call appends its own) and the raw HTML the
+ * page's only.
  */
-export function captureJsonLd(jsonLd: JsonLd | null | undefined): void {
+export function captureJsonLd(jsonLd: object | object[] | null | undefined): void {
   if (!capture || capture.nodes || !jsonLd) return;
   // A copy, so the caller's array is never the one handed to the build.
   const nodes = Array.isArray(jsonLd) ? [...jsonLd] : [jsonLd];
