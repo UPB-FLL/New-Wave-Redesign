@@ -54,6 +54,13 @@ export const LINKABLE_PAGES: readonly (SiteLink & { about: string })[] = [
   { path: '/l/it-support-guide', label: 'IT Support Excellence Guide', about: 'guide to IT support' },
   { path: '/pricing', label: 'IT services pricing', about: 'flat-rate pricing and quotes' },
   { path: '/contact', label: 'free IT assessment', about: 'contact New Wave IT for a free IT assessment' },
+  // The local pages. The office is in Fort Lauderdale; the other areas are served from it.
+  { path: '/it-support-fort-lauderdale', label: 'IT support in Fort Lauderdale', about: 'IT support and help desk for Fort Lauderdale and Broward County businesses' },
+  { path: '/managed-it-services-fort-lauderdale', label: 'managed IT services in Fort Lauderdale', about: 'managed IT services for Fort Lauderdale businesses at published monthly rates' },
+  { path: '/managed-it-services-miami', label: 'managed IT services in Miami', about: 'managed IT services and IT support for Miami and Miami-Dade County businesses, served from the Fort Lauderdale office' },
+  { path: '/it-support-boca-raton', label: 'IT support in Boca Raton', about: 'IT support and managed IT services for Boca Raton and south Palm Beach County businesses, served from the Fort Lauderdale office' },
+  { path: '/managed-it-services-west-palm-beach', label: 'managed IT services in West Palm Beach', about: 'managed IT services and IT support for West Palm Beach and Palm Beach County businesses, served from the Fort Lauderdale office' },
+  { path: '/managed-it-services-south-florida', label: 'South Florida service areas', about: 'the areas New Wave IT serves: Broward, Miami-Dade and Palm Beach counties' },
 ];
 
 const LINKABLE = new Set(LINKABLE_PAGES.map((page) => page.path));
@@ -89,11 +96,15 @@ function demoteHeadings(markdown: string): string {
 
 const clean = (markdown: string) => demoteHeadings(sanitizeLinks(markdown.trim()));
 
+/** The service-area hub: every post's closing line links it, so each post leads to the local pages. */
+export const SERVICE_AREAS_PATH = '/managed-it-services-south-florida';
+
 export function internalLinkLine(category: string): string {
   const links = CATEGORY_LINKS[category] ?? CATEGORY_LINKS['Managed IT Services'];
   return (
     `**Next steps:** explore our [${links.service.label}](${links.service.path}), ` +
-    `read the [${links.guide.label}](${links.guide.path}), or [book a free IT assessment](/contact) with our Fort Lauderdale team.`
+    `read the [${links.guide.label}](${links.guide.path}), or [book a free IT assessment](/contact) with our Fort Lauderdale team. ` +
+    `We work with businesses across [South Florida](${SERVICE_AREAS_PATH}).`
   );
 }
 

@@ -7,9 +7,11 @@ import {
   CATEGORY_LINKS,
   countWords,
   findStatistics,
+  internalLinkLine,
   LINKABLE_PAGES,
   reviewDraft,
   sanitizeLinks,
+  SERVICE_AREAS_PATH,
   shortenSlug,
 } from '../../../api/_lib/blogQuality';
 import { goodDraft, prose } from './blogDraftFixture';
@@ -49,7 +51,7 @@ describe('sanitizeLinks', () => {
 });
 
 describe('assembleContent', () => {
-  it('writes intro, H2 sections, FAQ, conclusion, and three internal links, with no H1', () => {
+  it('writes intro, H2 sections, FAQ, conclusion, and four internal links, with no H1', () => {
     const draft = goodDraft({ sections: [...goodDraft().sections.slice(0, 4), { heading: 'Rogue headings', body: '# Big\n## Medium\nText.' }] });
     const content = assembleContent(draft, 'Backup & Disaster Recovery');
 
@@ -59,7 +61,7 @@ describe('assembleContent', () => {
     expect(content).toMatch(/^## Frequently asked questions$/m);
     expect(content.match(/^### How often should backups run\?$/m)).not.toBeNull();
     expect(content.trim().split('\n').pop()).toBe(
-      '**Next steps:** explore our [managed backup and disaster recovery](/service-category/managed-it-services), read the [Managed IT Services Strategy Guide](/l/managed-it-guide), or [book a free IT assessment](/contact) with our Fort Lauderdale team.',
+      '**Next steps:** explore our [managed backup and disaster recovery](/service-category/managed-it-services), read the [Managed IT Services Strategy Guide](/l/managed-it-guide), or [book a free IT assessment](/contact) with our Fort Lauderdale team. We work with businesses across [South Florida](/managed-it-services-south-florida).',
     );
   });
 });
@@ -193,6 +195,40 @@ describe('site links', () => {
       expect(realPaths.has(service.path), service.path).toBe(true);
       expect(realPaths.has(guide.path), guide.path).toBe(true);
     });
+  });
+
+  it('lists the six local pages, so a post may link them', () => {
+    const paths = LINKABLE_PAGES.map((page) => page.path);
+    expect(new Set(paths).size).toBe(paths.length);
+    expect(paths).toEqual(expect.arrayContaining([
+      '/it-support-fort-lauderdale',
+      '/managed-it-services-fort-lauderdale',
+      '/managed-it-services-miami',
+      '/it-support-boca-raton',
+      '/managed-it-services-west-palm-beach',
+      SERVICE_AREAS_PATH,
+    ]));
+    // Each one tells the model what the page is; none of them claims an office outside Fort Lauderdale.
+    LINKABLE_PAGES.forEach((page) => {
+      expect(page.label.trim(), page.path).not.toBe('');
+      expect(page.about.trim(), page.path).not.toBe('');
+    });
+    for (const page of LINKABLE_PAGES.filter(({ path: pagePath }) => /miami|boca-raton|west-palm-beach/.test(pagePath))) {
+      expect(page.about, page.path).toContain('served from the Fort Lauderdale office');
+    }
+  });
+
+  it('ends every post with links that survive the link filter, the service-area hub last', () => {
+    for (const category of [...BLOG_CATEGORIES, 'A category nobody listed']) {
+      const line = internalLinkLine(category);
+      const hrefs = [...line.matchAll(/\]\(([^)]+)\)/g)].map((match) => match[1]);
+      expect(hrefs, category).toHaveLength(4);
+      hrefs.forEach((href) => expect(realPaths.has(href), `${category}: ${href}`).toBe(true));
+      expect(hrefs[hrefs.length - 1]).toBe(SERVICE_AREAS_PATH);
+      // sanitizeLinks unlinks anything outside LINKABLE_PAGES, so the line must pass through it unchanged.
+      expect(sanitizeLinks(line)).toBe(line);
+      expect(line.endsWith(`We work with businesses across [South Florida](${SERVICE_AREAS_PATH}).`)).toBe(true);
+    }
   });
 
   it('covers every blog category', () => {
