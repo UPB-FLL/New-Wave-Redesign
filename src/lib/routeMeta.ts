@@ -71,7 +71,7 @@ export const IT_PAGE_META = withBreadcrumbs({
   '/pricing': {
     title: 'Managed IT Services Pricing — Published Monthly Rates',
     // The three rates come from publishedRates.ts, so a price change is one edit there.
-    description: `How much do managed IT services cost? New Wave IT publishes its monthly rates: ${usd(PUBLISHED_RATES.computer.dollars)} per computer, ${usd(PUBLISHED_RATES.user.dollars)} per user and ${usd(PUBLISHED_RATES.server.dollars)} per server. Build a quote in seconds.`,
+    description: `How much do managed IT services cost? New Wave IT publishes its monthly rates: ${usd(PUBLISHED_RATES.computer.dollars)} per computer, ${usd(PUBLISHED_RATES.user.dollars)} per user and ${usd(PUBLISHED_RATES.server.dollars)} per server. Estimate your monthly cost.`,
     keywords: 'IT services pricing Fort Lauderdale, managed IT cost South Florida, flat-rate IT services, MSP pricing, IT support cost, how much managed IT services cost, managed IT services pricing, managed IT services cost',
     canonical: 'https://www.newwaveitfl.com/pricing',
     crumb: 'Pricing',
