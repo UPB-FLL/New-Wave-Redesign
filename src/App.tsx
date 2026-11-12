@@ -58,6 +58,10 @@ import HealthcareServicePage from './pages/HealthcareServicePage';
 import LuxuryServicePage from './pages/LuxuryServicePage';
 import ITSupportFortLauderdalePage from './pages/ITSupportFortLauderdalePage';
 import ManagedITFortLauderdalePage from './pages/ManagedITFortLauderdalePage';
+import ManagedITMiamiPage from './pages/ManagedITMiamiPage';
+import ITSupportBocaRatonPage from './pages/ITSupportBocaRatonPage';
+import ManagedITWestPalmBeachPage from './pages/ManagedITWestPalmBeachPage';
+import SouthFloridaServiceAreasPage from './pages/SouthFloridaServiceAreasPage';
 import CellularDASPublicSafetyServicePage from './pages/CellularDASPublicSafetyServicePage';
 import ServiceGuidePage from './pages/ServiceGuidePage';
 import CodeNestPage from './pages/CodeNestPage';
@@ -186,6 +190,10 @@ export default function App() {
         <Route path="/service-category/healthcare" element={<HealthcareServicePage />} />
         <Route path="/it-support-fort-lauderdale" element={<ITSupportFortLauderdalePage />} />
         <Route path="/managed-it-services-fort-lauderdale" element={<ManagedITFortLauderdalePage />} />
+        <Route path="/managed-it-services-miami" element={<ManagedITMiamiPage />} />
+        <Route path="/it-support-boca-raton" element={<ITSupportBocaRatonPage />} />
+        <Route path="/managed-it-services-west-palm-beach" element={<ManagedITWestPalmBeachPage />} />
+        <Route path="/managed-it-services-south-florida" element={<SouthFloridaServiceAreasPage />} />
         <Route path="/service-category/luxury" element={<LuxuryServicePage />} />
         <Route path="/service-category/cellular-das-and-public-safety" element={<CellularDASPublicSafetyServicePage />} />
         <Route path="/threat/:slug" element={<ThreatDetailPage />} />

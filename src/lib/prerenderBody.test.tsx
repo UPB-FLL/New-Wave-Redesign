@@ -18,7 +18,7 @@ const text = (html: string) => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' '
 describe('renderItBody', () => {
   it('renders every static route but the lazy partner sign-in', () => {
     const paths = prerenderedItRoutes().map((route) => route.path);
-    expect(bodyRoutes).toHaveLength(paths.length); // 32 routes + "/" - "/groundswell"
+    expect(bodyRoutes).toHaveLength(paths.length); // 36 routes + "/" - "/groundswell"
     expect(isPrerenderedItPath('/groundswell')).toBe(false);
     expect(isPrerenderedItPath('/status')).toBe(true);
     expect(isPrerenderedItPath('/service/some-cms-page')).toBe(false);

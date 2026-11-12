@@ -14,6 +14,7 @@
 // /service-category/ sit below Services (itBreadcrumbs).
 
 import { DEFAULT_DESCRIPTION, DEFAULT_KEYWORDS, SITE_URL, type Crumb, type PageMetaOptions } from './pageMeta';
+import { PUBLISHED_RATES, usd } from './publishedRates';
 import { SERVICE_GUIDE_SUMMARIES, serviceGuideMeta, serviceGuidePath } from './serviceGuides';
 
 type StaticPageMeta = Omit<PageMetaOptions, 'jsonLd'>;
@@ -68,9 +69,10 @@ export const IT_PAGE_META = withBreadcrumbs({
     crumb: 'Services',
   },
   '/pricing': {
-    title: 'Managed IT Pricing Fort Lauderdale — Flat-Rate Plans',
-    description: 'Flat-rate IT service pricing for South Florida businesses. Build a custom quote in seconds, with no hidden fees and no long-term contracts.',
-    keywords: 'IT services pricing Fort Lauderdale, managed IT cost South Florida, flat-rate IT services, MSP pricing, IT support cost, how much managed IT services cost',
+    title: 'Managed IT Services Pricing — Published Monthly Rates',
+    // The three rates come from publishedRates.ts, so a price change is one edit there.
+    description: `How much do managed IT services cost? New Wave IT publishes its monthly rates: ${usd(PUBLISHED_RATES.computer.dollars)} per computer, ${usd(PUBLISHED_RATES.user.dollars)} per user and ${usd(PUBLISHED_RATES.server.dollars)} per server. Build a quote in seconds.`,
+    keywords: 'IT services pricing Fort Lauderdale, managed IT cost South Florida, flat-rate IT services, MSP pricing, IT support cost, how much managed IT services cost, managed IT services pricing, managed IT services cost',
     canonical: 'https://www.newwaveitfl.com/pricing',
     crumb: 'Pricing',
   },
@@ -137,8 +139,8 @@ export const IT_PAGE_META = withBreadcrumbs({
     crumb: 'Cybersecurity',
   },
   '/service-category/live-it-support': {
-    title: '24/7 IT Support & Help Desk in Fort Lauderdale',
-    description: 'Round-the-clock IT support for Fort Lauderdale businesses by phone, remote access, and on-site visits. Real technicians from a local team. New Wave IT.',
+    title: '24/7 IT Support & Help Desk in South Florida',
+    description: 'Round-the-clock IT support for South Florida businesses by phone, remote access, and on-site visits. Real technicians from a local team. New Wave IT.',
     keywords: 'IT support Fort Lauderdale, 24/7 IT help desk South Florida, technical support Fort Lauderdale, managed help desk, remote IT support, on-site IT support South Florida, IT support company Fort Lauderdale',
     canonical: 'https://www.newwaveitfl.com/service-category/live-it-support',
     crumb: '24/7 IT Support',
@@ -152,21 +154,51 @@ export const IT_PAGE_META = withBreadcrumbs({
   },
   '/it-support-fort-lauderdale': {
     title: 'IT Support Fort Lauderdale — Local Help Desk & On-Site',
-    description: 'IT support for Fort Lauderdale businesses: 24/7 help desk, remote and on-site support, and flat per-device pricing from a local team. No long-term contracts.',
+    description: 'IT support for Fort Lauderdale and Broward County businesses: help desk, remote and on-site support from a local office. Published rates, no long-term contract.',
     keywords: 'IT support Fort Lauderdale, Fort Lauderdale IT support, IT help desk Fort Lauderdale, on-site IT support Broward, small business IT support Fort Lauderdale',
     canonical: 'https://www.newwaveitfl.com/it-support-fort-lauderdale',
     crumb: 'IT Support Fort Lauderdale',
   },
   '/managed-it-services-fort-lauderdale': {
     title: 'Managed IT Services Fort Lauderdale — Flat-Rate MSP',
-    description: 'Managed IT services in Fort Lauderdale: monitoring, patching, backup, security, and help desk for one flat per-device monthly rate. No long-term contracts.',
+    description: 'Managed IT services in Fort Lauderdale: monitoring, patching, backup, security and help desk at published monthly rates. Local office, no long-term contract.',
     keywords: 'managed IT services Fort Lauderdale, managed service provider Fort Lauderdale, MSP Fort Lauderdale, managed IT Broward, outsourced IT Fort Lauderdale',
     canonical: 'https://www.newwaveitfl.com/managed-it-services-fort-lauderdale',
     crumb: 'Managed IT Services Fort Lauderdale',
   },
+  // Miami-Dade and Palm Beach counties are served from the Fort Lauderdale
+  // office; these pages say so and name no office of their own.
+  '/managed-it-services-miami': {
+    title: 'Managed IT Services & IT Support in Miami, FL',
+    description: "Managed IT services and IT support for Miami and Miami-Dade County businesses from New Wave IT's Fort Lauderdale office. Published rates, no long-term contract.",
+    keywords: 'managed IT services Miami, managed service provider Miami, MSP Miami, IT support Miami, IT services Miami, managed IT Miami-Dade',
+    canonical: 'https://www.newwaveitfl.com/managed-it-services-miami',
+    crumb: 'Managed IT Services Miami',
+  },
+  '/it-support-boca-raton': {
+    title: 'IT Support & Managed IT Services in Boca Raton, FL',
+    description: 'IT support and managed IT services for Boca Raton and south Palm Beach County businesses from New Wave IT. Published per-device rates, no long-term contract.',
+    keywords: 'IT support Boca Raton, IT services Boca Raton, IT company Boca Raton, managed IT services Boca Raton, IT help desk Boca Raton, IT support Palm Beach County',
+    canonical: 'https://www.newwaveitfl.com/it-support-boca-raton',
+    crumb: 'IT Support Boca Raton',
+  },
+  '/managed-it-services-west-palm-beach': {
+    title: 'Managed IT Services & IT Support in West Palm Beach',
+    description: 'Managed IT services and IT support for West Palm Beach and Palm Beach County businesses from New Wave IT. Published per-device rates, no long-term contract.',
+    keywords: 'managed IT services West Palm Beach, managed service provider West Palm Beach, MSP West Palm Beach, IT support West Palm Beach, IT services West Palm Beach, managed IT Palm Beach County',
+    canonical: 'https://www.newwaveitfl.com/managed-it-services-west-palm-beach',
+    crumb: 'Managed IT Services West Palm Beach',
+  },
+  '/managed-it-services-south-florida': {
+    title: 'Managed IT Services in South Florida — Areas We Serve',
+    description: "Managed IT services and IT support across Broward, Miami-Dade and Palm Beach counties from New Wave IT's Fort Lauderdale office. See the areas we serve.",
+    keywords: 'managed IT services South Florida, IT support South Florida, MSP South Florida, IT company South Florida, managed IT Broward County, managed IT Miami-Dade County, managed IT Palm Beach County',
+    canonical: 'https://www.newwaveitfl.com/managed-it-services-south-florida',
+    crumb: 'South Florida Service Areas',
+  },
   '/service-category/managed-it-services': {
     title: 'Managed IT Services — Monitoring, Patching & Backup',
-    description: 'Fully managed IT for Fort Lauderdale businesses: flat-rate pricing, 24/7 monitoring, patching, and backup & disaster recovery. No long-term contracts.',
+    description: 'Fully managed IT for South Florida businesses: flat-rate pricing, 24/7 monitoring, patching, and backup & disaster recovery. No long-term contracts.',
     keywords: 'managed IT services Fort Lauderdale, MSP South Florida, IT outsourcing Fort Lauderdale, managed services provider Florida, proactive IT monitoring, flat-rate IT support, IT management South Florida, outsourced IT department',
     canonical: 'https://www.newwaveitfl.com/service-category/managed-it-services',
     crumb: 'Managed IT Services',

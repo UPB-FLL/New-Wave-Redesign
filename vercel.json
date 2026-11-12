@@ -201,6 +201,22 @@
       "destination": "/managed-it-services-fort-lauderdale/index.html"
     },
     {
+      "source": "/managed-it-services-miami",
+      "destination": "/managed-it-services-miami/index.html"
+    },
+    {
+      "source": "/it-support-boca-raton",
+      "destination": "/it-support-boca-raton/index.html"
+    },
+    {
+      "source": "/managed-it-services-west-palm-beach",
+      "destination": "/managed-it-services-west-palm-beach/index.html"
+    },
+    {
+      "source": "/managed-it-services-south-florida",
+      "destination": "/managed-it-services-south-florida/index.html"
+    },
+    {
       "source": "/about",
       "destination": "/about/index.html"
     },

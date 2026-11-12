@@ -74,6 +74,22 @@ function expectStandardLayout(container: HTMLElement) {
 
 const routes = prerenderedItRoutes().filter((route) => route.path !== '/groundswell');
 
+/** The local landing pages and the service-area hub. */
+const LOCAL_PATHS = [
+  '/it-support-fort-lauderdale',
+  '/managed-it-services-fort-lauderdale',
+  '/managed-it-services-miami',
+  '/it-support-boca-raton',
+  '/managed-it-services-west-palm-beach',
+  '/managed-it-services-south-florida',
+];
+/** The place a local page's path names. */
+const LOCAL_PATH_PARTS = ['-fort-lauderdale', '-miami', '-boca-raton', '-west-palm-beach', '-south-florida'];
+/** Every page that must link back to /services: the service categories and the local pages. */
+const servicesLinkPaths = routes
+  .map((route) => route.path)
+  .filter((routePath) => ['/service-category/', ...LOCAL_PATH_PARTS].some((part) => routePath.includes(part)));
+
 describe('New Wave IT page layout', () => {
   it.each(routes.map((route) => [route.path, route] as const))('%s', async (routePath, route) => {
     const pattern = routeElements.has(routePath) ? routePath : '/l/:slug';
@@ -107,10 +123,14 @@ describe('New Wave IT page layout', () => {
     withoutGuide.unmount();
   });
 
-  it.each(routes.filter((route) => ['/service-category/', '-fort-lauderdale'].some((part) => route.path.includes(part))).map((route) => [route.path]))(
+  it('checks the way back to all services on every local page', () => {
+    expect(servicesLinkPaths).toEqual(expect.arrayContaining(LOCAL_PATHS));
+  });
+
+  it.each(servicesLinkPaths.map((routePath) => [routePath]))(
     '%s links back to the full list of services',
     async (routePath) => {
-      // The Fort Lauderdale pages' breadcrumb does not pass through Services.
+      // The local pages' breadcrumb does not pass through Services.
       const { container } = await renderRoute(routePath);
       expect(container.querySelector('main a[href="/services"]')?.textContent).toBe('See all IT services');
     },

@@ -38,6 +38,9 @@ const PARENT_SITEMAP_PATHS = [
   '/cookie-policy',
   // Local landing pages added 2026-10-21 (marketing audit).
   '/it-support-fort-lauderdale', '/managed-it-services-fort-lauderdale',
+  // South Florida pages added 2026-11-12: three cities and the service-area hub.
+  '/managed-it-services-miami', '/it-support-boca-raton', '/managed-it-services-west-palm-beach',
+  '/managed-it-services-south-florida',
   // Groundswell's sign-in (2026-10-21): the partner portal, moved out of the division.
   '/groundswell',
 ];

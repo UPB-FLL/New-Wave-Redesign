@@ -20,16 +20,20 @@ import CybersecurityServicePage from '../pages/CybersecurityServicePage';
 import FamilyOfficesServicePage from '../pages/FamilyOfficesServicePage';
 import HealthcareServicePage from '../pages/HealthcareServicePage';
 import ITRepairServicePage from '../pages/ITRepairServicePage';
+import ITSupportBocaRatonPage from '../pages/ITSupportBocaRatonPage';
 import ITSupportFortLauderdalePage from '../pages/ITSupportFortLauderdalePage';
 import LiveITSupportServicePage from '../pages/LiveITSupportServicePage';
 import LuxuryServicePage from '../pages/LuxuryServicePage';
 import ManagedITFortLauderdalePage from '../pages/ManagedITFortLauderdalePage';
+import ManagedITMiamiPage from '../pages/ManagedITMiamiPage';
 import ManagedITServicePage from '../pages/ManagedITServicePage';
+import ManagedITWestPalmBeachPage from '../pages/ManagedITWestPalmBeachPage';
 import NetworkInfrastructureServicePage from '../pages/NetworkInfrastructureServicePage';
 import PricingPage from '../pages/PricingPage';
 import PrivacyPolicyPage from '../pages/PrivacyPolicyPage';
 import ServiceGuidePage from '../pages/ServiceGuidePage';
 import ServicesPage from '../pages/ServicesPage';
+import SouthFloridaServiceAreasPage from '../pages/SouthFloridaServiceAreasPage';
 import StatusPage from '../pages/StatusPage';
 import SupportPage from '../pages/SupportPage';
 import TermsAndConditionsPage from '../pages/TermsAndConditionsPage';
@@ -85,6 +89,10 @@ const IT_ROUTE_ELEMENTS: Record<string, ReactElement> = {
   '/service-category/healthcare': <HealthcareServicePage />,
   '/it-support-fort-lauderdale': <ITSupportFortLauderdalePage />,
   '/managed-it-services-fort-lauderdale': <ManagedITFortLauderdalePage />,
+  '/managed-it-services-miami': <ManagedITMiamiPage />,
+  '/it-support-boca-raton': <ITSupportBocaRatonPage />,
+  '/managed-it-services-west-palm-beach': <ManagedITWestPalmBeachPage />,
+  '/managed-it-services-south-florida': <SouthFloridaServiceAreasPage />,
   '/service-category/luxury': <LuxuryServicePage />,
   '/service-category/cellular-das-and-public-safety': <CellularDASPublicSafetyServicePage />,
   // The owner's call (2026-10-27): /status links each provider's own status
