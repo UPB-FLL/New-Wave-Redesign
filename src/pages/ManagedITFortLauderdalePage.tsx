@@ -37,12 +37,12 @@ const faqs: FaqItem[] = [
   {
     question: 'What is the difference between managed IT services and IT support?',
     answer:
-      'IT support is the help desk: someone to call when a password, a printer or a laptop stops working. Managed IT services include that help desk and add the work that prevents problems, such as monitoring, patching and backups, for a flat monthly price. New Wave IT offers both, and its page on IT support in Fort Lauderdale covers day-to-day support.',
+      'IT support is the help desk: someone to call when a password, a printer or a laptop stops working. Managed IT services include that help desk and add the work done before something breaks, such as monitoring, patching and backups, for a flat monthly price. New Wave IT offers both, and its page on IT support in Fort Lauderdale covers day-to-day support.',
   },
   {
     question: 'Is there a long-term contract?',
     answer:
-      'No. New Wave IT does not require a long-term contract for managed IT services. The price is flat and monthly, built from the published per-unit rates. The free IT assessment is the time to ask about terms, before a quote is accepted.',
+      'No long-term contract is required for managed IT services from New Wave IT. The price is flat and monthly, built from the published per-unit rates. The free IT assessment is the time to ask about terms, before a quote is accepted.',
   },
   {
     question: 'Does New Wave IT manage Microsoft 365?',
@@ -105,7 +105,7 @@ const page: ServiceCategoryPageData = {
         "A managed service provider (MSP) is a company that takes ongoing responsibility for another business's IT systems in return for a recurring fee. " +
           'An MSP monitors the computers, servers and network, keeps them updated and backed up, and supports the people who use them, so the work happens before a failure and not only after one. ' +
           'The older arrangement is called break-fix: the business calls a technician when something breaks and pays for that repair, usually by the hour. ' +
-          'With break-fix the cost of IT is unknown until the invoice arrives, and no one is responsible for preventing the next failure. ' +
+          'With break-fix the cost of IT is unknown until the invoice arrives, and no provider is responsible for preventing the next failure. ' +
           'Managed IT services is the name for the first arrangement, and New Wave IT in Fort Lauderdale works this way.',
       ],
     },
@@ -113,7 +113,7 @@ const page: ServiceCategoryPageData = {
       title: 'What do managed IT services cost in Fort Lauderdale?',
       body: [
         `Managed IT services from New Wave IT in Fort Lauderdale are priced per unit, per month. ${ratesSentence()} The full price list and an estimate builder are on the pricing page.`,
-        'Flat monthly pricing means the price of managed IT is a set amount each month instead of an hourly bill for each repair or visit. ' +
+        'Flat monthly pricing means the price of managed IT is a set amount each month instead of an hourly bill. ' +
           'New Wave IT sets that amount per unit: one rate for each computer or device, one for each employee or user account, one for each managed server, and one for each location whose network is monitored. ' +
           'After a free IT assessment, a written quote applies those rates to one business, so the monthly figure is known before onboarding starts.',
       ],
