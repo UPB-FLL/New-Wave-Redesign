@@ -32,32 +32,30 @@ const faqs: FaqItem[] = [
   {
     question: 'Which parts of Palm Beach County does New Wave IT cover?',
     answer:
-      'New Wave IT serves Palm Beach County from its office in Fort Lauderdale. In the south of the county, the places it serves include Boca Raton, Delray Beach and Boynton Beach. West Palm Beach, further north, has its own page on this site. Across the county, service is by remote support and on-site visits.',
+      'New Wave IT serves Palm Beach County from its office in Fort Lauderdale. In the south of the county, the places it serves include Boca Raton, Delray Beach and Boynton Beach. West Palm Beach, further north, has its own page on this site.',
   },
   {
-    question: 'How much does IT support cost in Boca Raton?',
-    answer:
-      `IT support for a Boca Raton business is quoted from New Wave IT's published monthly rates. The price list has a rate per device, ${rate('computer')}, and a rate per user, ${rate('user')}, as well as ${rate('server')} and ${rate('location')} for network monitoring. ` +
-      'Each figure is the rate for one unit, not a total. The written quote follows a free IT assessment.',
+    question: 'Is IT support in Boca Raton priced per user or per device?',
+    answer: `Both. New Wave IT's published price list has a rate per device, ${rate('computer')}, and a rate per user, ${rate('user')}, each per month. Each figure is the rate for one unit, not a total. A written quote for a Boca Raton business is built from the published rates.`,
   },
   {
     question: 'Does New Wave IT come on site in Boca Raton?',
     answer:
-      'Yes. New Wave IT makes on-site visits to businesses in Boca Raton. Because it has no office in Palm Beach County, each visit is made from its Fort Lauderdale office. A visit is for work that needs hands on the equipment, such as replacing a failed part in a computer or a server. Problems that can be fixed without touching the hardware are handled by remote support.',
+      'Yes. New Wave IT makes on-site visits to businesses in Boca Raton from its office in Fort Lauderdale. A visit is for work that needs hands on the equipment. Problems that can be fixed without touching the hardware are handled by remote support.',
   },
   {
     question: 'What is IT support?',
     answer:
-      "IT support is the service that keeps a business's computers, accounts and network working and helps its staff when something goes wrong. New Wave IT provides it to Boca Raton businesses through a help desk that handles requests such as password resets, software installation and routine troubleshooting, and escalates network issues, server problems and security incidents to more senior engineers.",
+      "IT support is the service that keeps a business's computers, accounts and network working and helps its staff when something goes wrong. For Boca Raton businesses, New Wave IT provides it through a help desk that handles requests such as password resets, software installation and routine troubleshooting, and escalates network, server and security problems to more senior engineers.",
   },
   {
     question: "What are New Wave IT's hours, and what happens after hours?",
-    answer: `New Wave IT's office hours are Monday to Friday, 8am to 6pm. Outside those hours, a 24/7 emergency line covers urgent problems. Staff at a Boca Raton business reach the help desk by phone at ${PHONE}, by email at ${EMAIL} or by ticket.`,
+    answer: `New Wave IT's office is open Monday to Friday, 8am to 6pm, and a 24/7 emergency line covers urgent problems outside those hours. Staff at a Boca Raton business reach the help desk by phone at ${PHONE}, by email at ${EMAIL} or by ticket.`,
   },
   {
     question: 'Is there a long-term contract?',
     answer:
-      'No long-term contract is required for IT support or managed IT services from New Wave IT. The price is a flat monthly amount built from the published per-unit rates. A Boca Raton business sees that amount in a written quote, which follows a free IT assessment and comes before onboarding.',
+      'No long-term contract is required for IT support or managed IT services from New Wave IT. The price is a flat monthly amount built from the published per-unit rates. A Boca Raton business sees that amount in a written quote before onboarding starts.',
   },
 ];
 
@@ -71,11 +69,11 @@ const page: ServiceCategoryPageData = {
   overviewTitle: 'Who provides IT support in Boca Raton?',
   details:
     'New Wave IT provides IT support for businesses in Boca Raton, a city in the south of Palm Beach County. ' +
-    'It is an IT company and managed service provider (MSP), founded in 2022, with a team of 5 to 10 people. ' +
+    'Founded in 2022, it is an IT company and managed service provider (MSP) with a team of 5 to 10 people. ' +
     'New Wave IT has no office in Boca Raton. ' +
     `Its staffed office is at ${OFFICE_ADDRESS}, in Broward County, the county next to Palm Beach County, and Boca Raton is served from that office by remote support and on-site visits. ` +
     'Beyond day-to-day support, New Wave IT provides managed IT services, cybersecurity, cloud solutions including Microsoft 365, network infrastructure, and IT repair and upgrades. ' +
-    `IT support is priced from published monthly rates, such as ${rate('computer')}, and no long-term contract is required.`,
+    `IT support is priced at published monthly rates, such as ${rate('computer')}, and no long-term contract is required.`,
   overviewBody: [
     "Support is provided by New Wave IT's certified engineers, and each client has a dedicated account manager. New Wave IT is a Huntress, Microsoft and Cisco partner, and the tools its team runs include Microsoft 365, SentinelOne, Huntress, NinjaOne, ConnectWise and Cloudflare.",
   ],
@@ -91,7 +89,7 @@ const page: ServiceCategoryPageData = {
   guideLabel: 'See the published rates',
   assessmentLabel: 'Get a free IT assessment',
   featureTitle: 'What IT services does New Wave IT provide in Boca Raton?',
-  featureDescription: 'New Wave IT provides six IT services to businesses in Boca Raton, from day-to-day IT support to network infrastructure.',
+  featureDescription: 'New Wave IT provides six IT services to businesses in Boca Raton.',
   featureCards: [
     { icon: Headphones, title: 'IT support and help desk', description: 'Password resets, software installation and everyday troubleshooting, by remote support or on site.' },
     { icon: Monitor, title: 'Managed IT services', description: 'Monitoring, patching, backup management and user support for a flat monthly amount.' },
@@ -104,10 +102,10 @@ const page: ServiceCategoryPageData = {
     {
       title: 'What do managed IT services add to IT support?',
       body: [
-        'Managed IT services from New Wave IT add ongoing care of the systems themselves to the help desk that IT support provides. ' +
-          "Under managed IT, New Wave IT monitors a Boca Raton business's computers, servers and network, applies patches, manages backups and recovery planning, supports the users, and provides strategic planning for IT growth. " +
-          'Monitoring and patching are remote work, carried out for a Boca Raton office from Fort Lauderdale. ' +
-          'The difference between the two services is who starts the work. With IT support, a member of staff reports a problem and the help desk fixes it. With managed IT services, the provider looks for problems before anyone reports one. ' +
+        'For a Boca Raton business, managed IT services from New Wave IT add ongoing care of the systems themselves to the help desk that IT support provides. ' +
+          "Under managed IT, New Wave IT monitors the business's computers, servers and network, applies patches, manages backups and recovery planning, supports the users, and provides strategic planning for IT growth. " +
+          'Monitoring and patching are remote work, carried out from Fort Lauderdale. ' +
+          'The difference between the two services is who starts the work: with IT support, a member of staff reports a problem, and with managed IT services, the provider looks for problems before anyone reports one. ' +
           'New Wave IT provides both to businesses in Boca Raton.',
       ],
     },
@@ -130,16 +128,16 @@ const page: ServiceCategoryPageData = {
           'It has no office in Palm Beach County. ' +
           `The staffed office is at ${OFFICE_ADDRESS}, in Broward County, and is open Monday to Friday from 8am to 6pm. ` +
           `The phone number is ${PHONE}, the email address is ${EMAIL}, and a 24/7 emergency line covers urgent problems outside office hours. ` +
-          'West Palm Beach and the rest of Palm Beach County have their own page, and New Wave IT serves Broward and Miami-Dade counties from the same office.',
+          'West Palm Beach and the rest of Palm Beach County have their own page, linked below.',
       ],
     },
     {
       title: 'Industry pages for medical practices and family offices',
       body: [
-        'For a Boca Raton medical practice or family office, New Wave IT has an industry page that describes the work in that field. ' +
+        'For a Boca Raton medical practice or family office, New Wave IT has an industry page. ' +
           'The healthcare page covers support for EHR and EMR systems, telehealth platforms and medical device networking. ' +
-          'The family offices page covers secure document management, integration of wealth management and accounting systems, and access controls for family members and advisors. ' +
-          'Both pages are linked below.',
+          'The family offices page covers secure document management and the integration of wealth management and accounting systems. ' +
+          'Both are linked below.',
       ],
     },
     {
@@ -156,18 +154,18 @@ const page: ServiceCategoryPageData = {
   faqs,
   faqTitle: 'Questions about IT support in Boca Raton',
   relatedLinks: [
-    { label: 'Managed IT services in West Palm Beach', href: '/managed-it-services-west-palm-beach', description: 'The page for West Palm Beach and the rest of Palm Beach County.' },
+    { label: 'Managed IT services in West Palm Beach', href: '/managed-it-services-west-palm-beach', description: 'For West Palm Beach and the rest of Palm Beach County.' },
     { label: 'IT support in Fort Lauderdale', href: '/it-support-fort-lauderdale', description: 'The same help desk, in the city where New Wave IT has its office.' },
-    { label: 'South Florida service areas', href: '/managed-it-services-south-florida', description: 'The three counties New Wave IT serves, with the cities named in each.' },
+    { label: 'South Florida service areas', href: '/managed-it-services-south-florida', description: 'The three counties New Wave IT serves, with the cities in each.' },
     { label: 'Live IT support', href: '/service-category/live-it-support', description: 'Help desk tiers, ticket tracking and escalation.' },
     { label: 'Managed IT services', href: '/service-category/managed-it-services', description: 'Monitoring, patching, backup and planning as one monthly service.' },
     { label: 'Cybersecurity', href: '/service-category/cybersecurity', description: 'Threat detection and response, endpoint protection and staff training.' },
     { label: 'Cloud solutions and Microsoft 365', href: '/service-category/cloud-solutions', description: 'Cloud migration planning and Microsoft 365 management.' },
-    { label: 'Network infrastructure', href: '/service-category/network-infrastructure', description: 'Cabling, WiFi, firewalls, and VPN and remote access for an office.' },
+    { label: 'Network infrastructure', href: '/service-category/network-infrastructure', description: 'Cabling, WiFi, firewalls, and VPN and remote access.' },
     { label: 'IT repair and upgrades', href: '/service-category/it-repair-upgrades', description: 'Repair, upgrade or replacement of business computers and servers.' },
     { label: 'Pricing', href: '/pricing', description: 'Every published monthly rate in one table, with a quote builder.' },
     { label: 'Healthcare IT', href: '/service-category/healthcare', description: 'EHR support, telehealth and medical device networking.' },
-    { label: 'IT for family offices', href: '/service-category/family-offices', description: 'Document security and systems integration for family offices.' },
+    { label: 'IT for family offices', href: '/service-category/family-offices', description: 'Document security and systems integration.' },
   ],
   ctaTitle: 'Need IT support in Boca Raton?',
   ctaDescription: "Start with a free IT assessment, or call New Wave IT's office in Fort Lauderdale.",

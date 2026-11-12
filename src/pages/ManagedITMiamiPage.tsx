@@ -59,12 +59,6 @@ const faqs: FaqItem[] = [
     question: 'How does a Miami business reach New Wave IT, and what are its hours?',
     answer: `A Miami business reaches New Wave IT by phone at ${PHONE}, by email at ${EMAIL} or by opening a ticket. Office hours are Monday to Friday, 8am to 6pm. Outside those hours, a 24/7 emergency line covers urgent problems.`,
   },
-  {
-    question: 'Does New Wave IT manage Microsoft 365 for Miami businesses?',
-    answer:
-      "Yes. Microsoft 365 management is part of New Wave IT's cloud solutions service, which it provides in Miami-Dade County. New Wave IT is a Microsoft partner, and Microsoft 365 is one of the tools its team runs. " +
-      `The published price list has two Office 365 lines: ${rate('microsoft365License')} per month for licensing only and ${rate('microsoft365LicenseWithEmail')} per month for licensing and email.`,
-  },
 ];
 
 const page: ServiceCategoryPageData = {
@@ -73,7 +67,7 @@ const page: ServiceCategoryPageData = {
   heroTitle: 'Managed IT services and IT support in Miami',
   description: 'Managed IT services and IT support for Miami businesses from New Wave IT.',
   heroDescription:
-    'New Wave IT provides managed IT services and IT support to businesses in Miami and Miami-Dade County. Service comes from its office in Fort Lauderdale, by remote support and on-site visits, at published monthly rates.',
+    'New Wave IT provides managed IT services and IT support to businesses in Miami and Miami-Dade County from its office in Fort Lauderdale, at published monthly rates.',
   overviewTitle: 'Who provides managed IT services in Miami?',
   details:
     'New Wave IT provides managed IT services and IT support to businesses in Miami and the rest of Miami-Dade County. ' +
@@ -98,13 +92,12 @@ const page: ServiceCategoryPageData = {
   guideLabel: 'See the published rates',
   assessmentLabel: 'Get a free IT assessment',
   featureTitle: 'What do managed IT services in Miami include?',
-  featureDescription:
-    'Managed IT services from New Wave IT cover six areas of work for a business in Miami. Monitoring and patching are done remotely, and every user has the help desk.',
+  featureDescription: 'Managed IT services from New Wave IT cover six areas of work for a business in Miami, and every user has the help desk.',
   featureCards: [
-    { icon: Monitor, title: 'Monitoring and maintenance', description: 'New Wave IT watches computers, servers and the network remotely and carries out routine maintenance.' },
-    { icon: RefreshCw, title: 'Patching', description: 'Operating system and software updates are applied remotely by New Wave IT, not left to each employee.' },
-    { icon: ShieldCheck, title: 'Endpoint protection', description: 'Endpoint protection, software that guards a device against malicious programs, runs on each managed computer and server.' },
-    { icon: HardDrive, title: 'Backups and recovery', description: 'Backups are managed by New Wave IT, and a recovery plan sets out how data and systems are brought back.' },
+    { icon: Monitor, title: 'Monitoring and maintenance', description: 'Computers, servers and the network are watched remotely and kept maintained.' },
+    { icon: RefreshCw, title: 'Patching', description: 'Operating system and software updates are applied remotely, not left to each employee.' },
+    { icon: ShieldCheck, title: 'Endpoint protection', description: 'Software that guards against malicious programs runs on each managed computer and server.' },
+    { icon: HardDrive, title: 'Backups and recovery', description: 'Backups are managed, and a recovery plan sets out how data and systems are brought back.' },
     { icon: Headphones, title: 'Help desk', description: 'One place for every employee to take a password, printer or laptop problem.' },
     { icon: BarChart3, title: 'Reporting and planning', description: 'Reports show support activity, trends and investment needs, and quarterly business reviews turn them into a roadmap.' },
   ],
@@ -114,13 +107,12 @@ const page: ServiceCategoryPageData = {
       body: [
         'New Wave IT serves Miami from its Fort Lauderdale office by remote support and on-site visits, and it has no office in Miami-Dade County. ' +
           `The office is at ${OFFICE_ADDRESS}. Fort Lauderdale is in Broward County, which borders Miami-Dade County to the north. ` +
-          'It is a staffed office, open Monday to Friday, 8am to 6pm, and a 24/7 emergency line covers urgent problems outside those hours. ' +
-          `The phone number is ${PHONE} and the email address is ${EMAIL}. ` +
+          'The office is staffed, and its hours are Monday to Friday, 8am to 6pm. After hours, urgent problems go to the 24/7 emergency line. ' +
+          `Miami businesses call ${PHONE} or write to ${EMAIL}. ` +
           'Cities served in Miami-Dade County include Miami, Coral Gables, Doral, Hialeah, Miami Beach and Aventura.',
-        'Most of the work in a New Wave IT managed plan is done remotely, which is how it reaches a business in Miami. ' +
-          'Monitoring and patching run over the internet, whichever county the computers are in. ' +
-          'The help desk fixes what it can through remote support, with the employee still at the desk. ' +
-          'A visit is needed only when the hardware itself has to be handled: a laptop, desktop or server that must be repaired or replaced. ' +
+        'New Wave IT does the routine work of a managed IT plan, monitoring and patching, remotely, so it reaches a computer in Miami the same way as one in Fort Lauderdale. ' +
+          'The help desk also works remotely first: it fixes what it can through remote support. ' +
+          'An on-site visit is for work that needs hands on the equipment, such as a laptop, desktop or server that must be repaired or replaced. ' +
           'On-site visits to Miami-Dade County are made from the Fort Lauderdale office.',
       ],
     },
@@ -142,16 +134,15 @@ const page: ServiceCategoryPageData = {
         'IT support from New Wave IT covers the day-to-day problems of the people in a Miami business: a forgotten password, an email or Microsoft 365 fault, a printer, a laptop that will not start. ' +
           'Staff contact the help desk by phone, by email or by opening a ticket, and each request is tracked as a ticket until it is resolved. ' +
           'The help desk is included in a managed IT plan. ' +
-          "New Wave IT's other IT services are IT repair and upgrades, cybersecurity, cloud solutions including Microsoft 365, and network infrastructure. Each has its own page, linked below.",
+          "New Wave IT's other IT services, each linked below, are IT repair and upgrades, cybersecurity, cloud solutions including Microsoft 365, and network infrastructure.",
       ],
     },
     {
       title: 'IT for healthcare, family offices and luxury properties',
       body: [
         "A healthcare practice, a family office or a luxury property in Miami-Dade County can read New Wave IT's page for its field. " +
-          'The healthcare page covers EHR and EMR system integration, telehealth platform support and medical device networking for medical practices. ' +
-          'The family offices page covers secure document and asset management and wealth management system integration. ' +
-          'The luxury page covers smart home and building automation and guest WiFi for residential properties, resorts and hospitality venues. All three are linked below.',
+          'The healthcare page covers EHR and EMR system integration and telehealth platform support, the family offices page covers secure document management, and the luxury page covers building automation and guest WiFi for residences, resorts and hospitality venues. ' +
+          'All three are linked below.',
       ],
     },
     {
@@ -168,20 +159,19 @@ const page: ServiceCategoryPageData = {
   faqs,
   faqTitle: 'Questions about managed IT services in Miami',
   relatedLinks: [
-    { label: 'Managed IT services', href: '/service-category/managed-it-services', description: 'The managed plan in full, with the transition process and strategic planning.' },
+    { label: 'Managed IT services', href: '/service-category/managed-it-services', description: 'The managed plan in full: the transition process and strategic planning.' },
     { label: 'Live IT support', href: '/service-category/live-it-support', description: 'The three support tiers and how a ticket is escalated.' },
-    { label: 'Cybersecurity', href: '/service-category/cybersecurity', description: 'Threat detection and response, vulnerability assessment and security awareness training.' },
-    { label: 'Cloud solutions and Microsoft 365', href: '/service-category/cloud-solutions', description: 'Microsoft 365, cloud migration planning and hybrid environments.' },
+    { label: 'Cybersecurity', href: '/service-category/cybersecurity', description: 'Threat detection, vulnerability assessment and security awareness training.' },
+    { label: 'Cloud solutions and Microsoft 365', href: '/service-category/cloud-solutions', description: 'Microsoft 365 management and cloud migration planning.' },
     { label: 'Network infrastructure', href: '/service-category/network-infrastructure', description: 'Network design, WiFi, firewalls, and VPN and remote access.' },
-    { label: 'IT repair and upgrades', href: '/service-category/it-repair-upgrades', description: 'Diagnostics, repair and upgrades for business hardware.' },
+    { label: 'IT repair and upgrades', href: '/service-category/it-repair-upgrades', description: 'Diagnostics, repair and upgrades for laptops, desktops and servers.' },
     { label: 'Pricing', href: '/pricing', description: 'Every published monthly rate, with a quote builder.' },
-    { label: 'South Florida service areas', href: '/managed-it-services-south-florida', description: 'Miami-Dade, Broward and Palm Beach counties and the cities served in each.' },
-    { label: 'Managed IT services in Fort Lauderdale', href: '/managed-it-services-fort-lauderdale', description: 'The same service in Broward County, where the office is.' },
-    { label: 'IT support in Fort Lauderdale', href: '/it-support-fort-lauderdale', description: 'How the help desk handles a request, in more detail.' },
+    { label: 'South Florida service areas', href: '/managed-it-services-south-florida', description: 'The three counties served and the cities in each.' },
+    { label: 'Managed IT services in Fort Lauderdale', href: '/managed-it-services-fort-lauderdale', description: 'Managed IT in Broward County, where the office is.' },
     { label: 'Managed IT services in West Palm Beach', href: '/managed-it-services-west-palm-beach', description: 'Palm Beach County, also served from Fort Lauderdale.' },
-    { label: 'Healthcare IT', href: '/service-category/healthcare', description: 'IT for medical practices, including EHR integration and telehealth support.' },
-    { label: 'IT for family offices', href: '/service-category/family-offices', description: 'Privacy-first IT for offices that manage family wealth.' },
-    { label: 'Technology for luxury properties', href: '/service-category/luxury', description: 'Automation and guest networking for residences, resorts and hospitality venues.' },
+    { label: 'Healthcare IT', href: '/service-category/healthcare', description: 'Medical device networking, secure communication and recovery planning for practices.' },
+    { label: 'IT for family offices', href: '/service-category/family-offices', description: 'Access controls, privacy and systems integration for family offices.' },
+    { label: 'Technology for luxury properties', href: '/service-category/luxury', description: 'Concierge technology, entertainment systems and guest connectivity.' },
   ],
   ctaTitle: 'Need managed IT services or IT support in Miami?',
   ctaDescription: 'Ask for a free IT assessment of your Miami-Dade business and a written quote built from the published rates.',
