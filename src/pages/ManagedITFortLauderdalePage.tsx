@@ -37,12 +37,12 @@ const faqs: FaqItem[] = [
   {
     question: 'What is the difference between managed IT services and IT support?',
     answer:
-      'IT support is the help desk: someone to call when a password, a printer or a laptop stops working. Managed IT services include that help desk and add the work done before something breaks, such as monitoring, patching and backups, for a flat monthly price. New Wave IT offers both, and its page on IT support in Fort Lauderdale covers day-to-day support.',
+      'IT support is the help desk: someone to call when a password, a printer or a laptop stops working. Managed IT services include that help desk and add the work done before something breaks, such as monitoring, maintenance, managed backups and planning, for a flat monthly price. New Wave IT offers both, and its page on IT support in Fort Lauderdale covers day-to-day support.',
   },
   {
     question: 'Is there a long-term contract?',
     answer:
-      'No long-term contract is required for managed IT services from New Wave IT. The price is flat and monthly, built from the published per-unit rates. The free IT assessment is the time to ask about terms, before a quote is accepted.',
+      'No long-term contract is required for managed IT services from New Wave IT. The price is flat and monthly, built from the published per-unit rates. The first step is a free IT assessment, followed by a written quote.',
   },
   {
     question: 'Does New Wave IT manage Microsoft 365?',

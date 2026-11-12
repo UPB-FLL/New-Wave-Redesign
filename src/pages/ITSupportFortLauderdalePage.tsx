@@ -49,7 +49,7 @@ const faqs: FaqItem[] = [
   {
     question: 'How is IT support different from managed IT services?',
     answer:
-      'IT support is the day-to-day help that staff ask for: a help desk, repairs and on-site visits. Managed IT services add work that happens without a request, such as monitoring, patching and backup, so that problems are found early. New Wave IT provides both, and its managed IT services page for Fort Lauderdale describes the second.',
+      'IT support is the day-to-day help that staff ask for: a help desk, repairs and on-site visits. Managed IT services add work that happens without a request, such as monitoring, routine maintenance and managed backups, so that problems are found early. New Wave IT provides both, and its managed IT services page for Fort Lauderdale describes the second.',
   },
 ];
 
@@ -84,7 +84,7 @@ const page: ServiceCategoryPageData = {
     { icon: Globe, title: 'Remote support', description: 'Secure remote assistance for the problems that can be fixed without a visit.' },
     { icon: MapPin, title: 'On-site visits', description: 'A technician comes to the office when a problem needs hands on the hardware.' },
     { icon: Monitor, title: 'Devices and repair', description: 'Laptops, desktops, and servers diagnosed, repaired, upgraded, or replaced.' },
-    { icon: Shield, title: 'Security basics', description: 'Endpoint protection and email filtering on the devices New Wave IT supports.' },
+    { icon: Shield, title: 'Security basics', description: 'Endpoint protection, patching and email filtering on the devices New Wave IT supports.' },
   ],
   sections: [
     {
