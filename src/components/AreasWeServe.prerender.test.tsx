@@ -4,7 +4,15 @@
 
 import { describe, expect, it } from 'vitest';
 import { renderItBody } from '../lib/prerenderBody';
-import { AREA_LINKS } from './AreasWeServe';
+
+const LOCAL_PATHS = [
+  '/it-support-fort-lauderdale',
+  '/managed-it-services-fort-lauderdale',
+  '/managed-it-services-miami',
+  '/it-support-boca-raton',
+  '/managed-it-services-west-palm-beach',
+  '/managed-it-services-south-florida',
+];
 
 /** The band's own markup inside a rendered page. */
 function band(html: string): string {
@@ -19,7 +27,7 @@ describe('AreasWeServe in the build-time render', () => {
     expect(html.split('<section id="areas-we-serve"')).toHaveLength(2);
     const section = band(html);
     expect(section).toContain('Areas we serve</h2>');
-    for (const link of AREA_LINKS) expect(section, link.href).toContain(`href="${link.href}"`);
+    for (const localPath of LOCAL_PATHS) expect(section, localPath).toContain(`href="${localPath}"`);
     expect(section).toContain('href="/pricing"');
     expect(section).toContain('href="/blog"');
     expect(section.includes('href="/services"')).toBe(routePath === '/');

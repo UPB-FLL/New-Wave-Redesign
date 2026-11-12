@@ -153,6 +153,11 @@
       "source": "/social-engineering/croissance/",
       "destination": "/social-engineering/groundswell",
       "permanent": true
+    },
+    {
+      "source": "/review",
+      "destination": "https://search.google.com/local/writereview?placeid=ChIJm5g0rvtBWA0R5GAmemjZwh0",
+      "permanent": false
     }
   ],
   "rewrites": [

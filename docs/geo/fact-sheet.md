@@ -13,13 +13,18 @@ JSON-LD in `index.html`, the code fallbacks in `src/`, `CLAUDE.md`'s change
 log, and the Google Business Profile as returned by a Google Maps search on
 2026-10-26. No fact below has been changed on the site yet.
 
+Updated 2026-11-12 for the South Florida change: the service area (section
+4), the geo coordinates (section 2), the profiles in `sameAs` (section 7),
+where code takes prices from (section 5), the homepage head and the four new
+local pages (section 12), and the questions still open (section 13).
+
 ## 1. Identity
 
 | Fact | Value | Source | Status |
 |---|---|---|---|
 | Legal / trading name | New Wave IT | `index.html` JSON-LD `name`; CMS `footer.tagline` | source-backed (site + Google listing title "New Wave IT") |
 | Alternate name | New Wave IT FL | `index.html` JSON-LD `alternateName` | site-only |
-| What it is | Managed service provider (MSP): managed IT, cybersecurity, cloud, 24/7 support, network infrastructure for South Florida businesses | `index.html` JSON-LD descriptions; CMS `services.cards` | source-backed (site) |
+| What it is | Managed service provider (MSP): managed IT services, IT support, cybersecurity, cloud and network services for businesses in Broward, Miami-Dade and Palm Beach counties | `index.html` JSON-LD descriptions (one text on all three nodes since 2026-11-12, see section 12); CMS `services.cards` | source-backed (site). The earlier descriptions said "trusted" and "24/7 IT support", neither owner-confirmed; what "24/7" covers beyond the emergency line is an owner question (section 13) |
 | Google category | Computer support and services | Google listing (SearchAPI google_maps, 2026-10-26) | source-backed (GBP) |
 | Website | https://www.newwaveitfl.com | canonical on every page | source-backed; the Google listing links the apex `https://newwaveitfl.com/`, which 307s to www (works, but not identical) |
 | Founding year | 2022 | `index.html` JSON-LD `foundingDate` (was 2009, unsourced) | owner-confirmed, 2026-10-26 |
@@ -33,7 +38,7 @@ log, and the Google Business Profile as returned by a Google Maps search on
 | Street address | 710 NW 5th Ave, Suite 1072, Fort Lauderdale, FL 33311 | CMS `contact.address` + `contact.address_city`, `footer.address`; `index.html` JSON-LD; code fallbacks in `Footer.tsx`, `Contact.tsx`, `contactDetails.ts` | owner-confirmed, 2026-10-26 (a staffed office). The Google listing still shows no street address and a pin at 26.9412, −81.4974 (Highlands County); the owner is updating the profile |
 | Phone | (561) 564-1846 / +1 561-564-1846 | CMS `contact.phone`, `footer.phone`, `hero.phone`; Google listing; `CLAUDE.md` 2026-10-21 ("the Google Business Profile's") | owner-confirmed, 2026-10-26 |
 | Email | support@newwaveitfl.com | CMS `contact.email`, `footer.email`; JSON-LD | source-backed (site) |
-| Geo coordinates | 26.1224, −80.1373 | `index.html` JSON-LD | site-only; GBP pin differs (see address) |
+| Geo coordinates | 26.1324, −80.1484 | `index.html` JSON-LD `geo`, and the `geo.position` and `ICBM` meta tags | source-backed: Google's Geocoding API for "710 NW 5th Ave, Fort Lauderdale, FL 33311" on 2026-11-12 returned 26.132399, −80.1484249 at rooftop precision. The earlier value (26.1224, −80.1373) was a downtown centroid about 1.6 km away. The GBP pin differed on 2026-10-26 (see address) |
 | Stale phone fallback | (954) 372-5100 | `src/pages/SupportPage.tsx:60` code fallback (masked by CMS) | not a fact; code defect, **fixed 2026-10-27** (the fallback is (561) 564-1846) |
 | Fictional placeholder | (954) 555-0100 | `Contact.tsx` input placeholder; `contactDetails.ts` `PLACEHOLDER_PHONE` | not a fact; by design |
 
@@ -60,8 +65,8 @@ schedule still has to be corrected by the owner in the profile itself.
 |---|---|---|---|
 | Services | Cybersecurity; Live IT Support; IT Repair & Upgrades; Managed IT Services; Cloud Solutions (incl. Microsoft 365); Network Infrastructure | CMS `services.cards`; `index.html` `hasOfferCatalog` (adds "Healthcare IT & HIPAA Compliance") | source-backed (site) |
 | Industry pages | Healthcare, Family offices, Luxury, Cellular DAS & public safety | `public/sitemap.xml`, `src/pages/*ServicePage.tsx` | source-backed (site) |
-| Service area | Fort Lauderdale, Miami, Boca Raton, Pompano Beach, Hollywood, South Florida | `index.html` JSON-LD `areaServed` | site-only |
-| "Remote & on-site support" | CMS `services.cards[1]` | site-only |
+| Service area | Broward, Miami-Dade and Palm Beach counties (South Florida), served from the Fort Lauderdale office; there is no office in Miami-Dade or Palm Beach County. Cities the pages name as places served: Broward: Fort Lauderdale, Hollywood, Pompano Beach, Coral Springs, Plantation, Pembroke Pines; Miami-Dade: Miami, Miami Beach, Coral Gables, Doral, Hialeah, Aventura; Palm Beach: Boca Raton, Delray Beach, Boynton Beach, West Palm Beach, Palm Beach Gardens, Jupiter | the owner, 2026-11-12: "yes we serve miami-dade and palm beach"; `index.html` JSON-LD `areaServed` (Fort Lauderdale, Miami, Boca Raton, Pompano Beach, Hollywood, West Palm Beach, South Florida, and the three counties, each with its Wikipedia `sameAs`); the local pages (section 12) | **owner-confirmed, 2026-11-12** for the three counties. The cities are named as places inside those counties, not as offices |
+| "Remote & on-site support" | CMS `services.cards[1]` | site-only; whether on-site visits cover all three counties is an owner question (section 13) |
 
 ## 5. Pricing
 
@@ -71,7 +76,8 @@ Two independent price lists exist and neither cites the other.
 |---|---|---|---|
 | Per-unit rates (cents → dollars/month) | Employees (user accounts) $5.00 · Server $175.00 · Computers $105.00 · Location network monitoring $50.00 · Office 365 licensing only $32.00 · Office 365 licensing and email $38.00 | table `pricing_units` (all `active`, updated 2026-08-15); the same four figures are written into `src/pages/ITSupportFortLauderdalePage.tsx:41-43` and `ManagedITFortLauderdalePage.tsx:40-42` as "from our published price list" | source-backed (DB = landing pages). The repo's seed migration `20260503000000_create_pricing_units.sql` holds older values ($50 computers, $20 locations, no server); the live table is the truth. |
 | Tiers | SaaS Starter $199/mo (≤5 users), Professional $599 (≤25), Enterprise $1,299 (unlimited); HaaS Basic $299 (≤10 devices), Professional $699 (≤50), Enterprise $1,499; Support Standard $85–150/hr (8am–5pm M–F), Priority $125–200/hr (7am–9pm M–F), 24/7 Premium $175–300/hr | CMS `pricing.tiers` (updated 2026-05-03); **never rendered**: `PricingPage.tsx` reads only the pricing headline keys and shows the quote builder | **retired, owner-confirmed 2026-10-26**: migration `20261103120000` deletes the row (guarded on its md5; snapshot and exact-restore SQL in `docs/geo/evidence/2026-10-26/` and `supabase/rollbacks/`), and the admin editor's Tiers block is gone |
-| "Flat-rate transparent pricing"; "Published per-device rates"; "No long-term contracts required" | CMS `trustbar.items`, `whyus.proof_points`, `hero.stats` | site-only |
+| Where code takes prices from | `PUBLISHED_RATES` in `src/lib/publishedRates.ts`: the six per-unit rates above, each with its unit, and the helpers that write them into copy (`usd`, `ratesSentence`) | `src/lib/publishedRates.ts`; `ratesDiffer()` there, called from `src/lib/prerenderContent.ts` | source-backed (code), since 2026-11-12: the one place code takes a price from (the local and service pages, the `/pricing` meta description, `llms.txt`). The build compares it with `pricing_units` and warns, naming each difference; `/pricing` then shows its table without the sentences that state a rate. The table on `/pricing` is always the table's own rows |
+| "Flat-rate transparent pricing"; "Published per-device rates"; "No long-term contracts required" | CMS `trustbar.items`, `whyus.proof_points`, `hero.stats` | site-only; the contract term behind "no long-term contract" is an owner question (section 13) |
 
 ## 6. Partnerships, credentials, claims
 
@@ -90,10 +96,10 @@ Two independent price lists exist and neither cites the other.
 
 | Profile | URL | Source | Status |
 |---|---|---|---|
-| LinkedIn | https://www.linkedin.com/company/new-wave-it | `index.html` JSON-LD | **404 to an anonymous fetch**; ownership unconfirmed |
-| Facebook | https://www.facebook.com/newwaveitfl | `index.html` JSON-LD | redirects to login; ownership unconfirmed |
-| Google Business Profile | place id `ChIJm5g0rvtBWA0R5GAmemjZwh0`, kgmid `/g/11zxq1dhz3` | Google Maps search 2026-10-26 | exists; no address shown; not in `sameAs` |
-| Instagram, YouTube, Yelp, X | none listed | — | owner question |
+| LinkedIn | https://www.linkedin.com/company/new-wave-it | `index.html` JSON-LD until 2026-11-12 | **removed from `sameAs`, 2026-11-12**: 404 to an anonymous fetch on 2026-10-26, Google has no such page indexed, and the owner has not confirmed it. Owner question (section 13) |
+| Facebook | https://www.facebook.com/newwaveitfl | `index.html` JSON-LD `sameAs` | redirects to login; ownership unconfirmed; left in place. Owner question (section 13) |
+| Google Business Profile | place id `ChIJm5g0rvtBWA0R5GAmemjZwh0`, kgmid `/g/11zxq1dhz3`; Maps URL `https://www.google.com/maps?cid=2144515415330939108` | Google Maps search 2026-10-26; the CID is that place id decoded (its last eight bytes, a little-endian integer; a test checks the two agree) | source-backed (GBP). In `index.html` as `hasMap` and in `sameAs` since 2026-11-12. `/review` redirects (temporary, `vercel.json`) to the listing's review form, `https://search.google.com/local/writereview?placeid=ChIJm5g0rvtBWA0R5GAmemjZwh0`. On 2026-10-26 the listing showed no address |
+| Instagram, YouTube, Yelp, X | none listed | — | owner question (section 13) |
 
 ## 8. Blog
 
@@ -110,7 +116,7 @@ Two independent price lists exist and neither cites the other.
 3. **Website on GBP**: apex `newwaveitfl.com` vs the site's canonical `www.`.
 4. **Pricing** (settled 2026-10-26): `pricing_units` is the published price list and feeds the quote builder on `/pricing`; the CMS `pricing.tiers` row was a dormant list the page never rendered, and is retired by migration `20261103120000`. `pricing.subheadline` takes the code default ("Select the services you need and get an instant estimate. Our team will follow up with a customized proposal.") by migration `20261102120000`.
 5. **Response times** (settled 2026-10-26): every promise is dropped; the tiers that carried the hourly ones are retired.
-6. **Service list**: schema `hasOfferCatalog` has seven offers (adds Healthcare IT & HIPAA Compliance); the CMS shows six cards; the sitemap has ten category pages.
+6. **Service list**: schema `hasOfferCatalog` has seven offers (adds Healthcare IT & HIPAA Compliance); the CMS shows six cards; the sitemap has ten category pages. Since 2026-11-12 each offer names its page under `/service-category/` (`itemOffered.url`); no offer was added or removed.
 
 
 ## 10. Claims that live only in code constants (live pages)
@@ -169,3 +175,42 @@ and the schema `foundingDate`.
 | 2026-10-27 | Q7 credentials and managers | Keep both: "certified engineers" and the dedicated project manager / account manager claims. No specific certification named; none is added without a document |
 | 2026-10-27 | Q8 logos | Microsoft 365, SentinelOne, Huntress, NinjaOne, ConnectWise, Cloudflare are tools the team runs, not partnerships; partners stay Huntress, Microsoft, Cisco |
 | 2026-10-27 | `/status` | Make it honest: no real-time, last-checked or uptime figures; each service links to its provider's official status page |
+| 2026-11-12 | Service area | "yes we serve miami-dade and palm beach": New Wave IT serves Broward, Miami-Dade and Palm Beach counties |
+
+## 12. The South Florida change (2026-11-12)
+
+What the site states since this change, and the row each statement rests on.
+
+| What | Value | Source | Status |
+|---|---|---|---|
+| Homepage title | "Managed IT Services & IT Support in Fort Lauderdale \| New Wave IT" (was "New Wave IT — 24/7 Managed IT, Cybersecurity & Cloud in Fort Lauderdale") | `index.html` (`<title>`, `og:title`, `twitter:title`); `HOME_PAGE_META` in `src/lib/routeMeta.ts` | source-backed: the services (section 4) and the office's city (section 2). "24/7" left the title: the owner confirmed a 24/7 emergency line, not 24/7 service |
+| Homepage description | "New Wave IT is a Fort Lauderdale managed IT services and IT support company serving Broward, Miami-Dade and Palm Beach counties, with published monthly rates." (was "Fort Lauderdale's trusted managed IT services partner. 24/7 support, …") | `index.html` (`description`, `og:description`, `twitter:description`); `DEFAULT_DESCRIPTION` in `src/lib/pageMeta.ts`, which is also the description of any page that sets none of its own (the `/service/` and `/threat/` detail pages, a blog post without an excerpt, the admin and GroundSwell portal screens) | each part has a row: what it is (section 1), the office (section 2), the counties (section 4, owner-confirmed), the published rates (section 5) |
+| Entity graph description | "New Wave IT is a managed IT services provider with an office in Fort Lauderdale, Florida. It provides managed IT services, IT support, cybersecurity, cloud and network services to businesses in Broward, Miami-Dade and Palm Beach counties." | `index.html` JSON-LD: the `description` of `#business`, `#organization` and `#website`; `llms.txt` opens with the Organization's | as the row above. The earlier texts said "trusted" and "24/7 IT support" |
+| Miami page | `/managed-it-services-miami`, "Managed IT Services & IT Support in Miami, FL" | `src/pages/ManagedITMiamiPage.tsx`; `IT_PAGE_META` in `src/lib/routeMeta.ts` | Miami-Dade County is served (section 4); the page says the office is in Fort Lauderdale and names none in Miami |
+| Boca Raton page | `/it-support-boca-raton`, "IT Support & Managed IT Services in Boca Raton, FL" | `src/pages/ITSupportBocaRatonPage.tsx`; `IT_PAGE_META` | Palm Beach County is served (section 4); the page says the office is in Fort Lauderdale and names none in Boca Raton |
+| West Palm Beach page | `/managed-it-services-west-palm-beach`, "Managed IT Services & IT Support in West Palm Beach" | `src/pages/ManagedITWestPalmBeachPage.tsx`; `IT_PAGE_META` | Palm Beach County is served (section 4); the page says the office is in Fort Lauderdale and names none in West Palm Beach |
+| Service-area hub | `/managed-it-services-south-florida`, "Managed IT Services in South Florida — Areas We Serve" | `src/pages/SouthFloridaServiceAreasPage.tsx`; `IT_PAGE_META` | the three counties and their cities (section 4); the one office (section 2) |
+| Links to the local pages | "Areas we serve" on the homepage and `/services`: "New Wave IT works with businesses across Broward, Miami-Dade and Palm Beach counties from its office at 710 NW 5th Ave in Fort Lauderdale."; a "Service areas" list in the footer; the blog generator may link the six local pages and ends each post with a link to the hub | `src/components/AreasWeServe.tsx`, `src/components/Footer.tsx`, `api/_lib/blogQuality.ts` | the counties (section 4), the address (section 2) |
+
+## 13. Open owner questions
+
+Not answered as of 2026-11-12. Until an answer is recorded in section 11,
+new copy says only what the rows above allow.
+
+1. **On-site visits**: do on-site visits cover all three counties (Broward,
+   Miami-Dade and Palm Beach)? The site says "Remote & on-site support"
+   (section 4, site-only); the owner confirmed the counties served, not how
+   each is reached.
+2. **"24/7"**: what does "24/7" cover beyond the emergency line (monitoring,
+   the help desk)? Only the 24/7 emergency line is owner-confirmed (section
+   3). Lines already on the site stand (sections 3 and 10); new copy attaches
+   "24/7" to the emergency line alone.
+3. **Contract term**: what is the term behind "no long-term contract"
+   (section 5): a minimum term, a notice period, what replaces a contract?
+   New copy uses the phrase "no long-term contract" and states no term.
+4. **Social profiles**: which profiles are New Wave IT's own (section 7)?
+   The LinkedIn URL is out of `sameAs`; the Facebook URL stays, unconfirmed;
+   Instagram, YouTube, Yelp and X have no URL on record.
+5. **The $38 Office 365 rate**: is "Office 365 - Licensing and Email" charged
+   per account, like the $32 "Licensing Only" row? The price list gives the
+   $38 row no description, and the copy takes it to be counted the same way.

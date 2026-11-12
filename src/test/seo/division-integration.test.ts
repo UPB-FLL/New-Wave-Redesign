@@ -98,6 +98,30 @@ describe('division visibility', () => {
   });
 });
 
+describe('the Google review short link', () => {
+  const config = JSON.parse(read('vercel.json')) as { redirects: { source: string; destination: string; permanent: boolean }[]; rewrites: { source: string }[] };
+  const review = config.redirects.find((rule) => rule.source === '/review');
+
+  it('sends /review to the review form of the business’s own Google listing, as a temporary redirect', () => {
+    // Temporary: browsers cache a permanent redirect, and the listing's place id may change.
+    expect(review).toEqual({
+      source: '/review',
+      destination: 'https://search.google.com/local/writereview?placeid=ChIJm5g0rvtBWA0R5GAmemjZwh0',
+      permanent: false,
+    });
+    // A redirect, not a page: nothing to rewrite, prerender or list.
+    expect(config.rewrites.map((rule) => rule.source)).not.toContain('/review');
+    expect(read('public/sitemap.xml')).not.toContain(`${SITE_URL}/review<`);
+  });
+
+  it('points at the listing the entity graph names (hasMap is that place id’s CID)', () => {
+    const placeId = new URL(review?.destination ?? 'https://x.test/').searchParams.get('placeid') ?? '';
+    // A place id is base64url: a 12-byte prefix, then the listing's CID as a little-endian 64-bit integer.
+    const cid = Buffer.from(placeId, 'base64url').readBigUInt64LE(12).toString();
+    expect(read('index.html')).toContain(`"hasMap": "https://www.google.com/maps?cid=${cid}"`);
+  });
+});
+
 describe('retired division URLs', () => {
   it('are never reused for a current service', () => {
     const current: readonly string[] = DIVISION_SERVICE_SLUGS;

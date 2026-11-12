@@ -5,7 +5,7 @@ import { Section } from './brand/Section';
 import { SectionHeading } from './brand/SectionHeading';
 
 /** The local landing pages and the service-area hub, in the order the band lists them. */
-export const AREA_LINKS = [
+const AREA_LINKS = [
   { label: 'IT support in Fort Lauderdale', href: '/it-support-fort-lauderdale' },
   { label: 'Managed IT services in Fort Lauderdale', href: '/managed-it-services-fort-lauderdale' },
   { label: 'Managed IT services in Miami', href: '/managed-it-services-miami' },

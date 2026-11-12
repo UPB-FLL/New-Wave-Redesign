@@ -7,12 +7,22 @@ import path from 'node:path';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 import { IT_PAGE_META } from '../lib/routeMeta';
-import AreasWeServe, { AREA_LINKS } from './AreasWeServe';
+import AreasWeServe from './AreasWeServe';
 
 const SRC = path.resolve(__dirname, '..');
 const read = (file: string) => readFileSync(path.join(SRC, file), 'utf8');
 const links = (container: HTMLElement, selector: string) =>
   [...container.querySelectorAll(selector)].map((link) => [link.getAttribute('href'), link.textContent]);
+
+/** The local pages and the hub, with the text each is linked by. */
+const AREA_LINKS = [
+  ['/it-support-fort-lauderdale', 'IT support in Fort Lauderdale'],
+  ['/managed-it-services-fort-lauderdale', 'Managed IT services in Fort Lauderdale'],
+  ['/managed-it-services-miami', 'Managed IT services in Miami'],
+  ['/it-support-boca-raton', 'IT support in Boca Raton'],
+  ['/managed-it-services-west-palm-beach', 'Managed IT services in West Palm Beach'],
+  ['/managed-it-services-south-florida', 'South Florida service areas'],
+];
 
 function renderBand(currentPath?: string) {
   return render(
@@ -34,14 +44,7 @@ describe('AreasWeServe', () => {
   });
 
   it('links each local page with text that says what and where', () => {
-    expect(links(renderBand(), 'li a')).toEqual([
-      ['/it-support-fort-lauderdale', 'IT support in Fort Lauderdale'],
-      ['/managed-it-services-fort-lauderdale', 'Managed IT services in Fort Lauderdale'],
-      ['/managed-it-services-miami', 'Managed IT services in Miami'],
-      ['/it-support-boca-raton', 'IT support in Boca Raton'],
-      ['/managed-it-services-west-palm-beach', 'Managed IT services in West Palm Beach'],
-      ['/managed-it-services-south-florida', 'South Florida service areas'],
-    ]);
+    expect(links(renderBand(), 'li a')).toEqual(AREA_LINKS);
   });
 
   it('links only pages the site has', () => {
