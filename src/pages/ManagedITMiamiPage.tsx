@@ -48,7 +48,7 @@ const faqs: FaqItem[] = [
   {
     question: 'What is a managed service provider?',
     answer:
-      "A managed service provider (MSP) is an outside company that looks after a business's IT month after month for a set fee, rather than being called only when something breaks. It monitors the computers, servers and network, keeps them patched and backed up, and supports the staff. Paying per repair instead is known as break-fix. New Wave IT is a managed service provider that serves Miami from its office in Fort Lauderdale.",
+      "A managed service provider (MSP) is an outside company that looks after a business's IT for a set monthly fee, rather than being called only when something breaks. It monitors the computers, servers and network, keeps them patched and backed up, and supports the staff. Paying per repair instead is known as break-fix. New Wave IT is a managed service provider that serves Miami from its office in Fort Lauderdale.",
   },
   {
     question: 'Is there a long-term contract?',
@@ -92,14 +92,15 @@ const page: ServiceCategoryPageData = {
   guideLabel: 'See the published rates',
   assessmentLabel: 'Get a free IT assessment',
   featureTitle: 'What do managed IT services in Miami include?',
-  featureDescription: 'Managed IT services from New Wave IT cover six areas of work for a business in Miami, and every user has the help desk.',
+  featureDescription:
+    'Managed IT services from New Wave IT cover six areas of work for a business in Miami: monitoring, patching, endpoint protection, backups, the help desk and planning.',
   featureCards: [
     { icon: Monitor, title: 'Monitoring and maintenance', description: 'Computers, servers and the network are watched remotely and kept maintained.' },
     { icon: RefreshCw, title: 'Patching', description: 'Operating system and software updates are applied remotely, not left to each employee.' },
     { icon: ShieldCheck, title: 'Endpoint protection', description: 'Software that guards against malicious programs runs on each managed computer and server.' },
     { icon: HardDrive, title: 'Backups and recovery', description: 'Backups are managed, and a recovery plan sets out how data and systems are brought back.' },
     { icon: Headphones, title: 'Help desk', description: 'One place for every employee to take a password, printer or laptop problem.' },
-    { icon: BarChart3, title: 'Reporting and planning', description: 'Reports show support activity, trends and investment needs, and quarterly business reviews turn them into a roadmap.' },
+    { icon: BarChart3, title: 'Reporting and planning', description: 'Reports show support activity, trends and investment needs, with quarterly business reviews and a technology roadmap.' },
   ],
   sections: [
     {
@@ -108,12 +109,11 @@ const page: ServiceCategoryPageData = {
         'New Wave IT serves Miami from its Fort Lauderdale office by remote support and on-site visits, and it has no office in Miami-Dade County. ' +
           `The office is at ${OFFICE_ADDRESS}. Fort Lauderdale is in Broward County, which borders Miami-Dade County to the north. ` +
           'The office is staffed, and its hours are Monday to Friday, 8am to 6pm. After hours, urgent problems go to the 24/7 emergency line. ' +
-          `Miami businesses call ${PHONE} or write to ${EMAIL}. ` +
+          `Reach the office by phone at ${PHONE} or by email at ${EMAIL}. ` +
           'Cities served in Miami-Dade County include Miami, Coral Gables, Doral, Hialeah, Miami Beach and Aventura.',
-        'New Wave IT does the routine work of a managed IT plan, monitoring and patching, remotely, so it reaches a computer in Miami the same way as one in Fort Lauderdale. ' +
+        'New Wave IT monitors and patches computers remotely, so this routine work reaches a computer in Miami the same way as one in Fort Lauderdale. ' +
           'The help desk also works remotely first: it fixes what it can through remote support. ' +
-          'An on-site visit is for work that needs hands on the equipment, such as a laptop, desktop or server that must be repaired or replaced. ' +
-          'On-site visits to Miami-Dade County are made from the Fort Lauderdale office.',
+          'An on-site visit is for work that cannot be done over a connection, which means equipment that has to be handled, repaired or replaced.',
       ],
     },
     {
@@ -131,8 +131,8 @@ const page: ServiceCategoryPageData = {
     {
       title: 'What does IT support cover for a Miami business?',
       body: [
-        'IT support from New Wave IT covers the day-to-day problems of the people in a Miami business: a forgotten password, an email or Microsoft 365 fault, a printer, a laptop that will not start. ' +
-          'Staff contact the help desk by phone, by email or by opening a ticket, and each request is tracked as a ticket until it is resolved. ' +
+        "IT support for a Miami business is run from New Wave IT's Fort Lauderdale office and covers the day-to-day problems of the people at work: a forgotten password, an email or Microsoft 365 fault, a printer, a laptop that will not start. " +
+          'An employee asks for help by phone, by email or through a ticket, and every request stays on record as a ticket until it is solved. ' +
           'The help desk is included in a managed IT plan. ' +
           "New Wave IT's other IT services, each linked below, are IT repair and upgrades, cybersecurity, cloud solutions including Microsoft 365, and network infrastructure.",
       ],
