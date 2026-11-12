@@ -4,9 +4,9 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { BREADCRUMBS_ELEMENT_ID, headEntries, resolvePageMeta, SITE_URL } from '../../lib/pageMeta';
-import { renderRouteHtml } from '../../lib/prerenderHead';
-import { HOME_PAGE_META, IT_PAGE_META, prerenderedItRoutes } from '../../lib/routeMeta';
+import { BREADCRUMBS_ELEMENT_ID, headEntries, PAGE_JSONLD_ELEMENT_ID, resolvePageMeta, SITE_URL } from '../../lib/pageMeta';
+import { pageJsonLdScript, renderRouteHtml } from '../../lib/prerenderHead';
+import { HOME_PAGE_JSON_LD, HOME_PAGE_META, IT_PAGE_META, prerenderedItRoutes } from '../../lib/routeMeta';
 import { SERVICE_GUIDE_SUMMARIES } from '../../lib/serviceGuides';
 
 const shell = readFileSync(path.resolve(__dirname, '../../../index.html'), 'utf8');
@@ -38,7 +38,7 @@ describe('prerendered New Wave IT routes', () => {
     expect(paths).not.toContain('/');
     Object.keys(IT_PAGE_META).forEach((p) => expect(paths).toContain(p));
     Object.keys(SERVICE_GUIDE_SUMMARIES).forEach((slug) => expect(paths).toContain(`/l/${slug}`));
-    expect(paths).toHaveLength(32);
+    expect(paths).toHaveLength(36);
   });
 
   it.each(routes.map((route) => [route.path, route] as const))('%s describes itself in raw HTML', (routePath, route) => {
@@ -67,7 +67,7 @@ describe('prerendered New Wave IT routes', () => {
     expect(trail[trail.length - 1].item).toBe(url);
     expect(h.icon).toBe('/favicon.svg');
     // And none of the homepage's identity survives.
-    expect(h.titles[0]).not.toBe('New Wave IT — 24/7 Managed IT, Cybersecurity & Cloud in Fort Lauderdale');
+    expect(h.titles[0]).not.toBe(HOME_PAGE_META.title);
   });
 
   it('gives every page a title and description that fit in search results', () => {
@@ -138,6 +138,90 @@ describe('prerendered page bodies', () => {
     expect(config.rewrites.some((r) => r.source === '/')).toBe(false);
     expect(config.functions['api/blog-page.ts']?.includeFiles).toBe('dist/_shell.html');
     expect(readFileSync(path.resolve(__dirname, '../../../public/robots.txt'), 'utf8')).toContain('Disallow: /_shell.html');
+  });
+});
+
+// A page's own JSON-LD (what it passes to usePageMeta) goes into the raw HTML
+// as the #page-jsonld block usePageMeta takes over, as blog posts already do.
+describe('prerendered page JSON-LD', () => {
+  const routePath = '/it-support-fort-lauderdale';
+  const meta = IT_PAGE_META[routePath];
+  const service = { '@context': 'https://schema.org', '@type': 'Service', name: 'IT Support', url: `${SITE_URL}${routePath}` };
+  const faq = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: [{ '@type': 'Question', name: 'Do you visit our office?' }] };
+  const pageBlocks = (html: string) => {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    return [...doc.querySelectorAll(`script#${PAGE_JSONLD_ELEMENT_ID}`)];
+  };
+
+  it('writes one #page-jsonld block holding exactly the nodes it was given, after the shell graph and the breadcrumbs', () => {
+    const html = renderRouteHtml(shell, routePath, meta, { jsonLd: [service, faq] });
+    const blocks = pageBlocks(html);
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].getAttribute('type')).toBe('application/ld+json');
+    expect(blocks[0].parentElement?.tagName).toBe('HEAD');
+    expect(JSON.parse(blocks[0].textContent ?? 'null')).toEqual([service, faq]);
+
+    const h = head(html);
+    expect(h.jsonLd).toHaveLength(3);
+    expect(h.jsonLd[0]).toContain('"LocalBusiness"');
+    expect(JSON.parse(h.jsonLd[1])['@type']).toBe('BreadcrumbList');
+    expect(JSON.parse(h.jsonLd[2])).toEqual([service, faq]);
+    // Nothing else in the head moves.
+    expect({ ...h, jsonLd: h.jsonLd.slice(0, 2) }).toEqual(head(renderRouteHtml(shell, routePath, meta)));
+  });
+
+  it('writes a single node as a one-item array, as usePageMeta does at runtime', () => {
+    const [block] = pageBlocks(renderRouteHtml(shell, routePath, meta, { jsonLd: service }));
+    expect(JSON.parse(block.textContent ?? 'null')).toEqual([service]);
+  });
+
+  it('serialises the block as usePageMeta does (JSON.stringify of the array), last in the head', () => {
+    const html = renderRouteHtml(shell, routePath, meta, { jsonLd: [service, faq] });
+    const block = `<script type="application/ld+json" id="page-jsonld">${JSON.stringify([service, faq])}</script>`;
+    expect(pageJsonLdScript([service, faq])).toBe(block);
+    expect(html).toContain(`  ${block}\n  </head>`);
+  });
+
+  it('keeps a "</script>" inside a string from closing the block', () => {
+    const hostile = { ...service, name: 'IT </script><script>alert(1)</script> support', description: '<!-- <b>bold</b> & "quoted"' };
+    const html = renderRouteHtml(shell, routePath, meta, { jsonLd: hostile });
+    expect(html).not.toContain('<script>alert(1)</script>');
+    expect(html).toContain('IT \\u003c/script>\\u003cscript>alert(1)\\u003c/script> support');
+
+    // The parser sees the shell's scripts plus the breadcrumb and page blocks, and no injected one.
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const shellScripts = new DOMParser().parseFromString(shell, 'text/html').querySelectorAll('script').length;
+    expect(doc.querySelectorAll('script')).toHaveLength(shellScripts + 2);
+    expect(doc.head.querySelectorAll('script[type="application/ld+json"]')).toHaveLength(3);
+    // The reader still gets the text the page passed.
+    expect(JSON.parse(pageBlocks(html)[0].textContent ?? 'null')).toEqual([hostile]);
+  });
+
+  it('leaves the page as it was when there is no JSON-LD to write', () => {
+    const plain = renderRouteHtml(shell, routePath, meta);
+    expect(plain).not.toContain(PAGE_JSONLD_ELEMENT_ID);
+    expect(renderRouteHtml(shell, routePath, meta, {})).toBe(plain);
+    expect(renderRouteHtml(shell, routePath, meta, { jsonLd: undefined })).toBe(plain);
+    expect(renderRouteHtml(shell, routePath, meta, { jsonLd: null })).toBe(plain);
+    expect(renderRouteHtml(shell, routePath, meta, { jsonLd: [] })).toBe(plain);
+  });
+
+  it('writes the JSON-LD and the body together, each in its place', () => {
+    const body = '<main><h1>IT support</h1><p>Copy.</p></main>';
+    const html = renderRouteHtml(shell, routePath, meta, { bodyHtml: body, jsonLd: [service] });
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    expect(doc.getElementById('root')?.innerHTML).toBe(body);
+    expect(doc.body.querySelector('script[type="application/ld+json"]')).toBeNull();
+    expect(JSON.parse(pageBlocks(html)[0].textContent ?? 'null')).toEqual([service]);
+  });
+
+  it('gives the homepage its page node too, beside the shell graph', () => {
+    const html = renderRouteHtml(shell, '/', HOME_PAGE_META, { jsonLd: [HOME_PAGE_JSON_LD] });
+    const h = head(html);
+    // No breadcrumb trail on the homepage: the shell graph, then the page.
+    expect(h.jsonLd).toHaveLength(2);
+    expect(JSON.parse(h.jsonLd[1])).toEqual([HOME_PAGE_JSON_LD]);
+    expect(HOME_PAGE_JSON_LD).toMatchObject({ '@type': 'WebPage', url: `${SITE_URL}/`, name: HOME_PAGE_META.title });
   });
 });
 

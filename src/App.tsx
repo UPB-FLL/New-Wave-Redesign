@@ -33,6 +33,7 @@ import Hero from './components/Hero';
 import TrustBar from './components/TrustBar';
 import Services from './components/Services';
 import WhyUs from './components/WhyUs';
+import AreasWeServe from './components/AreasWeServe';
 import Footer from './components/Footer';
 import ContactPage from './pages/ContactPage';
 import TermsAndConditionsPage from './pages/TermsAndConditionsPage';
@@ -58,6 +59,10 @@ import HealthcareServicePage from './pages/HealthcareServicePage';
 import LuxuryServicePage from './pages/LuxuryServicePage';
 import ITSupportFortLauderdalePage from './pages/ITSupportFortLauderdalePage';
 import ManagedITFortLauderdalePage from './pages/ManagedITFortLauderdalePage';
+import ManagedITMiamiPage from './pages/ManagedITMiamiPage';
+import ITSupportBocaRatonPage from './pages/ITSupportBocaRatonPage';
+import ManagedITWestPalmBeachPage from './pages/ManagedITWestPalmBeachPage';
+import SouthFloridaServiceAreasPage from './pages/SouthFloridaServiceAreasPage';
 import CellularDASPublicSafetyServicePage from './pages/CellularDASPublicSafetyServicePage';
 import ServiceGuidePage from './pages/ServiceGuidePage';
 import CodeNestPage from './pages/CodeNestPage';
@@ -66,7 +71,7 @@ import BlogPostPage from './pages/BlogPostPage';
 import NotFoundPage from './pages/NotFoundPage';
 import GroundswellSignInPage from './pages/GroundswellSignInPage';
 import { usePageMeta } from './lib/usePageMeta';
-import { HOME_PAGE_META } from './lib/routeMeta';
+import { HOME_PAGE_JSON_LD, HOME_PAGE_META } from './lib/routeMeta';
 import {
   DIVISION_BASE_PATH,
   DIVISION_CONTACT_PATH,
@@ -136,20 +141,9 @@ function AdminFallback() {
   return <div className="min-h-screen" aria-busy="true" />;
 }
 
-// The WebSite, Organization, and LocalBusiness nodes live in index.html; this adds only the page node.
-const HOME_JSON_LD = {
-  '@context': 'https://schema.org',
-  '@type': 'WebPage',
-  '@id': 'https://www.newwaveitfl.com/#webpage',
-  'url': 'https://www.newwaveitfl.com/',
-  'name': HOME_PAGE_META.title,
-  'isPartOf': { '@id': 'https://www.newwaveitfl.com/#website' },
-  'about': { '@id': 'https://www.newwaveitfl.com/#business' },
-  'description': HOME_PAGE_META.description,
-};
-
 function HomePage() {
-  usePageMeta({ ...HOME_PAGE_META, jsonLd: HOME_JSON_LD });
+  // The same head and page node the build writes into the raw homepage (HomeBody in src/lib/prerenderBody.tsx).
+  usePageMeta({ ...HOME_PAGE_META, jsonLd: HOME_PAGE_JSON_LD });
   return (
     <div className="min-h-screen relative bg-[var(--nw-cloud-white)]">
       <Navbar />
@@ -157,6 +151,7 @@ function HomePage() {
       <TrustBar />
       <Services />
       <WhyUs />
+      <AreasWeServe />
       <Footer />
     </div>
   );
@@ -197,6 +192,10 @@ export default function App() {
         <Route path="/service-category/healthcare" element={<HealthcareServicePage />} />
         <Route path="/it-support-fort-lauderdale" element={<ITSupportFortLauderdalePage />} />
         <Route path="/managed-it-services-fort-lauderdale" element={<ManagedITFortLauderdalePage />} />
+        <Route path="/managed-it-services-miami" element={<ManagedITMiamiPage />} />
+        <Route path="/it-support-boca-raton" element={<ITSupportBocaRatonPage />} />
+        <Route path="/managed-it-services-west-palm-beach" element={<ManagedITWestPalmBeachPage />} />
+        <Route path="/managed-it-services-south-florida" element={<SouthFloridaServiceAreasPage />} />
         <Route path="/service-category/luxury" element={<LuxuryServicePage />} />
         <Route path="/service-category/cellular-das-and-public-safety" element={<CellularDASPublicSafetyServicePage />} />
         <Route path="/threat/:slug" element={<ThreatDetailPage />} />

@@ -2,13 +2,18 @@ import { ArrowRight, type LucideIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { Crumb } from '../../lib/pageMeta';
 import { SERVICE_GUIDE_SUMMARIES } from '../../lib/serviceGuides';
+import type { FaqItem } from '../../lib/structuredData';
 import Footer from '../Footer';
 import Navbar from '../Navbar';
 import { CheckList } from './CheckList';
 import { CtaBand } from './CtaBand';
+import { FaqSection } from './FaqSection';
 import { PageHeader } from './PageHeader';
+import { RelatedLinks, type RelatedLink } from './RelatedLinks';
 import { Section } from './Section';
 import { SectionHeading } from './SectionHeading';
+
+export type { FaqItem, RelatedLink };
 
 export type ServicePageCard = {
   icon: LucideIcon;
@@ -20,6 +25,8 @@ export type ServicePageCard = {
 export type ServicePageSection = {
   title: string;
   description?: string;
+  /** Paragraphs under the heading, before the cards and items. */
+  body?: string[];
   cards?: ServicePageCard[];
   items?: string[];
   /** The items are steps taken in order, so they are numbered. */
@@ -35,6 +42,10 @@ export type ServiceCategoryPageData = {
   highlights: string[];
   /** The page's guide (/l/…), or another page to read next. A guide that does not exist is never linked. */
   seoLink: string;
+  /** Replaces the "Overview" title, often with the question the overview answers. */
+  overviewTitle?: string;
+  /** More paragraphs in the overview, after `details`. */
+  overviewBody?: string[];
   heroTitle?: string;
   heroDescription?: string;
   assessmentLabel?: string;
@@ -43,6 +54,12 @@ export type ServiceCategoryPageData = {
   featureDescription?: string;
   featureCards?: ServicePageCard[];
   sections?: ServicePageSection[];
+  /** Questions and answers, shown in full after the sections. Hand the same list to the page's FAQPage node. */
+  faqs?: FaqItem[];
+  faqTitle?: string;
+  /** Other pages to read next, after the questions: the links between services and areas. */
+  relatedLinks?: RelatedLink[];
+  relatedTitle?: string;
   ctaTitle?: string;
   ctaDescription?: string;
   ctaLabel?: string;
@@ -74,6 +91,11 @@ export function ServiceCategoryPage({ data, breadcrumbs }: { data: ServiceCatego
   const title = data.heroTitle || data.name;
   const description = data.heroDescription || data.description;
   const actionLabel = data.assessmentLabel || 'Request an assessment';
+  // Bands alternate from the overview (0) down, whichever of them a page has.
+  const bandTone = (position: number) => (position % 2 ? 'base' : 'white');
+  const firstSection = data.featureCards?.length ? 2 : 1;
+  const faqBand = firstSection + (data.sections?.length ?? 0);
+  const relatedBand = faqBand + (data.faqs?.length ? 1 : 0);
 
   return (
     <div className="min-h-screen bg-[var(--nw-cloud-white)]">
@@ -101,8 +123,11 @@ export function ServiceCategoryPage({ data, breadcrumbs }: { data: ServiceCatego
         <Section tone="white">
           <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
             <div>
-              <SectionHeading title="Overview" />
+              <SectionHeading title={data.overviewTitle || 'Overview'} />
               <p className="mt-5 text-base leading-relaxed text-[var(--nw-slate)] sm:text-lg">{data.details}</p>
+              {data.overviewBody?.map((paragraph) => (
+                <p key={paragraph} className="mt-4 text-base leading-relaxed text-[var(--nw-slate)] sm:text-lg">{paragraph}</p>
+              ))}
             </div>
             <aside className="rounded-lg border p-6" style={{ background: 'var(--nw-cloud-white)', borderColor: 'var(--nw-mist-gray)' }}>
               <div className="flex items-center gap-3">
@@ -129,9 +154,13 @@ export function ServiceCategoryPage({ data, breadcrumbs }: { data: ServiceCatego
         ) : null}
 
         {data.sections?.map((section, index) => (
-          // Bands alternate from the overview down, with or without the feature band.
-          <Section key={section.title} tone={(index + (data.featureCards?.length ? 2 : 1)) % 2 ? 'base' : 'white'}>
+          <Section key={section.title} tone={bandTone(firstSection + index)}>
             <SectionHeading title={section.title} description={section.description} />
+            {section.body?.length ? (
+              <div className="mt-6 max-w-3xl space-y-4 text-base leading-relaxed text-[var(--nw-slate)]">
+                {section.body.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+              </div>
+            ) : null}
             {section.cards?.length ? <CardGrid cards={section.cards} /> : null}
             {section.items?.length ? (
               <CheckList items={section.items} ordered={section.ordered} columns={section.ordered ? 1 : 2} className="mt-8 max-w-4xl" />
@@ -143,6 +172,9 @@ export function ServiceCategoryPage({ data, breadcrumbs }: { data: ServiceCatego
             ) : null}
           </Section>
         ))}
+
+        {data.faqs?.length ? <FaqSection title={data.faqTitle} items={data.faqs} tone={bandTone(faqBand)} /> : null}
+        {data.relatedLinks?.length ? <RelatedLinks title={data.relatedTitle} links={data.relatedLinks} tone={bandTone(relatedBand)} /> : null}
 
         <CtaBand
           title={data.ctaTitle || `Ready to plan your ${data.name.toLowerCase()}?`}

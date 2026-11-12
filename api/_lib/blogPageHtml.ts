@@ -1,6 +1,6 @@
 import { blogPostPageMeta, type BlogPostState } from '../../src/lib/blogSeo.js';
-import { PAGE_JSONLD_ELEMENT_ID, resolvePageMeta } from '../../src/lib/pageMeta.js';
-import { applyPageHead, escapeJsonForScript, injectRootBody, insertBeforeHeadClose } from '../../src/lib/prerenderHead.js';
+import { resolvePageMeta } from '../../src/lib/pageMeta.js';
+import { applyPageHead, injectRootBody, insertBeforeHeadClose, pageJsonLdScript } from '../../src/lib/prerenderHead.js';
 import { blogPostBodyHtml } from './blogPostBody.js';
 
 /**
@@ -17,7 +17,6 @@ export function blogPageHtml(shell: string, slug: string, state: BlogPostState):
   let html = applyPageHead(shell, resolvePageMeta(options, `/blog/${slug}`));
   if (state.status === 'ready') html = injectRootBody(html, `/blog/${slug}`, blogPostBodyHtml(state.post));
   if (!options.jsonLd) return html;
-  // Serialised as usePageMeta's injectJsonLd does, so both copies read the same.
-  const json = escapeJsonForScript(JSON.stringify(Array.isArray(options.jsonLd) ? options.jsonLd : [options.jsonLd]));
-  return insertBeforeHeadClose(html, `<script type="application/ld+json" id="${PAGE_JSONLD_ELEMENT_ID}">${json}</script>`);
+  // The same block the static prerender writes for its pages (renderRouteHtml).
+  return insertBeforeHeadClose(html, pageJsonLdScript(options.jsonLd));
 }

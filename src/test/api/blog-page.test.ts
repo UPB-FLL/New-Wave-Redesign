@@ -160,6 +160,17 @@ describe('GET /blog/:slug (api/blog-page.ts)', () => {
     expect(page.doc.head.querySelectorAll('script[type="application/ld+json"]').length).toBeGreaterThan(1);
   });
 
+  it('writes that block byte for byte as before it shared a serialiser with the static prerender', async () => {
+    env.getPostBySlug.mockResolvedValue(POST);
+    const html = (await get(POST.slug)).body as string;
+
+    // What usePageMeta's injectJsonLd writes, with "<" escaped for the script element.
+    const jsonLd = blogPostPageMeta(POST.slug, { status: 'ready', post: POST }).jsonLd as object[];
+    const json = JSON.stringify(jsonLd).replace(/</g, '\\u003c');
+    expect(html).toContain(`  <script type="application/ld+json" id="page-jsonld">${json}</script>\n  </head>`);
+    expect(html.match(/id="page-jsonld"/g)).toHaveLength(1);
+  });
+
   it('escapes post text so it cannot break out of the head', async () => {
     env.getPostBySlug.mockResolvedValue({ ...POST, meta_title: 'Backups </title><script>alert(1)</script>', title: 'A </script><script>alert(1)</script> post' });
     const html = (await get(POST.slug)).body as string;

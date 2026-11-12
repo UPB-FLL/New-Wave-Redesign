@@ -14,7 +14,14 @@
 // edits to index.html (reordered attributes, an extra tag, a dropped keywords
 // tag) never break the build.
 
-import { BREADCRUMBS_ELEMENT_ID, headEntries, resolvePageMeta, type PageMetaOptions, type ResolvedPageMeta } from './pageMeta.js';
+import {
+  BREADCRUMBS_ELEMENT_ID,
+  headEntries,
+  PAGE_JSONLD_ELEMENT_ID,
+  resolvePageMeta,
+  type PageMetaOptions,
+  type ResolvedPageMeta,
+} from './pageMeta.js';
 import { breadcrumbListNode } from './structuredData.js';
 
 export function escapeHtmlAttribute(value: string): string {
@@ -30,6 +37,17 @@ export const escapeHtmlText = (value: string) =>
 
 /** Keeps a JSON-LD payload from closing its own <script> element. */
 export const escapeJsonForScript = (json: string) => json.replace(/</g, '\\u003c');
+
+/**
+ * A page's own JSON-LD as the raw HTML carries it: one #page-jsonld block,
+ * serialised as usePageMeta's injectJsonLd does (always an array), so the copy
+ * a crawler reads and the one the app writes when it takes the block over read
+ * the same. Shared by the static prerender and api/blog-page.ts.
+ */
+export function pageJsonLdScript(jsonLd: object | object[]): string {
+  const json = escapeJsonForScript(JSON.stringify(Array.isArray(jsonLd) ? jsonLd : [jsonLd]));
+  return `<script type="application/ld+json" id="${PAGE_JSONLD_ELEMENT_ID}">${json}</script>`;
+}
 
 const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -118,6 +136,12 @@ export function applyPageHead(shell: string, meta: ResolvedPageMeta): string {
 export interface RouteRenderOptions {
   /** The page's own markup from the build-only React renderer (src/lib/prerenderBody.tsx); the app replaces it at startup. */
   bodyHtml?: string;
+  /**
+   * What the page passes to usePageMeta as `jsonLd` (Service, FAQPage,
+   * Article…), captured by the same renderer. Written as the #page-jsonld
+   * block usePageMeta takes over; null or an empty array writes nothing.
+   */
+  jsonLd?: object | object[] | null;
 }
 
 const EMPTY_ROOT = /<div id="root"><\/div>/g;
@@ -139,7 +163,7 @@ export function injectRootBody(html: string, path: string, bodyHtml: string): st
 /**
  * The prerendered HTML for one static page: the shell with that page's head,
  * plus its BreadcrumbList (the same block usePageMeta writes at runtime), and
- * the page's rendered body when the build supplies one.
+ * the page's own JSON-LD and rendered body when the build supplies them.
  */
 export function renderRouteHtml(shell: string, path: string, meta: PageMetaOptions, options: RouteRenderOptions = {}): string {
   let html = applyPageHead(shell, resolvePageMeta(meta, path));
@@ -147,5 +171,7 @@ export function renderRouteHtml(shell: string, path: string, meta: PageMetaOptio
     const json = escapeJsonForScript(JSON.stringify(breadcrumbListNode(meta.breadcrumbs)));
     html = insertBeforeHeadClose(html, `<script type="application/ld+json" id="${BREADCRUMBS_ELEMENT_ID}">${json}</script>`);
   }
+  const { jsonLd } = options;
+  if (jsonLd && (!Array.isArray(jsonLd) || jsonLd.length)) html = insertBeforeHeadClose(html, pageJsonLdScript(jsonLd));
   return options.bodyHtml === undefined ? html : injectRootBody(html, path, options.bodyHtml);
 }

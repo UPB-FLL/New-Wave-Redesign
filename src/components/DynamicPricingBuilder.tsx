@@ -2,18 +2,12 @@ import { CheckCircle2, Minus, Plus, Send } from 'lucide-react';
 import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import { supabase } from '../lib/supabase';
 import { trackLead } from '../lib/analytics';
-
-interface PricingUnit {
-  id: string;
-  name: string;
-  description: string;
-  cost_per_unit: number;
-  min_quantity: number;
-  max_quantity: number;
-}
+import { usePricingUnits } from '../lib/pricingUnits';
 
 export default function DynamicPricingBuilder() {
-  const [units, setUnits] = useState<PricingUnit[]>([]);
+  // Seeded by the build for the static render; read from Supabase in the browser.
+  const { units, status } = usePricingUnits();
+  // A unit without an entry counts as 0, so nothing is filled in when the list arrives.
   const [selections, setSelections] = useState<Record<string, number>>({});
   const [estimatedTotal, setEstimatedTotal] = useState(0);
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', company: '', message: '' });
@@ -22,30 +16,9 @@ export default function DynamicPricingBuilder() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    void fetchPricingUnits();
-  }, []);
-
-  useEffect(() => {
     const total = units.reduce((sum, unit) => sum + (unit.cost_per_unit / 100) * (selections[unit.id] || 0), 0);
     setEstimatedTotal(total);
   }, [selections, units]);
-
-  const fetchPricingUnits = async () => {
-    try {
-      const { data, error: fetchError } = await supabase
-        .from('pricing_units')
-        .select('*')
-        .eq('active', true)
-        .order('sort_order', { ascending: true });
-
-      if (fetchError) throw fetchError;
-      const pricingUnits = (data ?? []) as PricingUnit[];
-      setUnits(pricingUnits);
-      setSelections(Object.fromEntries(pricingUnits.map((unit) => [unit.id, 0])));
-    } catch (fetchError) {
-      console.error('Failed to fetch pricing units:', fetchError);
-    }
-  };
 
   const handleQuantityChange = (unitId: string, quantity: number) => {
     const unit = units.find((item) => item.id === unitId);
@@ -111,7 +84,17 @@ export default function DynamicPricingBuilder() {
   };
 
   if (!units.length) {
-    return <p className="py-12 text-center text-[var(--nw-slate)]">Pricing units are not configured yet.</p>;
+    // "Not configured" is a statement about the price list, true only once a
+    // read has come back empty. While the read is under way (and in a static
+    // render without a seed) there is nothing to say yet.
+    if (status === 'loading') return null;
+    return (
+      <p className="py-12 text-center text-[var(--nw-slate)]">
+        {status === 'failed'
+          ? 'The price list could not be loaded. Refresh the page, or contact us for a quote.'
+          : 'Pricing units are not configured yet.'}
+      </p>
+    );
   }
 
   if (submitted) {

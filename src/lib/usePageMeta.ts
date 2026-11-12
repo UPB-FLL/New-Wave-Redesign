@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { captureJsonLd } from './jsonLdCapture';
 import { BREADCRUMBS_ELEMENT_ID, headEntries, PAGE_JSONLD_ELEMENT_ID, resolvePageMeta, type PageMetaOptions } from './pageMeta';
 import { breadcrumbListNode } from './structuredData';
 
@@ -85,6 +86,11 @@ export function usePageMeta({
   siteName,
   breadcrumbs,
 }: PageMetaOptions) {
+  // The build-time render never runs the effect below, so the page's JSON-LD
+  // is handed to it here for the raw HTML (a #page-jsonld block, which
+  // injectJsonLd then takes over). Does nothing in a browser.
+  captureJsonLd(jsonLd);
+
   // Serialised here so a new array with the same trail doesn't re-run the effect.
   const breadcrumbJson = breadcrumbs?.length ? JSON.stringify(breadcrumbListNode(breadcrumbs)) : null;
 

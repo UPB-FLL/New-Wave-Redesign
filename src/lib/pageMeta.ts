@@ -8,7 +8,7 @@
 export const SITE_NAME = 'New Wave IT';
 export const SITE_URL = 'https://www.newwaveitfl.com';
 export const DEFAULT_DESCRIPTION =
-  "Fort Lauderdale's trusted managed IT services partner. 24/7 support, cybersecurity, cloud migration, and network infrastructure for South Florida businesses.";
+  'New Wave IT is a Fort Lauderdale managed IT services and IT support company serving Broward, Miami-Dade and Palm Beach counties, with published monthly rates.';
 export const DEFAULT_OG_IMAGE = 'https://www.newwaveitfl.com/brand/og/open-graph-1200x630.png';
 /** The shell's (index.html) keywords; a test keeps the two identical. */
 export const DEFAULT_KEYWORDS =
@@ -32,7 +32,10 @@ export interface PageMetaOptions {
   ogImage?: string;
   /** Comma-separated keywords for meta[name="keywords"]. Defaults to the site keywords. */
   keywords?: string;
-  /** JSON-LD object(s) to inject as <script type="application/ld+json"> (runtime only) */
+  /**
+   * JSON-LD object(s) to inject as <script type="application/ld+json">. The
+   * build render captures the same value for the raw HTML (jsonLdCapture.ts).
+   */
   jsonLd?: object | object[];
   /** Open Graph type, e.g. 'website' or 'article' */
   ogType?: string;
@@ -51,9 +54,10 @@ export interface PageMetaOptions {
 export const BREADCRUMBS_ELEMENT_ID = 'page-breadcrumbs';
 
 /**
- * Id of a page's JSON-LD block when the server wrote it into the raw HTML
- * (api/blog-page.ts). usePageMeta removes it when it writes its own copy, so
- * the graph is never listed twice.
+ * Id of a page's JSON-LD block when the raw HTML already carries it: written
+ * at build time for the static pages (renderRouteHtml) and per request for
+ * blog posts (api/blog-page.ts). usePageMeta removes it when it writes its own
+ * copy, so the graph is never listed twice.
  */
 export const PAGE_JSONLD_ELEMENT_ID = 'page-jsonld';
 
