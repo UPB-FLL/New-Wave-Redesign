@@ -67,7 +67,7 @@ describe('prerendered New Wave IT routes', () => {
     expect(trail[trail.length - 1].item).toBe(url);
     expect(h.icon).toBe('/favicon.svg');
     // And none of the homepage's identity survives.
-    expect(h.titles[0]).not.toBe('New Wave IT — 24/7 Managed IT, Cybersecurity & Cloud in Fort Lauderdale');
+    expect(h.titles[0]).not.toBe(HOME_PAGE_META.title);
   });
 
   it('gives every page a title and description that fit in search results', () => {

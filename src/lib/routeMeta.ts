@@ -22,7 +22,7 @@ type StaticPageEntry = Omit<StaticPageMeta, 'breadcrumbs'> & { crumb: string };
 
 /** The homepage head: exactly what index.html declares, so hydration never changes it. */
 export const HOME_PAGE_META: StaticPageMeta = {
-  title: 'New Wave IT — 24/7 Managed IT, Cybersecurity & Cloud in Fort Lauderdale',
+  title: 'Managed IT Services & IT Support in Fort Lauderdale | New Wave IT',
   description: DEFAULT_DESCRIPTION,
   keywords: DEFAULT_KEYWORDS,
   includeSiteName: false,

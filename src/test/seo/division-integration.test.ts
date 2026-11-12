@@ -171,9 +171,29 @@ describe('index.html (the parent shell every New Wave IT URL is served)', () => 
     expect(organization?.numberOfEmployees).toEqual({ '@type': 'QuantitativeValue', minValue: 5, maxValue: 10 });
   });
 
+  it('states the service area the owner confirmed (fact sheet, 2026-11-12), the office\'s own coordinates and its Google listing', () => {
+    const block = shell.match(/<script type="application\/ld\+json">\s*(\[[\s\S]*?\])\s*<\/script>/)?.[1] ?? '[]';
+    const graph = JSON.parse(block) as { description?: string; areaServed?: { '@type': string; name: string; sameAs?: string }[]; geo?: { latitude: number; longitude: number }; hasMap?: string; sameAs?: string[] }[];
+    const [business] = graph;
+    const counties = (business.areaServed ?? []).filter((area) => area['@type'] === 'AdministrativeArea' && area.name.endsWith('County'));
+    expect(counties.map((county) => county.name)).toEqual(['Broward County', 'Miami-Dade County', 'Palm Beach County']);
+    counties.forEach((county) => expect(county.sameAs).toMatch(/^https:\/\/en\.wikipedia\.org\/wiki\/.+_County,_Florida$/));
+    // The same sentence on all three nodes; llms.txt quotes the Organization's.
+    expect(new Set(graph.map((node) => node.description)).size).toBe(1);
+    expect(business.description).toContain('Broward, Miami-Dade and Palm Beach counties');
+    // Rooftop coordinates of 710 NW 5th Ave (Google Geocoding API, 2026-11-12), the same in the geo meta tags.
+    expect(business.geo).toMatchObject({ latitude: 26.1324, longitude: -80.1484 });
+    expect(shell).toContain('<meta name="geo.position" content="26.1324;-80.1484" />');
+    expect(shell).toContain('<meta name="ICBM" content="26.1324, -80.1484" />');
+    // The business's own Google listing; no profile the owner has not confirmed is added.
+    expect(business.hasMap).toBe('https://www.google.com/maps?cid=2144515415330939108');
+    expect(business.sameAs).toContain(business.hasMap);
+    expect(business.sameAs?.some((url) => url.includes('linkedin.com'))).toBe(false);
+  });
+
   it('keeps the parent homepage identity untouched', () => {
     expect(shell).toContain(
-      '<title>New Wave IT — 24/7 Managed IT, Cybersecurity & Cloud in Fort Lauderdale</title>',
+      '<title>Managed IT Services & IT Support in Fort Lauderdale | New Wave IT</title>',
     );
     expect(shell).toContain('<link rel="canonical" href="https://www.newwaveitfl.com/" />');
     expect(shell).toContain('<meta property="og:site_name" content="New Wave IT" />');

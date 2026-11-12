@@ -77,8 +77,8 @@ describe('renderDivisionPageHtml', () => {
     // None of the IT homepage's identity leaks into the division page head.
     expect(count(html, '<link rel="canonical"')).toBe(1);
     expect(html).not.toContain('href="https://www.newwaveitfl.com/" />');
-    expect(html).not.toContain('24/7 Managed IT, Cybersecurity &amp; Cloud');
-    expect(html).not.toContain('24/7 Managed IT, Cybersecurity & Cloud');
+    expect(html).not.toContain('Managed IT Services &amp; IT Support in Fort Lauderdale');
+    expect(html).not.toContain('Managed IT Services & IT Support in Fort Lauderdale');
 
     // Crawlers that never run JS still get the H1 and a path back to the parent.
     const noscript = noJsFallback(html);

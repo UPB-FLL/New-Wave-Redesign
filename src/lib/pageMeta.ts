@@ -8,7 +8,7 @@
 export const SITE_NAME = 'New Wave IT';
 export const SITE_URL = 'https://www.newwaveitfl.com';
 export const DEFAULT_DESCRIPTION =
-  "Fort Lauderdale's trusted managed IT services partner. 24/7 support, cybersecurity, cloud migration, and network infrastructure for South Florida businesses.";
+  'New Wave IT is a Fort Lauderdale managed IT services and IT support company serving Broward, Miami-Dade and Palm Beach counties, with published monthly rates.';
 export const DEFAULT_OG_IMAGE = 'https://www.newwaveitfl.com/brand/og/open-graph-1200x630.png';
 /** The shell's (index.html) keywords; a test keeps the two identical. */
 export const DEFAULT_KEYWORDS =
