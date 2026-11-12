@@ -7,7 +7,8 @@ import react from '@vitejs/plugin-react';
 import { divisionPageModule, preloadTagsFor, type BundleChunk } from './src/divisions/socialEngineering/preload';
 import { renderDivisionPageHtml } from './src/divisions/socialEngineering/prerender';
 import { allDivisionPages } from './src/divisions/socialEngineering/seo';
-import { DIVISION_PUBLISHED } from './src/divisions/socialEngineering/site';
+import { DIVISION_NAME, DIVISION_PUBLISHED } from './src/divisions/socialEngineering/site';
+import { buildLlmsFullTxt, buildLlmsTxt, businessFromShell, llmsPage, LLMS_FILE, LLMS_FULL_FILE, type LlmsSources } from './src/lib/llmsTxt';
 import { priceListWarning, readCmsContentForBuild, readPricingUnitsForBuild } from './src/lib/prerenderContent';
 import { renderRouteHtml, type RouteRenderOptions } from './src/lib/prerenderHead';
 import { HOME_PAGE_META, prerenderedItRoutes } from './src/lib/routeMeta';
@@ -35,6 +36,11 @@ export const SHELL_FILE = '_shell.html';
  * the price list's OfferCatalog), which goes into the head as the
  * #page-jsonld block the app takes over. vercel.json rewrites each route to
  * its file; the data-driven routes get the shell.
+ *
+ * The same sources also become dist/llms.txt and dist/llms-full.txt
+ * (src/lib/llmsTxt.ts): the shell's entity graph, the route list, the price
+ * list and the bodies rendered here. Like robots.txt, a file in dist/ is
+ * served before any rewrite, so neither needs a vercel.json rule.
  */
 function prerenderPages(): Plugin {
   return {
@@ -81,14 +87,31 @@ function prerenderPages(): Plugin {
       });
       try {
         const { isPrerenderedItPath, renderItPage } = await renderer.ssrLoadModule('/src/lib/prerenderBody.tsx');
+        // Each rendered body is kept for llms-full.txt, so no page is rendered twice.
+        const bodies = new Map<string, string | undefined>();
         // The page's body and the JSON-LD it passes to usePageMeta; nothing for a route that keeps the shell.
-        const itPage = (routePath: string): RouteRenderOptions =>
-          isPrerenderedItPath(routePath) ? (renderItPage(routePath, cmsContent, pricingUnits) as RouteRenderOptions) : {};
-        for (const route of prerenderedItRoutes()) {
+        const itPage = (routePath: string): RouteRenderOptions => {
+          const page: RouteRenderOptions = isPrerenderedItPath(routePath) ? (renderItPage(routePath, cmsContent, pricingUnits) as RouteRenderOptions) : {};
+          bodies.set(routePath, page.bodyHtml);
+          return page;
+        };
+        const routes = prerenderedItRoutes();
+        for (const route of routes) {
           write(route.path, renderRouteHtml(shell, route.path, route.meta, itPage(route.path)));
         }
         writeFileSync(path.join(outDir, SHELL_FILE), shell);
         writeFileSync(path.join(outDir, 'index.html'), renderRouteHtml(shell, '/', HOME_PAGE_META, itPage('/')));
+        const llms: LlmsSources = {
+          business: businessFromShell(shell),
+          routes: routes.map((route) => llmsPage(route, bodies.get(route.path))),
+          home: llmsPage({ path: '/', meta: HOME_PAGE_META }, bodies.get('/')),
+          division: DIVISION_PUBLISHED
+            ? { name: DIVISION_NAME, pages: allDivisionPages().map(({ path: pagePath, title, description }) => ({ path: pagePath, title, description })) }
+            : undefined,
+          priceUnits: pricingUnits,
+        };
+        writeFileSync(path.join(outDir, LLMS_FILE), buildLlmsTxt(llms));
+        writeFileSync(path.join(outDir, LLMS_FULL_FILE), buildLlmsFullTxt(llms));
         if (!DIVISION_PUBLISHED) return;
         const { isGroundswellPublicPath, renderGroundswellBody } = await renderer.ssrLoadModule('/src/divisions/socialEngineering/prerenderBody.tsx');
         for (const page of allDivisionPages()) {

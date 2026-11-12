@@ -22,12 +22,17 @@ function files(dir: string): string[] {
   });
 }
 
+// Copy that lives outside the pages and components: the route registry, and
+// the modules whose wording reaches a page, its JSON-LD or llms.txt.
+const COPY_MODULES = ['src/lib/routeMeta.ts', 'src/lib/llmsTxt.ts', 'src/lib/publishedRates.ts', 'src/lib/serviceSchema.ts'];
+
 describe('New Wave IT copy makes no response-time promise', () => {
-  const scanned = [...files(path.join(ROOT, 'src/pages')), ...files(path.join(ROOT, 'src/components')), path.join(ROOT, 'src/lib/routeMeta.ts'), path.join(ROOT, 'index.html')]
+  const scanned = [...files(path.join(ROOT, 'src/pages')), ...files(path.join(ROOT, 'src/components')), ...COPY_MODULES.map((file) => path.join(ROOT, file)), path.join(ROOT, 'index.html')]
     .filter((file) => !SKIP.has(path.relative(ROOT, file)));
 
   it('scans the public pages, components, the route registry and the shell', () => {
     expect(scanned.length).toBeGreaterThan(40);
+    for (const file of [...COPY_MODULES, 'index.html']) expect(scanned, file).toContain(path.join(ROOT, file));
   });
 
   it.each(scanned.map((file) => [path.relative(ROOT, file), file] as const))('%s', (_label, file) => {
