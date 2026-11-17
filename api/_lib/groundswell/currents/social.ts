@@ -5,7 +5,7 @@ import { PermanentStepError, type StepContext } from '../types.js';
 import { loadLinkedAccounts } from './linked.js';
 import type { SiteScan } from './site.js';
 import { numeric } from './serp.js';
-import { readTikTok, type TikTokOutput } from './tiktok.js';
+import { readTikTok, rejectedTikTok, type TikTokOutput } from './tiktok.js';
 
 /**
  * Social Current: public Instagram profiles (followers, posts, recent activity)
@@ -646,6 +646,7 @@ export async function runSocial(ctx: StepContext, pauseMs = BLOCKED_RETRY_MS): P
         siteLinks: (site?.business?.social.tiktok ?? []).map((h) => `https://www.tiktok.com/@${h.replace(/^@/, '')}`),
         instagramBioLinks: business?.bio_links ?? [],
         instagramHandle: own,
+        rejected: rejectedTikTok(ctx.audit.notes),
       },
       budget
     ).catch(() => null),

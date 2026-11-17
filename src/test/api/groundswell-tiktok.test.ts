@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { hostOf, linksTo, readTikTok, tiktokHandles, tiktokProfile, tiktokRecent, type TikTokOutput } from '../../../api/_lib/groundswell/currents/tiktok';
+import { hostOf, linksTo, readTikTok, rejectedTikTok, tiktokHandles, tiktokProfile, tiktokRecent, type TikTokOutput } from '../../../api/_lib/groundswell/currents/tiktok';
 import { buildFacts } from '../../../api/_lib/groundswell/model';
 import { quickWins, targetKeywords } from '../../../api/_lib/groundswell/visibility';
 import { buildAuditHtml } from '../../../api/_lib/groundswell/reports';
@@ -78,6 +78,23 @@ describe('reading TikTok', () => {
     expect(out.searched).toBe('Leafline');
     expect(out.accounts.some((a) => a.handle === 'unrelated' || a.handle === 'cleaflinesmith')).toBe(false);
     expect(out.accounts[0].recent?.shop_links).toBe(2);
+  });
+
+  it('reads the handles the notes say are not the business’s (Baraguz, 2026-11-17: @karen.finds.tiktok)', () => {
+    expect(rejectedTikTok('Not theirs on TikTok: @karen.finds.tiktok.')).toEqual(['karen.finds.tiktok']);
+    expect(rejectedTikTok('Average sale $55; TikTok @A_fan and @b.c are not ours\nInstagram @leafline_tea is ours')).toEqual(['a_fan', 'b.c']);
+    // A line that is not about TikTok, or says nothing is "not" theirs, names nothing.
+    expect(rejectedTikTok('Not on Instagram: @someone')).toEqual([]);
+    expect(rejectedTikTok('Our TikTok is @leafline_tea')).toEqual([]);
+    expect(rejectedTikTok(null)).toEqual([]);
+  });
+
+  it('never reads or lists a rejected handle, from the search or a link, and names it for staff', async () => {
+    const exec = fakeExec();
+    const out = (await readTikTok({ business: 'Leafline', website: 'https://leafline.example', siteLinks: ['https://www.tiktok.com/@leafline_fan'], instagramBioLinks: [], instagramHandle: 'leafline_tea', rejected: ['@Leafline_Fan'] }, () => 1000, exec))!;
+    expect(out.accounts.map((a) => a.handle)).toEqual(['the_leafline_family', 'leafline_tea']);
+    expect(exec.mock.calls.some(([, args]) => (args as { handle?: string }).handle === 'leafline_fan')).toBe(false);
+    expect(out.note).toBe('Left out as not the business’s (its notes say so): @leafline_fan.');
   });
 
   it('takes a TikTok link on the website as the business’s, and never throws on a failed read', async () => {
