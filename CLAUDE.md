@@ -2,6 +2,36 @@
 
 ## Recent Changes
 
+### Groundswell: what the data printed nothing for is left out and marked for review; wrapped tables paginate (2026-11-17)
+
+Baraguz's deck (run `6be4c87e…`) printed slide 10, "What pays back first",
+as one change at -$150 and two rows "Not modeled" over "No change pays back
+in the medium case on public data alone", and slide 11 said no ad row was
+worth running. Owner's rule: when the data returns nothing like this, omit
+it and mark it on the audit so it can be reviewed later.
+
+- **`reviewLater(p)`** (`reports.ts`): the full audit's "Sources and limits"
+  gains "For review later", listing a change whose return was not modeled
+  (`modeledChanges` keeps only changes with `scenarios`; the ranking, the
+  slide and the summary print only those), "What pays back first" when no
+  change pays back (`paysBack`: `comparison.included` empty; the audit
+  section, the cover's "The return we modeled" callout, the deck's `roi`
+  slide and the summary's block are left out), and the ad plan when no row
+  is worth funding or testing with a modeled return (`deckPlanRows`; the
+  deck's ad plan slide is left out, the audit's ad plan section keeps every
+  row). Slides after an omitted one move up (`afterReturn`), so the numbers
+  run without a gap. Applies to every run, public or linked.
+- **Paginate** (`render.ts`): a table or list alone inside a wrapper div
+  (the internal brief's `.fixes` and `.copy`) now splits between rows or
+  items like a bare one, the wrapper cloned onto each part; the brief's
+  fixes table had run onto an unframed sheet.
+- **Checked** on Baraguz's stored outputs reprinted locally: the deck 11
+  slides numbered 2–11 (was 12, with the two empty slides), the audit's
+  last sheet lists the four review items, the summary has no payback block.
+- **Tests**: the "left out and marked for review" cases in
+  `groundswell-reports.test.ts`; the wrapper case in
+  `groundswell-render.test.ts`.
+
 ### Groundswell: TikTok read in the Social Current; no empty competitor plan (2026-11-17)
 
 Owner's ask, after Baraguz's rerun (`9cdc5de6…`): bring in TikTok data

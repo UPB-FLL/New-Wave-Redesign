@@ -154,7 +154,8 @@ describe('report HTML with the ad plan', () => {
     expect(html).toContain('11 · Sources');
     expect(html).not.toContain('What search ads could return');
     expect(html).toContain('Brake repair: Meta (Facebook and Instagram) ads');
-    expect(html).toContain('No published figure measures what this kind of change returns');
+    // A change with no published figure is listed for review, not ranked.
+    expect(html).toContain('its return was not modeled (no published figure measures what this kind of change returns)');
     expect(html).toContain('Ad spend is not public');
     expect(html).toContain('12-month net with the plan, medium case');
     // The ad plan's net leaves team time out; the ranking counts it. Both say so.
@@ -194,7 +195,74 @@ describe('report HTML with the ad plan', () => {
     const none = { ...data.adplan!, comparison: { ...data.adplan!.comparison, included: [] } };
     const html = text(buildAuditHtml({ ...data, adplan: none }));
     expect(html).not.toContain('Base case, 12-month net from search ads');
-    expect(html).toContain('No change pays back in the medium case');
+    expect(html).not.toContain('What search ads could return');
+  });
+
+  // Baraguz's deck (run 6be4c87e, 2026-11-17): slide 10 ranked one change at -$150 and two "Not modeled",
+  // over "No change pays back…", and every ad row was a skip. Owner: omit what returns nothing, and mark it on the audit.
+  describe('what the data printed nothing for is left out and marked for review (Baraguz, 2026-11-17)', () => {
+    const p = data.adplan!;
+    const unmodeled = p.ranked.filter((c) => !c.scenarios);
+    const nothing = {
+      ...data,
+      adplan: {
+        ...p,
+        comparison: { ...p.comparison, included: [] },
+        plan: { ...p.plan, rows: p.plan.rows.map((r) => ({ ...r, recommendation: 'skip' as const })) },
+      },
+    };
+    const slideNumbers = (html: string) => [...html.matchAll(/<div class="kicker">Slide (\d+)<\/div>/g)].map((x) => Number(x[1]));
+
+    it('the fixture carries a change with no modeled return', () => {
+      expect(unmodeled.length).toBeGreaterThan(0);
+      expect(p.comparison.included.length).toBeGreaterThan(0);
+    });
+
+    it('a change with no modeled return is no row of the ranking, on the audit or the slide, and is listed for review', () => {
+      const audit = buildAuditHtml(data);
+      const ranked = audit.slice(audit.indexOf('<table class="ranked">'), audit.indexOf('</table>', audit.indexOf('<table class="ranked">')));
+      const roi = buildDeckHtml(data, { audit: AUDIT }).split('id="roi"')[1].split('</section>')[0];
+      for (const c of unmodeled) {
+        expect(ranked).not.toContain(c.title);
+        expect(roi).not.toContain(c.title);
+      }
+      expect(roi).not.toContain('Not modeled');
+      const all = text(audit);
+      const review = all.slice(all.lastIndexOf('For review later'));
+      for (const c of unmodeled) expect(review).toContain(`${c.title}: its return was not modeled`);
+      // What pays back still prints.
+      expect(text(audit)).toContain('What pays back first');
+    });
+
+    it('with nothing paying back and no row worth running: no ranking, no ad plan slide, the slides numbered without gaps, the audit marks both', () => {
+      const deck = buildDeckHtml(nothing, { audit: AUDIT });
+      expect(deck).not.toContain('id="roi"');
+      expect(deck).not.toContain(`id="${AD_PLAN_SLIDE_ID}"`);
+      expect(text(deck)).not.toContain('What pays back first');
+      const n = slideNumbers(deck);
+      expect(n).toEqual(n.map((_, i) => i + 2));
+
+      const audit = text(buildAuditHtml(nothing));
+      const body = audit.slice(0, audit.lastIndexOf('For review later'));
+      const review = audit.slice(audit.lastIndexOf('For review later'));
+      expect(body).not.toContain('What pays back first');
+      expect(audit).not.toContain('The return we modeled');
+      expect(audit).not.toContain('No change pays back in the medium case');
+      // The ad plan's own section keeps every row and its reason.
+      expect(body).toContain('The ad plan');
+      expect(review).toContain('What pays back first: no change pays back in the medium case on the data read this time');
+      expect(review).toContain('The ad plan: no row is worth funding or testing');
+
+      const summary = text(buildSummaryHtml(nothing, { deck: DECK, audit: AUDIT, folder: FOLDER }));
+      expect(summary).not.toContain('What pays back first');
+      expect(summary).not.toContain('No change pays back');
+    });
+
+    it('a plan where something pays back keeps its slides numbered as before', () => {
+      const n = slideNumbers(buildDeckHtml(data, { audit: AUDIT }));
+      expect(n).toEqual(n.map((_, i) => i + 2));
+      expect(n).toContain(11);
+    });
   });
 
   it('the summary shows the three highest-returning changes', () => {

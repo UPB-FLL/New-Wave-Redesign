@@ -71,7 +71,8 @@ export function fitBoxes(): number {
  * counting sections rather than sheets. Each continuation sheet clones the
  * band and the footer bar and carries the kicker with "continued" and the
  * section's title. Content moves between blocks; a table splits between
- * rows (its header row repeated) and a list between items; a heading left
+ * rows (its header row repeated) and a list between items, also inside a
+ * wrapper div of their own (kept on each part); a heading left
  * last on a sheet goes with what follows it. A block taller than a whole
  * sheet stays where it is. Then every page's "n / N" is set from the
  * sheets. Returns how many sheets were added.
@@ -101,9 +102,13 @@ export function paginate(): number {
     let split: { table?: HTMLTableElement; rows?: HTMLTableRowElement[]; list?: HTMLElement; items?: HTMLElement[] } | null = null;
     let cut = content.findIndex((k) => bottom(k) > limit);
     if (cut < 0) continue;
-    const straddler = content[cut];
+    // A table or list in a wrapper of its own (a div that styles it) splits the same way, the wrapper kept on each part.
+    const block = content[cut];
+    const only = block.tagName === 'DIV' && block.children.length === 1 ? (block.children[0] as HTMLElement) : null;
+    const wrapper = only && /^(TABLE|UL|OL)$/.test(only.tagName) ? block : null;
+    const straddler = wrapper ? only! : block;
     if (straddler.getBoundingClientRect().top < limit) {
-      const room = limit - (parseFloat(getComputedStyle(straddler).marginBottom) || 0);
+      const room = limit - (parseFloat(getComputedStyle(straddler).marginBottom) || 0) - (wrapper ? parseFloat(getComputedStyle(wrapper).marginBottom) || 0 : 0);
       if (straddler.tagName === 'TABLE') {
         const rows = Array.from((straddler as HTMLTableElement).tBodies[0]?.rows ?? []);
         const at = rows.findIndex((r) => r.getBoundingClientRect().bottom > room);
@@ -133,18 +138,24 @@ export function paginate(): number {
       nextBody.appendChild(k);
     }
     if (title && heading(title) && !page.classList.contains('cover')) nextBody.appendChild(title.cloneNode(true));
+    const place = (el: HTMLElement) => {
+      if (!wrapper) return nextBody.appendChild(el);
+      const w = wrapper.cloneNode(false) as HTMLElement;
+      w.appendChild(el);
+      return nextBody.appendChild(w);
+    };
     if (split?.table && split.rows) {
       const t = split.table.cloneNode(false) as HTMLTableElement;
       if (split.table.tHead) t.appendChild(split.table.tHead.cloneNode(true));
       const tb = document.createElement('tbody');
       for (const r of split.rows) tb.appendChild(r);
       t.appendChild(tb);
-      nextBody.appendChild(t);
+      place(t);
     }
     if (split?.list && split.items) {
       const l = split.list.cloneNode(false) as HTMLElement;
       for (const li of split.items) l.appendChild(li);
-      nextBody.appendChild(l);
+      place(l);
     }
     for (const n of moved) nextBody.appendChild(n);
     next.appendChild(nextBody);

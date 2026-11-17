@@ -266,6 +266,41 @@ const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
 
 export const hasPlan = (p: AdplanOutput | null): p is AdplanOutput => Boolean(p && p.ranked.length);
 
+/** The changes with a modeled return; one without (no published figure) is never printed as a row of its own. */
+export const modeledChanges = (p: AdplanOutput) => p.ranked.filter((c) => c.scenarios);
+/** Whether any change pays back in the medium case; without one, "What pays back first" says nothing and is left out. */
+export const paysBack = (p: AdplanOutput) => p.comparison.included.length > 0;
+/** The ad plan's rows worth running that carry a modeled return (the deck's ad plan slide). */
+const deckPlanRows = (p: AdplanOutput) => p.plan.rows.filter((r) => r.recommendation !== 'skip' && r.roi_tier !== 'not modeled');
+
+/**
+ * What the reports leave out because the data returned nothing to print
+ * (owner's rule, 2026-11-17: omit it, and mark it on the audit for review):
+ * a change with no modeled return, "What pays back first" when nothing pays
+ * back, and the deck's ad plan slide when no row is worth running. Listed in
+ * the full audit's "Sources and limits" under "For review later".
+ */
+export function reviewLater(p: AdplanOutput | null): string[] {
+  if (!p) return [];
+  const out: string[] = [];
+  const modeled = modeledChanges(p);
+  if (!paysBack(p)) {
+    const best = modeled[0];
+    out.push(
+      `What pays back first: no change pays back in the medium case on the data read this time${best?.scenarios ? ` (the best, “${best.title}”, nets ${money(best.scenarios.medium.net_year)} over 12 months after team time)` : ''}, so the ranking is left out of the audit, the slides and the summary. Review it once the business’s own figures (average sale, close rate) or its linked accounts are in.`
+    );
+  }
+  for (const c of p.ranked.filter((x) => !x.scenarios)) {
+    // The planner's reason ends "…, so it is ranked by its cost", which no longer holds once the change is left out.
+    const why = (unmodeledReason(c) ?? 'No published figure measures what it returns').replace(/,? so it is ranked by its cost\.?$/i, '').replace(/\.$/, '');
+    out.push(`${c.title}: its return was not modeled (${why[0].toLowerCase()}${why.slice(1)}), so it is left out of the ranking. Review it once the change is live and measured.`);
+  }
+  if (!deckPlanRows(p).length) {
+    out.push('The ad plan: no row is worth funding or testing at the rates read this time, so the slides leave it out; every row, its reason and its break-even sale are in the ad plan section. Review it once the business’s own figures or a linked ad account are in.');
+  }
+  return out;
+}
+
 /** One sentence: what the plan adds and returns, or that nothing pays back. */
 export function planLine(p: AdplanOutput): string {
   const c = p.comparison;
@@ -293,9 +328,9 @@ function todayTable(p: AdplanOutput) {
 }
 
 function rankedTable(p: AdplanOutput, limit: number) {
-  const rows = p.ranked.slice(0, limit).map((c) => {
+  const rows = modeledChanges(p).slice(0, limit).map((c, i) => {
     const note = unmodeledReason(c) ?? c.evidence;
-    return `<tr><td>${c.rank}</td><td>${esc(c.title)}${note ? `<div class="note">${esc(note)}</div>` : ''}</td><td>${esc(AREA_LABELS[c.area] ?? c.area)}</td><td>${num(c.hours)}</td><td>${esc(netRange(c))}</td><td>${esc(backPerDollar(c))}</td></tr>`;
+    return `<tr><td>${i + 1}</td><td>${esc(c.title)}${note ? `<div class="note">${esc(note)}</div>` : ''}</td><td>${esc(AREA_LABELS[c.area] ?? c.area)}</td><td>${num(c.hours)}</td><td>${esc(netRange(c))}</td><td>${esc(backPerDollar(c))}</td></tr>`;
   });
   return `<table class="ranked"><thead><tr><th>#</th><th>Change</th><th>Area</th><th>Team hours, first year</th><th>12-month net after team time, low to high</th><th>Back per $1, medium case</th></tr></thead><tbody>${rows.join('')}</tbody></table>`;
 }
@@ -320,7 +355,7 @@ function planRowsTable(p: AdplanOutput) {
 const unique = (xs: string[]) => [...new Set(xs.filter(Boolean))];
 
 function returnSection(p: AdplanOutput, m: ModelOutput) {
-  return `<p>Every change the audit found is costed in team time and spend, modeled on published figures where they exist, and ranked by what it returns in the medium case. A change with no published figure is still listed, after the modeled ones, cheapest first.</p>
+  return `<p>Every change the audit found is costed in team time and spend, modeled on published figures where they exist, and ranked by what it returns in the medium case. A change with no published figure is not ranked here; it is listed under “For review later” in the sources.</p>
 ${todayTable(p)}<p class="muted">${esc(p.baseline.ad_spend_basis)}</p>
 <h3>Every change, ranked</h3>${rankedTable(p, 15)}
 <p>${esc(feeLine(m))} ${esc(TEAM_TIME)}</p>
@@ -720,7 +755,7 @@ export function buildAuditHtml(d: ReportData): string {
         [0, 4].filter((i) => socialPlan.social_plan.week.length > i).map((i) => section('Ready to paste', i ? 'The first week of posts, continued' : 'The first week of posts', socialPlan.social_plan.week.slice(i, i + 4).map(postHtml).join(''))).join('')
       : '');
   const returnSections = p
-    ? section(`${next()} · Return`, 'What pays back first', returnSection(p, m)) +
+    ? (paysBack(p) ? section(`${next()} · Return`, 'What pays back first', returnSection(p, m)) : '') +
       section(`${next()} · Ad plan`, 'The ad plan', adPlanSection(p)) +
       (copy ? section(`${next()} · Ad copy`, 'Ad copy, ready to paste', adCopySection(copy)) : '')
     : section(
@@ -748,6 +783,7 @@ export function buildAuditHtml(d: ReportData): string {
     ...(linked?.services.filter((s) => s.ok).map((s) => `${s.source} (${linked.fetched_at.slice(0, 10)})`) ?? []),
   ].filter((s): s is string => Boolean(s));
   const missing = [...(d.gaps ?? gapsFromMissing(f.missing)), ...(linked?.services.filter((s) => !s.ok).map((s) => s.problem ?? `${s.label} could not be read this time.`) ?? [])];
+  const review = reviewLater(p);
   const dataLine = linkedLine(f);
 
   return numberPages(ownWording(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(f.business.name)} - Full Marketing Audit</title><style>
@@ -762,7 +798,7 @@ ${houseCss(b)}
 ${dataLine ? `<p class="muted">${esc(dataLine)}</p>` : ''}
 ${kpiHtml(kpis(f, m, p))}
 ${evidenceLimits(f, true)}
-<div class="callout-dark"><div class="kicker">The return we modeled</div><p>${esc(returnLine)}</p></div>
+${p && !paysBack(p) ? '' : `<div class="callout-dark"><div class="kicker">The return we modeled</div><p>${esc(returnLine)}</p></div>`}
 </div>${pageFoot(frame)}</section>
 ${priorityPages.join('')}
 ${areas}
@@ -777,7 +813,7 @@ ${m.writeup.assumptions?.length ? section('Planning basis', 'Assumptions that ch
 ${section(
   `${next()} · Sources`,
   'Sources and limits',
-  `<h3>Data used</h3>${listHtml(sources, false)}${missing.length ? `<h3>Not available this time</h3>${listHtml(missing, false)}` : ''}${m.writeup.cant_see.length ? `<h3>Needs owner access</h3>${listHtml(m.writeup.cant_see, false)}` : ''}<p class="muted">Ratings, followers and rankings change daily; figures are as of the dates above.</p>`
+  `<h3>Data used</h3>${listHtml(sources, false)}${missing.length ? `<h3>Not available this time</h3>${listHtml(missing, false)}` : ''}${review.length ? `<h3>For review later</h3>${listHtml(review, false)}` : ''}${m.writeup.cant_see.length ? `<h3>Needs owner access</h3>${listHtml(m.writeup.cant_see, false)}` : ''}<p class="muted">Ratings, followers and rankings change daily; figures are as of the dates above.</p>`
 )}
 </body></html>`, who));
 }
@@ -787,12 +823,12 @@ ${section(
 
 /** The ad plan slide: the rows worth running, medium case. */
 function deckPlanBody(p: AdplanOutput) {
-  const live = p.plan.rows.filter((r) => r.recommendation !== 'skip').slice(0, 6);
+  const live = deckPlanRows(p).slice(0, 6);
   if (!live.length) return `<p>No ad row is worth funding or testing. The full audit lists every row and why.</p>`;
   return `<table><thead><tr><th>Angle</th><th>Platform</th><th>Ad spend a month</th><th>12-month net before team time</th><th>Call</th></tr></thead><tbody>${live
     .map(
       (r) =>
-        `<tr><td>${esc(r.angle)}</td><td>${esc(r.platform_label)}</td><td>${money(r.scenarios.medium.spend)}</td><td>${r.roi_tier === 'not modeled' ? NOT_MODELED : money(r.scenarios.medium.year_net)}</td><td>${CALLS[r.recommendation]}</td></tr>`
+        `<tr><td>${esc(r.angle)}</td><td>${esc(r.platform_label)}</td><td>${money(r.scenarios.medium.spend)}</td><td>${money(r.scenarios.medium.year_net)}</td><td>${CALLS[r.recommendation]}</td></tr>`
     )
     .join('')}</tbody></table><p class="muted" style="margin-top:24px" data-trim>Skipped rows, platform rules, stop-losses and sources are in the full audit.</p>`;
 }
@@ -854,6 +890,10 @@ export function buildDeckHtml(d: ReportData, links: { audit: string }): string {
   }).join('');
 
   const plan = m.writeup.plan;
+  // A slide whose data printed nothing is left out (the full audit lists it under "For review later"), and the slides after it move up.
+  const showRoi = !p || paysBack(p);
+  const showAdPlan = Boolean(p && deckPlanRows(p).length);
+  const afterReturn = 10 + (showRoi ? 1 : 0) + (showAdPlan ? 1 : 0);
   const roiRows = scenarioRows(m)
     .map(({ key, label, r }) => `<tr${key === 'base' ? ' class="base"' : ''}><td>${label}</td><td>${money(r.steady_month.spend)}</td><td>${num(r.steady_month.leads)}</td><td>${money(r.year.net)}</td></tr>`)
     .join('');
@@ -901,16 +941,17 @@ ${areaSlides}
 ${slide('plan', 9, 'The 90-day plan', `<div class="cols" style="grid-template-columns:1fr 1fr 1fr"><div><h3>Weeks 1–2</h3>${listHtml(plan.weeks_1_2.slice(0, 3))}</div><div><h3>Weeks 3–6</h3>${listHtml(plan.weeks_3_6.slice(0, 3))}</div><div><h3>Weeks 7–12</h3>${listHtml(plan.weeks_7_12.slice(0, 3))}</div></div>`)}
 ${
   p
-    ? slide(
-        'roi',
-        10,
-        'What pays back first',
-        `<table><thead><tr><th>Change</th><th>12-month net after team time, medium case</th><th>Back per $1</th></tr></thead><tbody>${p.ranked
-          .slice(0, 5)
-          .map((c) => `<tr><td>${esc(c.title)}</td><td>${c.scenarios ? money(c.scenarios.medium.net_year) : NOT_MODELED}</td><td>${esc(backPerDollar(c))}</td></tr>`)
-          .join('')}</tbody></table><p style="margin-top:30px" data-trim>${esc(planLine(p))}</p><p class="muted" data-trim>${esc(feeLine(m))}</p>`
-      ) +
-      slide(AD_PLAN_SLIDE_ID, 11, 'The ad plan', deckPlanBody(p))
+    ? (showRoi
+        ? slide(
+            'roi',
+            10,
+            'What pays back first',
+            `<table><thead><tr><th>Change</th><th>12-month net after team time, medium case</th><th>Back per $1</th></tr></thead><tbody>${modeledChanges(p)
+              .slice(0, 5)
+              .map((c) => `<tr><td>${esc(c.title)}</td><td>${money(c.scenarios!.medium.net_year)}</td><td>${esc(backPerDollar(c))}</td></tr>`)
+              .join('')}</tbody></table><p style="margin-top:30px" data-trim>${esc(planLine(p))}</p><p class="muted" data-trim>${esc(feeLine(m))}</p>`
+          )
+        : '') + (showAdPlan ? slide(AD_PLAN_SLIDE_ID, showRoi ? 11 : 10, 'The ad plan', deckPlanBody(p)) : '')
     : slide(
         'roi',
         10,
@@ -920,11 +961,11 @@ ${
           : `<p>${esc(m.roi_note ?? 'No return was modeled.')}</p>`
       )
 }
-${bench ? benchmarkSlides(bench, slide, p ? 12 : 11) : ''}
-${week ? slide(CONTENT_SLIDE_ID, (p ? 12 : 11) + (bench ? BENCHMARK_SLIDE_IDS.length : 0), 'The first week of posts', contentWeekBody(week)) : ''}
+${bench ? benchmarkSlides(bench, slide, afterReturn) : ''}
+${week ? slide(CONTENT_SLIDE_ID, afterReturn + (bench ? BENCHMARK_SLIDE_IDS.length : 0), 'The first week of posts', contentWeekBody(week)) : ''}
 ${slide(
   'next',
-  (p ? 12 : 11) + (bench ? BENCHMARK_SLIDE_IDS.length : 0) + (week ? 1 : 0),
+  afterReturn + (bench ? BENCHMARK_SLIDE_IDS.length : 0) + (week ? 1 : 0),
   'Next steps',
   `${listHtml(m.writeup.next_steps)}<p class="cta" style="margin-top:50px">${d.preparer ? 'Full audit (PDF) in your portal' : `<a href="${esc(auditLink)}">Full audit (PDF)</a>`}</p>`
 )}
@@ -941,6 +982,7 @@ function summaryPlan(p: AdplanOutput, m: ModelOutput) {
   const line = p.comparison.included.length
     ? `With the plan: ${money(w.added_monthly_spend.medium)} a month in added ad spend and ${num(w.team_hours)} team hours, ${money(w.net_year.low)} to ${money(w.net_year.high)} over 12 months.`
     : planLine(p);
+  if (!paysBack(p)) return '';
   return `<h3>What pays back first</h3>
 ${top.length ? `<table><thead><tr><th>Change</th><th>12-month net after team time, medium case</th><th>Back per $1</th></tr></thead><tbody>${top.map((c) => `<tr><td>${esc(c.title)}</td><td>${money(c.scenarios!.medium.net_year)}</td><td>${esc(backPerDollar(c))}</td></tr>`).join('')}</tbody></table>` : ''}
 <p class="muted" data-trim>${esc(line)} ${esc(feeLine(m))}</p>`;
