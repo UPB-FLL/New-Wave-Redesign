@@ -28,7 +28,6 @@ import { Analytics } from '@vercel/analytics/react';
 import WaveBackground from './components/WaveBackground';
 import PreviewBanner from './components/PreviewBanner';
 import FloatingNav from './components/FloatingNav';
-import IntercomMessenger from './components/IntercomMessenger';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import TrustBar from './components/TrustBar';
@@ -166,7 +165,6 @@ export default function App() {
         <ScrollToTop />
         <PreviewBanner />
         <SiteChrome />
-        <IntercomMessenger />
         <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/codenest" element={<CodeNestPage />} />
