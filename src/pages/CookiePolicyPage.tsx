@@ -75,11 +75,11 @@ const THIRD_PARTY_SERVICES: InventoryRow[] = [
     duration: '__cf_bm about 30 minutes; _cfuvid for the browser session.',
   },
   {
-    technology: 'intercom-id-eep3rzlx, intercom-session-eep3rzlx',
+    technology: 'intercom-id-eep3rzlx, intercom-device-id-eep3rzlx',
     provider: 'Intercom',
     kind: 'Script and cookies on this website’s domain',
     purpose: 'The chat messenger on the New Wave IT pages (not the Social Engineering pages). Intercom’s script sets these cookies so a conversation you start continues as you move between pages and when you come back; it also stores Messenger settings in local storage. Intercom receives your IP address, browser details, the pages where the messenger is open, and anything you type into it. We do not send Intercom your name or email; you can give them in the chat if you choose.',
-    duration: 'From Intercom’s documentation, not yet our own scan: intercom-id about 9 months; intercom-session 1 week by default.',
+    duration: '270 days (about 9 months) each. Intercom also documents an intercom-session cookie (1 week by default) for a signed-in conversation; our test did not see it set for a visitor.',
   },
   {
     technology: 'Google Fonts',
@@ -208,7 +208,8 @@ export default function CookiePolicyPage() {
           {COOKIE_INVENTORY_REVIEWED}. Durations are what we observed; vendors can change their own
           cookies and storage, and the behavior you see may depend on your browser, its settings, and
           the features you use. The Intercom chat messenger was added on November 17, 2026, after that
-          scan; its row comes from Intercom’s documentation until the next scan.
+          scan; its row comes from a browser test of the website build that added it that day, until
+          the next scan of the live website.
         </p>
         <h3 className="text-lg font-semibold text-[var(--nw-current-navy)]">Storage set by this website</h3>
         <InventoryTable caption="Browser storage set by the New Wave IT website" rows={FIRST_PARTY_STORAGE} />

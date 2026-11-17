@@ -133,8 +133,8 @@ describe('CookiePolicyPage', () => {
     // The Intercom chat messenger was added on November 17, 2026 (anonymous visitors, every
     // browser, New Wave IT pages only); the policy names it and says where its row comes from.
     expect(screen.queryByText(/We do not use a chat widget/i)).not.toBeInTheDocument();
-    expect(screen.getByRole('rowheader', { name: 'intercom-id-eep3rzlx, intercom-session-eep3rzlx' })).toBeInTheDocument();
-    expect(screen.getByText(/its row comes from Intercom’s documentation until the next scan/i)).toBeInTheDocument();
+    expect(screen.getByRole('rowheader', { name: 'intercom-id-eep3rzlx, intercom-device-id-eep3rzlx' })).toBeInTheDocument();
+    expect(screen.getByText(/its row comes from a browser test of the website build that added it/i)).toBeInTheDocument();
     expect(screen.getByText(/The Intercom chat messenger loads whether or not your browser sends these signals/i)).toBeInTheDocument();
     expect(screen.getByText(/we do not show a cookie consent banner/i)).toBeInTheDocument();
     expect(screen.getByText(/Do Not Track/)).toBeInTheDocument();
