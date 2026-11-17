@@ -41,7 +41,8 @@ function fakeExec() {
       throw new Error('Profile not found');
     }
     if (slug === 'SCRAPECREATORS_SEARCH_TIKTOK_USERS') {
-      return { items: [{ unique_id: 'the_leafline_family', nickname: 'The Leafline Family', follower_count: 1_700_000 }, { unique_id: 'leafline_tea', nickname: 'Leafline', follower_count: 40_000 }, { unique_id: 'leafline_fan', nickname: 'Leafline fan page', follower_count: 900 }, { unique_id: 'unrelated', nickname: 'Someone else', follower_count: 9_000_000 }] };
+      // "cleaflinesmith" holds "leafline" inside a longer word: not a fit (live: "barbaraguzmanf" for Baraguz).
+      return { items: [{ unique_id: 'the_leafline_family', nickname: 'The Leafline Family', follower_count: 1_700_000 }, { unique_id: 'leafline_tea', nickname: 'Leafline', follower_count: 40_000 }, { unique_id: 'leafline_fan', nickname: 'Leafline fan page', follower_count: 900 }, { unique_id: 'cleaflinesmith', nickname: 'Cleaflinesmith', follower_count: 5_000 }, { unique_id: 'unrelated', nickname: 'Someone else', follower_count: 9_000_000 }] };
     }
     if (slug === 'SCRAPECREATORS_LIST_TIKTOK_PROFILE_VIDEOS') return videos;
     throw new Error(`unexpected ${slug}`);
@@ -75,7 +76,7 @@ describe('reading TikTok', () => {
       ['leafline_fan', 'search', false],
     ]);
     expect(out.searched).toBe('Leafline');
-    expect(out.accounts.some((a) => a.handle === 'unrelated')).toBe(false);
+    expect(out.accounts.some((a) => a.handle === 'unrelated' || a.handle === 'cleaflinesmith')).toBe(false);
     expect(out.accounts[0].recent?.shop_links).toBe(2);
   });
 

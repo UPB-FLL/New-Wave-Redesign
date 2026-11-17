@@ -73,7 +73,6 @@ export const TIKTOK_ACCOUNTS = 3;
 const SEARCH_CANDIDATES = 4;
 
 const str = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : null);
-const fold = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '');
 const median = (xs: number[]) => {
   if (!xs.length) return null;
   const s = [...xs].sort((a, b) => a - b);
@@ -178,7 +177,9 @@ type Exec = (slug: string, args: Record<string, unknown>, timeoutMs: number) => 
 export async function readTikTok(seed: TikTokSeed, budget: (cap: number) => number, exec: Exec = executeTool): Promise<TikTokOutput | null> {
   const host = hostOf(seed.website);
   const words = nameWords(seed.business);
-  const fits = (a: { handle: string; nickname: string | null }) => words.some((w) => fold(a.handle).includes(w) || fold(a.nickname ?? '').includes(w));
+  // Whole parts of the handle or name ("the_baraguz_family" fits Baraguz; "barbaraguzmanf" does not).
+  const parts = (s: string | null) => (s ?? '').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+  const fits = (a: { handle: string; nickname: string | null }) => words.some((w) => [...parts(a.handle), ...parts(a.nickname)].some((p) => p === w || p.startsWith(w)));
   const found = new Map<string, { matched_by: TikTokAccount['matched_by']; confirmed: boolean }>();
   for (const h of tiktokHandles(seed.siteLinks)) found.set(h, { matched_by: 'website', confirmed: true });
   for (const h of tiktokHandles(seed.instagramBioLinks)) if (!found.has(h)) found.set(h, { matched_by: 'instagram bio', confirmed: true });

@@ -40,6 +40,25 @@ competitor-plan run with no files beside the one with them).
   is not queued when the audit verified no competitor and built no ad plan
   (it could print nothing; Baraguz's `5585440e…` waited in review with no
   files); the reason is `NOTHING_TO_COMPARE`.
+- **Seen on the first live run** (`36856ee8…`, 17:20 UTC) and fixed: the
+  consumer pruner (`prunerCode`) cut each TikTok video page to 3 videos
+  without their statistics (each item repeats its author and carries every
+  rendition), so median plays read empty; TikTok's renditions, covers,
+  avatars and music are dropped, `author` is dropped inside items, and the
+  fields the read uses are priority keys. A search hit matched by a name
+  inside a longer word ("barbaraguzmanf" for Baraguz) is no longer a fit:
+  the name must be a whole part of the handle or nickname (or start one).
+  The run itself was held by the write-up gate (one substantive finding:
+  the guard removed "no active ads" claims, leaving two findings empty).
+  Owner's choice: top up from the fixes. In the verify check, after the
+  claim guard and before the gate, `topUpFindings` (`visibility.ts`) drops
+  a finding the guard emptied (`isHollowFinding`) and adds findings from
+  the brief's client fixes that rest on a source the run checked
+  (`FINDING_FROM_FIX`: each with its source, area, implication and measure;
+  the TikTok bio link and tags and Search Console stay in the plan only),
+  until the gate counts three substantive findings and there are four in
+  all (`TOP_UP`, at most six). The gate's test is `isSubstantiveFinding`
+  (`model.ts`), shared by both.
 - **Tests**: `groundswell-tiktok.test.ts`, the phase case in
   `groundswell-phases.test.ts`, the step's TikTok output in
   `groundswell-social.test.ts` (its two Instagram counts now leave TikTok

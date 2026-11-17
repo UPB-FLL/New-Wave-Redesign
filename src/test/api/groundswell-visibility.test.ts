@@ -14,9 +14,11 @@ import {
   quickWins,
   runVisibility,
   targetKeywords,
+  topUpFindings,
   visibilityFromFacts,
   type CopyTarget,
 } from '../../../api/_lib/groundswell/visibility';
+import { evidenceCoverage, isSubstantiveFinding, type ReportFinding } from '../../../api/_lib/groundswell/model';
 import { buildInternalHtml, INTERNAL_BANNER } from '../../../api/_lib/groundswell/reportsInternal';
 import { reportData } from '../../../api/_lib/groundswell/delivery';
 import { BENCHMARK_STEPS, STEPS } from '../../../api/_lib/groundswell/steps';
@@ -218,6 +220,55 @@ describe('the client’s plan', () => {
     expect(reportData(ctx).model.writeup.plan.weeks_1_2[0]).toBe('Complete the Google Business Profile.');
     const plain = reportData({ ...ctx, outputs: o });
     expect(plain.model.writeup.plan).toEqual((o.model as ReturnType<typeof sampleModelOutput>).writeup.plan);
+  });
+});
+
+describe('findings topped up from the fixes (Baraguz, 2026-11-17)', () => {
+  const finding = (over: Partial<ReportFinding>): ReportFinding => ({ area: 'website', priority: 'high', title: 'Images Missing Alt Text', evidence: '10 images on the website are missing alt text.', source: 'website', basis: 'observed', implication: 'Images without descriptions cannot be found through image search.', action: 'Add descriptive alt text to all images on the website.', measure: 'Every homepage image has alt text naming the product.', effort: 'Low', dependency: 'Site access.', ...over });
+  // The guard left two of four findings empty: "no active ads" claims removed.
+  const hollow = [finding({ area: 'google', title: '', evidence: '', action: 'Activate Google Ads campaigns targeting high-volume keywords.' }), finding({}), finding({ area: 'ads', title: '', evidence: '' })];
+
+  it('drops the findings the guard emptied and tops the write-up up to four from client fixes on a checked source', () => {
+    const f = facts();
+    const checked = new Set<string>(evidenceCoverage(f).filter((e) => e.status === 'checked').map((e) => e.key));
+    const out = topUpFindings(hollow, visibilityFromFacts(f), checked);
+    expect(out).toHaveLength(4);
+    expect(out.some((x) => !x.title)).toBe(false);
+    expect(out[0].title).toBe('Images Missing Alt Text');
+    // Never a staff note, never a fix whose source was not checked, never a second alt-text finding.
+    expect(out.map((x) => x.title).join(' ')).not.toMatch(/Instagram audience|without health claims|Describe .* image/);
+    for (const x of out.slice(1)) {
+      expect(checked.has(x.source)).toBe(true);
+      // What the gate counts as substantive (verify.ts).
+      expect(x.basis).toBe('observed');
+      expect(x.evidence.length).toBeGreaterThanOrEqual(40);
+      expect(x.action.length).toBeGreaterThanOrEqual(40);
+      expect(x.implication.length).toBeGreaterThanOrEqual(30);
+      expect(x.measure.length).toBeGreaterThanOrEqual(30);
+    }
+    expect(out.slice(1).map((x) => x.title)).toContain('Complete the Google Business Profile');
+  });
+
+  it('tops up until the gate counts three, as Baraguz’s write-up needed (a finding with a short action does not count)', () => {
+    const f = facts();
+    const checked = new Set<string>(evidenceCoverage(f).filter((e) => e.status === 'checked').map((e) => e.key));
+    const tiktok = finding({ area: 'social', title: 'Missing TikTok Pixel', evidence: 'TikTok account links to website but no TikTok pixel detected.', action: 'Install TikTok pixel on the website.' });
+    const before = [hollow[0], tiktok, finding({}), hollow[2]];
+    expect(before.filter((x) => isSubstantiveFinding(x, checked)).length).toBe(1);
+    const out = topUpFindings(before, visibilityFromFacts(f), checked);
+    expect(out.filter((x) => isSubstantiveFinding(x, checked)).length).toBeGreaterThanOrEqual(3);
+    expect(out.length).toBeLessThanOrEqual(6);
+    // The model's own TikTok finding stays; the fix it repeats is not added again.
+    expect(out.filter((x) => /tiktok pixel/i.test(x.title))).toHaveLength(1);
+  });
+
+  it('leaves a full write-up alone, and without the step only drops what is hollow', () => {
+    const f = facts();
+    const full = [finding({ title: 'A' }), finding({ title: 'B' }), finding({ title: 'C' }), finding({ title: 'D' })];
+    expect(topUpFindings(full, visibilityFromFacts(f), new Set(['website']))).toEqual(full);
+    expect(topUpFindings(hollow, null, new Set(['website']))).toHaveLength(1);
+    // Nothing checked: nothing to write a finding from.
+    expect(topUpFindings(hollow, visibilityFromFacts(f), new Set())).toHaveLength(1);
   });
 });
 

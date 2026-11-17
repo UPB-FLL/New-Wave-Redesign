@@ -237,15 +237,17 @@ const SANDBOX_PATH = /^\/mnt\/files\/[\w./-]+\.json$/;
 /**
  * Python for COMPOSIO_REMOTE_WORKBENCH: loads a saved answer and prints it
  * without what the Currents never read (the poster's profile on every post,
- * video renditions, every image size but the original). Structural budgets
- * keep the complete encoded answer and its markers below 20 KB.
+ * video renditions, every image size but the original; on TikTok the author
+ * repeated on every video and each video's renditions and covers, which cut a
+ * page of ten to three without its statistics). Structural budgets keep the
+ * complete encoded answer and its markers below 20 KB.
  */
 export function prunerCode(path: string, index = 0): string {
   return [
     'import json',
-    'DROP = {"owner","polaris_ordered_timeline_connection","video_versions","additional_candidates","usertags","tagged_users","biography_with_entities","has_translation","friendship_status","clips_metadata","music_metadata","hd_profile_pic_url_info","profile_pic_genai_tool_info","meta_verified_benefits_info","regulated_news_in_locations","account_badges","bio_links"}',
-    'NESTED_DROP = {"user"}',
-    'PRIORITY = {"data", "items", "posts", "reels", "edges", "user", "profile", "graphql", "edge_followed_by", "edge_follow", "edge_owner_to_timeline_media", "count", "follower_count", "following_count", "media_count", "followersCount", "followsCount", "postsCount", "username", "full_name", "biography", "external_url", "is_business", "is_private", "code", "shortcode", "caption", "like_count", "comment_count", "play_count", "taken_at", "media_type", "product_type", "display_uri", "display_url", "image_versions2", "candidates", "url"}',
+    'DROP = {"owner","polaris_ordered_timeline_connection","video_versions","additional_candidates","usertags","tagged_users","biography_with_entities","has_translation","friendship_status","clips_metadata","music_metadata","hd_profile_pic_url_info","profile_pic_genai_tool_info","meta_verified_benefits_info","regulated_news_in_locations","account_badges","bio_links","download_addr","download_no_watermark_addr","play_addr","dynamic_cover","origin_cover","cover","avatar_thumb","avatar_medium","avatar_larger","music","text_extra","video_tag"}',
+    'NESTED_DROP = {"user", "author"}',
+    'PRIORITY = {"data", "items", "posts", "reels", "edges", "user", "profile", "graphql", "edge_followed_by", "edge_follow", "edge_owner_to_timeline_media", "count", "follower_count", "following_count", "media_count", "followersCount", "followsCount", "postsCount", "username", "full_name", "biography", "external_url", "is_business", "is_private", "code", "shortcode", "caption", "like_count", "comment_count", "play_count", "taken_at", "media_type", "product_type", "display_uri", "display_url", "image_versions2", "candidates", "url", "statistics", "digg_count", "share_count", "create_time", "create_time_utc", "desc", "is_ad", "shop_product_url", "stats", "followerCount", "heartCount", "videoCount", "uniqueId", "unique_id", "nickname", "signature", "bioLink", "link", "privateAccount"}',
     'def prune(x, budget, depth=0, limit=12):',
     '    if depth > 12 or budget[0] <= 0: return None',
     '    budget[0] -= 1',
