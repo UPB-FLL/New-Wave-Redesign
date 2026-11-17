@@ -12,6 +12,8 @@ import { buildAuditHtml, buildDeckHtml, buildSummaryHtml, formatDate, PORTAL_URL
 import { buildBenchmarkHtml } from './reportsBenchmark.js';
 import { PermanentStepError, type StepContext } from './types.js';
 import { verifiedOutputs } from './verify.js';
+import { isVisibilityOutput, planWithFirstMonth, visibilityFromFacts } from './visibility.js';
+import { buildInternalHtml } from './reportsInternal.js';
 import { PHASE_INFO, type Phase } from '../../../src/lib/groundswellValidation.js';
 import { isAdsetsOutput, type AdsetsOutput } from './adsets.js';
 import { isPlansOutput } from './plans.js';
@@ -39,8 +41,11 @@ export type Stored = ReportRow & { trimmed: number; broken_images: number };
 export function reportData(ctx: StepContext): ReportData {
   // The checks' replacements (the reviewed write-up; a later read, when that is the one that held up).
   const outputs = verifiedOutputs(ctx.outputs);
-  const model = outputs.model as ModelOutput | undefined;
-  if (!model) throw new PermanentStepError('The write-up is missing, so the reports cannot be built.');
+  const written = outputs.model as ModelOutput | undefined;
+  if (!written) throw new PermanentStepError('The write-up is missing, so the reports cannot be built.');
+  // The first month of the internal brief leads the client's plan (its client-facing items only).
+  const visibility = isVisibilityOutput(outputs.visibility) ? outputs.visibility : null;
+  const model: ModelOutput = visibility ? { ...written, writeup: { ...written.writeup, plan: planWithFirstMonth(written.writeup.plan, visibility) } } : written;
   const facts = buildFacts(ctx.audit, outputs);
   // An audit started before the ad-plan step existed, or one whose step was skipped, has no plan.
   const adplan = isAdplanOutput(outputs.adplan) ? outputs.adplan : null;
@@ -118,6 +123,28 @@ export async function runDeliverSummary(ctx: StepContext): Promise<Stored> {
   return printAndStore(ctx, 'summary', 'Marketing Audit Summary', html, true);
 }
 
+/** The worker's MAX_ATTEMPTS (engine.ts): on the last one a failure is recorded, never the client's reports held back over the brief. */
+const INTERNAL_LAST_ATTEMPT = 3;
+
+/**
+ * The internal visibility brief: from the visibility step, or from the data
+ * alone when that step did not run. Required like every delivery step, but
+ * a failure on the last attempt (a storage refusal before the report-kind
+ * migration, say) is recorded in `note`, as the GEO brief does, so the
+ * client's three reports are always delivered.
+ */
+export async function runDeliverInternal(ctx: StepContext): Promise<Stored | { note: string }> {
+  try {
+    const d = reportData(ctx);
+    const out = verifiedOutputs(ctx.outputs).visibility;
+    const visibility = isVisibilityOutput(out) ? out : visibilityFromFacts(d.facts);
+    return await printAndStore(ctx, 'internal', 'Internal Visibility Brief', buildInternalHtml({ facts: d.facts, brand: d.brand, date: d.date, visibility, preparer: d.preparer }));
+  } catch (err) {
+    if (ctx.attempt < INTERNAL_LAST_ATTEMPT) throw err;
+    return { note: `The internal visibility brief could not be printed or stored: ${err instanceof Error ? err.message : String(err)}` };
+  }
+}
+
 export async function runDeliverIntegrated(ctx: StepContext): Promise<Stored> {
   const x = own<IntegratedOutput>(ctx, 'integrated');
   const linked = ctx.outputs.linked;
@@ -156,7 +183,8 @@ export async function runDeliverFinish(ctx: StepContext) {
     return out;
   });
   // Every report this run printed itself: never one an earlier phase handed down.
-  const optional = ['deliver_benchmark', 'deliver_adsets'].map((s) => own<Stored | AdsetsDelivery>(ctx, s)).filter((x): x is Stored | AdsetsDelivery => Boolean(x));
+  // A brief that left only a note (deliver_internal's last attempt) is not a report.
+  const optional = ['deliver_benchmark', 'deliver_internal', 'deliver_adsets'].map((s) => own<Stored | AdsetsDelivery>(ctx, s)).filter((x): x is Stored | AdsetsDelivery => !!x && ('kind' in x || 'report' in x));
   const stored = [...required, ...optional.map((x) => ('report' in x ? x.report : x))];
   if (!stored.length) {
     const missing: string[] = [];

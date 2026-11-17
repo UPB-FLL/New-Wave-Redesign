@@ -90,7 +90,7 @@ export interface Estimates {
 type SiteOut = { business: SiteScan | null; competitors: { name: string; site: SiteScan | null }[] };
 type MapsOut = { business: MapsPlace | null; nearby: MapsListing[]; note: string | null; source: string; fetched_at: string };
 type SearchOut = { business: AhrefsSnapshot | null; competitors: (AhrefsSnapshot & { name: string })[]; source: string; fetched_at: string; serp?: { queries: GoogleSerp[]; note?: string | null } };
-type KeywordsOut = { ideas: KeywordIdea[]; seeds?: string[]; source?: string; fetched_at?: string; skipped?: string; error?: string | null; demand_status?: 'measured' | 'unavailable'; note?: string | null };
+type KeywordsOut = { ideas: KeywordIdea[]; seeds?: string[]; source?: string; fetched_at?: string; skipped?: string; error?: string | null; demand_status?: 'measured' | 'unavailable'; note?: string | null; geography?: { label: string; constants: string[]; error: string | null } };
 type SocialOut = SocialOutput;
 type AdsOut = { business: AdsEvidence; competitors: AdsEvidence[]; source: string; fetched_at: string };
 

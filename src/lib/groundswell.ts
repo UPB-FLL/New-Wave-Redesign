@@ -92,6 +92,7 @@ export const STEP_LABELS: Record<string, string> = {
   adplan: 'Ad plan and change ranking',
   adcopy: 'Ad copy',
   plans: 'Website plan and first week of posts',
+  visibility: 'Keywords, copy and first-month fixes',
   social_depth: 'Instagram posts and reels',
   ads_library: 'Ad libraries',
   pricing: 'Offers and prices',
@@ -103,6 +104,7 @@ export const STEP_LABELS: Record<string, string> = {
   deliver_deck: 'Slides PDF',
   deliver_summary: 'Summary PDF',
   deliver_geo: 'GEO developer brief',
+  deliver_internal: 'Internal visibility brief PDF',
   creative: 'Instagram images for the ads',
   adsets: 'Ad sets',
   deliver_creatives: 'Ad images and carousel',
@@ -195,7 +197,7 @@ export interface SetupStatus {
   summary?: string;
 }
 
-export type ReportKind = 'summary' | 'deck' | 'audit' | 'benchmark' | 'adsets' | 'integrated';
+export type ReportKind = 'summary' | 'deck' | 'audit' | 'benchmark' | 'adsets' | 'integrated' | 'internal';
 export const REPORT_LABELS: Record<ReportKind, string> = {
   summary: 'Summary',
   deck: 'Slides',
@@ -203,6 +205,7 @@ export const REPORT_LABELS: Record<ReportKind, string> = {
   benchmark: 'Competitive benchmark',
   adsets: 'Ad sets',
   integrated: 'Integrated plan',
+  internal: 'Internal visibility brief',
 };
 
 /** A short-lived link to a report, for an admin on the allow-list. */

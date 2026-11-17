@@ -16,6 +16,7 @@ import { runKeywords, runSearch } from './currents/search.js';
 import { runSite } from './currents/site.js';
 import { runSitePages } from './currents/sitePages.js';
 import { runPlans } from './plans.js';
+import { runVisibility } from './visibility.js';
 import { runSocial } from './currents/social.js';
 import {
   runDeliverAudit,
@@ -23,6 +24,7 @@ import {
   runDeliverDeck,
   runDeliverFinish,
   runDeliverIntegrated,
+  runDeliverInternal,
   runDeliverPrepare,
   runDeliverSummary,
 } from './delivery.js';
@@ -69,6 +71,7 @@ const GATHER_AND_MODEL: StepDefinition[] = [
   { name: 'adplan', current: 'Model', label: 'Ad plan and change ranking', optional: true, run: runAdplan },
   { name: 'adcopy', current: 'Model', label: 'Ad copy', optional: true, run: runAdcopy },
   { name: 'plans', current: 'Model', label: 'Website optimization plan and the first week of posts', optional: true, run: runPlans },
+  { name: 'visibility', current: 'Model', label: 'Keywords, copy and first-month fixes (internal brief)', optional: true, run: runVisibility },
 ];
 
 /** A client's own accounts (phase 3); runs started before the phases had it among their public-data steps. */
@@ -80,6 +83,7 @@ const deliver = {
   benchmark: { name: 'deliver_benchmark', current: 'Delivery', label: 'Benchmark PDF', optional: true, run: runDeliverBenchmark },
   deck: { name: 'deliver_deck', current: 'Delivery', label: 'Slides PDF', optional: false, run: runDeliverDeck },
   summary: { name: 'deliver_summary', current: 'Delivery', label: 'Summary PDF', optional: false, run: runDeliverSummary },
+  internal: { name: 'deliver_internal', current: 'Delivery', label: 'Internal visibility brief PDF', optional: false, run: runDeliverInternal },
   geo: { name: 'deliver_geo', current: 'Delivery', label: 'GEO developer brief (Markdown)', optional: false, run: runDeliverGeo },
   creatives: { name: 'deliver_creatives', current: 'Delivery', label: 'Ad images and carousel', optional: true, run: runDeliverCreatives },
   adsets: { name: 'deliver_adsets', current: 'Delivery', label: 'Ad sets PDF and import files', optional: true, run: runDeliverAdsets },
@@ -96,6 +100,7 @@ export const STEPS: StepDefinition[] = [
   deliver.audit,
   deliver.deck,
   deliver.summary,
+  deliver.internal,
   deliver.geo,
   deliver.finish,
 ];
@@ -138,6 +143,7 @@ function benchmarkSteps(rounds: number): StepDefinition[] {
     deliver.benchmark,
     deliver.deck,
     deliver.summary,
+    deliver.internal,
     deliver.geo,
     deliver.finish,
   ];
