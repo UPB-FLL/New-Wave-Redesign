@@ -409,7 +409,15 @@ function areaTables(key: AreaKey, f: Facts): string {
         .filter((p): p is NonNullable<typeof p> => Boolean(p && p.exists))
         .map((p): string[] => [p.name, num(p.followers), num(p.likes), p.rating === null ? "–" : `${p.rating}${p.rating_count === null ? "" : ` (${num(p.rating_count)})`}`, p.posts[0]?.posted_at ? p.posts[0].posted_at.slice(0, 10) : "–"]);
       const fb = pages.length ? table(['Facebook Page', 'Followers', 'Likes', 'Rating (reviews)', 'Newest post'], pages) : '';
-      return ig + note + fb;
+      // TikTok: only the accounts tied to the business (by its site, its Instagram bio or a bio link to its site).
+      const tiktok = (f.social?.tiktok?.accounts ?? []).filter((a) => a.confirmed && !a.error);
+      const tt = tiktok.length
+        ? table(
+            ['TikTok', 'Followers', 'Likes', 'Videos', 'Posts, last 30 days', 'Median plays (recent)', 'Bio link'],
+            tiktok.map((a) => [`@${a.handle}`, num(a.followers), num(a.likes), num(a.videos), num(a.recent?.posts_last_30_days ?? null), num(a.recent?.median_plays ?? null), a.bio_link ?? 'None'])
+          )
+        : '';
+      return ig + note + fb + tt;
     }
     case 'website': {
       const s = f.site?.business;

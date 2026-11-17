@@ -149,7 +149,7 @@ describe('Social Current: blocked profiles', () => {
     expect(out.business).toMatchObject({ exists: false, restricted: true, note: PRIVATE_NOTE });
     expect(mocks.executeTool.mock.calls.some(([slug]) => slug.startsWith('APIFY_'))).toBe(false);
     // One read, no retry: a private account does not change its mind in three seconds.
-    expect(mocks.executeTool.mock.calls.filter(([, a]) => a.handle === 'harborautocare')).toHaveLength(2);
+    expect(mocks.executeTool.mock.calls.filter(([slug, a]) => !String(slug).includes('TIKTOK') && a.handle === 'harborautocare')).toHaveLength(2);
   });
 
   it('tells the refusals apart from the provider wording', () => {
@@ -272,13 +272,16 @@ describe('Social Current: a client’s own Instagram account', () => {
     expect(out.competitors[0]).toMatchObject({ name: 'Bayside', followers: 500, read_via: 'scrapecreators' });
     expect(out.source).toMatch(/own Instagram account \(Graph API\)/);
     expect(out.linked_note).toBeNull();
+    // TikTok is looked for in the same step (tiktok.ts): the Instagram handle tried there, then a search by name.
+    expect(out.tiktok).toMatchObject({ accounts: [], searched: ctx.audit.business_name });
+    expect(mocks.executeTool.mock.calls.some(([slug]) => slug === 'SCRAPECREATORS_SEARCH_TIKTOK_USERS')).toBe(true);
     // The account is read as itself (executeToolAs with its connected account), never through the shared lookup.
     expect(mocks.executeToolAs.mock.calls.map(([slug, args, account]) => [slug, (args as { ig_user_id: string }).ig_user_id, (account as { id: string }).id])).toEqual([
       ['INSTAGRAM_GET_USER_INFO', 'me', 'ca_ig'],
       ['INSTAGRAM_GET_IG_USER_MEDIA', 'me', 'ca_ig'],
     ]);
     expect((mocks.executeToolAs.mock.calls[1][1] as { fields: string }).fields).toBe(LINKED_MEDIA_FIELDS);
-    expect(mocks.executeTool.mock.calls.some(([, a]) => (a as { handle?: string }).handle === 'harborautocare')).toBe(false);
+    expect(mocks.executeTool.mock.calls.some(([slug, a]) => !String(slug).includes('TIKTOK') && (a as { handle?: string }).handle === 'harborautocare')).toBe(false);
   });
 
   it('falls back to the public read when the linked account cannot be read, saying why for staff', async () => {

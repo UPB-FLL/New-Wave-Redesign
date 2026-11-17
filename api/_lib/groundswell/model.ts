@@ -545,6 +545,7 @@ export function roiInputsFrom(f: Facts, est: Estimates): RoiPlan | null {
 
 const SYSTEM = `You write detailed, decision-ready marketing audits for the business and the preparing agency.
 You receive JSON of data gathered from public sources (website scan, Google Maps, Ahrefs, Google Ads Keyword Planner, Instagram and the Facebook Page, ad tags).
+- instagram.tiktok, when present, lists TikTok accounts. Only those with confirmed true are the business's (its site, its Instagram bio or the account's bio link ties them to it); never call an account with confirmed false the business's. A TikTok account that links to the website sends it traffic: weigh it in the social area, and say when site.tracking.tiktok_pixel is false.
 - instagram.business.note, when present, says why the Instagram profile could not be read (it is shown only to signed-in adults): say that in the social area, never that the business is inactive on Instagram, and use instagram.facebook for the social figures instead.
 Write in plain words for a busy owner. Rules:
 - Use ONLY facts in the data. Every number you write must appear in the data. Do not invent statistics, studies, percentages, or prices.

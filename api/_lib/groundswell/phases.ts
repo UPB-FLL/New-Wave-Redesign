@@ -47,6 +47,22 @@ export async function integratedReady(db: Pick<SupabaseClient, 'from'>, customer
   return { ok: true, reason: '' };
 }
 
+export const NOTHING_TO_COMPARE = `${PHASE_INFO.competitors.title} has nothing to build: the audit verified no competitor and built no ad plan. Add a competitor, or run the audit again once keyword demand is read.`;
+
+/**
+ * Phase 2's precondition: something it can print. It prints the benchmark
+ * (needs a competitor) and the ad sets (need the audit's ad plan); with
+ * neither, a run would print nothing and wait in review (Baraguz,
+ * 2026-11-17: a second run with no files beside the one with them).
+ */
+export async function competitorsReady(db: Pick<SupabaseClient, 'from'>, sourceId: string, competitors: unknown): Promise<{ ok: boolean; reason: string }> {
+  if (Array.isArray(competitors) && competitors.length) return { ok: true, reason: '' };
+  const plan = await db.from('marketing_audit_steps').select('status').eq('audit_id', sourceId).eq('step', 'adplan');
+  if (plan.error) return { ok: true, reason: '' }; // unreadable: queue as before rather than lose the phase
+  const built = ((plan.data ?? []) as { status: string }[]).some((s) => s.status === 'done');
+  return built ? { ok: true, reason: '' } : { ok: false, reason: NOTHING_TO_COMPARE };
+}
+
 /**
  * Queues `phase` building on `sourceId`, which must be a delivered run of the
  * phase before it. The run already queued or running for the same source is
@@ -73,6 +89,10 @@ export async function queuePhase(db: Pick<SupabaseClient, 'from'>, sourceId: str
 
   if (phase === 'integrated') {
     const ready = await integratedReady(db, source.customer_id);
+    if (!ready.ok) return { queued: null, phase, reason: ready.reason };
+  }
+  if (phase === 'competitors') {
+    const ready = await competitorsReady(db, sourceId, source.competitors);
     if (!ready.ok) return { queued: null, phase, reason: ready.reason };
   }
 

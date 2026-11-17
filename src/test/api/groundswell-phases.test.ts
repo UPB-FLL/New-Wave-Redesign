@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { describe, expect, it, vi } from 'vitest';
 import { runWorker, START_LEASE_MS, startQueuedRuns, startWithinCapacity, type StepLists } from '../../../api/_lib/groundswell/engine';
-import { integratedReady, queueNextPhase, queuePhase } from '../../../api/_lib/groundswell/phases';
+import { integratedReady, NOTHING_TO_COMPARE, queueNextPhase, queuePhase } from '../../../api/_lib/groundswell/phases';
 import { ALL_STEPS, COMPETITOR_STEPS, INTEGRATED_STEPS, PHASE_STEPS, STEPS } from '../../../api/_lib/groundswell/steps';
 import type { StepContext, StepDefinition } from '../../../api/_lib/groundswell/types';
 import { nextPhase, PHASE_INFO, PHASES } from '../../../src/lib/groundswellValidation';
@@ -220,6 +220,22 @@ describe('queueing the next phase', () => {
     const again = await queueNextPhase(client as never, { id: 'p1', phase: 'audit', customer_id: 'c1' });
     expect(again).toMatchObject({ queued: first.queued, reason: 'Competitor plan is already queued.' });
     expect(tables.marketing_audits.filter((a) => a.phase === 'competitors')).toHaveLength(1);
+  });
+
+  it('queues no competitor plan that could print nothing: no competitor and no ad plan (Baraguz, 2026-11-17)', async () => {
+    const steps = (status: string | null) =>
+      fakeSupabase({
+        marketing_audits: [{ id: 'p1', business_name: 'Leafline', city: null, website: 'https://leafline.example', instagram: null, competitors: [], notes: null, partner_id: null, customer_id: 'c1', requested_by: null, brand_logo_url: null, brand_color: null, status: 'done', phase: 'audit' }],
+        marketing_audit_steps: status ? [{ id: 's1', audit_id: 'p1', step: 'adplan', status }] : [],
+      });
+    let { client, tables } = steps('skipped');
+    expect(await queueNextPhase(client as never, { id: 'p1', phase: 'audit', customer_id: 'c1' })).toEqual({ queued: null, phase: 'competitors', reason: NOTHING_TO_COMPARE });
+    expect(tables.marketing_audits.filter((a) => a.phase === 'competitors')).toHaveLength(0);
+    ({ client } = steps(null));
+    expect((await queueNextPhase(client as never, { id: 'p1', phase: 'audit', customer_id: 'c1' })).queued).toBeNull();
+    // An ad plan is enough: the ad sets are printed from it.
+    ({ client, tables } = steps('done'));
+    expect(await queueNextPhase(client as never, { id: 'p1', phase: 'audit', customer_id: 'c1' })).toMatchObject({ phase: 'competitors', reason: 'Competitor plan queued.' });
   });
 
   it('phase 3 waits for a client with a linked account, and says why', async () => {

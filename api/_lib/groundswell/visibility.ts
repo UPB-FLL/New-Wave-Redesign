@@ -107,7 +107,7 @@ export function brandWords(name: string): string[] {
 const isBrand = (keyword: string, brand: string[]) => contentWords(keyword).some((w) => brand.some((b) => w.startsWith(b)));
 
 /**
- * The page read whose title, H1 and headings share the most words with the
+ * The page read whose title, H1 and address share the most words with the
  * keyword, when they share all of a short keyword's words and three in four
  * of a longer one's (one shared "tea" would send every search to the
  * homepage); null otherwise.
@@ -119,7 +119,8 @@ export function bestPage(keyword: string, pages: SitePage[]): string | null {
   let best: { url: string; score: number } | null = null;
   for (const p of pages) {
     if (p.error) continue;
-    const have = new Set(contentWords([p.title, p.h1, ...p.headings, p.path.replace(/[/-]/g, ' ')].filter(Boolean).join(' ')));
+    // The page's own title, main heading and address: its other headings carry the site's menu, which names every product.
+    const have = new Set(contentWords([p.title, p.h1, p.path.replace(/[/-]/g, ' ')].filter(Boolean).join(' ')));
     const score = [...want].filter((w) => have.has(w)).length;
     if (score >= need && score > 0 && (!best || score > best.score)) best = { url: p.url, score };
   }
@@ -201,6 +202,21 @@ export function quickWins(f: Facts, keywords: TargetKeyword[]): QuickWin[] {
   const pages = (f.site_pages?.pages ?? []).filter((p) => !p.error);
   const host = (() => { try { return new URL(site?.final_url ?? site?.url ?? f.business.website ?? '').hostname.replace(/^www\./, ''); } catch { return null; } })();
 
+  // TikTok (tiktok.ts): where it sends traffic, the site must be able to see it.
+  const tt = f.social?.tiktok;
+  const ours = (tt?.accounts ?? []).filter((a) => a.confirmed && !a.error);
+  const at = (a: { handle: string; followers: number | null }) => `@${a.handle}${a.followers !== null ? ` (${a.followers.toLocaleString('en-US')} followers)` : ''}`;
+  if (ours.length && site?.tracking && !site.tracking.tiktok_pixel) add({ id: 'tiktok:pixel', week: 1, area: 'tracking', title: 'Install the TikTok Pixel and Events API', evidence: `The website carries no TikTok Pixel, while ${ours.map(at).join(' and ')} ${ours.length === 1 ? 'is' : 'are'} on TikTok.`, action: 'Install the TikTok Pixel with the Events API (server-side) and its ViewContent, AddToCart and Purchase events, so TikTok can count and optimise the visits and sales it sends; on Shopify the TikTok sales channel app installs both.', client: true });
+  const untagged = ours.filter((a) => a.links_to_site && !a.bio_link_tagged);
+  if (untagged.length) add({ id: 'tiktok:utm', week: 1, area: 'tracking', title: 'Tag the TikTok bio links so analytics credits TikTok', evidence: untagged.map((a) => `${at(a)} links to ${a.bio_link} with no UTM tags`).join('; ') + '.', action: `Change each bio link to the site with utm_source=tiktok, utm_medium=social and the account as utm_campaign (for example ${host ? `https://${host}/` : 'the homepage'}?utm_source=tiktok&utm_medium=social&utm_campaign=${untagged[0].handle}), so Google Analytics reports TikTok as the source, not "direct".`, client: true });
+  const noLink = ours.filter((a) => !a.bio_link && (a.followers ?? 0) >= 1000);
+  if (noLink.length) add({ id: 'tiktok:bio-link', week: 1, area: 'social', title: 'Put the website in the TikTok bio', evidence: noLink.map((a) => `${at(a)} has no link in its bio${a.bio && /below|link|shop/i.test(a.bio) ? ` though the bio says “${a.bio.split('\n').pop()}”` : ''}`).join('; ') + '.', action: 'Add the website (tagged as above) as the bio link, or a short link page that leads with it.', client: true });
+  if (ours.length && site && !site.social.tiktok.length) add({ id: 'tiktok:site-link', week: 2, area: 'website', title: 'Link the TikTok account from the website', evidence: `The website links to no TikTok account; ${ours.map((a) => `@${a.handle}`).join(' and ')} ${ours.length === 1 ? 'links' : 'link'} back${ours.some((a) => a.links_to_site) ? '' : ' through TikTok only'}.`, action: 'Add the TikTok icon to the header or footer and the account to the schema’s sameAs, so search engines and assistants tie the account to the brand.', client: true });
+  const shop = ours.filter((a) => (a.recent?.shop_links ?? 0) > 0);
+  if (shop.length) add({ id: 'tiktok:shop', week: 1, area: 'social', title: 'Count the sales TikTok Shop makes', evidence: shop.map((a) => `${a.recent!.shop_links} of the ${a.recent!.read} latest videos on @${a.handle} link to TikTok Shop products${a.recent!.ads ? `, ${a.recent!.ads} marked as ads` : ''}`).join('; ') + '.', action: 'Staff only: sales made in TikTok Shop never reach the website or Google Analytics, so this audit undercounts TikTok. Ask the owner for TikTok Shop sales and TikTok Ads Manager access, or link the TikTok account, before judging the channel.', client: false });
+  const unconfirmed = (tt?.accounts ?? []).filter((a) => !a.confirmed);
+  if (unconfirmed.length) add({ id: 'tiktok:confirm', week: 1, area: 'social', title: 'Confirm the TikTok accounts found by name', evidence: `Found by searching TikTok for “${tt?.searched ?? f.business.name}”, with no link to the website: ${unconfirmed.map(at).join(', ')}.`, action: 'Staff only: ask the owner which of these are theirs before they appear in any client report.', client: false });
+
   // Week 1: what is broken or missing.
   for (const h of site?.social.facebook ?? []) if (isPlaceholderHandle(h)) add({ id: `placeholder:facebook:${h}`, week: 1, area: 'website', title: 'Replace the placeholder Facebook link', evidence: `The website links to facebook.com/${h}, the theme’s sample address.`, action: 'Point the site’s Facebook link at the business’s own Page, and remove it from the footer until there is one.', client: true });
   for (const h of site?.social.instagram ?? []) if (isPlaceholderHandle(h)) add({ id: `placeholder:instagram:${h}`, week: 1, area: 'website', title: 'Replace the placeholder Instagram link', evidence: `The website links to instagram.com/${h}, the theme’s sample address.`, action: 'Point the site’s Instagram link at the business’s own profile.', client: true });
@@ -258,7 +274,7 @@ export function quickWins(f: Facts, keywords: TargetKeyword[]): QuickWin[] {
 }
 
 /** The order within a week, by id prefix (the rest keep the order they were found in). */
-export const WEEK_ORDER = ['gbp:', 'gsc', 'placeholder:facebook:', 'placeholder:instagram:', 'hreflang', 'nap:', 'pixel:', 'ig:professional', 'placeholder:facebook-page', 'meta:', 'title:', 'alt', 'near-miss', 'thin', 'new-page', 'ai:'];
+export const WEEK_ORDER = ['tiktok:pixel', 'tiktok:utm', 'tiktok:bio-link', 'gbp:', 'gsc', 'placeholder:facebook:', 'placeholder:instagram:', 'hreflang', 'nap:', 'pixel:', 'ig:professional', 'placeholder:facebook-page', 'meta:', 'title:', 'alt', 'near-miss', 'thin', 'new-page', 'ai:'];
 
 // ---------------------------------------------------------------------------
 // The first month
@@ -389,6 +405,7 @@ export function checkCopy(raw: unknown, targets: CopyTarget[], rules: { unsuppor
     };
     const field = (f: Exclude<CopyField, 'faq'>, current: string | null, limit: number) => {
       const text = str(r[f]);
+      if (text && current && fold(text) === fold(current)) { dropped.push(`${t.path} ${f.replace('_', ' ')}: the same as the page has now.`); return; }
       if (ok(text, f.replace('_', ' '), limit)) copy.push({ page: t.page, field: f, current, proposed: text, keyword });
     };
     field('title', t.title, COPY_LIMITS.title);

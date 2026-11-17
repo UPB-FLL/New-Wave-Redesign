@@ -5,6 +5,7 @@ import { PermanentStepError, type StepContext } from '../types.js';
 import { loadLinkedAccounts } from './linked.js';
 import type { SiteScan } from './site.js';
 import { numeric } from './serp.js';
+import { readTikTok, type TikTokOutput } from './tiktok.js';
 
 /**
  * Social Current: public Instagram profiles (followers, posts, recent activity)
@@ -607,6 +608,8 @@ export interface SocialOutput {
   linked_note?: string | null;
   /** The hashtags seen on the business's and its competitors' recent posts; missing on audits before 2026-10-24. */
   hashtags_seen?: { business: string[]; competitors: string[] };
+  /** The business's TikTok accounts (tiktok.ts); null when none was looked for. Missing on audits before 2026-11-17. */
+  tiktok?: TikTokOutput | null;
 }
 
 export async function runSocial(ctx: StepContext, pauseMs = BLOCKED_RETRY_MS): Promise<SocialOutput> {
@@ -633,9 +636,19 @@ export async function runSocial(ctx: StepContext, pauseMs = BLOCKED_RETRY_MS): P
     .map((c, i) => ({ name: c.name, url: facebookPageUrl(c.facebook || site?.competitors.find((s) => s.name === c.name)?.site?.social.facebook[0] || site?.competitors[i]?.site?.social.facebook[0]) }))
     .filter((c): c is { name: string; url: string } => Boolean(c.url))
     .slice(0, 6);
-  const [facebookPage, facebookRivals] = await Promise.all([
+  const [facebookPage, facebookRivals, tiktok] = await Promise.all([
     ownPage ? facebook(ownPage, true, budget) : Promise.resolve(null),
     Promise.all(rivalPages.map(async (c) => ({ name: c.name, ...(await facebook(c.url, false, budget)) }))),
+    readTikTok(
+      {
+        business: ctx.audit.business_name,
+        website: site?.business?.final_url ?? ctx.audit.website,
+        siteLinks: (site?.business?.social.tiktok ?? []).map((h) => `https://www.tiktok.com/@${h.replace(/^@/, '')}`),
+        instagramBioLinks: business?.bio_links ?? [],
+        instagramHandle: own,
+      },
+      budget
+    ).catch(() => null),
   ]);
 
   const viaApify = [business, ...competitors].some((s) => s?.read_via === 'apify');
@@ -650,5 +663,6 @@ export async function runSocial(ctx: StepContext, pauseMs = BLOCKED_RETRY_MS): P
     facebook_competitors: facebookRivals,
     linked_note: linked.note,
     hashtags_seen: { business: business?.hashtags ?? [], competitors: hashtagsOf(competitors.flatMap((c) => c.recent_captions ?? [])) },
+    tiktok,
   };
 }
