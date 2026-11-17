@@ -2,6 +2,49 @@
 
 ## Recent Changes
 
+### Groundswell: TikTok read in the Social Current; no empty competitor plan (2026-11-17)
+
+Owner's ask, after Baraguz's rerun (`9cdc5de6…`): bring in TikTok data
+however possible (the business drives its traffic from TikTok), put any
+missing TikTok tracking in the plan; and stop the duplicate report (a
+competitor-plan run with no files beside the one with them).
+
+- **TikTok** (`currents/tiktok.ts`, read inside `runSocial`, output
+  `SocialOutput.tiktok`): accounts found by evidence (a TikTok link on the
+  website; one in the Instagram bio; the Instagram handle tried on TikTok
+  when its name or bio link fits the brand; a TikTok user search by the
+  business's name, kept as the business's only when its bio link points at
+  its own site). A name-only match is `confirmed: false`, listed in the brief
+  for the owner to confirm and never shown to the client. Per account (at
+  most `TIKTOK_ACCOUNTS`, 3): followers, likes, videos, bio and bio link
+  (`links_to_site`, `bio_link_tagged`), and one page of the latest videos
+  (posts in 30 days, median plays, likes, comments, shares, how many TikTok
+  marks as ads and how many link to TikTok Shop, the five most played).
+  Checked live on 2026-11-17: Baraguz's @baraguz_slimt (44,900 followers, no
+  bio link, latest videos all ads with Shop links) and @the_baraguz_family
+  (1.7M followers, bio link "Baraguz.com", untagged).
+- **Plan** (`visibility.ts`): week 1 leads with `tiktok:pixel` (no TikTok
+  Pixel on the site while a confirmed account exists: the Pixel and Events
+  API), `tiktok:utm` (a bio link to the site without utm_ tags) and
+  `tiktok:bio-link` (an account with 1,000+ followers and no bio link);
+  `tiktok:site-link` in week 2; staff notes `tiktok:shop` (Shop sales never
+  reach the site or GA4) and `tiktok:confirm`. The client's audit gains a
+  TikTok table (confirmed accounts only) in the social area; the brief a
+  "TikTok" section (every account, marked); the write-up prompt is told
+  never to call an unconfirmed account the business's.
+- **Copy targets** (`bestPage`): matched on a page's title, H1 and address
+  only (its other headings carry the site's menu: the live run wrote copy for
+  the contact page and a flask); a proposal equal to the current text is
+  dropped.
+- **No empty competitor plan** (`competitorsReady` in `phases.ts`): phase 2
+  is not queued when the audit verified no competitor and built no ad plan
+  (it could print nothing; Baraguz's `5585440e…` waited in review with no
+  files); the reason is `NOTHING_TO_COMPARE`.
+- **Tests**: `groundswell-tiktok.test.ts`, the phase case in
+  `groundswell-phases.test.ts`, the step's TikTok output in
+  `groundswell-social.test.ts` (its two Instagram counts now leave TikTok
+  calls out).
+
 ### Groundswell: no blank pages; a national keyword read; the internal visibility brief (2026-11-17)
 
 From Baraguz's audit (run `dfce27c3…`, an online slim-tea brand with no

@@ -73,8 +73,10 @@ ${staff.length ? `<div class="callout-dark"><div class="kicker">Staff only</div>
       withRank ? ['Keyword', 'Searches a month', 'Position', 'Page'] : ['Keyword', 'Searches a month', 'Top-of-page bid', 'Competition', 'Page to use'],
       rows.map((k) => (withRank ? [k.keyword, searches(k), num(k.position), page(k.page)] : [k.keyword, searches(k), bids(k), k.competition?.toLowerCase() ?? NONE, page(k.page)]))
     );
+  let numbered = 0;
+  const no = (name: string) => `${++numbered} · ${name}`;
   const keywords = section(
-    '1 · Keywords',
+    no('Keywords'),
     'The keywords to use, and the searches in them',
     `${near.length ? `<h3>Near misses: already ranking ${NEAR_MISS.from}–${NEAR_MISS.to}</h3><p class="muted">The fastest gains: the page is in the results already; a better answer moves it up.</p>${kwTable(near, true)}` : ''}
 ${gaps.length ? `<h3>Gaps: searched, not ranking</h3><p class="muted">Measured demand the site does not rank for. “New page” means no page read covers it.</p>${kwTable(gaps, false)}` : ''}
@@ -82,6 +84,31 @@ ${protect.length ? `<h3>Protect: ranking 1–3</h3>${kwTable(protect, true)}` : 
 ${ideas.length ? `<h3>Ideas, not measured</h3><p class="muted">Suggestions without a measured volume; check them in Keyword Planner before building pages.</p>${table(['Keyword', 'Page to use'], ideas.map((k) => [k.keyword, page(k.page)]))}` : ''}
 ${!v.keywords.length ? '<p>No keyword could be read for this run: neither Keyword Planner nor Ahrefs answered with the site’s searches.</p>' : ''}`
   );
+
+  const tt = f.social?.tiktok ?? null;
+  const tiktok = tt && tt.accounts.length
+    ? section(
+        no('TikTok'),
+        'TikTok: the accounts and what they send',
+        `<p class="muted">Public profiles and each account’s latest videos. “Linked” means the website, the Instagram bio or the account’s own bio link ties it to the business; the others were found by name and are for the owner to confirm.</p>${table(
+          ['Account', 'Tie to the business', 'Followers', 'Likes', 'Videos', 'Last 30 days', 'Median plays', 'Ads / Shop links', 'Bio link'],
+          tt.accounts.map((a) => [
+            `@${a.handle}${a.nickname ? ` (${a.nickname})` : ''}`,
+            a.confirmed ? `Linked (${a.links_to_site ? 'bio link to the site' : a.matched_by})` : 'To confirm (name only)',
+            num(a.followers),
+            num(a.likes),
+            num(a.videos),
+            a.recent ? num(a.recent.posts_last_30_days) : NONE,
+            a.recent ? num(a.recent.median_plays) : NONE,
+            a.recent ? `${a.recent.ads} / ${a.recent.shop_links} of ${a.recent.read}` : NONE,
+            a.bio_link ? `${a.bio_link}${a.bio_link_tagged ? '' : ' (no UTM tags)'}` : 'None',
+          ])
+        )}${tt.accounts
+          .filter((a) => a.recent?.top.length)
+          .map((a) => `<h3>@${esc(a.handle)}: the most played of its latest videos</h3>${table(['Posted', 'Plays', 'Likes', 'Comments', 'Shares', 'Caption'], a.recent!.top.map((x) => [x.posted_at?.slice(0, 10) ?? NONE, num(x.plays), num(x.likes), num(x.comments), num(x.shares), `${x.caption}${x.shop ? ' [Shop]' : ''}${x.is_ad ? ' [Ad]' : ''}`]))}`)
+          .join('')}${tt.note ? `<p class="muted">${esc(tt.note)}</p>` : ''}<p class="muted">The website’s TikTok Pixel: ${f.site?.business?.tracking.tiktok_pixel ? 'present' : 'not found'}. Plays are TikTok’s public counts; they are not visits to the website.</p>`
+      )
+    : '';
 
   const copyPages = [...new Set(v.copy.map((c) => c.page))];
   const copyBody = copyPages.length
@@ -98,7 +125,7 @@ ${!v.keywords.length ? '<p>No keyword could be read for this run: neither Keywor
         .join('')
     : '<p>No copy was written for this run.</p>';
   const copy = section(
-    '2 · Copy',
+    no('Copy'),
     'Copy to add, ready to paste',
     `<p class="muted">${esc(
       v.copy_source === 'model'
@@ -110,7 +137,7 @@ ${!v.keywords.length ? '<p>No keyword could be read for this run: neither Keywor
   );
 
   const fixes = section(
-    '3 · Fixes',
+    no('Fixes'),
     'What improves visibility at once',
     v.quick_wins.length
       ? `<div class="fixes">${table(['Week', 'Area', 'Fix', 'Why', 'Do'], v.quick_wins.map((w) => [String(w.week), AREA_WORDS[w.area] ?? w.area, `${w.title}${w.client ? '' : ' (staff only)'}`, w.evidence, doText(w.action)]))}</div>`
@@ -118,7 +145,7 @@ ${!v.keywords.length ? '<p>No keyword could be read for this run: neither Keywor
   );
 
   const month = section(
-    '4 · First month',
+    no('First month'),
     'The first month, week by week',
     `<p class="muted">Items marked “client” lead the Weeks 1–2 and Weeks 3–6 lists in the client’s 90-day plan; the rest are staff work or notes.</p>${v.month
       .map((m) => `<h3>Week ${m.week}</h3>${m.items.length ? `<ul>${m.items.map((it) => `<li>${esc(it)}${v.quick_wins.some((w) => !w.client && it.startsWith(w.title)) ? '' : ` ${pill('client', 'slate')}`}</li>`).join('')}</ul>` : '<p class="muted">Nothing new this week: finish the weeks before it.</p>'}`)
@@ -126,7 +153,7 @@ ${!v.keywords.length ? '<p>No keyword could be read for this run: neither Keywor
   );
 
   const sources = section(
-    '5 · Sources',
+    no('Sources'),
     'Sources and limits',
     `<h3>Data used</h3>${listHtml(v.sources, false)}${v.note ? `<p class="muted">${esc(v.note)}</p>` : ''}<p class="muted">Searches are monthly averages and rankings are estimates for the dates above; they move week to week. Nothing here is a promise of a ranking or of sales.</p>`
   );
@@ -143,7 +170,7 @@ td{font-size:8.6pt}
 .copy th:nth-child(2),.copy td:nth-child(2){width:28%}
 .copy th:nth-child(4),.copy td:nth-child(4){width:9%;white-space:nowrap}
 </style></head><body>
-${cover}${keywords}${copy}${fixes}${month}${sources}
+${cover}${keywords}${tiktok}${copy}${fixes}${month}${sources}
 </body></html>`,
       who
     )
