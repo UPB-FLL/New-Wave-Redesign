@@ -2,6 +2,66 @@
 
 ## Recent Changes
 
+### Groundswell: no blank pages; a national keyword read; the internal visibility brief (2026-11-17)
+
+From Baraguz's audit (run `dfce27c3…`, an online slim-tea brand with no
+city). Owner's ask: "resolve the blank page issues", then a second report
+that is not customer facing, with the keywords and their searches, the copy
+to add and the items that improve visibility at once, suggested in the
+first month of the plan. Owner's choices: build it into the engine and
+produce Baraguz's now; the partner sees the brief as well as staff.
+
+- **Blank pages** (`paginate` in `render.ts`, run in the page before
+  printing): a Letter section (`section.page`) taller than 11 in used to run
+  onto an unframed sheet (no band, its footer bar half way down, white
+  below; Baraguz's sheet 16 held one bullet) and "n / N" counted sections
+  (20) on a 24-sheet file. Now an overflowing section is split into framed
+  sheets (kicker "… · continued", the title again), between blocks, table
+  rows (the header row repeated) or list items, never leaving a heading
+  last; then every footer is renumbered from the sheets. Reproduced from the
+  run's stored outputs (24 sheets locally, as stored); after: 25 framed
+  sheets, "1 / 25"… Slides (`.slide`) are untouched.
+- **National keyword read** (`nationalMarket` in `currents/search.ts`): a
+  business with no city whose own profile says it sells online or
+  nationwide (`competitors.profile.service_area`) is read for the United
+  States (`UNITED_STATES_GEO`); every other business keeps the city rule.
+  Baraguz's read had failed ("A valid US city … is required"); the same call
+  for the US returns "slim tea" 6,600, "weight loss tea" 8,100 a month.
+- **Step `visibility`** (`visibility.ts`, after `plans`, optional): target
+  keywords from the data (near misses ranking 4–20, gaps with measured
+  searches, rankings to protect, unmeasured ideas; brand searches left out;
+  head terms over `HEAD_TERM` after the reachable ones; a page only when it
+  holds the keyword's words), quick wins each with evidence and a week
+  (placeholder social links, the Google listing's gaps, Search Console, the
+  Meta pixel, locale pages in US results, missing descriptions and titles,
+  "SOLD OUT" in titles, alt text, near misses, thin pages, a page for the
+  largest gap, the AI files and entity), staff-only notes (an audience that
+  looks bought; weight-loss searches needing claim-safe copy) and copy to
+  paste (one model call; `checkCopy` holds it to search-result lengths, the
+  data's numbers, `unsupported_claims` and `HEALTH_CLAIMS`; a keyword with a
+  claim or a head term is never written to; a template title without the
+  model).
+- **The first month in the client's plan** (`planWithFirstMonth`, applied in
+  `reportData`, so the audit, slides and summary agree): weeks 1–2 lead
+  "Weeks 1–2", weeks 3–4 lead "Weeks 3–6", capped per week (`PER_WEEK`),
+  client items only, the write-up's own items after them.
+- **Brief** `deliver_internal` (after the summary; `reportsInternal.ts`,
+  report kind `internal`, "Internal visibility brief"): every page marked
+  internal; the keywords with searches and bids, the copy, the fixes, the
+  first month, the sources. Required like every delivery step, but a failure
+  on the last attempt is a `note` (as the GEO brief), so the client's reports
+  are never held back. The portal lists it to the partner and staff.
+- **Migration** `20261107120000`: the report-kind constraint gains
+  `internal`. Additive; not applied yet (until it is, the brief's step notes
+  the refusal and the audit delivers without it).
+- **Tests**: `groundswell-visibility.test.ts`, the paginate cases in
+  `groundswell-render.test.ts`, the national market in
+  `groundswell-public-research.test.ts`, and the step and kind pins.
+- **Not verified live**: no run has used the national read, the step or the
+  brief yet; Baraguz's brief and reprinted audit were built locally from the
+  stored outputs, with the US read above and homepage copy written in the
+  session and held to `checkCopy`.
+
 ### Intercom Messenger installed and removed (2026-11-17)
 
 The Intercom Messenger (App ID `eep3rzlx`, anonymous visitors, New Wave IT

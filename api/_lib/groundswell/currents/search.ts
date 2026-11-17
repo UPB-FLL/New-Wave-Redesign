@@ -175,6 +175,21 @@ export function keywordSeeds(ctx: StepContext): string[] {
   return out;
 }
 
+/** Google Ads' geo target for the United States. */
+export const UNITED_STATES_GEO = 'geoTargetConstants/2840';
+
+/**
+ * The Keyword Planner market for a business with no city that sells online or
+ * nationwide by its own words (the competitors step's profile): the United
+ * States. Null for every other business, which keeps the city rule.
+ */
+export function nationalMarket(ctx: Pick<StepContext, 'audit' | 'outputs'>): { constants: string[]; label: string; error: null } | null {
+  if (ctx.audit.city?.trim()) return null;
+  const area = (ctx.outputs.competitors as { profile?: { service_area?: string | null } | null } | undefined)?.profile?.service_area;
+  if (area !== 'online' && area !== 'national') return null;
+  return { constants: [UNITED_STATES_GEO], label: `United States (the business sells ${area === 'online' ? 'online' : 'nationwide'})`, error: null };
+}
+
 export async function runKeywords(ctx: StepContext) {
   const remaining = (cap = 90_000) => Math.max(0, Math.min(cap, ctx.deadline - Date.now() - 1_500));
   const budget = () => {
@@ -191,10 +206,15 @@ export async function runKeywords(ctx: StepContext) {
   if (!url && seeds.length === 0) return { skipped: 'No website or verified category to seed Keyword Planner with.', source: 'Keyword Planner', fetched_at: new Date().toISOString(), seeds, ideas: [] as KeywordIdea[], demand_status: 'unavailable' as const, error: 'No website or category was available.' };
 
   const configured = (process.env.GROUNDSWELL_GEO_TARGETS || '').split(',').map(g => g.trim()).filter(g => /^geoTargetConstants\/\d+$/.test(g)).slice(0, 10);
+  const national = nationalMarket(ctx);
   // A city in keyword seed text does not select the Planner market. Resolve
-  // the actual city, and never substitute an unrelated global default.
+  // the actual city, and never substitute an unrelated global default: only a
+  // business that sells online or nationwide, with no city, is read for the
+  // United States, the market it sells to.
   const geography = !ctx.audit.city?.trim() && configured.length
     ? { constants: configured, label: `Configured targets: ${configured.join(', ')}`, error: null }
+    : national
+      ? national
     : remaining(10_000) > 0
       // With no county from the listing (Places over its daily quota, or no address), the geocoder names it.
       ? await resolveKeywordGeography(ctx.audit.city, remaining(10_000), county, { geocodeCounty: true })

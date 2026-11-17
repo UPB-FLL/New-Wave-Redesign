@@ -7,7 +7,7 @@ vi.mock('../../../api/_lib/groundswell/discoveryWebsite', () => ({ inspectBusine
 vi.mock('../../../api/_lib/groundswell/keywordsGeography', () => ({ resolveKeywordGeography: mocks.geography }));
 
 import { categoryFromSite, parseGoogleSerp, readGoogleSerp, specificCategory } from '../../../api/_lib/groundswell/currents/serp';
-import { keywordSeeds, runKeywords, runSearch, SEED_LIMIT } from '../../../api/_lib/groundswell/currents/search';
+import { keywordSeeds, nationalMarket, runKeywords, runSearch, SEED_LIMIT, UNITED_STATES_GEO } from '../../../api/_lib/groundswell/currents/search';
 import { LINK_PAGE_ADS_NOTE } from '../../../api/_lib/groundswell/currents/ads';
 import { findCompetitors, runCompetitors } from '../../../api/_lib/groundswell/currents/competitors';
 import { matchBusiness, runMaps } from '../../../api/_lib/groundswell/currents/maps';
@@ -28,6 +28,27 @@ beforeEach(() => {
   mocks.geography.mockReset().mockResolvedValue({ constants: ['geoTargetConstants/12345'], label: 'Jacksonville, Florida, United States', error: null });
 });
 afterEach(() => { vi.unstubAllEnvs(); vi.restoreAllMocks(); });
+
+describe('the national market for an online business (Baraguz, 2026-11-17)', () => {
+  // An online tea brand with no city read nothing: "A valid US city … is required".
+  const online = (city: string | null, area: string | null) => ({ ...context({ competitors: { profile: { service_area: area } } }), audit: { ...context().audit, city } });
+
+  it('reads the United States for a business that sells online or nationwide and has no city', async () => {
+    expect(nationalMarket(online(null, 'online'))).toEqual({ constants: [UNITED_STATES_GEO], label: 'United States (the business sells online)', error: null });
+    expect(nationalMarket(online('  ', 'national'))?.label).toBe('United States (the business sells nationwide)');
+    mocks.executeTool.mockResolvedValue({ results: [{ text: 'detox tea', keyword_idea_metrics: { avg_monthly_searches: 12100, competition: 'HIGH', low_top_of_page_bid_micros: 500000, high_top_of_page_bid_micros: 2000000 } }] });
+    const out = await runKeywords(online(null, 'online'));
+    expect(mocks.geography).not.toHaveBeenCalled();
+    expect(mocks.executeTool.mock.calls[0][1].geo_target_constants).toEqual([UNITED_STATES_GEO]);
+    expect(out.source).toContain('United States (the business sells online)');
+  });
+
+  it('keeps the city rule for a local business, and for any business with a city', () => {
+    expect(nationalMarket(online(null, 'local'))).toBeNull();
+    expect(nationalMarket(online(null, null))).toBeNull();
+    expect(nationalMarket(online('Aventura, FL', 'online'))).toBeNull();
+  });
+});
 
 describe('public Google research fallback', () => {
   it('starts no geography, Planner or fallback reads after the worker deadline expires', async () => {

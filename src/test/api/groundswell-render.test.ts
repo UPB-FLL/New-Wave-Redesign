@@ -68,3 +68,78 @@ describe.skipIf(!hasChromium)('fitBoxes (headless Chromium)', () => {
     expect(r.left).toEqual(['A', 'a1', 'a2']);
   }, 60_000);
 });
+
+/**
+ * paginate (render.ts) splits a Letter section taller than one sheet into
+ * framed sheets. Seen on Baraguz's full audit (2026-11-17): four sections
+ * ran over, so four sheets had no band, a footer bar half way down and white
+ * below it (one held a single bullet), and the footers read "n / 20" on a
+ * 24-sheet file.
+ */
+describe.skipIf(!hasChromium)('paginate (headless Chromium)', () => {
+  async function printFramed(sections: { title: string; body: string }[]) {
+    process.env.CHROMIUM_PATH = chromium;
+    const { withBrowser } = await import('../../../api/_lib/groundswell/browser');
+    const { renderPdf } = await import('../../../api/_lib/groundswell/render');
+    const { framePage, houseCss, numberPages, NEW_WAVE_PREPARER } = await import('../../../api/_lib/groundswell/reportFrame');
+    const { brandFrom } = await import('../../../api/_lib/groundswell/brand');
+    const brand = brandFrom(null);
+    const frame = { who: NEW_WAVE_PREPARER, client: { name: 'Sample Teas', brand }, report: 'Marketing audit', site: 'example.com', date: 'November 17, 2026' };
+    const html = numberPages(`<!doctype html><html><head><style>${houseCss(brand)}</style></head><body>${sections.map((s, i) => framePage(frame, `${i + 1} · Part`, s.title, s.body)).join('')}</body></html>`);
+    return withBrowser(async (browser) => {
+      const pdf = await renderPdf(browser, html);
+      // The same document as printed, to read the sheets back.
+      const p = await browser.newPage();
+      await p.setContent(html, { waitUntil: 'load' });
+      await p.emulateMediaType('print');
+      const { paginate } = await import('../../../api/_lib/groundswell/render');
+      const added = await p.evaluate(paginate);
+      const sheets = await p.evaluate(() =>
+        [...document.querySelectorAll<HTMLElement>('section.page')].map((s) => ({
+          height: s.getBoundingClientRect().height,
+          head: !!s.querySelector(':scope > .page-head'),
+          foot: s.querySelector(':scope > .page-foot .pn')?.textContent ?? null,
+          kicker: s.querySelector('.kicker')?.textContent ?? '',
+          rows: s.querySelectorAll('tbody tr').length,
+          heads: s.querySelectorAll('thead').length,
+          lastIsHeading: /^H[1-6]$/.test(s.querySelector('.body')?.lastElementChild?.tagName ?? ''),
+        }))
+      );
+      await p.close();
+      return { pdfPages: pdf.pages, added, sheets };
+    });
+  }
+
+  const rows = (n: number) => `<table><thead><tr><th>Page</th><th>Words</th></tr></thead><tbody>${Array.from({ length: n }, (_, i) => `<tr><td>/products/item-${i}</td><td>${i}</td></tr>`).join('')}</tbody></table>`;
+  const items = (n: number) => `<ul>${Array.from({ length: n }, (_, i) => `<li>Item ${i}</li>`).join('')}</ul>`;
+
+  it('splits an overflowing section into framed sheets: the band, the footer bar and "n / N" on every one', async () => {
+    const r = await printFramed([
+      { title: 'Short', body: '<p>Fits on one sheet.</p>' },
+      { title: 'Website', body: `<p>Intro.</p>${rows(70)}<h3>Fixes</h3>${items(30)}` },
+      { title: 'Sources', body: items(5) },
+    ]);
+    expect(r.added).toBeGreaterThan(0);
+    expect(r.pdfPages).toBe(r.sheets.length);
+    const n = r.sheets.length;
+    r.sheets.forEach((s, i) => {
+      expect(s.height).toBeLessThanOrEqual(1056.5);
+      expect(s.head).toBe(true);
+      expect(s.foot).toBe(`${i + 1} / ${n}`);
+      expect(s.lastIsHeading).toBe(false);
+    });
+    // The table is split between rows, each part under its own header row; no row is lost.
+    const tabled = r.sheets.filter((s) => s.rows > 0);
+    expect(tabled.length).toBeGreaterThan(1);
+    expect(tabled.every((s) => s.heads === 1)).toBe(true);
+    expect(tabled.reduce((a, s) => a + s.rows, 0)).toBe(70);
+    expect(r.sheets.filter((s) => s.kicker.endsWith('· continued')).length).toBe(r.added);
+  }, 60_000);
+
+  it('leaves a document whose sections fit as it was', async () => {
+    const r = await printFramed([{ title: 'One', body: items(5) }, { title: 'Two', body: rows(5) }]);
+    expect(r.added).toBe(0);
+    expect(r.pdfPages).toBe(2);
+    expect(r.sheets.map((s) => s.foot)).toEqual(['1 / 2', '2 / 2']);
+  }, 60_000);
+});
