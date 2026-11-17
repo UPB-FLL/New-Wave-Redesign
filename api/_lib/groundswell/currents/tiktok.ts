@@ -169,6 +169,24 @@ export interface TikTokSeed {
   siteLinks: string[];
   instagramBioLinks: string[];
   instagramHandle: string | null;
+  /** Handles the owner says are not the business's (`rejectedTikTok`): never read, never listed. */
+  rejected?: string[];
+}
+
+/**
+ * The TikTok handles the business's notes say are not its own (owner's call,
+ * 2026-11-17, for Baraguz's @karen.finds.tiktok): every @handle on a line (or
+ * a part between semicolons) that names TikTok and says "not", e.g.
+ * "Not theirs on TikTok: @karen.finds.tiktok".
+ */
+export function rejectedTikTok(notes: string | null | undefined): string[] {
+  const out = new Set<string>();
+  for (const part of (notes ?? '').split(/[\n;]+/)) {
+    if (!/tik\s*tok/i.test(part) || !/\bnot\b/i.test(part)) continue;
+    // A handle may hold dots but never ends with one ("@x.y." at a sentence's end is "x.y").
+    for (const m of part.matchAll(/@([a-z0-9._]{2,24})/gi)) out.add(m[1].toLowerCase().replace(/\.+$/, ''));
+  }
+  return [...out];
 }
 
 type Exec = (slug: string, args: Record<string, unknown>, timeoutMs: number) => Promise<unknown>;
@@ -180,9 +198,16 @@ export async function readTikTok(seed: TikTokSeed, budget: (cap: number) => numb
   // Whole parts of the handle or name ("the_baraguz_family" fits Baraguz; "barbaraguzmanf" does not).
   const parts = (s: string | null) => (s ?? '').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
   const fits = (a: { handle: string; nickname: string | null }) => words.some((w) => [...parts(a.handle), ...parts(a.nickname)].some((p) => p === w || p.startsWith(w)));
+  const rejected = new Set((seed.rejected ?? []).map((h) => h.toLowerCase().replace(/^@/, '')));
+  const left: string[] = [];
+  const allowed = (h: string) => {
+    if (!rejected.has(h)) return true;
+    if (!left.includes(h)) left.push(h);
+    return false;
+  };
   const found = new Map<string, { matched_by: TikTokAccount['matched_by']; confirmed: boolean }>();
-  for (const h of tiktokHandles(seed.siteLinks)) found.set(h, { matched_by: 'website', confirmed: true });
-  for (const h of tiktokHandles(seed.instagramBioLinks)) if (!found.has(h)) found.set(h, { matched_by: 'instagram bio', confirmed: true });
+  for (const h of tiktokHandles(seed.siteLinks)) if (allowed(h)) found.set(h, { matched_by: 'website', confirmed: true });
+  for (const h of tiktokHandles(seed.instagramBioLinks)) if (!found.has(h) && allowed(h)) found.set(h, { matched_by: 'instagram bio', confirmed: true });
   const notes: string[] = [];
   const profiles = new Map<string, unknown>();
   const profile = async (handle: string) => {
@@ -190,7 +215,7 @@ export async function readTikTok(seed: TikTokSeed, budget: (cap: number) => numb
     return profiles.get(handle);
   };
 
-  if (seed.instagramHandle && !found.has(seed.instagramHandle.toLowerCase())) {
+  if (seed.instagramHandle && !found.has(seed.instagramHandle.toLowerCase()) && allowed(seed.instagramHandle.toLowerCase())) {
     const h = seed.instagramHandle.toLowerCase();
     try {
       const p = tiktokProfile(h, await profile(h), host);
@@ -208,7 +233,7 @@ export async function readTikTok(seed: TikTokSeed, budget: (cap: number) => numb
       const items = (findKey<unknown[]>(answer, 'items') ?? []) as Record<string, unknown>[];
       const candidates = items
         .map((r) => ({ handle: (str(r.unique_id) ?? '').toLowerCase(), nickname: str(r.nickname), followers: numeric(r.follower_count) ?? 0 }))
-        .filter((c) => c.handle && !found.has(c.handle) && fits(c))
+        .filter((c) => c.handle && !found.has(c.handle) && fits(c) && allowed(c.handle))
         .sort((a, b) => b.followers - a.followers)
         .slice(0, SEARCH_CANDIDATES);
       for (const c of candidates) {
@@ -225,6 +250,7 @@ export async function readTikTok(seed: TikTokSeed, budget: (cap: number) => numb
       notes.push(`The TikTok search did not answer: ${err instanceof Error ? err.message.slice(0, 120) : 'unknown error'}`);
     }
   }
+  if (left.length) notes.push(`Left out as not the business’s (its notes say so): ${left.map((h) => `@${h}`).join(', ')}.`);
   if (!found.size) return { source: SOURCE, fetched_at: new Date().toISOString(), accounts: [], searched, note: notes.join(' ') || 'No TikTok account could be tied to the business: the website and Instagram bio link none, and no account found by name links to its website.' };
 
   const accounts = await Promise.all(

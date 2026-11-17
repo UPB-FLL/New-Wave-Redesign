@@ -2,6 +2,23 @@
 
 ## Recent Changes
 
+### Groundswell: a TikTok account the owner rejects is never read again (2026-11-17)
+
+Baraguz's brief listed @karen.finds.tiktok, found by a TikTok search on the
+name alone and marked unconfirmed; the owner said it is not theirs. The
+search finds it again on every run, so the rejection is recorded.
+
+- **`rejectedTikTok(notes)`** (`currents/tiktok.ts`): the customer's notes
+  name the rejected handles, on a line (or part between semicolons) that
+  names TikTok and says "not", e.g. "Not theirs on TikTok: @karen.finds.tiktok".
+  The social step passes them as `TikTokSeed.rejected`; `readTikTok` never
+  reads or lists one, whether it came from the website, the Instagram bio,
+  the Instagram handle or the search, and its note names it ("Left out as
+  not the business's …"), which only the internal brief prints.
+- **Baraguz**: `groundswell_customers.notes` (`b76a945e…`) holds the line,
+  written on 2026-11-17 (it was null), so "Run again" carries it.
+- **Tests**: the two rejection cases in `groundswell-tiktok.test.ts`.
+
 ### Groundswell: what the data printed nothing for is left out and marked for review; wrapped tables paginate (2026-11-17)
 
 Baraguz's deck (run `6be4c87e…`) printed slide 10, "What pays back first",
