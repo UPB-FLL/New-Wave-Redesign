@@ -425,6 +425,41 @@ describe('saved Workbench provider data', () => {
     } finally { rmSync(dir, { recursive: true, force: true }); }
   });
 
+  it('keeps a TikTok video page whole: ten videos with their statistics, the author and renditions left out (Baraguz, 2026-11-17)', () => {
+    // As ScrapeCreators answered on 2026-11-17: each video repeats its author and carries every rendition,
+    // so the page was cut to 3 videos without their statistics.
+    const dir = mkdtempSync(join(tmpdir(), 'groundswell-pruner-'));
+    try {
+      const path = join(dir, 'tiktok.json');
+      const rendition = (i: number) => ({ data_size: 6653940, height: 1280, uri: `v12044gd0000${i}`, url_list: Array.from({ length: 3 }, (_, j) => `https://v16m.tiktokcdn-us.com/${'x'.repeat(300)}/${i}/${j}`), url_prefix: null, width: 720 });
+      const author = { avatar_thumb: rendition(0), aweme_count: 563, follower_count: 44932, following_count: 79, nickname: 'Leafline', sec_uid: 'MS4w'.repeat(20), signature: 'Teas • Results\nShop below ↓', total_favorited: 148082, uid: '6801925411246818309', unique_id: 'leafline_tea' };
+      const items = Array.from({ length: 10 }, (_, i) => ({
+        author,
+        aweme_id: `77091604343722345${i}`,
+        create_time: 1794928829 - i * 86_400,
+        create_time_utc: new Date((1794928829 - i * 86_400) * 1000).toISOString(),
+        desc: `Video ${i} ${'words '.repeat(30)}`,
+        desc_language: 'en',
+        is_ad: i < 3,
+        is_eligible_for_commission: false,
+        is_paid_partnership: false,
+        region: 'US',
+        shop_product_url: i < 3 ? `https://www.tiktok.com/shop/pdp/17294938231849986${i}` : null,
+        statistics: { collect_count: 0, comment_count: i, digg_count: 10 * i, download_count: 0, play_count: 1000 + i, repost_count: 0, share_count: 1 },
+        url: `https://www.tiktok.com/@leafline_tea/video/77091604343722345${i}`,
+        video: { cover: rendition(i), download_addr: rendition(i), download_no_watermark_addr: rendition(i), duration: 38334, dynamic_cover: rendition(i), has_watermark: true, height: 1280, origin_cover: rendition(i), play_addr: rendition(i), ratio: '720p', width: 720 },
+      }));
+      writeFileSync(path, JSON.stringify({ results: [{ response: { successful: true, data: { credits_charged: 1, credits_remaining: 24564, has_more: true, items, next_cursor: 'c.v1.abc', success: true } } }] }));
+      const stdout = execFileSync('python3', ['-c', prunerCode(path)], { encoding: 'utf8', maxBuffer: 50_000 });
+      expect(Buffer.byteLength(stdout)).toBeLessThanOrEqual(20_000);
+      const pruned = decodeWorkbenchJson(stdout) as { items: Record<string, unknown>[] };
+      expect(pruned.items).toHaveLength(10);
+      expect(pruned.items[9]).toMatchObject({ is_ad: false, shop_product_url: null, statistics: { play_count: 1009, digg_count: 90, comment_count: 9, share_count: 1 } });
+      expect(pruned.items[0]).toMatchObject({ is_ad: true, create_time_utc: expect.any(String), url: expect.stringContaining('/video/') });
+      expect(pruned.items[0].author).toBeUndefined();
+    } finally { rmSync(dir, { recursive: true, force: true }); }
+  });
+
   it.each([false, true])('executes the generated pruner on a %s wrapped envelope, bounds stdout and retains nested user figures', (wrapped) => {
     const dir = mkdtempSync(join(tmpdir(), 'groundswell-pruner-'));
     try {
