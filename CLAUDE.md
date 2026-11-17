@@ -2,6 +2,43 @@
 
 ## Recent Changes
 
+### Intercom Messenger on the New Wave IT pages (2026-11-17)
+
+Owner's ask: install the Intercom messenger (App ID `eep3rzlx`). Owner's
+choices: anonymous visitors only (no `user_id`, name, email or `created_at`
+is sent, so no identity verification or server route); it loads for every
+browser, Global Privacy Control and Do Not Track included; New Wave IT pages
+only.
+
+- **Component** `src/components/IntercomMessenger.tsx` (mounted in `App.tsx`
+  inside the router), on `@intercom/messenger-js-sdk`: `Intercom({ app_id })`
+  on the first allowed page, `update` on each later navigation, `shutdown`
+  on the division, `/groundswell*` and `/admin*` (`intercomAllowedOn`, with
+  the App ID, in `src/lib/intercom.ts`), and
+  `boot({ app_id, api_base })` on return (the SDK's `Intercom()` sends only
+  `update` once its loader is on the page, which does not revive a shut-down
+  Messenger).
+- **CSP** (`vercel.json`): Intercom's US and region-free hosts from its CSP
+  article (read 2026-11-17) in script-, connect-, frame-, font-, media-src and
+  form-action; img-src already allowed `https:`. An EU or AU workspace needs
+  that region's hosts too. Intercom's loader skips any user agent matching
+  `headlesschrome` (and other bot names), so a browser test must set an ordinary
+  Chrome user agent to see the Messenger.
+- **Policies** (effective November 17, 2026): the Cookie Policy lists
+  `intercom-id-eep3rzlx` and `intercom-device-id-eep3rzlx` (270 days each),
+  as a Chromium run of the build under the CSP set them (no
+  `intercom-session` for an anonymous visitor); marked as from that test until
+  a live re-scan (`COOKIE_INVENTORY_REVIEWED` is still the October scan) and says it loads
+  regardless of GPC/DNT; the Privacy Policy names Intercom as a provider. "We
+  do not use a chat widget" is gone (`LegalPages.test.tsx`).
+- **Tests**: `src/components/IntercomMessenger.test.tsx` (boot arguments, the
+  excluded paths, update/shutdown/boot, the CSP hosts).
+- **Checked in Chromium** (the build served with `vercel.json`'s CSP, 2026-11-17):
+  the launcher shows on `/` and `/pricing`, not on `/social-engineering`, and
+  again on `/contact`; no CSP violation. The Vercel preview is behind Vercel's
+  sign-in, so the live headers were not loaded. Re-scan the live site once
+  deployed and update the Cookie Policy row and `COOKIE_INVENTORY_REVIEWED`.
+
 ### South Florida SEO and AI search: local pages, raw-HTML schema, a static price list (2026-11-12)
 
 Owner's ask: "use composio to update seo to have us ranking higher in south

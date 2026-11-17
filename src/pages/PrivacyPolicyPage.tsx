@@ -13,7 +13,7 @@ export default function PrivacyPolicyPage() {
   usePageMeta(IT_PAGE_META['/privacy-policy']);
 
   return (
-    <LegalPageLayout title="Privacy Policy" effectiveDate="October 15, 2026" breadcrumbs={IT_PAGE_META['/privacy-policy'].breadcrumbs}>
+    <LegalPageLayout title="Privacy Policy" effectiveDate="November 17, 2026" breadcrumbs={IT_PAGE_META['/privacy-policy'].breadcrumbs}>
       <section className={SECTION_CLASS} aria-labelledby="scope">
         <h2 id="scope" className={HEADING_CLASS}>Scope</h2>
         <p>
@@ -87,7 +87,9 @@ export default function PrivacyPolicyPage() {
         <ul className={LIST_CLASS}>
           <li>
             service providers that support our operations, including Supabase, Resend, SuperOps,
-            Twilio, and Vercel, subject to their services, terms, and data practices;
+            Twilio, Vercel, and Intercom (the chat messenger on the New Wave IT pages, which receives
+            the messages you send in it and your device and page details), subject to their services,
+            terms, and data practices;
           </li>
           <li>
             providers whose content your browser loads directly when you visit the website, which
@@ -144,7 +146,9 @@ export default function PrivacyPolicyPage() {
           no cookies of its own and uses browser storage only to cache page content and hold a support
           session you start; Vercel Analytics measures page views without cookies or a persistent
           identifier; and the homepage video is loaded from Pexels, whose content-delivery provider
-          sets two bot-protection cookies. We do not use a chat widget.{' '}
+          sets two bot-protection cookies. The Intercom chat messenger on the New Wave IT pages sets its
+          own cookies so a conversation continues between pages and visits, and loads whether or not
+          your browser sends a Global Privacy Control or Do Not Track signal.{' '}
           {ANALYTICS_ACTIVE
             ? `Google Analytics${ADS_ACTIVE ? ' and Google Ads conversion tracking' : ''} set first-party cookies, except in browsers that send a Global Privacy Control or Do Not Track signal.`
             : 'Google Analytics is planned but remains disabled.'}

@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.3.0",
+    "@intercom/messenger-js-sdk": "^0.0.20",
     "@sparticuz/chromium": "153.0.0",
     "@supabase/supabase-js": "^2.57.4",
     "@vercel/analytics": "^2.0.1",
