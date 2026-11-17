@@ -52,8 +52,8 @@ produce Baraguz's now; the partner sees the brief as well as staff.
   on the last attempt is a `note` (as the GEO brief), so the client's reports
   are never held back. The portal lists it to the partner and staff.
 - **Migration** `20261107120000`: the report-kind constraint gains
-  `internal`. Additive; not applied yet (until it is, the brief's step notes
-  the refusal and the audit delivers without it).
+  `internal`. Additive; applied to production on 2026-11-17
+  (`groundswell_internal_report_kind`) before the merge.
 - **Tests**: `groundswell-visibility.test.ts`, the paginate cases in
   `groundswell-render.test.ts`, the national market in
   `groundswell-public-research.test.ts`, and the step and kind pins.
