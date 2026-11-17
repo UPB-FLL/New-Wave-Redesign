@@ -50,6 +50,15 @@ competitor-plan run with no files beside the one with them).
   the name must be a whole part of the handle or nickname (or start one).
   The run itself was held by the write-up gate (one substantive finding:
   the guard removed "no active ads" claims, leaving two findings empty).
+  Owner's choice: top up from the fixes. In the verify check, after the
+  claim guard and before the gate, `topUpFindings` (`visibility.ts`) drops
+  a finding the guard emptied (`isHollowFinding`) and adds findings from
+  the brief's client fixes that rest on a source the run checked
+  (`FINDING_FROM_FIX`: each with its source, area, implication and measure;
+  the TikTok bio link and tags and Search Console stay in the plan only),
+  until the gate counts three substantive findings and there are four in
+  all (`TOP_UP`, at most six). The gate's test is `isSubstantiveFinding`
+  (`model.ts`), shared by both.
 - **Tests**: `groundswell-tiktok.test.ts`, the phase case in
   `groundswell-phases.test.ts`, the step's TikTok output in
   `groundswell-social.test.ts` (its two Instagram counts now leave TikTok

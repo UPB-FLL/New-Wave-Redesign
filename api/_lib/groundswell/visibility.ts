@@ -1,6 +1,6 @@
 import { GROUNDSWELL_CONFIG } from '../../../packages/groundswell/groundswell.config.js';
 import { forbiddenIn } from '../../../packages/groundswell/src/plans.js';
-import { allowedNumbers, buildFacts, unsupportedNumbers, type Facts } from './model.js';
+import { allowedNumbers, buildFacts, isSubstantiveFinding, unsupportedNumbers, type Facts, type ReportFinding } from './model.js';
 import { chatJson, GROUNDSWELL_MODEL } from './openai.js';
 import type { StepContext } from './types.js';
 import { isSitePagesOutput, type SitePage } from './currents/sitePages.js';
@@ -477,4 +477,82 @@ export async function runVisibility(ctx: StepContext): Promise<VisibilityOutput>
   } catch (err) {
     return { ...base, note: `The writer did not answer (${err instanceof Error ? err.message.slice(0, 120) : 'unknown error'}), so the titles come from a template.` };
   }
+}
+
+// ---------------------------------------------------------------------------
+// Findings topped up from the fixes
+
+/**
+ * The fixes a finding may be written from, with the source the gate checks
+ * for (a source the run read: `evidenceCoverage`), the area and the words a
+ * finding needs beyond the fix's own evidence and action. A fix not listed
+ * (Search Console, the TikTok bio link and tags: no checked source of the
+ * gate's says so) stays in the plan only.
+ */
+export const FINDING_FROM_FIX: Record<string, { source: ReportFinding['source']; area: ReportFinding['area']; implication: string; measure: string; dependency: string }> = {
+  'tiktok:pixel': { source: 'ad_tags', area: 'ads', implication: 'Without the TikTok Pixel, the visits and sales TikTok sends cannot be counted, retargeted or used to optimise TikTok ads.', measure: 'TikTok Events Manager shows ViewContent, AddToCart and Purchase events arriving from the website.', dependency: 'Access to the website’s admin and the TikTok Business account.' },
+  'pixel:meta': { source: 'ad_tags', area: 'ads', implication: 'Meta cannot count or retarget the visits Instagram and Facebook send without its pixel on the site.', measure: 'Meta Events Manager shows PageView and Purchase events arriving from the website.', dependency: 'Access to the website’s admin and the Meta Business account.' },
+  'gbp:basics': { source: 'maps', area: 'google', implication: 'An incomplete listing shows less in Google Maps and local results and gives searchers less reason to choose the business.', measure: 'The Business Profile shows the address, category and hours, and its Performance tab is reviewed each month.', dependency: 'Owner access to the Google Business Profile.' },
+  'nap:phone': { source: 'maps', area: 'google', implication: 'Search engines match a business across its site and listing by name, address and phone; a missing phone weakens that match.', measure: 'The same phone number, written the same way, appears on the website and the Google listing.', dependency: 'Access to the website’s admin.' },
+  'placeholder:facebook:': { source: 'website', area: 'website', implication: 'Visitors who click the link land on a page that is not the business’s own, which costs trust and a follower.', measure: 'Every social link on the website opens one of the business’s own profiles.', dependency: 'Access to the website’s admin.' },
+  'placeholder:instagram:': { source: 'website', area: 'website', implication: 'Visitors who click the link land on a profile that is not the business’s own, which costs trust and a follower.', measure: 'Every social link on the website opens one of the business’s own profiles.', dependency: 'Access to the website’s admin.' },
+  'placeholder:facebook-page': { source: 'facebook', area: 'social', implication: 'A Page named after a placeholder leaves customers and search engines unsure which Page is the business’s.', measure: 'The Page shows the business’s name, logo and website.', dependency: 'Admin access to the Facebook Page.' },
+  'ig:professional': { source: 'instagram', area: 'social', implication: 'A personal account has no insights, contact buttons or shopping tags, so its results cannot be read or acted on.', measure: 'The account shows insights and a contact button, and its insights are reviewed each month.', dependency: 'The owner’s Instagram login.' },
+  'hreflang': { source: 'search', area: 'google', implication: 'US shoppers sent to another country’s page see the wrong prices and shipping, and some leave.', measure: 'A US search for the brand shows only the US pages.', dependency: 'Access to the store’s markets and theme settings.' },
+  'near-miss': { source: 'search', area: 'google', implication: 'These searches already show the site on page one; better answers move it up to where most of the clicks go.', measure: 'Search Console shows a better average position and more clicks for these searches.', dependency: 'Access to the blog and the pages that rank.' },
+  'new-page': { source: 'keywords', area: 'keywords', implication: 'Measured searches with no page to answer them are demand the site cannot capture today.', measure: 'The new page is indexed in Search Console and gains impressions for the search.', dependency: 'Access to the website’s admin and the product facts.' },
+  'meta:description': { source: 'website', area: 'website', implication: 'Without a description, search results show whatever text Google picks, which may not invite the click.', measure: 'Search Console shows the page’s click-through rate rising in the weeks after the change.', dependency: 'Access to the website’s admin.' },
+  'title:sold-out': { source: 'website', area: 'website', implication: 'A title that says SOLD OUT in search results turns searchers away, even after stock returns.', measure: 'No page title carries stock status, and the page’s clicks in Search Console recover.', dependency: 'Access to the website’s admin.' },
+  'alt': { source: 'website', area: 'website', implication: 'Images without descriptions cannot be read by screen readers or found through image search.', measure: 'Every product image on the homepage carries alt text naming the product.', dependency: 'Access to the website’s admin.' },
+  'thin': { source: 'website', area: 'website', implication: 'Pages with little readable text give search engines and AI assistants little to rank or quote.', measure: 'Each page carries its ingredients, how to use it and its FAQs in the page text.', dependency: 'Access to the website’s admin and the product facts.' },
+  'ai:entity': { source: 'website', area: 'website', implication: 'Assistants and search engines tie facts to a brand through one clear entity; without it, answers may leave the business out.', measure: 'The homepage schema validates with one business node, its @id and its confirmed profiles.', dependency: 'Access to the website’s theme code.' },
+};
+
+/** A finding the claim guard emptied: no title, or no evidence worth the name. */
+export const isHollowFinding = (f: Pick<ReportFinding, 'title' | 'evidence'>) => !f.title.trim() || f.evidence.trim().length < 20;
+
+/** What a topped-up write-up reaches: the gate's three substantive findings (verify.ts), four in all, never more than six. */
+export const TOP_UP = { substantive: 3, total: 4, max: 6 } as const;
+
+/**
+ * The write-up's findings without the hollow ones, topped up from the
+ * brief's client fixes that rest on a source the run checked (`checked`,
+ * from `evidenceCoverage`) until the gate's count of substantive findings
+ * and the total are reached (`TOP_UP`): one finding per fix, never one the
+ * write-up already makes. Seen on Baraguz's run of 2026-11-17: the guard
+ * removed "no active ads" claims and left two of four findings empty, and
+ * the gate held the run on one substantive finding.
+ */
+export function topUpFindings(findings: ReportFinding[], v: VisibilityOutput | null, checked: Set<string>, opts: { linkedData?: boolean } = {}): ReportFinding[] {
+  const kept = findings.filter((f) => !isHollowFinding(f));
+  const counted = () => out.filter((f) => isSubstantiveFinding(f, checked, opts.linkedData)).length;
+  const enough = () => counted() >= TOP_UP.substantive && out.length >= TOP_UP.total;
+  const out = [...kept];
+  if (!v || enough()) return kept;
+  const have = kept.map((f) => new Set(contentWords(`${f.title} ${f.action}`)));
+  const similar = (title: string) => {
+    const w = contentWords(title);
+    return have.some((h) => w.length > 0 && w.filter((x) => h.has(x)).length / w.length >= 0.6);
+  };
+  for (const win of v.quick_wins) {
+    if (enough() || out.length >= TOP_UP.max) break;
+    if (!win.client) continue;
+    const rule = Object.entries(FINDING_FROM_FIX).find(([id]) => (id.endsWith(':') ? win.id.startsWith(id) : win.id === id))?.[1];
+    if (!rule || !checked.has(rule.source) || win.evidence.length < 40 || win.action.length < 40 || similar(win.title)) continue;
+    out.push({
+      area: rule.area,
+      priority: win.week === 1 ? 'high' : 'medium',
+      title: win.title,
+      evidence: win.evidence,
+      source: rule.source,
+      basis: 'observed',
+      implication: rule.implication,
+      action: win.action,
+      measure: rule.measure,
+      effort: win.week === 1 ? 'First week' : `Week ${win.week}`,
+      dependency: rule.dependency,
+    });
+    have.push(new Set(contentWords(`${win.title} ${win.action}`)));
+  }
+  return out;
 }

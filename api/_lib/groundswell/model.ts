@@ -205,6 +205,21 @@ export function evidenceCoverage(f: Facts): EvidenceRecord[] {
   ];
 }
 
+/**
+ * A finding the delivery gate counts (verify.ts): not a hypothesis, from a
+ * source the run checked (`checked`, from `evidenceCoverage`; the client's
+ * accounts when one answered with data), with evidence, an action, an
+ * implication and a measure of substance, and a title that is not a slogan.
+ */
+export function isSubstantiveFinding(finding: ReportFinding, checked: Set<string>, linkedData = false): boolean {
+  return (
+    finding.basis !== 'hypothesis' &&
+    (finding.source === 'client_accounts' ? linkedData : checked.has(finding.source)) &&
+    finding.evidence.length >= 40 && finding.action.length >= 40 && finding.implication.length >= 30 && finding.measure.length >= 30 &&
+    !/^(?:boost .*presence|improve seo|post more|increase engagement)[.!]?$/i.test(finding.title.trim())
+  );
+}
+
 /** A small technical audit can proceed with explicit gaps; a largely failed research run needs a person before delivery. */
 export function criticalEvidenceProblems(f: Facts, planned: readonly string[] = []): string[] {
   const coverage = new Map(evidenceCoverage(f).map(s => [s.key, s]));

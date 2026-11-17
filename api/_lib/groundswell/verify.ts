@@ -11,7 +11,8 @@ import { runMaps } from './currents/maps.js';
 import { runKeywords, runSearch } from './currents/search.js';
 import { runSocial } from './currents/social.js';
 import { MAX_ATTEMPTS } from './engine.js';
-import { allowedNumbers, buildFacts, criticalEvidenceProblems, evidenceCoverage, factsForPrompt, roiInputsFrom, scrubUnsupportedClaims, SENTENCE, unsupportedNumbers, type Facts, type runModel } from './model.js';
+import { allowedNumbers, buildFacts, criticalEvidenceProblems, evidenceCoverage, isSubstantiveFinding, factsForPrompt, roiInputsFrom, scrubUnsupportedClaims, SENTENCE, unsupportedNumbers, type Facts, type runModel } from './model.js';
+import { isVisibilityOutput, topUpFindings } from './visibility.js';
 import { chatJson } from './openai.js';
 import { runRoiModel } from './roi.js';
 import { PermanentStepError, type AuditRow, type StepContext, type StepDefinition } from './types.js';
@@ -464,16 +465,15 @@ export const runVerifyCheck =
 
     const guarded = scrubUnsupportedClaims(reviewed.model.writeup, passes[chosen].facts);
     reviewed.model = { ...reviewed.model, writeup: guarded.writeup, removed_sentences: [...reviewed.model.removed_sentences, ...guarded.removed] };
+    // A finding the guard emptied goes; the write-up is topped back up from the brief's fixes on a checked source.
+    const checkedSources = new Set<string>(evidenceCoverage(passes[chosen].facts).filter((e) => e.status === 'checked').map((e) => e.key));
+    const linkedData = Boolean(passes[chosen].facts.linked?.services.some((s) => s.ok && s.data));
+    const visibility = isVisibilityOutput(ctx.outputs.visibility) ? ctx.outputs.visibility : null;
+    reviewed.model = { ...reviewed.model, writeup: { ...reviewed.model.writeup, findings: topUpFindings(reviewed.model.writeup.findings ?? [], visibility, checkedSources, { linkedData }) } };
     reviewed.record.dropped.push(...guarded.removed.map(from => ({ from, problem: 'The available source does not establish this absence or activity claim.' })));
     const holds: string[] = criticalEvidenceProblems(passes[chosen].facts, ctx.steps);
     if (reviewed.model.report_schema_version >= 2) {
-      const checked = new Set(evidenceCoverage(passes[chosen].facts).filter(s => s.status === 'checked').map(s => s.key));
-      const substantive = (reviewed.model.writeup.findings ?? []).filter(finding =>
-        finding.basis !== 'hypothesis' &&
-        (finding.source === 'client_accounts' ? passes[chosen].facts.linked?.services.some(s => s.ok && s.data) : checked.has(finding.source)) &&
-        finding.evidence.length >= 40 && finding.action.length >= 40 && finding.implication.length >= 30 && finding.measure.length >= 30 &&
-        !/^(?:boost .*presence|improve seo|post more|increase engagement)[.!]?$/i.test(finding.title.trim())
-      );
+      const substantive = (reviewed.model.writeup.findings ?? []).filter((finding) => isSubstantiveFinding(finding, checkedSources, linkedData));
       if (substantive.length < 3) holds.push(`The report has ${substantive.length} substantive evidence-backed findings. Complete the specific actions, business implications and verification checks before client delivery.`);
     }
     if (agreed === null) holds.push(`The figures did not agree after ${round} reads: ${summarize(disagreements)}.`);
