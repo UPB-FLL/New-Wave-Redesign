@@ -136,6 +136,18 @@ describe.skipIf(!hasChromium)('paginate (headless Chromium)', () => {
     expect(r.sheets.filter((s) => s.kicker.endsWith('· continued')).length).toBe(r.added);
   }, 60_000);
 
+  it('splits a table inside a wrapper (the brief’s fixes table, styled by its div) between rows, the wrapper kept on each part (Baraguz, 2026-11-17)', async () => {
+    const r = await printFramed([{ title: 'Fixes', body: `<div class="fixes">${rows(90)}</div>` }]);
+    expect(r.pdfPages).toBe(r.sheets.length);
+    expect(r.sheets.length).toBeGreaterThan(1);
+    r.sheets.forEach((s, i) => {
+      expect(s.height).toBeLessThanOrEqual(1056.5);
+      expect(s.foot).toBe(`${i + 1} / ${r.sheets.length}`);
+      expect(s.heads).toBe(1);
+    });
+    expect(r.sheets.reduce((a, s) => a + s.rows, 0)).toBe(90);
+  }, 60_000);
+
   it('leaves a document whose sections fit as it was', async () => {
     const r = await printFramed([{ title: 'One', body: items(5) }, { title: 'Two', body: rows(5) }]);
     expect(r.added).toBe(0);
