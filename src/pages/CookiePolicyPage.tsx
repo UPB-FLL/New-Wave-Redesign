@@ -75,6 +75,13 @@ const THIRD_PARTY_SERVICES: InventoryRow[] = [
     duration: '__cf_bm about 30 minutes; _cfuvid for the browser session.',
   },
   {
+    technology: 'intercom-id-eep3rzlx, intercom-session-eep3rzlx',
+    provider: 'Intercom',
+    kind: 'Script and cookies on this website’s domain',
+    purpose: 'The chat messenger on the New Wave IT pages (not the Social Engineering pages). Intercom’s script sets these cookies so a conversation you start continues as you move between pages and when you come back; it also stores Messenger settings in local storage. Intercom receives your IP address, browser details, the pages where the messenger is open, and anything you type into it. We do not send Intercom your name or email; you can give them in the chat if you choose.',
+    duration: 'From Intercom’s documentation, not yet our own scan: intercom-id about 9 months; intercom-session 1 week by default.',
+  },
+  {
     technology: 'Google Fonts',
     provider: 'Google',
     kind: 'Font files',
@@ -152,7 +159,7 @@ export default function CookiePolicyPage() {
   usePageMeta(IT_PAGE_META['/cookie-policy']);
 
   return (
-    <LegalPageLayout title="Cookie Policy" effectiveDate="October 15, 2026" breadcrumbs={IT_PAGE_META['/cookie-policy'].breadcrumbs}>
+    <LegalPageLayout title="Cookie Policy" effectiveDate="November 17, 2026" breadcrumbs={IT_PAGE_META['/cookie-policy'].breadcrumbs}>
       <p>
         This Cookie Policy explains the cookies, browser storage, and similar technologies used on the
         New Wave IT LLC website, including the New Wave: Social Engineering pages. Our website and
@@ -169,14 +176,15 @@ export default function CookiePolicyPage() {
               <li>The website uses <strong>Google Analytics{ADS_ACTIVE ? ' and Google Ads conversion tracking' : ''}</strong>, which set the first-party cookies listed below.</li>
               <li>These Google tags never load in a browser that sends a <strong>Global Privacy Control</strong> or <strong>Do Not Track</strong> signal.</li>
               <li>Otherwise, the website uses your browser's local and session storage for functional purposes only: caching page content and holding a support session you start.</li>
-              <li>Some content is loaded from third parties (the homepage video and fonts). We do not use a chat widget.</li>
+              <li>Some content is loaded from third parties (the homepage video and fonts). The New Wave IT pages also carry the <strong>Intercom</strong> chat messenger, which sets its own cookies to keep a conversation going.</li>
             </>
           ) : (
             <>
               <li>The New Wave IT website sets <strong>no cookies of its own</strong>.</li>
               <li>It uses your browser's local and session storage for functional purposes only: caching page content and holding a support session you start.</li>
               <li>Our analytics service does not use cookies and does not track you across other websites.</li>
-              <li>Some content is loaded from third parties (the homepage video and fonts). We do not use a chat widget. Two cookies set by Pexels' content-delivery provider are the only cookies our scan found.</li>
+              <li>Some content is loaded from third parties (the homepage video and fonts). Our last scan found two cookies, set by Pexels' content-delivery provider.</li>
+              <li>The New Wave IT pages carry the <strong>Intercom</strong> chat messenger, which sets its own cookies to keep a conversation going between pages and visits. It does not use them for advertising.</li>
               <li>We do not use advertising, retargeting, or cross-site tracking cookies, and we do not sell or share personal information, so we do not show a cookie consent banner. We will add visitor controls before activating any technology that calls for them.</li>
             </>
           )}
@@ -199,7 +207,8 @@ export default function CookiePolicyPage() {
           The tables below list what we found when we last scanned the live website on{' '}
           {COOKIE_INVENTORY_REVIEWED}. Durations are what we observed; vendors can change their own
           cookies and storage, and the behavior you see may depend on your browser, its settings, and
-          the features you use.
+          the features you use. The Intercom chat messenger was added on November 17, 2026, after that
+          scan; its row comes from Intercom’s documentation until the next scan.
         </p>
         <h3 className="text-lg font-semibold text-[var(--nw-current-navy)]">Storage set by this website</h3>
         <InventoryTable caption="Browser storage set by the New Wave IT website" rows={FIRST_PARTY_STORAGE} />
@@ -286,6 +295,11 @@ export default function CookiePolicyPage() {
             applicable law requires and update this Policy first.
           </p>
         )}
+        <p>
+          The Intercom chat messenger loads whether or not your browser sends these signals, because we
+          use it only to answer the questions you send us, not for advertising or cross-site tracking.
+          Blocking its cookies stops the chat from following you between pages.
+        </p>
         <p>
           Where applicable law gives you an opt-out right, you may{' '}
           <a className={LINK_CLASS} href="mailto:support@newwaveitfl.com">email our support team</a>.

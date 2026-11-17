@@ -87,6 +87,8 @@ describe('PrivacyPolicyPage', () => {
     expect(screen.queryByText(/securely retain information when those purposes no longer require it/i)).not.toBeInTheDocument();
     expect(screen.getByText(/does not sell sensitive personal data/i)).toBeInTheDocument();
     expect(screen.getByText(/Pexels and its content-delivery provider Cloudflare/i)).toBeInTheDocument();
+    expect(screen.getByText(/Twilio, Vercel, and Intercom \(the chat messenger on the New Wave IT pages/i)).toBeInTheDocument();
+    expect(screen.queryByText(/We do not use a chat widget/i)).not.toBeInTheDocument();
     expect(screen.getByText(/screen website submissions for spam and automated abuse/i)).toBeInTheDocument();
     expect(screen.getByText(/opt out of marketing email at any time/i)).toBeInTheDocument();
     const gpcSection = screen.getByRole('heading', { name: 'Do Not Track and Global Privacy Control' }).closest('section');
@@ -94,7 +96,7 @@ describe('PrivacyPolicyPage', () => {
     expect(gpcSection).toHaveTextContent(/does not respond to browser Do Not Track signals/i);
     expect(gpcSection).toHaveTextContent(/current practices described in this Policy do not involve the sale or sharing of personal information for cross-context behavioral advertising, so a Global Privacy Control signal does not presently change how this website behaves/i);
     expect(gpcSection).toHaveTextContent(/support@newwaveitfl\.com/i);
-    expect(screen.getByText('Effective date: October 15, 2026')).toBeInTheDocument();
+    expect(screen.getByText('Effective date: November 17, 2026')).toBeInTheDocument();
     expect(screen.getByText(/710 NW 5th Ave, Suite 1072/)).toBeInTheDocument();
     expect(screen.getByText(/Fort Lauderdale, FL 33311/)).toBeInTheDocument();
     expect(vi.mocked(usePageMeta)).toHaveBeenCalledWith({
@@ -118,7 +120,7 @@ describe('CookiePolicyPage', () => {
     expect(screen.getByText(/Google Analytics is not currently active/i)).toBeInTheDocument();
     expect(screen.getByText(/website and services are offered only in the United States/i)).toBeInTheDocument();
     expect(screen.getByText(/support@newwaveitfl\.com/i)).toBeInTheDocument();
-    expect(screen.getByText('Effective date: October 15, 2026')).toBeInTheDocument();
+    expect(screen.getByText('Effective date: November 17, 2026')).toBeInTheDocument();
     // The inventory lists what the production scan found: every first-party storage key,
     // the cookieless analytics, Pexels' Cloudflare cookies, and Google Fonts. The Elfsight chat
     // widget was removed from the site on October 15, 2026 and must not reappear in the inventory.
@@ -128,7 +130,12 @@ describe('CookiePolicyPage', () => {
     );
     expect(screen.getByText(/Visitors are identified by a hash of the request, which Vercel discards after 24 hours/i)).toBeInTheDocument();
     expect(screen.queryByText(/Elfsight/i)).not.toBeInTheDocument();
-    expect(screen.getByText(/We do not use a chat widget/i)).toBeInTheDocument();
+    // The Intercom chat messenger was added on November 17, 2026 (anonymous visitors, every
+    // browser, New Wave IT pages only); the policy names it and says where its row comes from.
+    expect(screen.queryByText(/We do not use a chat widget/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('rowheader', { name: 'intercom-id-eep3rzlx, intercom-session-eep3rzlx' })).toBeInTheDocument();
+    expect(screen.getByText(/its row comes from Intercom’s documentation until the next scan/i)).toBeInTheDocument();
+    expect(screen.getByText(/The Intercom chat messenger loads whether or not your browser sends these signals/i)).toBeInTheDocument();
     expect(screen.getByText(/we do not show a cookie consent banner/i)).toBeInTheDocument();
     expect(screen.getByText(/Do Not Track/)).toBeInTheDocument();
     // Never describe a technology as active that the site does not load.
